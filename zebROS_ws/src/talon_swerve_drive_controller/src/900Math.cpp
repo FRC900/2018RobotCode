@@ -39,10 +39,10 @@ double leastDistantAngleWithinHalfPi(double currentAngle, double targetAngle, bo
 	//used for turning wheels to the target angle (swerve)
 	double normalizedDiff = normalizeAngle(targetAngle) - normalizeAngle(currentAngle);
 
-	double withinPi = (abs(normalizedDiff) < M_PI) ? normalizedDiff : (normalizedDiff - (2 * M_PI * sign(normalizedDiff)));
+	double withinPi = (fabs(normalizedDiff) < M_PI) ? normalizedDiff : (normalizedDiff - (2 * M_PI * sign(normalizedDiff)));
 	double withinHalfPi;
 
-	if (abs(withinPi) < (M_PI / 2))
+	if (fabs(withinPi) < (M_PI / 2) )
 	{
 		withinHalfPi =  withinPi;
 		reverse = false;

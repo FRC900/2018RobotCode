@@ -103,7 +103,7 @@ class TalonHWCommand
 			softlimit_forward_enable_(false),
 			softlimit_reverse_threshold_(0.0),
 			softlimit_reverse_enable_(false),
-			softlimits_override_enable_(false),
+			softlimits_override_enable_(true),
 			softlimit_changed_(false),
 
 			// current limiting
@@ -123,20 +123,16 @@ class TalonHWCommand
 			motion_profile_control_frame_period_(20),
 			motion_profile_control_frame_period_changed_(false),
 
-			clear_sticky_faults_(false)
+			clear_sticky_faults_(false),
+			p_{0, 0},
+			i_{0, 0},
+			d_{0, 0},
+			f_{0, 0},
+			i_zone_{0, 0},
+			allowable_closed_loop_error_{0, 0}, // need better defaults
+			max_integral_accumulator_{0, 0},
+			pidf_changed_{false, false}
 		{
-			for (int slot = 0; slot < 2; slot++)
-			{
-				p_[slot] = 0.0;
-				i_[slot] = 0.0;
-				d_[slot] = 0.0;
-				f_[slot] = 0.0;
-				i_zone_[slot] = 0;
-				allowable_closed_loop_error_[slot] = 0;
-				max_integral_accumulator_[slot] = 0;
-
-				pidf_changed_[slot] = true;
-			}
 		}
 		// This gets the requested setpoint, not the
 		// status actually read from the controller
@@ -670,9 +666,9 @@ class TalonHWCommand
 										int &voltage_measurement_filter,
 										bool &voltage_compensation_enable)
 		{
-			voltage_compensation_saturation_ = voltage_compensation_saturation;
-			voltage_measurement_filter_ = voltage_measurement_filter;
-			voltage_compensation_enable_ = voltage_compensation_enable;
+			voltage_compensation_saturation = voltage_compensation_saturation_;
+			voltage_measurement_filter      = voltage_measurement_filter_;
+			voltage_compensation_enable     = voltage_compensation_enable_;
 			if (voltage_compensation_changed_)
 			{
 				voltage_compensation_changed_ = false;
@@ -969,7 +965,7 @@ class TalonHWCommand
 		}
 		std::vector<TrajectoryPoint> getMotionProfileTrajectories(void) const
 		{
-			motion_profile_trajectory_points_;
+			return motion_profile_trajectory_points_;
 		}
 		bool motionProfileTrajectoriesChanged(std::vector<TrajectoryPoint> &points)
 		{

@@ -10,13 +10,13 @@ generic_hw_control_loop:
 # of several types of HW interface : CAN_id, PWM_id, DIO_id, AIO_id, etc.
 hardware_interface:
    joints:
-       - {name: talon_1, type: can_talon_srx, can_id: 3}
-       - {name: talon_2, type: can_talon_srx, can_id: 9}
-       - {name: talon_linear, type: can_talon_srx, can_id: 0}  
+       #- {name: talon_1, type: can_talon_srx, can_id: 3}
+       #- {name: talon_2, type: can_talon_srx, can_id: 9}
+       - {name: talon_linear, type: can_talon_srx, can_id: 3}  
        #- {name: talon_3, type: can_talon_srx, can_id: 3}
        #- {name: talon_4, type: can_talon_srx, can_id: 4}
        #- {name: talon_5, type: can_talon_srx, can_id: 5}
-       - {name: nidec_brushless_1, type: nidec_brushless, pwm_channel: 1, dio_channel: 1}
+       #- {name: nidec_brushless_1, type: nidec_brushless, pwm_channel: 1, dio_channel: 1}
 
    # Add more data for each joint here - intitial mode, encoder type
    #    PIDF settings, limit switch settings, etc
@@ -53,69 +53,23 @@ joint_state_controller:
    type:         joint_state_controller/JointStateController
    publish_rate: 100
 
-# Create a controller called talon1_controller
-#  That name is used by spawner in the launch file to 
-#  actually start this controller
-# The joint it controls is talon_1. This should match
-# up with one of the names in the top-level joints list
-# above.  
-# The type is a talon_controllers/TalonController
-talon1_controller:
-    type: talon_controllers/TalonPercentOutputController
-    joint: talon_1
-    neutral_mode : Brake
-    sensor_phase: True
-    close_loop_values:
-        - {p: 2.0, i: .001, d: 2.0, f: 20.0, i_zone: 50}
-        - {p: 5.0, i: 5.0, d: 5.0, f: 10.0, i_zone: 100}
-
-# Do the same for a second joint. The name is different
-# but the type is the same as the previous controller
-talon2_controller:
-    type: talon_controllers/TalonPositionCloseLoopController
-    joint: talon_2
-    feedback: CTRE_MagEncoder_Absolute
-    neutral_mode: Coast
-    invert_output: True
-    close_loop_values:
-        - {p: 2.0, i: .001, d: 2.0, f: 0.0, i_zone: 0}
-        - {p: 5.0, i: 5.0, d: 5.0, f: 0.0, i_zone: 0}
-
-# Create a controller called talonElevator_controller
-# The name is used by spawner in the launch file to
-# actually start this controller
-# The joint is controls is talonElevator
-# up with one of the names in the top-level joints list
-# above
-# The type is a talon_controllers/TalonControler
 talon_linear_controller:
-    type: talon_controllers/TalonLinearPositionCloseLoopController
+    type: talon_controllers/TalonLinearMotionMagicCloseLoopController
     joint: talon_linear
-    neutral_mode: Brake
-    radius: 50
-    sensor_phase: True
+    radius: .03048
+    feedback_type: CTRE_MagEncoder_Absolute
+    #Note, needs an f term for motion magic mode
     close_loop_values:
-        - {p: 2.0, i: .001, d: 2.0, f: 0.0, i_zone: 0}
-        - {p: 5.0, i: 5.0, d: 5.0, f: 0.0, i_zone: 0}
-
-#talon3_controller:
-#type: talon_controllers/TalonPercentOutputController
-#joint: talon_3
-#
-#talon4_controller:
-#type: talon_controllers/TalonPercentOutputController
-#joint: talon_4
-#
-#talon5_controller:
-#type: talon_controllers/TalonFollowerController
-#joint: talon_5
-#follow_joint: talon_1
-
-nidec_brushless1_controller:
-    type: velocity_controllers/JointVelocityController
-    joint: nidec_brushless_1
-
-
-
-
-
+        - {p: .75, i: 0.01, d: 0.1, f: 0.0, i_zone: 500}
+        - {p: .75, i: 0.01, d: 0.1, f: 0.0, i_zone: 500}
+    softlimit_forward_threshold: 3600.0
+    softlimit_reverse_threshold: -15000.0
+    softlimit_forward_enable: true 
+    softlimit_reverse_enable: true
+    #softlimit_override_enable: true 
+    peak_output_forward: 1.0
+    peak_output_reverse: -1.0
+    nominal_output_forward: 0.0
+    nominal_output_reverse: 0.0
+    motion_cruise_velocity: 3000
+    motion_acceleration: 1000

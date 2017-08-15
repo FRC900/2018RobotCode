@@ -247,7 +247,10 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				softlimit_reverse_enable,
 				softlimit_override_enable))
 		{
-			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" soft limits");
+			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" soft limits " << 
+					std::endl << "\tforward enable=" << softlimit_forward_enable << " forward threshold=" << softlimit_forward_threshold <<
+					std::endl << "\treverse enable=" << softlimit_reverse_enable << " reverse threshold=" << softlimit_reverse_threshold <<
+					std::endl << "\toverride_enable=" << softlimit_override_enable);
 			ts.setForwardSoftLimitThreshold(softlimit_forward_threshold);
 			ts.setForwardSoftLimitEnable(softlimit_forward_enable);
 			ts.setReverseSoftLimitThreshold(softlimit_reverse_threshold);
@@ -355,15 +358,28 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 		// TODO - maybe check for < 0, 0, >0 and map to forward/reverse?
 		const double command = double_solenoid_command_[i];
 		double setpoint;
-		if (setpoint >= 1.)
+		if (command >= 1.)
 			setpoint = 1.;
-		else if (setpoint <= -1.)
+		else if (command <= -1.)
 			setpoint = -1.;
 		else
 			setpoint = 0.;
 
 		double_solenoid_state_[i] = setpoint;
 	}
+	for (size_t i = 0; i < num_rumble_; i++)
+	{
+		unsigned int rumbles = *((unsigned int*)(&rumble_command_[i]));	
+		unsigned int left_rumble  = (rumbles >> 16) & 0xFFFF;
+		unsigned int right_rumble = (rumbles      ) & 0xFFFF;
+#if 0
+		ROS_INFO_STREAM_THROTTLE(1,
+				"Joystick at port " << rumble_ports_[i] <<
+				" left rumble = " << std::dec << left_rumble << "(" << std::hex << left_rumble << 
+				") right rumble = " << std::dec << right_rumble << "(" << std::hex << right_rumble <<  ")" << std::dec);
+#endif
+	}
+	
 }
 
 }  // namespace
