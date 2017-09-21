@@ -123,6 +123,8 @@ include_directories(
   $ENV{HOME}/wpilib/cpp/current/include
 )
 
+if (DEFINED CMAKE_TOOLCHAIN_FILE)
+
 ## Declare a C++ executable
 add_executable(encoder_example_node src/encoder_example.cpp)
 
@@ -158,6 +160,7 @@ target_link_libraries(encoder_example_node
 	${WPI_LIB_DIR}/libniriosession.so
 	${WPI_LIB_DIR}/libni_rtlog.so
 )
+endif() # Skip build for non-cross environment (e.g. Jetson build)
 
 #############
 ## Install ##
@@ -173,12 +176,14 @@ target_link_libraries(encoder_example_node
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
+if (DEFINED CMAKE_TOOLCHAIN_FILE)
 # Mark executables and/or libraries for installation
  install(TARGETS encoder_example_node
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
+endif()
 
 # Mark cpp header files for installation
  install(DIRECTORY include/${PROJECT_NAME}/
