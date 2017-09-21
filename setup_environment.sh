@@ -27,22 +27,22 @@ sudo apt-get install -y libeigen3-dev build-essential gfortran git cmake libleve
 sudo apt-get install --no-install-recommends -y libboost-all-dev
 
 #install caffe
-cd
-git clone https://github.com/BVLC/caffe.git
-cd caffe
-mkdir build
-cd build
+# cd
+# git clone https://github.com/BVLC/caffe.git
+# cd caffe
+# mkdir build
+# cd build
 
-if [ "$gpu" == "false" ] ; then
-	cmake -DCPU_ONLY=ON ..
-else
-	cmake -DCUDA_USE_STATIC_CUDA_RUNTIME=OFF ..
-fi
+# if [ "$gpu" == "false" ] ; then
+	# cmake -DCPU_ONLY=ON ..
+# else
+	# cmake -DCUDA_USE_STATIC_CUDA_RUNTIME=OFF ..
+# fi
 
-make -j4 all
+# make -j4 all
 #make test
 #make runtest
-make -j4 install
+# make -j4 install
 
 # Install libsodium - this is a prereq for zeromq
 cd
@@ -96,17 +96,17 @@ sudo apt-get install libflann-dev libpcl-dev
 #rm -rf pcl-1.8.0.zip pcl-pcl-1.8.0
 
 #install zed sdk
-if [ "$version" = tk1 ] && [ "$jetson" = true ] ; then
-	ext="ZED_SDK_Linux_JTK1_v1.2.0.run"
-elif [ "$version" = tx1 ] && [ "$jetson" = true ] ; then
-	ext="ZED_SDK_Linux_JTX1_v1.2.0_64b_JetPack23.run"
-else
-	ext="ZED_SDK_Linux_Ubuntu16_CUDA80_v1.2.0.run"
-fi
-wget --no-check-certificate https://www.stereolabs.com/download_327af3/$ext
-chmod 755 $ext
-./$ext
-rm ./$ext
+# if [ "$version" = tk1 ] && [ "$jetson" = true ] ; then
+	# ext="ZED_SDK_Linux_JTK1_v1.2.0.run"
+# elif [ "$version" = tx1 ] && [ "$jetson" = true ] ; then
+	# ext="ZED_SDK_Linux_JTX1_v1.2.0_64b_JetPack23.run"
+# else
+	# ext="ZED_SDK_Linux_Ubuntu16_CUDA80_v1.2.0.run"
+# fi
+# wget --no-check-certificate https://www.stereolabs.com/download_327af3/$ext
+# chmod 755 $ext
+# ./$ext
+# rm ./$ext
 
 #clone repo
 #TODO : rethink this - how are we getting the script if the
@@ -118,16 +118,16 @@ git submodule init
 git submodule update
 
 #build stuff
-cd libfovis
-mkdir build
-cd build
-cmake ..
-make -j4
-cd ../..
-cd zebravision
-cmake -DCUDA_USE_STATIC_CUDA_RUNTIME=OFF .
-make -j4
-
+# cd libfovis
+# mkdir build
+# cd build
+# cmake ..
+# make -j4
+# cd ../..
+# cd zebravision
+# cmake -DCUDA_USE_STATIC_CUDA_RUNTIME=OFF .
+# make -j4
+# 
 #mount and setup autostart script
 if [ "$jetson" = true ] ; then
 	sudo mkdir /mnt/900_2
