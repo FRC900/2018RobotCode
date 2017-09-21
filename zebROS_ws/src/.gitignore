@@ -1,3 +1,6 @@
 ros_control_boilerplate
 steered_wheel_base_controller
+rplidar_ros
+teleop_twist_joy
+zed-ros-wrapper
 
