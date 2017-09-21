@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 
 	ros::Rate loop_time(50); // run at 50Hz
 
-	CanTalonSRX canTalon(0); // make id number a param instead of hard-coded
+	CanTalonSRX canTalon(11); // make id number a param instead of hard-coded
 
 	while(ros::ok()) 
 	{
