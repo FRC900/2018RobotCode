@@ -1,0 +1,3 @@
+[submodule "navXTimeSync"]
+	path = navXTimeSync
+	url = https://github.com/FRC900/navXTimeSync
