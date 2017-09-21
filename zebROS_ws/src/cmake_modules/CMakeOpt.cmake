@@ -13,7 +13,6 @@ if (DEFINED CMAKE_TOOLCHAIN_FILE)  # Cross-build for Rio
   set (CMAKE_RANLIB "arm-none-eabi-gcc-ranlib")
   set (CMAKE_AR     "arm-none-eabi-gcc-ar")
 
-  #set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -Wl,-rpath-link,/usr/arm-frc-linux-gnueabi/opt/ros/kinetic/lib")
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath-link,/usr/arm-frc-linux-gnueabi/opt/ros/kinetic/lib")
 else() # Native builds
   set (CMAKE_RANLIB "gcc-ranlib")
