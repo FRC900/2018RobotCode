@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(encoder_example)
 
-#include ("../cmake_modules/CMakeOpt.cmake")
-add_definitions(-std=gnu++11)
+include ("../cmake_modules/CMakeOpt.cmake")
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -47,10 +46,10 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
- add_message_files(
-   FILES
-   canTalonEncoder.msg
- )
+add_message_files(
+  FILES
+  canTalonEncoder.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -71,7 +70,7 @@ generate_messages(
    DEPENDENCIES
    std_msgs
    encoder_example
- )
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -103,11 +102,11 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES goal_detection
-#  CATKIN_DEPENDS roscpp 
-#  DEPENDS system_lib
-   CATKIN_DEPENDS message_runtime
+# INCLUDE_DIRS include
+# LIBRARIES goal_detection
+# CATKIN_DEPENDS roscpp 
+# DEPENDS system_lib
+  CATKIN_DEPENDS message_runtime
 )
 
 ###########
@@ -143,22 +142,22 @@ find_library(CTRLibDriver CTRLibDriver PATH $ENV{HOME}/CTRE/cpp/lib)
 set (CTRE_LIB_DIR $ENV{HOME}/CTRE/cpp/lib)
 set (WPI_LIB_DIR  $ENV{HOME}/wpilib/cpp/current/lib)
 target_link_libraries(encoder_example_node
-	${catkin_LIBRARIES}
-	${CTRE_LIB_DIR}/libCTRLibDriver.a
-	${CTRE_LIB_DIR}/libCTRLib.a
-	${WPI_LIB_DIR}/libnirio_emb_can.so
-	${WPI_LIB_DIR}/libni_emb.so
-	${WPI_LIB_DIR}/libHALAthena.so
-	${WPI_LIB_DIR}/libi2c.so
-	${WPI_LIB_DIR}/libRoboRIO_FRC_ChipObject.so
-	${WPI_LIB_DIR}/libspi.so
-	${WPI_LIB_DIR}/libNiFpga.so
-	${WPI_LIB_DIR}/libNiFpgaLv.so
-	${WPI_LIB_DIR}/libFRC_NetworkCommunication.so
-	${WPI_LIB_DIR}/libNiRioSrv.so
-	${WPI_LIB_DIR}/libniriodevenum.so
-	${WPI_LIB_DIR}/libniriosession.so
-	${WPI_LIB_DIR}/libni_rtlog.so
+  ${catkin_LIBRARIES}
+  ${CTRE_LIB_DIR}/libCTRLibDriver.a
+  ${CTRE_LIB_DIR}/libCTRLib.a
+  ${WPI_LIB_DIR}/libnirio_emb_can.so
+  ${WPI_LIB_DIR}/libni_emb.so
+  ${WPI_LIB_DIR}/libHALAthena.so
+  ${WPI_LIB_DIR}/libi2c.so
+  ${WPI_LIB_DIR}/libRoboRIO_FRC_ChipObject.so
+  ${WPI_LIB_DIR}/libspi.so
+  ${WPI_LIB_DIR}/libNiFpga.so
+  ${WPI_LIB_DIR}/libNiFpgaLv.so
+  ${WPI_LIB_DIR}/libFRC_NetworkCommunication.so
+  ${WPI_LIB_DIR}/libNiRioSrv.so
+  ${WPI_LIB_DIR}/libniriodevenum.so
+  ${WPI_LIB_DIR}/libniriosession.so
+  ${WPI_LIB_DIR}/libni_rtlog.so
 )
 endif() # Skip build for non-cross environment (e.g. Jetson build)
 
@@ -178,19 +177,19 @@ endif() # Skip build for non-cross environment (e.g. Jetson build)
 
 if (DEFINED CMAKE_TOOLCHAIN_FILE)
 # Mark executables and/or libraries for installation
- install(TARGETS encoder_example_node
-   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
- )
+  install(TARGETS encoder_example_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
 endif()
 
 # Mark cpp header files for installation
- install(DIRECTORY include/${PROJECT_NAME}/
-   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-   FILES_MATCHING PATTERN "*.h"
-   PATTERN ".svn" EXCLUDE
- )
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.h"
+  PATTERN ".svn" EXCLUDE
+)
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 # install(FILES
