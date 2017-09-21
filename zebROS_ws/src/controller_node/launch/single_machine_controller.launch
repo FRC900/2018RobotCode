@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<launch>
+  <!-- Master jetson Setup -->
+  <group ns="zed_goal">
+    <include file="$(find zed_wrapper)/launch/zed_camera.launch">
+      <arg name="svo_file" value=""/>
+      <arg name="zed_id" value="0"/>
+      <arg name="brightness" value="-1"/>
+      <arg name="contrast" value="6"/>
+      <arg name="hue" value="6"/>
+      <arg name="saturation" value="3"/>
+      <arg name="gain" value="1"/>
+      <arg name="exposure" value="5"/>
+    </include>
+  </group>
+  <node name="goal_detection_node" pkg="goal_detection" type="goal_detection_node" respawn="true" />
+  <node name="navx_publisher_node" pkg="navx_publisher" type="navx_publisher_node" respawn="true" />
+  <!-- Uncomment when fuel detection is done
+    <node name="fuel_detection_node" pkg="fuel_detection" type="fuel_detection_node" respawn="true" />
+  -->
+</launch>

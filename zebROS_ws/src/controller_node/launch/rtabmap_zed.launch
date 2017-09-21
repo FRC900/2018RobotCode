@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+
+<launch>
+
+<arg name="camera"          default="zed_fuel"/>
+<node name="rviz" pkg="rviz" type="rviz" />
+
+<group ns="rtabmap">
+   <node name="rtabmap" pkg="rtabmap_ros" type="rtabmap" output="screen" args="--delete_db_on_start">
+	  <param name="frame_id"            type="string" value="$(arg camera)_current_frame"/>
+	
+	  <remap from="rgb/image"       to="/zed_fuel/rgb/image_rect_color"/>
+	  <remap from="depth/image"     to="/zed_fuel/depth/depth_registered"/>
+	  <remap from="rgb/camera_info" to="/zed_fuel/rgb/camera_info"/>
+	  <remap from="odom"            to="/odometry/filtered"/>
+ <!-- RTAB-Map's parameters -->
+          <param name="RGBD/AngularUpdate" type="string" value="0.01"/>
+          <param name="RGBD/LinearUpdate" type="string" value="0.01"/>
+          <param name="Rtabmap/TimeThr" type="string" value="700"/>
+          <param name="Mem/RehearsalSimilarity" type="string" value="0.45"/>
+          <param name="RGBD/OptimizeFromGraphEnd" type="string" value="true"/>
+   </node>
+</group>
+
+</launch>
+

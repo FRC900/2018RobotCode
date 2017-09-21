@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<!-- node to fuse odometry and IMU data into
+	 one single filtered odometry message
+-->
+
+<launch>
+	<node name="ukf_localization_node" pkg="robot_localization" type="ukf_localization_node">
+		<!-- 
+			Change the frame parametrs when re-localization
+			is implementated
+			By default it looks like this node publishes 
+			base_link <-> odom transform
+		-->
+		<param name="base_link_frame" value="base_link" />
+		<param name="odom_frame" value="odom" />
+		<param name="world_frame" value="odom" />
+
+		<param name="two_d_mode" value="true" />
+
+		<!--
+			Sensor Configuration:
+			x, y, z
+			roll, pitch, yaw
+			x-velocity, y-velocity, z-velocity
+			roll-velocity, pitch-velocity, yaw-velocity
+			x-acceleration, y-acceleration, z-acceleration
+		-->
+		<!--
+			The covariance matricies must be set correctly
+			or the state estimation node will be confused as to the correct
+			source of information
+		-->
+		<!-- odom0 (ZED Visual Odom): x, y, z, roll, pitch, yaw -->
+		<!-- Think about whether we want Z, roll, pitch - the robot shouldn't
+			 have significant net motion in those directions 
+			 (unless we are tipping over) and even so, do
+			 we want to trust the navx data instead? -->
+		<param name="odom0" value="/zed_fuel/odom" />
+		<rosparam param="odom0_config"> [true,  true,  true,
+                                         false, false, false, 
+                                         false, false, false,
+                                         false, false, false,
+                                         false, false, false]
+        </rosparam>
+		<param name="odom0_differential" value="false" />
+		<param name="odom0_relative" value="false" />
+
+		<!-- odom1 (Wheel encoder odometry): x, y, yaw pos?
+			 Could probably get acceleration from the raw
+             data but does it matter if we feed consecutive
+             velocity measurements to the UKF? -->
+<!--
+		<param name="odom1" value="/wheel_encoders/odom" />
+		<rosparam param="odom1_config"> [true , true , false,
+                                         false, false, true,
+                                         false, false, false,
+                                         false, false, false,
+                                         false, false, false]
+        </rosparam>
+		<param name="odom1_differential" value="false" />
+		<param name="odom1_relative" value="true" />
+-->
+		<!-- imu0 (NavX): roll, pitch, yaw, x-acc, y-acc, z-acc -->
+		<!-- maybe add in r/p/y velocity? /-->
+		<param name="imu0" value="/navx/imu" />
+		<rosparam param="imu0_config"> [false, false, false,
+                                        true,  true,  true, 
+                                        false, false, false,
+                                        false, false, false,
+                                        false, false, false]
+        </rosparam>
+		<param name="imu0_differential" value="false"/>
+		<param name="imu0_relative" value="true" />
+		<param name="imu0_remove_gravitational_acceleration" value="false" />
+	</node>
+</launch>

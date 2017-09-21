@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+
+<launch>
+	<node name="zed_odom_transform" pkg="controller_node" type="transform_odom.py" output="screen" args="0 0 0 0 0 0 1 /zed_fuel/odom /zed_fuel/odom/filtered"/>
+</launch>

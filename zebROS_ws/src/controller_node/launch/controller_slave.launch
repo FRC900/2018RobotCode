@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<launch>
+  <!-- 
+  Slave Node Launcher
+  # ZED Wrapper Instance
+  # NavX
+  # LIDAR
+  # TF2 static transforms for ZED, NavX and LIDAR
+  # Dummy odom->map identity transform as a placeholder until
+  #    localization works
+  # ukf node to fuse NavX, ZED and wheel encoder odometry
+  # move_base
+	-->
+  <arg name="name" default="zed_fuel" />
+  <arg name="record" default="False" />
+  
+  <group ns="$(arg name)">
+    <include file="$(find zed_wrapper)/launch/zed_camera.launch">
+      <arg name="resolution" value="2" />
+      <arg name="frame_rate" value="60" />
+      <arg name="quality" value="1" /> 
+
+	  <arg name="zed_name" value="$(arg name)" />
+	  <arg name="publish_tf" value="False" /> <!-- ukf node publishes this -->
+	  <arg name="base_frame" value="base_link" />
+    </include>
+  </group>
+  <include file="$(find controller_node)/launch/record_slave.launch" if="$(arg record)"/>
+  
+	<!-- 
+		Transform: x y z yaw pitch roll
+		Need 1 transform for each sensor source mapping
+		from the base_link (fixed known point on the
+		robot, for example, the center) to the location
+		of each sensor
+	-->
+
+  <!-- 
+		link position of camera on robot to base_link (center of robot)
+		Basically robot-centric coordinates of camera w.r.t. 
+        the center of the robot
+   -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_$(arg name)_center" args="0.297688 0.0079375 0.1749425 0 0 0 base_link $(arg name)_center" />
+
+  <!-- TODO : check rotation of the NavX - might be off by 90 degrees -->
+  <node name="navx_publisher_node" pkg="navx_publisher" type="navx_publisher_node" respawn="true" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_navx" args="-0.2914015 -0.072263 0.0244348 0 0 0 base_link navx_frame" />
+
+  <include file="$(find controller_node)/launch/fuse_odom.launch"/>
+
+  <!-- start up Lidar, and identify where it is on the robot -->
+  <include file="$(find rplidar_ros)/launch/rplidar.launch" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4175125 -0.3184779 0.22178 3.14159265 0 0 base_link laser" />
+
+  <include file="$(find controller_node)/launch/gmapping.launch"/>
+  <!-- This will eventually be handled by localization of some sort
+	   but for now include a dummy transform so map and odom are 
+       linked 
+  <node pkg="tf2_ros" type="static_transform_publisher" name="dummy_odom_to_map" args="0 0 0 0 0 0 map odom" />
+	-->
+
+  <!-- Start move_base, which does goal planning and pathing
+	   for the drive code-->
+  <include file="$(find controller_node)/launch/move_base.launch"/>
+</launch>

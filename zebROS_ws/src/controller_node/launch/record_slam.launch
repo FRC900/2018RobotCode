@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+
+<launch>
+  <!--
+  What we are recording:
+  * All image_rect_color (4 images) using regular expression
+  * Anything that is subscribed to by the nodes: rtabmap, goal detection, fuel detection
+  * Results of SLAM (point cloud)
+  * A few other misc topics
+  -->
+  <node name="rosbag_record_node" pkg="rosbag" type="record"
+  	args="-o /mnt/900_2 --buffsize=0 --lz4
+	--node=/ukf_localization_mode --node=/rtabmap/rtabmap --node=/rtabmap/rtabmapviz
+	--node=/fuel_detection_node --node=/goal_detection_node
+	/rtabmap/mapData
+    /zed_fuel/left/image_rect_color /zed_fuel/right/image_rect_color	
+	/diagnostics /tf /tf_static /rosout /rosout_agg"/>
+</launch>

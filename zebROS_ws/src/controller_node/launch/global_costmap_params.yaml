@@ -1,0 +1,16 @@
+global_costmap:
+  global_frame: odom # switch to map once mapping is running?
+  robot_base_frame: base_link
+  update_frequency: 5.0
+  publish_frequency: 5.0 # for rviz debugging?
+  
+  # Set this to true once a map server is running
+  # That will cause the costmap to fill in spaces
+  # the map_server shows as inaccessable (inside walls, etc)
+  static_map: false
+  rolling_window: true
+  map_type: costmap
+  width: 20.0
+  height: 20.0
+  origin_x: 10.0
+  origin_y: 10.0

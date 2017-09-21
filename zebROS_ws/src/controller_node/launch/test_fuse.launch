@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+
+<launch>
+  <!-- 
+  Slave Node Launcher
+  # ZED Wrapper Instance
+  # NavX
+  # LIDAR
+  # TF2 static transforms for ZED, NavX and LIDAR
+  # Dummy odom->map identity transform as a placeholder until
+  #    localization works
+  # ukf node to fuse NavX, ZED and wheel encoder odometry
+  # move_base
+	-->
+  <arg name="name" default="zed_fuel" />
+  <arg name="record" default="False" />
+  
+  <group ns="$(arg name)">
+    <include file="$(find zed_wrapper)/launch/zed_camera.launch">
+      <arg name="resolution" value="3" />
+      <arg name="frame_rate" value="30" />
+      <arg name="quality" value="3" />
+		
+	  <arg name="zed_name" value="$(arg name)" />
+      <arg name="publish_tf" value="False" />
+      <arg name="base_frame" value="base_link" />
+    </include>
+  </group>
+  <include file="$(find controller_node)/launch/record_slave.launch" if="$(arg record)"/>
+  
+	<!-- 
+		Transform: x y z roll pitch yaw 
+		Need 1 transform for each sensor source mapping
+		from the base_link (fixed known point on the
+		robot, for example, the center) to the location
+		of each sensor
+	-->
+
+  <!-- 
+	   For testing the ZED is the center of the robot, since
+		the ZED is the only bit of hardware we're using.
+   -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_$(arg name)_center" args="0 0 0 0 0 0 base_link $(arg name)_center" />
+
+  <!-- TODO : check rotation of the NavX -->
+  <node name="navx_publisher_node" pkg="navx_publisher" type="navx_publisher_node" respawn="true" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_navx" args="0 0 0.025 -1.5708 0 0 zed_fuel_center navx_frame" />
+
+  <include file="$(find controller_node)/launch/fuse_odom.launch"/>
+
+  <!-- This will eventually be handled by localization of some sort
+	   but for now include a dummy transform so map and odom are 
+       linked 
+	-->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="dummy_odom_to_map" args="0 0 0 0 0 0 map odom" />
+
+</launch>
