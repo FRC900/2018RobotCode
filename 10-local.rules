@@ -1,0 +1,1 @@
+ACTION=="add", ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5740", SYMLINK+="NAVX", MODE="0777"

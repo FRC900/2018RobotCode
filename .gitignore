@@ -1,2 +1,41 @@
+# Libraries
+*.lvlibp
+*.llb
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+*.o
+*.lib
+*.a
+
+# Executables
+*.exe
+*.pyc
+*.stackdump
+
+# Metadata
+*.aliases
+*.lvlps
+
+# backup files
 *~
-*.sw?
+*.bak
+*.sw[op]
+x
+
+# Cmake stuff
+CMakeCache.txt
+CMakeFiles
+cmake_install.cmake
+Makefile
+.ninja_deps
+.ninja_log
+build.ninja
+rules.ninja 
+
+*.avi
+*.zms
+

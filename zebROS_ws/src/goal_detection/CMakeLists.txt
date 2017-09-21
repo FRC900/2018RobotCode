@@ -6,18 +6,25 @@ include ("../cmake_modules/CMakeOpt.cmake")
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  message_filters
-  navx_publisher
-  message_generation
-  geometry_msgs
-  std_msgs
-  sensor_msgs
-)
-
-if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+if (DEFINED CMAKE_TOOLCHAIN_FILE)
   find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    message_filters
+    navx_publisher
+    message_generation
+    geometry_msgs
+    std_msgs
+    sensor_msgs
+  )
+else()
+  find_package(catkin REQUIRED COMPONENTS
+    roscpp
+    message_filters
+    navx_publisher
+    message_generation
+    geometry_msgs
+    std_msgs
+	sensor_msgs
     cv_bridge
   )
 endif()
@@ -111,12 +118,12 @@ generate_messages(
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-#catkin_package(
+catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES goal_detection
-#  CATKIN_DEPENDS roscpp message_runtime navx_publisher geometry_msgs std_msgs sensor_msgs
-#  DEPENDS system_lib
-#)
+ CATKIN_DEPENDS roscpp message_runtime navx_publisher geometry_msgs std_msgs sensor_msgs
+ #  DEPENDS system_lib
+)
 
 ###########
 ## Build ##

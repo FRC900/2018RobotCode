@@ -1,0 +1,20 @@
+# Zebravision 2017 
+
+[Unit]
+Description=2017 ROS Master Startup Script
+
+[Service]
+Type=simple
+WorkingDirectory=/mnt/900_2
+
+ExecStartPre=/bin/sh -ec 'sleep 5' ; \
+	     /bin/bash -ec "/home/ubuntu/2017VisionCode/set_freq_tx.sh || true" ; \
+	     /bin/bash -ec "/home/ubuntu/2017VisionCode/set_freq_tx.sh || true" ; \
+	     /bin/sh -ec 'ifup eth0 || true' ;
+
+ExecStart=/bin/bash -ec "/home/ubuntu/2017VisionCode/launch/master.sh || true"
+
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

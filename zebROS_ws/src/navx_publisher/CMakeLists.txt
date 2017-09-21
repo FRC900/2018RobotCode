@@ -47,11 +47,6 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
-include_directories(
-  ../../..
-  ../../../navXTimeSync
-)
-
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
@@ -127,6 +122,8 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ../../..
+  ../../../navXTimeSync
 )
 
 ## Declare a C++ library
