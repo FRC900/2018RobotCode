@@ -31,17 +31,17 @@ sudo rosdep init
 rosdep update
 
 # Google Cartographer installation forked from https://google-cartographer-ros.readthedocs.io/en/latest/
-cd ~/2017VisionCode/zebROS_ws/src
+cd ~/2017Preseason/zebROS_ws/src
 wstool init
 cd ..
 
 # Merge the cartographer_ros.rosinstall file and fetch code for dependencies.
-wstool merge -t src https://raw.githubusercontent.com/FRC900/cartographer_ros/master/cartographer_ros.rosinstall
-wstool merge -t src https://raw.githubusercontent.com/FRC900/teleop_twist_joy/indigo-devel/teleop_twist_joy.rosinstall
-wstool merge -t src https://raw.githubusercontent.com/FRC900/zed-ros-wrapper/master/zed_ros_wrapper.rosinstall
-wstool merge -t src https://raw.githubusercontent.com/FRC900/steered_wheel_base_controller/master/steered_wheel_base_controller.rosinstall
-wstool merge -t src https://raw.githubusercontent.com/FRC900/ros_control_boilerplate/kinetic-devel/ros_control_boilerplate.rosinstall
-wstool merge -t src https://raw.githubusercontent.com/FRC900/rplidar_ros/master/rplidar.rosinstall
+#wstool merge -t src https://raw.githubusercontent.com/FRC900/cartographer_ros/master/cartographer_ros.rosinstall
+#wstool merge -t src https://raw.githubusercontent.com/FRC900/teleop_twist_joy/indigo-devel/teleop_twist_joy.rosinstall
+#wstool merge -t src https://raw.githubusercontent.com/FRC900/zed-ros-wrapper/master/zed_ros_wrapper.rosinstall
+#wstool merge -t src https://raw.githubusercontent.com/FRC900/steered_wheel_base_controller/master/steered_wheel_base_controller.rosinstall
+#wstool merge -t src https://raw.githubusercontent.com/FRC900/ros_control_boilerplate/kinetic-devel/ros_control_boilerplate.rosinstall
+#wstool merge -t src https://raw.githubusercontent.com/FRC900/rplidar_ros/master/rplidar.rosinstall
 wstool update -t src
 
 # Install deb dependencies.
