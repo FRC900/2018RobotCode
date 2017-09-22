@@ -1,17 +1,17 @@
 jetson=true
-version=tx
+version="tx2"
 gpu=true
 
 #process args
 while [ $# -gt 0 ]
 do
 	case "$1" in
-		-jx) jetson=true;;
-	-jk) jetson=true; version=tk;;
+	-tx1) jetson=true;verson="tx1";;
+	-tx2) jetson=true;version="tx2";;
 	-amd64) jetson=false;;
 	-c) gpu=false;;
 	-h) echo >&2 \
-		"usage: $0 [-jx or -jk or -amd64] [-c] [-h]"
+		"usage: $0 [-tx1 or -tx2 or -amd64] [-c] [-h]"
 		exit 1;;
 	*)  break;;	# terminate while loop
 	esac
@@ -44,18 +44,18 @@ sudo apt-get install --no-install-recommends -y libboost-all-dev
 #make runtest
 # make -j4 install
 
-# Install libsodium - this is a prereq for zeromq
+# Install libsodium - this is a prereq for zeromq 1.0.14 released 9/21/2017
 cd
-wget --no-check-certificate https://download.libsodium.org/libsodium/releases/libsodium-1.0.13.tar.gz
-tar -zxvf libsodium-1.0.13.tar.gz
-cd libsodium-1.0.13
+wget --no-check-certificate https://download.libsodium.org/libsodium/releases/libsodium-1.0.14.tar.gz
+tar -zxvf libsodium-1.0.14.tar.gz
+cd libsodium-1.0.14
 ./configure
 make -j4 
 sudo make install
 cd ..
-rm -rf libsodium-1.0.13*
+rm -rf libsodium-1.0.14*
 
-# install zeromq
+# install zeromq 4.2.2 is latest stable as of 9/20/2017
 cd
 wget --no-check-certificate https://github.com/zeromq/libzmq/releases/download/v4.2.2/zeromq-4.2.2.tar.gz
 tar -xzvf zeromq-4.2.2.tar.gz
@@ -80,7 +80,6 @@ sudo make install
 cd ../..
 rm -rf tinyxml2
 
-
 # Install Point Cloud Library
 sudo apt-get install libflann-dev libpcl-dev
 #cd
@@ -96,52 +95,48 @@ sudo apt-get install libflann-dev libpcl-dev
 #rm -rf pcl-1.8.0.zip pcl-pcl-1.8.0
 
 #install zed sdk
-# if [ "$version" = tk1 ] && [ "$jetson" = true ] ; then
-	# ext="ZED_SDK_Linux_JTK1_v1.2.0.run"
-# elif [ "$version" = tx1 ] && [ "$jetson" = true ] ; then
-	# ext="ZED_SDK_Linux_JTX1_v1.2.0_64b_JetPack23.run"
-# else
-	# ext="ZED_SDK_Linux_Ubuntu16_CUDA80_v1.2.0.run"
-# fi
-# wget --no-check-certificate https://www.stereolabs.com/download_327af3/$ext
-# chmod 755 $ext
-# ./$ext
-# rm ./$ext
+if [ "$version" = tx1 ] && [ "$jetson" = true ] ; then
+	$zed_arch="JTX1"
+elif [ "$version" = tx2 ] && [ "$jetson" = true ] ; then
+	$zed_arch="JTX2"
+else
+	$zed_arch="Ubuntu16"
+fi
+
+#https://www.stereolabs.com/developers/downloads/ZED_SDK_Linux_JTX1_v2.1.2.run
+#https://www.stereolabs.com/developers/downloads/ZED_SDK_Linux_JTX1_v2.1.2.run
+#https://www.stereolabs.com/developers/downloads/ZED_SDK_Linux_Ubuntu16_v2.1.2.run
+
+zed_ver="2.1.2"
+zed_fn="ZED_SDK_Linux_"$zed_arch"_v"$zed_ver".run"
+wget --no-check-certificate https://www.stereolabs.com/download/$zed_fn
+chmod 755 $zed_fn
+./$zed_fn
+rm ./$zed_fn
+
 
 #clone repo
 #TODO : rethink this - how are we getting the script if the
 #       repo isn't there in the first place?
 cd
-git clone https://github.com/FRC900/2017Preseason.git
+#git clone https://github.com/FRC900/2017Preseason.git
 cd 2017Preseason
 git submodule init
 git submodule update
 
-#build stuff
-# cd libfovis
-# mkdir build
-# cd build
-# cmake ..
-# make -j4
-# cd ../..
-# cd zebravision
-# cmake -DCUDA_USE_STATIC_CUDA_RUNTIME=OFF .
-# make -j4
-# 
 #mount and setup autostart script
 if [ "$jetson" = true ] ; then
 	sudo mkdir /mnt/900_2
-	sudo mkdir -p /usr/local/zed/settings
-	sudo chmod 755 /usr/local/zed/settings
-	sudo cp ~/2017Preseason/calibration_files/*.conf /usr/local/zed/settings
-	sudo chmod 644 /usr/local/zed/settings/*
 
-	# For tx2 only
-	# sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/usb/serial
-	# sudo cp cp210x.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/serial
-	# sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/usb/class
-	# sudo cp cdc-acm.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/class
-	# sudo depmod -a
+	# For tx2 only - install drivers for USB
+	# serial devices
+	if [ "$version" = tx2 ] ; then
+		sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/usb/serial
+		sudo cp cp210x.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/serial
+		sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/usb/class
+		sudo cp cdc-acm.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/class
+		sudo depmod -a
+	fi
 
 	# Kernel module build steps for TX2 : https://gist.github.com/sauhaardac/9d7a82c23e4b283a1e79009903095655
 	# Not needed unless Jetpack is updated and modules
@@ -171,6 +166,11 @@ if [ "$jetson" = true ] ; then
 	# sudo cp drivers/usb/serial/cdc-acm.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/class/cdc-acm.ko
 	# sudo depmod -a
 fi
+
+sudo mkdir -p /usr/local/zed/settings
+sudo chmod 755 /usr/local/zed/settings
+sudo cp ~/2017Preseason/calibration_files/*.conf /usr/local/zed/settings
+sudo chmod 644 /usr/local/zed/settings/*
 
 cp ~/2017Preseason/.vimrc ~/2017Preseason/.gvimrc ~
 sudo cp ~/2017Preseason/kjaget.vim /usr/share/vim/vim74/colors
