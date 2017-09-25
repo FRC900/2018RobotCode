@@ -165,7 +165,7 @@ if [ "$jetson" = true ] ; then
 	# sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/usb/class
 	# sudo cp drivers/usb/serial/cdc-acm.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/class/cdc-acm.ko
 	# sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/joystick
-	# sudo cp drivers/usb/serial/xpad.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/joystick/cdc-acm.ko
+	# sudo cp xpad.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/joystick/xpad.ko
 	# sudo depmod -a
 fi
 
