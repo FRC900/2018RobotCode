@@ -118,7 +118,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
-  $ENV{HOME}/CTRE/cpp/include
+  $ENV{HOME}/wpilib/user/cpp/include
   $ENV{HOME}/wpilib/cpp/current/include
 )
 
@@ -139,7 +139,7 @@ add_dependencies(encoder_example_node
 find_library(CTRLib CTRLib PATH $ENV{HOME}/CTRE/cpp/lib)
 find_library(CTRLibDriver CTRLibDriver PATH $ENV{HOME}/CTRE/cpp/lib)
 
-set (CTRE_LIB_DIR $ENV{HOME}/CTRE/cpp/lib)
+set (CTRE_LIB_DIR $ENV{HOME}/wpilib/user/cpp/lib)
 set (WPI_LIB_DIR  $ENV{HOME}/wpilib/cpp/current/lib)
 target_link_libraries(encoder_example_node
   ${catkin_LIBRARIES}
