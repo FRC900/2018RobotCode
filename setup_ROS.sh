@@ -67,7 +67,7 @@ wstool update
 # The command 'sudo rosdep init' will print an error if you have already
 # executed it since installing ROS. This error can be ignored.
 rosdep update
-rosdep install --from-paths src --ignore-src --rosdistro=kinetic -y
+rosdep install --from-paths . --ignore-src --rosdistro=kinetic -y
 
 source /opt/ros/kinetic/setup.bash
 
