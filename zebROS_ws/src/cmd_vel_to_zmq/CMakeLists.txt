@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cmd_vel_to_zmq)
-if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   set(CMAKE_MODULE_PATH "../cmake_modules")
   ## Compile as C++11, supported in ROS Kinetic and newer
   # add_compile_options(-std=c++11)
@@ -13,11 +12,13 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     roscpp
   )
 
+if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   ## System dependencies are found with CMake's conventions
   # find_package(Boost REQUIRED COMPONENTS system)
 
   #find_package (ZMQ REQUIRED)
   find_library (ZMQ_LIBRARIES zmq /usr/local/lib)
+endif()
 
   ## Uncomment this if the package has a setup.py. This macro ensures
   ## modules and global scripts declared therein get installed
@@ -132,6 +133,7 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   ## either from message generation or dynamic reconfigure
   # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
+if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   ## Declare a C++ executable
   ## With catkin_make all packages are built within a single CMake context
   ## The recommended prefix ensures that target names across packages don't collide
@@ -200,4 +202,12 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 
   ## Add folders to be run by python nosetests
   # catkin_add_nosetests(test)
+else()
+	# Do a dummy install to put env.sh into install_isolated 
+	# upon creation
+   install(FILES
+     # myfile1
+     # myfile2
+     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+   )
 endif()
