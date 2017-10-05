@@ -548,7 +548,7 @@ float GoalDetector::distanceUsingFOV(ObjectType _goal_shape, const Rect &rect) c
 	return _goal_shape.height() / (2.0 * tanf(size_fov / 2.0));
 }
 
-float GoalDetector::distanceUsingFixedHeight(const Rect &rect, const Point &center, float expected_delta_height) const {
+float GoalDetector::distanceUsingFixedHeight(const Rect &/*rect*/, const Point &center, float expected_delta_height) const {
 	/*
 	cout << "Center: " << center << endl;
 	float percent_image = ((float)center.y - (float)_frame_size.height/2.0)  / (float)_frame_size.height;
