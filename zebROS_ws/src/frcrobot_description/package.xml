@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package>
+  <name>frcrobot_description</name>
+  <version>0.0.0</version>
+  <description>Sample FRC Swerve Bot</description>
+
+  <maintainer email="programmers@team900.org">FRC900 Programming Team</maintainer>
+
+  <license>BSD</license>
+
+  <author email="programmers@team900.org">FRC900 Programming Team</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>joint_state_publisher</run_depend>
+  <run_depend>robot_state_publisher</run_depend>
+  <run_depend>rviz</run_depend>
+
+  <export>
+  </export>
+</package>
+
