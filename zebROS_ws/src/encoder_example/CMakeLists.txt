@@ -158,6 +158,8 @@ target_link_libraries(encoder_example_node
   ${WPI_LIB_DIR}/libniriodevenum.so
   ${WPI_LIB_DIR}/libniriosession.so
   ${WPI_LIB_DIR}/libni_rtlog.so
+  ${WPI_LIB_DIR}/libwpi.so
+  ${WPI_LIB_DIR}/libwpilibc.so
 )
 endif() # Skip build for non-cross environment (e.g. Jetson build)
 
