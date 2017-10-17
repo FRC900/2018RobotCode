@@ -10,7 +10,7 @@ sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installe
 
 mkdir -p ~/Downloads
 cd ~/Downloads
-wget https://www.eclipse.org/downloads/download.php?file=/oomph/epp/neon/R/eclipse-inst-linux64.tar.gz&mirror_id=492 
+wget http://mirror.csclub.uwaterloo.ca/eclipse/oomph/epp/neon/R/eclipse-inst-linux64.tar.gz
 tar -xzvf eclipse-inst-linux64.tar.gz 
 cd eclipse-installer
 ./eclipse-inst
@@ -28,16 +28,22 @@ cd eclipse-installer
 
 # Install CTRE libraries for TalonSRX controller
 cd
-wget http://www.ctr-electronics.com//downloads/lib/CTRE_FRCLibs_NON-WINDOWS_v5.0.3.3.zip
+wget http://www.ctr-electronics.com//downloads/lib/CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
 mkdir ctre
 cd ctre
-unzip ../CTRE_FRCLibs_NON-WINDOWS_v5.0.3.3.zip
+unzip ../CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
 cp -r cpp ~/wpilib/user
 cd ..
-rm -rf ctre CTRE_FRCLibs_NON-WINDOWS_v5.0.3.3.zip
+rm -rf ctre CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
+
+# Get ros for RoboRIO libraries
+cd
+wget -o roscore_roborio.tar.bz2 "https://drive.google.com/uc?export=download&id=0B8hPVHrmVeDgaFMtUXV1S0pWYWM"
+cd /usr/arm-frc-linux-gnueabi
+sudo tar -xjf ~/roborio_core.tar.bz2
 
 # Install roboRIO packages into the cross-root
-perl install_cross_packages.pl
+sudo perl ~/2017Preseason/install_cross_package.pl
 
 # Build/install cross version of console_bridge
 cd
@@ -46,6 +52,9 @@ cd console_bridge
 mkdir build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`/usr/bin/frc-cmake-toolchain` -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi ..
+sudo make -j4 install
+cd
+sudo rm -rf console_bridge
 
 # Build and install Poco libraries
 cd
@@ -57,6 +66,9 @@ sudo CROSS_COMPILE=arm-frc-linux-gnueabi- make -j8 install
 cd
 sudo rm -rf poco-1.7.8p3.tar.gz poco-1.7.8p3
 
+#Hack in a cmake file for Eigen3
+sudo mkdir -p /usr/arm-frc-linux-gnueabi/usr/lib/cmake/eigen3
+sudo cp /usr/lib/cmake/eigen3/Eigen3Config.cmake /usr/arm-frc-linux-gnueabi/usr/lib/cmake/eigen3
 
 # Build and instll SIP libraries
 cd
@@ -81,22 +93,32 @@ cd tinyxml
 wget https://gist.githubusercontent.com/TNick/7960323/raw/3046ecda1d4d54d777c407f43ac357846a192e05/TinyXML-CmakeLists.txt
 mv TinyXML-CmakeLists.txt CMakeLists.txt
 #add a line to CMakeLists.txt :  
-#  set_target_properties(tinyxml PROPERTIES PUBLIC_HEADER "tinyxml.h;tinystr.h")
+sed -i "14i  set_target_properties(tinyxml PROPERTIES PUBLIC_HEADER \"tinyxml.h;tinystr.h\")" CMakeLists.txt
 #add a line to tinyxml.h before line 46 :
-#  #define TIXML_USE_STL
+sed -i '45i  #define TIXML_USE_STL' tinyxml.h
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`/usr/bin/frc-cmake-toolchain` -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi -DCMAKE_POSITION_INDEPENDENT_CODE=ON .
 sudo make -j8 install 
 cd
-rm -rf tinyxml_2_6_2.zip tinyxml
+sudo rm -rf tinyxml_2_6_2.zip tinyxml
+
+cd
+wget https://github.com/gflags/gflags/archive/v2.2.1.tar.gz
+tar -xzvf v2.2.1.tar.gz
+cd gflags-2.2.1
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`/usr/bin/frc-cmake-toolchain` -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi .
+sudo make -j4 install
+cd 
+sudo rm -rf v2.2.1 gflags-2.2.1
 
 # Build and install google logging libraries
 cd
 wget https://github.com/google/glog/archive/v0.3.5.tar.gz
-tar -tzvf v0.3.5.tar.gz 
+tar -xzvf v0.3.5.tar.gz 
 cd glog-0.3.5/
 CFLAGS="-O2 -fPIC" CXXFLAGS="-O2 -fPIC" LDFLAGS="-fPIC" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local 
 sudo make -j8 install
-rm -rf  v0.3.5.tar.gz glog-0.3.5
+cd
+sudo rm -rf v0.3.5.tar.gz glog-0.3.5
 
 # Build and install qhull libraries
 cd
@@ -106,7 +128,7 @@ cd qhull-2015.2/
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`/usr/bin/frc-cmake-toolchain` -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi .
 sudo make -j8 install
 cd
-rm -rf qhull-2015-src-7.2.0.tgz qhull-2015.2
+sudo rm -rf qhull-2015-src-7.2.0.tgz qhull-2015.2
 
 # Build and install assimp libraries
 cd
@@ -114,10 +136,10 @@ git clone https://github.com/assimp/assimp.git
 cd assimp
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`/usr/bin/frc-cmake-toolchain`-DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi  .
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`/usr/bin/frc-cmake-toolchain` -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi  ..
 sudo make -j8 install
 cd
-rm -rf assimp
+sudo rm -rf assimp
 
 # Build and install UUID libraries
 cd
@@ -127,6 +149,6 @@ cd libuuid-1.0.3
 ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local 
 sudo make install
 cd
-rm -rf libuuid-1.0.3.tar.gz libuuid-1.0.3
+sudo rm -rf libuuid-1.0.3.tar.gz libuuid-1.0.3
 
 
