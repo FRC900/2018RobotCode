@@ -1,0 +1,8 @@
+<library path="lib/libtalon_controllers">
+
+  <class name="talon_controllers/TalonController" type="talon_controllers::TalonController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      The Talon controller is a sample controller used to run a single Talon  motor controller
+    </description>
+  </class>
+</library>

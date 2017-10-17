@@ -1,0 +1,28 @@
+<package format="2">
+  <name>talon_controllers</name>
+  <version>0.1.0</version>
+  <description>talon_controllers</description>
+
+  <maintainer email="programmers@team900.org">FRC900 Programmers</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">https://github.com/FRC900</url>
+
+  <author>Team900 Programmers</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>angles</depend>
+  <depend>control_msgs</depend>
+  <depend>controller_interface</depend>
+  <depend>forward_command_controller</depend>
+  <depend>realtime_tools</depend>
+  <depend>talon_interface</depend>
+  <depend>urdf</depend>
+
+  <export>
+    <controller_interface plugin="${prefix}/talon_controllers_plugins.xml"/>
+  </export>
+</package>
+
