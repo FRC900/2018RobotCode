@@ -40,11 +40,45 @@ namespace hardware_interface
 			const double *getPositionPtr(void) const { return &position_; }
 			const double *getSpeedPtr   (void) const { return &speed_; }
 			const double *getEffortPtr  (void) const { return &output_voltage_; }
+			
+			// Add code to read all the other state from the Talon :
+			// output mode
+			// limit switch settings, sensing
+			// pid slot selected and PIDF values
+			// voltage compensatino stuff
+			// etc, etc, etc
 		private:
 			double position_;
 			double speed_;
 			double output_voltage_;
 	};
+
+	// Handle - used by each controller to get, by name of the
+	// corresponding joint, an interface with which to get state
+	// info about a Talon
+	class TalonStateHandle : public JointStateHandle
+	{
+		public:
+			TalonStateHandle(void) : 
+				state_(0) 
+			{}
+
+			TalonStateHandle(const std::string &name, const TalonHWState *state) :
+				JointStateHandle(name, state->getPositionPtr(), state->getSpeedPtr(), state->getEffortPtr()),
+				state_(state)
+			{
+				if (!state)
+					throw HardwareInterfaceException("Cannot create Talon state handle '" + name + "'. state pointer is null.");
+			}
+
+		private:
+			const TalonHWState *state_; // leave this const since state should never change the Talon itself
+	};
+
+	// Glue code to let this be registered in the list of
+	// hardware resources on the robot.  Since state is
+	// read-only, allow multiple controllers to register it.
+	class TalonStateInterface : public HardwareResourceManager<TalonStateHandle> {};
 
 	// Class to buffer data needed to set the state of the
 	// Talon.  This should (eventually) include anything
@@ -84,33 +118,6 @@ namespace hardware_interface
 			double d_[2];
 			double f_[2];
 	};
-
-	// Handle - used by each controller to get, by name of the
-	// corresponding joint, an interface with which to get state
-	// info about a Talon
-	class TalonStateHandle : public JointStateHandle
-	{
-		public:
-			TalonStateHandle(void) : 
-				state_(0) 
-			{}
-
-			TalonStateHandle(const std::string &name, const TalonHWState *state) :
-				JointStateHandle(name, state->getPositionPtr(), state->getSpeedPtr(), state->getEffortPtr()),
-				state_(state)
-			{
-				if (!state)
-					throw HardwareInterfaceException("Cannot create Talon state handle '" + name + "'. state pointer is null.");
-			}
-
-		private:
-			const TalonHWState *state_; // leave this const since state should never change the Talon itself
-	};
-
-	// Glue code to let this be registered in the list of
-	// hardware resources on the robot.  Since state is
-	// read-only, allow multiple controllers to register it.
-	class TalonStateInterface : public HardwareResourceManager<TalonStateHandle> {};
 
 	// Handle - used by each controller to get, by name of the
 	// corresponding joint, an interface with which to send commands
