@@ -3,6 +3,7 @@
 
 # Install toolchain 
 sudo apt-add-repository ppa:wpilib/toolchain
+sudo add-apt-repository ppa:wpilib/toolchain-beta
 sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get update
 sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installer frc-toolchain meshlab cmake libprotobuf-dev libprotoc-dev protobuf-compiler
@@ -52,9 +53,9 @@ wget https://pocoproject.org/releases/poco-1.7.8/poco-1.7.8p3.tar.gz
 tar xzf poco-1.7.8p3.tar.gz 
 cd poco-1.7.8p3/
 CROSS_COMPILE=arm-frc-linux-gnueabi- ./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal --prefix=/usr/arm-frc-linux-gnueabi/usr/local
-CROSS_COMPILE=arm-frc-linux-gnueabi- make -j8 
+sudo CROSS_COMPILE=arm-frc-linux-gnueabi- make -j8 install
 cd
-rm -rf poco-1.7.8p3.tar.gz poco-1.7.8p3
+sudo rm -rf poco-1.7.8p3.tar.gz poco-1.7.8p3
 
 
 # Build and instll SIP libraries
@@ -64,10 +65,12 @@ tar -xzvf sip-4.17.tar.gz
 cd sip-4.17
 python configure.py CC=arm-frc-linux-gnueabi-gcc CXX=arm-frc-linux-gnueabi-g++ LINK=arm-frc-linux-gnueabi-g++ LINK_SHLIB=arm-frc-linux-gnueabi-g++ --sysroot=/usr/arm-frc-linux-gnueabi --incdir=/usr/arm-frc-linux-gnueabi/usr/include/python2.7 STRIP=arm-frc-linux-gnueabi-strip
 
-edit siplib/Makefile to change CPP flags include to -I/usr/arm-frc-linux-gnueabi/usr/include/python2.7
+#edit siplib/Makefile to change CPP flags include to -I/usr/arm-frc-linux-gnueabi/usr/include/python2.7
+sed -i '/^CPPFLAGS/ s_include_usr/include_' siplib/Makefile 
+
 sudo make install
 cd
-rm -rf sip-4.17.tar.gz sip-4.17
+sudo rm -rf sip-4.17.tar.gz sip-4.17
 
 
 # Build and install tinyxml
