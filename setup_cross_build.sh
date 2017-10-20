@@ -8,12 +8,12 @@ sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get update
 sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installer frc-toolchain meshlab cmake libprotobuf-dev libprotoc-dev protobuf-compiler
 
-mkdir -p ~/Downloads
-cd ~/Downloads
-wget http://mirror.csclub.uwaterloo.ca/eclipse/oomph/epp/neon/R/eclipse-inst-linux64.tar.gz
-tar -xzvf eclipse-inst-linux64.tar.gz 
-cd eclipse-installer
-./eclipse-inst
+#mkdir -p ~/Downloads
+#cd ~/Downloads
+#wget http://mirror.csclub.uwaterloo.ca/eclipse/oomph/epp/neon/R/eclipse-inst-linux64.tar.gz
+#tar -xzvf eclipse-inst-linux64.tar.gz 
+#cd eclipse-installer
+#./eclipse-inst
 
 # follow installer prompts : select C++ development environment when prompted
 
@@ -26,21 +26,33 @@ cd eclipse-installer
     # Expand the WPILib Robot Development repo and choose to install the Robot C++ Development plugin.
     # Follow/confirm the wizard/prompts
 
-# Install CTRE libraries for TalonSRX controller
+
+# Grab our build of 2018 beta wpilib
+# Replace this eventually with a real build from FIRST
 cd
-wget http://www.ctr-electronics.com//downloads/lib/CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
-mkdir ctre
-cd ctre
-unzip ../CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
-cp -r cpp ~/wpilib/user
-cd ..
-rm -rf ctre CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
+wget -o wpilib.tar.bz2 "https://drive.google.com/uc?export=download&id=0B8hPVHrmVeDgdVJ1TEczUHFzSnM"
+tar -xjf wpilib.tar.bz2
+rm wpilib.tar.bz2
+
+# Install CTRE libraries for TalonSRX controller
+# included in above for now but keep handy
+# for upgrading if needed
+#cd
+#wget http://www.ctr-electronics.com//downloads/lib/CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
+#mkdir ctre
+#cd ctre
+#unzip ../CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
+#cp -r cpp ~/wpilib/user
+#cd ..
+#rm -rf ctre CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
 
 # Get ros for RoboRIO libraries
 cd
 wget -o roscore_roborio.tar.bz2 "https://drive.google.com/uc?export=download&id=0B8hPVHrmVeDgaFMtUXV1S0pWYWM"
 cd /usr/arm-frc-linux-gnueabi
 sudo tar -xjf ~/roborio_core.tar.bz2
+cd
+rm roborio_core.tar.bz2
 
 # Install roboRIO packages into the cross-root
 sudo perl ~/2017Preseason/install_cross_package.pl
