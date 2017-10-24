@@ -16,8 +16,8 @@ rm -rf console_bridge
 cd
 git clone https://github.com/gflags/gflags.git
 cd gflags
-cmake -DCMAKE_BUILD_TYPE=Release  .
-sudo make install
+cmake -DCMAKE_BUILD_TYPE=Release .
+make install
 cd
 rm -rf gflags*
 
