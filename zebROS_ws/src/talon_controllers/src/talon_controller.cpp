@@ -7,5 +7,5 @@ void talon_controllers::TalonController::starting(const ros::Time& /*time*/)
   command_buffer_.writeFromNonRT(0.0);
 }
 
-
-PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonController,controller_interface::ControllerBase)
+PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonController,
+		               controller_interface::ControllerBase)

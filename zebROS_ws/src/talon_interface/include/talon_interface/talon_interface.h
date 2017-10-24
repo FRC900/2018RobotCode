@@ -80,6 +80,19 @@ namespace hardware_interface
 	// read-only, allow multiple controllers to register it.
 	class TalonStateInterface : public HardwareResourceManager<TalonStateHandle> {};
 
+	// Sync these with values in CanTalonSRX
+	enum TalonMode
+	{
+		TalonMode_Uninitialized = -1,
+		TalonMode_PercentVbus,
+		TalonMode_PositionCloseLoop,
+		TalonMode_VelocityCloseLoop,
+		TalonMode_CurrentCloseLoop,
+		TalonMode_VoltCompen,
+		TalonMode_SlaveFollower,
+		TalonMode_MotionProfile,
+		TalonMode_Last
+	};
 	// Class to buffer data needed to set the state of the
 	// Talon.  This should (eventually) include anything
 	// which might be set during runtime.  Config data
@@ -98,25 +111,65 @@ namespace hardware_interface
 	class TalonHWCommand
 	{
 		public:
+			TalonHWCommand(void) :
+				command_(0.),
+				mode_(TalonMode_Uninitialized),
+				mode_changed_(false),
+				pidf_slot_(0),
+				pidf_slot_changed_(false)
+			{
+				for (int slot = 0; slot < 2; slot++)
+				{
+					p_[slot] =  0.0;
+					i_[slot] =  0.0;
+					d_[slot] =  0.0;
+					f_[slot] =  0.0;
+					i_zone_[slot] = 0.0;
+				}
+			}
 			double get(void) const {return command_;}
+			TalonMode getMode(void) const {return mode_;}
 
 			void set(double command) {command_ = command;}
+			void setMode(const TalonMode mode)
+			{
+				if ((mode <= TalonMode_Uninitialized) || (mode >= TalonMode_Last))
+				{
+					ROS_WARN("Invalid mode passed to TalonHWCommand::setMode()");
+					return;
+				}
+				mode_         = mode;
+				mode_changed_ = true;
+				this->set(0); // ??? Clear out setpoint for old mode
+			}
+			// Check to see if mode changed since last call
+			// If so, return true and set mode to new desired
+			// talon mode
+			// If mode hasn't changed, return false
+			bool newMode(TalonMode &mode)
+			{
+				if (!mode_changed_)
+					return false;
+				mode          = mode_;
+				mode_changed_ = false;
+				return true;
+			}
 
 		private:
-			double command_;
+			double    command_;
 
-			int    mode_;
-			bool   mode_changed_;
+			TalonMode mode_;
+			bool      mode_changed_;
 
-			int    pidf_config_; // index 0 or 1 of the active PIDF config
-			bool   pidf_config_changed_; // set to true to trigger a write to PIDF select on Talon
+			int       pidf_slot_; // index 0 or 1 of the active PIDF slot
+			bool      pidf_slot_changed_; // set to true to trigger a write to PIDF select on Talon
 
 			// 2 entries in the Talon HW for each of these settings
-			double p_[2];
-			double i_[2];
-			double i_zone[2];
-			double d_[2];
-			double f_[2];
+			double    p_[2];
+			double    i_[2];
+			double    i_zone_[2];
+			double    d_[2];
+			double    f_[2];
 	};
 
 	// Handle - used by each controller to get, by name of the
@@ -141,6 +194,14 @@ namespace hardware_interface
 
 			void setCommand(double command) {assert(cmd_); cmd_->set(command);}
 			double getCommand(void) const {assert(cmd_); return cmd_->get();}
+
+			void setMode(const TalonMode mode) {assert(cmd_); cmd_->setMode(mode);}
+			TalonMode getMode(void) const {assert(cmd_); return cmd_->getMode();}
+			// Check to see if mode changed since last call
+			// If so, return true and set mode to new desired
+			// talon mode
+			// If mode hasn't changed, return false
+			bool newMode(TalonMode& mode) {assert(cmd_); return cmd_->newMode(mode);}
 
 		private:
 			TalonHWCommand *cmd_;
