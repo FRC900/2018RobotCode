@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(talon_controllers)
 
+include (../cmake_modules/CMakeOpt.cmake)
+
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS
   angles
   control_msgs
-  control_toolbox
   controller_interface
-  forward_command_controller
   realtime_tools
   talon_interface
   urdf
@@ -19,7 +19,6 @@ catkin_package(
     angles
     control_msgs
     controller_interface
-    forward_command_controller
     realtime_tools
 	talon_interface
     urdf

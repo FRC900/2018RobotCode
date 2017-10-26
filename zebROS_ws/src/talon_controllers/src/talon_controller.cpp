@@ -1,11 +1,8 @@
 #include <talon_controllers/talon_controller.h>
 #include <pluginlib/class_list_macros.h>
 
-void talon_controllers::TalonController::starting(const ros::Time& /*time*/)
-{
-  // Start controller with 0.0 velocity
-  command_buffer_.writeFromNonRT(0.0);
-}
+PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonPercentVbusController,
+		               controller_interface::ControllerBase)
 
-PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonController,
+PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonPositionCloseLoopController,
 		               controller_interface::ControllerBase)

@@ -63,6 +63,15 @@ namespace hardware_interface
 				state_(0) 
 			{}
 
+			// Initialize the base JointStateHandle with pointers
+			// from the state data object.  Since the standard ROS
+			// code uses JointStateHAndles in some places to display
+			// robot state support that code as much as possible.  We'll
+			// have to figure out what effort maps to in the Talon
+			// Anything above and beyond the 3 standard ROS state
+			// vars (position, velocity, effort) will require support
+			// in the controller as well as the HWState object pointed
+			// to by a given handle.
 			TalonStateHandle(const std::string &name, const TalonHWState *state) :
 				JointStateHandle(name, state->getPositionPtr(), state->getSpeedPtr(), state->getEffortPtr()),
 				state_(state)
@@ -70,6 +79,19 @@ namespace hardware_interface
 				if (!state)
 					throw HardwareInterfaceException("Cannot create Talon state handle '" + name + "'. state pointer is null.");
 			}
+
+			// Operator which allows access to methods from
+			// the TalonHWState member var associated with this
+			// handle
+			// Note that we could create separate methods in
+			// the handle class for every method in the HWState
+			// class, e.g. 
+			//     double getFoo(void) const {assert(_state); return state_->getFoo();}
+			// but if each of them just pass things unchanged between
+			// the calling code and the HWState method there's no
+			// harm in making a single method to do so rather than
+			// dozens of getFoo() one-line methods
+			const TalonHWState * operator->() const {assert(state_); return state_;}
 
 		private:
 			const TalonHWState *state_; // leave this const since state should never change the Talon itself
@@ -80,7 +102,7 @@ namespace hardware_interface
 	// read-only, allow multiple controllers to register it.
 	class TalonStateInterface : public HardwareResourceManager<TalonStateHandle> {};
 
-	// Sync these with values in CanTalonSRX
+	// Sync these with values in CanTalonSRX / CANTalon
 	enum TalonMode
 	{
 		TalonMode_Uninitialized = -1,
@@ -93,11 +115,12 @@ namespace hardware_interface
 		TalonMode_MotionProfile,
 		TalonMode_Last
 	};
+
 	// Class to buffer data needed to set the state of the
 	// Talon.  This should (eventually) include anything
 	// which might be set during runtime.  Config data
 	// which is set only once at startup can be handled
-	// in the hardware manager init rather than through
+	// in the hardware manager constructor/init rather than through
 	// this interface.
 	// Various controller code will set the member vars of 
 	// this class depending on the needs of the motor 
@@ -146,6 +169,10 @@ namespace hardware_interface
 			// If so, return true and set mode to new desired
 			// talon mode
 			// If mode hasn't changed, return false
+			// Goal here is to prevent writes to the CAN
+			// bus to set the mode to the same value. Instead,
+			// only send a setMode to a given Talon if the mode
+			// has actually changed.
 			bool newMode(TalonMode &mode)
 			{
 				if (!mode_changed_)
@@ -156,7 +183,7 @@ namespace hardware_interface
 			}
 
 		private:
-			double    command_;
+			double    command_; // motor setpoint - % vbus, velocity, position, etc
 
 			TalonMode mode_;
 			bool      mode_changed_;
@@ -192,28 +219,15 @@ namespace hardware_interface
 					throw HardwareInterfaceException("Cannot create Talon handle '" + js.getName() + "'. command pointer is null.");
 			}
 
-			void setCommand(double command) {assert(cmd_); cmd_->set(command);}
-			double getCommand(void) const {assert(cmd_); return cmd_->get();}
-
-			void setMode(const TalonMode mode) {assert(cmd_); cmd_->setMode(mode);}
-			TalonMode getMode(void) const {assert(cmd_); return cmd_->getMode();}
-			// Check to see if mode changed since last call
-			// If so, return true and set mode to new desired
-			// talon mode
-			// If mode hasn't changed, return false
-			bool newMode(TalonMode& mode) {assert(cmd_); return cmd_->newMode(mode);}
+			// Operator to call underlying methods from TalonHWCommand
+			// object pointed to by this handle.
+			TalonHWCommand * operator->() {assert(cmd_); return cmd_;}
 
 		private:
 			TalonHWCommand *cmd_;
 	};
 
+	// Use ClaimResources here since we only want 1 controller
+	// to be able to access a given Talon at any particular time
 	class TalonCommandInterface : public HardwareResourceManager<TalonCommandHandle, ClaimResources> {};
-
-	/*
-	class EffortTalonInterface : public TalonCommandInterface {};
-
-	class VelocityTalonInterface : public TalonCommandInterface {};
-
-	class PositionTalonInterface : public TalonCommandInterface {};
-	*/
 }

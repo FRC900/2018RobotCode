@@ -1,8 +1,13 @@
 <library path="lib/libtalon_controllers">
 
-  <class name="talon_controllers/TalonController" type="talon_controllers::TalonController" base_class_type="controller_interface::ControllerBase">
+  <class name="talon_controllers/TalonPercentVbusController" type="talon_controllers::TalonPercentVbusController" base_class_type="controller_interface::ControllerBase">
     <description>
-      The Talon controller is a sample controller used to run a single Talon  motor controller
+     Configure and run a Talon SRX in percent vbus mode 
+    </description>
+  </class>
+  <class name="talon_controllers/TalonPositionCloseLoopController" type="talon_controllers::TalonPositionCloseLoopController" base_class_type="controller_interface::ControllerBase">
+    <description>
+     Configure and run a Talon SRX in position close loop (PIDF) mode
     </description>
   </class>
 </library>
