@@ -52,49 +52,52 @@ class TalonCIParams
 			}
 			return true;
 		}
-		double findPidParam(std::string param_type, XmlRpc::XmlRpcValue &pid_params)
+		// TODO : Make this private since it is only called from
+		//        other TalonCIParams methods
+		//      - It shouldn't be an error for PID valies to be missing, e.g.
+		//        in cases where the mode isn't close loop
+		double findPidParam(std::string param_type, XmlRpc::XmlRpcValue &pidparams_)
 		{
-			if (!pid_params.hasMember(param_type))
+			if (!pidparams_.hasMember(param_type))
 				throw std::runtime_error(param_type+" was not specified");
-			XmlRpc::XmlRpcValue& param = pid_params[param_type];
- 			if (!param.valid())
+			XmlRpc::XmlRpcValue& param = pidparams_[param_type];
+			if (!param.valid())
 				throw std::runtime_error(param_type+" was not a valid type");
 			double ret;
-		   	if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+			if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
 				ret = param;
-		   	else if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
+			else if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
 			{
 				int temp = param;
 				ret = temp;
 			}
 			else
-		  		throw std::runtime_error("A non-double value was passed for" + param_type);
+				throw std::runtime_error("A non-double value was passed for" + param_type);
 			return ret;
 		}
+
 		bool readCloseLoopParams(ros::NodeHandle &n)
 		{
-			// Figure out how these will be stored
-			// Look at loop in frc_robot_interface.cpp 
-			// FRCRobotInterface constructor for example
-			// of loading from an array of maps
-			// Change names to match those in the example
-			// yaml file, and assign values to p_[], i_[], etc
-			// arrays.
-		XmlRpc::XmlRpcValue pid_param_list;
-		if (!n.getParam("close_loop_values", pid_param_list))
-			throw std::runtime_error("No joints were specified.");
-		for (int i = 0; i < pid_param_list.size(); i++)
-		{
-			XmlRpc::XmlRpcValue &pid_params = pid_param_list[i];
+			XmlRpc::XmlRpcValue pid_param_list;
+			// TODO : 
+			//      - It shouldn't be an error for PID valies to be missing, e.g.
+			//        in cases where the mode isn't close loop
+			if (!n.getParam("close_loop_values", pid_param_list))
+				throw std::runtime_error("No close loop values were specified.");
+			// TODO : Make sure there aren't more than
+			//        2 entires in pid_param_list since there
+			//        are only 2 slots in the actual Talon hardware
+			for (int i = 0; i < pid_param_list.size(); i++)
+			{
+				XmlRpc::XmlRpcValue &pidparams_ = pid_param_list[i];
 
-			p_[i]=findPidParam("p",pid_params);
-			i_[i]=findPidParam("i",pid_params);
-			d_[i]=findPidParam("d",pid_params);
-			f_[i]=findPidParam("f",pid_params);
-			i_zone_[i]=findPidParam("i_zone",pid_params);
-			std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] 			<< "i _zone value = " << i_zone_[i]<< std::endl;
-			// Eventually add a list of valid modes for this joint?
-		}
+				p_[i]=findPidParam("p",pidparams_);
+				i_[i]=findPidParam("i",pidparams_);
+				d_[i]=findPidParam("d",pidparams_);
+				f_[i]=findPidParam("f",pidparams_);
+				i_zone_[i]=findPidParam("i_zone",pidparams_);
+				std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << "i _zone value = " << i_zone_[i]<< std::endl;
+			}
 			return true;
 		}
 		std::string joint_name_;
@@ -110,33 +113,70 @@ class TalonControllerInterface
 	public:
 		// Standardize format for reading params for 
 		// motor controller
-		virtual bool readParams(ros::NodeHandle &n, TalonCIParams &params)
+		virtual bool readParams(ros::NodeHandle &n)
 		{
-			return params.readJointName(n);
+			return params_.readJointName(n) && params_.readCloseLoopParams(n);
 		}
-		virtual bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
+
+		// Allow users of the ControllerInterface to get 
+		// a copy of the parameters currently set for the
+		// Talon.  They can then modify them at will and
+		// call initWithParams to reprogram the Talon.
+		// Hopefully this won't be needed all that often ...
+		// the goal should be to provide a simpler interface
+		// for commonly used operations
+		virtual TalonCIParams getParams(void) const
+		{
+			return params_;
+		}
+
+		// Initialize Talon hardware with the settings in params
+		virtual bool initWithParams(hardware_interface::TalonCommandInterface *hw, 
 									const TalonCIParams &params)
 		{
+			params_ = params;
 			talon_ = hw->getHandle(params.joint_name_);
-			talon_->set(0);
-			// perform any other generic initializtion here
-			return true;
+			talon_->set(0); // make sure motors don't run until everything is configured
+			return writeParamsToHW();
 		}
-		// Useful for cases where there's no need
-		// to modify the parameters after reading
+
+		// Read params from config file and use them to 
+		// initialize the Talon hardware
+		// Useful for the hopefully common case where there's 
+		// no need to modify the parameters after reading
 		// them
 		virtual bool initWithNode(hardware_interface::TalonCommandInterface *hw,
-						  ros::NodeHandle &n)
+								  ros::NodeHandle &n)
 		{
-			TalonCIParams params;
-			return readParams(n, params) && initWithParams(hw, params);
+			return readParams(n) && initWithParams(hw, params_);
 		}
+
+		// Set the setpoint for the motor controller
 		virtual void setCommand(const double command)
 		{
 			talon_->set(command);
 		}
+
+		// Set the mode of the motor controller
+		virtual void setMode(const hardware_interface::TalonMode mode)
+		{
+			talon_->setMode(mode);
+		}
 	protected:
+		// Use data in params_ to actually set up Talon
+		// hardware. Make this a separate method outside of
+		// init() so that dynamic reconfigure callback can write
+		// values any time while running
+		virtual bool writeParamsToHW(void)
+		{
+			// perform additional hardware init here
+			// but don't set mode - either force the caller to
+			// set it or use one of the derived, fixed-mode
+			// classes instead
+		}
+
 		hardware_interface::TalonCommandHandle talon_;
+		TalonCIParams                          params_;
 };
 
 class TalonPercentVbusControllerInterface : public TalonControllerInterface
@@ -158,26 +198,14 @@ class TalonPercentVbusControllerInterface : public TalonControllerInterface
 class TalonCloseLoopControllerInterface : public TalonControllerInterface
 {
 	public:
-		bool readParams(ros::NodeHandle &n, TalonCIParams &params) override
+		// Any member functions or data shared by 
+		// Position & Velocity Close Loop Controller
+		//
+
+		// Disable changing mode
+		void setMode(const hardware_interface::TalonMode mode) override
 		{
-			return TalonControllerInterface::readParams(n, params) &&
-				params.readCloseLoopParams(n);
-		}
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-				  const TalonCIParams &params) override
-		{
-			// Call base class init for common setup code
-			if (!TalonControllerInterface::initWithParams(hw, params))
-				return false;
-			// perform any PositionPID specific 
-			// initializtion here
-			//
-			// for (int slot = 0; slot < 2; slot++)
-			// {
-			// talon_->setPgain(slot, p[slot]); 
-			// // and I, D, F, Izone
-			// }
-			return true;
+			ROS_WARN("Can't reset mode using TalonCloseLoopControllerInterface");
 		}
 };
 
@@ -185,7 +213,7 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-				  const TalonCIParams &params) override
+						    const TalonCIParams &params) override
 		{
 			// Call base class init for common setup code
 			if (!TalonControllerInterface::initWithParams(hw, params))
@@ -194,9 +222,6 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 			// Set to position close loop mode
 			talon_->setMode(hardware_interface::TalonMode_PositionCloseLoop);
 
-			// Call close loop init to set PIDF & IZone
-			if (!TalonCloseLoopControllerInterface::initWithParams(hw, params))
-				return false;
 			return true;
 		}
 };
