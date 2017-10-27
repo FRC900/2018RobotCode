@@ -52,6 +52,25 @@ class TalonCIParams
 			}
 			return true;
 		}
+		double findPidParam(std::string param_type, XmlRpc::XmlRpcValue &pid_params)
+		{
+			if (!pid_params.hasMember(param_type))
+				throw std::runtime_error(param_type+" was not specified");
+			XmlRpc::XmlRpcValue& param = pid_params[param_type];
+ 			if (!param.valid())
+				throw std::runtime_error(param_type+" was not a valid type");
+			double ret;
+		   	if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
+				ret = param;
+		   	else if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
+			{
+				int temp = param;
+				ret = temp;
+			}
+			else
+		  		throw std::runtime_error("A non-double value was passed for" + param_type);
+			return ret;
+		}
 		bool readCloseLoopParams(ros::NodeHandle &n)
 		{
 			// Figure out how these will be stored
@@ -61,6 +80,21 @@ class TalonCIParams
 			// Change names to match those in the example
 			// yaml file, and assign values to p_[], i_[], etc
 			// arrays.
+		XmlRpc::XmlRpcValue pid_param_list;
+		if (!n.getParam("close_loop_values", pid_param_list))
+			throw std::runtime_error("No joints were specified.");
+		for (int i = 0; i < pid_param_list.size(); i++)
+		{
+			XmlRpc::XmlRpcValue &pid_params = pid_param_list[i];
+
+			p_[i]=findPidParam("p",pid_params);
+			i_[i]=findPidParam("i",pid_params);
+			d_[i]=findPidParam("d",pid_params);
+			f_[i]=findPidParam("f",pid_params);
+			i_zone_[i]=findPidParam("i_zone",pid_params);
+			std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] 			<< "i _zone value = " << i_zone_[i]<< std::endl;
+			// Eventually add a list of valid modes for this joint?
+		}
 			return true;
 		}
 		std::string joint_name_;
