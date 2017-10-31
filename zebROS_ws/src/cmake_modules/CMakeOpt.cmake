@@ -4,8 +4,8 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()
 
-#add_definitions(-std=c++11 -Wall -Wextra -Wno-switch -Wno-deprecated-declarations -ftrack-macro-expansion=0)
-add_definitions(-std=c++11 -ftrack-macro-expansion=0)
+add_definitions(-std=c++11 -Wno-deprecated-declarations -Wno-switch -ftrack-macro-expansion=0)
+#add_definitions(-Wall -Wextra -Wno-switch)
 
 if (DEFINED CMAKE_TOOLCHAIN_FILE)  # Cross-build for Rio
   # Without -fno-finite-math-only, NaN checks are optimized away
