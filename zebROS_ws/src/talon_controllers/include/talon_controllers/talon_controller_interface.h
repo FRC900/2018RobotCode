@@ -100,6 +100,7 @@ class TalonCIParams
 			}
 			return true;
 		}
+		// TODO : Keep adding config items here
 		std::string joint_name_;
 		double p_[2];
 		double i_[2];
