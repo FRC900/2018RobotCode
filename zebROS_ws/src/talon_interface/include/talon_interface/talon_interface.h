@@ -42,6 +42,7 @@ namespace hardware_interface
 			const double *getEffortPtr  (void) const { return &output_voltage_; }
 			
 			// Add code to read all the other state from the Talon :
+			// CAN id?
 			// output mode
 			// limit switch settings, sensing
 			// pid slot selected and PIDF values
@@ -102,7 +103,11 @@ namespace hardware_interface
 	// read-only, allow multiple controllers to register it.
 	class TalonStateInterface : public HardwareResourceManager<TalonStateHandle> {};
 
-	// Sync these with values in ControlMode.h
+	// These should mirror the modes listed in ControlModes.h
+	// Need a separate copy here though, since sim won't be
+	// including that header file - sim shouldn't require
+	// anything specifically from the actual motor controller
+	// hardware
 	enum TalonMode
 	{
 		TalonMode_Uninitialized = -1,
@@ -140,7 +145,8 @@ namespace hardware_interface
 				mode_(TalonMode_Uninitialized),
 				mode_changed_(false),
 				pidf_slot_(0),
-				pidf_slot_changed_(false)
+				pidf_slot_changed_(false),
+				pidf_changed_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -198,6 +204,7 @@ namespace hardware_interface
 			double    i_zone_[2];
 			double    d_[2];
 			double    f_[2];
+			bool      pidf_changed_;
 	};
 
 	// Handle - used by each controller to get, by name of the
