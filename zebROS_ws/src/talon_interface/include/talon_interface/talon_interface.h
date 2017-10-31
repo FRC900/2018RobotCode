@@ -65,7 +65,7 @@ namespace hardware_interface
 
 			// Initialize the base JointStateHandle with pointers
 			// from the state data object.  Since the standard ROS
-			// code uses JointStateHAndles in some places to display
+			// code uses JointStateHandles in some places to display
 			// robot state support that code as much as possible.  We'll
 			// have to figure out what effort maps to in the Talon
 			// Anything above and beyond the 3 standard ROS state
