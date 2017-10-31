@@ -102,17 +102,18 @@ namespace hardware_interface
 	// read-only, allow multiple controllers to register it.
 	class TalonStateInterface : public HardwareResourceManager<TalonStateHandle> {};
 
-	// Sync these with values in CanTalonSRX / CANTalon
+	// Sync these with values in ControlMode.h
 	enum TalonMode
 	{
 		TalonMode_Uninitialized = -1,
 		TalonMode_PercentVbus,
-		TalonMode_PositionCloseLoop,
-		TalonMode_VelocityCloseLoop,
-		TalonMode_CurrentCloseLoop,
-		TalonMode_VoltCompen,
-		TalonMode_SlaveFollower,
+		TalonMode_Position,      // CloseLoop
+		TalonMode_Speed,         // CloseLoop
+		TalonMode_Current,       // CloseLoop
+		TalonMode_Voltage,
+		TalonMode_Follower,
 		TalonMode_MotionProfile,
+		TalonMode_MotionMagic,
 		TalonMode_Last
 	};
 

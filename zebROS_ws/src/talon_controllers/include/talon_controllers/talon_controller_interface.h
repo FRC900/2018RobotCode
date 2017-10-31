@@ -221,7 +221,7 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 				return false;
 
 			// Set to position close loop mode
-			talon_->setMode(hardware_interface::TalonMode_PositionCloseLoop);
+			talon_->setMode(hardware_interface::TalonMode_Position);
 
 			return true;
 		}
