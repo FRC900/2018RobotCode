@@ -206,7 +206,7 @@ int main(int argc, char** argv)
 
 			firstrun = false;
 
-			//pull position data (all this is is the integral of velocity so it's not very good)
+			//pull position data (all this is the integral of velocity so it's not very good)
 			odom.pose.pose.position.x = nx.GetDisplacementX();
 			odom.pose.pose.position.y = nx.GetDisplacementY();
 			odom.pose.pose.position.z = nx.GetDisplacementZ();
