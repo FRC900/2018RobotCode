@@ -41,11 +41,11 @@ sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installe
 
 # Get ros for RoboRIO libraries
 cd
-wget -o roscore_roborio.tar.bz2 "https://drive.google.com/uc?export=download&id=0B8hPVHrmVeDgaFMtUXV1S0pWYWM"
+wget -o roscore_roborio_2018.tar.bz2 "https://drive.google.com/uc?export=download&id=1IggQt9DtTnZb6R1hxzKRPCUhEW44rQLj"
 cd /usr/arm-frc-linux-gnueabi
-sudo tar -xjf ~/roborio_core.tar.bz2
+sudo tar -xjf ~/roborio_core_2018.tar.bz2
 cd
-rm roborio_core.tar.bz2
+rm roborio_core_2018.tar.bz2
 
 # Install roboRIO packages into the cross-root
 sudo perl ~/2017Preseason/install_cross_package.pl
