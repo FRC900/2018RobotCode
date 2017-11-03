@@ -6,7 +6,7 @@ sudo apt-add-repository ppa:wpilib/toolchain
 sudo add-apt-repository ppa:wpilib/toolchain-beta
 sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get update
-sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installer frc-toolchain meshlab cmake libprotobuf-dev libprotoc-dev protobuf-compiler
+sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installer frc-toolchain meshlab cmake libprotobuf-dev libprotoc-dev protobuf-compiler ninja
 
 #mkdir -p ~/Downloads
 #cd ~/Downloads
@@ -26,13 +26,6 @@ sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installe
     # Expand the WPILib Robot Development repo and choose to install the Robot C++ Development plugin.
     # Follow/confirm the wizard/prompts
 
-
-# Grab our build of 2018 beta wpilib
-# Replace this eventually with a real build from FIRST
-cd
-wget -o wpilib.tar.bz2 "https://drive.google.com/uc?export=download&id=0B8hPVHrmVeDgdVJ1TEczUHFzSnM"
-tar -xjf wpilib.tar.bz2
-rm wpilib.tar.bz2
 
 # Install CTRE libraries for TalonSRX controller
 # included in above for now but keep handy
@@ -70,14 +63,13 @@ sudo rm -rf console_bridge
 
 # Build and install Poco libraries
 cd
-wget https://pocoproject.org/releases/poco-1.7.8/poco-1.7.8p3.tar.gz
-tar xzf poco-1.7.8p3.tar.gz 
-cd poco-1.7.8p3/
+wget https://pocoproject.org/releases/poco-1.7.9/poco-1.7.9p1.tar.gz
+tar xzf poco-1.7.9p1.tar.gz 
+cd poco-1.7.9p1/
 CROSS_COMPILE=arm-frc-linux-gnueabi- ./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal --prefix=/usr/arm-frc-linux-gnueabi/usr/local
-sed -i '/^CXXFLAGS  / s/$/ -D_GLIBCXX_USE_CXX11_ABI=0/' build/config/Linux
-sudo CROSS_COMPILE=arm-frc-linux-gnueabi- make -j8 install
+sudo CROSS_COMPILE=arm-frc-linux-gnueabi- make -j4 install
 cd
-sudo rm -rf poco-1.7.8p3.tar.gz poco-1.7.8p3
+sudo rm -rf poco-1.7.9p1.tar.gz poco-1.7.9p1
 
 #Hack in a cmake file for Eigen3
 sudo mkdir -p /usr/arm-frc-linux-gnueabi/usr/lib/cmake/eigen3
@@ -92,7 +84,6 @@ python configure.py CC=arm-frc-linux-gnueabi-gcc CXX=arm-frc-linux-gnueabi-g++ L
 
 #edit siplib/Makefile to change CPP flags include to -I/usr/arm-frc-linux-gnueabi/usr/include/python2.7
 sed -i '/^CPPFLAGS/ s_include_usr/include_' siplib/Makefile 
-sed -i '/^CPPFLAGS/ s/$/ -D_GLIBCXX_USE_CXX11_ABI=0/' siplib/Makefile 
 sudo make -j8 install
 cd
 sudo rm -rf sip-4.17.tar.gz sip-4.17
@@ -122,14 +113,14 @@ cd gflags-2.2.1
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2017Preseason/zebROS_ws/rostoolchain.cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi  -DCMAKE_POSITION_INDEPENDENT_CODE=ON .
 sudo make -j4 install
 cd 
-sudo rm -rf v2.2.1 gflags-2.2.1
+sudo rm -rf v2.2.1.tar.gz gflags-2.2.1
 
 # Build and install google logging libraries
 cd
 wget https://github.com/google/glog/archive/v0.3.5.tar.gz
 tar -xzvf v0.3.5.tar.gz 
 cd glog-0.3.5/
-CFLAGS="-O2 -fPIC -D_GLIBCXX_USE_CXX11_ABI=0" CXXFLAGS="-O2 -fPIC -D_GLIBCXX_USE_CXX11_ABI=0" LDFLAGS="-fPIC" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local 
+CFLAGS="-O2 -fPIC" CXXFLAGS="-O2 -fPIC" LDFLAGS="-fPIC" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local 
 sudo make -j8 install
 cd
 sudo rm -rf v0.3.5.tar.gz glog-0.3.5
@@ -160,9 +151,8 @@ cd
 wget https://downloads.sourceforge.net/project/libuuid/libuuid-1.0.3.tar.gz
 tar -xzvf libuuid-1.0.3.tar.gz
 cd libuuid-1.0.3
-CFLAGS="-O2 -D_GLIBCXX_USE_CXX11_ABI=0" CXXFLAGS="-O2 -D_GLIBCXX_USE_CXX11_ABI=0" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local 
+CFLAGS="-O2" CXXFLAGS="-O2" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local 
 sudo make install
 cd
 sudo rm -rf libuuid-1.0.3.tar.gz libuuid-1.0.3
-
 

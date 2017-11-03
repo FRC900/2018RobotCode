@@ -65,9 +65,10 @@ wstool init -j8 src kinetic-desktop-wet.rosinstall
 cd src
 find . -name collada_urdf  | xargs rm -rf
 find . -name tf2_bullet | xargs rm -rf
+rm -rf robot_model/joint_state_publisher
 cd ..
 
-./src/catkin/bin/catkin_make_isolated --install --use-ninja -DCMAKE_INSTALL_PREFIX=/usr/arm-frc-linux-gnueabi/opt/ros/kinetic -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~2017Preseason/zebROS_ws/rostoolchain.cmake -DCATKIN_ENABLE_TESTING=OFF
+./src/catkin/bin/catkin_make_isolated --install --use-ninja -DCMAKE_INSTALL_PREFIX=/usr/arm-frc-linux-gnueabi/opt/ros/kinetic -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2017Preseason/zebROS_ws/rostoolchain.cmake -DCATKIN_ENABLE_TESTING=OFF
 
 Add 2 lines to the bottom of
 /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/share/urdf/cmake/urdfConfig.cmake :

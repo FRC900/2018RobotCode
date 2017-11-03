@@ -1,7 +1,27 @@
+sed -i 's#nickdanger\.amer\.corp\.natinst\.com/feeds/\([^/]\+\)/\([^/]\+\)/#download.ni.com/ni-linux-rt/feeds/\1/\2/ipk/#' /etc/opkg/base-feeds.conf
 opkg update
-opkg install boost-dev libeigen-dev libpython2 python-core python-dev libcurl4 lz4 libbz2-0 cmake-dev cmake libxml2-dev libxml2 libgnutls-bin libgnutls-dev libgnutls-openssl27 libgnutls28 libgnutlsxx28 nettle libgmp10 libgmpxx4 libz-dev libz1 git make gcc g++ gcc-symlinks g++-symlinks binutils python-setuptools python-docutils python-pyyaml python-pkgutil python-dateutil python-argparse python-nose python-netifaces libglog0 libglog-dev libyaml-dev python-pip coreutils
+
+# Split these up so the disk doesn't fill up with temp files
+opkg install boost-dev libeigen-dev libpython2 python-core python-dev libcurl4 lz4 
+opkg install libbz2 cmake-dev cmake libxml2-dev libxml2 libgnutls-bin libgnutls-dev libgnutls-openssl27 
+opkg install libgnutls30 libgnutlsxx28 nettle libgmp10 libgmpxx4 libz-dev libz1 git make 
+opkg install gcc g++ gcc-symlinks g++-symlinks binutils python-setuptools python-docutils 
+opkg install python-pyyaml python-pkgutil python-dateutil python-argparse python-nose 
+opkg install python-netifaces libglog0 libglog-dev libyaml-dev python-pip coreutils
 
 pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy
+
+# Try to simulate what the cross-build environment
+# looks like 
+ln -s / /usr/arm-frc-linux-gnueabi
+ln -s /usr/include /include
+
+cd
+mkdir -p 2017Preseason/zebROS_ws/src
+cd 2017Preseason/zebROS_ws
+catkin_make_isolated --install
+cd 
+
 
 cd
 git clone https://github.com/ros/console_bridge
