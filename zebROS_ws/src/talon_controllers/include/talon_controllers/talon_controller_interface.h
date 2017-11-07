@@ -54,12 +54,43 @@ class TalonCIParams
 		}
 		// TODO : Make this private since it is only called from
 		//        other TalonCIParams methods
-		//      - It shouldn't be an error for PID valies to be missing, e.g.
-		//        in cases where the mode isn't close loop
+	
+		bool readCloseLoopParams(ros::NodeHandle &n)
+		{
+			XmlRpc::XmlRpcValue pid_param_list;
+			
+			if (!n.getParam("close_loop_values", pid_param_list))
+				return true;
+			if(pid_param_list.size()<=2){
+			for (int i = 0; i < pid_param_list.size(); i++)
+			{
+				XmlRpc::XmlRpcValue &pidparams_ = pid_param_list[i];
+
+				p_[i]=findPidParam("p",pidparams_);
+				i_[i]=findPidParam("i",pidparams_);
+				d_[i]=findPidParam("d",pidparams_);
+				f_[i]=findPidParam("f",pidparams_);
+				i_zone_[i]=findPidParam("i_zone",pidparams_);
+				std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << "i _zone value = " << i_zone_[i]<< std::endl;
+			}
+			return true;
+			}
+			else{
+				throw std::runtime_error("More than two pid_param values");
+			}
+		}
+		// TODO : Keep adding config items here
+		std::string joint_name_;
+		double p_[2];
+		double i_[2];
+		double d_[2];
+		double f_[2];
+		double i_zone_[2];
+	private:
 		double findPidParam(std::string param_type, XmlRpc::XmlRpcValue &pidparams_)
 		{
 			if (!pidparams_.hasMember(param_type))
-				throw std::runtime_error(param_type+" was not specified");
+				return 0;
 			XmlRpc::XmlRpcValue& param = pidparams_[param_type];
 			if (!param.valid())
 				throw std::runtime_error(param_type+" was not a valid type");
@@ -76,37 +107,6 @@ class TalonCIParams
 			return ret;
 		}
 
-		bool readCloseLoopParams(ros::NodeHandle &n)
-		{
-			XmlRpc::XmlRpcValue pid_param_list;
-			// TODO : 
-			//      - It shouldn't be an error for PID valies to be missing, e.g.
-			//        in cases where the mode isn't close loop
-			if (!n.getParam("close_loop_values", pid_param_list))
-				throw std::runtime_error("No close loop values were specified.");
-			// TODO : Make sure there aren't more than
-			//        2 entires in pid_param_list since there
-			//        are only 2 slots in the actual Talon hardware
-			for (int i = 0; i < pid_param_list.size(); i++)
-			{
-				XmlRpc::XmlRpcValue &pidparams_ = pid_param_list[i];
-
-				p_[i]=findPidParam("p",pidparams_);
-				i_[i]=findPidParam("i",pidparams_);
-				d_[i]=findPidParam("d",pidparams_);
-				f_[i]=findPidParam("f",pidparams_);
-				i_zone_[i]=findPidParam("i_zone",pidparams_);
-				std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << "i _zone value = " << i_zone_[i]<< std::endl;
-			}
-			return true;
-		}
-		// TODO : Keep adding config items here
-		std::string joint_name_;
-		double p_[2];
-		double i_[2];
-		double d_[2];
-		double f_[2];
-		double i_zone_[2];
 };
 
 class TalonControllerInterface
