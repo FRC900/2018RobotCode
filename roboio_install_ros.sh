@@ -22,6 +22,8 @@ cd 2017Preseason/zebROS_ws
 catkin_make_isolated --install
 cd 
 
+# Copy over ROS tar.bz2 file, extract to /
+
 
 cd
 git clone https://github.com/ros/console_bridge
@@ -41,6 +43,16 @@ make install
 cd
 rm -rf gflags*
 
+cd
+wget https://pocoproject.org/releases/poco-1.7.9/poco-1.7.9p1.tar.gz
+tar -xzf poco-1.7.9p1.tar.gz 
+cd poco-1.7.9p1/
+./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal
+#cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MONGODB=OFF -DENABLE_CRYPTO=OFF -DENABLE_NET=OFF -DENABLE_NETSSL=OFF -DENABLE_DATA=OFF -DENABLE_ZIP=OFF -DENABLE_PAGECOMPILER=OFF -DENABLE_PAGECOMPILER_FILE2PAGE=OFF .
+make -j2 install
+cd
+rm -rf poco-1.7.9p1 poco-1.7.9p1.tar.gz 
+
 # KCJ - I'm skeptical any of the below libs are really
 # needed.  Many of the produce static libs so installed
 # ROS components are already linked against them during
@@ -48,16 +60,6 @@ rm -rf gflags*
 # packages we'll probably never bother with.  If we end
 # up getting a missing library error, though, the info
 # on how to build them is here
-cd
-wget https://pocoproject.org/releases/poco-1.7.8/poco-1.7.8p3.tar.gz
-tar xzf poco-1.7.8p3.tar.gz 
-cd poco-1.7.8p3/
-./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal
-#cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MONGODB=OFF -DENABLE_CRYPTO=OFF -DENABLE_NET=OFF -DENABLE_NETSSL=OFF -DENABLE_DATA=OFF -DENABLE_ZIP=OFF -DENABLE_PAGECOMPILER=OFF -DENABLE_PAGECOMPILER_FILE2PAGE=OFF .
-make -j2 install
-cd
-rm -rf poco-1.7.8p poco-1.7.8p3.tar.gz 
-
 cd
 wget https://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz
 tar -xzvf sip-4.17.tar.gz
