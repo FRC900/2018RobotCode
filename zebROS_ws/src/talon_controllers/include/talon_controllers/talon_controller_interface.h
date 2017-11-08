@@ -52,8 +52,6 @@ class TalonCIParams
 			}
 			return true;
 		}
-		// TODO : Make this private since it is only called from
-		//        other TalonCIParams methods
 	
 		bool readCloseLoopParams(ros::NodeHandle &n)
 		{
@@ -174,6 +172,7 @@ class TalonControllerInterface
 			// but don't set mode - either force the caller to
 			// set it or use one of the derived, fixed-mode
 			// classes instead
+			return true;
 		}
 
 		hardware_interface::TalonCommandHandle talon_;
