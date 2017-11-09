@@ -23,15 +23,17 @@ namespace hardware_interface
 	class TalonHWState
 	{
 		public:
-			TalonHWState(void) :
+			TalonHWState(int can_id) :
 				position_(0),
 				speed_(0),
-				output_voltage_(0)
+				output_voltage_(0),
+				can_id_(0)
 			{}
 
 			double getPosition(void)      const {return position_;}
 			double getSpeed(void)         const {return speed_;}
 			double getOutputVoltage(void) const {return output_voltage_;}
+			double getCANID(void)         const {return can_id_;}
 
 			void setPosition(double position)            {position_ = position;}
 			void setSpeed(double speed)                  {speed_ = speed;}
@@ -41,8 +43,7 @@ namespace hardware_interface
 			const double *getSpeedPtr   (void) const { return &speed_; }
 			const double *getEffortPtr  (void) const { return &output_voltage_; }
 			
-			// Add code to read all the other state from the Talon :
-			// CAN id?
+			// Add code to read and/or store all the other state from the Talon :
 			// output mode
 			// limit switch settings, sensing
 			// pid slot selected and PIDF values
@@ -52,6 +53,8 @@ namespace hardware_interface
 			double position_;
 			double speed_;
 			double output_voltage_;
+
+			int can_id_;
 	};
 
 	// Handle - used by each controller to get, by name of the
@@ -74,7 +77,7 @@ namespace hardware_interface
 			// in the controller as well as the HWState object pointed
 			// to by a given handle.
 			TalonStateHandle(const std::string &name, const TalonHWState *state) :
-				JointStateHandle(name, state->getPositionPtr(), state->getSpeedPtr(), state->getEffortPtr()),
+				JointStateHandle(name, state ? state->getPositionPtr() : NULL, state ? state->getSpeedPtr() : NULL, state ? state->getEffortPtr() : NULL),
 				state_(state)
 			{
 				if (!state)

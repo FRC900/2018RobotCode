@@ -202,7 +202,8 @@ class TalonControllerInterface
 class TalonFixedModeControllerInterface : public TalonControllerInterface
 {
 	public:
-		// Disable changing mode
+		// Disable changing mode for controllers derived
+		// from this class
 		void setMode(const hardware_interface::TalonMode mode) override
 		{
 			ROS_WARN("Can't reset mode using this TalonControllerInterface");
