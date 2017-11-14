@@ -33,6 +33,7 @@ else()
   )
 endif()
 
+find_package(orocos_kdl)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -166,7 +167,8 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   ## Specify libraries to link a library or executable target against
   target_link_libraries(goal_detection_node
     ${catkin_LIBRARIES}
-    ${OpenCV_LIBS} 
+    ${OpenCV_LIBS}
+    ${orocos_kdl_LIBRARIES} 
   )
 endif() # if native build
 
