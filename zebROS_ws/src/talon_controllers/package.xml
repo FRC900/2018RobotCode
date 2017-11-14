@@ -19,6 +19,9 @@
   <depend>realtime_tools</depend>
   <depend>talon_interface</depend>
   <depend>urdf</depend>
+  <build_depend>message_generation</build_depend>
+  <depend>message_runtime</depend>
+
 
   <export>
     <controller_interface plugin="${prefix}/talon_controllers_plugins.xml"/>

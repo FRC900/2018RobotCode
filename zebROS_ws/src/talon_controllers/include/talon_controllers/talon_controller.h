@@ -4,6 +4,7 @@
 #include <controller_interface/controller.h>
 #include <std_msgs/Float64.h>
 #include <talon_controllers/talon_controller_interface.h>
+#include <talon_controllers/CloseLoopControllerMsg.h>
 #include <realtime_tools/realtime_buffer.h>
 
 namespace talon_controllers
@@ -37,7 +38,7 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 		TalonController() {}
 		~TalonController() {sub_command_.shutdown();}
 
-		bool init(hardware_interface::TalonCommandInterface* hw, ros::NodeHandle &n)
+		virtual bool init(hardware_interface::TalonCommandInterface* hw, ros::NodeHandle &n)
 		{
 			// Read params from command line / config file
 			if (!talon_if_.initWithNode(hw, n))
@@ -49,22 +50,22 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 			return true;
 		}
 
-		void starting(const ros::Time& /*time*/)
+		virtual void starting(const ros::Time& /*time*/)
 		{
 			// Start controller with motor stopped
 			// for great safety
 			command_buffer_.writeFromNonRT(0.0);
 		}
-		void update(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+		virtual void update(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 		{
 			talon_if_.setCommand(*command_buffer_.readFromRT());
 		}
 
-		realtime_tools::RealtimeBuffer<double> command_buffer_;
 
 	private:
 		TALON_IF talon_if_;
 		ros::Subscriber sub_command_;
+		realtime_tools::RealtimeBuffer<double> command_buffer_;
 		void commandCB(const std_msgs::Float64ConstPtr& msg)
 		{
 			command_buffer_.writeFromNonRT(msg->data);
@@ -76,13 +77,75 @@ class TalonPercentVbusController: public TalonController<TalonPercentVbusControl
 	// Override or add methods different from the base class here
 };
 
-// TODO : maybe make a generic CloseLoop class with a setPIDFSlot method
-// and then derive both Position and Velocity CloseLoop classes from them?
-// This would keep us from having to write that method in both of
-// the final classes
-class TalonPositionCloseLoopController: public TalonController<TalonPositionCloseLoopControllerInterface>
+// Generic Close Loop controller. Allow users to specify 
+// slot for PID values plus command per message. Trust lower
+// level code will prevent repeatedly switching PID slot if
+// it doesn't actually change from message to message.
+class CloseLoopCommand
 {
-	// Override or add methods different from the base class here
+	public:
+		CloseLoopCommand(void) :
+			config_slot_(0),
+			command_(0.0)
+	{
+	}
+		CloseLoopCommand(int config_slot, double command) :
+			config_slot_(config_slot),
+			command_(command)
+	{
+	}
+
+	int config_slot_;
+	double command_;
+};
+
+template <class TALON_IF>
+class TalonCloseLoopController :
+public controller_interface::Controller<hardware_interface::TalonCommandInterface>
+{
+	public:
+		TalonCloseLoopController() {}
+		~TalonCloseLoopController() {sub_command_.shutdown();}
+
+		virtual bool init(hardware_interface::TalonCommandInterface* hw, ros::NodeHandle &n)
+		{
+			// Read params from command line / config file
+			if (!talon_if_.initWithNode(hw, n))
+				return false;
+
+			sub_command_ = n.subscribe<CloseLoopControllerMsg>("command", 1, &TalonCloseLoopController::commandCB, this);
+			return true;
+		}
+
+		virtual void starting(const ros::Time& /*time*/)
+		{
+			// Start controller with motor stopped
+			// for great safety
+			command_buffer_.writeFromNonRT(CloseLoopCommand());
+		}
+		virtual void update(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+		{
+			// Write both PID config slot and 
+			// output to talon interface
+			CloseLoopCommand cmd = *command_buffer_.readFromRT();
+			talon_if_.setPIDConfig(cmd.config_slot_);
+			talon_if_.setCommand(cmd.command_);
+		}
+
+
+	private:
+		TALON_IF talon_if_;
+		ros::Subscriber sub_command_;
+		realtime_tools::RealtimeBuffer<CloseLoopCommand> command_buffer_;
+		void commandCB(const CloseLoopControllerMsgConstPtr& msg)
+		{
+			command_buffer_.writeFromNonRT(CloseLoopCommand(msg->config_slot, msg->command));
+		}
+};
+
+class TalonPositionCloseLoopController: public TalonCloseLoopController<TalonPositionCloseLoopControllerInterface>
+{
+	// Override or add methods here
 };
 
 } // end namespace

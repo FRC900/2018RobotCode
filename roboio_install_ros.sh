@@ -1,7 +1,29 @@
+sed -i 's#nickdanger\.amer\.corp\.natinst\.com/feeds/\([^/]\+\)/\([^/]\+\)/#download.ni.com/ni-linux-rt/feeds/\1/\2/ipk/#' /etc/opkg/base-feeds.conf
 opkg update
-opkg install boost-dev libeigen-dev libpython2 python-core python-dev libcurl4 lz4 libbz2-0 cmake-dev cmake libxml2-dev libxml2 libgnutls-bin libgnutls-dev libgnutls-openssl27 libgnutls28 libgnutlsxx28 nettle libgmp10 libgmpxx4 libz-dev libz1 git make gcc g++ gcc-symlinks g++-symlinks binutils python-setuptools python-docutils python-pyyaml python-pkgutil python-dateutil python-argparse python-nose python-netifaces libglog0 libglog-dev libyaml-dev python-pip coreutils
+
+# Split these up so the disk doesn't fill up with temp files
+opkg install boost-dev libeigen-dev libpython2 python-core python-dev libcurl4 lz4 
+opkg install libbz2 cmake-dev cmake libxml2-dev libxml2 libgnutls-bin libgnutls-dev libgnutls-openssl27 
+opkg install libgnutls30 libgnutlsxx28 nettle libgmp10 libgmpxx4 libz-dev libz1 git make 
+opkg install gcc g++ gcc-symlinks g++-symlinks binutils python-setuptools python-docutils 
+opkg install python-pyyaml python-pkgutil python-dateutil python-argparse python-nose 
+opkg install python-netifaces libglog0 libglog-dev libyaml-dev python-pip coreutils
 
 pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy
+
+# Try to simulate what the cross-build environment
+# looks like 
+ln -s / /usr/arm-frc-linux-gnueabi
+ln -s /usr/include /include
+
+cd
+mkdir -p 2017Preseason/zebROS_ws/src
+cd 2017Preseason/zebROS_ws
+catkin_make_isolated --install
+cd 
+
+# Copy over ROS tar.bz2 file, extract to /
+
 
 cd
 git clone https://github.com/ros/console_bridge
@@ -21,6 +43,16 @@ make install
 cd
 rm -rf gflags*
 
+cd
+wget https://pocoproject.org/releases/poco-1.7.9/poco-1.7.9p1.tar.gz
+tar -xzf poco-1.7.9p1.tar.gz 
+cd poco-1.7.9p1/
+./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal
+#cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MONGODB=OFF -DENABLE_CRYPTO=OFF -DENABLE_NET=OFF -DENABLE_NETSSL=OFF -DENABLE_DATA=OFF -DENABLE_ZIP=OFF -DENABLE_PAGECOMPILER=OFF -DENABLE_PAGECOMPILER_FILE2PAGE=OFF .
+make -j2 install
+cd
+rm -rf poco-1.7.9p1 poco-1.7.9p1.tar.gz 
+
 # KCJ - I'm skeptical any of the below libs are really
 # needed.  Many of the produce static libs so installed
 # ROS components are already linked against them during
@@ -28,16 +60,6 @@ rm -rf gflags*
 # packages we'll probably never bother with.  If we end
 # up getting a missing library error, though, the info
 # on how to build them is here
-cd
-wget https://pocoproject.org/releases/poco-1.7.8/poco-1.7.8p3.tar.gz
-tar xzf poco-1.7.8p3.tar.gz 
-cd poco-1.7.8p3/
-./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal
-#cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MONGODB=OFF -DENABLE_CRYPTO=OFF -DENABLE_NET=OFF -DENABLE_NETSSL=OFF -DENABLE_DATA=OFF -DENABLE_ZIP=OFF -DENABLE_PAGECOMPILER=OFF -DENABLE_PAGECOMPILER_FILE2PAGE=OFF .
-make -j2 install
-cd
-rm -rf poco-1.7.8p poco-1.7.8p3.tar.gz 
-
 cd
 wget https://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz
 tar -xzvf sip-4.17.tar.gz

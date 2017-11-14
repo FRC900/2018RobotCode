@@ -8,17 +8,21 @@ find_package(catkin REQUIRED COMPONENTS
   angles
   control_msgs
   controller_interface
+  message_runtime
   realtime_tools
   talon_interface
   urdf
 )
 
+add_message_files(FILES CloseLoopControllerMsg.msg)
+generate_messages(DEPENDENCIES talon_controllers)
 # Declare catkin package
 catkin_package(
   CATKIN_DEPENDS
     angles
     control_msgs
     controller_interface
+	message_runtime
     realtime_tools
 	talon_interface
     urdf

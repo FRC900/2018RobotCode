@@ -1,6 +1,6 @@
 
 #pragma once
-#include <talon_interface/talon_interface.h>
+#include <talon_interface/talon_command_interface.h>
 
 namespace talon_controllers
 {
@@ -31,38 +31,75 @@ namespace talon_controllers
 class TalonCIParams
 {
 	public:
+		// Initialize with relatively sane defaults
+		// for all parameters
 		TalonCIParams(void)
 		{
 			for (int slot = 0; slot < 2; slot++)
 			{
-				p_[slot] =  0.0;
-				i_[slot] =  0.0;
-				d_[slot] =  0.0;
-				f_[slot] =  0.0;
+				p_[slot] = 0.0;
+				i_[slot] = 0.0;
+				d_[slot] = 0.0;
+				f_[slot] = 0.0;
 				i_zone_[slot] = 0.0;
 			}
 		}
 
-		bool readJointName(ros::NodeHandle &n)
+		// Read a joint name from the given nodehandle's params
+		bool readJointName(ros::NodeHandle &n, const std::string &param_name)
 		{
-			if (!n.getParam("joint", joint_name_))
+			if (!n.getParam(param_name, joint_name_))
 			{
-				ROS_ERROR("No joint given (namespace: %s)", n.getNamespace().c_str());
+				ROS_ERROR("No joint given (namespace: %s, param name: %s)", 
+						  n.getNamespace().c_str(), param_name.c_str());
 				return false;
 			}
 			return true;
 		}
-		// TODO : Make this private since it is only called from
-		//        other TalonCIParams methods
-		//      - It shouldn't be an error for PID valies to be missing, e.g.
-		//        in cases where the mode isn't close loop
-		double findPidParam(std::string param_type, XmlRpc::XmlRpcValue &pidparams_)
+	
+		bool readCloseLoopParams(ros::NodeHandle &n)
 		{
-			if (!pidparams_.hasMember(param_type))
-				throw std::runtime_error(param_type+" was not specified");
-			XmlRpc::XmlRpcValue& param = pidparams_[param_type];
+			XmlRpc::XmlRpcValue pid_param_list;
+			
+			if (!n.getParam("close_loop_values", pid_param_list))
+				return true;
+			if(pid_param_list.size() <= 2)
+			{
+				for (int i = 0; i < pid_param_list.size(); i++)
+				{
+					XmlRpc::XmlRpcValue &pidparams_ = pid_param_list[i];
+
+					p_[i]=findDoubleParam("p",pidparams_);
+					i_[i]=findDoubleParam("i",pidparams_);
+					d_[i]=findDoubleParam("d",pidparams_);
+					f_[i]=findDoubleParam("f",pidparams_);
+					i_zone_[i]=findDoubleParam("i_zone",pidparams_);
+					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << i_zone_[i]<< std::endl;
+				}
+				return true;
+			}
+			else
+			{
+				throw std::runtime_error("More than two pid_param values");
+			}
+		}
+		// TODO : Keep adding config items here
+		std::string joint_name_;
+		double p_[2];
+		double i_[2];
+		double d_[2];
+		double f_[2];
+		double i_zone_[2];
+	private:
+		// Read a double named <param_type> from the array/map
+		// in pidparams
+		double findDoubleParam(std::string param_type, XmlRpc::XmlRpcValue &pidparams) const
+		{
+			if (!pidparams.hasMember(param_type))
+				return 0;
+			XmlRpc::XmlRpcValue& param = pidparams[param_type];
 			if (!param.valid())
-				throw std::runtime_error(param_type+" was not a valid type");
+				throw std::runtime_error(param_type + " was not a valid type");
 			double ret;
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
 				ret = param;
@@ -75,38 +112,6 @@ class TalonCIParams
 				throw std::runtime_error("A non-double value was passed for" + param_type);
 			return ret;
 		}
-
-		bool readCloseLoopParams(ros::NodeHandle &n)
-		{
-			XmlRpc::XmlRpcValue pid_param_list;
-			// TODO : 
-			//      - It shouldn't be an error for PID valies to be missing, e.g.
-			//        in cases where the mode isn't close loop
-			if (!n.getParam("close_loop_values", pid_param_list))
-				throw std::runtime_error("No close loop values were specified.");
-			// TODO : Make sure there aren't more than
-			//        2 entires in pid_param_list since there
-			//        are only 2 slots in the actual Talon hardware
-			for (int i = 0; i < pid_param_list.size(); i++)
-			{
-				XmlRpc::XmlRpcValue &pidparams_ = pid_param_list[i];
-
-				p_[i]=findPidParam("p",pidparams_);
-				i_[i]=findPidParam("i",pidparams_);
-				d_[i]=findPidParam("d",pidparams_);
-				f_[i]=findPidParam("f",pidparams_);
-				i_zone_[i]=findPidParam("i_zone",pidparams_);
-				std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << "i _zone value = " << i_zone_[i]<< std::endl;
-			}
-			return true;
-		}
-		// TODO : Keep adding config items here
-		std::string joint_name_;
-		double p_[2];
-		double i_[2];
-		double d_[2];
-		double f_[2];
-		double i_zone_[2];
 };
 
 class TalonControllerInterface
@@ -116,7 +121,8 @@ class TalonControllerInterface
 		// motor controller
 		virtual bool readParams(ros::NodeHandle &n)
 		{
-			return params_.readJointName(n) && params_.readCloseLoopParams(n);
+			return params_.readJointName(n, "joint") && 
+				   params_.readCloseLoopParams(n);
 		}
 
 		// Allow users of the ControllerInterface to get 
@@ -135,10 +141,26 @@ class TalonControllerInterface
 		virtual bool initWithParams(hardware_interface::TalonCommandInterface *hw, 
 									const TalonCIParams &params)
 		{
-			params_ = params;
 			talon_ = hw->getHandle(params.joint_name_);
 			talon_->set(0); // make sure motors don't run until everything is configured
-			return writeParamsToHW();
+			return writeParamsToHW(params);
+		}
+
+		// Use data in params_ to actually set up Talon
+		// hardware. Make this a separate method outside of
+		// init() so that dynamic reconfigure callback can write
+		// values using this method at any time
+		virtual bool writeParamsToHW(const TalonCIParams &params)
+		{
+			// Save copy of params written to HW
+			// so they can be queried later?
+			params_ = params;
+
+			// perform additional hardware init here
+			// but don't set mode - either force the caller to
+			// set it or use one of the derived, fixed-mode
+			// classes instead
+			return true;
 		}
 
 		// Read params from config file and use them to 
@@ -163,24 +185,32 @@ class TalonControllerInterface
 		{
 			talon_->setMode(mode);
 		}
-	protected:
-		// Use data in params_ to actually set up Talon
-		// hardware. Make this a separate method outside of
-		// init() so that dynamic reconfigure callback can write
-		// values any time while running
-		virtual bool writeParamsToHW(void)
-		{
-			// perform additional hardware init here
-			// but don't set mode - either force the caller to
-			// set it or use one of the derived, fixed-mode
-			// classes instead
-		}
 
+		// Pick the config slot (0 or 1) for PIDF/IZone values
+		virtual bool setPIDConfig(int config)
+		{
+			if ((config != 0) && (config != 1))
+				return false;
+			// Fill me in
+			return true;
+		}
+	protected:
 		hardware_interface::TalonCommandHandle talon_;
 		TalonCIParams                          params_;
 };
 
-class TalonPercentVbusControllerInterface : public TalonControllerInterface
+class TalonFixedModeControllerInterface : public TalonControllerInterface
+{
+	public:
+		// Disable changing mode for controllers derived
+		// from this class
+		void setMode(const hardware_interface::TalonMode mode) override
+		{
+			ROS_WARN("Can't reset mode using this TalonControllerInterface");
+		}
+};
+
+class TalonPercentVbusControllerInterface : public TalonFixedModeControllerInterface
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
@@ -194,20 +224,10 @@ class TalonPercentVbusControllerInterface : public TalonControllerInterface
 		}
 };
 
-// Maybe make a TalonPIDControllerInterface instead, and then
-// derive a PositionPID and VeloctyPID from that?
-class TalonCloseLoopControllerInterface : public TalonControllerInterface
+// Use this to create any methods common to all
+// Close Loop modes, if any
+class TalonCloseLoopControllerInterface : public TalonFixedModeControllerInterface
 {
-	public:
-		// Any member functions or data shared by 
-		// Position & Velocity Close Loop Controller
-		//
-
-		// Disable changing mode
-		void setMode(const hardware_interface::TalonMode mode) override
-		{
-			ROS_WARN("Can't reset mode using TalonCloseLoopControllerInterface");
-		}
 };
 
 class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
@@ -222,6 +242,7 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 
 			// Set to position close loop mode
 			talon_->setMode(hardware_interface::TalonMode_Position);
+			setPIDConfig(0); // pick a default?
 
 			return true;
 		}
