@@ -114,6 +114,12 @@ class TalonCIParams
 		}
 };
 
+// Base class for controller interface types. This class
+// will be the least restrictive - allow users to swtich modes,
+// reprogram any config values, and so on.
+// Derived classes will be more specialized - they'll only allow
+// a specific Talon mode and disable code which doesn't apply
+// to that mode
 class TalonControllerInterface
 {
 	public:
@@ -199,6 +205,8 @@ class TalonControllerInterface
 		TalonCIParams                          params_;
 };
 
+// A derived class which disables mode switching. Any
+// single-mode CI class should derive from this class
 class TalonFixedModeControllerInterface : public TalonControllerInterface
 {
 	public:
@@ -216,12 +224,17 @@ class TalonPercentVbusControllerInterface : public TalonFixedModeControllerInter
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
 				  const TalonCIParams &params) override
 		{
-			std::cout << "TalonPErcentVbusControllerInterface()" << std::endl;
+			// Call base-class init to load config params
 			if (!TalonControllerInterface::initWithParams(hw, params))
 				return false;
+			// Set the mode at init time - since this
+			// class is derived from the FixdMode class
+			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_PercentVbus);
 			return true;
 		}
+		// Maybe disable the setPIDConfig call since that makes
+		// no sense for a non-PID controller mode?
 };
 
 // Use this to create any methods common to all
