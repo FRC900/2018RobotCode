@@ -7,7 +7,13 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
+
 #include <geometry_msgs/TransformStamped.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_ros/transform_broadcaster.h>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 #include <std_msgs/Header.h>
 #include "navx_publisher/stampedUInt64.h"
 
@@ -89,7 +95,66 @@ void callback(const ImageConstPtr& frameMsg, const ImageConstPtr& depthMsg, cons
 		imshow("Image", thisFrame);
 		waitKey(5);
 	}
+
+	if(gd_msg.valid == false)
+	{
+	    	return;
+	}	
+
+	//Transform between goal frame and odometry/map.
+	static tf2_ros::TransformBroadcaster br;
+  	geometry_msgs::TransformStamped transformStamped;
+  
+ 	  transformStamped.header.stamp = ros::Time::now();
+ 	  transformStamped.header.frame_id = cvFrame->header.frame_id;
+ 	  transformStamped.child_frame_id = "goal";
+
+ 	  transformStamped.transform.translation.x = gd_msg.location.x;
+ 	  transformStamped.transform.translation.y = gd_msg.location.y;
+ 	  transformStamped.transform.translation.z = gd_msg.location.z;
+
+	
+
+	
+
+ 	  tf2::Quaternion q;
+ 	  q.setRPY(0, 0, 0);
+
+	  	  
+
+ 	  transformStamped.transform.rotation.x = q.x();
+ 	  transformStamped.transform.rotation.y = q.y();
+ 	  transformStamped.transform.rotation.z = q.z();
+ 	  transformStamped.transform.rotation.w = q.w();
+
+  	  br.sendTransform(transformStamped);
+
+	//Transform between a fixed frame and the goal.
+ 	tf2_ros::Buffer tfBuffer;
+  	tf2_ros::TransformListener tfListener(tfBuffer);
+
+ 	geometry_msgs::TransformStamped transformStampedOdomCamera;
+ 	try{
+  	transformStampedOdomCamera = tfBuffer.lookupTransform("odom", cvFrame->header.frame_id,
+ 	                           ros::Time(0));
+ 	}
+ 	catch (tf2::TransformException &ex) {
+ 	   ROS_WARN("%s",ex.what());
+	   ros::Duration(1.0).sleep();
+ 	   return;
+ 	}
+
+	geometry_msgs::TransformStamped transformStampedOdomGoal;
+	
+
+	tf2::doTransform(transformStamped, transformStampedOdomGoal, transformStampedOdomCamera);
+
+	br.sendTransform(transformStampedOdomGoal);
 }
+
+
+
+
 
 void callbackNavx(const ImageConstPtr& frameMsg, const ImageConstPtr& depthMsg, const navx_publisher::stampedUInt64ConstPtr &navxMsg) {
 	cout << "callback navx" << endl;
@@ -147,6 +212,7 @@ int main(int argc, char** argv)
 	ros::spin();
 
 	delete gd;
+
 
 	return 0;
 }

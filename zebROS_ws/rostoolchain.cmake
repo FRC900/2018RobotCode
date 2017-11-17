@@ -16,3 +16,4 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 set(BOOST_ROOT ${ARM_PREFIX})
 set(Boost_NO_SYSTEM_PATHS=ON)
 
+add_definitions(-std=c++11)

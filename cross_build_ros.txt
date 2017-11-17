@@ -1,84 +1,6 @@
-
-#Hack in a cmake file for Eigen3
-sudo mkdir -p /usr/arm-frc-linux-gnueabi/usr/lib/cmake/eigen3
-sudo cp /usr/lib/cmake/eigen3/Eigen3Config.cmake /usr/arm-frc-linux-gnueabi/usr/lib/cmake/eigen3
-
-cd
-git clone https://github.com/ros/console_bridge
-cd console_bridge
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`/usr/bin/frc-cmake-toolchain` -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi ..
-
-
-cd
-wget https://pocoproject.org/releases/poco-1.7.8/poco-1.7.8p3.tar.gz
-tar xzf poco-1.7.8p3.tar.gz 
-cd poco-1.7.8p3/
-CROSS_COMPILE=arm-frc-linux-gnueabi- ./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal --prefix=/usr/arm-frc-linux-gnueabi/usr/local
-CROSS_COMPILE=arm-frc-linux-gnueabi- make -j8 
-
-
-cd
-wget https://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz
-tar -xzvf sip-4.17.tar.gz
-cd sip-4.17
-python configure.py CC=arm-frc-linux-gnueabi-gcc CXX=arm-frc-linux-gnueabi-g++ LINK=arm-frc-linux-gnueabi-g++ LINK_SHLIB=arm-frc-linux-gnueabi-g++ --sysroot=/usr/arm-frc-linux-gnueabi --incdir=/usr/arm-frc-linux-gnueabi/usr/include/python2.7 STRIP=arm-frc-linux-gnueabi-strip
-
-edit siplib/Makefile to change CPP flags include to -I/usr/arm-frc-linux-gnueabi/usr/include/python2.7
-sudo make install
-
-cd
-wget https://downloads.sourceforge.net/project/tinyxml/tinyxml/2.6.2/tinyxml_2_6_2.zip
-unzip tinyxml_2_6_2.zip 
-cd tinyxml
-wget https://gist.githubusercontent.com/TNick/7960323/raw/3046ecda1d4d54d777c407f43ac357846a192e05/TinyXML-CmakeLists.txt
-mv TinyXML-CmakeLists.txt CMakeLists.txt
-add a line to CMakeLists.txt :  
-  set_target_properties(tinyxml PROPERTIES PUBLIC_HEADER "tinyxml.h;tinystr.h")
-add a line to tinyxml.h before line 46 :
-  #define TIXML_USE_STL
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`/usr/bin/frc-cmake-toolchain` -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi -DCMAKE_POSITION_INDEPENDENT_CODE=ON .
-sudo make -j8 install 
-
-cd
-wget https://github.com/google/glog/archive/v0.3.5.tar.gz
-tar -tzvf v0.3.5.tar.gz 
-cd glog-0.3.5/
-CFLAGS="-O2 -fPIC" CXXFLAGS="-O2 -fPIC" LDFLAGS="-fPIC" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local 
-sudo make -j8 install
-
-cd
-wget http://www.qhull.org/download/qhull-2015-src-7.2.0.tgz
-tar -xzvf qhull-2015-src-7.2.0.tgz
-cd qhull-2015.2/
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`/usr/bin/frc-cmake-toolchain` -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi .
-sudo make -j8 install
-
-cd
-git clone https://github.com/assimp/assimp.git 
-cd assimp
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=`/usr/bin/frc-cmake-toolchain`-DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi  .
-sudo make -j8 install
-
-
-cd
-wget https://downloads.sourceforge.net/project/libuuid/libuuid-1.0.3.tar.gz
-tar -xzvf libuuid-1.0.3.tar.gz
-cd libuuid-1.0.3/
-./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local 
-sudo make -j8 install
-
-cd
-git clone https://github.com/gflags/gflags.git
-cd gflags
-cmake -DCMAKE_TOOLCHAIN_FILE=../catkin_arm_cross_ws/rostoolchain.cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi  .
-sudo make -j8 install
+# Run setup_cross_build.sh first 
 
 # Actual ros build and install :
-
 
 sudo apt-get install python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential
 sudo rosdep init
@@ -105,7 +27,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE BOTH)
 set(BOOST_ROOT ${ARM_PREFIX})
 set(Boost_NO_SYSTEM_PATHS=ON)
 ---------------------
-rosinstall_generator ros ros_comm  robot --rosdistro kinetic --deps --wet-only --tar > kinetic-ros_comm-wet.rosinstall
+rosinstall_generator ros ros_comm robot --rosdistro kinetic --deps --wet-only --tar > kinetic-ros_comm-wet.rosinstall
 
 cd ~/catkin_arm_cross_ws/src
 git clone https://raw.githubusercontent.com/ros-gbp/urdfdom_headers-release/master/indigo/package.xml
@@ -127,9 +49,10 @@ create package.xml
   <description>URDF DOM</description>
   <maintainer email="a@google.com">Nobody</maintainer>
   <license>BSD</license>
+  <buildtool_depend>cmake</buildtool_depend>
+  <build_depend>urdfdom_headers</build_depend>
 
   <export>
-    <build_type>cmake</build_type>
   </export>
   
 </package>
@@ -142,13 +65,13 @@ wstool init -j8 src kinetic-desktop-wet.rosinstall
 cd src
 find . -name collada_urdf  | xargs rm -rf
 find . -name tf2_bullet | xargs rm -rf
+rm -rf robot_model/joint_state_publisher
 cd ..
 
-./src/catkin/bin/catkin_make_isolated --install --use-ninja -DCMAKE_INSTALL_PREFIX=/usr/arm-frc-linux-gnueabi/opt/ros/kinetic -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=/home/kjaget/catkin_arm_cross_ws/rostoolchain.cmake -DCATKIN_ENABLE_TESTING=OFF
+./src/catkin/bin/catkin_make_isolated --install --use-ninja -DCMAKE_INSTALL_PREFIX=/usr/arm-frc-linux-gnueabi/opt/ros/kinetic -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2017Preseason/zebROS_ws/rostoolchain.cmake -DCATKIN_ENABLE_TESTING=OFF
 
-Add "add_definitions(-std=c++11)" just after the find_package() lines in src/robot_state_publisher/CMakeLists.txt 
-
-Add 2 lines to the bottom of /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/share/urdf/cmake/urdfConfig.cmake
+Add 2 lines to the bottom of
+/usr/arm-frc-linux-gnueabi/opt/ros/kinetic/share/urdf/cmake/urdfConfig.cmake :
 
 set(CMAKE_INSTALL_RPATH "/usr/arm-frc-linux-gnueabi/opt/ros/kinetic/lib")
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)

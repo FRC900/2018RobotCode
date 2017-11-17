@@ -1,0 +1,7 @@
+<launch>
+  <!-- load configuration -->
+  <rosparam command="load" file="$(find talon_state_controller)/talon_state_controller.yaml" />
+
+  <!-- spawn controller -->
+  <node name="talon_state_controller_spawner" pkg="controller_manager" type="spawner" output="screen" args="talon_state_controller" />
+</launch>
