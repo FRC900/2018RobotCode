@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(talon_state_controller)
 
+include ("../cmake_modules/CMakeOpt.cmake")
+
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS realtime_tools roscpp hardware_interface pluginlib controller_interface sensor_msgs talon_interface)
 
