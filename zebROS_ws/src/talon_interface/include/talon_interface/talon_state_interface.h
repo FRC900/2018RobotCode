@@ -34,7 +34,7 @@ namespace hardware_interface
 			double getPosition(void)      const {return position_;}
 			double getSpeed(void)         const {return speed_;}
 			double getOutputVoltage(void) const {return output_voltage_;}
-			double getCANID(void)         const {return can_id_;}
+			int    getCANID(void)         const {return can_id_;}
 
 			void setPosition(double position)            {position_ = position;}
 			void setSpeed(double speed)                  {speed_ = speed;}
