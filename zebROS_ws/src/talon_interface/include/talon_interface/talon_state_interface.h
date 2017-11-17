@@ -27,7 +27,7 @@ namespace hardware_interface
 				position_(0),
 				speed_(0),
 				output_voltage_(0),
-				can_id_(0)
+				can_id_(can_id)
 			{
 			}
 
