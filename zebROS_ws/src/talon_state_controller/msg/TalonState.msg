@@ -24,7 +24,7 @@
 
 Header header
 
-string[] name
 float64[] position
-float64[] velocity
-float64[] effort
+float64[] speed
+float64[] output_voltage
+int8[] can_id
