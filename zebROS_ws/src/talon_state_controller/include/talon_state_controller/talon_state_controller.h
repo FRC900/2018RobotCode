@@ -39,6 +39,7 @@
 #include <realtime_tools/realtime_publisher.h>
 #include <boost/shared_ptr.hpp>
 #include <talon_interface/talon_state_interface.h>
+#include <talon_state_controller/TalonState.h>
 
 namespace talon_state_controller
 {
@@ -91,12 +92,13 @@ public:
 
 private:
   std::vector<hardware_interface::TalonStateHandle> talon_state_;
-  boost::shared_ptr<realtime_tools::RealtimePublisher<sensor_msgs::JointState> > realtime_pub_;
+  boost::shared_ptr<realtime_tools::RealtimePublisher<talon_state_controller::TalonState> > realtime_pub_;
   ros::Time last_publish_time_;
   double publish_rate_;
   unsigned int num_hw_joints_; ///< Number of joints present in the JointStateInterface, excluding extra joints
 
-  void addExtraJoints(const ros::NodeHandle& nh, sensor_msgs::JointState& msg);
+  void addExtraJoints(const ros::NodeHandle& nh,
+  talon_state_controller::TalonState& msg);
 };
 
 }

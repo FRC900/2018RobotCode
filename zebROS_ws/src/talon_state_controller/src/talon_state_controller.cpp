@@ -33,6 +33,7 @@
 #include <cstddef>
 
 #include "talon_state_controller/talon_state_controller.h"
+#include "talon_state_controller/TalonState.h"
 
 namespace talon_state_controller
 {
@@ -54,7 +55,9 @@ namespace talon_state_controller
     }
 
     // realtime publisher
-    realtime_pub_.reset(new realtime_tools::RealtimePublisher<sensor_msgs::JointState>(root_nh, "talon_states", 4));
+    realtime_pub_.reset(new
+    realtime_tools::RealtimePublisher<talon_state_controller::TalonState>(root_nh, "talon_states",
+    4));
 
     // get joints and allocate message
     for (unsigned i=0; i<num_hw_joints_; i++){
@@ -102,7 +105,8 @@ namespace talon_state_controller
   void TalonStateController::stopping(const ros::Time& /*time*/)
   {}
 
-  void TalonStateController::addExtraJoints(const ros::NodeHandle& nh, sensor_msgs::JointState& msg)
+  void TalonStateController::addExtraJoints(const ros::NodeHandle& nh,
+  talon_state_controller::TalonState& msg)
   {
 
     // Preconditions

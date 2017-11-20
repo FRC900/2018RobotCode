@@ -1,4 +1,4 @@
-<library path="lib/libjoint_state_controller">
+<library path="lib/libtalon_state_controller">
   <class name="talon_state_controller/TalonStateController" type="talon_state_controller::TalonStateController" base_class_type="controller_interface::ControllerBase">
   <description>
     The joint state controller is publishes the current joint state as a sensor_msgs/JointState message. The joint state controller expects a JointStateInterface type of hardware interface.
