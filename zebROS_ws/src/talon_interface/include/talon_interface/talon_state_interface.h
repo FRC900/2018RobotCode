@@ -27,13 +27,14 @@ namespace hardware_interface
 				position_(0),
 				speed_(0),
 				output_voltage_(0),
-				can_id_(0)
-			{}
+				can_id_(can_id)
+			{
+			}
 
 			double getPosition(void)      const {return position_;}
 			double getSpeed(void)         const {return speed_;}
 			double getOutputVoltage(void) const {return output_voltage_;}
-			double getCANID(void)         const {return can_id_;}
+			int    getCANID(void)         const {return can_id_;}
 
 			void setPosition(double position)            {position_ = position;}
 			void setSpeed(double speed)                  {speed_ = speed;}
@@ -77,7 +78,10 @@ namespace hardware_interface
 			// in the controller as well as the HWState object pointed
 			// to by a given handle.
 			TalonStateHandle(const std::string &name, const TalonHWState *state) :
-				JointStateHandle(name, state ? state->getPositionPtr() : NULL, state ? state->getSpeedPtr() : NULL, state ? state->getEffortPtr() : NULL),
+				JointStateHandle(name, 
+						         state ? state->getPositionPtr() : NULL, 
+								 state ? state->getSpeedPtr() : NULL, 
+								 state ? state->getEffortPtr() : NULL),
 				state_(state)
 			{
 				if (!state)

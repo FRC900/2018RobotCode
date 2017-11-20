@@ -236,11 +236,88 @@ class TalonPercentVbusControllerInterface : public TalonFixedModeControllerInter
 		// Maybe disable the setPIDConfig call since that makes
 		// no sense for a non-PID controller mode?
 };
+class TalonVoltageControllerInterface : public TalonFixedModeControllerInterface
+{
+	public:
+		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
+				  const TalonCIParams &params) override
+		{
+			// Call base-class init to load config params
+			if (!TalonControllerInterface::initWithParams(hw, params))
+				return false;
+			// Set the mode at init time - since this
+			// class is derived from the FixdMode class
+			// it can't be reset
+			talon_->setMode(hardware_interface::TalonMode_Voltage);
+			return true;
+		}
+		// Maybe disable the setPIDConfig call since that makes
+		// no sense for a non-PID controller mode?
+};
+class TalonFollowerControllerInterface : public TalonFixedModeControllerInterface
+{
+	public:
+		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
+				  const TalonCIParams &params) override
+		{
+			// Call base-class init to load config params
+			if (!TalonControllerInterface::initWithParams(hw, params))
+				return false;
+			// Set the mode at init time - since this
+			// class is derived from the FixdMode class
+			// it can't be reset
 
+			talon_->setMode(hardware_interface::TalonMode_Follower);
+			return true;
+		}
+		// Maybe disable the setPIDConfig call since that makes
+		// no sense for a non-PID controller mode?
+	void setCommand(const double command) override
+		{
+			ROS_WARN("Can't set a command in follower mode!");
+		}
+};
+class TalonMotionProfileControllerInterface : public TalonFixedModeControllerInterface // double check that this works
+{
+	public:
+		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
+				  const TalonCIParams &params) override
+		{
+			// Call base-class init to load config params
+			if (!TalonControllerInterface::initWithParams(hw, params))
+				return false;
+			// Set the mode at init time - since this
+			// class is derived from the FixdMode class
+			// it can't be reset
+			talon_->setMode(hardware_interface::TalonMode_MotionProfile);
+			return true;
+		}
+		// Maybe disable the setPIDConfig call since that makes
+		// no sense for a non-PID controller mode?
+};
+class TalonMotionMagicControllerInterface : public TalonFixedModeControllerInterface // double check that this works
+{
+	public:
+		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
+				  const TalonCIParams &params) override
+		{
+			// Call base-class init to load config params
+			if (!TalonControllerInterface::initWithParams(hw, params))
+				return false;
+			// Set the mode at init time - since this
+			// class is derived from the FixdMode class
+			// it can't be reset
+			talon_->setMode(hardware_interface::TalonMode_MotionMagic);
+			return true;
+		}
+		// Maybe disable the setPIDConfig call since that makes
+		// no sense for a non-PID controller mode?
+};
 // Use this to create any methods common to all
 // Close Loop modes, if any
 class TalonCloseLoopControllerInterface : public TalonFixedModeControllerInterface
 {
+
 };
 
 class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
@@ -255,6 +332,42 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 
 			// Set to position close loop mode
 			talon_->setMode(hardware_interface::TalonMode_Position);
+			setPIDConfig(0); // pick a default?
+
+			return true;
+		}
+};
+
+class TalonSpeedCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
+{
+	public:
+		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
+						    const TalonCIParams &params) override
+		{
+			// Call base class init for common setup code
+			if (!TalonControllerInterface::initWithParams(hw, params))
+				return false;
+
+			// Set to speed close loop mode
+			talon_->setMode(hardware_interface::TalonMode_Speed);
+			setPIDConfig(0); // pick a default?
+
+			return true;
+		}
+};
+
+class TalonCurrentCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
+{
+	public:
+		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
+						    const TalonCIParams &params) override
+		{
+			// Call base class init for common setup code
+			if (!TalonControllerInterface::initWithParams(hw, params))
+				return false;
+
+			// Set to current close loop mode
+			talon_->setMode(hardware_interface::TalonMode_Current);
 			setPIDConfig(0); // pick a default?
 
 			return true;

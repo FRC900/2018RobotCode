@@ -1,16 +1,19 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(cmd_vel_to_zmq)
-  set(CMAKE_MODULE_PATH "../cmake_modules")
-  ## Compile as C++11, supported in ROS Kinetic and newer
-  # add_compile_options(-std=c++11)
 
-  ## Find catkin macros and libraries
-  ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-  ## is used, also find other catkin packages
-  find_package(catkin REQUIRED COMPONENTS
+include ("../cmake_modules/CMakeOpt.cmake")
+
+set(CMAKE_MODULE_PATH "../cmake_modules")
+## Compile as C++11, supported in ROS Kinetic and newer
+# add_compile_options(-std=c++11)
+
+## Find catkin macros and libraries
+## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+## is used, also find other catkin packages
+find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     roscpp
-  )
+)
 
 if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   ## System dependencies are found with CMake's conventions

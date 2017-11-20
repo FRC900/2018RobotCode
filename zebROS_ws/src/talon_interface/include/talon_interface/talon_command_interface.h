@@ -135,9 +135,29 @@ namespace hardware_interface
 					throw HardwareInterfaceException("Cannot create Talon handle '" + js.getName() + "'. command pointer is null.");
 			}
 
-			// Operator to call underlying methods from TalonHWCommand
-			// object pointed to by this handle.
+			// Operator which allows access to methods from
+			// the TalonHWCommand member var associated with this
+			// handle
+			// Note that we could create separate methods in
+			// the handle class for every method in the HWState
+			// class, e.g.
+			//     double getFoo(void) const {assert(_state); return state_->getFoo();}
+			// but if each of them just pass things unchanged between
+			// the calling code and the HWState method there's no
+			// harm in making a single method to do so rather than
+			// dozens of getFoo() one-line methods
+			// 
 			TalonHWCommand * operator->() {assert(cmd_); return cmd_;}
+
+			// Get a pointer to the HW state associated with
+			// this Talon.  Since CommandHandle is derived
+			// from StateHandle, there's a state embedded
+			// in each instance of a CommandHandle. Use
+			// this method to access it.
+			//
+			// handle->state()->getCANID();
+			//
+			const TalonHWState * state(void) const { return TalonStateHandle::operator->(); }
 
 		private:
 			TalonHWCommand *cmd_;
