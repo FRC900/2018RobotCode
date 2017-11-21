@@ -24,6 +24,7 @@
 
 Header header
 
+string[] name
 float64[] position
 float64[] speed
 float64[] output_voltage

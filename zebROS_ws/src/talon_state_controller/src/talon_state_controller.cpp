@@ -62,10 +62,10 @@ namespace talon_state_controller
     // get joints and allocate message
     for (unsigned i=0; i<num_hw_joints_; i++){
       talon_state_.push_back(hw->getHandle(joint_names[i]));
-      realtime_pub_->msg_.name.push_back(joint_names[i]);
       realtime_pub_->msg_.position.push_back(0.0);
-      realtime_pub_->msg_.velocity.push_back(0.0);
-      realtime_pub_->msg_.effort.push_back(0.0);
+      realtime_pub_->msg_.speed.push_back(0.0);
+      realtime_pub_->msg_.output_voltage.push_back(0.0);
+      realtime_pub_->msg_.can_id.push_back(0);
     }
     addExtraJoints(controller_nh, realtime_pub_->msg_);
 
@@ -94,8 +94,9 @@ namespace talon_state_controller
         realtime_pub_->msg_.header.stamp = time;
         for (unsigned i=0; i<num_hw_joints_; i++){
           realtime_pub_->msg_.position[i] = talon_state_[i]->getPosition();
-          realtime_pub_->msg_.velocity[i] = talon_state_[i]->getSpeed();
-          realtime_pub_->msg_.effort[i] = talon_state_[i]->getOutputVoltage();
+          realtime_pub_->msg_.speed[i] = talon_state_[i]->getSpeed();
+          realtime_pub_->msg_.output_voltage[i] = talon_state_[i]->getOutputVoltage();
+          realtime_pub_->msg_.can_id[i] = talon_state_[i]->getCANID();
         }
         realtime_pub_->unlockAndPublish();
       }
@@ -172,10 +173,10 @@ namespace talon_state_controller
       const double eff = has_eff ? static_cast<double>(list[i]["effort"])   : 0.0;
 
       // Add extra joints to message
-      msg.name.push_back(name);
       msg.position.push_back(pos);
-      msg.velocity.push_back(vel);
-      msg.effort.push_back(eff);
+      msg.speed.push_back(vel);
+      msg.output_voltage.push_back(eff);
+      msg.can_id.push_back(0);
     }
   }
 
