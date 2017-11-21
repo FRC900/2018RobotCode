@@ -2,8 +2,8 @@ sed -i 's#nickdanger\.amer\.corp\.natinst\.com/feeds/\([^/]\+\)/\([^/]\+\)/#down
 opkg update
 
 # Split these up so the disk doesn't fill up with temp files
-opkg install boost-dev libeigen-dev libpython2 python-core python-dev libcurl4 lz4 
-opkg install libbz2 cmake-dev cmake libxml2-dev libxml2 libgnutls-bin libgnutls-dev libgnutls-openssl27 
+opkg install libeigen-dev libpython2 python-core python-dev libcurl4 lz4 
+opkg install libbz2 cmake libxml2-dev libxml2 libgnutls-bin libgnutls-dev libgnutls-openssl27 
 opkg install libgnutls30 libgnutlsxx28 nettle libgmp10 libgmpxx4 libz-dev libz1 git make 
 opkg install gcc g++ gcc-symlinks g++-symlinks binutils python-setuptools python-docutils 
 opkg install python-pyyaml python-pkgutil python-dateutil python-argparse python-nose 
