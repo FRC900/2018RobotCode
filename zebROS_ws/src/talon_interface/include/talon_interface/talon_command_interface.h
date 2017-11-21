@@ -6,25 +6,7 @@
 
 namespace hardware_interface
 {
-	// These should mirror the modes listed in ControlModes.h
-	// Need a separate copy here though, since sim won't be
-	// including that header file - sim shouldn't require
-	// anything specifically from the actual motor controller
-	// hardware
-	enum TalonMode
-	{
-		TalonMode_Uninitialized = -1,
-		TalonMode_PercentVbus,
-		TalonMode_Position,      // CloseLoop
-		TalonMode_Speed,         // CloseLoop
-		TalonMode_Current,       // CloseLoop
-		TalonMode_Voltage,
-		TalonMode_Follower,
-		TalonMode_MotionProfile,
-		TalonMode_MotionMagic,
-		TalonMode_Last
-	};
-
+	
 	// Class to buffer data needed to set the state of the
 	// Talon.  This should (eventually) include anything
 	// which might be set during runtime.  Config data
