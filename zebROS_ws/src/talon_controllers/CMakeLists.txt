@@ -5,7 +5,6 @@ include ("../cmake_modules/CMakeOpt.cmake")
 
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED COMPONENTS
-  angles
   control_msgs
   controller_interface
   message_generation
@@ -19,7 +18,6 @@ generate_messages(DEPENDENCIES talon_controllers)
 # Declare catkin package
 catkin_package(
   CATKIN_DEPENDS
-    angles
     control_msgs
     controller_interface
 	message_runtime

@@ -13,7 +13,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <depend>angles</depend>
   <depend>control_msgs</depend>
   <depend>controller_interface</depend>
   <depend>realtime_tools</depend>
