@@ -212,7 +212,7 @@ class TalonFixedModeControllerInterface : public TalonControllerInterface
 	public:
 		// Disable changing mode for controllers derived
 		// from this class
-		void setMode(const hardware_interface::TalonMode mode) override
+		void setMode(const hardware_interface::TalonMode /*mode*/) override
 		{
 			ROS_WARN("Can't reset mode using this TalonControllerInterface");
 		}
@@ -272,7 +272,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 		}
 		// Maybe disable the setPIDConfig call since that makes
 		// no sense for a non-PID controller mode?
-	void setCommand(const double command) override
+	void setCommand(const double /*command*/) override
 		{
 			ROS_WARN("Can't set a command in follower mode!");
 		}

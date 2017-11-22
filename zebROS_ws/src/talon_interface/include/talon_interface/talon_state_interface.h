@@ -47,7 +47,6 @@ namespace hardware_interface
 				position_(0),
 				speed_(0),
 				output_voltage_(0),
-				can_id_(can_id),
 				output_current_(0),
 				bus_voltage_(0), 
 				pidf_p_(0),
@@ -57,7 +56,8 @@ namespace hardware_interface
 				closed_loop_error_(0),
 				fwd_limit_switch_closed_(0),
 				rev_limit_switch_closed_(0),
-				talon_mode_(TalonMode_Uninitialized)
+				talon_mode_(TalonMode_Uninitialized),
+				can_id_(can_id)
 			{
 			}
 
