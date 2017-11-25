@@ -49,10 +49,11 @@ namespace hardware_interface
 				output_voltage_(0),
 				output_current_(0),
 				bus_voltage_(0), 
-				pidf_p_(0),
-				pidf_i_(0),
-				pidf_d_(0),
-				pidf_f_(0),
+				pidf_p_ {0, 0},
+				pidf_i_ {0, 0},
+				pidf_d_ {0, 0},
+				pidf_f_ {0, 0},
+				pidf_izone_ {0, 0},
 				closed_loop_error_(0),
 				fwd_limit_switch_closed_(0),
 				rev_limit_switch_closed_(0),
@@ -67,10 +68,11 @@ namespace hardware_interface
 			int    getCANID(void)         const {return can_id_;}
 			double getOutputCurrent(void) const {return output_current_;}
 			double getBusVoltage(void)    const {return bus_voltage_;}
-			double getPidfP(void)	      const {return pidf_p_;}
-			double getPidfI(void)	      const {return pidf_i_;}
-			double getPidfD(void)	      const {return pidf_d_;}
-			double getPidfF(void)	      const {return pidf_f_;}
+			double getPidfP(int index)    const {return pidf_p_[index];}
+			double getPidfI(int index)    const {return pidf_i_[index];}
+			double getPidfD(int index)    const {return pidf_d_[index];}
+			double getPidfF(int index)    const {return pidf_f_[index];}
+			double getPidfIzone(int index)     const {return pidf_izone_[index];}
 			int getClosedLoopError(void)  const {return closed_loop_error_;}
 			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
 			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
@@ -81,10 +83,11 @@ namespace hardware_interface
 			void setOutputVoltage(double output_voltage) {output_voltage_ = output_voltage;}
 			void setOutputCurrent(double output_current) {output_current_ = output_current;}
 			void setBusVoltage(double bus_voltage)       {bus_voltage_ = bus_voltage;}
-			void setPidfP(double pidf_p)		     {pidf_p_ = pidf_p;}
-			void setPidfI(double pidf_i)		     {pidf_i_ = pidf_i;}
-			void setPidfD(double pidf_d)		     {pidf_d_ = pidf_d;}
-			void setPidfF(double pidf_f)		     {pidf_f_ = pidf_f;}
+			void setPidfP(double pidf_p, int index)	     {pidf_p_[index] = pidf_p;}
+			void setPidfI(double pidf_i, int index)	     {pidf_i_[index] = pidf_i;}
+			void setPidfD(double pidf_d, int index)	     {pidf_d_[index] = pidf_d;}
+			void setPidfF(double pidf_f, int index)	     {pidf_f_[index] = pidf_f;}
+			void setPidfIzone(double pidf_izone, int index)	     {pidf_izone_[index] = pidf_izone;}
 			void setClosedLoopError(int closed_loop_error) {closed_loop_error_ = closed_loop_error;}
 			void setFwdLimitSwitch(int fwd_limit_switch_closed) {fwd_limit_switch_closed_ = fwd_limit_switch_closed;}
 			void setRevLimitSwitch(int rev_limit_switch_closed) {rev_limit_switch_closed_ = rev_limit_switch_closed;}
@@ -106,11 +109,12 @@ namespace hardware_interface
 			double output_voltage_;
 			double output_current_;
 			double bus_voltage_;
-			double pidf_p_;
-			double pidf_i_;
-			double pidf_d_;
-			double pidf_f_;
-			int closed_loop_error_;
+			double pidf_p_[2];
+			double pidf_i_[2];
+			double pidf_d_[2];
+			double pidf_f_[2];
+			double pidf_izone_[2];
+			int closed_loop_error_; //this is an int
 			int fwd_limit_switch_closed_;
 			int rev_limit_switch_closed_;
 			TalonMode talon_mode_;
