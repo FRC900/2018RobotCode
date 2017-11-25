@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include <string>
-#include <hardware_interface/joint_state_interface.h>
+#include <hardware_interface/internal/hardware_resource_manager.h>
 
 namespace hardware_interface
 {
@@ -90,10 +90,6 @@ namespace hardware_interface
 			void setRevLimitSwitch(int rev_limit_switch_closed) {rev_limit_switch_closed_ = rev_limit_switch_closed;}
 			void setTalonMode(TalonMode talon_mode)	     {talon_mode_ = talon_mode;}
 
-			const double *getPositionPtr(void) const { return &position_; }
-			const double *getSpeedPtr   (void) const { return &speed_; }
-			const double *getEffortPtr  (void) const { return &output_voltage_; }
-			
 			// Add code to read and/or store all the other state from the Talon :
 			// output mode
 			// limit switch settings, sensing
@@ -121,7 +117,7 @@ namespace hardware_interface
 	// Handle - used by each controller to get, by name of the
 	// corresponding joint, an interface with which to get state
 	// info about a Talon
-	class TalonStateHandle : public JointStateHandle
+	class TalonStateHandle
 	{
 		public:
 			TalonStateHandle(void) :
@@ -138,15 +134,13 @@ namespace hardware_interface
 			// in the controller as well as the HWState object pointed
 			// to by a given handle.
 			TalonStateHandle(const std::string &name, const TalonHWState *state) :
-				JointStateHandle(name, 
-						         state ? state->getPositionPtr() : NULL, 
-								 state ? state->getSpeedPtr() : NULL, 
-								 state ? state->getEffortPtr() : NULL),
+				name_(name),
 				state_(state)
 			{
 				if (!state)
 					throw HardwareInterfaceException("Cannot create Talon state handle '" + name + "'. state pointer is null.");
 			}
+			std::string getName(void) const {return name_;}
 
 			// Operator which allows access to methods from
 			// the TalonHWState member var associated with this
@@ -162,6 +156,7 @@ namespace hardware_interface
 			const TalonHWState * operator->() const {assert(state_); return state_;}
 
 		private:
+			std::string         name_;
 			const TalonHWState *state_; // leave this const since state should never change the Talon itself
 	};
 
