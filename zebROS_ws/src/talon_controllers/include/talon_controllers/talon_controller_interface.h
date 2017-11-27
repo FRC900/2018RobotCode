@@ -33,16 +33,14 @@ class TalonCIParams
 	public:
 		// Initialize with relatively sane defaults
 		// for all parameters
-		TalonCIParams(void)
+		TalonCIParams(void) :
+				follow_can_id_ (-1),
+				p_ {0, 0},
+				i_ {0, 0},
+				d_ {0, 0},
+				f_ {0, 0},
+				izone_ {0, 0}
 		{
-			for (int slot = 0; slot < 2; slot++)
-			{
-				p_[slot] = 0.0;
-				i_[slot] = 0.0;
-				d_[slot] = 0.0;
-				f_[slot] = 0.0;
-				i_zone_[slot] = 0.0;
-			}
 		}
 
 		// Read a joint name from the given nodehandle's params
@@ -53,6 +51,19 @@ class TalonCIParams
 				ROS_ERROR("No joint given (namespace: %s, param name: %s)", 
 						  n.getNamespace().c_str(), param_name.c_str());
 				return false;
+			}
+			return true;
+		}
+
+		// Read the name of a joint (talon) to follow.  Figure
+		// out which CAN ID that Talon is configured as here
+		bool readFollowerID(ros::NodeHandle &n, hardware_interface::TalonStateInterface *tsi)
+		{
+			std::string follow_joint_name;
+			if (tsi && n.getParam("follow_joint", follow_joint_name))
+			{
+				hardware_interface::TalonStateHandle follow_handle = tsi->getHandle(follow_joint_name);
+				follow_can_id_ = follow_handle->getCANID();
 			}
 			return true;
 		}
@@ -73,8 +84,8 @@ class TalonCIParams
 					i_[i]=findDoubleParam("i",pidparams_);
 					d_[i]=findDoubleParam("d",pidparams_);
 					f_[i]=findDoubleParam("f",pidparams_);
-					i_zone_[i]=findDoubleParam("i_zone",pidparams_);
-					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << i_zone_[i]<< std::endl;
+					izone_[i]=findDoubleParam("izone",pidparams_);
+					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << izone_[i]<< std::endl;
 				}
 				return true;
 			}
@@ -85,11 +96,12 @@ class TalonCIParams
 		}
 		// TODO : Keep adding config items here
 		std::string joint_name_;
+		int    follow_can_id_;
 		double p_[2];
 		double i_[2];
 		double d_[2];
 		double f_[2];
-		double i_zone_[2];
+		double izone_[2];
 	private:
 		// Read a double named <param_type> from the array/map
 		// in pidparams
@@ -125,9 +137,10 @@ class TalonControllerInterface
 	public:
 		// Standardize format for reading params for 
 		// motor controller
-		virtual bool readParams(ros::NodeHandle &n)
+		virtual bool readParams(ros::NodeHandle &n, hardware_interface::TalonStateInterface *tsi)
 		{
 			return params_.readJointName(n, "joint") && 
+				   params_.readFollowerID(n, tsi) && 
 				   params_.readCloseLoopParams(n);
 		}
 
@@ -144,10 +157,10 @@ class TalonControllerInterface
 		}
 
 		// Initialize Talon hardware with the settings in params
-		virtual bool initWithParams(hardware_interface::TalonCommandInterface *hw, 
+		virtual bool initWithParams(hardware_interface::TalonCommandInterface *tci, 
 									const TalonCIParams &params)
 		{
-			talon_ = hw->getHandle(params.joint_name_);
+			talon_ = tci->getHandle(params.joint_name_);
 			talon_->set(0); // make sure motors don't run until everything is configured
 			return writeParamsToHW(params);
 		}
@@ -174,10 +187,11 @@ class TalonControllerInterface
 		// Useful for the hopefully common case where there's 
 		// no need to modify the parameters after reading
 		// them
-		virtual bool initWithNode(hardware_interface::TalonCommandInterface *hw,
+		virtual bool initWithNode(hardware_interface::TalonCommandInterface *tci,
+							 	  hardware_interface::TalonStateInterface *tsi,
 								  ros::NodeHandle &n)
 		{
-			return readParams(n) && initWithParams(hw, params_);
+			return readParams(n, tsi) && initWithParams(tci, params_);
 		}
 
 		// Set the setpoint for the motor controller
@@ -228,7 +242,7 @@ class TalonPercentVbusControllerInterface : public TalonFixedModeControllerInter
 			if (!TalonControllerInterface::initWithParams(hw, params))
 				return false;
 			// Set the mode at init time - since this
-			// class is derived from the FixdMode class
+			// class is derived from the FixedMode class
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_PercentVbus);
 			return true;
@@ -246,7 +260,7 @@ class TalonVoltageControllerInterface : public TalonFixedModeControllerInterface
 			if (!TalonControllerInterface::initWithParams(hw, params))
 				return false;
 			// Set the mode at init time - since this
-			// class is derived from the FixdMode class
+			// class is derived from the FixedMode class
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_Voltage);
 			return true;
@@ -263,16 +277,23 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			// Call base-class init to load config params
 			if (!TalonControllerInterface::initWithParams(hw, params))
 				return false;
-			// Set the mode at init time - since this
-			// class is derived from the FixdMode class
-			// it can't be reset
+			if (params.follow_can_id_ < 0)
+				throw std::runtime_error("Invalid follower CAN ID");
 
+			// Set the mode and CAN ID of talon to follow at init time - 
+			// since this class is derived from the FixedMode class
+			// these can't be reset. Hopefully we never have a case
+			// where a follower mode Talon changes which other
+			// Talon it is following during a match?
 			talon_->setMode(hardware_interface::TalonMode_Follower);
+			talon_->set(params.follow_can_id_);
+
+			std::cout << "Launching follower Talon SRX" << params.joint_name_ << " to follow CAN ID " << params.follow_can_id_ << std::endl;
 			return true;
 		}
 		// Maybe disable the setPIDConfig call since that makes
 		// no sense for a non-PID controller mode?
-	void setCommand(const double /*command*/) override
+		void setCommand(const double /*command*/) override
 		{
 			ROS_WARN("Can't set a command in follower mode!");
 		}
@@ -287,7 +308,7 @@ class TalonMotionProfileControllerInterface : public TalonFixedModeControllerInt
 			if (!TalonControllerInterface::initWithParams(hw, params))
 				return false;
 			// Set the mode at init time - since this
-			// class is derived from the FixdMode class
+			// class is derived from the FixedMode class
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_MotionProfile);
 			return true;
@@ -305,7 +326,7 @@ class TalonMotionMagicControllerInterface : public TalonFixedModeControllerInter
 			if (!TalonControllerInterface::initWithParams(hw, params))
 				return false;
 			// Set the mode at init time - since this
-			// class is derived from the FixdMode class
+			// class is derived from the FixedMode class
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_MotionMagic);
 			return true;
