@@ -25,7 +25,6 @@ namespace hardware_interface
 		TalonMode_Last
 	};
 
-
 	// Class which contains state information
 	// about a given Talon SRX. This should include
 	// data about the mode the Talon is running in,
