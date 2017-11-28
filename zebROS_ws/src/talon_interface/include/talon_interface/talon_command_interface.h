@@ -53,7 +53,7 @@ namespace hardware_interface
 			void setP(double oldP){
 				pidf_changed_[pidf_slot_] = true;
 				p_[pidf_slot_] = oldP;}
-			double getP(void) const {return p_[pidf_slot_]	;}
+			double getP(void) const {return p_[pidf_slot_];}
 
 			void setI(double ii){
 				pidf_changed_[pidf_slot_] = true;
@@ -97,20 +97,20 @@ namespace hardware_interface
 
 			bool slotChanged(int &newpidfSlot)
 			{
+				newpidfSlot = pidf_slot_;
 				if (!pidf_slot_changed_)
 					return false;
-				newpidfSlot = pidf_slot_;
 				pidf_slot_changed_ = false;
 				return true;
 			}
 			bool pidfChanged(double &p, double &i, double &d, double &f, unsigned &iz){
-				if (!pidf_changed_[pidf_slot_])
-					return false;
 				p = p_[pidf_slot_];
 				i = i_[pidf_slot_];
 				d = d_[pidf_slot_];
 				f = f_[pidf_slot_];
 				iz = i_zone_[pidf_slot_];
+				if (!pidf_changed_[pidf_slot_])
+					return false;
 				pidf_slot_changed_ = false;
 				return true;
 			}
@@ -125,9 +125,9 @@ namespace hardware_interface
 			// the mode has actually changed.
 			bool newMode(TalonMode &mode)
 			{
+				mode = mode_;
 				if (!mode_changed_)
 					return false;
-				mode          = mode_;
 				mode_changed_ = false;
 				return true;
 			}
