@@ -57,7 +57,8 @@ namespace hardware_interface
 				fwd_limit_switch_closed_(0),
 				rev_limit_switch_closed_(0),
 				talon_mode_(TalonMode_Uninitialized),
-				can_id_(can_id)
+				can_id_(can_id),
+				slot_(0)
 			{
 			}
 
@@ -86,11 +87,12 @@ namespace hardware_interface
 			void setPidfI(double pidf_i, int index)	     {pidf_i_[index] = pidf_i;}
 			void setPidfD(double pidf_d, int index)	     {pidf_d_[index] = pidf_d;}
 			void setPidfF(double pidf_f, int index)	     {pidf_f_[index] = pidf_f;}
-			void setPidfIzone(double pidf_izone, int index)	     {pidf_izone_[index] = pidf_izone;}
+			void setPidfIzone(unsigned pidf_izone, int index)	     {pidf_izone_[index] = pidf_izone;}
 			void setClosedLoopError(int closed_loop_error) {closed_loop_error_ = closed_loop_error;}
 			void setFwdLimitSwitch(int fwd_limit_switch_closed) {fwd_limit_switch_closed_ = fwd_limit_switch_closed;}
 			void setRevLimitSwitch(int rev_limit_switch_closed) {rev_limit_switch_closed_ = rev_limit_switch_closed;}
 			void setTalonMode(TalonMode talon_mode)	     {talon_mode_ = talon_mode;}
+			void setSlot(int slot)      {slot_ = slot;}
 
 			// Add code to read and/or store all the other state from the Talon :
 			// output mode
@@ -108,13 +110,15 @@ namespace hardware_interface
 			double pidf_i_[2];
 			double pidf_d_[2];
 			double pidf_f_[2];
-			double pidf_izone_[2];
+			unsigned pidf_izone_[2];
 			int closed_loop_error_; //this is an int
 			int fwd_limit_switch_closed_;
 			int rev_limit_switch_closed_;
 			TalonMode talon_mode_;
 
 			int can_id_;
+
+			int slot_;
 	};
 
 	// Handle - used by each controller to get, by name of the
