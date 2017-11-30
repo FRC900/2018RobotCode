@@ -2,14 +2,32 @@ sed -i 's#nickdanger\.amer\.corp\.natinst\.com/feeds/\([^/]\+\)/\([^/]\+\)/#down
 opkg update
 
 # Split these up so the disk doesn't fill up with temp files
-opkg install libeigen-dev libpython2 python-core python-dev libcurl4 lz4 
-opkg install libbz2 cmake libxml2-dev libxml2 libgnutls-bin libgnutls-dev libgnutls-openssl27 
-opkg install libgnutls30 libgnutlsxx28 nettle libgmp10 libgmpxx4 libz-dev libz1 git make 
+opkg install libeigen python-dev libpython2 python-core 
+opkg install libcurl4 lz4 libboost-filesystem1.60.0 libboost-program-options1.60.0 libboost-signals1.60.0 libboost-regex1.60.0 libbosst-thread1.60.0 libboost-chrono1.60.0 libboost-date-time1.60.0 libboost-atomic1.60.0
+opkg install libbz2 cmake libxml2 libgnutls-bin libgnutls-openssl27  
+opkg install libgnutls30 libgnutlsxx28 nettle libgmp10 libgmpxx4 libz1 git make 
 opkg install gcc g++ gcc-symlinks g++-symlinks binutils python-setuptools python-docutils 
 opkg install python-pyyaml python-pkgutil python-dateutil python-argparse python-nose 
-opkg install python-netifaces libglog0 libglog-dev libyaml-dev python-pip coreutils
+opkg install python-netifaces libglog0 python-pip coreutils
+
+# There was some weirdness with installing python. Needed to
+#  cd
+#  wget http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/libpython2_2.7.11-r1.49_cortexa9-vfpv3.ipk
+#  ar x libpython2_2.7.11-r1.49_cortexa9-vfpv3.ipk
+#  cd /
+#  tar -xvf ~/data.tar.gz
+#  cd
+#  rm created files
+
+#opkg install libeigen-dev python-dev
+#opkg install libxml2-dev libgnutls-dev
+#opkg install libz-dev
+#opkg install libglog-dev libyaml-dev
 
 pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy
+
+# Copy over ROS tar.bz2 file, extract to /
+source /opt/ros/kinetic/setup.bash
 
 # Try to simulate what the cross-build environment
 # looks like 
@@ -21,9 +39,6 @@ mkdir -p 2017Preseason/zebROS_ws/src
 cd 2017Preseason/zebROS_ws
 catkin_make_isolated --install
 cd 
-
-# Copy over ROS tar.bz2 file, extract to /
-
 
 cd
 git clone https://github.com/ros/console_bridge
@@ -43,6 +58,9 @@ make install
 cd
 rm -rf gflags*
 
+# This is pre-built on a flash drive - make install should just 
+# check everything is up to date and then copy the libraries and headers
+# over ... at least until the Rio image changes?
 cd
 wget https://pocoproject.org/releases/poco-1.7.9/poco-1.7.9p1.tar.gz
 tar -xzf poco-1.7.9p1.tar.gz 
