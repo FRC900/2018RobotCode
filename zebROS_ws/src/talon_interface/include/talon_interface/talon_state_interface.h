@@ -98,6 +98,7 @@ namespace hardware_interface
 			// pid slot selected and PIDF values
 			// voltage compensatino stuff
 			// etc, etc, etc
+			//RG: I think there should be a set peak voltage function
 		private:
 			double position_;
 			double speed_;
