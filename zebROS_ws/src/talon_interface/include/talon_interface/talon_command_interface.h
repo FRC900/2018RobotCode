@@ -50,37 +50,37 @@ namespace hardware_interface
 
 			TalonMode getMode(void) const {return mode_;}
 
-			void setP(double oldP){
-				pidf_changed_[pidf_slot_] = true;
-				p_[pidf_slot_] = oldP;}
-			double getP(void) const {return p_[pidf_slot_];}
+			void setP(double oldP, int index){
+				pidf_changed_[index] = true;
+				p_[index] = oldP;}
+			double getP(int index) const {return p_[index];}
 
-			void setI(double ii){
-				pidf_changed_[pidf_slot_] = true;
-				i_[pidf_slot_] = ii;}
-			double getI(void) const {return i_[pidf_slot_];}
+			void setI(double ii, int index){
+				pidf_changed_[index] = true;
+				i_[index] = ii;}
+			double getI(int index) const {return i_[index];}
 			
-			void setPID(double oldP, double oldI, double oldD){
-				pidf_changed_[pidf_slot_] = true;
-				p_[pidf_slot_] = oldP;i_[pidf_slot_] =oldI;d_[pidf_slot_]=oldD;}
-			virtual void setPID(double oldP, double oldI, double oldD, double oldF){
-				pidf_changed_[pidf_slot_] = true;
-				p_[pidf_slot_]=oldP;i_[pidf_slot_]=oldI;d_[pidf_slot_]=oldD;f_[pidf_slot_]=oldF;}
+			void setPID(double oldP, double oldI, double oldD, int index){
+				pidf_changed_[index] = true;
+				p_[index] = oldP;i_[index] =oldI;d_[index]=oldD;}
+			void setPID(double oldP, double oldI, double oldD, double oldF, int index){
+				pidf_changed_[index] = true;
+				p_[index]=oldP;i_[index]=oldI;d_[index]=oldD;f_[index]=oldF;}
 
-			void setD(double dd){
-				pidf_changed_[pidf_slot_] = true;
-				d_[pidf_slot_] = dd;}
-			double getD(void) const {return d_[pidf_slot_];}
+			void setD(double dd, int index){
+				pidf_changed_[index] = true;
+				d_[index] = dd;}
+			double getD(int index) const {return d_[index];}
 
-			void setF(double ff){
-				pidf_changed_[pidf_slot_] = true;
-				f_[pidf_slot_] = ff;}
-			double getF(void){return f_[pidf_slot_];}
+			void setF(double ff, int index){
+				pidf_changed_[index] = true;
+				f_[index] = ff;}
+			double getF(int index){return f_[index];}
 
-			void setIZ(unsigned oldIZ){
-				pidf_changed_[pidf_slot_] = true;
-				i_zone_[pidf_slot_] = oldIZ;}
-			unsigned getIZ(void) const {return i_zone_[pidf_slot_];}
+			void setIZ(unsigned oldIZ, int index){
+				pidf_changed_[index] = true;
+				i_zone_[index] = oldIZ;}
+			unsigned getIZ(int index) const {return i_zone_[index];}
 
 			void set(double command) {command_ = command;}
 			void setMode(const TalonMode mode)
@@ -103,15 +103,15 @@ namespace hardware_interface
 				pidf_slot_changed_ = false;
 				return true;
 			}
-			bool pidfChanged(double &p, double &i, double &d, double &f, unsigned &iz){
-				p = p_[pidf_slot_];
-				i = i_[pidf_slot_];
-				d = d_[pidf_slot_];
-				f = f_[pidf_slot_];
-				iz = i_zone_[pidf_slot_];
-				if (!pidf_changed_[pidf_slot_])
+			bool pidfChanged(double &p, double &i, double &d, double &f, unsigned &iz, int index){
+				p = p_[index];
+				i = i_[index];
+				d = d_[index];
+				f = f_[index];
+				iz = i_zone_[index];
+				if (!pidf_changed_[index])
 					return false;
-				pidf_slot_changed_ = false;
+				pidf_changed_[index] = false;
 				return true;
 			}
 
@@ -140,7 +140,7 @@ namespace hardware_interface
 			TalonMode mode_;         // talon mode - % vbus, close loop, motion profile, etc
 			bool      mode_changed_; // set if mode needs to be updated on the talon hw
 			double    ramprate;
-`			//RG: shouldn't there be a variable for the peak voltage limits?
+			//RG: shouldn't there be a variable for the peak voltage limits?
 			int       pidf_slot_; // index 0 or 1 of the active PIDF slot
 			bool      pidf_slot_changed_; // set to true to trigger a write to PIDF select on Talon
 

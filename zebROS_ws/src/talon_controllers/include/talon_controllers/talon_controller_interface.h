@@ -101,7 +101,7 @@ class TalonCIParams
 		double i_[2];
 		double d_[2];
 		double f_[2];
-		double izone_[2];
+		unsigned izone_[2];
 	private:
 		// Read a double named <param_type> from the array/map
 		// in pidparams
@@ -144,6 +144,7 @@ class TalonControllerInterface
 				   params_.readCloseLoopParams(n);
 		}
 
+
 		// Allow users of the ControllerInterface to get 
 		// a copy of the parameters currently set for the
 		// Talon.  They can then modify them at will and
@@ -161,14 +162,20 @@ class TalonControllerInterface
 									const TalonCIParams &params)
 		{
 			talon_ = tci->getHandle(params.joint_name_);
-			talon_->set(0); // make sure motors don't run until everything is configured
+			talon_->set(0);// make sure motors don't run until everything is configured
 			//RG: initializing everything to a set value of 0 is fine
 			//but note that setting 0 by no means guarantees that the motor won't run. 
 			//The talon could be in position mode for example
 			//consider disabling the talon and enabling it later
+			for (int i = 0; i < 2; i++) {
+				talon_->setP(params_.p_[i], i);
+				talon_->setI(params_.i_[i], i);
+				talon_->setD(params_.d_[i], i);
+				talon_->setF(params_.f_[i], i);
+				talon_->setIZ(params_.izone_[i], i);
+			}
 			return writeParamsToHW(params);
 		}
-1
 		// Use data in params_ to actually set up Talon
 		// hardware. Make this a separate method outside of
 		// init() so that dynamic reconfigure callback can write
@@ -280,7 +287,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			// Call base-class init to load config params
 			if (!TalonControllerInterface::initWithParams(hw, params))
 				return false;
-			if (params.follow_can_id_ < 0 || params.follow_can_id > 99)
+			if (params.follow_can_id_ < 0 || params.follow_can_id_ > 99)
 				throw std::runtime_error("Invalid follower CAN ID");
 
 			// Set the mode and CAN ID of talon to follow at init time - 
