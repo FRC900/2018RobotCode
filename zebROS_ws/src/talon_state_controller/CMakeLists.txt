@@ -27,6 +27,7 @@ catkin_package(
 include_directories(include ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
 add_library(${PROJECT_NAME} src/talon_state_controller.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+
 ## Add cmake target dependencies of the executable
 ## same as for the library above. This is needed to force
 ## talon controller messages to be built before the
