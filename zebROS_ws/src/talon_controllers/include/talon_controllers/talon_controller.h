@@ -96,6 +96,8 @@ class TalonPercentVbusController: public TalonController<TalonPercentVbusControl
 // slot for PID values plus command per message. Trust lower
 // level code will prevent repeatedly switching PID slot if
 // it doesn't actually change from message to message.
+//RG: In talon controller interface current closed loop control also inherits closed loop stuff
+//This command involves PID so maybe current control shouldn't be considered closed loop control?
 class CloseLoopCommand
 {
 	public:

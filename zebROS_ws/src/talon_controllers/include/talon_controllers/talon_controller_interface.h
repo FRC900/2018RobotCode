@@ -101,7 +101,7 @@ class TalonCIParams
 		double i_[2];
 		double d_[2];
 		double f_[2];
-		double izone_[2];
+		unsigned izone_[2];
 	private:
 		// Read a double named <param_type> from the array/map
 		// in pidparams
@@ -144,6 +144,7 @@ class TalonControllerInterface
 				   params_.readCloseLoopParams(n);
 		}
 
+
 		// Allow users of the ControllerInterface to get 
 		// a copy of the parameters currently set for the
 		// Talon.  They can then modify them at will and
@@ -161,10 +162,20 @@ class TalonControllerInterface
 									const TalonCIParams &params)
 		{
 			talon_ = tci->getHandle(params.joint_name_);
-			talon_->set(0); // make sure motors don't run until everything is configured
+			talon_->set(0);// make sure motors don't run until everything is configured
+			//RG: initializing everything to a set value of 0 is fine
+			//but note that setting 0 by no means guarantees that the motor won't run. 
+			//The talon could be in position mode for example
+			//consider disabling the talon and enabling it later
+			for (int i = 0; i < 2; i++) {
+				talon_->setP(params_.p_[i], i);
+				talon_->setI(params_.i_[i], i);
+				talon_->setD(params_.d_[i], i);
+				talon_->setF(params_.f_[i], i);
+				talon_->setIZ(params_.izone_[i], i);
+			}
 			return writeParamsToHW(params);
 		}
-
 		// Use data in params_ to actually set up Talon
 		// hardware. Make this a separate method outside of
 		// init() so that dynamic reconfigure callback can write
@@ -231,7 +242,6 @@ class TalonFixedModeControllerInterface : public TalonControllerInterface
 			ROS_WARN("Can't reset mode using this TalonControllerInterface");
 		}
 };
-
 class TalonPercentVbusControllerInterface : public TalonFixedModeControllerInterface
 {
 	public:
@@ -277,7 +287,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			// Call base-class init to load config params
 			if (!TalonControllerInterface::initWithParams(hw, params))
 				return false;
-			if (params.follow_can_id_ < 0)
+			if (params.follow_can_id_ < 0 || params.follow_can_id_ > 99)
 				throw std::runtime_error("Invalid follower CAN ID");
 
 			// Set the mode and CAN ID of talon to follow at init time - 
@@ -315,7 +325,10 @@ class TalonMotionProfileControllerInterface : public TalonFixedModeControllerInt
 		}
 		// Maybe disable the setPIDConfig call since that makes
 		// no sense for a non-PID controller mode?
+		// RG: Actually does use PID and F
 };
+//RG: I can think of few to no situations were we would have a talon in motion magic mode for an entire match
+//Honesly I wouldn't ever use motion magic mode, I would use the MotionProfile mode (above)
 class TalonMotionMagicControllerInterface : public TalonFixedModeControllerInterface // double check that this works
 {
 	public:
@@ -333,6 +346,7 @@ class TalonMotionMagicControllerInterface : public TalonFixedModeControllerInter
 		}
 		// Maybe disable the setPIDConfig call since that makes
 		// no sense for a non-PID controller mode?
+		// RG: Actually does use PID and F
 };
 // Use this to create any methods common to all
 // Close Loop modes, if any
@@ -354,6 +368,10 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 			// Set to position close loop mode
 			talon_->setMode(hardware_interface::TalonMode_Position);
 			setPIDConfig(0); // pick a default?
+			//RG: We should consider setting the PID config for position to default to 1
+			//Sorting PID values based on type (position vs velocity) seems like a good idea and
+			//having a position and a velocity mode is relatively common for drive trains
+			//In other cases it will make it clearer how the PID vals are used
 
 			return true;
 		}
@@ -376,7 +394,8 @@ class TalonSpeedCloseLoopControllerInterface : public TalonCloseLoopControllerIn
 			return true;
 		}
 };
-
+//RG: current closed loop control really shouldn't inherit from close loop control
+//it is basically the same as voltage control mode or %vbus
 class TalonCurrentCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
 {
 	public:
