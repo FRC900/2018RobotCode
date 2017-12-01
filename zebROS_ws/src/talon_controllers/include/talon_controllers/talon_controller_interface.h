@@ -174,20 +174,9 @@ class TalonControllerInterface
 									const TalonCIParams &params)
 		{
 			talon_ = tci->getHandle(params.joint_name_);
-			talon_->set(0);// make sure motors don't run until everything is configured
-			//RG: initializing everything to a set value of 0 is fine
-			//but note that setting 0 by no means guarantees that the motor won't run. 
-			//The talon could be in position mode for example
-			//consider disabling the talon and enabling it later
-			for (int i = 0; i < 2; i++) {
-				talon_->setP(params_.p_[i], i);
-				talon_->setI(params_.i_[i], i);
-				talon_->setD(params_.d_[i], i);
-				talon_->setF(params_.f_[i], i);
-				talon_->setIZ(params_.izone_[i], i);
-			}
 			return writeParamsToHW(params);
 		}
+
 		// Use data in params_ to actually set up Talon
 		// hardware. Make this a separate method outside of
 		// init() so that dynamic reconfigure callback can write
@@ -202,6 +191,14 @@ class TalonControllerInterface
 			// but don't set mode - either force the caller to
 			// set it or use one of the derived, fixed-mode
 			// classes instead
+			for (int i = 0; i < 2; i++) {
+				talon_->setP(params_.p_[i], i);
+				talon_->setI(params_.i_[i], i);
+				talon_->setD(params_.d_[i], i);
+				talon_->setF(params_.f_[i], i);
+				talon_->setIZ(params_.izone_[i], i);
+			}
+
 			return true;
 		}
 
