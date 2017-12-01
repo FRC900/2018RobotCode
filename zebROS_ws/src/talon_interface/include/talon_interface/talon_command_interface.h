@@ -42,7 +42,7 @@ namespace hardware_interface
 					pidf_changed_[slot] = true;
 				}
 			}
-			// These get the requested setpoint, not the
+			// This gets the requested setpoint, not the
 			// status actually read from the controller
 			// Need to think about which makes the most
 			// sense to query...
