@@ -84,7 +84,7 @@ class TalonCIParams
 					i_[i]=findDoubleParam("i",pidparams_);
 					d_[i]=findDoubleParam("d",pidparams_);
 					f_[i]=findDoubleParam("f",pidparams_);
-					izone_[i]=findDoubleParam("izone",pidparams_);
+					izone_[i]=findIntParam("i_zone",pidparams_);
 					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << izone_[i]<< std::endl;
 				}
 				return true;
@@ -104,25 +104,37 @@ class TalonCIParams
 		unsigned izone_[2];
 	private:
 		// Read a double named <param_type> from the array/map
-		// in pidparams
-		double findDoubleParam(std::string param_type, XmlRpc::XmlRpcValue &pidparams) const
+		// in params
+		double findDoubleParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
 		{
-			if (!pidparams.hasMember(param_type))
+			if (!params.hasMember(param_type))
 				return 0;
-			XmlRpc::XmlRpcValue& param = pidparams[param_type];
+			XmlRpc::XmlRpcValue& param = params[param_type];
 			if (!param.valid())
 				throw std::runtime_error(param_type + " was not a valid type");
-			double ret;
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-				ret = param;
+				return (double)param;
 			else if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
-			{
-				int temp = param;
-				ret = temp;
-			}
+				return (int)param;
 			else
 				throw std::runtime_error("A non-double value was passed for" + param_type);
-			return ret;
+			return 0;
+		}
+
+		// Read an integer names <param_type> from the array/map
+		// in params
+		int findIntParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
+		{
+			if (!params.hasMember(param_type))
+				return 0;
+			XmlRpc::XmlRpcValue& param = params[param_type];
+			if (!param.valid())
+				throw std::runtime_error(param_type + " was not a valid type");
+			if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
+				return (int)param;
+			else
+				throw std::runtime_error("A non-double value was passed for" + param_type);
+			return 0;
 		}
 };
 
