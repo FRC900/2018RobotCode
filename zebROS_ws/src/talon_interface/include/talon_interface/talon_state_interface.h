@@ -2,7 +2,7 @@
 
 #include <cassert>
 #include <string>
-#include <hardware_interface/joint_state_interface.h>
+#include <hardware_interface/internal/hardware_resource_manager.h>
 
 namespace hardware_interface
 {
@@ -24,7 +24,6 @@ namespace hardware_interface
 		TalonMode_MotionMagic,
 		TalonMode_Last
 	};
-
 
 	// Class which contains state information
 	// about a given Talon SRX. This should include
@@ -58,7 +57,8 @@ namespace hardware_interface
 				fwd_limit_switch_closed_(0),
 				rev_limit_switch_closed_(0),
 				talon_mode_(TalonMode_Uninitialized),
-				can_id_(can_id)
+				can_id_(can_id),
+				slot_(0)
 			{
 			}
 
@@ -87,22 +87,20 @@ namespace hardware_interface
 			void setPidfI(double pidf_i, int index)	     {pidf_i_[index] = pidf_i;}
 			void setPidfD(double pidf_d, int index)	     {pidf_d_[index] = pidf_d;}
 			void setPidfF(double pidf_f, int index)	     {pidf_f_[index] = pidf_f;}
-			void setPidfIzone(double pidf_izone, int index)	     {pidf_izone_[index] = pidf_izone;}
+			void setPidfIzone(unsigned pidf_izone, int index)	     {pidf_izone_[index] = pidf_izone;}
 			void setClosedLoopError(int closed_loop_error) {closed_loop_error_ = closed_loop_error;}
 			void setFwdLimitSwitch(int fwd_limit_switch_closed) {fwd_limit_switch_closed_ = fwd_limit_switch_closed;}
 			void setRevLimitSwitch(int rev_limit_switch_closed) {rev_limit_switch_closed_ = rev_limit_switch_closed;}
 			void setTalonMode(TalonMode talon_mode)	     {talon_mode_ = talon_mode;}
+			void setSlot(int slot)      {slot_ = slot;}
 
-			const double *getPositionPtr(void) const { return &position_; }
-			const double *getSpeedPtr   (void) const { return &speed_; }
-			const double *getEffortPtr  (void) const { return &output_voltage_; }
-			
 			// Add code to read and/or store all the other state from the Talon :
 			// output mode
 			// limit switch settings, sensing
 			// pid slot selected and PIDF values
 			// voltage compensatino stuff
 			// etc, etc, etc
+			//RG: I think there should be a set peak voltage function
 		private:
 			double position_;
 			double speed_;
@@ -113,19 +111,21 @@ namespace hardware_interface
 			double pidf_i_[2];
 			double pidf_d_[2];
 			double pidf_f_[2];
-			double pidf_izone_[2];
+			unsigned pidf_izone_[2];
 			int closed_loop_error_; //this is an int
 			int fwd_limit_switch_closed_;
 			int rev_limit_switch_closed_;
 			TalonMode talon_mode_;
 
 			int can_id_;
+
+			int slot_;
 	};
 
 	// Handle - used by each controller to get, by name of the
 	// corresponding joint, an interface with which to get state
 	// info about a Talon
-	class TalonStateHandle : public JointStateHandle
+	class TalonStateHandle
 	{
 		public:
 			TalonStateHandle(void) :
@@ -142,15 +142,13 @@ namespace hardware_interface
 			// in the controller as well as the HWState object pointed
 			// to by a given handle.
 			TalonStateHandle(const std::string &name, const TalonHWState *state) :
-				JointStateHandle(name, 
-						         state ? state->getPositionPtr() : NULL, 
-								 state ? state->getSpeedPtr() : NULL, 
-								 state ? state->getEffortPtr() : NULL),
+				name_(name),
 				state_(state)
 			{
 				if (!state)
 					throw HardwareInterfaceException("Cannot create Talon state handle '" + name + "'. state pointer is null.");
 			}
+			std::string getName(void) const {return name_;}
 
 			// Operator which allows access to methods from
 			// the TalonHWState member var associated with this
@@ -166,6 +164,7 @@ namespace hardware_interface
 			const TalonHWState * operator->() const {assert(state_); return state_;}
 
 		private:
+			std::string         name_;
 			const TalonHWState *state_; // leave this const since state should never change the Talon itself
 	};
 
