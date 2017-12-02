@@ -17,7 +17,7 @@ namespace hardware_interface
 		TalonMode_PercentVbus,
 		TalonMode_Position,      // CloseLoop
 		TalonMode_Speed,         // CloseLoop
-		TalonMode_Current,       // CloseLoop
+		TalonMode_Current,       // CloseLoop ?
 		TalonMode_Voltage,
 		TalonMode_Follower,
 		TalonMode_MotionProfile,
@@ -43,6 +43,7 @@ namespace hardware_interface
 	{
 		public:
 			TalonHWState(int can_id) :
+				setpoint_(0.),
 				position_(0),
 				speed_(0),
 				output_voltage_(0),
@@ -58,10 +59,12 @@ namespace hardware_interface
 				rev_limit_switch_closed_(0),
 				talon_mode_(TalonMode_Uninitialized),
 				can_id_(can_id),
-				slot_(0)
+				slot_(0),
+				invert_(false)
 			{
 			}
 
+			double getSetpoint(void)      const {return setpoint_;}
 			double getPosition(void)      const {return position_;}
 			double getSpeed(void)         const {return speed_;}
 			double getOutputVoltage(void) const {return output_voltage_;}
@@ -77,7 +80,9 @@ namespace hardware_interface
 			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
 			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
 			TalonMode getTalonMode(void)  const {return talon_mode_;}
+			bool getInvert(void)          const {return invert_;}
 
+			void setSetpoint(double setpoint)            {setpoint_ = setpoint;}
 			void setPosition(double position)            {position_ = position;}
 			void setSpeed(double speed)                  {speed_ = speed;}
 			void setOutputVoltage(double output_voltage) {output_voltage_ = output_voltage;}
@@ -93,15 +98,15 @@ namespace hardware_interface
 			void setRevLimitSwitch(int rev_limit_switch_closed) {rev_limit_switch_closed_ = rev_limit_switch_closed;}
 			void setTalonMode(TalonMode talon_mode)	     {talon_mode_ = talon_mode;}
 			void setSlot(int slot)      {slot_ = slot;}
+			void setInvert(bool invert) {invert_ = invert;}
 
 			// Add code to read and/or store all the other state from the Talon :
-			// output mode
 			// limit switch settings, sensing
-			// pid slot selected and PIDF values
-			// voltage compensatino stuff
+			// voltage compensation stuff
 			// etc, etc, etc
-			//RG: I think there should be a set peak voltage function
+			//RG: I think there should be a set peak voltage function - that should go in talon_command since it is something sent to the talon. We could reflect that setting here, though
 		private:
+			double setpoint_;
 			double position_;
 			double speed_;
 			double output_voltage_;
@@ -112,7 +117,7 @@ namespace hardware_interface
 			double pidf_d_[2];
 			double pidf_f_[2];
 			unsigned pidf_izone_[2];
-			int closed_loop_error_; //this is an int
+			int closed_loop_error_; //this is an int :)
 			int fwd_limit_switch_closed_;
 			int rev_limit_switch_closed_;
 			TalonMode talon_mode_;
@@ -120,6 +125,7 @@ namespace hardware_interface
 			int can_id_;
 
 			int slot_;
+			bool invert_;
 	};
 
 	// Handle - used by each controller to get, by name of the
