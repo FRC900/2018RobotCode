@@ -61,11 +61,29 @@ namespace talon_state_controller
 
     // get joints and allocate message
     for (unsigned i=0; i<num_hw_joints_; i++){
-      talon_state_.push_back(hw->getHandle(joint_names[i]));
+      realtime_pub_->msg_.name.push_back("");
+      realtime_pub_->msg_.talon_mode.push_back("");
       realtime_pub_->msg_.position.push_back(0.0);
       realtime_pub_->msg_.speed.push_back(0.0);
       realtime_pub_->msg_.output_voltage.push_back(0.0);
+      realtime_pub_->msg_.output_current.push_back(0.0);
+      realtime_pub_->msg_.bus_voltage.push_back(0.0);
+      realtime_pub_->msg_.pid_p1.push_back(0.0);
+      realtime_pub_->msg_.pid_p2.push_back(0.0);
+      realtime_pub_->msg_.pid_i1.push_back(0.0);
+      realtime_pub_->msg_.pid_i2.push_back(0.0);
+      realtime_pub_->msg_.pid_d1.push_back(0.0);
+      realtime_pub_->msg_.pid_d2.push_back(0.0);
+      realtime_pub_->msg_.pid_f1.push_back(0.0);
+      realtime_pub_->msg_.pid_f2.push_back(0.0);
       realtime_pub_->msg_.can_id.push_back(0);
+      realtime_pub_->msg_.closed_loop_error.push_back(0);
+      realtime_pub_->msg_.forward_limit_switch.push_back(0);
+      realtime_pub_->msg_.reverse_limit_switch.push_back(0);
+
+
+      talon_state_.push_back(hw->getHandle(joint_names[i]));
+
     }
     addExtraJoints(controller_nh, realtime_pub_->msg_);
 
@@ -119,7 +137,7 @@ namespace talon_state_controller
           realtime_pub_->msg_.pid_p1[i] = talon_state_[i]->getPidfP(0);
           realtime_pub_->msg_.pid_i1[i] = talon_state_[i]->getPidfI(0);
           realtime_pub_->msg_.pid_d1[i] = talon_state_[i]->getPidfD(0);
-          realtime_pub_->msg_.pid_f1[i] = talon_state_[i]->getPidfF(1);
+          realtime_pub_->msg_.pid_f1[i] = talon_state_[i]->getPidfF(0);
 
           realtime_pub_->msg_.pid_p2[i] = talon_state_[i]->getPidfP(1);
           realtime_pub_->msg_.pid_i2[i] = talon_state_[i]->getPidfI(1);
