@@ -138,11 +138,13 @@ namespace talon_state_controller
           realtime_pub_->msg_.pid_i1[i] = talon_state_[i]->getPidfI(0);
           realtime_pub_->msg_.pid_d1[i] = talon_state_[i]->getPidfD(0);
           realtime_pub_->msg_.pid_f1[i] = talon_state_[i]->getPidfF(0);
+          realtime_pub_->msg_.pid_izone1[i] = talon_state_[i]->getPidfIzone(0);
 
           realtime_pub_->msg_.pid_p2[i] = talon_state_[i]->getPidfP(1);
           realtime_pub_->msg_.pid_i2[i] = talon_state_[i]->getPidfI(1);
           realtime_pub_->msg_.pid_d2[i] = talon_state_[i]->getPidfD(1);
           realtime_pub_->msg_.pid_f2[i] = talon_state_[i]->getPidfF(1);
+          realtime_pub_->msg_.pid_izone2[i] = talon_state_[i]->getPidfIzone(1);
 
           realtime_pub_->msg_.closed_loop_error[i] = talon_state_[i]->getClosedLoopError();
           realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getFwdLimitSwitch();
