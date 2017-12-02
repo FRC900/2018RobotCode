@@ -60,7 +60,8 @@ namespace hardware_interface
 				talon_mode_(TalonMode_Uninitialized),
 				can_id_(can_id),
 				slot_(0),
-				invert_(false)
+				invert_(false),
+				invert_sensor_direction_(false)
 			{
 			}
 
@@ -81,6 +82,7 @@ namespace hardware_interface
 			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
 			TalonMode getTalonMode(void)  const {return talon_mode_;}
 			bool getInvert(void)          const {return invert_;}
+			bool getInvertSensorDirection(void) const {return invert_sensor_direction_;}
 
 			void setSetpoint(double setpoint)            {setpoint_ = setpoint;}
 			void setPosition(double position)            {position_ = position;}
@@ -99,6 +101,7 @@ namespace hardware_interface
 			void setTalonMode(TalonMode talon_mode)	     {talon_mode_ = talon_mode;}
 			void setSlot(int slot)      {slot_ = slot;}
 			void setInvert(bool invert) {invert_ = invert;}
+			void setInvertSensorDirection(bool invert) {invert_sensor_direction_ = invert;}
 
 			// Add code to read and/or store all the other state from the Talon :
 			// limit switch settings, sensing
@@ -126,6 +129,7 @@ namespace hardware_interface
 
 			int slot_;
 			bool invert_;
+			bool invert_sensor_direction_;
 	};
 
 	// Handle - used by each controller to get, by name of the

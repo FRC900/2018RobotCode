@@ -145,10 +145,9 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 			// Write both PID config slot and 
 			// output to talon interface
 			CloseLoopCommand cmd = *command_buffer_.readFromRT();
-			talon_if_.setPIDConfig(cmd.config_slot_);
+			talon_if_.setPIDFSlot(cmd.config_slot_);
 			talon_if_.setCommand(cmd.command_);
 		}
-
 
 	private:
 		TALON_IF talon_if_;

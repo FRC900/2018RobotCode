@@ -30,7 +30,10 @@ namespace hardware_interface
 				mode_(TalonMode_Uninitialized),
 				mode_changed_(false),
 				pidf_slot_(0),
-				pidf_slot_changed_(false)
+				pidf_slot_changed_(false),
+				invert_(false),
+				invert_sensor_direction_(false),
+				invert_changed_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -135,6 +138,18 @@ namespace hardware_interface
 			void setPidfSlot(int npidf_slot){pidf_slot_ = npidf_slot;pidf_slot_changed_ = true;}
 			int getPidfSlot(void)const{return pidf_slot_;}
 
+			void setInvert(bool invert) {invert_ = invert; invert_changed_ = true;}
+			void setInvertSensorDirection(bool invert) {invert_sensor_direction_ = invert; invert_changed_ = true;}
+			bool invertChanged(bool &invert, bool &invert_sensor_direction)
+			{
+				invert = invert_;
+				invert_sensor_direction = invert_sensor_direction_;
+				if (!invert_changed_)
+					return false;
+				invert_changed_ = false;
+				return true;
+			}
+
 		private:
 			double    command_; // motor setpoint - % vbus, velocity, position, etc
 			TalonMode mode_;         // talon mode - % vbus, close loop, motion profile, etc
@@ -147,10 +162,13 @@ namespace hardware_interface
 			// 2 entries in the Talon HW for each of these settings
 			double    p_[2];
 			double    i_[2];
-			unsigned    i_zone_[2];
+			unsigned  i_zone_[2];
 			double    d_[2];
 			double    f_[2];
 			bool      pidf_changed_[2];
+			bool      invert_;
+			bool      invert_sensor_direction_;
+			bool      invert_changed_;
 	};
 
 	// Handle - used by each controller to get, by name of the
