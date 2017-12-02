@@ -91,12 +91,78 @@ namespace talon_state_controller
         // populate joint state message:
         // - fill only joints that are present in the JointStateInterface, i.e. indices [0, num_hw_joints_)
         // - leave unchanged extra joints, which have static values, i.e. indices from num_hw_joints_ onwards
+        /*
+			double getPosition(void)      const {return position_;}
+			double getSpeed(void)         const {return speed_;}
+			double getOutputVoltage(void) const {return output_voltage_;}
+			int    getCANID(void)         const {return can_id_;}
+			double getOutputCurrent(void) const {return output_current_;}
+			double getBusVoltage(void)    const {return bus_voltage_;}
+			double getPidfP(void)	      const {return pidf_p_;}
+			double getPidfI(void)	      const {return pidf_i_;}
+			double getPidfD(void)	      const {return pidf_d_;}
+			double getPidfF(void)	      const {return pidf_f_;}
+			int getClosedLoopError(void)  const {return closed_loop_error_;}
+			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
+			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
+			TalonMode getTalonMode(void)  const {return talon_mode_;}
+            */
         realtime_pub_->msg_.header.stamp = time;
         for (unsigned i=0; i<num_hw_joints_; i++){
           realtime_pub_->msg_.position[i] = talon_state_[i]->getPosition();
           realtime_pub_->msg_.speed[i] = talon_state_[i]->getSpeed();
           realtime_pub_->msg_.output_voltage[i] = talon_state_[i]->getOutputVoltage();
           realtime_pub_->msg_.can_id[i] = talon_state_[i]->getCANID();
+          realtime_pub_->msg_.output_current[i] = talon_state_[i]->getOutputCurrent();
+          realtime_pub_->msg_.bus_voltage[i] = talon_state_[i]->getBusVoltage();
+          //publish the array of PIDF values
+          realtime_pub_->msg_.pid_p1[i] = talon_state_[i]->getPidfP(0);
+          realtime_pub_->msg_.pid_i1[i] = talon_state_[i]->getPidfI(0);
+          realtime_pub_->msg_.pid_d1[i] = talon_state_[i]->getPidfD(0);
+          realtime_pub_->msg_.pid_f1[i] = talon_state_[i]->getPidfF(1);
+
+          realtime_pub_->msg_.pid_p2[i] = talon_state_[i]->getPidfP(1);
+          realtime_pub_->msg_.pid_i2[i] = talon_state_[i]->getPidfI(1);
+          realtime_pub_->msg_.pid_d2[i] = talon_state_[i]->getPidfD(1);
+          realtime_pub_->msg_.pid_f2[i] = talon_state_[i]->getPidfF(1);
+
+          realtime_pub_->msg_.closed_loop_error[i] = talon_state_[i]->getClosedLoopError();
+          realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getFwdLimitSwitch();
+          realtime_pub_->msg_.reverse_limit_switch[i] = talon_state_[i]->getRevLimitSwitch();
+          //realtime_pub_->msg_.talon_mode[i] = talon_state_[i]->getTalonMode();
+          int talonMode = talon_state_[i]->getTalonMode();
+          switch(talonMode) {
+            case -1:
+                realtime_pub_->msg_.talon_mode[i] = "Uninitialized";
+                break;
+            case 0:
+                realtime_pub_->msg_.talon_mode[i] = "Percent Vbus";
+                break;
+            case 1:
+                realtime_pub_->msg_.talon_mode[i] = "Closed Loop Position";
+                break;
+            case 2:
+                realtime_pub_->msg_.talon_mode[i] = "Closed Loop Speed";
+                break;
+            case 3:
+                realtime_pub_->msg_.talon_mode[i] = "Closed Loop Current";
+                break;
+            case 4:
+                realtime_pub_->msg_.talon_mode[i] = "Voltage";
+                break;
+            case 5:
+                realtime_pub_->msg_.talon_mode[i] = "Follower";
+                break;
+            case 6:
+                realtime_pub_->msg_.talon_mode[i] = "Motion Profile";
+                break;
+            case 7:
+                realtime_pub_->msg_.talon_mode[i] = "Motion Magic";
+                break;
+            case 8:
+                realtime_pub_->msg_.talon_mode[i] = "Last";
+                break;
+          }
         }
         realtime_pub_->unlockAndPublish();
       }
