@@ -76,10 +76,14 @@ namespace talon_state_controller
       realtime_pub_->msg_.pid_d2.push_back(0.0);
       realtime_pub_->msg_.pid_f1.push_back(0.0);
       realtime_pub_->msg_.pid_f2.push_back(0.0);
+      realtime_pub_->msg_.pid_izone1.push_back(0.0);
+      realtime_pub_->msg_.pid_izone2.push_back(0.0);
+      realtime_pub_->msg_.set_point.push_back(0.0);
       realtime_pub_->msg_.can_id.push_back(0);
       realtime_pub_->msg_.closed_loop_error.push_back(0);
       realtime_pub_->msg_.forward_limit_switch.push_back(0);
       realtime_pub_->msg_.reverse_limit_switch.push_back(0);
+      realtime_pub_->msg_.invert.push_back(false);
 
 
       talon_state_.push_back(hw->getHandle(joint_names[i]));
@@ -146,6 +150,8 @@ namespace talon_state_controller
           realtime_pub_->msg_.pid_f2[i] = talon_state_[i]->getPidfF(1);
           realtime_pub_->msg_.pid_izone2[i] = talon_state_[i]->getPidfIzone(1);
 
+          
+          realtime_pub_->msg_.set_point.push_back(0.0);
           realtime_pub_->msg_.closed_loop_error[i] = talon_state_[i]->getClosedLoopError();
           realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getFwdLimitSwitch();
           realtime_pub_->msg_.reverse_limit_switch[i] = talon_state_[i]->getRevLimitSwitch();

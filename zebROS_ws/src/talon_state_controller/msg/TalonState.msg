@@ -39,7 +39,9 @@ float64[] pid_f1
 float64[] pid_f2
 float64[] pid_izone1
 float64[] pid_izone2
+float64[] set_point
 int8[] can_id
 int8[] closed_loop_error
 int8[] forward_limit_switch
 int8[] reverse_limit_switch
+bool[] invert
