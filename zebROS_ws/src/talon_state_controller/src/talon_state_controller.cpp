@@ -61,7 +61,7 @@ namespace talon_state_controller
 
     // get joints and allocate message
     for (unsigned i=0; i<num_hw_joints_; i++){
-      realtime_pub_->msg_.name.push_back("");
+      realtime_pub_->msg_.name.push_back(joint_names[i]);
       realtime_pub_->msg_.talon_mode.push_back("");
       realtime_pub_->msg_.position.push_back(0.0);
       realtime_pub_->msg_.speed.push_back(0.0);
