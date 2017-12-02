@@ -30,8 +30,7 @@ namespace hardware_interface
 				mode_(TalonMode_Uninitialized),
 				mode_changed_(false),
 				pidf_slot_(0),
-				pidf_slot_changed_(false),
-				pidf_changed_(false)
+				pidf_slot_changed_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -40,14 +39,48 @@ namespace hardware_interface
 					d_[slot] =  0.0;
 					f_[slot] =  0.0;
 					i_zone_[slot] = 0.0;
+					pidf_changed_[slot] = true;
 				}
 			}
-			// These get the requested setpoint, not the
+			// This gets the requested setpoint, not the
 			// status actually read from the controller
 			// Need to think about which makes the most
 			// sense to query...
 			double get(void) const {return command_;}
+
 			TalonMode getMode(void) const {return mode_;}
+
+			void setP(double oldP, int index){
+				pidf_changed_[index] = true;
+				p_[index] = oldP;}
+			double getP(int index) const {return p_[index];}
+
+			void setI(double ii, int index){
+				pidf_changed_[index] = true;
+				i_[index] = ii;}
+			double getI(int index) const {return i_[index];}
+			
+			void setPID(double oldP, double oldI, double oldD, int index){
+				pidf_changed_[index] = true;
+				p_[index] = oldP;i_[index] =oldI;d_[index]=oldD;}
+			void setPID(double oldP, double oldI, double oldD, double oldF, int index){
+				pidf_changed_[index] = true;
+				p_[index]=oldP;i_[index]=oldI;d_[index]=oldD;f_[index]=oldF;}
+
+			void setD(double dd, int index){
+				pidf_changed_[index] = true;
+				d_[index] = dd;}
+			double getD(int index) const {return d_[index];}
+
+			void setF(double ff, int index){
+				pidf_changed_[index] = true;
+				f_[index] = ff;}
+			double getF(int index){return f_[index];}
+
+			void setIZ(unsigned oldIZ, int index){
+				pidf_changed_[index] = true;
+				i_zone_[index] = oldIZ;}
+			unsigned getIZ(int index) const {return i_zone_[index];}
 
 			void set(double command) {command_ = command;}
 			void setMode(const TalonMode mode)
@@ -62,7 +95,27 @@ namespace hardware_interface
 				this->set(0); // ??? Clear out setpoint for old mode
 			}
 
-			// Check to see if mode changed since last call
+			bool slotChanged(int &newpidfSlot)
+			{
+				newpidfSlot = pidf_slot_;
+				if (!pidf_slot_changed_)
+					return false;
+				pidf_slot_changed_ = false;
+				return true;
+			}
+			bool pidfChanged(double &p, double &i, double &d, double &f, unsigned &iz, int index){
+				p = p_[index];
+				i = i_[index];
+				d = d_[index];
+				f = f_[index];
+				iz = i_zone_[index];
+				if (!pidf_changed_[index])
+					return false;
+				pidf_changed_[index] = false;
+				return true;
+			}
+
+			// Check  to see if mode changed since last call
 			// If so, return true and set mode to new desired
 			// talon mode
 			// If mode hasn't changed, return false
@@ -72,29 +125,32 @@ namespace hardware_interface
 			// the mode has actually changed.
 			bool newMode(TalonMode &mode)
 			{
+				mode = mode_;
 				if (!mode_changed_)
 					return false;
-				mode          = mode_;
 				mode_changed_ = false;
 				return true;
 			}
 
+			void setPidfSlot(int npidf_slot){pidf_slot_ = npidf_slot;pidf_slot_changed_ = true;}
+			int getPidfSlot(void)const{return pidf_slot_;}
+
 		private:
 			double    command_; // motor setpoint - % vbus, velocity, position, etc
-
 			TalonMode mode_;         // talon mode - % vbus, close loop, motion profile, etc
 			bool      mode_changed_; // set if mode needs to be updated on the talon hw
-
+			double    ramprate;
+			//RG: shouldn't there be a variable for the peak voltage limits?
 			int       pidf_slot_; // index 0 or 1 of the active PIDF slot
 			bool      pidf_slot_changed_; // set to true to trigger a write to PIDF select on Talon
 
 			// 2 entries in the Talon HW for each of these settings
 			double    p_[2];
 			double    i_[2];
-			double    i_zone_[2];
+			unsigned    i_zone_[2];
 			double    d_[2];
 			double    f_[2];
-			bool      pidf_changed_;
+			bool      pidf_changed_[2];
 	};
 
 	// Handle - used by each controller to get, by name of the

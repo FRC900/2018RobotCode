@@ -5,6 +5,11 @@
      Configure and run a Talon SRX in percent vbus mode 
     </description>
   </class>
+  <class name="talon_controllers/TalonFollowerController" type="talon_controllers::TalonFollowerController" base_class_type="controller_interface::ControllerBase">
+    <description>
+     Configure and run a Talon SRX in follower (slave) mode
+    </description>
+  </class>
   <class name="talon_controllers/TalonPositionCloseLoopController" type="talon_controllers::TalonPositionCloseLoopController" base_class_type="controller_interface::ControllerBase">
     <description>
      Configure and run a Talon SRX in position close loop (PIDF) mode
