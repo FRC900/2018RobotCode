@@ -317,46 +317,25 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			ROS_WARN("Can't set a command in follower mode!");
 		}
 };
-class TalonMotionProfileControllerInterface : public TalonFixedModeControllerInterface // double check that this works
+
+class TalonCurrentControllerInterface : public TalonFixedModeControllerInterface
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-				  const TalonCIParams &params) override
+						    const TalonCIParams &params) override
 		{
-			// Call base-class init to load config params
+			// Call base class init for common setup code
 			if (!TalonControllerInterface::initWithParams(hw, params))
 				return false;
-			// Set the mode at init time - since this
-			// class is derived from the FixedMode class
-			// it can't be reset
-			talon_->setMode(hardware_interface::TalonMode_MotionProfile);
+
+			// Set to current close loop mode
+			talon_->setMode(hardware_interface::TalonMode_Current);
+			setPIDConfig(0); // pick a default?
+
 			return true;
 		}
-		// Maybe disable the setPIDConfig call since that makes
-		// no sense for a non-PID controller mode?
-		// RG: Actually does use PID and F
 };
-//RG: I can think of few to no situations were we would have a talon in motion magic mode for an entire match
-//Honesly I wouldn't ever use motion magic mode, I would use the MotionProfile mode (above)
-class TalonMotionMagicControllerInterface : public TalonFixedModeControllerInterface // double check that this works
-{
-	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-				  const TalonCIParams &params) override
-		{
-			// Call base-class init to load config params
-			if (!TalonControllerInterface::initWithParams(hw, params))
-				return false;
-			// Set the mode at init time - since this
-			// class is derived from the FixedMode class
-			// it can't be reset
-			talon_->setMode(hardware_interface::TalonMode_MotionMagic);
-			return true;
-		}
-		// Maybe disable the setPIDConfig call since that makes
-		// no sense for a non-PID controller mode?
-		// RG: Actually does use PID and F
-};
+
 // Use this to create any methods common to all
 // Close Loop modes, if any
 class TalonCloseLoopControllerInterface : public TalonFixedModeControllerInterface
@@ -403,22 +382,39 @@ class TalonSpeedCloseLoopControllerInterface : public TalonCloseLoopControllerIn
 			return true;
 		}
 };
-//RG: current closed loop control really shouldn't inherit from close loop control
-//it is basically the same as voltage control mode or %vbus
-class TalonCurrentCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
+
+
+class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-						    const TalonCIParams &params) override
+				  const TalonCIParams &params) override
 		{
-			// Call base class init for common setup code
+			// Call base-class init to load config params
 			if (!TalonControllerInterface::initWithParams(hw, params))
 				return false;
-
-			// Set to current close loop mode
-			talon_->setMode(hardware_interface::TalonMode_Current);
-			setPIDConfig(0); // pick a default?
-
+			// Set the mode at init time - since this
+			// class is derived from the FixedMode class
+			// it can't be reset
+			talon_->setMode(hardware_interface::TalonMode_MotionProfile);
+			return true;
+		}
+};
+//RG: I can think of few to no situations were we would have a talon in motion magic mode for an entire match
+//Honesly I wouldn't ever use motion magic mode, I would use the MotionProfile mode (above)
+class TalonMotionMagicControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
+{
+	public:
+		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
+				  const TalonCIParams &params) override
+		{
+			// Call base-class init to load config params
+			if (!TalonControllerInterface::initWithParams(hw, params))
+				return false;
+			// Set the mode at init time - since this
+			// class is derived from the FixedMode class
+			// it can't be reset
+			talon_->setMode(hardware_interface::TalonMode_MotionMagic);
 			return true;
 		}
 };
