@@ -27,6 +27,7 @@ namespace hardware_interface
 		public:
 			TalonHWCommand(void) :
 				command_(0.),
+				command_changed_(false),
 				mode_(TalonMode_Uninitialized),
 				mode_changed_(false),
 				pidf_slot_(0),
@@ -49,7 +50,14 @@ namespace hardware_interface
 			// status actually read from the controller
 			// Need to think about which makes the most
 			// sense to query...
-			double get(void) const {return command_;}
+			bool get(double &command)
+			{
+				command = command_;
+				if (!command_changed_)
+					return false;
+				command_changed_ = false;
+				return true;
+			}
 
 			TalonMode getMode(void) const {return mode_;}
 
@@ -85,7 +93,7 @@ namespace hardware_interface
 				i_zone_[index] = oldIZ;}
 			unsigned getIZ(int index) const {return i_zone_[index];}
 
-			void set(double command) {command_ = command;}
+			void set(double command) {command_changed_ = true; command_ = command;}
 			void setMode(const TalonMode mode)
 			{
 				if ((mode <= TalonMode_Uninitialized) || (mode >= TalonMode_Last))
@@ -152,6 +160,7 @@ namespace hardware_interface
 
 		private:
 			double    command_; // motor setpoint - % vbus, velocity, position, etc
+			bool      command_changed_;
 			TalonMode mode_;         // talon mode - % vbus, close loop, motion profile, etc
 			bool      mode_changed_; // set if mode needs to be updated on the talon hw
 			double    ramprate;
