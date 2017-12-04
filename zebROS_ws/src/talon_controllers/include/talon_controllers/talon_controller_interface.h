@@ -39,7 +39,9 @@ class TalonCIParams
 				i_ {0, 0},
 				d_ {0, 0},
 				f_ {0, 0},
-				izone_ {0, 0}
+				izone_ {0, 0},
+				invert_output_ (false),
+				invert_sensor_direction_(false)
 		{
 		}
 
@@ -67,6 +69,15 @@ class TalonCIParams
 			}
 			return true;
 		}
+
+		// Read the name of a joint (talon) to follow.  Figure
+		// out which CAN ID that Talon is configured as here
+		bool readInverts(ros::NodeHandle &n)
+		{
+			n.getParam("invert", invert_output_);
+			n.getParam("invert_sensor_direction", invert_sensor_direction_);
+			return true;
+		}
 	
 		bool readCloseLoopParams(ros::NodeHandle &n)
 		{
@@ -84,7 +95,7 @@ class TalonCIParams
 					i_[i]=findDoubleParam("i",pidparams_);
 					d_[i]=findDoubleParam("d",pidparams_);
 					f_[i]=findDoubleParam("f",pidparams_);
-					izone_[i]=findDoubleParam("izone",pidparams_);
+					izone_[i]=findIntParam("i_zone",pidparams_);
 					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << izone_[i]<< std::endl;
 				}
 				return true;
@@ -101,28 +112,58 @@ class TalonCIParams
 		double i_[2];
 		double d_[2];
 		double f_[2];
-		double izone_[2];
+		unsigned izone_[2];
+		bool   invert_output_;
+		bool   invert_sensor_direction_;
 	private:
 		// Read a double named <param_type> from the array/map
-		// in pidparams
-		double findDoubleParam(std::string param_type, XmlRpc::XmlRpcValue &pidparams) const
+		// in params
+		double findDoubleParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
 		{
-			if (!pidparams.hasMember(param_type))
+			if (!params.hasMember(param_type))
 				return 0;
-			XmlRpc::XmlRpcValue& param = pidparams[param_type];
+			XmlRpc::XmlRpcValue& param = params[param_type];
 			if (!param.valid())
-				throw std::runtime_error(param_type + " was not a valid type");
-			double ret;
+				throw std::runtime_error(param_type + " was not a double valid type");
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-				ret = param;
+				return (double)param;
 			else if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
-			{
-				int temp = param;
-				ret = temp;
-			}
+				return (int)param;
 			else
 				throw std::runtime_error("A non-double value was passed for" + param_type);
-			return ret;
+			return 0;
+		}
+
+		// Read an integer names <param_type> from the array/map
+		// in params
+		int findIntParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
+		{
+			if (!params.hasMember(param_type))
+				return 0;
+			XmlRpc::XmlRpcValue& param = params[param_type];
+			if (!param.valid())
+				throw std::runtime_error(param_type + " was not a valid int type");
+			if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
+				return (int)param;
+			else
+				throw std::runtime_error("A non-int value was passed for" + param_type);
+			return 0;
+		}
+
+		// Read an integer names <param_type> from the array/map
+		// in params
+		bool findBoolParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
+		{
+			if (!params.hasMember(param_type))
+				return false;
+			XmlRpc::XmlRpcValue& param = params[param_type];
+			if (!param.valid())
+				throw std::runtime_error(param_type + " was not a bool valid type");
+			if (param.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+				return (bool)param;
+			else
+				throw std::runtime_error("A non-bool value was passed for" + param_type);
+			return false;
 		}
 };
 
@@ -141,8 +182,10 @@ class TalonControllerInterface
 		{
 			return params_.readJointName(n, "joint") && 
 				   params_.readFollowerID(n, tsi) && 
-				   params_.readCloseLoopParams(n);
+				   params_.readCloseLoopParams(n) &&
+				   params_.readInverts(n);
 		}
+
 
 		// Allow users of the ControllerInterface to get 
 		// a copy of the parameters currently set for the
@@ -161,11 +204,6 @@ class TalonControllerInterface
 									const TalonCIParams &params)
 		{
 			talon_ = tci->getHandle(params.joint_name_);
-			talon_->set(0); // make sure motors don't run until everything is configured
-			//RG: initializing everything to a set value of 0 is fine
-			//but note that setting 0 by no means guarantees that the motor won't run. 
-			//The talon could be in position mode for example
-			//consider disabling the talon and enabling it later
 			return writeParamsToHW(params);
 		}
 
@@ -183,6 +221,17 @@ class TalonControllerInterface
 			// but don't set mode - either force the caller to
 			// set it or use one of the derived, fixed-mode
 			// classes instead
+			for (int i = 0; i < 2; i++) {
+				talon_->setP(params_.p_[i], i);
+				talon_->setI(params_.i_[i], i);
+				talon_->setD(params_.d_[i], i);
+				talon_->setF(params_.f_[i], i);
+				talon_->setIZ(params_.izone_[i], i);
+			}
+
+			talon_->setInvert(params_.invert_output_);
+			talon_->setInvertSensorDirection(params_.invert_sensor_direction_);
+
 			return true;
 		}
 
@@ -211,12 +260,17 @@ class TalonControllerInterface
 		}
 
 		// Pick the config slot (0 or 1) for PIDF/IZone values
-		virtual bool setPIDConfig(int config)
+		virtual bool setPIDFSlot(int config)
 		{
 			if ((config != 0) && (config != 1))
 				return false;
-			// Fill me in
+			talon_->setPidfSlot(config);
 			return true;
+		}
+
+		double getPosition(void) const
+		{
+			return talon_.state()->getPosition();
 		}
 	protected:
 		hardware_interface::TalonCommandHandle talon_;
@@ -250,7 +304,7 @@ class TalonPercentVbusControllerInterface : public TalonFixedModeControllerInter
 			talon_->setMode(hardware_interface::TalonMode_PercentVbus);
 			return true;
 		}
-		// Maybe disable the setPIDConfig call since that makes
+		// Maybe disable the setPIDFSlot call since that makes
 		// no sense for a non-PID controller mode?
 };
 class TalonVoltageControllerInterface : public TalonFixedModeControllerInterface
@@ -268,7 +322,7 @@ class TalonVoltageControllerInterface : public TalonFixedModeControllerInterface
 			talon_->setMode(hardware_interface::TalonMode_Voltage);
 			return true;
 		}
-		// Maybe disable the setPIDConfig call since that makes
+		// Maybe disable the setPIDFSlot call since that makes
 		// no sense for a non-PID controller mode?
 };
 class TalonFollowerControllerInterface : public TalonFixedModeControllerInterface
@@ -280,7 +334,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			// Call base-class init to load config params
 			if (!TalonControllerInterface::initWithParams(hw, params))
 				return false;
-			if (params.follow_can_id_ < 0 || params.follow_can_id > 99)
+			if (params.follow_can_id_ < 0 || params.follow_can_id_ > 99)
 				throw std::runtime_error("Invalid follower CAN ID");
 
 			// Set the mode and CAN ID of talon to follow at init time - 
@@ -294,53 +348,14 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			std::cout << "Launching follower Talon SRX" << params.joint_name_ << " to follow CAN ID " << params.follow_can_id_ << std::endl;
 			return true;
 		}
-		// Maybe disable the setPIDConfig call since that makes
+		// Maybe disable the setPIDFSlot call since that makes
 		// no sense for a non-PID controller mode?
 		void setCommand(const double /*command*/) override
 		{
 			ROS_WARN("Can't set a command in follower mode!");
 		}
 };
-class TalonMotionProfileControllerInterface : public TalonFixedModeControllerInterface // double check that this works
-{
-	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-				  const TalonCIParams &params) override
-		{
-			// Call base-class init to load config params
-			if (!TalonControllerInterface::initWithParams(hw, params))
-				return false;
-			// Set the mode at init time - since this
-			// class is derived from the FixedMode class
-			// it can't be reset
-			talon_->setMode(hardware_interface::TalonMode_MotionProfile);
-			return true;
-		}
-		// Maybe disable the setPIDConfig call since that makes
-		// no sense for a non-PID controller mode?
-		// RG: Actually does use PID and F
-};
-//RG: I can think of few to no situations were we would have a talon in motion magic mode for an entire match
-//Honesly I wouldn't ever use motion magic mode, I would use the MotionProfile mode (above)
-class TalonMotionMagicControllerInterface : public TalonFixedModeControllerInterface // double check that this works
-{
-	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-				  const TalonCIParams &params) override
-		{
-			// Call base-class init to load config params
-			if (!TalonControllerInterface::initWithParams(hw, params))
-				return false;
-			// Set the mode at init time - since this
-			// class is derived from the FixedMode class
-			// it can't be reset
-			talon_->setMode(hardware_interface::TalonMode_MotionMagic);
-			return true;
-		}
-		// Maybe disable the setPIDConfig call since that makes
-		// no sense for a non-PID controller mode?
-		// RG: Actually does use PID and F
-};
+
 // Use this to create any methods common to all
 // Close Loop modes, if any
 class TalonCloseLoopControllerInterface : public TalonFixedModeControllerInterface
@@ -360,11 +375,15 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 
 			// Set to position close loop mode
 			talon_->setMode(hardware_interface::TalonMode_Position);
-			setPIDConfig(0); // pick a default?
+
 			//RG: We should consider setting the PID config for position to default to 1
 			//Sorting PID values based on type (position vs velocity) seems like a good idea and
 			//having a position and a velocity mode is relatively common for drive trains
 			//In other cases it will make it clearer how the PID vals are used
+			//KCJ - works for now, at least until we get virtual PID config slots going...
+			//      at that point my hope is to have named PID configs rather than numbers
+			//      and then add initial PID mode as one of the yaml params
+			setPIDFSlot(1); // pick a default?
 
 			return true;
 		}
@@ -382,14 +401,13 @@ class TalonSpeedCloseLoopControllerInterface : public TalonCloseLoopControllerIn
 
 			// Set to speed close loop mode
 			talon_->setMode(hardware_interface::TalonMode_Speed);
-			setPIDConfig(0); // pick a default?
+			setPIDFSlot(0); // pick a default?
 
 			return true;
 		}
 };
-//RG: current closed loop control really shouldn't inherit from close loop control
-//it is basically the same as voltage control mode or %vbus
-class TalonCurrentCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
+
+class TalonCurrentControllerCloseLoopInterface : public TalonCloseLoopControllerInterface
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
@@ -401,8 +419,47 @@ class TalonCurrentCloseLoopControllerInterface : public TalonCloseLoopController
 
 			// Set to current close loop mode
 			talon_->setMode(hardware_interface::TalonMode_Current);
-			setPIDConfig(0); // pick a default?
+			setPIDFSlot(0); // pick a default?
 
+			return true;
+		}
+};
+
+class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
+{
+	public:
+		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
+				  const TalonCIParams &params) override
+		{
+			// Call base-class init to load config params
+			if (!TalonControllerInterface::initWithParams(hw, params))
+				return false;
+			// Set the mode at init time - since this
+			// class is derived from the FixedMode class
+			// it can't be reset
+			talon_->setMode(hardware_interface::TalonMode_MotionProfile);
+			return true;
+		}
+};
+
+//RG: I can think of few to no situations were we would have a talon in motion magic mode for an entire match
+//Honestly I wouldn't ever use motion magic mode, I would use the MotionProfile mode (above)
+// KCJ -- in general the code we actually use will get a lot more attention. Not sure if that
+// means we should pull out less-tested stuff like this or leave it in and fix it if
+// we need it at some point?
+class TalonMotionMagicControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
+{
+	public:
+		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
+							const TalonCIParams &params) override
+		{
+			// Call base-class init to load config params
+			if (!TalonControllerInterface::initWithParams(hw, params))
+				return false;
+			// Set the mode at init time - since this
+			// class is derived from the FixedMode class
+			// it can't be reset
+			talon_->setMode(hardware_interface::TalonMode_MotionMagic);
 			return true;
 		}
 };

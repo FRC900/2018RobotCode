@@ -17,7 +17,7 @@ namespace hardware_interface
 		TalonMode_PercentVbus,
 		TalonMode_Position,      // CloseLoop
 		TalonMode_Speed,         // CloseLoop
-		TalonMode_Current,       // CloseLoop
+		TalonMode_Current,       // CloseLoop ?
 		TalonMode_Voltage,
 		TalonMode_Follower,
 		TalonMode_MotionProfile,
@@ -43,6 +43,7 @@ namespace hardware_interface
 	{
 		public:
 			TalonHWState(int can_id) :
+				setpoint_(0.),
 				position_(0),
 				speed_(0),
 				output_voltage_(0),
@@ -57,51 +58,115 @@ namespace hardware_interface
 				fwd_limit_switch_closed_(0),
 				rev_limit_switch_closed_(0),
 				talon_mode_(TalonMode_Uninitialized),
+				v_compensation_ramp_rate_(0),
 				can_id_(can_id),
-				slot_(0)
+				slot_(0),
+				invert_(false),
+				invert_sensor_direction_(false)
 			{
 			}
 
+			double getSetpoint(void)      const {return setpoint_;}
 			double getPosition(void)      const {return position_;}
 			double getSpeed(void)         const {return speed_;}
 			double getOutputVoltage(void) const {return output_voltage_;}
 			int    getCANID(void)         const {return can_id_;}
 			double getOutputCurrent(void) const {return output_current_;}
 			double getBusVoltage(void)    const {return bus_voltage_;}
-			double getPidfP(int index)    const {return pidf_p_[index];}
-			double getPidfI(int index)    const {return pidf_i_[index];}
-			double getPidfD(int index)    const {return pidf_d_[index];}
-			double getPidfF(int index)    const {return pidf_f_[index];}
-			double getPidfIzone(int index)     const {return pidf_izone_[index];}
+			double getPidfP(int index)    const {
+			if((index == 0) || (index == 1))
+				return pidf_p_[index];
+			else {
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0.0;}
+			}
+			double getPidfI(int index)    const {
+			if((index == 0) || (index == 1))
+				return pidf_i_[index];
+			else {
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0.0;}
+			}
+			double getPidfD(int index)    const {
+			if((index == 0) || (index == 1))
+				return pidf_d_[index];
+			else {
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0.0;}
+			}
+			double getPidfF(int index)    const {
+			if((index == 0) || (index == 1))
+				return pidf_f_[index];
+			else {
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0.0;}
+			}
+			double getPidfIzone(int index)     const {
+			if((index == 0) || (index == 1))
+				return pidf_izone_[index];
+			else {
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0.0;}
+			}
 			int getClosedLoopError(void)  const {return closed_loop_error_;}
 			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
 			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
 			TalonMode getTalonMode(void)  const {return talon_mode_;}
+			double getVCompensationRampRate(void) const {return v_compensation_ramp_rate_;}
+			
+			bool getInvert(void)          const {return invert_;}
+			bool getInvertSensorDirection(void) const {return invert_sensor_direction_;}
 
+			void setSetpoint(double setpoint)            {setpoint_ = setpoint;}
 			void setPosition(double position)            {position_ = position;}
 			void setSpeed(double speed)                  {speed_ = speed;}
 			void setOutputVoltage(double output_voltage) {output_voltage_ = output_voltage;}
 			void setOutputCurrent(double output_current) {output_current_ = output_current;}
 			void setBusVoltage(double bus_voltage)       {bus_voltage_ = bus_voltage;}
-			void setPidfP(double pidf_p, int index)	     {pidf_p_[index] = pidf_p;}
-			void setPidfI(double pidf_i, int index)	     {pidf_i_[index] = pidf_i;}
-			void setPidfD(double pidf_d, int index)	     {pidf_d_[index] = pidf_d;}
-			void setPidfF(double pidf_f, int index)	     {pidf_f_[index] = pidf_f;}
-			void setPidfIzone(unsigned pidf_izone, int index)	     {pidf_izone_[index] = pidf_izone;}
-			void setClosedLoopError(int closed_loop_error) {closed_loop_error_ = closed_loop_error;}
+			void setPidfP(double pidf_p, int index)	     {
+			if((index == 0) || (index == 1))
+				pidf_p_[index] = pidf_p;
+			else
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			void setPidfI(double pidf_i, int index)	     {
+			if((index == 0) || (index == 1))
+				pidf_i_[index] = pidf_i;
+			else
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			void setPidfD(double pidf_d, int index)	     {
+			if((index == 0) || (index == 1))
+				pidf_d_[index] = pidf_d;
+			else
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			void setPidfF(double pidf_f, int index)	     {
+			if((index == 0) || (index == 1))
+				pidf_f_[index] = pidf_f;
+			else
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			void setPidfIzone(double pidf_izone, int index)	     {
+			if((index == 0) || (index == 1))
+				pidf_izone_[index] = pidf_izone;
+			else
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			void setClosedLoopError(int closed_loop_error) 	{closed_loop_error_ = closed_loop_error;}
 			void setFwdLimitSwitch(int fwd_limit_switch_closed) {fwd_limit_switch_closed_ = fwd_limit_switch_closed;}
 			void setRevLimitSwitch(int rev_limit_switch_closed) {rev_limit_switch_closed_ = rev_limit_switch_closed;}
 			void setTalonMode(TalonMode talon_mode)	     {talon_mode_ = talon_mode;}
+			void setVCompensationRampRate(double ramp_rate) {v_compensation_ramp_rate_ = ramp_rate;}
 			void setSlot(int slot)      {slot_ = slot;}
+			void setInvert(bool invert) {invert_ = invert;}
+			void setInvertSensorDirection(bool invert) {invert_sensor_direction_ = invert;}
+
 
 			// Add code to read and/or store all the other state from the Talon :
-			// output mode
 			// limit switch settings, sensing
 			// pid slot selected and PIDF values
-			// voltage compensatino stuff
+			// voltage compensation
+			// voltage compensation stuff
 			// etc, etc, etc
-			//RG: I think there should be a set peak voltage function
+			//RG: I think there should be a set peak voltage function - that should go in talon_command since it is something sent to the talon. We could reflect that setting here, though
 		private:
+			double setpoint_;
 			double position_;
 			double speed_;
 			double output_voltage_;
@@ -112,14 +177,17 @@ namespace hardware_interface
 			double pidf_d_[2];
 			double pidf_f_[2];
 			unsigned pidf_izone_[2];
-			int closed_loop_error_; //this is an int
+			int closed_loop_error_;
 			int fwd_limit_switch_closed_;
 			int rev_limit_switch_closed_;
 			TalonMode talon_mode_;
+			double v_compensation_ramp_rate_; //voltage compensation
 
 			int can_id_;
 
 			int slot_;
+			bool invert_;
+			bool invert_sensor_direction_;
 	};
 
 	// Handle - used by each controller to get, by name of the

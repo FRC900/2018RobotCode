@@ -1,0 +1,9 @@
+<library path="lib/libtalon_diff_drive_controller">
+
+  <class name="talon_diff_drive_controller/TalonDiffDriveController" type="talon_diff_drive_controller::TalonDiffDriveController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      The DiffDriveController tracks velocity commands. It expects Talon Controller type of hardware interfaces.
+    </description>
+  </class>
+
+</library>
