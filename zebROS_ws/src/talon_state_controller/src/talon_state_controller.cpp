@@ -68,14 +68,19 @@ namespace talon_state_controller
       realtime_pub_->msg_.output_voltage.push_back(0.0);
       realtime_pub_->msg_.output_current.push_back(0.0);
       realtime_pub_->msg_.bus_voltage.push_back(0.0);
+
       realtime_pub_->msg_.pid_p1.push_back(0.0);
       realtime_pub_->msg_.pid_p2.push_back(0.0);
+
       realtime_pub_->msg_.pid_i1.push_back(0.0);
       realtime_pub_->msg_.pid_i2.push_back(0.0);
+
       realtime_pub_->msg_.pid_d1.push_back(0.0);
       realtime_pub_->msg_.pid_d2.push_back(0.0);
+
       realtime_pub_->msg_.pid_f1.push_back(0.0);
       realtime_pub_->msg_.pid_f2.push_back(0.0);
+
       realtime_pub_->msg_.pid_izone1.push_back(0.0);
       realtime_pub_->msg_.pid_izone2.push_back(0.0);
       realtime_pub_->msg_.set_point.push_back(0.0);
@@ -131,6 +136,7 @@ namespace talon_state_controller
             */
         realtime_pub_->msg_.header.stamp = time;
         for (unsigned i=0; i<num_hw_joints_; i++){
+          realtime_pub_->msg_.set_point[i] = talon_state_[i]->getSetpoint();
           realtime_pub_->msg_.position[i] = talon_state_[i]->getPosition();
           realtime_pub_->msg_.speed[i] = talon_state_[i]->getSpeed();
           realtime_pub_->msg_.output_voltage[i] = talon_state_[i]->getOutputVoltage();
@@ -151,11 +157,12 @@ namespace talon_state_controller
           realtime_pub_->msg_.pid_izone2[i] = talon_state_[i]->getPidfIzone(1);
 
           
-          realtime_pub_->msg_.set_point[i] = talon_state_[i]->getSetpoint();
           realtime_pub_->msg_.closed_loop_error[i] = talon_state_[i]->getClosedLoopError();
           realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getFwdLimitSwitch();
           realtime_pub_->msg_.reverse_limit_switch[i] = talon_state_[i]->getRevLimitSwitch();
           //realtime_pub_->msg_.talon_mode[i] = talon_state_[i]->getTalonMode();
+          realtime_pub->msg_.invert[i] = talon_state_[i]->getInvert();
+          realtime_pub->msg_.invertSensorDirection[i] = talon_state_[i]->getInvertSensorDirection();
           int talonMode = talon_state_[i]->getTalonMode();
           switch(talonMode) {
             case -1:

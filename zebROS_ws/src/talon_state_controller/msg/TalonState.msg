@@ -45,3 +45,4 @@ int8[] closed_loop_error
 int8[] forward_limit_switch
 int8[] reverse_limit_switch
 bool[] invert
+bool[] invertSensorDirection
