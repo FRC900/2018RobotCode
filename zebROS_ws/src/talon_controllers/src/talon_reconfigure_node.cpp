@@ -1,5 +1,5 @@
 #include <dynamic_reconfigure/server.h>
-#include <your_package/TalonConfigConfig.h>
+#include <talon_controllers/TalonConfigConfig.h>
 
 void callback(talon_controllers::TalonConfigConfig &config, uint32_t level)
 {

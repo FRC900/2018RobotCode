@@ -168,7 +168,7 @@ class TalonControllerInterface
 			//consider disabling the talon and enabling it later
 			return writeParamsToHW(params);
 		}
-1
+
 		// Use data in params_ to actually set up Talon
 		// hardware. Make this a separate method outside of
 		// init() so that dynamic reconfigure callback can write
