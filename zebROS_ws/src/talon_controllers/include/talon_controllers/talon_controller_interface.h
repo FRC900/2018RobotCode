@@ -40,7 +40,8 @@ class TalonCIParams
 				d_ {0, 0},
 				f_ {0, 0},
 				izone_ {0, 0},
-				invert_ (false)
+				invert_output_ (false),
+				invert_sensor_direction_(false)
 		{
 		}
 
@@ -73,8 +74,7 @@ class TalonCIParams
 		// out which CAN ID that Talon is configured as here
 		bool readInverts(ros::NodeHandle &n)
 		{
-			std::string follow_joint_name;
-			n.getParam("invert", invert_);
+			n.getParam("invert", invert_output_);
 			n.getParam("invert_sensor_direction", invert_sensor_direction_);
 			return true;
 		}
@@ -113,7 +113,7 @@ class TalonCIParams
 		double d_[2];
 		double f_[2];
 		unsigned izone_[2];
-		bool   invert_;
+		bool   invert_output_;
 		bool   invert_sensor_direction_;
 	private:
 		// Read a double named <param_type> from the array/map
@@ -229,7 +229,7 @@ class TalonControllerInterface
 				talon_->setIZ(params_.izone_[i], i);
 			}
 
-			talon_->setInvert(params_.invert_);
+			talon_->setInvert(params_.invert_output_);
 			talon_->setInvertSensorDirection(params_.invert_sensor_direction_);
 
 			return true;
