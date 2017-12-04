@@ -17,7 +17,7 @@ namespace hardware_interface
 		TalonMode_PercentVbus,
 		TalonMode_Position,      // CloseLoop
 		TalonMode_Speed,         // CloseLoop
-		TalonMode_Current,       // CloseLoop
+		TalonMode_Current,       // CloseLoop ?
 		TalonMode_Voltage,
 		TalonMode_Follower,
 		TalonMode_MotionProfile,
@@ -43,6 +43,7 @@ namespace hardware_interface
 	{
 		public:
 			TalonHWState(int can_id) :
+				setpoint_(0.),
 				position_(0),
 				speed_(0),
 				output_voltage_(0),
@@ -58,21 +59,20 @@ namespace hardware_interface
 				rev_limit_switch_closed_(0),
 				talon_mode_(TalonMode_Uninitialized),
 				v_compensation_ramp_rate_(0),
-				can_id_(can_id)
+				can_id_(can_id),
+				slot_(0),
+				invert_(false),
+				invert_sensor_direction_(false)
 			{
 			}
 
+			double getSetpoint(void)      const {return setpoint_;}
 			double getPosition(void)      const {return position_;}
 			double getSpeed(void)         const {return speed_;}
 			double getOutputVoltage(void) const {return output_voltage_;}
 			int    getCANID(void)         const {return can_id_;}
 			double getOutputCurrent(void) const {return output_current_;}
 			double getBusVoltage(void)    const {return bus_voltage_;}
-			int getClosedLoopError(void)  const {return closed_loop_error_;}
-			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
-			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
-			TalonMode getTalonMode(void)  const {return talon_mode_;}
-			double getVCompensationRampRate(void) const {return v_compensation_ramp_rate_;}
 			double getPidfP(int index)    const {
 			if((index == 0) || (index == 1))
 				return pidf_p_[index];
@@ -98,7 +98,16 @@ namespace hardware_interface
 				return pidf_izone_[index];
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			int getClosedLoopError(void)  const {return closed_loop_error_;}
+			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
+			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
+			TalonMode getTalonMode(void)  const {return talon_mode_;}
+			double getVCompensationRampRate(void) const {return v_compensation_ramp_rate_;}
+			
+			bool getInvert(void)          const {return invert_;}
+			bool getInvertSensorDirection(void) const {return invert_sensor_direction_;}
 
+			void setSetpoint(double setpoint)            {setpoint_ = setpoint;}
 			void setPosition(double position)            {position_ = position;}
 			void setSpeed(double speed)                  {speed_ = speed;}
 			void setOutputVoltage(double output_voltage) {output_voltage_ = output_voltage;}
@@ -134,14 +143,20 @@ namespace hardware_interface
 			void setRevLimitSwitch(int rev_limit_switch_closed) {rev_limit_switch_closed_ = rev_limit_switch_closed;}
 			void setTalonMode(TalonMode talon_mode)	     {talon_mode_ = talon_mode;}
 			void setVCompensationRampRate(double ramp_rate) {v_compensation_ramp_rate_ = ramp_rate;}
+			void setSlot(int slot)      {slot_ = slot;}
+			void setInvert(bool invert) {invert_ = invert;}
+			void setInvertSensorDirection(bool invert) {invert_sensor_direction_ = invert;}
+
 
 			// Add code to read and/or store all the other state from the Talon :
-			// output mode
 			// limit switch settings, sensing
 			// pid slot selected and PIDF values
 			// voltage compensation
+			// voltage compensation stuff
 			// etc, etc, etc
+			//RG: I think there should be a set peak voltage function - that should go in talon_command since it is something sent to the talon. We could reflect that setting here, though
 		private:
+			double setpoint_;
 			double position_;
 			double speed_;
 			double output_voltage_;
@@ -151,7 +166,7 @@ namespace hardware_interface
 			double pidf_i_[2];
 			double pidf_d_[2];
 			double pidf_f_[2];
-			double pidf_izone_[2];
+			unsigned pidf_izone_[2];
 			int closed_loop_error_;
 			int fwd_limit_switch_closed_;
 			int rev_limit_switch_closed_;
@@ -159,6 +174,10 @@ namespace hardware_interface
 			double v_compensation_ramp_rate_; //voltage compensation
 
 			int can_id_;
+
+			int slot_;
+			bool invert_;
+			bool invert_sensor_direction_;
 	};
 
 	// Handle - used by each controller to get, by name of the

@@ -59,13 +59,28 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 		}
 		virtual void update(const ros::Time& /*time*/, const ros::Duration& /*period*/)
 		{
+			// Take the most recent value stored in the command
+			// buffer (the most recent value read from the "command"
+			// topic) and set the Talon to that commanded value
 			talon_if_.setCommand(*command_buffer_.readFromRT());
 		}
 
 	private:
 		TALON_IF talon_if_;
 		ros::Subscriber sub_command_;
+
+		// Real-time buffer holds the last command value read from the 
+		// "command" topic.  This buffer is read in each call to update()
+		// to get the command to send to the Talon
 		realtime_tools::RealtimeBuffer<double> command_buffer_;
+
+		// Take each message read from the "command" topic and push
+		// it into the command buffer. This buffer will later be
+		// read by update() and sent to the Talon.  The buffer
+		// is used because incoming messages aren't necessarily
+		// synchronized to update() calls - the buffer holds the
+		// most recent command value that update() can use
+		// when the update() code is run.
 		void commandCB(const std_msgs::Float64ConstPtr& msg)
 		{
 			command_buffer_.writeFromNonRT(msg->data);
@@ -81,6 +96,8 @@ class TalonPercentVbusController: public TalonController<TalonPercentVbusControl
 // slot for PID values plus command per message. Trust lower
 // level code will prevent repeatedly switching PID slot if
 // it doesn't actually change from message to message.
+//RG: In talon controller interface current closed loop control also inherits closed loop stuff
+//This command involves PID so maybe current control shouldn't be considered closed loop control?
 class CloseLoopCommand
 {
 	public:
@@ -128,10 +145,9 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 			// Write both PID config slot and 
 			// output to talon interface
 			CloseLoopCommand cmd = *command_buffer_.readFromRT();
-			talon_if_.setPIDConfig(cmd.config_slot_);
+			talon_if_.setPIDFSlot(cmd.config_slot_);
 			talon_if_.setCommand(cmd.command_);
 		}
-
 
 	private:
 		TALON_IF talon_if_;
@@ -177,6 +193,11 @@ public controller_interface::MultiInterfaceController<hardware_interface::TalonC
 		}
 
 	private:
+		// Keep ownership of the Talon being run in follower mode.
+		// Even though there's currently no commands that can be sent
+		// to the Talon keeping this will prevent other controllers
+		// from grabbing that Talon until this controller is 
+		// explicitly unloaded.
 		TalonFollowerControllerInterface talon_if_;
 };
 
