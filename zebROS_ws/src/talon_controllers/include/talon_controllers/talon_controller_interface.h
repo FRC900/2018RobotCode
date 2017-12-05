@@ -378,7 +378,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			talon_->setMode(hardware_interface::TalonMode_Follower);
 			talon_->set(params.follow_can_id_);
 
-			std::cout << "Launching follower Talon SRX" << params.joint_name_ << " to follow CAN ID " << params.follow_can_id_ << std::endl;
+			std::cout << "Launching follower Talon SRX " << params.joint_name_ << " to follow CAN ID " << params.follow_can_id_ << std::endl;
 			return true;
 		}
 		// Maybe disable the setPIDFSlot call since that makes
