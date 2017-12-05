@@ -42,6 +42,7 @@ class TalonCIParams
 				d_ {0, 0},
 				f_ {0, 0},
 				izone_ {0, 0},
+				pidf_config_(0),
 				invert_output_ (false),
 				invert_sensor_direction_(false)
 		{
@@ -115,6 +116,7 @@ class TalonCIParams
 		double d_[2];
 		double f_[2];
 		unsigned izone_[2];
+		int    pidf_config_;
 		bool   invert_output_;
 		bool   invert_sensor_direction_;
 	private:
@@ -249,6 +251,7 @@ class TalonControllerInterface
 				talon_->setF(params_.f_[i], i);
 				talon_->setIZ(params_.izone_[i], i);
 			}
+			talon_->setPidfSlot(params_.pidf_config_);
 
 			talon_->setInvert(params_.invert_output_);
 			talon_->setInvertSensorDirection(params_.invert_sensor_direction_);
@@ -291,7 +294,10 @@ class TalonControllerInterface
 		{
 			if ((config != 0) && (config != 1))
 				return false;
-			talon_->setPidfSlot(config);
+			if (config == params_.pidf_config_)
+				return true;
+			params_.pidf_config_ = config;
+			talon_->setPidfSlot(params_.pidf_config_);
 			return true;
 		}
 
@@ -374,7 +380,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			talon_->setMode(hardware_interface::TalonMode_Follower);
 			talon_->set(params.follow_can_id_);
 
-			std::cout << "Launching follower Talon SRX" << params.joint_name_ << " to follow CAN ID " << params.follow_can_id_ << std::endl;
+			std::cout << "Launching follower Talon SRX " << params.joint_name_ << " to follow CAN ID " << params.follow_can_id_ << std::endl;
 			return true;
 		}
 		// Maybe disable the setPIDFSlot call since that makes
