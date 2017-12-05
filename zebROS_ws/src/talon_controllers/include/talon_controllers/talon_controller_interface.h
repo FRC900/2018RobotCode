@@ -138,7 +138,7 @@ class TalonCIParams
 			return 0;
 		}
 
-		// Read an integer names <param_type> from the array/map
+		// Read an integer named <param_type> from the array/map
 		// in params
 		int findIntParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
 		{
@@ -154,7 +154,7 @@ class TalonCIParams
 			return 0;
 		}
 
-		// Read an integer names <param_type> from the array/map
+		// Read a bool named <param_type> from the array/map
 		// in params
 		bool findBoolParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
 		{
