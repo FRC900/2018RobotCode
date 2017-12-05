@@ -195,13 +195,7 @@ void callback(talon_controllers::TalonConfigConfig &config, uint32_t level)
 class TalonControllerInterface
 {
 	public:
-		TalonControllerInterface()
-		{
-			dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig> srv;
-			dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>::CallbackType f;
-			f = boost::bind(&callback, _1, _2);
-			srv.setCallback(f);
-		}
+		
 
 		// Standardize format for reading params for 
 		// motor controller
@@ -271,6 +265,12 @@ class TalonControllerInterface
 							 	  hardware_interface::TalonStateInterface *tsi,
 								  ros::NodeHandle &n)
 		{
+			/*
+			ROS_INFO("initWithNode has been called");
+			dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>::CallbackType f;
+			f = boost::bind(&callback, _1, _2);
+			srv_.setCallback(f);	
+			*/
 			return readParams(n, tsi) && initWithParams(tci, params_);
 		}
 
@@ -302,6 +302,8 @@ class TalonControllerInterface
 	protected:
 		hardware_interface::TalonCommandHandle talon_;
 		TalonCIParams                          params_;
+		//dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig> srv_;
+
 };
 
 // A derived class which disables mode switching. Any
