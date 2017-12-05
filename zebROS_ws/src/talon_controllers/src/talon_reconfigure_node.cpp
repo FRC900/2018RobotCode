@@ -23,7 +23,7 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "talon_reconfigure_node");
   dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig> srv;
   dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>::CallbackType f;
-  f = std::bind(&callback, _1, _2);
+  f = boost::bind(&callback, _1, _2);
   srv.setCallback(f);
   ROS_INFO("Starting to spin...");
   ros::spin();

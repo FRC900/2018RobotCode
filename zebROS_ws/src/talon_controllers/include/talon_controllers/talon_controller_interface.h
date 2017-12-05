@@ -1,6 +1,8 @@
 
 #pragma once
+#include <dynamic_reconfigure/server.h>
 #include <talon_interface/talon_command_interface.h>
+#include <talon_controllers/TalonConfigConfig.h>
 
 namespace talon_controllers
 {
@@ -167,6 +169,23 @@ class TalonCIParams
 		}
 };
 
+void callback(talon_controllers::TalonConfigConfig &config, uint32_t level)
+{
+  ROS_INFO("Reconfigure request : %f %f %f %f %f %f %f %f %f %f",
+           config.p0,
+           config.p1,
+           config.i0,
+           config.i1,
+           config.d0,
+           config.d1,
+           config.f0,
+           config.f1,
+           config.izone0,
+           config.izone1);
+
+  // do nothing for now
+}
+
 // Base class for controller interface types. This class
 // will be the least restrictive - allow users to swtich modes,
 // reprogram any config values, and so on.
@@ -176,6 +195,14 @@ class TalonCIParams
 class TalonControllerInterface
 {
 	public:
+		TalonControllerInterface()
+		{
+			dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig> srv;
+			dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>::CallbackType f;
+			f = boost::bind(&callback, _1, _2);
+			srv.setCallback(f);
+		}
+
 		// Standardize format for reading params for 
 		// motor controller
 		virtual bool readParams(ros::NodeHandle &n, hardware_interface::TalonStateInterface *tsi)

@@ -30,6 +30,7 @@ catkin_package(
     realtime_tools
 	talon_interface
     urdf
+	dynamic_reconfigure
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
 )
