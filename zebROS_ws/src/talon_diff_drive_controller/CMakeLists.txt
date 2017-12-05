@@ -21,7 +21,7 @@ catkin_package(
 include_directories(
   include ${catkin_INCLUDE_DIRS}
 )
-include_directories(/home/ubuntu/2017Preseason/zebROS_ws/src/talon_controllers/cfg/cpp)	  
+include_directories($ENV{HOME}/2017Preseason/zebROS_ws/src/talon_controllers/cfg/cpp)	  
 
 add_library(${PROJECT_NAME} src/diff_drive_controller.cpp src/odometry.cpp src/speed_limiter.cpp)
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
