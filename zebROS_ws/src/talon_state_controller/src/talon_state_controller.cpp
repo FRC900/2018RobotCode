@@ -84,11 +84,13 @@ namespace talon_state_controller
       realtime_pub_->msg_.pid_izone1.push_back(0.0);
       realtime_pub_->msg_.pid_izone2.push_back(0.0);
       realtime_pub_->msg_.set_point.push_back(0.0);
+      realtime_pub_->msg_.VCompensationRampRate.push_back(0.0);
       realtime_pub_->msg_.can_id.push_back(0);
       realtime_pub_->msg_.closed_loop_error.push_back(0);
       realtime_pub_->msg_.forward_limit_switch.push_back(0);
       realtime_pub_->msg_.reverse_limit_switch.push_back(0);
       realtime_pub_->msg_.invert.push_back(false);
+      realtime_pub_->msg_.invertSensorDirection.push_back(false);
 
 
       talon_state_.push_back(hw->getHandle(joint_names[i]));
@@ -161,8 +163,9 @@ namespace talon_state_controller
           realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getFwdLimitSwitch();
           realtime_pub_->msg_.reverse_limit_switch[i] = talon_state_[i]->getRevLimitSwitch();
           //realtime_pub_->msg_.talon_mode[i] = talon_state_[i]->getTalonMode();
-          realtime_pub->msg_.invert[i] = talon_state_[i]->getInvert();
-          realtime_pub->msg_.invertSensorDirection[i] = talon_state_[i]->getInvertSensorDirection();
+          realtime_pub_->msg_.VCompensationRampRate[i] = talon_state_[i]->getVCompensationRampRate();
+          realtime_pub_->msg_.invert[i] = talon_state_[i]->getInvert();
+          realtime_pub_->msg_.invertSensorDirection[i] = talon_state_[i]->getInvertSensorDirection();
           int talonMode = talon_state_[i]->getTalonMode();
           switch(talonMode) {
             case -1:
