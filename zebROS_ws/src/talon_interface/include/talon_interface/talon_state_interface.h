@@ -76,28 +76,38 @@ namespace hardware_interface
 			double getPidfP(int index)    const {
 			if((index == 0) || (index == 1))
 				return pidf_p_[index];
-			else
-				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			else {
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0.0;}
+			}
 			double getPidfI(int index)    const {
 			if((index == 0) || (index == 1))
 				return pidf_i_[index];
-			else
-				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			else {
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0.0;}
+			}
 			double getPidfD(int index)    const {
 			if((index == 0) || (index == 1))
 				return pidf_d_[index];
-			else
-				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			else {
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0.0;}
+			}
 			double getPidfF(int index)    const {
 			if((index == 0) || (index == 1))
 				return pidf_f_[index];
-			else
-				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			else {
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0.0;}
+			}
 			double getPidfIzone(int index)     const {
 			if((index == 0) || (index == 1))
 				return pidf_izone_[index];
-			else
-				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			else {
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0.0;}
+			}
 			int getClosedLoopError(void)  const {return closed_loop_error_;}
 			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
 			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
@@ -161,6 +171,7 @@ namespace hardware_interface
 			double speed_;
 			double output_voltage_;
 			double output_current_;
+
 			double bus_voltage_;
 			double pidf_p_[2];
 			double pidf_i_[2];
