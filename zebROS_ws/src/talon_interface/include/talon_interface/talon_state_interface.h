@@ -171,6 +171,7 @@ namespace hardware_interface
 			double speed_;
 			double output_voltage_;
 			double output_current_;
+
 			double bus_voltage_;
 			double pidf_p_[2];
 			double pidf_i_[2];
