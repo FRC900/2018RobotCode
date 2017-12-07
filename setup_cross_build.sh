@@ -21,7 +21,7 @@ sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installe
 
 # Help -> Install new software -> Add
     # Name: FRC Plugins
-    # Location: http://first.wpi.edu/FRC/roborio/release/eclipse/
+    # Location: http://first.wpi.edu/FRC/roborio/beta/eclipse/
     # Click OK
     # Expand the WPILib Robot Development repo and choose to install the Robot C++ Development plugin.
     # Follow/confirm the wizard/prompts
@@ -30,6 +30,9 @@ sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installe
 # Install CTRE libraries for TalonSRX controller
 # included in above for now but keep handy
 # for upgrading if needed
+#
+# Even more obsolete now - 2018 beta uses v5.0.x and seems to be
+# installed automatically?
 #cd
 #wget http://www.ctr-electronics.com//downloads/lib/CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
 #mkdir ctre
