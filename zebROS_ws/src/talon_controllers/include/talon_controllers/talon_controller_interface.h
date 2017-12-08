@@ -242,7 +242,7 @@ class TalonControllerInterface
 
 		void callback(talon_controllers::TalonConfigConfig &config, uint32_t level)
 		{
-			ROS_INFO("Reconfigure request : %s %f %f %f %f %f %f %f %f %f %f",
+			ROS_INFO("Reconfigure request : %s %f %f %f %f %f %f %f %f %f %f %d %d",
 					talon_.getName().c_str(),
 					config.p0,
 					config.p1,
@@ -253,12 +253,27 @@ class TalonControllerInterface
 					config.f0,
 					config.f1,
 					config.izone0,
-					config.izone1);
+					config.izone1,
+					config.invert_output,
+					config.invert_sensor_direction);
 
-			// TODO : copy from each config entry into the corresponding
-			//        param_ member
-			//        Then call writeParams() with the updated params_
-			//        Add new invert and invert_sensor_direction params
+			TalonCIParams params;
+			
+			params.p_[0] = config.p0;
+			params.p_[1] = config.p1;
+			params.i_[0] = config.i0;
+			params.i_[1] = config.i1;
+			params.d_[0] = config.d0;
+			params.d_[1] = config.d1;
+			params.f_[0] = config.f0;
+			params.f_[1] = config.f1;
+			params.izone_[0] = config.izone0;
+			params.izone_[1] = config.izone1;
+			params.invert_output_ = config.invert_output;
+			params.invert_sensor_direction_ = config.invert_sensor_direction;
+
+			writeParamsToHW(params);
+
 		}
 
 
@@ -271,6 +286,10 @@ class TalonControllerInterface
 							 	  hardware_interface::TalonStateInterface *tsi,
 								  ros::NodeHandle &n)
 		{
+			// Read params from startup and intialize
+			// Talon using them
+			bool result = readParams(n, tsi) && initWithParams(tci, params_);
+
 			// Create dynamic_reconfigure Server. Pass in n
 			// so that all the vars for the class are grouped
 			// under the node's name.  Doing so allows multiple
@@ -283,9 +302,7 @@ class TalonControllerInterface
 			// rqt_reconfigure or the like
 			srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));	
 
-			// Read params from startup and intialize
-			// Talon using them
-			return readParams(n, tsi) && initWithParams(tci, params_);
+			return result;
 		}
 
 		// Set the setpoint for the motor controller
