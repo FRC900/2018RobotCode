@@ -3,7 +3,7 @@ opkg update
 
 # Split these up so the disk doesn't fill up with temp files
 opkg install libeigen python-dev libpython2 python-core 
-opkg install libcurl4 lz4 libboost-filesystem1.60.0 libboost-program-options1.60.0 libboost-signals1.60.0 libboost-regex1.60.0 libbosst-thread1.60.0 libboost-chrono1.60.0 libboost-date-time1.60.0 libboost-atomic1.60.0
+opkg install libcurl4 lz4 libboost-filesystem1.60.0 libboost-program-options1.60.0 libboost-signals1.60.0 libboost-regex1.60.0 libboost-thread1.60.0 libboost-chrono1.60.0 libboost-date-time1.60.0 libboost-atomic1.60.0
 opkg install libbz2 cmake libxml2 libgnutls-bin libgnutls-openssl27  
 opkg install libgnutls30 libgnutlsxx28 nettle libgmp10 libgmpxx4 libz1 git make 
 opkg install gcc g++ gcc-symlinks g++-symlinks binutils python-setuptools python-docutils 
@@ -70,6 +70,13 @@ cd poco-1.7.9p1/
 make -j2 install
 cd
 rm -rf poco-1.7.9p1 poco-1.7.9p1.tar.gz 
+
+
+# Copy wpilib to roborio
+# cd ~/wpilib/cpp/current/reflib/linux/athena/shared
+#scp *.so <target>
+#cd ~/wpilib/common/current/lib/linux/athena/shared
+#scp *.so *.so.3.2 <target>
 
 # KCJ - I'm skeptical any of the below libs are really
 # needed.  Many of the produce static libs so installed
