@@ -68,21 +68,22 @@ namespace talon_state_controller
       realtime_pub_->msg_.output_voltage.push_back(0.0);
       realtime_pub_->msg_.output_current.push_back(0.0);
       realtime_pub_->msg_.bus_voltage.push_back(0.0);
+      realtime_pub_->msg_.motor_output_percent.push_back(0.0);
 
+      realtime_pub_->msg_.pid_p0.push_back(0.0);
       realtime_pub_->msg_.pid_p1.push_back(0.0);
-      realtime_pub_->msg_.pid_p2.push_back(0.0);
 
+      realtime_pub_->msg_.pid_i0.push_back(0.0);
       realtime_pub_->msg_.pid_i1.push_back(0.0);
-      realtime_pub_->msg_.pid_i2.push_back(0.0);
 
+      realtime_pub_->msg_.pid_d0.push_back(0.0);
       realtime_pub_->msg_.pid_d1.push_back(0.0);
-      realtime_pub_->msg_.pid_d2.push_back(0.0);
 
+      realtime_pub_->msg_.pid_f0.push_back(0.0);
       realtime_pub_->msg_.pid_f1.push_back(0.0);
-      realtime_pub_->msg_.pid_f2.push_back(0.0);
 
-      realtime_pub_->msg_.pid_izone1.push_back(0.0);
-      realtime_pub_->msg_.pid_izone2.push_back(0.0);
+      realtime_pub_->msg_.pid_izone1.push_back(0);
+      realtime_pub_->msg_.pid_izone0.push_back(0);
       realtime_pub_->msg_.set_point.push_back(0.0);
       realtime_pub_->msg_.VCompensationRampRate.push_back(0.0);
       realtime_pub_->msg_.can_id.push_back(0);
@@ -145,19 +146,19 @@ namespace talon_state_controller
           realtime_pub_->msg_.can_id[i] = talon_state_[i]->getCANID();
           realtime_pub_->msg_.output_current[i] = talon_state_[i]->getOutputCurrent();
           realtime_pub_->msg_.bus_voltage[i] = talon_state_[i]->getBusVoltage();
+          realtime_pub_->msg_.motor_output_percent[i] = talon_state_[i]->getMotorOutputPercent();
           //publish the array of PIDF values
-          realtime_pub_->msg_.pid_p1[i] = talon_state_[i]->getPidfP(0);
-          realtime_pub_->msg_.pid_i1[i] = talon_state_[i]->getPidfI(0);
-          realtime_pub_->msg_.pid_d1[i] = talon_state_[i]->getPidfD(0);
-          realtime_pub_->msg_.pid_f1[i] = talon_state_[i]->getPidfF(0);
-          realtime_pub_->msg_.pid_izone1[i] = talon_state_[i]->getPidfIzone(0);
+          realtime_pub_->msg_.pid_p0[i] = talon_state_[i]->getPidfP(0);
+          realtime_pub_->msg_.pid_i0[i] = talon_state_[i]->getPidfI(0);
+          realtime_pub_->msg_.pid_d0[i] = talon_state_[i]->getPidfD(0);
+          realtime_pub_->msg_.pid_f0[i] = talon_state_[i]->getPidfF(0);
+          realtime_pub_->msg_.pid_izone0[i] = talon_state_[i]->getPidfIzone(0);
 
-          realtime_pub_->msg_.pid_p2[i] = talon_state_[i]->getPidfP(1);
-          realtime_pub_->msg_.pid_i2[i] = talon_state_[i]->getPidfI(1);
-          realtime_pub_->msg_.pid_d2[i] = talon_state_[i]->getPidfD(1);
-          realtime_pub_->msg_.pid_f2[i] = talon_state_[i]->getPidfF(1);
-          realtime_pub_->msg_.pid_izone2[i] = talon_state_[i]->getPidfIzone(1);
-
+          realtime_pub_->msg_.pid_p1[i] = talon_state_[i]->getPidfP(1);
+          realtime_pub_->msg_.pid_i1[i] = talon_state_[i]->getPidfI(1);
+          realtime_pub_->msg_.pid_d1[i] = talon_state_[i]->getPidfD(1);
+          realtime_pub_->msg_.pid_f1[i] = talon_state_[i]->getPidfF(1);
+          realtime_pub_->msg_.pid_izone1[i] = talon_state_[i]->getPidfIzone(1);
           
           realtime_pub_->msg_.closed_loop_error[i] = talon_state_[i]->getClosedLoopError();
           realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getFwdLimitSwitch();
