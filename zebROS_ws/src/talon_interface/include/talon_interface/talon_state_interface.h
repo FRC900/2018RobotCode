@@ -104,12 +104,12 @@ namespace hardware_interface
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 				return 0.0;}
 			}
-			double getPidfIzone(int index)     const {
+			int getPidfIzone(int index)     const {
 			if((index == 0) || (index == 1))
 				return pidf_izone_[index];
 			else {
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
-				return 0.0;}
+				return 0;}
 			}
 			int getClosedLoopError(void)  const {return closed_loop_error_;}
 			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
@@ -147,7 +147,7 @@ namespace hardware_interface
 				pidf_f_[index] = pidf_f;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
-			void setPidfIzone(double pidf_izone, int index)	     {
+			void setPidfIzone(int pidf_izone, int index)	     {
 			if((index == 0) || (index == 1))
 				pidf_izone_[index] = pidf_izone;
 			else
@@ -181,7 +181,7 @@ namespace hardware_interface
 			double pidf_i_[2];
 			double pidf_d_[2];
 			double pidf_f_[2];
-			unsigned pidf_izone_[2];
+			int    pidf_izone_[2];
 			int closed_loop_error_;
 			int fwd_limit_switch_closed_;
 			int rev_limit_switch_closed_;
