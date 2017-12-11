@@ -50,6 +50,7 @@ namespace hardware_interface
 				output_voltage_(0),
 				output_current_(0),
 				bus_voltage_(0), 
+				motor_output_percent_(0),
 				pidf_p_ {0, 0},
 				pidf_i_ {0, 0},
 				pidf_d_ {0, 0},
@@ -74,6 +75,7 @@ namespace hardware_interface
 			int    getCANID(void)         const {return can_id_;}
 			double getOutputCurrent(void) const {return output_current_;}
 			double getBusVoltage(void)    const {return bus_voltage_;}
+			double getMotorOutputPercent(void)    const {return motor_output_percent_;}
 			double getPidfP(int index)    const {
 			if((index == 0) || (index == 1))
 				return pidf_p_[index];
@@ -124,6 +126,7 @@ namespace hardware_interface
 			void setOutputVoltage(double output_voltage) {output_voltage_ = output_voltage;}
 			void setOutputCurrent(double output_current) {output_current_ = output_current;}
 			void setBusVoltage(double bus_voltage)       {bus_voltage_ = bus_voltage;}
+			void setMotorOutputPercent(double motor_output_percent)       {motor_output_percent_ = motor_output_percent;}
 			void setPidfP(double pidf_p, int index)	     {
 			if((index == 0) || (index == 1))
 				pidf_p_[index] = pidf_p;
@@ -172,8 +175,8 @@ namespace hardware_interface
 			double speed_;
 			double output_voltage_;
 			double output_current_;
-
 			double bus_voltage_;
+			double motor_output_percent_;
 			double pidf_p_[2];
 			double pidf_i_[2];
 			double pidf_d_[2];

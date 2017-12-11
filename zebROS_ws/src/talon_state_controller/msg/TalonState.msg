@@ -29,6 +29,7 @@ float64[] speed
 float64[] output_voltage
 float64[] output_current
 float64[] bus_voltage
+float64[] motor_output_percentage
 float64[] pid_p1
 float64[] pid_i1
 float64[] pid_d1
