@@ -90,7 +90,7 @@ namespace talon_state_controller
       realtime_pub_->msg_.forward_limit_switch.push_back(0);
       realtime_pub_->msg_.reverse_limit_switch.push_back(0);
       realtime_pub_->msg_.invert.push_back(false);
-      realtime_pub_->msg_.invertSensorDirection.push_back(false);
+      realtime_pub_->msg_.sensorPhase.push_back(false);
 
 
       talon_state_.push_back(hw->getHandle(joint_names[i]));
@@ -165,38 +165,44 @@ namespace talon_state_controller
           //realtime_pub_->msg_.talon_mode[i] = talon_state_[i]->getTalonMode();
           realtime_pub_->msg_.VCompensationRampRate[i] = talon_state_[i]->getVCompensationRampRate();
           realtime_pub_->msg_.invert[i] = talon_state_[i]->getInvert();
-          realtime_pub_->msg_.invertSensorDirection[i] = talon_state_[i]->getInvertSensorDirection();
+          realtime_pub_->msg_.sensorPhase[i] = talon_state_[i]->getSensorPhase();
           int talonMode = talon_state_[i]->getTalonMode();
           switch(talonMode) {
-            case -1:
+		    case hardware_interface::TalonMode_Uninitialized:
                 realtime_pub_->msg_.talon_mode[i] = "Uninitialized";
                 break;
-            case 0:
-                realtime_pub_->msg_.talon_mode[i] = "Percent Vbus";
+            case hardware_interface::TalonMode_PercentOutput:
+                realtime_pub_->msg_.talon_mode[i] = "Percent Output";
                 break;
-            case 1:
+            case hardware_interface::TalonMode_Position:
                 realtime_pub_->msg_.talon_mode[i] = "Closed Loop Position";
                 break;
-            case 2:
-                realtime_pub_->msg_.talon_mode[i] = "Closed Loop Speed";
+            case hardware_interface::TalonMode_Velocity:
+                realtime_pub_->msg_.talon_mode[i] = "Closed Loop Velocity";
                 break;
-            case 3:
+            case hardware_interface::TalonMode_Current:
                 realtime_pub_->msg_.talon_mode[i] = "Closed Loop Current";
                 break;
-            case 4:
-                realtime_pub_->msg_.talon_mode[i] = "Voltage";
-                break;
-            case 5:
+            case hardware_interface::TalonMode_Follower:
                 realtime_pub_->msg_.talon_mode[i] = "Follower";
                 break;
-            case 6:
+            case hardware_interface::TalonMode_MotionProfile:
                 realtime_pub_->msg_.talon_mode[i] = "Motion Profile";
                 break;
-            case 7:
+            case hardware_interface::TalonMode_MotionMagic:
                 realtime_pub_->msg_.talon_mode[i] = "Motion Magic";
                 break;
-            case 8:
+            case hardware_interface::TalonMode_TimedPercentOutput:
+                realtime_pub_->msg_.talon_mode[i] = "Timed Percent Output";
+                break;
+            case hardware_interface::TalonMode_Disabled:
+                realtime_pub_->msg_.talon_mode[i] = "Disabled";
+                break;
+            case hardware_interface::TalonMode_Last:
                 realtime_pub_->msg_.talon_mode[i] = "Last";
+                break;
+			default:
+                realtime_pub_->msg_.talon_mode[i] = "Unknown";
                 break;
           }
         }

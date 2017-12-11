@@ -14,14 +14,15 @@ namespace hardware_interface
 	enum TalonMode
 	{
 		TalonMode_Uninitialized = -1,
-		TalonMode_PercentVbus,
+		TalonMode_PercentOutput,
 		TalonMode_Position,      // CloseLoop
-		TalonMode_Speed,         // CloseLoop
-		TalonMode_Current,       // CloseLoop ?
-		TalonMode_Voltage,
+		TalonMode_Velocity,      // CloseLoop
+		TalonMode_Current,       // CloseLoop
 		TalonMode_Follower,
 		TalonMode_MotionProfile,
 		TalonMode_MotionMagic,
+		TalonMode_TimedPercentOutput,
+		TalonMode_Disabled,
 		TalonMode_Last
 	};
 
@@ -62,7 +63,7 @@ namespace hardware_interface
 				can_id_(can_id),
 				slot_(0),
 				invert_(false),
-				invert_sensor_direction_(false)
+				sensor_phase_(false)
 			{
 			}
 
@@ -115,7 +116,7 @@ namespace hardware_interface
 			double getVCompensationRampRate(void) const {return v_compensation_ramp_rate_;}
 			
 			bool getInvert(void)          const {return invert_;}
-			bool getInvertSensorDirection(void) const {return invert_sensor_direction_;}
+			bool getSensorPhase(void)     const {return sensor_phase_;}
 
 			void setSetpoint(double setpoint)            {setpoint_ = setpoint;}
 			void setPosition(double position)            {position_ = position;}
@@ -155,7 +156,7 @@ namespace hardware_interface
 			void setVCompensationRampRate(double ramp_rate) {v_compensation_ramp_rate_ = ramp_rate;}
 			void setSlot(int slot)      {slot_ = slot;}
 			void setInvert(bool invert) {invert_ = invert;}
-			void setInvertSensorDirection(bool invert) {invert_sensor_direction_ = invert;}
+			void setSensorPhase(bool sensor_phase) {sensor_phase_ = sensor_phase;}
 
 
 			// Add code to read and/or store all the other state from the Talon :
@@ -188,7 +189,7 @@ namespace hardware_interface
 
 			int slot_;
 			bool invert_;
-			bool invert_sensor_direction_;
+			bool sensor_phase_;
 	};
 
 	// Handle - used by each controller to get, by name of the

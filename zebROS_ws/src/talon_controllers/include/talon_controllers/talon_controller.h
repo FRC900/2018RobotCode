@@ -87,7 +87,7 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 		}
 };
 
-class TalonPercentVbusController: public TalonController<TalonPercentVbusControllerInterface> 
+class TalonPercentOutputController: public TalonController<TalonPercentOutputControllerInterface> 
 {
 	// Override or add methods different from the base class here
 };
@@ -160,6 +160,10 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 };
 
 class TalonPositionCloseLoopController: public TalonCloseLoopController<TalonPositionCloseLoopControllerInterface>
+{
+	// Override or add methods here
+};
+class TalonVelocityCloseLoopController: public TalonCloseLoopController<TalonVelocityCloseLoopControllerInterface>
 {
 	// Override or add methods here
 };

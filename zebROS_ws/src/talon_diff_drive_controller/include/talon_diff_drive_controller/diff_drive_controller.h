@@ -105,8 +105,8 @@ namespace talon_diff_drive_controller{
     bool open_loop_;
 
     /// Hardware handles:
-    std::vector<talon_controllers::TalonSpeedCloseLoopControllerInterface> left_wheel_joints_;
-    std::vector<talon_controllers::TalonSpeedCloseLoopControllerInterface> right_wheel_joints_;
+    std::vector<talon_controllers::TalonVelocityCloseLoopControllerInterface> left_wheel_joints_;
+    std::vector<talon_controllers::TalonVelocityCloseLoopControllerInterface> right_wheel_joints_;
 
     /// Velocity command related:
     struct Commands

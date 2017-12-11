@@ -33,7 +33,7 @@ namespace hardware_interface
 				pidf_slot_(0),
 				pidf_slot_changed_(false),
 				invert_(false),
-				invert_sensor_direction_(false),
+				sensor_phase_(false),
 				invert_changed_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
@@ -147,11 +147,11 @@ namespace hardware_interface
 			int getPidfSlot(void)const{return pidf_slot_;}
 
 			void setInvert(bool invert) {invert_ = invert; invert_changed_ = true;}
-			void setInvertSensorDirection(bool invert) {invert_sensor_direction_ = invert; invert_changed_ = true;}
-			bool invertChanged(bool &invert, bool &invert_sensor_direction)
+			void setSensorPhase(bool invert) {sensor_phase_ = invert; invert_changed_ = true;}
+			bool invertChanged(bool &invert, bool &sensor_phase)
 			{
 				invert = invert_;
-				invert_sensor_direction = invert_sensor_direction_;
+				sensor_phase = sensor_phase_;
 				if (!invert_changed_)
 					return false;
 				invert_changed_ = false;
@@ -176,7 +176,7 @@ namespace hardware_interface
 			double    f_[2];
 			bool      pidf_changed_[2];
 			bool      invert_;
-			bool      invert_sensor_direction_;
+			bool      sensor_phase_;
 			bool      invert_changed_;
 	};
 

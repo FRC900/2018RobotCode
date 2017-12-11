@@ -44,7 +44,7 @@ class TalonCIParams
 				izone_ {0, 0},
 				pidf_config_(0),
 				invert_output_ (false),
-				invert_sensor_direction_(false)
+				sensor_phase_(false)
 		{
 		}
 
@@ -78,7 +78,7 @@ class TalonCIParams
 		bool readInverts(ros::NodeHandle &n)
 		{
 			n.getParam("invert", invert_output_);
-			n.getParam("invert_sensor_direction", invert_sensor_direction_);
+			n.getParam("sensor_phase", sensor_phase_);
 			return true;
 		}
 	
@@ -118,7 +118,7 @@ class TalonCIParams
 		unsigned izone_[2];
 		int    pidf_config_;
 		bool   invert_output_;
-		bool   invert_sensor_direction_;
+		bool   sensor_phase_;
 	private:
 		// Read a double named <param_type> from the array/map
 		// in params
@@ -235,7 +235,7 @@ class TalonControllerInterface
 			talon_->setPidfSlot(params_.pidf_config_);
 
 			talon_->setInvert(params_.invert_output_);
-			talon_->setInvertSensorDirection(params_.invert_sensor_direction_);
+			talon_->setSensorPhase(params_.sensor_phase_);
 
 			return true;
 		}
@@ -255,7 +255,7 @@ class TalonControllerInterface
 					config.izone0,
 					config.izone1,
 					config.invert_output,
-					config.invert_sensor_direction);
+					config.sensor_phase);
 
 			TalonCIParams params;
 			
@@ -270,7 +270,7 @@ class TalonControllerInterface
 			params.izone_[0] = config.izone0;
 			params.izone_[1] = config.izone1;
 			params.invert_output_ = config.invert_output;
-			params.invert_sensor_direction_ = config.invert_sensor_direction;
+			params.sensor_phase_ = config.sensor_phase;
 
 			writeParamsToHW(params);
 
@@ -352,7 +352,7 @@ class TalonFixedModeControllerInterface : public TalonControllerInterface
 			ROS_WARN("Can't reset mode using this TalonControllerInterface");
 		}
 };
-class TalonPercentVbusControllerInterface : public TalonFixedModeControllerInterface
+class TalonPercentOutputControllerInterface : public TalonFixedModeControllerInterface
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
@@ -364,30 +364,13 @@ class TalonPercentVbusControllerInterface : public TalonFixedModeControllerInter
 			// Set the mode at init time - since this
 			// class is derived from the FixedMode class
 			// it can't be reset
-			talon_->setMode(hardware_interface::TalonMode_PercentVbus);
+			talon_->setMode(hardware_interface::TalonMode_PercentOutput);
 			return true;
 		}
 		// Maybe disable the setPIDFSlot call since that makes
 		// no sense for a non-PID controller mode?
 };
-class TalonVoltageControllerInterface : public TalonFixedModeControllerInterface
-{
-	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-				  const TalonCIParams &params) override
-		{
-			// Call base-class init to load config params
-			if (!TalonControllerInterface::initWithParams(hw, params))
-				return false;
-			// Set the mode at init time - since this
-			// class is derived from the FixedMode class
-			// it can't be reset
-			talon_->setMode(hardware_interface::TalonMode_Voltage);
-			return true;
-		}
-		// Maybe disable the setPIDFSlot call since that makes
-		// no sense for a non-PID controller mode?
-};
+
 class TalonFollowerControllerInterface : public TalonFixedModeControllerInterface
 {
 	public:
@@ -452,7 +435,7 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 		}
 };
 
-class TalonSpeedCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
+class TalonVelocityCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
@@ -463,7 +446,7 @@ class TalonSpeedCloseLoopControllerInterface : public TalonCloseLoopControllerIn
 				return false;
 
 			// Set to speed close loop mode
-			talon_->setMode(hardware_interface::TalonMode_Speed);
+			talon_->setMode(hardware_interface::TalonMode_Velocity);
 			setPIDFSlot(0); // pick a default?
 
 			return true;
