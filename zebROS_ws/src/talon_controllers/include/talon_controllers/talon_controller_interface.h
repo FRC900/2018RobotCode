@@ -117,10 +117,10 @@ class TalonCIParams
 				{
 					XmlRpc::XmlRpcValue &pidparams_ = pid_param_list[i];
 
-					p_[i]=findDoubleParam("p",pidparams_);
-					i_[i]=findDoubleParam("i",pidparams_);
-					d_[i]=findDoubleParam("d",pidparams_);
-					f_[i]=findDoubleParam("f",pidparams_);
+					p_[i]=findFloatParam("p",pidparams_);
+					i_[i]=findFloatParam("i",pidparams_);
+					d_[i]=findFloatParam("d",pidparams_);
+					f_[i]=findFloatParam("f",pidparams_);
 					izone_[i]=findIntParam("i_zone",pidparams_);
 					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << izone_[i]<< std::endl;
 				}
@@ -134,10 +134,10 @@ class TalonCIParams
 		// TODO : Keep adding config items here
 		std::string joint_name_;
 		int    follow_can_id_;
-		double p_[2];
-		double i_[2];
-		double d_[2];
-		double f_[2];
+		float p_[2];
+		float i_[2];
+		float d_[2];
+		float f_[2];
 		unsigned izone_[2];
 		int    pidf_config_;
 		bool   invert_output_;
@@ -145,21 +145,21 @@ class TalonCIParams
 		hardware_interface::NeutralMode neutral_mode_;
 
 	private:
-		// Read a double named <param_type> from the array/map
+		// Read a float named <param_type> from the array/map
 		// in params
-		double findDoubleParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
+		float findFloatParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
 		{
 			if (!params.hasMember(param_type))
 				return 0;
 			XmlRpc::XmlRpcValue& param = params[param_type];
 			if (!param.valid())
-				throw std::runtime_error(param_type + " was not a double valid type");
+				throw std::runtime_error(param_type + " was not a float valid type");
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
 				return (double)param;
 			else if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
 				return (int)param;
 			else
-				throw std::runtime_error("A non-double value was passed for" + param_type);
+				throw std::runtime_error("A non-float value was passed for" + param_type);
 			return 0;
 		}
 
@@ -333,7 +333,7 @@ class TalonControllerInterface
 		}
 
 		// Set the setpoint for the motor controller
-		virtual void setCommand(const double command)
+		virtual void setCommand(const float command)
 		{
 			talon_->set(command);
 		}
@@ -356,7 +356,7 @@ class TalonControllerInterface
 			return true;
 		}
 
-		double getPosition(void) const
+		float getPosition(void) const
 		{
 			return talon_.state()->getPosition();
 		}
@@ -423,7 +423,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 		}
 		// Maybe disable the setPIDFSlot call since that makes
 		// no sense for a non-PID controller mode?
-		void setCommand(const double /*command*/) override
+		void setCommand(const float /*command*/) override
 		{
 			ROS_WARN("Can't set a command in follower mode!");
 		}
@@ -498,7 +498,7 @@ class TalonCurrentControllerCloseLoopInterface : public TalonCloseLoopController
 		}
 };
 
-class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
+class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInterface // float check that this works
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
@@ -520,7 +520,7 @@ class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInt
 // KCJ -- in general the code we actually use will get a lot more attention. Not sure if that
 // means we should pull out less-tested stuff like this or leave it in and fix it if
 // we need it at some point?
-class TalonMotionMagicControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
+class TalonMotionMagicControllerInterface : public TalonCloseLoopControllerInterface // float check that this works
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 

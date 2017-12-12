@@ -52,7 +52,7 @@ namespace hardware_interface
 			// status actually read from the controller
 			// Need to think about which makes the most
 			// sense to query...
-			bool get(double &command)
+			bool get(float &command)
 			{
 				command = command_;
 				if (!command_changed_)
@@ -63,39 +63,39 @@ namespace hardware_interface
 
 			TalonMode getMode(void) const {return mode_;}
 
-			void setP(double oldP, int index){
+			void setP(float oldP, int index){
 				pidf_changed_[index] = true;
 				p_[index] = oldP;}
-			double getP(int index) const {return p_[index];}
+			float getP(int index) const {return p_[index];}
 
-			void setI(double ii, int index){
+			void setI(float ii, int index){
 				pidf_changed_[index] = true;
 				i_[index] = ii;}
-			double getI(int index) const {return i_[index];}
+			float getI(int index) const {return i_[index];}
 			
-			void setPID(double oldP, double oldI, double oldD, int index){
+			void setPID(float oldP, float oldI, float oldD, int index){
 				pidf_changed_[index] = true;
 				p_[index] = oldP;i_[index] =oldI;d_[index]=oldD;}
-			void setPID(double oldP, double oldI, double oldD, double oldF, int index){
+			void setPID(float oldP, float oldI, float oldD, float oldF, int index){
 				pidf_changed_[index] = true;
 				p_[index]=oldP;i_[index]=oldI;d_[index]=oldD;f_[index]=oldF;}
 
-			void setD(double dd, int index){
+			void setD(float dd, int index){
 				pidf_changed_[index] = true;
 				d_[index] = dd;}
-			double getD(int index) const {return d_[index];}
+			float getD(int index) const {return d_[index];}
 
-			void setF(double ff, int index){
+			void setF(float ff, int index){
 				pidf_changed_[index] = true;
 				f_[index] = ff;}
-			double getF(int index){return f_[index];}
+			float getF(int index){return f_[index];}
 
 			void setIZ(unsigned oldIZ, int index){
 				pidf_changed_[index] = true;
 				i_zone_[index] = oldIZ;}
 			unsigned getIZ(int index) const {return i_zone_[index];}
 
-			void set(double command) {command_changed_ = true; command_ = command;}
+			void set(float command) {command_changed_ = true; command_ = command;}
 			void setMode(TalonMode mode)
 			{
 				if ((mode <= TalonMode_Uninitialized) || (mode >= TalonMode_Last))
@@ -127,7 +127,7 @@ namespace hardware_interface
 				pidf_slot_changed_ = false;
 				return true;
 			}
-			bool pidfChanged(double &p, double &i, double &d, double &f, unsigned &iz, int index){
+			bool pidfChanged(float &p, float &i, float &d, float &f, unsigned &iz, int index){
 				p = p_[index];
 				i = i_[index];
 				d = d_[index];
@@ -181,21 +181,21 @@ namespace hardware_interface
 			}
 
 		private:
-			double    command_; // motor setpoint - % vbus, velocity, position, etc
+			float     command_; // motor setpoint - % vbus, velocity, position, etc
 			bool      command_changed_;
 			TalonMode mode_;         // talon mode - % vbus, close loop, motion profile, etc
 			bool      mode_changed_; // set if mode needs to be updated on the talon hw
-			double    ramprate;
+			float     ramprate;
 			//RG: shouldn't there be a variable for the peak voltage limits?
 			int       pidf_slot_; // index 0 or 1 of the active PIDF slot
 			bool      pidf_slot_changed_; // set to true to trigger a write to PIDF select on Talon
 
 			// 2 entries in the Talon HW for each of these settings
-			double    p_[2];
-			double    i_[2];
-			unsigned  i_zone_[2];
-			double    d_[2];
-			double    f_[2];
+			float     p_[2];
+			float     i_[2];
+			int       i_zone_[2];
+			float     d_[2];
+			float     f_[2];
 			bool      pidf_changed_[2];
 			bool      invert_;
 			bool      sensor_phase_;
@@ -231,7 +231,7 @@ namespace hardware_interface
 			// Note that we could create separate methods in
 			// the handle class for every method in the HWState
 			// class, e.g.
-			//     double getFoo(void) const {assert(_state); return state_->getFoo();}
+			//     float getFoo(void) const {assert(_state); return state_->getFoo();}
 			// but if each of them just pass things unchanged between
 			// the calling code and the HWState method there's no
 			// harm in making a single method to do so rather than

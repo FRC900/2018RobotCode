@@ -78,36 +78,36 @@ namespace hardware_interface
 			{
 			}
 
-			double getSetpoint(void)      const {return setpoint_;}
-			double getPosition(void)      const {return position_;}
-			double getSpeed(void)         const {return speed_;}
-			double getOutputVoltage(void) const {return output_voltage_;}
+			float getSetpoint(void)      const {return setpoint_;}
+			float getPosition(void)      const {return position_;}
+			float getSpeed(void)         const {return speed_;}
+			float getOutputVoltage(void) const {return output_voltage_;}
 			int    getCANID(void)         const {return can_id_;}
-			double getOutputCurrent(void) const {return output_current_;}
-			double getBusVoltage(void)    const {return bus_voltage_;}
-			double getMotorOutputPercent(void)    const {return motor_output_percent_;}
-			double getPidfP(int index)    const {
+			float getOutputCurrent(void) const {return output_current_;}
+			float getBusVoltage(void)    const {return bus_voltage_;}
+			float getMotorOutputPercent(void)    const {return motor_output_percent_;}
+			float getPidfP(int index)    const {
 			if((index == 0) || (index == 1))
 				return pidf_p_[index];
 			else {
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 				return 0.0;}
 			}
-			double getPidfI(int index)    const {
+			float getPidfI(int index)    const {
 			if((index == 0) || (index == 1))
 				return pidf_i_[index];
 			else {
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 				return 0.0;}
 			}
-			double getPidfD(int index)    const {
+			float getPidfD(int index)    const {
 			if((index == 0) || (index == 1))
 				return pidf_d_[index];
 			else {
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 				return 0.0;}
 			}
-			double getPidfF(int index)    const {
+			float getPidfF(int index)    const {
 			if((index == 0) || (index == 1))
 				return pidf_f_[index];
 			else {
@@ -125,36 +125,36 @@ namespace hardware_interface
 			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
 			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
 			TalonMode getTalonMode(void)  const {return talon_mode_;}
-			double getVCompensationRampRate(void) const {return v_compensation_ramp_rate_;}
+			float getVCompensationRampRate(void) const {return v_compensation_ramp_rate_;}
 			
 			bool getInvert(void)          const {return invert_;}
 			bool getSensorPhase(void)     const {return sensor_phase_;}
 
 			NeutralMode getNeutralMode(void) const {return neutral_mode_;}
 
-			void setSetpoint(double setpoint)            {setpoint_ = setpoint;}
-			void setPosition(double position)            {position_ = position;}
-			void setSpeed(double speed)                  {speed_ = speed;}
-			void setOutputVoltage(double output_voltage) {output_voltage_ = output_voltage;}
-			void setOutputCurrent(double output_current) {output_current_ = output_current;}
-			void setBusVoltage(double bus_voltage)       {bus_voltage_ = bus_voltage;}
-			void setMotorOutputPercent(double motor_output_percent)       {motor_output_percent_ = motor_output_percent;}
-			void setPidfP(double pidf_p, int index)	     {
+			void setSetpoint(float setpoint)            {setpoint_ = setpoint;}
+			void setPosition(float position)            {position_ = position;}
+			void setSpeed(float speed)                  {speed_ = speed;}
+			void setOutputVoltage(float output_voltage) {output_voltage_ = output_voltage;}
+			void setOutputCurrent(float output_current) {output_current_ = output_current;}
+			void setBusVoltage(float bus_voltage)       {bus_voltage_ = bus_voltage;}
+			void setMotorOutputPercent(float motor_output_percent)       {motor_output_percent_ = motor_output_percent;}
+			void setPidfP(float pidf_p, int index)	     {
 			if((index == 0) || (index == 1))
 				pidf_p_[index] = pidf_p;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
-			void setPidfI(double pidf_i, int index)	     {
+			void setPidfI(float pidf_i, int index)	     {
 			if((index == 0) || (index == 1))
 				pidf_i_[index] = pidf_i;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
-			void setPidfD(double pidf_d, int index)	     {
+			void setPidfD(float pidf_d, int index)	     {
 			if((index == 0) || (index == 1))
 				pidf_d_[index] = pidf_d;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
-			void setPidfF(double pidf_f, int index)	     {
+			void setPidfF(float pidf_f, int index)	     {
 			if((index == 0) || (index == 1))
 				pidf_f_[index] = pidf_f;
 			else
@@ -175,7 +175,7 @@ namespace hardware_interface
 				else
 					ROS_WARN_STREAM("Invalid talon mode requested");
 			}
-			void setVCompensationRampRate(double ramp_rate) {v_compensation_ramp_rate_ = ramp_rate;}
+			void setVCompensationRampRate(float ramp_rate) {v_compensation_ramp_rate_ = ramp_rate;}
 			void setSlot(int slot)      {slot_ = slot;}
 			void setInvert(bool invert) {invert_ = invert;}
 			void setSensorPhase(bool sensor_phase) {sensor_phase_ = sensor_phase;}
@@ -197,23 +197,23 @@ namespace hardware_interface
 			// etc, etc, etc
 			//RG: I think there should be a set peak voltage function - that should go in talon_command since it is something sent to the talon. We could reflect that setting here, though
 		private:
-			double setpoint_;
-			double position_;
-			double speed_;
-			double output_voltage_;
-			double output_current_;
-			double bus_voltage_;
-			double motor_output_percent_;
-			double pidf_p_[2];
-			double pidf_i_[2];
-			double pidf_d_[2];
-			double pidf_f_[2];
-			int    pidf_izone_[2];
+			float setpoint_;
+			float position_;
+			float speed_;
+			float output_voltage_;
+			float output_current_;
+			float bus_voltage_;
+			float motor_output_percent_;
+			float pidf_p_[2];
+			float pidf_i_[2];
+			float pidf_d_[2];
+			float pidf_f_[2];
+			int   pidf_izone_[2];
 			int closed_loop_error_;
 			int fwd_limit_switch_closed_;
 			int rev_limit_switch_closed_;
 			TalonMode talon_mode_;
-			double v_compensation_ramp_rate_; //voltage compensation
+			float v_compensation_ramp_rate_; //voltage compensation
 
 			int can_id_;
 
@@ -258,7 +258,7 @@ namespace hardware_interface
 			// Note that we could create separate methods in
 			// the handle class for every method in the HWState
 			// class, e.g.
-			//     double getFoo(void) const {assert(_state); return state_->getFoo();}
+			//     float getFoo(void) const {assert(_state); return state_->getFoo();}
 			// but if each of them just pass things unchanged between
 			// the calling code and the HWState method there's no
 			// harm in making a single method to do so rather than
