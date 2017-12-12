@@ -92,10 +92,10 @@ namespace talon_state_controller
       realtime_pub_->msg_.reverse_limit_switch.push_back(0);
       realtime_pub_->msg_.invert.push_back(false);
       realtime_pub_->msg_.sensorPhase.push_back(false);
-
+	  realtime_pub_->msg_.neutral_mode.push_back("");
+      realtime_pub_->msg_.neutral_output.push_back(false);
 
       talon_state_.push_back(hw->getHandle(joint_names[i]));
-
     }
     addExtraJoints(controller_nh, realtime_pub_->msg_);
 
@@ -206,6 +206,28 @@ namespace talon_state_controller
                 realtime_pub_->msg_.talon_mode[i] = "Unknown";
                 break;
           }
+		  switch(talon_state_[i]->getNeutralMode())
+		  {
+			  case hardware_interface::NeutralMode_Uninitialized:
+				  realtime_pub_->msg_.neutral_mode[i] = "Uninitialized";
+				  break;
+			  case hardware_interface::NeutralMode_EEPROM_Setting:
+				  realtime_pub_->msg_.neutral_mode[i] = "EEPROM_Setting";
+				  break;
+			  case hardware_interface::NeutralMode_Coast:
+				  realtime_pub_->msg_.neutral_mode[i] = "Coast";
+				  break;
+			  case hardware_interface::NeutralMode_Brake:
+				  realtime_pub_->msg_.neutral_mode[i] = "Brake";
+				  break;
+			  case hardware_interface::NeutralMode_Last:
+				  realtime_pub_->msg_.neutral_mode[i] = "Last";
+				  break;
+			  default:
+				  realtime_pub_->msg_.neutral_mode[i] = "Unknown";
+				  break;
+		  }
+		  realtime_pub_->msg_.neutral_output[i] = talon_state_[i]->getNeutralOutput();
         }
         realtime_pub_->unlockAndPublish();
       }
