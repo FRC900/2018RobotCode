@@ -90,10 +90,10 @@ namespace hardware_interface
 				f_[index] = ff;}
 			float getF(int index){return f_[index];}
 
-			void setIZ(unsigned oldIZ, int index){
+			void setIZ(int oldIZ, int index){
 				pidf_changed_[index] = true;
 				i_zone_[index] = oldIZ;}
-			unsigned getIZ(int index) const {return i_zone_[index];}
+			int getIZ(int index) const {return i_zone_[index];}
 
 			void set(float command) {command_changed_ = true; command_ = command;}
 			void setMode(TalonMode mode)
@@ -127,7 +127,7 @@ namespace hardware_interface
 				pidf_slot_changed_ = false;
 				return true;
 			}
-			bool pidfChanged(float &p, float &i, float &d, float &f, unsigned &iz, int index){
+			bool pidfChanged(float &p, float &i, float &d, float &f, int &iz, int index){
 				p = p_[index];
 				i = i_[index];
 				d = d_[index];
