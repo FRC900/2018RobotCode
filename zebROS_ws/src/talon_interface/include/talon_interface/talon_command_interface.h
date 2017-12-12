@@ -34,7 +34,9 @@ namespace hardware_interface
 				pidf_slot_changed_(false),
 				invert_(false),
 				sensor_phase_(false),
-				invert_changed_(false)
+				invert_changed_(false),
+				neutral_mode_(NeutralMode_Uninitialized),
+				neutral_mode_changed_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -94,7 +96,7 @@ namespace hardware_interface
 			unsigned getIZ(int index) const {return i_zone_[index];}
 
 			void set(double command) {command_changed_ = true; command_ = command;}
-			void setMode(const TalonMode mode)
+			void setMode(TalonMode mode)
 			{
 				if ((mode <= TalonMode_Uninitialized) || (mode >= TalonMode_Last))
 				{
@@ -104,6 +106,17 @@ namespace hardware_interface
 				mode_         = mode;
 				mode_changed_ = true;
 				this->set(0); // ??? Clear out setpoint for old mode
+			}
+
+			void setNeutralMode(NeutralMode neutral_mode)
+			{
+				if ((neutral_mode <= NeutralMode_Uninitialized) || (neutral_mode >= NeutralMode_Last))
+				{
+					ROS_WARN("Invalid neutral_mode passed to TalonHWCommand::setNeutralMode()");
+					return;
+				}
+				neutral_mode_         = neutral_mode;
+				neutral_mode_changed_ = true;
 			}
 
 			bool slotChanged(int &newpidfSlot)
@@ -158,6 +171,15 @@ namespace hardware_interface
 				return true;
 			}
 
+			bool neutralModeChanged(NeutralMode &neutral_mode)
+			{
+				neutral_mode = neutral_mode_;
+				if (!neutral_mode_changed_)
+					return false;
+				neutral_mode_changed_ = false;
+				return true;
+			}
+
 		private:
 			double    command_; // motor setpoint - % vbus, velocity, position, etc
 			bool      command_changed_;
@@ -178,6 +200,9 @@ namespace hardware_interface
 			bool      invert_;
 			bool      sensor_phase_;
 			bool      invert_changed_;
+
+			NeutralMode neutral_mode_;
+			bool        neutral_mode_changed_;
 	};
 
 	// Handle - used by each controller to get, by name of the

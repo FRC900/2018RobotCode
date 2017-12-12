@@ -25,6 +25,15 @@ namespace hardware_interface
 		TalonMode_Disabled,
 		TalonMode_Last
 	};
+	
+	enum NeutralMode
+	{
+		NeutralMode_Uninitialized,
+		NeutralMode_EEPROM_Setting,
+		NeutralMode_Coast,
+		NeutralMode_Brake,
+		NeutralMode_Last
+	};
 
 	// Class which contains state information
 	// about a given Talon SRX. This should include
@@ -64,7 +73,8 @@ namespace hardware_interface
 				can_id_(can_id),
 				slot_(0),
 				invert_(false),
-				sensor_phase_(false)
+				sensor_phase_(false),
+				neutral_mode_(NeutralMode_Uninitialized)
 			{
 			}
 
@@ -120,6 +130,8 @@ namespace hardware_interface
 			bool getInvert(void)          const {return invert_;}
 			bool getSensorPhase(void)     const {return sensor_phase_;}
 
+			NeutralMode getNeutralMode(void) const {return neutral_mode_;}
+
 			void setSetpoint(double setpoint)            {setpoint_ = setpoint;}
 			void setPosition(double position)            {position_ = position;}
 			void setSpeed(double speed)                  {speed_ = speed;}
@@ -155,11 +167,26 @@ namespace hardware_interface
 			void setClosedLoopError(int closed_loop_error) 	{closed_loop_error_ = closed_loop_error;}
 			void setFwdLimitSwitch(int fwd_limit_switch_closed) {fwd_limit_switch_closed_ = fwd_limit_switch_closed;}
 			void setRevLimitSwitch(int rev_limit_switch_closed) {rev_limit_switch_closed_ = rev_limit_switch_closed;}
-			void setTalonMode(TalonMode talon_mode)	     {talon_mode_ = talon_mode;}
+			void setTalonMode(TalonMode talon_mode)	     
+			{
+				if ((talon_mode_ >= TalonMode_Uninitialized) &&
+				    (talon_mode_ <  TalonMode_Last) )
+					talon_mode_ = talon_mode;
+				else
+					ROS_WARN_STREAM("Invalid talon mode requested");
+			}
 			void setVCompensationRampRate(double ramp_rate) {v_compensation_ramp_rate_ = ramp_rate;}
 			void setSlot(int slot)      {slot_ = slot;}
 			void setInvert(bool invert) {invert_ = invert;}
 			void setSensorPhase(bool sensor_phase) {sensor_phase_ = sensor_phase;}
+			void setNeutralMode(NeutralMode neutral_mode)
+			{
+				if ((neutral_mode_ >= NeutralMode_Uninitialized) &&
+				    (neutral_mode_ <  NeutralMode_Last) )
+					neutral_mode_ = neutral_mode;
+				else
+					ROS_WARN_STREAM("Invalid neutral mode requested");
+			}
 
 
 			// Add code to read and/or store all the other state from the Talon :
@@ -193,6 +220,8 @@ namespace hardware_interface
 			int slot_;
 			bool invert_;
 			bool sensor_phase_;
+
+			NeutralMode neutral_mode_;
 	};
 
 	// Handle - used by each controller to get, by name of the

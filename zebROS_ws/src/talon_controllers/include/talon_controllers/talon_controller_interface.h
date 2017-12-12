@@ -44,7 +44,8 @@ class TalonCIParams
 				izone_ {0, 0},
 				pidf_config_(0),
 				invert_output_ (false),
-				sensor_phase_(false)
+				sensor_phase_(false),
+				neutral_mode_(hardware_interface::NeutralMode_Uninitialized)
 		{
 		}
 
@@ -56,6 +57,28 @@ class TalonCIParams
 				ROS_ERROR("No joint given (namespace: %s, param name: %s)", 
 						  n.getNamespace().c_str(), param_name.c_str());
 				return false;
+			}
+			return true;
+		}
+
+		// Read a joint name from the given nodehandle's params
+		bool readNeutralMode(ros::NodeHandle &n)
+		{
+			std::string mode_string;
+			if (n.getParam("neutral_mode", mode_string))
+			{
+				if (mode_string == "EEPROM")
+					neutral_mode_ = hardware_interface::NeutralMode_EEPROM_Setting;
+				else if (mode_string == "Coast")
+					neutral_mode_ = hardware_interface::NeutralMode_Coast;
+				else if (mode_string == "Brake")
+					neutral_mode_ = hardware_interface::NeutralMode_Brake;
+				else 
+				{
+					ROS_ERROR("Invalid neutral mode name (namespace: %s, %s)", 
+							n.getNamespace().c_str(), mode_string.c_str());
+					return false;
+				}
 			}
 			return true;
 		}
@@ -119,6 +142,8 @@ class TalonCIParams
 		int    pidf_config_;
 		bool   invert_output_;
 		bool   sensor_phase_;
+		hardware_interface::NeutralMode neutral_mode_;
+
 	private:
 		// Read a double named <param_type> from the array/map
 		// in params
@@ -187,6 +212,7 @@ class TalonControllerInterface
 			return params_.readJointName(n, "joint") && 
 				   params_.readFollowerID(n, tsi) && 
 				   params_.readCloseLoopParams(n) &&
+				   params_.readNeutralMode(n) &&
 				   params_.readInverts(n);
 		}
 
@@ -233,6 +259,7 @@ class TalonControllerInterface
 				talon_->setIZ(params_.izone_[i], i);
 			}
 			talon_->setPidfSlot(params_.pidf_config_);
+			talon_->setNeutralMode(params_.neutral_mode_);
 
 			talon_->setInvert(params_.invert_output_);
 			talon_->setSensorPhase(params_.sensor_phase_);
