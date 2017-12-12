@@ -36,7 +36,8 @@ namespace hardware_interface
 				sensor_phase_(false),
 				invert_changed_(false),
 				neutral_mode_(NeutralMode_Uninitialized),
-				neutral_mode_changed_(false)
+				neutral_mode_changed_(false),
+				neutral_output_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -118,6 +119,15 @@ namespace hardware_interface
 				neutral_mode_         = neutral_mode;
 				neutral_mode_changed_ = true;
 			}
+			bool getNeutralMode(void)
+			{
+				return neutral_mode_;
+			}
+
+			void setNeutralOutput(void)
+			{
+				neutral_output_ = true;
+			}
 
 			bool slotChanged(int &newpidfSlot)
 			{
@@ -180,6 +190,18 @@ namespace hardware_interface
 				return true;
 			}
 
+			// Set motor controller to neutral output
+			// This should be a one-shot ... only
+			// write it to the motor controller once
+			bool neutralOutputChanged(void)
+			{
+				if (!neutral_output_)
+					return false;
+				neutral_output_ = false;
+				return true;
+			}
+
+
 		private:
 			float     command_; // motor setpoint - % vbus, velocity, position, etc
 			bool      command_changed_;
@@ -203,6 +225,7 @@ namespace hardware_interface
 
 			NeutralMode neutral_mode_;
 			bool        neutral_mode_changed_;
+			bool        neutral_output_;
 	};
 
 	// Handle - used by each controller to get, by name of the

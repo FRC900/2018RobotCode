@@ -356,6 +356,11 @@ class TalonControllerInterface
 			return true;
 		}
 
+		virtual void setNeutralOutput(void)
+		{
+			talon_->setNeutralOutput();
+		}
+
 		float getPosition(void) const
 		{
 			return talon_.state()->getPosition();

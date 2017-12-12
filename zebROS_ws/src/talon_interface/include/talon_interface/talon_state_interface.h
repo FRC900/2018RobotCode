@@ -74,7 +74,8 @@ namespace hardware_interface
 				slot_(0),
 				invert_(false),
 				sensor_phase_(false),
-				neutral_mode_(NeutralMode_Uninitialized)
+				neutral_mode_(NeutralMode_Uninitialized),
+				neutral_output_(false)
 			{
 			}
 
@@ -131,6 +132,7 @@ namespace hardware_interface
 			bool getSensorPhase(void)     const {return sensor_phase_;}
 
 			NeutralMode getNeutralMode(void) const {return neutral_mode_;}
+			bool getNeutralOutput(void)      const {return neutral_output_;}
 
 			void setSetpoint(float setpoint)            {setpoint_ = setpoint;}
 			void setPosition(float position)            {position_ = position;}
@@ -187,6 +189,7 @@ namespace hardware_interface
 				else
 					ROS_WARN_STREAM("Invalid neutral mode requested");
 			}
+			void setNeutralOutput(bool neutral_output) {neutral_output_ = neutral_output;}
 
 
 			// Add code to read and/or store all the other state from the Talon :
@@ -222,6 +225,7 @@ namespace hardware_interface
 			bool sensor_phase_;
 
 			NeutralMode neutral_mode_;
+			bool        neutral_output_;
 	};
 
 	// Handle - used by each controller to get, by name of the
