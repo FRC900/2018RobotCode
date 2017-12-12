@@ -361,6 +361,11 @@ class TalonControllerInterface
 			talon_->setNeutralOutput();
 		}
 
+		virtual void setIntegralAccumulator(float iaccum)
+		{
+			talon_->setIntegralAccumulator(iaccum);
+		}
+
 		float getPosition(void) const
 		{
 			return talon_.state()->getPosition();

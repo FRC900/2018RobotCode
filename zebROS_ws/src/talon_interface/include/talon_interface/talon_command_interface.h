@@ -206,13 +206,13 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				p_[index]=oldP;i_[index]=oldI;d_[index]=oldD;f_[index]=oldF;}
 
-			void setIaccum(float iaccum)
+			void setIntegralAccumulator(float iaccum)
 			{
 				iaccum_ = iaccum;
 				iaccum_changed_ = true;
 			}
-			float getIaccum(void) const { return iaccum_; }
-			bool iaccumChanged(float &iaccum)
+			float getIntegralAccumulator(void) const { return iaccum_; }
+			bool integralAccumulatorChanged(float &iaccum)
 			{
 				iaccum = iaccum_;
 				if (!iaccum_changed_)
