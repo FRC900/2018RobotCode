@@ -82,12 +82,18 @@ namespace talon_state_controller
       realtime_pub_->msg_.pid_f0.push_back(0.0);
       realtime_pub_->msg_.pid_f1.push_back(0.0);
 
-      realtime_pub_->msg_.pid_izone1.push_back(0);
       realtime_pub_->msg_.pid_izone0.push_back(0);
+      realtime_pub_->msg_.pid_izone1.push_back(0);
+      realtime_pub_->msg_.pid_allowable_closed_loop_error0.push_back(0);
+      realtime_pub_->msg_.pid_allowable_closed_loop_error1.push_back(0);
+      realtime_pub_->msg_.pid_max_integral_accumulator0.push_back(0);
+      realtime_pub_->msg_.pid_max_integral_accumulator1.push_back(0);
       realtime_pub_->msg_.set_point.push_back(0.0);
       realtime_pub_->msg_.VCompensationRampRate.push_back(0.0);
       realtime_pub_->msg_.can_id.push_back(0);
       realtime_pub_->msg_.closed_loop_error.push_back(0);
+      realtime_pub_->msg_.integral_accumulator.push_back(0);
+      realtime_pub_->msg_.error_derivative.push_back(0);
       realtime_pub_->msg_.forward_limit_switch.push_back(0);
       realtime_pub_->msg_.reverse_limit_switch.push_back(0);
       realtime_pub_->msg_.invert.push_back(false);
@@ -153,14 +159,20 @@ namespace talon_state_controller
           realtime_pub_->msg_.pid_d0[i] = talon_state_[i]->getPidfD(0);
           realtime_pub_->msg_.pid_f0[i] = talon_state_[i]->getPidfF(0);
           realtime_pub_->msg_.pid_izone0[i] = talon_state_[i]->getPidfIzone(0);
+		  realtime_pub_->msg_.pid_allowable_closed_loop_error0[i] = talon_state_[i]->getAllowableClosedLoopError(0);
+		  realtime_pub_->msg_.pid_max_integral_accumulator0[i] = talon_state_[i]->getMaxIntegralAccumulator(0);
 
           realtime_pub_->msg_.pid_p1[i] = talon_state_[i]->getPidfP(1);
           realtime_pub_->msg_.pid_i1[i] = talon_state_[i]->getPidfI(1);
           realtime_pub_->msg_.pid_d1[i] = talon_state_[i]->getPidfD(1);
           realtime_pub_->msg_.pid_f1[i] = talon_state_[i]->getPidfF(1);
           realtime_pub_->msg_.pid_izone1[i] = talon_state_[i]->getPidfIzone(1);
-          
+		  realtime_pub_->msg_.pid_allowable_closed_loop_error1[i] = talon_state_[i]->getAllowableClosedLoopError(1);
+		  realtime_pub_->msg_.pid_max_integral_accumulator1[i] = talon_state_[i]->getMaxIntegralAccumulator(1);
+
           realtime_pub_->msg_.closed_loop_error[i] = talon_state_[i]->getClosedLoopError();
+          realtime_pub_->msg_.integral_accumulator[i] = talon_state_[i]->getIntegralAccumulator();
+          realtime_pub_->msg_.error_derivative[i] = talon_state_[i]->getErrorDerivative();
           realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getFwdLimitSwitch();
           realtime_pub_->msg_.reverse_limit_switch[i] = talon_state_[i]->getRevLimitSwitch();
           //realtime_pub_->msg_.talon_mode[i] = talon_state_[i]->getTalonMode();

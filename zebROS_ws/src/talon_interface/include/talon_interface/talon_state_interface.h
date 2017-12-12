@@ -65,7 +65,11 @@ namespace hardware_interface
 				pidf_d_ {0, 0},
 				pidf_f_ {0, 0},
 				pidf_izone_ {0, 0},
+				allowable_closed_loop_error_ {0,0},
+				max_integral_accumulator_ {0,0},
 				closed_loop_error_(0),
+				integral_accumulator_(0.0),
+				error_derivative_(0.0),
 				fwd_limit_switch_closed_(0),
 				rev_limit_switch_closed_(0),
 				talon_mode_(TalonMode_Uninitialized),
@@ -122,7 +126,24 @@ namespace hardware_interface
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 				return 0;}
 			}
+			int getAllowableClosedLoopError(int index) const{
+				if((index == 0) || (index == 1))
+					return allowable_closed_loop_error_[index];
+				else {
+					ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+					return 0;}
+			}
+			float getMaxIntegralAccumulator(int index) const {
+				if((index == 0) || (index == 1))
+					return max_integral_accumulator_[index];
+				else {
+					ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+					return 0;}
+			}
+
 			int getClosedLoopError(void)  const {return closed_loop_error_;}
+			float getIntegralAccumulator(void)  const {return integral_accumulator_;}
+			float getErrorDerivative(void)      const {return error_derivative_;}
 			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
 			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
 			TalonMode getTalonMode(void)  const {return talon_mode_;}
@@ -166,7 +187,22 @@ namespace hardware_interface
 				pidf_izone_[index] = pidf_izone;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			void setAllowableClosedLoopError(int allowable_closed_loop_error, int index)
+			{
+				if((index == 0) || (index == 1))
+					allowable_closed_loop_error_[index] = allowable_closed_loop_error;
+				else
+					ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+			void setMaxIntegralAccumulator(float max_integral_accumulator, int index)
+			{
+				if((index == 0) || (index == 1))
+					max_integral_accumulator_[index] = max_integral_accumulator;
+				else
+					ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
+
 			void setClosedLoopError(int closed_loop_error) 	{closed_loop_error_ = closed_loop_error;}
+			void setIntegralAccumulator(float integral_accumulator) {integral_accumulator_ = integral_accumulator; }
+			void setErrorDerivative(float error_derivative) {error_derivative_ = error_derivative; }
 			void setFwdLimitSwitch(int fwd_limit_switch_closed) {fwd_limit_switch_closed_ = fwd_limit_switch_closed;}
 			void setRevLimitSwitch(int rev_limit_switch_closed) {rev_limit_switch_closed_ = rev_limit_switch_closed;}
 			void setTalonMode(TalonMode talon_mode)	     
@@ -212,7 +248,11 @@ namespace hardware_interface
 			float pidf_d_[2];
 			float pidf_f_[2];
 			int   pidf_izone_[2];
+			int   allowable_closed_loop_error_[2];
+			float max_integral_accumulator_[2];
 			int closed_loop_error_;
+			float integral_accumulator_;
+			float error_derivative_;
 			int fwd_limit_switch_closed_;
 			int rev_limit_switch_closed_;
 			TalonMode talon_mode_;

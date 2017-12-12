@@ -32,6 +32,8 @@ namespace hardware_interface
 				mode_changed_(false),
 				pidf_slot_(0),
 				pidf_slot_changed_(false),
+				iaccum_(0.0),
+				iaccum_changed_(false),
 				invert_(false),
 				sensor_phase_(false),
 				invert_changed_(false),
@@ -41,11 +43,14 @@ namespace hardware_interface
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
-					p_[slot] =  0.0;
-					i_[slot] =  0.0;
-					d_[slot] =  0.0;
-					f_[slot] =  0.0;
-					i_zone_[slot] = 0.0;
+					p_[slot] = 0.0;
+					i_[slot] = 0.0;
+					d_[slot] = 0.0;
+					f_[slot] = 0.0;
+					i_zone_[slot] = 0;
+					allowable_closed_loop_error_[slot] = 0;
+					max_integral_accumulator_[slot] = 0;
+
 					pidf_changed_[slot] = true;
 				}
 			}
@@ -65,36 +70,156 @@ namespace hardware_interface
 			TalonMode getMode(void) const {return mode_;}
 
 			void setP(float oldP, int index){
+				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::setP()");
+					return;
+				}
 				pidf_changed_[index] = true;
 				p_[index] = oldP;}
-			float getP(int index) const {return p_[index];}
+			float getP(int index) const {
+				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::getP()");
+					return 0.0;
+				}
+				return p_[index];
+			}
 
 			void setI(float ii, int index){
+				if ((index < 0) || (index >= (sizeof(i_) / sizeof(i_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::setI()");
+					return;
+				}
 				pidf_changed_[index] = true;
 				i_[index] = ii;}
-			float getI(int index) const {return i_[index];}
+			float getI(int index) const {
+				if ((index < 0) || (index >= (sizeof(i_) / sizeof(i_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::getI()");
+					return 0.0;
+				}
+				return i_[index];
+			}
+
+			void setD(float dd, int index){
+				if ((index < 0) || (index >= (sizeof(d_) / sizeof(d_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::setD()");
+					return;
+				}
+				pidf_changed_[index] = true;
+				d_[index] = dd;}
+			float getD(int index) const {
+				if ((index < 0) || (index >= (sizeof(d_) / sizeof(d_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::getD()");
+					return 0.0;
+				}
+				return d_[index];
+			}
+
+			void setF(float ff, int index){
+				if ((index < 0) || (index >= (sizeof(f_) / sizeof(f_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::setF()");
+					return;
+				}
+				pidf_changed_[index] = true;
+				f_[index] = ff;}
+			float getF(int index){
+				if ((index < 0) || (index >= (sizeof(f_) / sizeof(f_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::getF()");
+					return 0.0;
+				}
+				return f_[index];
+			}
+
+			void setIZ(int oldIZ, int index){
+				if ((index < 0) || (index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::setIZ()");
+					return;
+				}
+				pidf_changed_[index] = true;
+				i_zone_[index] = oldIZ;}
+			int getIZ(int index) const {
+				if ((index < 0) || (index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::getIZ()");
+					return 0.0;
+				}
+				return i_zone_[index];
+			}
+
+			void setAllowableClosedloopError(int allowable_closed_loop_error, int index) {
+				if ((index < 0) || (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
+					return;
+				}
+				pidf_changed_[index] = true;
+				allowable_closed_loop_error_[index] = allowable_closed_loop_error;
+			}
+			int getAllowableClosedloopError(int index) const {
+				if ((index < 0) || (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::getAllowableClosedLoopErrro()");
+					return 0;
+				}
+				return allowable_closed_loop_error_[index];
+			}
+			void setMaxIntegralAccumulator(int max_integral_accumulator, int index) {
+				if ((index < 0) || (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
+					return;
+				}
+				pidf_changed_[index] = true;
+				max_integral_accumulator_[index] = max_integral_accumulator;
+			}
+			int getMaxIntegralAccumulator(int index) const {
+				if ((index < 0) || (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::getAllowableClosedLoopErrro()");
+					return 0.0;
+				}
+				return max_integral_accumulator_[index];
+			}
 			
 			void setPID(float oldP, float oldI, float oldD, int index){
+				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::setPID()");
+					return;
+				}
 				pidf_changed_[index] = true;
 				p_[index] = oldP;i_[index] =oldI;d_[index]=oldD;}
 			void setPID(float oldP, float oldI, float oldD, float oldF, int index){
+				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::setPIF()");
+					return;
+				}
 				pidf_changed_[index] = true;
 				p_[index]=oldP;i_[index]=oldI;d_[index]=oldD;f_[index]=oldF;}
 
-			void setD(float dd, int index){
-				pidf_changed_[index] = true;
-				d_[index] = dd;}
-			float getD(int index) const {return d_[index];}
-
-			void setF(float ff, int index){
-				pidf_changed_[index] = true;
-				f_[index] = ff;}
-			float getF(int index){return f_[index];}
-
-			void setIZ(int oldIZ, int index){
-				pidf_changed_[index] = true;
-				i_zone_[index] = oldIZ;}
-			int getIZ(int index) const {return i_zone_[index];}
+			void setIaccum(float iaccum)
+			{
+				iaccum_ = iaccum;
+				iaccum_changed_ = true;
+			}
+			float getIaccum(void) const { return iaccum_; }
+			bool iaccumChanged(float &iaccum)
+			{
+				iaccum = iaccum_;
+				if (!iaccum_changed_)
+					return false;
+				iaccum_changed_ = true;
+				return true;
+			}
 
 			void set(float command) {command_changed_ = true; command_ = command;}
 			void setMode(TalonMode mode)
@@ -137,12 +262,19 @@ namespace hardware_interface
 				pidf_slot_changed_ = false;
 				return true;
 			}
-			bool pidfChanged(float &p, float &i, float &d, float &f, int &iz, int index){
+			bool pidfChanged(float &p, float &i, float &d, float &f, int &iz, int allowable_closed_loop_error, float max_integral_accumulator, int index){
+				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				{
+					ROS_WARN("Invalid index passed to TalonHWCommand::pidfChanged()");
+					return false;
+				}
 				p = p_[index];
 				i = i_[index];
 				d = d_[index];
 				f = f_[index];
 				iz = i_zone_[index];
+				allowable_closed_loop_error = allowable_closed_loop_error_[index];
+				max_integral_accumulator = max_integral_accumulator_[index];
 				if (!pidf_changed_[index])
 					return false;
 				pidf_changed_[index] = false;
@@ -218,7 +350,13 @@ namespace hardware_interface
 			int       i_zone_[2];
 			float     d_[2];
 			float     f_[2];
+			int       allowable_closed_loop_error_[2];
+			float     max_integral_accumulator_[2];
 			bool      pidf_changed_[2];
+
+			float     iaccum_;
+			bool      iaccum_changed_;
+
 			bool      invert_;
 			bool      sensor_phase_;
 			bool      invert_changed_;
