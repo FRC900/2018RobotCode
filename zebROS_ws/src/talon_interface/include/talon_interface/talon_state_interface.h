@@ -227,6 +227,60 @@ namespace hardware_interface
 			}
 			void setNeutralOutput(bool neutral_output) {neutral_output_ = neutral_output;}
 
+			//general
+			void Disable();
+			void Enable();
+			void ClearStickyFaults();
+
+			//voltage
+			void SetVoltageRampRate(double rampRate);
+			virtual void SetVoltageCompensationRampRate(double rampRate); 
+			void ConfigNeutralMode(NeutralMode mode);
+			void ConfigPeakOutputVoltage(double forwardVoltage, double reverseVoltage);
+			void SetNominalClosedLoopVoltage(double voltage);
+
+			//closed loop control/sensors
+			virtual void SetAnalogPosition(int newPosition);
+			virtual void SetEncPosition(int);
+			void SetNumberOfQuadIdxRises(int rises);
+			virtual void SetPulseWidthPosition(int newpos);
+			void ConfigEncoderCodesPerRev(uint16_t codesPerRev);
+			void ConfigPotentiometerTurns(uint16_t turns) ;
+			void ConfigSoftPositionLimits(double forwardLimitPosition, double reverseLimitPosition);
+			void EnableZeroSensorPositionOnIndex(bool enable, bool risingEdge);
+			void EnableZeroSensorPositiononForwardLimit(bool enable);
+			void EnableZeroSensorPositionOnReverseLimit(bool enable);
+			//void SetFeedbackDevice(FeedbackDevice device);
+			void SetSensorDirection(bool reverseSensor);
+			void SetClosedLoopOutputDirection(bool reverseOutput);
+			void SetCloseLoopRampRate(double rampRate);
+
+			//limits
+			void ConfigForwardLimit(double forwardLimitPosition);
+			void ConfigReverseLimit(double reverseLimitPosition);
+			void ConfigLimitSwitchOverrides(bool bForwardLimitSwitchEn, bool bReverseLimitSwitchEn);
+			void ConfigForwardSoftLimitEnable(bool bForwardSoftLimitEn);
+			void ConfigReverseSoftLimitEnable(bool bReverseSoftLimitEn);
+			void ConfigFwdLimitSwitchNormallyOpen(bool normallyOpen);
+			void ConfigRevLimitSwitchNormallyOpen(bool normallyOpen);
+			void ConfigLimitMode(int mode);
+
+			//motion profiling
+			void ChangeMotionControlFramePeriod(int period);
+			void ClearMotionProfileTrajectories();
+			//bool PushMotionProfileTrajectory(const TrajectoryPoint& trajPt);
+			void ProcessMotionProfileBuffer();
+			void ClearMotionProfileHasUnderrun();
+			int SetMotionMagicCruiseVelocity(double motMagicCruiseVeloc);
+			int SetMotionMagicAcceleration(double motMagicAccel);
+			int SetCurrentLimit(uint32_t amps);
+			int EnableCurrentLimit(bool enable);
+			int SetCustomParam0(int32_t value);
+			int SetCustomParam1(int32_t value);
+			//void SetInverted(bool isInverted) override;
+			void SetDataPortOutputPeriod(uint32_t periodMs);
+			void SetDataPortOutputEnable(uint32_t idx, bool enable);
+			void SetDataPortOutput(uint32_t idx, uint32_t OnTimeMs);
 
 			// Add code to read and/or store all the other state from the Talon :
 			// limit switch settings, sensing
