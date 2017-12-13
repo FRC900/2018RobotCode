@@ -1,7 +1,7 @@
 #include "Utilities.hpp"
 using namespace std;
 
-namespace utils {
+namespace zv_utils {
 
 	std::pair<float, float> minOfDepthMat(const cv::Mat& img, const cv::Mat& mask, const cv::Rect& bound_rect, int range) {
 

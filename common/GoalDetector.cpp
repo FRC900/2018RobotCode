@@ -38,7 +38,7 @@ GoalDetector::GoalDetector(const cv::Point2f &fov_size, const cv::Size &frame_si
 float GoalDetector::createConfidence(float expectedVal, float expectedStddev, float actualVal)
 {
 	pair<float,float> expectedNormal(expectedVal, expectedStddev);
-	float confidence = utils::normalCFD(expectedNormal, actualVal);
+	float confidence = zv_utils::normalCFD(expectedNormal, actualVal);
 	return confidence > 0.5 ? 1 - confidence : confidence;
 }
 
@@ -313,8 +313,8 @@ const vector<DepthInfo> GoalDetector::getDepths(const Mat &depth, const vector< 
 		contour_mask.setTo(Scalar(0));
 		drawContours(contour_mask, contours, i, Scalar(255), CV_FILLED);
 		// copy them into individual floats
-		//pair<float, float> minMax = utils::minOfDepthMat(depth, contour_mask, br, 10);
-		const float average_depth = utils::avgOfDepthMat(depth, contour_mask, br);
+		//pair<float, float> minMax = zv_utils::minOfDepthMat(depth, contour_mask, br, 10);
+		const float average_depth = zv_utils::avgOfDepthMat(depth, contour_mask, br);
 		float depth_z_min = average_depth;
 		float depth_z_max = average_depth;
 
