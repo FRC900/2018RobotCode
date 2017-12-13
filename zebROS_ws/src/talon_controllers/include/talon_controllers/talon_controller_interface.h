@@ -42,6 +42,8 @@ class TalonCIParams
 				d_ {0, 0},
 				f_ {0, 0},
 				izone_ {0, 0},
+				allowable_closed_loop_error_{0, 0}, // need better defaults
+				max_integral_accumulator_{0, 0},
 				pidf_config_(0),
 				invert_output_ (false),
 				sensor_phase_(false),
@@ -122,6 +124,8 @@ class TalonCIParams
 					d_[i]=findFloatParam("d",pidparams_);
 					f_[i]=findFloatParam("f",pidparams_);
 					izone_[i]=findIntParam("i_zone",pidparams_);
+					allowable_closed_loop_error_[i]=findIntParam("allowable_closed_loop_error", pidparams_);
+					max_integral_accumulator_[i]=findFloatParam("f",pidparams_);
 					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << izone_[i]<< std::endl;
 				}
 				return true;
@@ -134,11 +138,13 @@ class TalonCIParams
 		// TODO : Keep adding config items here
 		std::string joint_name_;
 		int    follow_can_id_;
-		float p_[2];
-		float i_[2];
-		float d_[2];
-		float f_[2];
-		unsigned izone_[2];
+		float  p_[2];
+		float  i_[2];
+		float  d_[2];
+		float  f_[2];
+		int    izone_[2];
+		int    allowable_closed_loop_error_[2];
+		float  max_integral_accumulator_[2];
 		int    pidf_config_;
 		bool   invert_output_;
 		bool   sensor_phase_;
@@ -257,6 +263,10 @@ class TalonControllerInterface
 				talon_->setD(params_.d_[i], i);
 				talon_->setF(params_.f_[i], i);
 				talon_->setIZ(params_.izone_[i], i);
+				// TODO : I'm worried about these. We need
+				// better default values than 0.0
+				talon_->setAllowableClosedloopError(params_.allowable_closed_loop_error_[i], i);
+				talon_->setMaxIntegralAccumulator(params_.max_integral_accumulator_[i], i);
 			}
 			talon_->setPidfSlot(params_.pidf_config_);
 			talon_->setNeutralMode(params_.neutral_mode_);
