@@ -35,6 +35,20 @@ namespace hardware_interface
 		NeutralMode_Last
 	};
 
+	enum FeedbackDevice
+	{
+		FeedbackDevice_Uninitialized,
+		FeedbackDevice_QuadEncoder,
+		FeedbackDevice_AnalogPot,
+		FeedbackDevice_AnalogEncoder,
+		FeedbackDevice_EncRising,
+		FeedbackDevice_EncFalling,
+		FeedbackDevice_CtreMagEncoder_Relative,
+		FeedbackDevice_CtreMagEncoder_Absolute,
+		FeedbackDevice_PulseWidth,
+		FeedbackDevice_Last
+	};
+
 	// Class which contains state information
 	// about a given Talon SRX. This should include
 	// data about the mode the Talon is running in,
@@ -79,7 +93,9 @@ namespace hardware_interface
 				invert_(false),
 				sensor_phase_(false),
 				neutral_mode_(NeutralMode_Uninitialized),
-				neutral_output_(false)
+				neutral_output_(false),
+				encoder_feedback_(FeedbackDevice_Uninitialized),
+				encoder_tick_per_rotation_(0)
 			{
 			}
 
@@ -154,6 +170,8 @@ namespace hardware_interface
 
 			NeutralMode getNeutralMode(void) const {return neutral_mode_;}
 			bool getNeutralOutput(void)      const {return neutral_output_;}
+			FeedbackDevice getEncoderFeedback(void) const {return encoder_feedback_;}
+			int getEncoderTickPerRotation(void) 	const {return encoder_tick_per_rotation_;}
 
 			void setSetpoint(float setpoint)            {setpoint_ = setpoint;}
 			void setPosition(float position)            {position_ = position;}
@@ -226,6 +244,16 @@ namespace hardware_interface
 					ROS_WARN_STREAM("Invalid neutral mode requested");
 			}
 			void setNeutralOutput(bool neutral_output) {neutral_output_ = neutral_output;}
+
+			void setEncoderFeedback(FeedbackDevice encoder_feedback)
+			{
+				if ((encoder_feedback >= FeedbackDevice_Uninitialized) &&
+				    (encoder_feedback <  FeedbackDevice_Last) )
+					encoder_feedback_ = encoder_feedback;
+				else
+					ROS_WARN_STREAM("Invalid feedback device requested");
+			}
+			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
 
 			//general
 			void Disable(){ }
@@ -320,6 +348,9 @@ namespace hardware_interface
 
 			NeutralMode neutral_mode_;
 			bool        neutral_output_;
+
+			FeedbackDevice encoder_feedback_;
+			int encoder_tick_per_rotation_;
 	};
 
 	// Handle - used by each controller to get, by name of the

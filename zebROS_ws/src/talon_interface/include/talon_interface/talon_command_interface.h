@@ -39,7 +39,9 @@ namespace hardware_interface
 				invert_changed_(false),
 				neutral_mode_(NeutralMode_Uninitialized),
 				neutral_mode_changed_(false),
-				neutral_output_(false)
+				neutral_output_(false),
+				encoder_feedback_(FeedbackDevice_Uninitialized),
+				encoder_tick_per_rotation_(0)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -333,6 +335,18 @@ namespace hardware_interface
 				return true;
 			}
 
+			FeedbackDevice getEncoderFeedback(void) const {return encoder_feedback_;}
+			void setEncoderFeedback(FeedbackDevice encoder_feedback)
+			{
+				if ((encoder_feedback >= FeedbackDevice_Uninitialized) &&
+				    (encoder_feedback <  FeedbackDevice_Last) )
+					encoder_feedback_ = encoder_feedback;
+				else
+					ROS_WARN_STREAM("Invalid feedback device requested");
+			}
+			int getEncoderTickPerRotation(void) 	const {return encoder_tick_per_rotation_;}
+			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
+
 			//general
 			void Disable(){ }
 			void Enable(){ }
@@ -418,6 +432,9 @@ namespace hardware_interface
 			NeutralMode neutral_mode_;
 			bool        neutral_mode_changed_;
 			bool        neutral_output_;
+
+			FeedbackDevice encoder_feedback_;
+			int encoder_tick_per_rotation_;
 	};
 
 	// Handle - used by each controller to get, by name of the
