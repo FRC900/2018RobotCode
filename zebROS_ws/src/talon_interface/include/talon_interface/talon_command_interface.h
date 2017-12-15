@@ -41,7 +41,12 @@ namespace hardware_interface
 				neutral_mode_changed_(false),
 				neutral_output_(false),
 				encoder_feedback_(FeedbackDevice_Uninitialized),
-				encoder_tick_per_rotation_(0)
+				encoder_tick_per_rotation_(0),
+				
+				//output shaping
+				outputShapingChanged(false),
+				closedloop_secondsFromNeutralToFull_(0),
+				openloop_secondsFromNeutralToFull_(0)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -323,6 +328,24 @@ namespace hardware_interface
 				neutral_mode_changed_ = false;
 				return true;
 			}
+			
+			//output shaping
+			bool closedLoopSecondsFromNeutralToFullChanged(float &closedloop_secondsFromNeutralToFull)
+			{
+				closedloop_secondsFromNeutralToFull = closedloop_secondsFromNeutralToFull_;
+				if (!outputShapingChanged)
+					return false;
+				outputShapingChanged = false;
+				return true;
+			}
+			bool openLoopSecondsFromNeutralToFullChanged(float &openloop_secondsFromNeutralToFull)
+			{
+				openloop_secondsFromNeutralToFull = openloop_secondsFromNeutralToFull_;
+				if (!outputShapingChanged)
+					return false;
+				outputShapingChanged = false;
+				return true;
+			}
 
 			// Set motor controller to neutral output
 			// This should be a one-shot ... only
@@ -346,6 +369,23 @@ namespace hardware_interface
 			}
 			int getEncoderTickPerRotation(void) 	const {return encoder_tick_per_rotation_;}
 			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
+
+			//output shaping
+			void setClosedLoopSecondsFromNeutralToFull(float closedloop_secondsFromNeutralToFull) {
+				if (closedloop_secondsFromNeutralToFull_ != closedloop_secondsFromNeutralToFull) {
+					closedloop_secondsFromNeutralToFull_ = closedloop_secondsFromNeutralToFull;
+					outputShapingChanged = true;
+				}
+			}
+			float getClosedLoopSecondsFromNeutralToFul() {return closedloop_secondsFromNeutralToFull_;}
+			void setOpenLoopSecondsFromNeutralToFull(float openloop_secondsFromNeutralToFull) {
+				if (openloop_secondsFromNeutralToFull_ != openloop_secondsFromNeutralToFull) {
+					openloop_secondsFromNeutralToFull_ = openloop_secondsFromNeutralToFull;
+					outputShapingChanged = true;
+				}
+			}
+			float getOpenLoopSecondsFromNeutralToFul() {return openloop_secondsFromNeutralToFull_;}
+
 
 			//general
 			void Disable(){ }
@@ -435,6 +475,11 @@ namespace hardware_interface
 
 			FeedbackDevice encoder_feedback_;
 			int encoder_tick_per_rotation_;
+
+			//output shaping
+			float closedloop_secondsFromNeutralToFull_;
+			float openloop_secondsFromNeutralToFull_;
+			bool outputShapingChanged;
 	};
 
 	// Handle - used by each controller to get, by name of the
