@@ -11,8 +11,8 @@ if (DEFINED CMAKE_TOOLCHAIN_FILE)  # Cross-build for Rio
   # Without -fno-finite-math-only, NaN checks are optimized away
   # This is bad since the Zed outputs NaN for invalid depth data
   set (OPT_FLAGS "-Ofast -flto=4 -fno-finite-math-only -mcpu=cortex-a9 -mfpu=neon")
-  set (CMAKE_RANLIB "arm-none-eabi-gcc-ranlib")
-  set (CMAKE_AR     "arm-none-eabi-gcc-ar")
+  set (CMAKE_RANLIB "arm-frc-linux-gnueabi-gcc-ranlib-5,5")
+  set (CMAKE_AR     "arm-frc-linux-gnueabi-gcc-ar-5.5")
 
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-rpath-link,/usr/arm-frc-linux-gnueabi/opt/ros/kinetic/lib")
 else() # Native builds

@@ -98,7 +98,11 @@ namespace hardware_interface
 				neutral_mode_(NeutralMode_Uninitialized),
 				neutral_output_(false),
 				encoder_feedback_(FeedbackDevice_Uninitialized),
-				encoder_tick_per_rotation_(0)
+				encoder_tick_per_rotation_(0),
+
+				//output shaping
+				closedloop_secondsFromNeutralToFull_(0),
+				openloop_secondsFromNeutralToFull_(0)
 			{
 			}
 
@@ -186,6 +190,14 @@ namespace hardware_interface
 			void setOutputCurrent(float output_current) {output_current_ = output_current;}
 			void setBusVoltage(float bus_voltage)       {bus_voltage_ = bus_voltage;}
 			void setMotorOutputPercent(float motor_output_percent)       {motor_output_percent_ = motor_output_percent;}
+
+			//output shaping
+			void ConfigClosedloopRamp(float closedloop_secondsFromNeutralToFull) {closedloop_secondsFromNeutralToFull_ = closedloop_secondsFromNeutralToFull;}
+			float getConfigClosedloopRamp() {return closedloop_secondsFromNeutralToFull_;}
+
+			void ConfigOpenloopRamp(float openloop_secondsFromNeutralToFull) {openloop_secondsFromNeutralToFull_ = openloop_secondsFromNeutralToFull;}
+			float getConfigOpenloopRamp() {return openloop_secondsFromNeutralToFull_;}
+
 			void setPidfP(float pidf_p, int index)	     {
 			if((index == 0) || (index == 1))
 				pidf_p_[index] = pidf_p;
@@ -316,6 +328,8 @@ namespace hardware_interface
 			void SetDataPortOutputEnable(uint32_t idx, bool enable){ }
 			void SetDataPortOutput(uint32_t idx, uint32_t OnTimeMs){ }
 
+
+
 			// Add code to read and/or store all the other state from the Talon :
 			// limit switch settings, sensing
 			// pid slot selected and PIDF values
@@ -357,6 +371,10 @@ namespace hardware_interface
 
 			FeedbackDevice encoder_feedback_;
 			int encoder_tick_per_rotation_;
+
+			// output shaping
+			float closedloop_secondsFromNeutralToFull_;
+			float openloop_secondsFromNeutralToFull_;
 	};
 
 	// Handle - used by each controller to get, by name of the
