@@ -176,6 +176,9 @@ namespace hardware_interface
 			FeedbackDevice getEncoderFeedback(void) const {return encoder_feedback_;}
 			int getEncoderTickPerRotation(void) 	const {return encoder_tick_per_rotation_;}
 
+
+
+
 			void setSetpoint(float setpoint)            {setpoint_ = setpoint;}
 			void setPosition(float position)            {position_ = position;}
 			void setSpeed(float speed)                  {speed_ = speed;}
