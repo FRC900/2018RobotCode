@@ -93,6 +93,16 @@ sudo rm -rf sip-4.17.tar.gz sip-4.17
 
 
 # Build and install tinyxml
+wget https://github.com/leethomason/tinyxml2/archive/6.0.0.tar.gz
+tar -xzvf 6.0.0.tar.gz
+cd tinyxml2-6.0.0
+#cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2017Preseason/zebROS_ws/rostoolchain.cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi -DCMAKE_POSITION_INDEPENDENT_CODE=ON .
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2017Preseason/zebROS_ws/rostoolchain.cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS:BOOL=OFF -DBUILD_STATIC_LIBS:BOOL=ON -DBUILD_TESTS:BOOL=OFF .
+sudo make -j8 install
+cd
+rm -rf 6.0.0.tar.gz tinyxml2-6.0.0
+
+# Different code uses different versions of tinyxml
 cd
 wget https://downloads.sourceforge.net/project/tinyxml/tinyxml/2.6.2/tinyxml_2_6_2.zip
 unzip tinyxml_2_6_2.zip 
@@ -158,4 +168,12 @@ CFLAGS="-O2" CXXFLAGS="-O2" ./configure --host=arm-frc-linux-gnueabi --prefix=/u
 sudo make install
 cd
 sudo rm -rf libuuid-1.0.3.tar.gz libuuid-1.0.3
+
+#cd
+#git clone https://github.com/rdiankov/collada-dom.git
+#cd collada-dom
+#cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2017Preseason/zebROS_ws/rostoolchain.cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi .
+#sudo make -j8 install
+#cd
+#sudo rm -rf collada-dom
 
