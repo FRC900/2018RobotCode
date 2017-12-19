@@ -47,7 +47,9 @@ class TalonCIParams
 				pidf_config_(0),
 				invert_output_ (false),
 				sensor_phase_(false),
-				neutral_mode_(hardware_interface::NeutralMode_Uninitialized)
+				ticks_per_rotation_ (4000),
+				neutral_mode_(hardware_interface::NeutralMode_Uninitialized),
+			    feedback_type_(hardware_interface::FeedbackDevice_Uninitialized)
 		{
 		}
 
@@ -81,6 +83,44 @@ class TalonCIParams
 							n.getNamespace().c_str(), mode_string.c_str());
 					return false;
 				}
+			}
+		}
+		//TODOa: create a method that reads the feedback settings enum
+		bool readFeedbackType(ros::NodeHandle &n, const std::string &param_name)
+		{
+			std::string feedback_type_name;
+			if (!n.getParam(param_name, feedback_type_name))
+			{
+				ROS_ERROR("No feedback type given (namespace: %s, param name: %s)", 
+						  n.getNamespace().c_str(), param_name.c_str());
+				return false;
+			}
+			if (feedback_type_name == "QuadEncoder")
+				feedback_type_ = hardware_interface::FeedbackDevice_QuadEncoder;
+			else if (feedback_type_name == "Analog")
+				feedback_type_ = hardware_interface::FeedbackDevice_Analog;
+			else if (feedback_type_name == "Tachometer")
+				feedback_type_ = hardware_interface::FeedbackDevice_Tachometer;
+			else if (feedback_type_name == "PulseWidthEncodedPosition")
+				feedback_type_ = hardware_interface::FeedbackDevice_PulseWidthEncodedPosition;
+			else if (feedback_type_name == "SensorSum")
+				feedback_type_ = hardware_interface::FeedbackDevice_SensorSum;
+			else if (feedback_type_name == "SensorDifference")
+				feedback_type_ = hardware_interface::FeedbackDevice_SensorDifference;
+			else if (feedback_type_name == "Inertial")
+				feedback_type_ = hardware_interface::FeedbackDevice_Inertial;
+			else if (feedback_type_name == "RemoteSensor")
+				feedback_type_ = hardware_interface::FeedbackDevice_RemoteSensor;
+			else if (feedback_type_name == "SoftwareEmulatedSensor")
+				feedback_type_ = hardware_interface::FeedbackDevice_SoftwareEmulatedSensor;
+			else if (feedback_type_name == "CTRE_MagEncoder_Absolute")
+				feedback_type_ = hardware_interface::FeedbackDevice_CTRE_MagEncoder_Absolute;
+			else if (feedback_type_name == "CTRE_MagEncoder_Relative")
+				feedback_type_ = hardware_interface::FeedbackDevice_CTRE_MagEncoder_Relative;
+			else
+			{
+				ROS_ERROR("Invalid feedback device name given");
+				return false;
 			}
 			return true;
 		}
@@ -149,6 +189,7 @@ class TalonCIParams
 		bool   invert_output_;
 		bool   sensor_phase_;
 		hardware_interface::NeutralMode neutral_mode_;
+		hardware_interface::FeedbackDevice feedback_type_;
 
 	private:
 		// Read a float named <param_type> from the array/map
@@ -220,6 +261,8 @@ class TalonControllerInterface
 				   params_.readCloseLoopParams(n) &&
 				   params_.readNeutralMode(n) &&
 				   params_.readInverts(n);
+				   params_.readInverts(n) &&
+				   params_.readFeedbackType(n, "feedback_type");
 		}
 
 
@@ -338,6 +381,7 @@ class TalonControllerInterface
 			// time parameters are changed using 
 			// rqt_reconfigure or the like
 			srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));	
+
 
 			return result;
 		}
