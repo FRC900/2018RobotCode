@@ -47,7 +47,7 @@ class TalonCIParams
 				pidf_config_(0),
 				invert_output_ (false),
 				sensor_phase_(false),
-				ticks_per_rotation_ (4000),
+				ticks_per_rotation_ (4096),
 				neutral_mode_(hardware_interface::NeutralMode_Uninitialized),
 			    feedback_type_(hardware_interface::FeedbackDevice_Uninitialized)
 		{
@@ -190,6 +190,7 @@ class TalonCIParams
 		bool   sensor_phase_;
 		hardware_interface::NeutralMode neutral_mode_;
 		hardware_interface::FeedbackDevice feedback_type_;
+		int    ticks_per_rotation_;
 
 	private:
 		// Read a float named <param_type> from the array/map
