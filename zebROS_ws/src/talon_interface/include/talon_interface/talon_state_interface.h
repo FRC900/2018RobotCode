@@ -273,6 +273,7 @@ namespace hardware_interface
 			}
 			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
 
+		
 			//general
 			void Disable(){ }
 			void Enable(){ }
@@ -327,8 +328,6 @@ namespace hardware_interface
 			void SetDataPortOutputPeriod(uint32_t periodMs){ }
 			void SetDataPortOutputEnable(uint32_t idx, bool enable){ }
 			void SetDataPortOutput(uint32_t idx, uint32_t OnTimeMs){ }
-
-
 
 			// Add code to read and/or store all the other state from the Talon :
 			// limit switch settings, sensing
