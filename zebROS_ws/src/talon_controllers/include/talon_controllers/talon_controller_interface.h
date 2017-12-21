@@ -84,16 +84,19 @@ class TalonCIParams
 					return false;
 				}
 			}
+			return true;
 		}
 		//TODOa: create a method that reads the feedback settings enum
-		bool readFeedbackType(ros::NodeHandle &n, const std::string &param_name)
+		bool readFeedbackType(ros::NodeHandle &n)
 		{
 			std::string feedback_type_name;
-			if (!n.getParam(param_name, feedback_type_name))
+			if (!n.getParam("feedback_type", feedback_type_name))
 			{
-				ROS_ERROR("No feedback type given (namespace: %s, param name: %s)", 
-						  n.getNamespace().c_str(), param_name.c_str());
-				return false;
+				//ROS_ERROR("No feedback type given (namespace: %s)", 
+			//			  n.getNamespace().c_str());
+			// TODO : Not all talons will have feedback - figure
+			//        out how to handle that case
+				return true;
 			}
 			if (feedback_type_name == "QuadEncoder")
 				feedback_type_ = hardware_interface::FeedbackDevice_QuadEncoder;
@@ -165,7 +168,7 @@ class TalonCIParams
 					f_[i]=findFloatParam("f",pidparams_);
 					izone_[i]=findIntParam("i_zone",pidparams_);
 					allowable_closed_loop_error_[i]=findIntParam("allowable_closed_loop_error", pidparams_);
-					max_integral_accumulator_[i]=findFloatParam("f",pidparams_);
+					max_integral_accumulator_[i]=findFloatParam("max_integral_accumulator",pidparams_);
 					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << izone_[i]<< std::endl;
 				}
 				return true;
@@ -174,6 +177,7 @@ class TalonCIParams
 			{
 				throw std::runtime_error("More than two pid_param values");
 			}
+			return false;
 		}
 		// TODO : Keep adding config items here
 		std::string joint_name_;
@@ -261,9 +265,8 @@ class TalonControllerInterface
 				   params_.readFollowerID(n, tsi) && 
 				   params_.readCloseLoopParams(n) &&
 				   params_.readNeutralMode(n) &&
-				   params_.readInverts(n);
 				   params_.readInverts(n) &&
-				   params_.readFeedbackType(n, "feedback_type");
+				   params_.readFeedbackType(n);
 		}
 
 
@@ -376,13 +379,12 @@ class TalonControllerInterface
 			// under the node's name.  Doing so allows multiple
 			// copies of the class to be started, each getting
 			// their own namespace.
-			srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(n);
+		//	srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(n);
 
 			// Register a callback function which is run each
 			// time parameters are changed using 
 			// rqt_reconfigure or the like
-			srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));	
-
+		//	srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));	
 
 			return result;
 		}

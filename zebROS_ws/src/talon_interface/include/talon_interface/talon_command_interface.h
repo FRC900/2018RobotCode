@@ -243,7 +243,10 @@ namespace hardware_interface
 
 			void setNeutralMode(NeutralMode neutral_mode)
 			{
-				if ((neutral_mode <= NeutralMode_Uninitialized) || (neutral_mode >= NeutralMode_Last))
+				if (neutral_mode == NeutralMode_Uninitialized)
+					return;
+				else if ((neutral_mode < NeutralMode_Uninitialized) || 
+						 (neutral_mode >= NeutralMode_Last))
 				{
 					ROS_WARN("Invalid neutral_mode passed to TalonHWCommand::setNeutralMode()");
 					return;
