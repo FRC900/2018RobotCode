@@ -44,9 +44,9 @@ namespace hardware_interface
 				encoder_tick_per_rotation_(0),
 				
 				//output shaping
-				outputShapingChanged(false),
 				closedloop_secondsFromNeutralToFull_(0),
-				openloop_secondsFromNeutralToFull_(0)
+				openloop_secondsFromNeutralToFull_(0),
+				outputShapingChanged(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -77,7 +77,7 @@ namespace hardware_interface
 			TalonMode getMode(void) const {return mode_;}
 
 			void setP(float oldP, int index){
-				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setP()");
 					return;
@@ -85,7 +85,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				p_[index] = oldP;}
 			float getP(int index) const {
-				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getP()");
 					return 0.0;
@@ -94,7 +94,7 @@ namespace hardware_interface
 			}
 
 			void setI(float ii, int index){
-				if ((index < 0) || (index >= (sizeof(i_) / sizeof(i_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(i_) / sizeof(i_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setI()");
 					return;
@@ -102,7 +102,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				i_[index] = ii;}
 			float getI(int index) const {
-				if ((index < 0) || (index >= (sizeof(i_) / sizeof(i_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(i_) / sizeof(i_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getI()");
 					return 0.0;
@@ -111,7 +111,7 @@ namespace hardware_interface
 			}
 
 			void setD(float dd, int index){
-				if ((index < 0) || (index >= (sizeof(d_) / sizeof(d_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(d_) / sizeof(d_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setD()");
 					return;
@@ -119,7 +119,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				d_[index] = dd;}
 			float getD(int index) const {
-				if ((index < 0) || (index >= (sizeof(d_) / sizeof(d_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(d_) / sizeof(d_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getD()");
 					return 0.0;
@@ -128,7 +128,7 @@ namespace hardware_interface
 			}
 
 			void setF(float ff, int index){
-				if ((index < 0) || (index >= (sizeof(f_) / sizeof(f_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(f_) / sizeof(f_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setF()");
 					return;
@@ -136,7 +136,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				f_[index] = ff;}
 			float getF(int index){
-				if ((index < 0) || (index >= (sizeof(f_) / sizeof(f_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(f_) / sizeof(f_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getF()");
 					return 0.0;
@@ -145,7 +145,7 @@ namespace hardware_interface
 			}
 
 			void setIZ(int oldIZ, int index){
-				if ((index < 0) || (index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setIZ()");
 					return;
@@ -153,7 +153,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				i_zone_[index] = oldIZ;}
 			int getIZ(int index) const {
-				if ((index < 0) || (index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getIZ()");
 					return 0.0;
@@ -162,7 +162,7 @@ namespace hardware_interface
 			}
 
 			void setAllowableClosedloopError(int allowable_closed_loop_error, int index) {
-				if ((index < 0) || (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
 					return;
@@ -171,7 +171,7 @@ namespace hardware_interface
 				allowable_closed_loop_error_[index] = allowable_closed_loop_error;
 			}
 			int getAllowableClosedloopError(int index) const {
-				if ((index < 0) || (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getAllowableClosedLoopErrro()");
 					return 0;
@@ -179,7 +179,7 @@ namespace hardware_interface
 				return allowable_closed_loop_error_[index];
 			}
 			void setMaxIntegralAccumulator(int max_integral_accumulator, int index) {
-				if ((index < 0) || (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
 					return;
@@ -188,7 +188,7 @@ namespace hardware_interface
 				max_integral_accumulator_[index] = max_integral_accumulator;
 			}
 			int getMaxIntegralAccumulator(int index) const {
-				if ((index < 0) || (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getAllowableClosedLoopErrro()");
 					return 0.0;
@@ -197,7 +197,7 @@ namespace hardware_interface
 			}
 			
 			void setPID(float oldP, float oldI, float oldD, int index){
-				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setPID()");
 					return;
@@ -205,7 +205,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				p_[index] = oldP;i_[index] =oldI;d_[index]=oldD;}
 			void setPID(float oldP, float oldI, float oldD, float oldF, int index){
-				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setPIF()");
 					return;
@@ -273,7 +273,7 @@ namespace hardware_interface
 				return true;
 			}
 			bool pidfChanged(float &p, float &i, float &d, float &f, int &iz, int allowable_closed_loop_error, float max_integral_accumulator, int index){
-				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::pidfChanged()");
 					return false;
@@ -450,21 +450,9 @@ namespace hardware_interface
 			bool      command_changed_;
 			TalonMode mode_;         // talon mode - % vbus, close loop, motion profile, etc
 			bool      mode_changed_; // set if mode needs to be updated on the talon hw
-			float     ramprate;
 			//RG: shouldn't there be a variable for the peak voltage limits?
 			int       pidf_slot_; // index 0 or 1 of the active PIDF slot
 			bool      pidf_slot_changed_; // set to true to trigger a write to PIDF select on Talon
-
-			// 2 entries in the Talon HW for each of these settings
-			float     p_[2];
-			float     i_[2];
-			int       i_zone_[2];
-			float     d_[2];
-			float     f_[2];
-			int       allowable_closed_loop_error_[2];
-			float     max_integral_accumulator_[2];
-			bool      pidf_changed_[2];
-
 			float     iaccum_;
 			bool      iaccum_changed_;
 
@@ -483,6 +471,16 @@ namespace hardware_interface
 			float closedloop_secondsFromNeutralToFull_;
 			float openloop_secondsFromNeutralToFull_;
 			bool outputShapingChanged;
+
+			// 2 entries in the Talon HW for each of these settings
+			float     p_[2];
+			float     i_[2];
+			int       i_zone_[2];
+			float     d_[2];
+			float     f_[2];
+			int       allowable_closed_loop_error_[2];
+			float     max_integral_accumulator_[2];
+			bool      pidf_changed_[2];
 	};
 
 	// Handle - used by each controller to get, by name of the
