@@ -57,9 +57,10 @@ sudo perl ~/2017Preseason/install_cross_package.pl
 cd
 git clone https://github.com/ros/console_bridge
 cd console_bridge
+git checkout 0.3.2
 mkdir build
 cd build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2017Preseason/zebROS_ws/rostoolchain.cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi ..
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2017Preseason/zebROS_ws/rostoolchain.cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..
 sudo make -j4 install
 cd
 sudo rm -rf console_bridge
@@ -69,7 +70,7 @@ cd
 wget https://pocoproject.org/releases/poco-1.7.9/poco-1.7.9p1.tar.gz
 tar xzf poco-1.7.9p1.tar.gz 
 cd poco-1.7.9p1/
-CROSS_COMPILE=arm-frc-linux-gnueabi- ./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal --prefix=/usr/arm-frc-linux-gnueabi/usr/local
+CROSS_COMPILE=arm-frc-linux-gnueabi- ./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal --prefix=/usr/arm-frc-linux-gnueabi/usr/local --static
 sudo CROSS_COMPILE=arm-frc-linux-gnueabi- make -j4 install
 cd
 sudo rm -rf poco-1.7.9p1.tar.gz poco-1.7.9p1
@@ -133,7 +134,7 @@ cd
 wget https://github.com/google/glog/archive/v0.3.5.tar.gz
 tar -xzvf v0.3.5.tar.gz 
 cd glog-0.3.5/
-CFLAGS="-O2 -fPIC" CXXFLAGS="-O2 -fPIC" LDFLAGS="-fPIC" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local 
+CFLAGS="-O2 -fPIC -mcpu=cortex-a9 -mfpu=neon" CXXFLAGS="-O2 -fPIC -mcpu=cortex-a9 -mfpu=neon" LDFLAGS="-fPIC" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local
 sudo make -j8 install
 cd
 sudo rm -rf v0.3.5.tar.gz glog-0.3.5
