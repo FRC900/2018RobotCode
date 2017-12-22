@@ -53,6 +53,22 @@ class TalonCIParams
 		{
 		}
 
+		TalonCIParams(const TalonConfigConfig &config)
+		{
+			p_[0] = config.p0;
+			p_[1] = config.p1;
+			i_[0] = config.i0;
+			i_[1] = config.i1;
+			d_[0] = config.d0;
+			d_[1] = config.d1;
+			f_[0] = config.f0;
+			f_[1] = config.f1;
+			izone_[0] = config.izone0;
+			izone_[1] = config.izone1;
+			invert_output_ = config.invert_output;
+			sensor_phase_ = config.sensor_phase;
+		}
+
 		// Read a joint name from the given nodehandle's params
 		bool readJointName(ros::NodeHandle &n, const std::string &param_name)
 		{
@@ -145,7 +161,7 @@ class TalonCIParams
 		// out which CAN ID that Talon is configured as here
 		bool readInverts(ros::NodeHandle &n)
 		{
-			n.getParam("invert", invert_output_);
+			n.getParam("invert_output", invert_output_);
 			n.getParam("sensor_phase", sensor_phase_);
 			return true;
 		}
@@ -341,25 +357,10 @@ class TalonControllerInterface
 					config.invert_output,
 					config.sensor_phase);
 
-			TalonCIParams params;
+			TalonCIParams params(config);
 			
-			params.p_[0] = config.p0;
-			params.p_[1] = config.p1;
-			params.i_[0] = config.i0;
-			params.i_[1] = config.i1;
-			params.d_[0] = config.d0;
-			params.d_[1] = config.d1;
-			params.f_[0] = config.f0;
-			params.f_[1] = config.f1;
-			params.izone_[0] = config.izone0;
-			params.izone_[1] = config.izone1;
-			params.invert_output_ = config.invert_output;
-			params.sensor_phase_ = config.sensor_phase;
-
 			writeParamsToHW(params);
-
 		}
-
 
 		// Read params from config file and use them to 
 		// initialize the Talon hardware
@@ -381,12 +382,36 @@ class TalonControllerInterface
 				// under the node's name.  Doing so allows multiple
 				// copies of the class to be started, each getting
 				// their own namespace.
-				srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(n);
+				srv_mutex_ = std::make_shared<boost::recursive_mutex>();
+				srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(*srv_mutex_, n);
+
+				// Without this, the first call to callback() 
+				// will overwrite anything passed in from the
+				// launch file
+				srv_->updateConfig(getConfigFromParams());
 
 				// Register a callback function which is run each
 				// time parameters are changed using 
 				// rqt_reconfigure or the like
 				srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));
+
+				//TODO : at some point we'll end up having code which can
+				// modify a setting which is also part of the dynamic
+				// reconfigure code.  In that case, we'll need to do something
+				// like the following to keep the reconfigure value in sync
+				// with the rest of the program state
+				//
+				// void setBlah(const float blah)
+				// {
+				//   params_.blah = blah;
+				//   TalonConfigConfig config = getConfigFromParams();
+				//   config.blah = blah;
+				//   {
+				//     boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
+				//     srv_->updateConfig(config);
+				//   }
+				// talon_->setBlah(blah);
+				// }
 			}
 
 			return result;
@@ -430,10 +455,33 @@ class TalonControllerInterface
 		{
 			return talon_.state()->getPosition();
 		}
+
 	protected:
 		hardware_interface::TalonCommandHandle talon_;
 		TalonCIParams                          params_;
-		std::shared_ptr<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>> srv_;
+		std::shared_ptr<dynamic_reconfigure::Server<TalonConfigConfig>> srv_;
+		std::shared_ptr<boost::recursive_mutex> srv_mutex_;
+
+	private :
+		// Copy from params_ state to TalonConfigConfig state
+		TalonConfigConfig getConfigFromParams(void) const
+		{
+			TalonConfigConfig config;
+			config.p0            = params_.p_[0];
+			config.p1            = params_.p_[1];
+			config.i0            = params_.i_[0];
+			config.i1            = params_.i_[1];
+			config.d0            = params_.d_[0];
+			config.d1            = params_.d_[1];
+			config.f0            = params_.f_[0];
+			config.f1            = params_.f_[1];
+			config.izone0        = params_.izone_[0];
+			config.izone1        = params_.izone_[1];
+			config.invert_output = params_.invert_output_;
+			config.sensor_phase  = params_.sensor_phase_;
+			return config;
+		}
+
 
 };
 
