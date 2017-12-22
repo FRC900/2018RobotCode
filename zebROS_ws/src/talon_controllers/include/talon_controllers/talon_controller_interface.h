@@ -374,17 +374,20 @@ class TalonControllerInterface
 			// Talon using them
 			bool result = readParams(n, tsi) && initWithParams(tci, params_);
 
-			// Create dynamic_reconfigure Server. Pass in n
-			// so that all the vars for the class are grouped
-			// under the node's name.  Doing so allows multiple
-			// copies of the class to be started, each getting
-			// their own namespace.
-		//	srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(n);
+			if (result)
+			{
+				// Create dynamic_reconfigure Server. Pass in n
+				// so that all the vars for the class are grouped
+				// under the node's name.  Doing so allows multiple
+				// copies of the class to be started, each getting
+				// their own namespace.
+				srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(n);
 
-			// Register a callback function which is run each
-			// time parameters are changed using 
-			// rqt_reconfigure or the like
-		//	srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));	
+				// Register a callback function which is run each
+				// time parameters are changed using 
+				// rqt_reconfigure or the like
+				srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));
+			}
 
 			return result;
 		}
