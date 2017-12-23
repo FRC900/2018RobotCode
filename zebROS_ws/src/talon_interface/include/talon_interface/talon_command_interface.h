@@ -46,7 +46,12 @@ namespace hardware_interface
 				//output shaping
 				closedloop_secondsFromNeutralToFull_(0),
 				openloop_secondsFromNeutralToFull_(0),
-				outputShapingChanged(false)
+				peak_output_forward_(100.),
+				peak_output_reverse_(100.),
+				nominal_output_forward_(100.),
+				nominal_output_reverse_(100.),
+				neutral_deadband_(0.),
+				outputShapingChanged_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -333,20 +338,24 @@ namespace hardware_interface
 			}
 			
 			//output shaping
-			bool closedLoopSecondsFromNeutralToFullChanged(float &closedloop_secondsFromNeutralToFull)
+			bool outputShapingChanged(float &closedloop_secondsFromNeutralToFull,
+					float &openloop_secondsFromNeutralToFull,
+					float &peak_output_forward,
+					float &peak_output_reverse,
+					float &nominal_output_forward,
+					float &nominal_output_reverse,
+					float &neutral_deadband)
 			{
 				closedloop_secondsFromNeutralToFull = closedloop_secondsFromNeutralToFull_;
-				if (!outputShapingChanged)
-					return false;
-				outputShapingChanged = false;
-				return true;
-			}
-			bool openLoopSecondsFromNeutralToFullChanged(float &openloop_secondsFromNeutralToFull)
-			{
 				openloop_secondsFromNeutralToFull = openloop_secondsFromNeutralToFull_;
-				if (!outputShapingChanged)
+				peak_output_forward = peak_output_forward_;
+				peak_output_reverse = peak_output_reverse_;
+				nominal_output_forward = nominal_output_forward_;
+				nominal_output_reverse = nominal_output_reverse_;
+				neutral_deadband = neutral_deadband_;
+				if (!outputShapingChanged_)
 					return false;
-				outputShapingChanged = false;
+				outputShapingChanged_ = false;
 				return true;
 			}
 
@@ -374,21 +383,70 @@ namespace hardware_interface
 			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
 
 			//output shaping
-			void setClosedLoopSecondsFromNeutralToFull(float closedloop_secondsFromNeutralToFull) {
+			void setClosedloopRamp(float closedloop_secondsFromNeutralToFull) {
 				if (closedloop_secondsFromNeutralToFull_ != closedloop_secondsFromNeutralToFull) {
 					closedloop_secondsFromNeutralToFull_ = closedloop_secondsFromNeutralToFull;
-					outputShapingChanged = true;
+					outputShapingChanged_ = true;
 				}
 			}
-			float getClosedLoopSecondsFromNeutralToFul() {return closedloop_secondsFromNeutralToFull_;}
-			void setOpenLoopSecondsFromNeutralToFull(float openloop_secondsFromNeutralToFull) {
+			float getClosedloopRamp(void) const {return closedloop_secondsFromNeutralToFull_;}
+			void setOpenloopRamp(float openloop_secondsFromNeutralToFull) {
 				if (openloop_secondsFromNeutralToFull_ != openloop_secondsFromNeutralToFull) {
 					openloop_secondsFromNeutralToFull_ = openloop_secondsFromNeutralToFull;
-					outputShapingChanged = true;
+					outputShapingChanged_ = true;
 				}
 			}
-			float getOpenLoopSecondsFromNeutralToFul() {return openloop_secondsFromNeutralToFull_;}
+			float getOpenloopRamp(void) const {return openloop_secondsFromNeutralToFull_;}
 
+			void setPeakOutputForward(float peak_output_forward)
+			{
+				if (peak_output_forward != peak_output_forward_)
+				{
+					peak_output_forward_ = peak_output_forward;
+					outputShapingChanged_ = true;
+				}
+			}
+			float getPeakOutputForward(void) const {return peak_output_forward_;}
+
+			void setPeakOutputReverse(float peak_output_reverse)
+			{
+				if (peak_output_reverse != peak_output_reverse_)
+				{
+					peak_output_reverse_ = peak_output_reverse;
+					outputShapingChanged_ = true;
+				}
+			}
+			float getPeakOutputReverse(void) const {return peak_output_reverse_;}
+
+			void setNominalOutputForward(float nominal_output_forward)
+			{
+				if (nominal_output_forward != nominal_output_forward_)
+				{
+					nominal_output_forward_ = nominal_output_forward;
+					outputShapingChanged_ = true;
+				}
+			}
+			float getNominalOutputForward(void) const {return nominal_output_forward_;}
+
+			void setNominalOutputReverse(float nominal_output_reverse)
+			{
+				if (nominal_output_reverse != nominal_output_reverse_)
+				{
+					nominal_output_reverse_ = nominal_output_reverse;
+					outputShapingChanged_ = true;
+				}
+			}
+			float getNominalOutputReverse(void) const {return nominal_output_reverse_;}
+
+			void setNeutralDeadband(float neutral_deadband)
+			{
+				if (neutral_deadband != neutral_deadband_)
+				{
+					neutral_deadband_ = neutral_deadband;
+					outputShapingChanged_ = true;
+				}
+			}
+			float getNeutralDeadband(void) const {return neutral_deadband_;}
 
 			//general
 			void Disable(){ }
@@ -470,7 +528,12 @@ namespace hardware_interface
 			//output shaping
 			float closedloop_secondsFromNeutralToFull_;
 			float openloop_secondsFromNeutralToFull_;
-			bool outputShapingChanged;
+			float peak_output_forward_;
+			float peak_output_reverse_;
+			float nominal_output_forward_;
+			float nominal_output_reverse_;
+			float neutral_deadband_;
+			bool outputShapingChanged_;
 
 			// 2 entries in the Talon HW for each of these settings
 			float     p_[2];

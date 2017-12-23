@@ -49,7 +49,14 @@ class TalonCIParams
 				sensor_phase_(false),
 				neutral_mode_(hardware_interface::NeutralMode_Uninitialized),
 			    feedback_type_(hardware_interface::FeedbackDevice_Uninitialized),
-				ticks_per_rotation_ (4096)
+				ticks_per_rotation_(4096),
+				closed_loop_ramp_(0.),
+				open_loop_ramp_(0.),
+				peak_output_forward_(100.),
+				peak_output_reverse_(100.),
+				nominal_output_forward_(100.),
+				nominal_output_reverse_(100.),
+				neutral_deadband_(0.)
 		{
 		}
 
@@ -67,6 +74,13 @@ class TalonCIParams
 			izone_[1] = config.izone1;
 			invert_output_ = config.invert_output;
 			sensor_phase_ = config.sensor_phase;
+			closed_loop_ramp_ = config.closed_loop_ramp;
+			open_loop_ramp_ = config.open_loop_ramp;
+			peak_output_forward_ = config.peak_output_forward;
+			peak_output_reverse_ = config.peak_output_reverse;
+			nominal_output_forward_ = config.nominal_output_forward;
+			nominal_output_reverse_ = config.nominal_output_reverse;
+			neutral_deadband_ = config.neutral_deadband;
 		}
 
 		// Read a joint name from the given nodehandle's params
@@ -195,6 +209,27 @@ class TalonCIParams
 			}
 			return false;
 		}
+
+		bool readOutputShaping(ros::NodeHandle &n)
+		{
+			float float_val;
+			if (n.getParam("closed_loop_ramp", float_val))
+				closed_loop_ramp_ = float_val;
+			if (n.getParam("open_loop_ramp", float_val))
+				open_loop_ramp_ = float_val;
+			if (n.getParam("peak_output_forward", float_val))
+				peak_output_forward_ = float_val;
+			if (n.getParam("peak_output_reverse", float_val))
+				peak_output_reverse_ = float_val;
+			if (n.getParam("nominal_output_forward", float_val))
+				nominal_output_forward_ = float_val;
+			if (n.getParam("nominal_output_reverse", float_val))
+				nominal_output_reverse_ = float_val;
+			if (n.getParam("neutral_deadband", float_val))
+				neutral_deadband_ = float_val;
+			return true;
+		}
+
 		// TODO : Keep adding config items here
 		std::string joint_name_;
 		int    follow_can_id_;
@@ -210,7 +245,14 @@ class TalonCIParams
 		bool   sensor_phase_;
 		hardware_interface::NeutralMode neutral_mode_;
 		hardware_interface::FeedbackDevice feedback_type_;
-		int    ticks_per_rotation_;
+		int   ticks_per_rotation_;
+		float closed_loop_ramp_;
+		float open_loop_ramp_;
+		float peak_output_forward_;
+		float peak_output_reverse_;
+		float nominal_output_forward_;
+		float nominal_output_reverse_;
+		float neutral_deadband_;
 
 	private:
 		// Read a float named <param_type> from the array/map
@@ -282,7 +324,8 @@ class TalonControllerInterface
 				   params_.readCloseLoopParams(n) &&
 				   params_.readNeutralMode(n) &&
 				   params_.readInverts(n) &&
-				   params_.readFeedbackType(n);
+				   params_.readFeedbackType(n) &&
+				   params_.readOutputShaping(n);
 		}
 
 
@@ -336,6 +379,14 @@ class TalonControllerInterface
 
 			talon_->setInvert(params_.invert_output_);
 			talon_->setSensorPhase(params_.sensor_phase_);
+
+			talon_->setClosedloopRamp(params_.closed_loop_ramp_);
+			talon_->setOpenloopRamp(params_.open_loop_ramp_);
+			talon_->setPeakOutputForward(params_.peak_output_forward_);
+			talon_->setPeakOutputReverse(params_.peak_output_reverse_);
+			talon_->setNominalOutputForward(params_.nominal_output_forward_);
+			talon_->setNominalOutputReverse(params_.nominal_output_reverse_);
+			talon_->setNeutralDeadband(params_.neutral_deadband_);
 
 			return true;
 		}
@@ -479,10 +530,15 @@ class TalonControllerInterface
 			config.izone1        = params_.izone_[1];
 			config.invert_output = params_.invert_output_;
 			config.sensor_phase  = params_.sensor_phase_;
+			config.closed_loop_ramp = params_.closed_loop_ramp_;
+			config.open_loop_ramp = params_.open_loop_ramp_;
+			config.peak_output_forward = params_.peak_output_forward_;
+			config.peak_output_reverse = params_.peak_output_reverse_;
+			config.nominal_output_forward = params_.nominal_output_forward_;
+			config.nominal_output_reverse = params_.nominal_output_reverse_;
+			config.neutral_deadband = params_.neutral_deadband_;
 			return config;
 		}
-
-
 };
 
 // A derived class which disables mode switching. Any

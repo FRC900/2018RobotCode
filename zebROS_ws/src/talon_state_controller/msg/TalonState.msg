@@ -45,7 +45,6 @@ int32[] pid_allowable_closed_loop_error1
 float32[] pid_max_integral_accumulator0
 float32[] pid_max_integral_accumulator1
 float32[] set_point
-float32[] VCompensationRampRate
 int8[] can_id
 int32[] closed_loop_error
 float32[] integral_accumulator
@@ -56,3 +55,10 @@ bool[] invert
 bool[] sensorPhase
 string[] neutral_mode
 bool[] neutral_output
+float32[] closed_loop_ramp
+float32[] open_loop_ramp
+float32[] peak_output_forward
+float32[] peak_output_reverse
+float32[] nominal_output_forward
+float32[] nominal_output_reverse
+float32[] neutral_deadband
