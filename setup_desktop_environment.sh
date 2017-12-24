@@ -60,7 +60,7 @@ else
 fi' >> ~/.bashrc
 echo alias vi=\'\$EDITOR\' >> ~/.bash_aliases
 echo alias vim=\'\$EDITOR\' >> ~/.bash_aliases
-echo "Do you wish to add "source /opt/ros/kinetic/setup.bash" to your .bashrc? If unsure or ROS has already been installed, select YES"
+echo 'Do you wish to add "source /opt/ros/kinetic/setup.bash" to your .bashrc? If unsure or ROS has already been installed, select YES'
 select yn in "Yes" "No"; do
     case $yn in
         Yes ) echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc; break;;
