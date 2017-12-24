@@ -108,6 +108,10 @@ namespace talon_state_controller
       realtime_pub_->msg_.nominal_output_reverse.push_back(0);
       realtime_pub_->msg_.neutral_deadband.push_back(0);
 
+      realtime_pub_->msg_.voltage_compensation_saturation.push_back(0);
+      realtime_pub_->msg_.voltage_measurement_filter.push_back(0);
+      realtime_pub_->msg_.voltage_compensation_enable.push_back(false);
+
       talon_state_.push_back(hw->getHandle(joint_names[i]));
     }
     addExtraJoints(controller_nh, realtime_pub_->msg_);
@@ -253,6 +257,10 @@ namespace talon_state_controller
 		  realtime_pub_->msg_.nominal_output_forward[i] = talon_state_[i]->getNominalOutputForward();
 		  realtime_pub_->msg_.nominal_output_reverse[i] = talon_state_[i]->getNominalOutputReverse();
 		  realtime_pub_->msg_.neutral_deadband[i] = talon_state_[i]->getNeutralDeadband();
+
+		  realtime_pub_->msg_.voltage_compensation_saturation[i] = talon_state_[i]->getVoltageCompensationSaturation();
+		  realtime_pub_->msg_.voltage_measurement_filter[i] = talon_state_[i]->getVoltageMeasurementFilter();
+		  realtime_pub_->msg_.voltage_compensation_enable[i] = talon_state_[i]->getVoltageCompensationEnable();
         }
         realtime_pub_->unlockAndPublish();
       }

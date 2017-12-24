@@ -62,3 +62,6 @@ float32[] peak_output_reverse
 float32[] nominal_output_forward
 float32[] nominal_output_reverse
 float32[] neutral_deadband
+float32[] voltage_compensation_saturation
+int32[]   voltage_measurement_filter
+bool[]    voltage_compensation_enable

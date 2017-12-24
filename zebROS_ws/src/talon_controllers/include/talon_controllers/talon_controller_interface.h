@@ -55,7 +55,10 @@ class TalonCIParams
 				peak_output_reverse_(100.),
 				nominal_output_forward_(100.),
 				nominal_output_reverse_(100.),
-				neutral_deadband_(0.)
+				neutral_deadband_(0.),
+				voltage_compensation_saturation_(0),
+				voltage_measurement_filter_(0),
+				voltage_compensation_enable_(false)
 		{
 		}
 
@@ -86,6 +89,9 @@ class TalonCIParams
 			nominal_output_forward_ = config.nominal_output_forward;
 			nominal_output_reverse_ = config.nominal_output_reverse;
 			neutral_deadband_ = config.neutral_deadband;
+			voltage_compensation_saturation_ = config.voltage_compensation_saturation;
+			voltage_measurement_filter_ = config.voltage_measurement_filter;
+			voltage_compensation_enable_ = config.voltage_compensation_enable;
 		}
 
 		// Read a joint name from the given nodehandle's params
@@ -234,6 +240,19 @@ class TalonCIParams
 				neutral_deadband_ = float_val;
 			return true;
 		}
+		bool readVoltageCompensation(ros::NodeHandle &n)
+		{
+			float float_val;
+			if (n.getParam("voltage_compensation_saturation", float_val))
+				voltage_compensation_saturation_ = float_val;
+			int int_val;
+			if (n.getParam("voltage_measurement_filter", int_val))
+				voltage_measurement_filter_ = int_val;
+			bool bool_val;
+			if (n.getParam("voltage_compensation_enable", bool_val))
+				voltage_compensation_enable_ = bool_val;
+			return true;
+		}
 
 		// TODO : Keep adding config items here
 		std::string joint_name_;
@@ -258,6 +277,9 @@ class TalonCIParams
 		float nominal_output_forward_;
 		float nominal_output_reverse_;
 		float neutral_deadband_;
+		float voltage_compensation_saturation_;
+		int   voltage_measurement_filter_;
+		bool  voltage_compensation_enable_;
 
 	private:
 		// Read a float named <param_type> from the array/map
@@ -330,7 +352,8 @@ class TalonControllerInterface
 				   params_.readNeutralMode(n) &&
 				   params_.readInverts(n) &&
 				   params_.readFeedbackType(n) &&
-				   params_.readOutputShaping(n);
+				   params_.readOutputShaping(n) &&
+				   params_.readVoltageCompensation(n);
 		}
 
 
@@ -392,6 +415,10 @@ class TalonControllerInterface
 			talon_->setNominalOutputForward(params_.nominal_output_forward_);
 			talon_->setNominalOutputReverse(params_.nominal_output_reverse_);
 			talon_->setNeutralDeadband(params_.neutral_deadband_);
+
+			talon_->setVoltageCompensationSaturation(params_.voltage_compensation_saturation_);
+			talon_->setVoltageMeasurementFilter(params_.voltage_measurement_filter_);
+			talon_->setVoltageCompensationEnable(params_.voltage_compensation_enable_);
 
 			return true;
 		}
@@ -548,6 +575,9 @@ class TalonControllerInterface
 			config.nominal_output_forward = params_.nominal_output_forward_;
 			config.nominal_output_reverse = params_.nominal_output_reverse_;
 			config.neutral_deadband = params_.neutral_deadband_;
+			config.voltage_compensation_saturation = params_.voltage_compensation_saturation_;
+			config.voltage_measurement_filter = params_.voltage_measurement_filter_;
+			config.voltage_compensation_enable = params_.voltage_compensation_enable_;
 			return config;
 		}
 };

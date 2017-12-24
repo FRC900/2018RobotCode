@@ -44,14 +44,20 @@ namespace hardware_interface
 				encoder_tick_per_rotation_(0),
 				
 				//output shaping
-				closedloop_secondsFromNeutralToFull_(0),
-				openloop_secondsFromNeutralToFull_(0),
+				closed_loop_ramp_(0),
+				open_loop_ramp_(0),
 				peak_output_forward_(100.),
 				peak_output_reverse_(100.),
 				nominal_output_forward_(100.),
 				nominal_output_reverse_(100.),
 				neutral_deadband_(0.),
-				outputShapingChanged_(false)
+				outputShapingChanged_(false),
+
+				// voltage compensation
+				voltage_compensation_saturation_(0),
+				voltage_measurement_filter_(0),
+				voltage_compensation_enable_(false),
+				voltage_compensation_changed_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -338,16 +344,16 @@ namespace hardware_interface
 			}
 			
 			//output shaping
-			bool outputShapingChanged(float &closedloop_secondsFromNeutralToFull,
-					float &openloop_secondsFromNeutralToFull,
+			bool outputShapingChanged(float &closed_loop_ramp,
+					float &open_loop_ramp,
 					float &peak_output_forward,
 					float &peak_output_reverse,
 					float &nominal_output_forward,
 					float &nominal_output_reverse,
 					float &neutral_deadband)
 			{
-				closedloop_secondsFromNeutralToFull = closedloop_secondsFromNeutralToFull_;
-				openloop_secondsFromNeutralToFull = openloop_secondsFromNeutralToFull_;
+				closed_loop_ramp = closed_loop_ramp_;
+				open_loop_ramp = open_loop_ramp_;
 				peak_output_forward = peak_output_forward_;
 				peak_output_reverse = peak_output_reverse_;
 				nominal_output_forward = nominal_output_forward_;
@@ -383,20 +389,20 @@ namespace hardware_interface
 			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
 
 			//output shaping
-			void setClosedloopRamp(float closedloop_secondsFromNeutralToFull) {
-				if (closedloop_secondsFromNeutralToFull_ != closedloop_secondsFromNeutralToFull) {
-					closedloop_secondsFromNeutralToFull_ = closedloop_secondsFromNeutralToFull;
+			void setClosedloopRamp(float closed_loop_ramp) {
+				if (closed_loop_ramp_ != closed_loop_ramp) {
+					closed_loop_ramp_ = closed_loop_ramp;
 					outputShapingChanged_ = true;
 				}
 			}
-			float getClosedloopRamp(void) const {return closedloop_secondsFromNeutralToFull_;}
-			void setOpenloopRamp(float openloop_secondsFromNeutralToFull) {
-				if (openloop_secondsFromNeutralToFull_ != openloop_secondsFromNeutralToFull) {
-					openloop_secondsFromNeutralToFull_ = openloop_secondsFromNeutralToFull;
+			float getClosedloopRamp(void) const {return closed_loop_ramp_;}
+			void setOpenloopRamp(float open_loop_ramp) {
+				if (open_loop_ramp_ != open_loop_ramp) {
+					open_loop_ramp_ = open_loop_ramp;
 					outputShapingChanged_ = true;
 				}
 			}
-			float getOpenloopRamp(void) const {return openloop_secondsFromNeutralToFull_;}
+			float getOpenloopRamp(void) const {return open_loop_ramp_;}
 
 			void setPeakOutputForward(float peak_output_forward)
 			{
@@ -447,6 +453,53 @@ namespace hardware_interface
 				}
 			}
 			float getNeutralDeadband(void) const {return neutral_deadband_;}
+
+			void setVoltageCompensationSaturation(float voltage)
+			{
+				if (voltage != voltage_compensation_saturation_)
+				{
+					voltage_compensation_saturation_ = voltage;
+					voltage_compensation_changed_ = true;
+				}
+			}
+			float getVoltageCompensationSaturation(void) const { return voltage_compensation_saturation_;}
+
+			void setVoltageMeasurementFilter(int filterWindowSamples)
+			{
+				if (filterWindowSamples != voltage_measurement_filter_)
+				{
+					voltage_measurement_filter_ = filterWindowSamples;
+					voltage_compensation_changed_ = true;
+				}
+			}
+			int getVoltageMeasurementFilter(void) const {return voltage_compensation_saturation_;}
+
+			void setVoltageCompensationEnable(bool enable)
+			{
+				if (enable != voltage_compensation_enable_)
+				{
+					voltage_compensation_enable_ = enable;
+					voltage_compensation_changed_ = true;
+				}
+			}
+
+			bool getEnableVoltageCompenation(void) const {return voltage_compensation_enable_;} 
+
+			bool VoltageCompensationChanged(float & voltage_compensation_saturation,
+					int &voltage_measurement_filter,
+					bool &voltage_compensation_enable)
+			{
+				voltage_compensation_saturation_ = voltage_compensation_saturation;
+				voltage_measurement_filter_ = voltage_measurement_filter;
+				voltage_compensation_enable_ = voltage_compensation_enable;
+				if (voltage_compensation_changed_)
+				{
+					voltage_compensation_changed_ = false;
+					return true;
+				}
+				return false;
+			}
+
 
 			//general
 			void Disable(){ }
@@ -526,14 +579,19 @@ namespace hardware_interface
 			int encoder_tick_per_rotation_;
 
 			//output shaping
-			float closedloop_secondsFromNeutralToFull_;
-			float openloop_secondsFromNeutralToFull_;
+			float closed_loop_ramp_;
+			float open_loop_ramp_;
 			float peak_output_forward_;
 			float peak_output_reverse_;
 			float nominal_output_forward_;
 			float nominal_output_reverse_;
 			float neutral_deadband_;
 			bool outputShapingChanged_;
+
+			float voltage_compensation_saturation_;
+			int   voltage_measurement_filter_;
+			bool  voltage_compensation_enable_;
+			bool  voltage_compensation_changed_;
 
 			// 2 entries in the Talon HW for each of these settings
 			float     p_[2];
