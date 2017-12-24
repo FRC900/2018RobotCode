@@ -1,4 +1,3 @@
-
 #pragma once
 #include <dynamic_reconfigure/server.h>
 #include <talon_interface/talon_command_interface.h>
@@ -72,8 +71,14 @@ class TalonCIParams
 			f_[1] = config.f1;
 			izone_[0] = config.izone0;
 			izone_[1] = config.izone1;
+			allowable_closed_loop_error_[0] = config.allowable_closed_loop_error0;
+			allowable_closed_loop_error_[1] = config.allowable_closed_loop_error1;
+			max_integral_accumulator_[0] = config.max_integral_accumulator0;
+			max_integral_accumulator_[1] = config.max_integral_accumulator1;
 			invert_output_ = config.invert_output;
 			sensor_phase_ = config.sensor_phase;
+			feedback_type_ = static_cast<hardware_interface::FeedbackDevice>(config.feedback_type);
+			neutral_mode_ = static_cast<hardware_interface::NeutralMode>(config.neutral_mode);
 			closed_loop_ramp_ = config.closed_loop_ramp;
 			open_loop_ramp_ = config.open_loop_ramp;
 			peak_output_forward_ = config.peak_output_forward;
@@ -528,8 +533,14 @@ class TalonControllerInterface
 			config.f1            = params_.f_[1];
 			config.izone0        = params_.izone_[0];
 			config.izone1        = params_.izone_[1];
+			config.allowable_closed_loop_error0 = params_.allowable_closed_loop_error_[0];
+			config.allowable_closed_loop_error1 = params_.allowable_closed_loop_error_[1];
+			config.max_integral_accumulator0 = params_.max_integral_accumulator_[0];
+			config.max_integral_accumulator1 = params_.max_integral_accumulator_[1];
 			config.invert_output = params_.invert_output_;
 			config.sensor_phase  = params_.sensor_phase_;
+			config.feedback_type = params_.feedback_type_;
+			config.neutral_mode  = params_.neutral_mode_;
 			config.closed_loop_ramp = params_.closed_loop_ramp_;
 			config.open_loop_ramp = params_.open_loop_ramp_;
 			config.peak_output_forward = params_.peak_output_forward_;

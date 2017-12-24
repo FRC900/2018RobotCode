@@ -183,9 +183,6 @@ namespace hardware_interface
 			FeedbackDevice getEncoderFeedback(void) const {return encoder_feedback_;}
 			int getEncoderTickPerRotation(void) 	const {return encoder_tick_per_rotation_;}
 
-
-
-
 			void setSetpoint(float setpoint)            {setpoint_ = setpoint;}
 			void setPosition(float position)            {position_ = position;}
 			void setSpeed(float speed)                  {speed_ = speed;}
@@ -291,6 +288,7 @@ namespace hardware_interface
 			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
 
 		
+#if 0 // Update to newer list of CTRE functions
 			//general
 			void Disable(){ }
 			void Enable(){ }
@@ -343,6 +341,7 @@ namespace hardware_interface
 			void SetDataPortOutputPeriod(uint32_t periodMs){ }
 			void SetDataPortOutputEnable(uint32_t idx, bool enable){ }
 			void SetDataPortOutput(uint32_t idx, uint32_t OnTimeMs){ }
+#endif
 
 			// Add code to read and/or store all the other state from the Talon :
 			// limit switch settings, sensing
