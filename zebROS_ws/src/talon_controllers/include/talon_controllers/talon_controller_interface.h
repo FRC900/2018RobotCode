@@ -223,28 +223,28 @@ class TalonCIParams
 
 		bool readOutputShaping(ros::NodeHandle &n)
 		{
-			float float_val;
-			if (n.getParam("closed_loop_ramp", float_val))
-				closed_loop_ramp_ = float_val;
-			if (n.getParam("open_loop_ramp", float_val))
-				open_loop_ramp_ = float_val;
-			if (n.getParam("peak_output_forward", float_val))
-				peak_output_forward_ = float_val;
-			if (n.getParam("peak_output_reverse", float_val))
-				peak_output_reverse_ = float_val;
-			if (n.getParam("nominal_output_forward", float_val))
-				nominal_output_forward_ = float_val;
-			if (n.getParam("nominal_output_reverse", float_val))
-				nominal_output_reverse_ = float_val;
-			if (n.getParam("neutral_deadband", float_val))
-				neutral_deadband_ = float_val;
+			double double_val;
+			if (n.getParam("closed_loop_ramp", double_val))
+				closed_loop_ramp_ = double_val;
+			if (n.getParam("open_loop_ramp", double_val))
+				open_loop_ramp_ = double_val;
+			if (n.getParam("peak_output_forward", double_val))
+				peak_output_forward_ = double_val;
+			if (n.getParam("peak_output_reverse", double_val))
+				peak_output_reverse_ = double_val;
+			if (n.getParam("nominal_output_forward", double_val))
+				nominal_output_forward_ = double_val;
+			if (n.getParam("nominal_output_reverse", double_val))
+				nominal_output_reverse_ = double_val;
+			if (n.getParam("neutral_deadband", double_val))
+				neutral_deadband_ = double_val;
 			return true;
 		}
 		bool readVoltageCompensation(ros::NodeHandle &n)
 		{
-			float float_val;
-			if (n.getParam("voltage_compensation_saturation", float_val))
-				voltage_compensation_saturation_ = float_val;
+			double double_val;
+			if (n.getParam("voltage_compensation_saturation", double_val))
+				voltage_compensation_saturation_ = double_val;
 			int int_val;
 			if (n.getParam("voltage_measurement_filter", int_val))
 				voltage_measurement_filter_ = int_val;
@@ -257,46 +257,46 @@ class TalonCIParams
 		// TODO : Keep adding config items here
 		std::string joint_name_;
 		int    follow_can_id_;
-		float  p_[2];
-		float  i_[2];
-		float  d_[2];
-		float  f_[2];
+		double  p_[2];
+		double  i_[2];
+		double  d_[2];
+		double  f_[2];
 		int    izone_[2];
 		int    allowable_closed_loop_error_[2];
-		float  max_integral_accumulator_[2];
+		double  max_integral_accumulator_[2];
 		int    pidf_config_;
 		bool   invert_output_;
 		bool   sensor_phase_;
 		hardware_interface::NeutralMode neutral_mode_;
 		hardware_interface::FeedbackDevice feedback_type_;
 		int   ticks_per_rotation_;
-		float closed_loop_ramp_;
-		float open_loop_ramp_;
-		float peak_output_forward_;
-		float peak_output_reverse_;
-		float nominal_output_forward_;
-		float nominal_output_reverse_;
-		float neutral_deadband_;
-		float voltage_compensation_saturation_;
+		double closed_loop_ramp_;
+		double open_loop_ramp_;
+		double peak_output_forward_;
+		double peak_output_reverse_;
+		double nominal_output_forward_;
+		double nominal_output_reverse_;
+		double neutral_deadband_;
+		double voltage_compensation_saturation_;
 		int   voltage_measurement_filter_;
 		bool  voltage_compensation_enable_;
 
 	private:
-		// Read a float named <param_type> from the array/map
+		// Read a double named <param_type> from the array/map
 		// in params
-		float findFloatParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
+		double findFloatParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
 		{
 			if (!params.hasMember(param_type))
 				return 0;
 			XmlRpc::XmlRpcValue& param = params[param_type];
 			if (!param.valid())
-				throw std::runtime_error(param_type + " was not a float valid type");
+				throw std::runtime_error(param_type + " was not a double valid type");
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
 				return (double)param;
 			else if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
 				return (int)param;
 			else
-				throw std::runtime_error("A non-float value was passed for" + param_type);
+				throw std::runtime_error("A non-double value was passed for" + param_type);
 			return 0;
 		}
 
@@ -484,7 +484,7 @@ class TalonControllerInterface
 				// like the following to keep the reconfigure value in sync
 				// with the rest of the program state
 				//
-				// void setBlah(const float blah)
+				// void setBlah(const double blah)
 				// {
 				//   params_.blah = blah;
 				//   TalonConfigConfig config = getConfigFromParams();
@@ -501,7 +501,7 @@ class TalonControllerInterface
 		}
 
 		// Set the setpoint for the motor controller
-		virtual void setCommand(const float command)
+		virtual void setCommand(const double command)
 		{
 			talon_->set(command);
 		}
@@ -529,12 +529,12 @@ class TalonControllerInterface
 			talon_->setNeutralOutput();
 		}
 
-		virtual void setIntegralAccumulator(float iaccum)
+		virtual void setIntegralAccumulator(double iaccum)
 		{
 			talon_->setIntegralAccumulator(iaccum);
 		}
 
-		float getPosition(void) const
+		double getPosition(void) const
 		{
 			return talon_.state()->getPosition();
 		}
@@ -638,7 +638,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 		}
 		// Maybe disable the setPIDFSlot call since that makes
 		// no sense for a non-PID controller mode?
-		void setCommand(const float /*command*/) override
+		void setCommand(const double /*command*/) override
 		{
 			ROS_WARN("Can't set a command in follower mode!");
 		}
@@ -713,7 +713,7 @@ class TalonCurrentControllerCloseLoopInterface : public TalonCloseLoopController
 		}
 };
 
-class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInterface // float check that this works
+class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
@@ -735,7 +735,7 @@ class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInt
 // KCJ -- in general the code we actually use will get a lot more attention. Not sure if that
 // means we should pull out less-tested stuff like this or leave it in and fix it if
 // we need it at some point?
-class TalonMotionMagicControllerInterface : public TalonCloseLoopControllerInterface // float check that this works
+class TalonMotionMagicControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
