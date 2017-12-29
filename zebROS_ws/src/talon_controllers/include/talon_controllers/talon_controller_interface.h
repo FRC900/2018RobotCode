@@ -132,12 +132,11 @@ class TalonCIParams
 		}
 
 		// Read a joint name from the given nodehandle's params
-		bool readJointName(ros::NodeHandle &n, const std::string &param_name)
+		bool readJointName(ros::NodeHandle &n)
 		{
-			if (!n.getParam(param_name, joint_name_))
+			if (!n.getParam("joint", joint_name_))
 			{
-				ROS_ERROR("No joint given (namespace: %s, param name: %s)", 
-						  n.getNamespace().c_str(), param_name.c_str());
+				ROS_ERROR("No joint given (namespace: %s)", n.getNamespace().c_str());
 				return false;
 			}
 			return true;
@@ -219,8 +218,6 @@ class TalonCIParams
 			return true;
 		}
 
-		// Read the name of a joint (talon) to follow.  Figure
-		// out which CAN ID that Talon is configured as here
 		bool readInverts(ros::NodeHandle &n)
 		{
 			n.getParam("invert_output", invert_output_);
@@ -388,7 +385,7 @@ class TalonControllerInterface
 		// motor controller
 		virtual bool readParams(ros::NodeHandle &n, hardware_interface::TalonStateInterface *tsi)
 		{
-			return params_.readJointName(n, "joint") && 
+			return params_.readJointName(n) && 
 				   params_.readFollowerID(n, tsi) && 
 				   params_.readCloseLoopParams(n) &&
 				   params_.readNeutralMode(n) &&
@@ -562,6 +559,9 @@ class TalonControllerInterface
 				return true;
 			params_.pidf_slot_ = slot;
 
+			// If dynamic reconfigure is running update
+			// the reported config there with the new internal
+			// state
 			if (srv_)
 			{
 				TalonConfigConfig config(params_.getConfig());
@@ -593,8 +593,6 @@ class TalonControllerInterface
 		TalonCIParams                          params_;
 		std::shared_ptr<dynamic_reconfigure::Server<TalonConfigConfig>> srv_;
 		std::shared_ptr<boost::recursive_mutex> srv_mutex_;
-
-	private :
 };
 
 // A derived class which disables mode switching. Any
