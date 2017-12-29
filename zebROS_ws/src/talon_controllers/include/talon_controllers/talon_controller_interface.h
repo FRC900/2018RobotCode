@@ -43,7 +43,7 @@ class TalonCIParams
 				izone_ {0, 0},
 				allowable_closed_loop_error_{0, 0}, // need better defaults
 				max_integral_accumulator_{0, 0},
-				pidf_config_(0),
+				pidf_slot_(0),
 				invert_output_ (false),
 				sensor_phase_(false),
 				neutral_mode_(hardware_interface::NeutralMode_Uninitialized),
@@ -78,6 +78,7 @@ class TalonCIParams
 			allowable_closed_loop_error_[1] = config.allowable_closed_loop_error1;
 			max_integral_accumulator_[0] = config.max_integral_accumulator0;
 			max_integral_accumulator_[1] = config.max_integral_accumulator1;
+			pidf_slot_ = config.pid_config;
 			invert_output_ = config.invert_output;
 			sensor_phase_ = config.sensor_phase;
 			feedback_type_ = static_cast<hardware_interface::FeedbackDevice>(config.feedback_type);
@@ -264,7 +265,7 @@ class TalonCIParams
 		int    izone_[2];
 		int    allowable_closed_loop_error_[2];
 		double  max_integral_accumulator_[2];
-		int    pidf_config_;
+		int    pidf_slot_;
 		bool   invert_output_;
 		bool   sensor_phase_;
 		hardware_interface::NeutralMode neutral_mode_;
@@ -402,7 +403,7 @@ class TalonControllerInterface
 				talon_->setAllowableClosedloopError(params_.allowable_closed_loop_error_[i], i);
 				talon_->setMaxIntegralAccumulator(params_.max_integral_accumulator_[i], i);
 			}
-			talon_->setPidfSlot(params_.pidf_config_);
+			talon_->setPidfSlot(params_.pidf_slot_);
 			talon_->setNeutralMode(params_.neutral_mode_);
 
 			talon_->setInvert(params_.invert_output_);
@@ -513,14 +514,21 @@ class TalonControllerInterface
 		}
 
 		// Pick the config slot (0 or 1) for PIDF/IZone values
-		virtual bool setPIDFSlot(int config)
+		virtual bool setPIDFSlot(int slot)
 		{
-			if ((config != 0) && (config != 1))
+			if ((slot != 0) && (slot != 1))
 				return false;
-			if (config == params_.pidf_config_)
+			if (slot == params_.pidf_slot_)
 				return true;
-			params_.pidf_config_ = config;
-			talon_->setPidfSlot(params_.pidf_config_);
+			params_.pidf_slot_ = slot;
+
+			TalonConfigConfig config(getConfigFromParams());
+			{
+				boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
+				srv_->updateConfig(config);
+			}
+
+			talon_->setPidfSlot(params_.pidf_slot_);
 			return true;
 		}
 
@@ -564,6 +572,7 @@ class TalonControllerInterface
 			config.allowable_closed_loop_error1 = params_.allowable_closed_loop_error_[1];
 			config.max_integral_accumulator0 = params_.max_integral_accumulator_[0];
 			config.max_integral_accumulator1 = params_.max_integral_accumulator_[1];
+			config.pid_config    = params_.pidf_slot_;
 			config.invert_output = params_.invert_output_;
 			config.sensor_phase  = params_.sensor_phase_;
 			config.feedback_type = params_.feedback_type_;

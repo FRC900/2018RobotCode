@@ -70,6 +70,7 @@ namespace talon_state_controller
       realtime_pub_->msg_.bus_voltage.push_back(0.0);
       realtime_pub_->msg_.motor_output_percent.push_back(0.0);
 
+      realtime_pub_->msg_.pid_slot.push_back(0);
       realtime_pub_->msg_.pid_p0.push_back(0.0);
       realtime_pub_->msg_.pid_p1.push_back(0.0);
 
@@ -165,6 +166,7 @@ namespace talon_state_controller
           realtime_pub_->msg_.bus_voltage[i] = talon_state_[i]->getBusVoltage();
           realtime_pub_->msg_.motor_output_percent[i] = talon_state_[i]->getMotorOutputPercent();
           //publish the array of PIDF values
+          realtime_pub_->msg_.pid_slot[i] = talon_state_[i]->getSlot();
           realtime_pub_->msg_.pid_p0[i] = talon_state_[i]->getPidfP(0);
           realtime_pub_->msg_.pid_i0[i] = talon_state_[i]->getPidfI(0);
           realtime_pub_->msg_.pid_d0[i] = talon_state_[i]->getPidfD(0);
