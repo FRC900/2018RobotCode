@@ -95,6 +95,42 @@ class TalonCIParams
 			voltage_compensation_enable_ = config.voltage_compensation_enable;
 		}
 
+		// Copy from internal state to TalonConfigConfig state
+		TalonConfigConfig getConfig(void) const
+		{
+			TalonConfigConfig config;
+			config.p0            = p_[0];
+			config.p1            = p_[1];
+			config.i0            = i_[0];
+			config.i1            = i_[1];
+			config.d0            = d_[0];
+			config.d1            = d_[1];
+			config.f0            = f_[0];
+			config.f1            = f_[1];
+			config.izone0        = izone_[0];
+			config.izone1        = izone_[1];
+			config.allowable_closed_loop_error0 = allowable_closed_loop_error_[0];
+			config.allowable_closed_loop_error1 = allowable_closed_loop_error_[1];
+			config.max_integral_accumulator0 = max_integral_accumulator_[0];
+			config.max_integral_accumulator1 = max_integral_accumulator_[1];
+			config.pid_config    = pidf_slot_;
+			config.invert_output = invert_output_;
+			config.sensor_phase  = sensor_phase_;
+			config.feedback_type = feedback_type_;
+			config.neutral_mode  = neutral_mode_;
+			config.closed_loop_ramp = closed_loop_ramp_;
+			config.open_loop_ramp = open_loop_ramp_;
+			config.peak_output_forward = peak_output_forward_;
+			config.peak_output_reverse = peak_output_reverse_;
+			config.nominal_output_forward = nominal_output_forward_;
+			config.nominal_output_reverse = nominal_output_reverse_;
+			config.neutral_deadband = neutral_deadband_;
+			config.voltage_compensation_saturation = voltage_compensation_saturation_;
+			config.voltage_measurement_filter = voltage_measurement_filter_;
+			config.voltage_compensation_enable = voltage_compensation_enable_;
+			return config;
+		}
+
 		// Read a joint name from the given nodehandle's params
 		bool readJointName(ros::NodeHandle &n, const std::string &param_name)
 		{
@@ -343,6 +379,11 @@ class TalonCIParams
 class TalonControllerInterface
 {
 	public:
+		TalonControllerInterface(void) :
+			srv_(nullptr)
+		{
+			srv_mutex_ = std::make_shared<boost::recursive_mutex>();
+		}
 		// Standardize format for reading params for 
 		// motor controller
 		virtual bool readParams(ros::NodeHandle &n, hardware_interface::TalonStateInterface *tsi)
@@ -466,13 +507,12 @@ class TalonControllerInterface
 				// under the node's name.  Doing so allows multiple
 				// copies of the class to be started, each getting
 				// their own namespace.
-				srv_mutex_ = std::make_shared<boost::recursive_mutex>();
 				srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(*srv_mutex_, n);
 
 				// Without this, the first call to callback() 
 				// will overwrite anything passed in from the
 				// launch file
-				srv_->updateConfig(getConfigFromParams());
+				srv_->updateConfig(params_.getConfig());
 
 				// Register a callback function which is run each
 				// time parameters are changed using 
@@ -522,8 +562,9 @@ class TalonControllerInterface
 				return true;
 			params_.pidf_slot_ = slot;
 
-			TalonConfigConfig config(getConfigFromParams());
+			if (srv_)
 			{
+				TalonConfigConfig config(params_.getConfig());
 				boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
 				srv_->updateConfig(config);
 			}
@@ -554,41 +595,6 @@ class TalonControllerInterface
 		std::shared_ptr<boost::recursive_mutex> srv_mutex_;
 
 	private :
-		// Copy from params_ state to TalonConfigConfig state
-		TalonConfigConfig getConfigFromParams(void) const
-		{
-			TalonConfigConfig config;
-			config.p0            = params_.p_[0];
-			config.p1            = params_.p_[1];
-			config.i0            = params_.i_[0];
-			config.i1            = params_.i_[1];
-			config.d0            = params_.d_[0];
-			config.d1            = params_.d_[1];
-			config.f0            = params_.f_[0];
-			config.f1            = params_.f_[1];
-			config.izone0        = params_.izone_[0];
-			config.izone1        = params_.izone_[1];
-			config.allowable_closed_loop_error0 = params_.allowable_closed_loop_error_[0];
-			config.allowable_closed_loop_error1 = params_.allowable_closed_loop_error_[1];
-			config.max_integral_accumulator0 = params_.max_integral_accumulator_[0];
-			config.max_integral_accumulator1 = params_.max_integral_accumulator_[1];
-			config.pid_config    = params_.pidf_slot_;
-			config.invert_output = params_.invert_output_;
-			config.sensor_phase  = params_.sensor_phase_;
-			config.feedback_type = params_.feedback_type_;
-			config.neutral_mode  = params_.neutral_mode_;
-			config.closed_loop_ramp = params_.closed_loop_ramp_;
-			config.open_loop_ramp = params_.open_loop_ramp_;
-			config.peak_output_forward = params_.peak_output_forward_;
-			config.peak_output_reverse = params_.peak_output_reverse_;
-			config.nominal_output_forward = params_.nominal_output_forward_;
-			config.nominal_output_reverse = params_.nominal_output_reverse_;
-			config.neutral_deadband = params_.neutral_deadband_;
-			config.voltage_compensation_saturation = params_.voltage_compensation_saturation_;
-			config.voltage_measurement_filter = params_.voltage_measurement_filter_;
-			config.voltage_compensation_enable = params_.voltage_compensation_enable_;
-			return config;
-		}
 };
 
 // A derived class which disables mode switching. Any
