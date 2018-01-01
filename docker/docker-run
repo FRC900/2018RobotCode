@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -e
+set -o pipefail
+
+docker run -it --privileged --net=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY ubuntu:16.04 /bin/bash

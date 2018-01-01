@@ -86,7 +86,7 @@ cd sip-4.17
 python configure.py CC=arm-frc-linux-gnueabi-gcc CXX=arm-frc-linux-gnueabi-g++ LINK=arm-frc-linux-gnueabi-g++ LINK_SHLIB=arm-frc-linux-gnueabi-g++ --sysroot=/usr/arm-frc-linux-gnueabi --incdir=/usr/arm-frc-linux-gnueabi/usr/include/python2.7 STRIP=arm-frc-linux-gnueabi-strip
 
 #edit siplib/Makefile to change CPP flags include to -I/usr/arm-frc-linux-gnueabi/usr/include/python2.7
-sed -i '/^CPPFLAGS/ s_include_usr/include_' siplib/Makefile 
+sed -i '/^CPPFLAGS/ s_include_usr/include_' siplib/Makefile
 sudo make -j8 install
 cd
 sudo rm -rf sip-4.17.tar.gz sip-4.17
@@ -95,7 +95,7 @@ sudo rm -rf sip-4.17.tar.gz sip-4.17
 # Build and install tinyxml
 cd
 wget https://downloads.sourceforge.net/project/tinyxml/tinyxml/2.6.2/tinyxml_2_6_2.zip
-unzip tinyxml_2_6_2.zip 
+unzip tinyxml_2_6_2.zip
 cd tinyxml
 wget https://gist.githubusercontent.com/TNick/7960323/raw/3046ecda1d4d54d777c407f43ac357846a192e05/TinyXML-CmakeLists.txt
 mv TinyXML-CmakeLists.txt CMakeLists.txt
@@ -104,7 +104,7 @@ sed -i "14i  set_target_properties(tinyxml PROPERTIES PUBLIC_HEADER \"tinyxml.h;
 #add a line to tinyxml.h before line 46 :
 sed -i '45i  #define TIXML_USE_STL' tinyxml.h
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2017Preseason/zebROS_ws/rostoolchain.cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi -DCMAKE_POSITION_INDEPENDENT_CODE=ON .
-sudo make -j8 install 
+sudo make -j8 install
 cd
 sudo rm -rf tinyxml_2_6_2.zip tinyxml
 
@@ -115,15 +115,15 @@ tar -xzvf v2.2.1.tar.gz
 cd gflags-2.2.1
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2017Preseason/zebROS_ws/rostoolchain.cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi  -DCMAKE_POSITION_INDEPENDENT_CODE=ON .
 sudo make -j4 install
-cd 
+cd
 sudo rm -rf v2.2.1.tar.gz gflags-2.2.1
 
 # Build and install google logging libraries
 cd
 wget https://github.com/google/glog/archive/v0.3.5.tar.gz
-tar -xzvf v0.3.5.tar.gz 
+tar -xzvf v0.3.5.tar.gz
 cd glog-0.3.5/
-CFLAGS="-O2 -fPIC" CXXFLAGS="-O2 -fPIC" LDFLAGS="-fPIC" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local 
+CFLAGS="-O2 -fPIC" CXXFLAGS="-O2 -fPIC" LDFLAGS="-fPIC" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local
 sudo make -j8 install
 cd
 sudo rm -rf v0.3.5.tar.gz glog-0.3.5
@@ -140,7 +140,7 @@ sudo rm -rf qhull-2015-src-7.2.0.tgz qhull-2015.2
 
 # Build and install assimp libraries
 cd
-git clone https://github.com/assimp/assimp.git 
+git clone https://github.com/assimp/assimp.git
 cd assimp
 mkdir build
 cd build
@@ -154,7 +154,7 @@ cd
 wget https://downloads.sourceforge.net/project/libuuid/libuuid-1.0.3.tar.gz
 tar -xzvf libuuid-1.0.3.tar.gz
 cd libuuid-1.0.3
-CFLAGS="-O2" CXXFLAGS="-O2" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local 
+CFLAGS="-O2" CXXFLAGS="-O2" ./configure --host=arm-frc-linux-gnueabi --prefix=/usr/arm-frc-linux-gnueabi/usr/local
 sudo make install
 cd
 sudo rm -rf libuuid-1.0.3.tar.gz libuuid-1.0.3
