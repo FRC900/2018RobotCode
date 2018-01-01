@@ -1,14 +1,23 @@
-sed -i 's#nickdanger\.amer\.corp\.natinst\.com/feeds/\([^/]\+\)/\([^/]\+\)/#download.ni.com/ni-linux-rt/feeds/\1/\2/ipk/#' /etc/opkg/base-feeds.conf
+#sed -i 's#nickdanger\.amer\.corp\.natinst\.com/feeds/\([^/]\+\)/\([^/]\+\)/#download.ni.com/ni-linux-rt/feeds/\1/\2/ipk/#' /etc/opkg/base-feeds.conf
 opkg update
 
 # Split these up so the disk doesn't fill up with temp files
+opkg install python-pyyaml
+opkg clean
 opkg install libeigen python-dev libpython2 python-core 
+opkg clean
 opkg install libcurl4 lz4 libboost-filesystem1.60.0 libboost-program-options1.60.0 libboost-signals1.60.0 libboost-regex1.60.0 libboost-thread1.60.0 libboost-chrono1.60.0 libboost-date-time1.60.0 libboost-atomic1.60.0
+opkg clean
 opkg install libbz2 cmake libxml2 libgnutls-bin libgnutls-openssl27  
+opkg clean
 opkg install libgnutls30 libgnutlsxx28 nettle libgmp10 libgmpxx4 libz1 git make 
+opkg clean
 opkg install gcc g++ gcc-symlinks g++-symlinks binutils python-setuptools python-docutils 
-opkg install python-pyyaml python-pkgutil python-dateutil python-argparse python-nose 
+opkg clean
+opkg install python-pkgutil python-dateutil python-argparse python-nose 
+opkg clean
 opkg install python-netifaces libglog0 python-pip coreutils
+opkg clean
 
 # There was some weirdness with installing python. Needed to
 #  cd
@@ -40,15 +49,17 @@ cd 2017Preseason/zebROS_ws
 catkin_make_isolated --install
 cd 
 
-cd
-git clone https://github.com/ros/console_bridge
-cd console_bridge
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release ..
-make install
-cd
-rm -rf console_bridge
+# Changed this to static lib on host, shouldn't need
+# to be installed on target as well
+#cd
+#git clone https://github.com/ros/console_bridge
+#cd console_bridge
+#mkdir build
+#cd build
+#cmake -DCMAKE_BUILD_TYPE=Release ..
+#make install
+#cd
+#rm -rf console_bridge
 
 cd
 git clone https://github.com/gflags/gflags.git
@@ -58,19 +69,22 @@ make install
 cd
 rm -rf gflags*
 
+# Changed to static libs on host, shouldn't be needed on target
+
 # This is pre-built on a flash drive - make install should just 
 # check everything is up to date and then copy the libraries and headers
 # over ... at least until the Rio image changes?
-cd
-wget https://pocoproject.org/releases/poco-1.7.9/poco-1.7.9p1.tar.gz
-tar -xzf poco-1.7.9p1.tar.gz 
-cd poco-1.7.9p1/
-./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal
+#cd
+#wget https://pocoproject.org/releases/poco-1.7.9/poco-1.7.9p1.tar.gz
+#tar -xzf poco-1.7.9p1.tar.gz 
+#cd poco-1.7.9p1/
+#./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal
 #cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_MONGODB=OFF -DENABLE_CRYPTO=OFF -DENABLE_NET=OFF -DENABLE_NETSSL=OFF -DENABLE_DATA=OFF -DENABLE_ZIP=OFF -DENABLE_PAGECOMPILER=OFF -DENABLE_PAGECOMPILER_FILE2PAGE=OFF .
-make -j2 install
-cd
-rm -rf poco-1.7.9p1 poco-1.7.9p1.tar.gz 
+#make -j2 install
+#cd
+#rm -rf poco-1.7.9p1 poco-1.7.9p1.tar.gz 
 
+#scp ~/2017Preseason/os_detect.py admin@<target>:/usr/lib/python2.7/site-packages/rospkg/
 
 # Copy wpilib to roborio
 # cd ~/wpilib/cpp/current/reflib/linux/athena/shared

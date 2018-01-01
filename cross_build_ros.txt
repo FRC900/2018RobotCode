@@ -7,26 +7,6 @@ sudo rosdep init
 rosdep update
 mkdir ~/catkin_arm_cross_ws
 cd ~/catkin_arm_cross_ws
-create rostoolchain.cmake :
----------------------
-cmake_minimum_required(VERSION 2.8)
-set(ARM_PREFIX arm-frc-linux-gnueabi)
-
-set(CMAKE_SYSTEM_NAME Linux)
-set(CMAKE_SYSROOT /usr/${ARM_PREFIX})
-
-set(CMAKE_C_COMPILER ${ARM_PREFIX}-gcc)
-set(CMAKE_CXX_COMPILER ${ARM_PREFIX}-g++)
-
-set(CMAKE_FIND_ROOT_PATH ${SYSROOT_PATH})
-set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
-set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE BOTH)
-
-set(BOOST_ROOT ${ARM_PREFIX})
-set(Boost_NO_SYSTEM_PATHS=ON)
----------------------
 rosinstall_generator ros ros_comm robot --rosdistro kinetic --deps --wet-only --tar > kinetic-ros_comm-wet.rosinstall
 
 cd ~/catkin_arm_cross_ws/src

@@ -1,4 +1,3 @@
-
 #pragma once
 #include <dynamic_reconfigure/server.h>
 #include <talon_interface/talon_command_interface.h>
@@ -47,8 +46,52 @@ class TalonCIParams
 				pidf_config_(0),
 				invert_output_ (false),
 				sensor_phase_(false),
-				neutral_mode_(hardware_interface::NeutralMode_Uninitialized)
+				neutral_mode_(hardware_interface::NeutralMode_Uninitialized),
+			    feedback_type_(hardware_interface::FeedbackDevice_Uninitialized),
+				ticks_per_rotation_(4096),
+				closed_loop_ramp_(0.),
+				open_loop_ramp_(0.),
+				peak_output_forward_(100.),
+				peak_output_reverse_(100.),
+				nominal_output_forward_(100.),
+				nominal_output_reverse_(100.),
+				neutral_deadband_(0.),
+				voltage_compensation_saturation_(0),
+				voltage_measurement_filter_(0),
+				voltage_compensation_enable_(false)
 		{
+		}
+
+		TalonCIParams(const TalonConfigConfig &config)
+		{
+			p_[0] = config.p0;
+			p_[1] = config.p1;
+			i_[0] = config.i0;
+			i_[1] = config.i1;
+			d_[0] = config.d0;
+			d_[1] = config.d1;
+			f_[0] = config.f0;
+			f_[1] = config.f1;
+			izone_[0] = config.izone0;
+			izone_[1] = config.izone1;
+			allowable_closed_loop_error_[0] = config.allowable_closed_loop_error0;
+			allowable_closed_loop_error_[1] = config.allowable_closed_loop_error1;
+			max_integral_accumulator_[0] = config.max_integral_accumulator0;
+			max_integral_accumulator_[1] = config.max_integral_accumulator1;
+			invert_output_ = config.invert_output;
+			sensor_phase_ = config.sensor_phase;
+			feedback_type_ = static_cast<hardware_interface::FeedbackDevice>(config.feedback_type);
+			neutral_mode_ = static_cast<hardware_interface::NeutralMode>(config.neutral_mode);
+			closed_loop_ramp_ = config.closed_loop_ramp;
+			open_loop_ramp_ = config.open_loop_ramp;
+			peak_output_forward_ = config.peak_output_forward;
+			peak_output_reverse_ = config.peak_output_reverse;
+			nominal_output_forward_ = config.nominal_output_forward;
+			nominal_output_reverse_ = config.nominal_output_reverse;
+			neutral_deadband_ = config.neutral_deadband;
+			voltage_compensation_saturation_ = config.voltage_compensation_saturation;
+			voltage_measurement_filter_ = config.voltage_measurement_filter;
+			voltage_compensation_enable_ = config.voltage_compensation_enable;
 		}
 
 		// Read a joint name from the given nodehandle's params
@@ -84,6 +127,47 @@ class TalonCIParams
 			}
 			return true;
 		}
+		//TODOa: create a method that reads the feedback settings enum
+		bool readFeedbackType(ros::NodeHandle &n)
+		{
+			std::string feedback_type_name;
+			if (!n.getParam("feedback_type", feedback_type_name))
+			{
+				//ROS_ERROR("No feedback type given (namespace: %s)", 
+			//			  n.getNamespace().c_str());
+			// TODO : Not all talons will have feedback - figure
+			//        out how to handle that case
+				return true;
+			}
+			if (feedback_type_name == "QuadEncoder")
+				feedback_type_ = hardware_interface::FeedbackDevice_QuadEncoder;
+			else if (feedback_type_name == "Analog")
+				feedback_type_ = hardware_interface::FeedbackDevice_Analog;
+			else if (feedback_type_name == "Tachometer")
+				feedback_type_ = hardware_interface::FeedbackDevice_Tachometer;
+			else if (feedback_type_name == "PulseWidthEncodedPosition")
+				feedback_type_ = hardware_interface::FeedbackDevice_PulseWidthEncodedPosition;
+			else if (feedback_type_name == "SensorSum")
+				feedback_type_ = hardware_interface::FeedbackDevice_SensorSum;
+			else if (feedback_type_name == "SensorDifference")
+				feedback_type_ = hardware_interface::FeedbackDevice_SensorDifference;
+			else if (feedback_type_name == "Inertial")
+				feedback_type_ = hardware_interface::FeedbackDevice_Inertial;
+			else if (feedback_type_name == "RemoteSensor")
+				feedback_type_ = hardware_interface::FeedbackDevice_RemoteSensor;
+			else if (feedback_type_name == "SoftwareEmulatedSensor")
+				feedback_type_ = hardware_interface::FeedbackDevice_SoftwareEmulatedSensor;
+			else if (feedback_type_name == "CTRE_MagEncoder_Absolute")
+				feedback_type_ = hardware_interface::FeedbackDevice_CTRE_MagEncoder_Absolute;
+			else if (feedback_type_name == "CTRE_MagEncoder_Relative")
+				feedback_type_ = hardware_interface::FeedbackDevice_CTRE_MagEncoder_Relative;
+			else
+			{
+				ROS_ERROR("Invalid feedback device name given");
+				return false;
+			}
+			return true;
+		}
 
 		// Read the name of a joint (talon) to follow.  Figure
 		// out which CAN ID that Talon is configured as here
@@ -102,7 +186,7 @@ class TalonCIParams
 		// out which CAN ID that Talon is configured as here
 		bool readInverts(ros::NodeHandle &n)
 		{
-			n.getParam("invert", invert_output_);
+			n.getParam("invert_output", invert_output_);
 			n.getParam("sensor_phase", sensor_phase_);
 			return true;
 		}
@@ -125,7 +209,7 @@ class TalonCIParams
 					f_[i]=findFloatParam("f",pidparams_);
 					izone_[i]=findIntParam("i_zone",pidparams_);
 					allowable_closed_loop_error_[i]=findIntParam("allowable_closed_loop_error", pidparams_);
-					max_integral_accumulator_[i]=findFloatParam("f",pidparams_);
+					max_integral_accumulator_[i]=findFloatParam("max_integral_accumulator",pidparams_);
 					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << izone_[i]<< std::endl;
 				}
 				return true;
@@ -134,7 +218,42 @@ class TalonCIParams
 			{
 				throw std::runtime_error("More than two pid_param values");
 			}
+			return false;
 		}
+
+		bool readOutputShaping(ros::NodeHandle &n)
+		{
+			float float_val;
+			if (n.getParam("closed_loop_ramp", float_val))
+				closed_loop_ramp_ = float_val;
+			if (n.getParam("open_loop_ramp", float_val))
+				open_loop_ramp_ = float_val;
+			if (n.getParam("peak_output_forward", float_val))
+				peak_output_forward_ = float_val;
+			if (n.getParam("peak_output_reverse", float_val))
+				peak_output_reverse_ = float_val;
+			if (n.getParam("nominal_output_forward", float_val))
+				nominal_output_forward_ = float_val;
+			if (n.getParam("nominal_output_reverse", float_val))
+				nominal_output_reverse_ = float_val;
+			if (n.getParam("neutral_deadband", float_val))
+				neutral_deadband_ = float_val;
+			return true;
+		}
+		bool readVoltageCompensation(ros::NodeHandle &n)
+		{
+			float float_val;
+			if (n.getParam("voltage_compensation_saturation", float_val))
+				voltage_compensation_saturation_ = float_val;
+			int int_val;
+			if (n.getParam("voltage_measurement_filter", int_val))
+				voltage_measurement_filter_ = int_val;
+			bool bool_val;
+			if (n.getParam("voltage_compensation_enable", bool_val))
+				voltage_compensation_enable_ = bool_val;
+			return true;
+		}
+
 		// TODO : Keep adding config items here
 		std::string joint_name_;
 		int    follow_can_id_;
@@ -149,6 +268,18 @@ class TalonCIParams
 		bool   invert_output_;
 		bool   sensor_phase_;
 		hardware_interface::NeutralMode neutral_mode_;
+		hardware_interface::FeedbackDevice feedback_type_;
+		int   ticks_per_rotation_;
+		float closed_loop_ramp_;
+		float open_loop_ramp_;
+		float peak_output_forward_;
+		float peak_output_reverse_;
+		float nominal_output_forward_;
+		float nominal_output_reverse_;
+		float neutral_deadband_;
+		float voltage_compensation_saturation_;
+		int   voltage_measurement_filter_;
+		bool  voltage_compensation_enable_;
 
 	private:
 		// Read a float named <param_type> from the array/map
@@ -219,7 +350,10 @@ class TalonControllerInterface
 				   params_.readFollowerID(n, tsi) && 
 				   params_.readCloseLoopParams(n) &&
 				   params_.readNeutralMode(n) &&
-				   params_.readInverts(n);
+				   params_.readInverts(n) &&
+				   params_.readFeedbackType(n) &&
+				   params_.readOutputShaping(n) &&
+				   params_.readVoltageCompensation(n);
 		}
 
 
@@ -274,6 +408,18 @@ class TalonControllerInterface
 			talon_->setInvert(params_.invert_output_);
 			talon_->setSensorPhase(params_.sensor_phase_);
 
+			talon_->setClosedloopRamp(params_.closed_loop_ramp_);
+			talon_->setOpenloopRamp(params_.open_loop_ramp_);
+			talon_->setPeakOutputForward(params_.peak_output_forward_);
+			talon_->setPeakOutputReverse(params_.peak_output_reverse_);
+			talon_->setNominalOutputForward(params_.nominal_output_forward_);
+			talon_->setNominalOutputReverse(params_.nominal_output_reverse_);
+			talon_->setNeutralDeadband(params_.neutral_deadband_);
+
+			talon_->setVoltageCompensationSaturation(params_.voltage_compensation_saturation_);
+			talon_->setVoltageMeasurementFilter(params_.voltage_measurement_filter_);
+			talon_->setVoltageCompensationEnable(params_.voltage_compensation_enable_);
+
 			return true;
 		}
 
@@ -294,25 +440,10 @@ class TalonControllerInterface
 					config.invert_output,
 					config.sensor_phase);
 
-			TalonCIParams params;
+			TalonCIParams params(config);
 			
-			params.p_[0] = config.p0;
-			params.p_[1] = config.p1;
-			params.i_[0] = config.i0;
-			params.i_[1] = config.i1;
-			params.d_[0] = config.d0;
-			params.d_[1] = config.d1;
-			params.f_[0] = config.f0;
-			params.f_[1] = config.f1;
-			params.izone_[0] = config.izone0;
-			params.izone_[1] = config.izone1;
-			params.invert_output_ = config.invert_output;
-			params.sensor_phase_ = config.sensor_phase;
-
 			writeParamsToHW(params);
-
 		}
-
 
 		// Read params from config file and use them to 
 		// initialize the Talon hardware
@@ -327,17 +458,44 @@ class TalonControllerInterface
 			// Talon using them
 			bool result = readParams(n, tsi) && initWithParams(tci, params_);
 
-			// Create dynamic_reconfigure Server. Pass in n
-			// so that all the vars for the class are grouped
-			// under the node's name.  Doing so allows multiple
-			// copies of the class to be started, each getting
-			// their own namespace.
-			srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(n);
+			if (result)
+			{
+				// Create dynamic_reconfigure Server. Pass in n
+				// so that all the vars for the class are grouped
+				// under the node's name.  Doing so allows multiple
+				// copies of the class to be started, each getting
+				// their own namespace.
+				srv_mutex_ = std::make_shared<boost::recursive_mutex>();
+				srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(*srv_mutex_, n);
 
-			// Register a callback function which is run each
-			// time parameters are changed using 
-			// rqt_reconfigure or the like
-			srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));	
+				// Without this, the first call to callback() 
+				// will overwrite anything passed in from the
+				// launch file
+				srv_->updateConfig(getConfigFromParams());
+
+				// Register a callback function which is run each
+				// time parameters are changed using 
+				// rqt_reconfigure or the like
+				srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));
+
+				//TODO : at some point we'll end up having code which can
+				// modify a setting which is also part of the dynamic
+				// reconfigure code.  In that case, we'll need to do something
+				// like the following to keep the reconfigure value in sync
+				// with the rest of the program state
+				//
+				// void setBlah(const float blah)
+				// {
+				//   params_.blah = blah;
+				//   TalonConfigConfig config = getConfigFromParams();
+				//   config.blah = blah;
+				//   {
+				//     boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
+				//     srv_->updateConfig(config);
+				//   }
+				// talon_->setBlah(blah);
+				// }
+			}
 
 			return result;
 		}
@@ -380,11 +538,48 @@ class TalonControllerInterface
 		{
 			return talon_.state()->getPosition();
 		}
+
 	protected:
 		hardware_interface::TalonCommandHandle talon_;
 		TalonCIParams                          params_;
-		std::shared_ptr<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>> srv_;
+		std::shared_ptr<dynamic_reconfigure::Server<TalonConfigConfig>> srv_;
+		std::shared_ptr<boost::recursive_mutex> srv_mutex_;
 
+	private :
+		// Copy from params_ state to TalonConfigConfig state
+		TalonConfigConfig getConfigFromParams(void) const
+		{
+			TalonConfigConfig config;
+			config.p0            = params_.p_[0];
+			config.p1            = params_.p_[1];
+			config.i0            = params_.i_[0];
+			config.i1            = params_.i_[1];
+			config.d0            = params_.d_[0];
+			config.d1            = params_.d_[1];
+			config.f0            = params_.f_[0];
+			config.f1            = params_.f_[1];
+			config.izone0        = params_.izone_[0];
+			config.izone1        = params_.izone_[1];
+			config.allowable_closed_loop_error0 = params_.allowable_closed_loop_error_[0];
+			config.allowable_closed_loop_error1 = params_.allowable_closed_loop_error_[1];
+			config.max_integral_accumulator0 = params_.max_integral_accumulator_[0];
+			config.max_integral_accumulator1 = params_.max_integral_accumulator_[1];
+			config.invert_output = params_.invert_output_;
+			config.sensor_phase  = params_.sensor_phase_;
+			config.feedback_type = params_.feedback_type_;
+			config.neutral_mode  = params_.neutral_mode_;
+			config.closed_loop_ramp = params_.closed_loop_ramp_;
+			config.open_loop_ramp = params_.open_loop_ramp_;
+			config.peak_output_forward = params_.peak_output_forward_;
+			config.peak_output_reverse = params_.peak_output_reverse_;
+			config.nominal_output_forward = params_.nominal_output_forward_;
+			config.nominal_output_reverse = params_.nominal_output_reverse_;
+			config.neutral_deadband = params_.neutral_deadband_;
+			config.voltage_compensation_saturation = params_.voltage_compensation_saturation_;
+			config.voltage_measurement_filter = params_.voltage_measurement_filter_;
+			config.voltage_compensation_enable = params_.voltage_compensation_enable_;
+			return config;
+		}
 };
 
 // A derived class which disables mode switching. Any

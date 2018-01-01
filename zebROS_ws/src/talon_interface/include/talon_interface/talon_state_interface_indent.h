@@ -90,6 +90,7 @@ namespace hardware_interface
 				fwd_limit_switch_closed_(0),
 				rev_limit_switch_closed_(0),
 				talon_mode_(TalonMode_Uninitialized),
+				v_compensation_ramp_rate_(0),
 				can_id_(can_id),
 				slot_(0),
 				invert_(false),
@@ -100,18 +101,8 @@ namespace hardware_interface
 				encoder_tick_per_rotation_(0),
 
 				//output shaping
-				close_loop_ramp_(0),
-				open_loop_ramp_(0),
-				peak_output_forward_(100.),
-				peak_output_reverse_(100.),
-				nominal_output_forward_(100.),
-				nominal_output_reverse_(100.),
-				neutral_deadband_(0.),
-
-				// voltage compensation
-				voltage_compensation_saturation_(0),
-				voltage_measurement_filter_(0),
-				voltage_compensation_enable_(false)
+				closedloop_secondsFromNeutralToFull_(0),
+				openloop_secondsFromNeutralToFull_(0)
 			{
 			}
 
@@ -179,6 +170,7 @@ namespace hardware_interface
 			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
 			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
 			TalonMode getTalonMode(void)  const {return talon_mode_;}
+			float getVCompensationRampRate(void) const {return v_compensation_ramp_rate_;}
 			
 			bool getInvert(void)          const {return invert_;}
 			bool getSensorPhase(void)     const {return sensor_phase_;}
@@ -197,39 +189,11 @@ namespace hardware_interface
 			void setMotorOutputPercent(float motor_output_percent)       {motor_output_percent_ = motor_output_percent;}
 
 			//output shaping
-			void setClosedloopRamp(float close_loop_ramp) {close_loop_ramp_ = close_loop_ramp;}
-			float getClosedloopRamp(void) const {return close_loop_ramp_;}
+			void ConfigClosedloopRamp(float closedloop_secondsFromNeutralToFull) {closedloop_secondsFromNeutralToFull_ = closedloop_secondsFromNeutralToFull;}
+			float getConfigClosedloopRamp() {return closedloop_secondsFromNeutralToFull_;}
 
-			void setOpenloopRamp(float open_loop_ramp) {open_loop_ramp_ = open_loop_ramp;}
-			float getOpenloopRamp(void) const {return open_loop_ramp_;}
-
-			void setPeakOutputForward(float peak_output_forward) {peak_output_forward_ = peak_output_forward;}
-			float getPeakOutputForward(void) const {return peak_output_forward_;}
-			void setPeakOutputReverse(float peak_output_reverse) {peak_output_reverse_ = peak_output_reverse;}
-			float getPeakOutputReverse(void) const {return peak_output_reverse_;}
-
-			void setNominalOutputForward(float nominal_output_forward) {nominal_output_forward_ = nominal_output_forward;}
-			float getNominalOutputForward(void) const {return nominal_output_forward_;}
-			void setNominalOutputReverse(float nominal_output_reverse) {nominal_output_reverse_ = nominal_output_reverse;}
-			float getNominalOutputReverse(void) const {return nominal_output_reverse_;}
-
-			void setNeutralDeadband(float neutral_deadband) {neutral_deadband_ = neutral_deadband;}
-			float getNeutralDeadband(void) const {return neutral_deadband_;}
-
-			void setVoltageCompensationSaturation(float voltage_compensation_saturation) { voltage_compensation_saturation_ = voltage_compensation_saturation; }
-			float getVoltageCompensationSaturation(void) const { return voltage_compensation_saturation_;}
-
-			void setVoltageMeasurementFilter(int voltage_measurement_filter)
-			{
-				voltage_measurement_filter_ = voltage_measurement_filter;
-			}
-			int getVoltageMeasurementFilter(void) const { return voltage_measurement_filter_;}
-
-			void setVoltageCompensationEnable(bool voltage_compensation_enable) { voltage_compensation_enable_ = voltage_compensation_enable;}
-			bool getVoltageCompensationEnable(void) const {return voltage_compensation_enable_;}
-
-
-
+			void ConfigOpenloopRamp(float openloop_secondsFromNeutralToFull) {openloop_secondsFromNeutralToFull_ = openloop_secondsFromNeutralToFull;}
+			float getConfigOpenloopRamp() {return openloop_secondsFromNeutralToFull_;}
 
 			void setPidfP(float pidf_p, int index)	     {
 			if((index == 0) || (index == 1))
@@ -282,6 +246,7 @@ namespace hardware_interface
 				else
 					ROS_WARN_STREAM("Invalid talon mode requested");
 			}
+			void setVCompensationRampRate(float ramp_rate) {v_compensation_ramp_rate_ = ramp_rate;}
 			void setSlot(int slot)      {slot_ = slot;}
 			void setInvert(bool invert) {invert_ = invert;}
 			void setSensorPhase(bool sensor_phase) {sensor_phase_ = sensor_phase;}
@@ -305,14 +270,14 @@ namespace hardware_interface
 			}
 			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
 
-		
-#if 0 // Update to newer list of CTRE functions
 			//general
 			void Disable(){ }
 			void Enable(){ }
 			void ClearStickyFaults(){ }
 
 			//voltage
+			void SetVoltageRampRate(double rampRate){ }
+			virtual void SetVoltageCompensationRampRate(double rampRate){ } 
 			void ConfigNeutralMode(NeutralMode mode){ }
 			void ConfigPeakOutputVoltage(double forwardVoltage, double reverseVoltage){ }
 			void SetNominalClosedLoopVoltage(double voltage){ }
@@ -359,11 +324,13 @@ namespace hardware_interface
 			void SetDataPortOutputPeriod(uint32_t periodMs){ }
 			void SetDataPortOutputEnable(uint32_t idx, bool enable){ }
 			void SetDataPortOutput(uint32_t idx, uint32_t OnTimeMs){ }
-#endif
+
+
 
 			// Add code to read and/or store all the other state from the Talon :
 			// limit switch settings, sensing
 			// pid slot selected and PIDF values
+			// voltage compensation
 			// voltage compensation stuff
 			// etc, etc, etc
 			//RG: I think there should be a set peak voltage function - that should go in talon_command since it is something sent to the talon. We could reflect that setting here, though
@@ -388,6 +355,7 @@ namespace hardware_interface
 			int fwd_limit_switch_closed_;
 			int rev_limit_switch_closed_;
 			TalonMode talon_mode_;
+			float v_compensation_ramp_rate_; //voltage compensation
 
 			int can_id_;
 
@@ -402,17 +370,8 @@ namespace hardware_interface
 			int encoder_tick_per_rotation_;
 
 			// output shaping
-			float close_loop_ramp_;
-			float open_loop_ramp_;
-			float peak_output_forward_;
-			float peak_output_reverse_;
-			float nominal_output_forward_;
-			float nominal_output_reverse_;
-			float neutral_deadband_;
-
-			float voltage_compensation_saturation_;
-			int   voltage_measurement_filter_;
-			bool  voltage_compensation_enable_;
+			float closedloop_secondsFromNeutralToFull_;
+			float openloop_secondsFromNeutralToFull_;
 	};
 
 	// Handle - used by each controller to get, by name of the

@@ -89,7 +89,6 @@ namespace talon_state_controller
       realtime_pub_->msg_.pid_max_integral_accumulator0.push_back(0);
       realtime_pub_->msg_.pid_max_integral_accumulator1.push_back(0);
       realtime_pub_->msg_.set_point.push_back(0.0);
-      realtime_pub_->msg_.VCompensationRampRate.push_back(0.0);
       realtime_pub_->msg_.can_id.push_back(0);
       realtime_pub_->msg_.closed_loop_error.push_back(0);
       realtime_pub_->msg_.integral_accumulator.push_back(0);
@@ -100,6 +99,18 @@ namespace talon_state_controller
       realtime_pub_->msg_.sensorPhase.push_back(false);
 	  realtime_pub_->msg_.neutral_mode.push_back("");
       realtime_pub_->msg_.neutral_output.push_back(false);
+
+      realtime_pub_->msg_.closed_loop_ramp.push_back(0);
+      realtime_pub_->msg_.open_loop_ramp.push_back(0);
+      realtime_pub_->msg_.peak_output_forward.push_back(0);
+      realtime_pub_->msg_.peak_output_reverse.push_back(0);
+      realtime_pub_->msg_.nominal_output_forward.push_back(0);
+      realtime_pub_->msg_.nominal_output_reverse.push_back(0);
+      realtime_pub_->msg_.neutral_deadband.push_back(0);
+
+      realtime_pub_->msg_.voltage_compensation_saturation.push_back(0);
+      realtime_pub_->msg_.voltage_measurement_filter.push_back(0);
+      realtime_pub_->msg_.voltage_compensation_enable.push_back(false);
 
       talon_state_.push_back(hw->getHandle(joint_names[i]));
     }
@@ -176,7 +187,6 @@ namespace talon_state_controller
           realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getFwdLimitSwitch();
           realtime_pub_->msg_.reverse_limit_switch[i] = talon_state_[i]->getRevLimitSwitch();
           //realtime_pub_->msg_.talon_mode[i] = talon_state_[i]->getTalonMode();
-          realtime_pub_->msg_.VCompensationRampRate[i] = talon_state_[i]->getVCompensationRampRate();
           realtime_pub_->msg_.invert[i] = talon_state_[i]->getInvert();
           realtime_pub_->msg_.sensorPhase[i] = talon_state_[i]->getSensorPhase();
           int talonMode = talon_state_[i]->getTalonMode();
@@ -240,6 +250,17 @@ namespace talon_state_controller
 				  break;
 		  }
 		  realtime_pub_->msg_.neutral_output[i] = talon_state_[i]->getNeutralOutput();
+		  realtime_pub_->msg_.closed_loop_ramp[i] = talon_state_[i]->getClosedloopRamp();
+		  realtime_pub_->msg_.open_loop_ramp[i] = talon_state_[i]->getOpenloopRamp();
+		  realtime_pub_->msg_.peak_output_forward[i] = talon_state_[i]->getPeakOutputForward();
+		  realtime_pub_->msg_.peak_output_reverse[i] = talon_state_[i]->getPeakOutputReverse();
+		  realtime_pub_->msg_.nominal_output_forward[i] = talon_state_[i]->getNominalOutputForward();
+		  realtime_pub_->msg_.nominal_output_reverse[i] = talon_state_[i]->getNominalOutputReverse();
+		  realtime_pub_->msg_.neutral_deadband[i] = talon_state_[i]->getNeutralDeadband();
+
+		  realtime_pub_->msg_.voltage_compensation_saturation[i] = talon_state_[i]->getVoltageCompensationSaturation();
+		  realtime_pub_->msg_.voltage_measurement_filter[i] = talon_state_[i]->getVoltageMeasurementFilter();
+		  realtime_pub_->msg_.voltage_compensation_enable[i] = talon_state_[i]->getVoltageCompensationEnable();
         }
         realtime_pub_->unlockAndPublish();
       }

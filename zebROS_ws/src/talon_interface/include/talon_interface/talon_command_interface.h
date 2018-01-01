@@ -44,9 +44,20 @@ namespace hardware_interface
 				encoder_tick_per_rotation_(0),
 				
 				//output shaping
-				outputShapingChanged(false),
-				closedloop_secondsFromNeutralToFull_(0),
-				openloop_secondsFromNeutralToFull_(0)
+				closed_loop_ramp_(0),
+				open_loop_ramp_(0),
+				peak_output_forward_(100.),
+				peak_output_reverse_(100.),
+				nominal_output_forward_(100.),
+				nominal_output_reverse_(100.),
+				neutral_deadband_(0.),
+				outputShapingChanged_(false),
+
+				// voltage compensation
+				voltage_compensation_saturation_(0),
+				voltage_measurement_filter_(0),
+				voltage_compensation_enable_(false),
+				voltage_compensation_changed_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -77,7 +88,7 @@ namespace hardware_interface
 			TalonMode getMode(void) const {return mode_;}
 
 			void setP(float oldP, int index){
-				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setP()");
 					return;
@@ -85,7 +96,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				p_[index] = oldP;}
 			float getP(int index) const {
-				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getP()");
 					return 0.0;
@@ -94,7 +105,7 @@ namespace hardware_interface
 			}
 
 			void setI(float ii, int index){
-				if ((index < 0) || (index >= (sizeof(i_) / sizeof(i_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(i_) / sizeof(i_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setI()");
 					return;
@@ -102,7 +113,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				i_[index] = ii;}
 			float getI(int index) const {
-				if ((index < 0) || (index >= (sizeof(i_) / sizeof(i_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(i_) / sizeof(i_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getI()");
 					return 0.0;
@@ -111,7 +122,7 @@ namespace hardware_interface
 			}
 
 			void setD(float dd, int index){
-				if ((index < 0) || (index >= (sizeof(d_) / sizeof(d_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(d_) / sizeof(d_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setD()");
 					return;
@@ -119,7 +130,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				d_[index] = dd;}
 			float getD(int index) const {
-				if ((index < 0) || (index >= (sizeof(d_) / sizeof(d_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(d_) / sizeof(d_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getD()");
 					return 0.0;
@@ -128,7 +139,7 @@ namespace hardware_interface
 			}
 
 			void setF(float ff, int index){
-				if ((index < 0) || (index >= (sizeof(f_) / sizeof(f_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(f_) / sizeof(f_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setF()");
 					return;
@@ -136,7 +147,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				f_[index] = ff;}
 			float getF(int index){
-				if ((index < 0) || (index >= (sizeof(f_) / sizeof(f_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(f_) / sizeof(f_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getF()");
 					return 0.0;
@@ -145,7 +156,7 @@ namespace hardware_interface
 			}
 
 			void setIZ(int oldIZ, int index){
-				if ((index < 0) || (index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setIZ()");
 					return;
@@ -153,7 +164,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				i_zone_[index] = oldIZ;}
 			int getIZ(int index) const {
-				if ((index < 0) || (index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getIZ()");
 					return 0.0;
@@ -162,7 +173,7 @@ namespace hardware_interface
 			}
 
 			void setAllowableClosedloopError(int allowable_closed_loop_error, int index) {
-				if ((index < 0) || (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
 					return;
@@ -171,7 +182,7 @@ namespace hardware_interface
 				allowable_closed_loop_error_[index] = allowable_closed_loop_error;
 			}
 			int getAllowableClosedloopError(int index) const {
-				if ((index < 0) || (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getAllowableClosedLoopErrro()");
 					return 0;
@@ -179,7 +190,7 @@ namespace hardware_interface
 				return allowable_closed_loop_error_[index];
 			}
 			void setMaxIntegralAccumulator(int max_integral_accumulator, int index) {
-				if ((index < 0) || (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
 					return;
@@ -188,7 +199,7 @@ namespace hardware_interface
 				max_integral_accumulator_[index] = max_integral_accumulator;
 			}
 			int getMaxIntegralAccumulator(int index) const {
-				if ((index < 0) || (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getAllowableClosedLoopErrro()");
 					return 0.0;
@@ -197,7 +208,7 @@ namespace hardware_interface
 			}
 			
 			void setPID(float oldP, float oldI, float oldD, int index){
-				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setPID()");
 					return;
@@ -205,7 +216,7 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				p_[index] = oldP;i_[index] =oldI;d_[index]=oldD;}
 			void setPID(float oldP, float oldI, float oldD, float oldF, int index){
-				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setPIF()");
 					return;
@@ -243,7 +254,10 @@ namespace hardware_interface
 
 			void setNeutralMode(NeutralMode neutral_mode)
 			{
-				if ((neutral_mode <= NeutralMode_Uninitialized) || (neutral_mode >= NeutralMode_Last))
+				if (neutral_mode == NeutralMode_Uninitialized)
+					return;
+				else if ((neutral_mode < NeutralMode_Uninitialized) || 
+						 (neutral_mode >= NeutralMode_Last))
 				{
 					ROS_WARN("Invalid neutral_mode passed to TalonHWCommand::setNeutralMode()");
 					return;
@@ -270,7 +284,7 @@ namespace hardware_interface
 				return true;
 			}
 			bool pidfChanged(float &p, float &i, float &d, float &f, int &iz, int allowable_closed_loop_error, float max_integral_accumulator, int index){
-				if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::pidfChanged()");
 					return false;
@@ -330,20 +344,24 @@ namespace hardware_interface
 			}
 			
 			//output shaping
-			bool closedLoopSecondsFromNeutralToFullChanged(float &closedloop_secondsFromNeutralToFull)
+			bool outputShapingChanged(float &closed_loop_ramp,
+					float &open_loop_ramp,
+					float &peak_output_forward,
+					float &peak_output_reverse,
+					float &nominal_output_forward,
+					float &nominal_output_reverse,
+					float &neutral_deadband)
 			{
-				closedloop_secondsFromNeutralToFull = closedloop_secondsFromNeutralToFull_;
-				if (!outputShapingChanged)
+				closed_loop_ramp = closed_loop_ramp_;
+				open_loop_ramp = open_loop_ramp_;
+				peak_output_forward = peak_output_forward_;
+				peak_output_reverse = peak_output_reverse_;
+				nominal_output_forward = nominal_output_forward_;
+				nominal_output_reverse = nominal_output_reverse_;
+				neutral_deadband = neutral_deadband_;
+				if (!outputShapingChanged_)
 					return false;
-				outputShapingChanged = false;
-				return true;
-			}
-			bool openLoopSecondsFromNeutralToFullChanged(float &openloop_secondsFromNeutralToFull)
-			{
-				openloop_secondsFromNeutralToFull = openloop_secondsFromNeutralToFull_;
-				if (!outputShapingChanged)
-					return false;
-				outputShapingChanged = false;
+				outputShapingChanged_ = false;
 				return true;
 			}
 
@@ -371,20 +389,116 @@ namespace hardware_interface
 			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
 
 			//output shaping
-			void setClosedLoopSecondsFromNeutralToFull(float closedloop_secondsFromNeutralToFull) {
-				if (closedloop_secondsFromNeutralToFull_ != closedloop_secondsFromNeutralToFull) {
-					closedloop_secondsFromNeutralToFull_ = closedloop_secondsFromNeutralToFull;
-					outputShapingChanged = true;
+			void setClosedloopRamp(float closed_loop_ramp) {
+				if (closed_loop_ramp_ != closed_loop_ramp) {
+					closed_loop_ramp_ = closed_loop_ramp;
+					outputShapingChanged_ = true;
 				}
 			}
-			float getClosedLoopSecondsFromNeutralToFul() {return closedloop_secondsFromNeutralToFull_;}
-			void setOpenLoopSecondsFromNeutralToFull(float openloop_secondsFromNeutralToFull) {
-				if (openloop_secondsFromNeutralToFull_ != openloop_secondsFromNeutralToFull) {
-					openloop_secondsFromNeutralToFull_ = openloop_secondsFromNeutralToFull;
-					outputShapingChanged = true;
+			float getClosedloopRamp(void) const {return closed_loop_ramp_;}
+			void setOpenloopRamp(float open_loop_ramp) {
+				if (open_loop_ramp_ != open_loop_ramp) {
+					open_loop_ramp_ = open_loop_ramp;
+					outputShapingChanged_ = true;
 				}
 			}
-			float getOpenLoopSecondsFromNeutralToFul() {return openloop_secondsFromNeutralToFull_;}
+			float getOpenloopRamp(void) const {return open_loop_ramp_;}
+
+			void setPeakOutputForward(float peak_output_forward)
+			{
+				if (peak_output_forward != peak_output_forward_)
+				{
+					peak_output_forward_ = peak_output_forward;
+					outputShapingChanged_ = true;
+				}
+			}
+			float getPeakOutputForward(void) const {return peak_output_forward_;}
+
+			void setPeakOutputReverse(float peak_output_reverse)
+			{
+				if (peak_output_reverse != peak_output_reverse_)
+				{
+					peak_output_reverse_ = peak_output_reverse;
+					outputShapingChanged_ = true;
+				}
+			}
+			float getPeakOutputReverse(void) const {return peak_output_reverse_;}
+
+			void setNominalOutputForward(float nominal_output_forward)
+			{
+				if (nominal_output_forward != nominal_output_forward_)
+				{
+					nominal_output_forward_ = nominal_output_forward;
+					outputShapingChanged_ = true;
+				}
+			}
+			float getNominalOutputForward(void) const {return nominal_output_forward_;}
+
+			void setNominalOutputReverse(float nominal_output_reverse)
+			{
+				if (nominal_output_reverse != nominal_output_reverse_)
+				{
+					nominal_output_reverse_ = nominal_output_reverse;
+					outputShapingChanged_ = true;
+				}
+			}
+			float getNominalOutputReverse(void) const {return nominal_output_reverse_;}
+
+			void setNeutralDeadband(float neutral_deadband)
+			{
+				if (neutral_deadband != neutral_deadband_)
+				{
+					neutral_deadband_ = neutral_deadband;
+					outputShapingChanged_ = true;
+				}
+			}
+			float getNeutralDeadband(void) const {return neutral_deadband_;}
+
+			void setVoltageCompensationSaturation(float voltage)
+			{
+				if (voltage != voltage_compensation_saturation_)
+				{
+					voltage_compensation_saturation_ = voltage;
+					voltage_compensation_changed_ = true;
+				}
+			}
+			float getVoltageCompensationSaturation(void) const { return voltage_compensation_saturation_;}
+
+			void setVoltageMeasurementFilter(int filterWindowSamples)
+			{
+				if (filterWindowSamples != voltage_measurement_filter_)
+				{
+					voltage_measurement_filter_ = filterWindowSamples;
+					voltage_compensation_changed_ = true;
+				}
+			}
+			int getVoltageMeasurementFilter(void) const {return voltage_compensation_saturation_;}
+
+			void setVoltageCompensationEnable(bool enable)
+			{
+				if (enable != voltage_compensation_enable_)
+				{
+					voltage_compensation_enable_ = enable;
+					voltage_compensation_changed_ = true;
+				}
+			}
+
+			bool getEnableVoltageCompenation(void) const {return voltage_compensation_enable_;} 
+
+			bool VoltageCompensationChanged(float & voltage_compensation_saturation,
+					int &voltage_measurement_filter,
+					bool &voltage_compensation_enable)
+			{
+				voltage_compensation_saturation_ = voltage_compensation_saturation;
+				voltage_measurement_filter_ = voltage_measurement_filter;
+				voltage_compensation_enable_ = voltage_compensation_enable;
+				if (voltage_compensation_changed_)
+				{
+					voltage_compensation_changed_ = false;
+					return true;
+				}
+				return false;
+			}
 
 
 			//general
@@ -447,21 +561,9 @@ namespace hardware_interface
 			bool      command_changed_;
 			TalonMode mode_;         // talon mode - % vbus, close loop, motion profile, etc
 			bool      mode_changed_; // set if mode needs to be updated on the talon hw
-			float     ramprate;
 			//RG: shouldn't there be a variable for the peak voltage limits?
 			int       pidf_slot_; // index 0 or 1 of the active PIDF slot
 			bool      pidf_slot_changed_; // set to true to trigger a write to PIDF select on Talon
-
-			// 2 entries in the Talon HW for each of these settings
-			float     p_[2];
-			float     i_[2];
-			int       i_zone_[2];
-			float     d_[2];
-			float     f_[2];
-			int       allowable_closed_loop_error_[2];
-			float     max_integral_accumulator_[2];
-			bool      pidf_changed_[2];
-
 			float     iaccum_;
 			bool      iaccum_changed_;
 
@@ -477,9 +579,29 @@ namespace hardware_interface
 			int encoder_tick_per_rotation_;
 
 			//output shaping
-			float closedloop_secondsFromNeutralToFull_;
-			float openloop_secondsFromNeutralToFull_;
-			bool outputShapingChanged;
+			float closed_loop_ramp_;
+			float open_loop_ramp_;
+			float peak_output_forward_;
+			float peak_output_reverse_;
+			float nominal_output_forward_;
+			float nominal_output_reverse_;
+			float neutral_deadband_;
+			bool outputShapingChanged_;
+
+			float voltage_compensation_saturation_;
+			int   voltage_measurement_filter_;
+			bool  voltage_compensation_enable_;
+			bool  voltage_compensation_changed_;
+
+			// 2 entries in the Talon HW for each of these settings
+			float     p_[2];
+			float     i_[2];
+			int       i_zone_[2];
+			float     d_[2];
+			float     f_[2];
+			int       allowable_closed_loop_error_[2];
+			float     max_integral_accumulator_[2];
+			bool      pidf_changed_[2];
 	};
 
 	// Handle - used by each controller to get, by name of the

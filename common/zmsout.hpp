@@ -15,10 +15,10 @@ class ZMSOut : public MediaOut
 		ZMSOut(const ZMSOut &zmsout) = delete;
 		ZMSOut &operator=(const ZMSOut &zmsout) = delete;
 	private :
-		bool openNext(int fileCounter);
+		bool openNext(int fileCounter) override;
+		bool write(const cv::Mat &frame, const cv::Mat &depth) override;
 		void deleteOutputPointers(void);
 		bool openSerializeOutput(const char *filename);
-		bool write(const cv::Mat &frame, const cv::Mat &depth);
 
 		std::string fileName_;
 

@@ -15,8 +15,8 @@ class AVIOut : public MediaOut
 		AVIOut& operator=(const AVIOut &aviout) = delete;
 
 	private :
-		bool openNext(int fileCounter);
-		bool write(const cv::Mat &frame, const cv::Mat &depth);
+		bool openNext(int fileCounter) override;
+		bool write(const cv::Mat &frame, const cv::Mat &depth) override;
 
 		cv::Size         size_;
 		cv::VideoWriter *writer_;
