@@ -84,7 +84,7 @@ namespace hardware_interface
 				pidf_izone_ {0, 0},
 				allowable_closed_loop_error_ {0,0},
 				max_integral_accumulator_ {0,0},
-				closed_loop_error_(0),
+				closed_loop_error_(0.0),
 				integral_accumulator_(0.0),
 				error_derivative_(0.0),
 				fwd_limit_switch_closed_(0),
@@ -173,7 +173,7 @@ namespace hardware_interface
 					return 0;}
 			}
 
-			int getClosedLoopError(void)  const {return closed_loop_error_;}
+			double getClosedLoopError(void)  const {return closed_loop_error_;}
 			double getIntegralAccumulator(void)  const {return integral_accumulator_;}
 			double getErrorDerivative(void)      const {return error_derivative_;}
 			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
@@ -270,7 +270,7 @@ namespace hardware_interface
 				else
 					ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");}
 
-			void setClosedLoopError(int closed_loop_error) 	{closed_loop_error_ = closed_loop_error;}
+			void setClosedLoopError(double closed_loop_error) 	{closed_loop_error_ = closed_loop_error;}
 			void setIntegralAccumulator(double integral_accumulator) {integral_accumulator_ = integral_accumulator; }
 			void setErrorDerivative(double error_derivative) {error_derivative_ = error_derivative; }
 			void setFwdLimitSwitch(int fwd_limit_switch_closed) {fwd_limit_switch_closed_ = fwd_limit_switch_closed;}
@@ -383,7 +383,7 @@ namespace hardware_interface
 			int   pidf_izone_[2];
 			int   allowable_closed_loop_error_[2];
 			double max_integral_accumulator_[2];
-			int closed_loop_error_;
+			double closed_loop_error_;
 			double integral_accumulator_;
 			double error_derivative_;
 			int fwd_limit_switch_closed_;

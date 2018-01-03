@@ -47,7 +47,7 @@ float64[] pid_max_integral_accumulator0
 float64[] pid_max_integral_accumulator1
 float64[] set_point
 int8[] can_id
-int32[] closed_loop_error
+float64[] closed_loop_error
 float64[] integral_accumulator
 float64[] error_derivative
 int8[] forward_limit_switch
