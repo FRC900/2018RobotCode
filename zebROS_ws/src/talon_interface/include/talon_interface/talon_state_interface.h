@@ -111,7 +111,13 @@ namespace hardware_interface
 				// voltage compensation
 				voltage_compensation_saturation_(0),
 				voltage_measurement_filter_(0),
-				voltage_compensation_enable_(false)
+				voltage_compensation_enable_(false),
+
+				// current limiting
+				current_limit_peak_amps_(0),
+				current_limit_peak_msec_(0),
+				current_limit_continuous_amps_(0),
+				current_limit_enable_(false)
 			{
 			}
 
@@ -229,8 +235,15 @@ namespace hardware_interface
 			void setVoltageCompensationEnable(bool voltage_compensation_enable) { voltage_compensation_enable_ = voltage_compensation_enable;}
 			bool getVoltageCompensationEnable(void) const {return voltage_compensation_enable_;}
 
+			void setPeakCurrentLimit(int amps) { current_limit_peak_amps_ = amps; }
+			int getPeakCurrentLimit(void) const { return current_limit_peak_amps_; }
 
-
+			void setPeakCurrentDuration(int msec) { current_limit_peak_msec_ = msec; }
+			int getPeakCurrentDuration(void) const { return current_limit_peak_msec_; }
+			void setContinuousCurrentLimit(int amps) { current_limit_continuous_amps_ = amps; }
+			int getContinuousCurrentLimit(void) const { return current_limit_continuous_amps_; }
+			void setCurrentLimitEnable(bool enable) { current_limit_enable_ = enable; }
+			bool getCurrentLimitEnable(void) const { return current_limit_enable_; }
 
 			void setPidfP(double pidf_p, int index)	     {
 			if((index == 0) || (index == 1))
@@ -307,61 +320,6 @@ namespace hardware_interface
 			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
 
 		
-#if 0 // Update to newer list of CTRE functions
-			//general
-			void Disable(){ }
-			void Enable(){ }
-			void ClearStickyFaults(){ }
-
-			//voltage
-			void ConfigNeutralMode(NeutralMode mode){ }
-			void ConfigPeakOutputVoltage(double forwardVoltage, double reverseVoltage){ }
-			void SetNominalClosedLoopVoltage(double voltage){ }
-
-			//closed loop control/sensors
-			virtual void SetAnalogPosition(int newPosition){ }
-			virtual void SetEncPosition(int){ }
-			void SetNumberOfQuadIdxRises(int rises){ }
-			virtual void SetPulseWidthPosition(int newpos){ }
-			void ConfigEncoderCodesPerRev(uint16_t codesPerRev){ }
-			void ConfigPotentiometerTurns(uint16_t turns) { }
-			void ConfigSoftPositionLimits(double forwardLimitPosition, double reverseLimitPosition){ }
-			void EnableZeroSensorPositionOnIndex(bool enable, bool risingEdge){ }
-			void EnableZeroSensorPositiononForwardLimit(bool enable){ }
-			void EnableZeroSensorPositionOnReverseLimit(bool enable){ }
-			//void SetFeedbackDevice(FeedbackDevice device){ }
-			void SetSensorDirection(bool reverseSensor){ }
-			void SetClosedLoopOutputDirection(bool reverseOutput){ }
-			void SetCloseLoopRampRate(double rampRate){ }
-
-			//limits
-			void ConfigForwardLimit(double forwardLimitPosition){ }
-			void ConfigReverseLimit(double reverseLimitPosition){ }
-			void ConfigLimitSwitchOverrides(bool bForwardLimitSwitchEn, bool bReverseLimitSwitchEn){ }
-			void ConfigForwardSoftLimitEnable(bool bForwardSoftLimitEn){ }
-			void ConfigReverseSoftLimitEnable(bool bReverseSoftLimitEn){ }
-			void ConfigFwdLimitSwitchNormallyOpen(bool normallyOpen){ }
-			void ConfigRevLimitSwitchNormallyOpen(bool normallyOpen){ }
-			void ConfigLimitMode(int mode){ }
-
-			//motion profiling
-			void ChangeMotionControlFramePeriod(int period){ }
-			void ClearMotionProfileTrajectories(){ }
-			//bool PushMotionProfileTrajectory(const TrajectoryPoint& trajPt){ }
-			void ProcessMotionProfileBuffer(){ }
-			void ClearMotionProfileHasUnderrun(){ }
-			int SetMotionMagicCruiseVelocity(double motMagicCruiseVeloc){ }
-			int SetMotionMagicAcceleration(double motMagicAccel){ }
-			int SetCurrentLimit(uint32_t amps){ }
-			int EnableCurrentLimit(bool enable){ }
-			int SetCustomParam0(int32_t value){ }
-			int SetCustomParam1(int32_t value){ }
-			//void SetInverted(bool isInverted) override{ }
-			void SetDataPortOutputPeriod(uint32_t periodMs){ }
-			void SetDataPortOutputEnable(uint32_t idx, bool enable){ }
-			void SetDataPortOutput(uint32_t idx, uint32_t OnTimeMs){ }
-#endif
-
 			// Add code to read and/or store all the other state from the Talon :
 			// limit switch settings, sensing
 			// pid slot selected and PIDF values
@@ -411,9 +369,16 @@ namespace hardware_interface
 			double nominal_output_reverse_;
 			double neutral_deadband_;
 
+			// voltage compensation
 			double voltage_compensation_saturation_;
 			int   voltage_measurement_filter_;
 			bool  voltage_compensation_enable_;
+			
+			// current limiting
+			int current_limit_peak_amps_;
+			int current_limit_peak_msec_;
+			int current_limit_continuous_amps_;
+			bool current_limit_enable_;
 	};
 
 	// Handle - used by each controller to get, by name of the

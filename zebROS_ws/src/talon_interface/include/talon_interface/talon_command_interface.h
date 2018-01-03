@@ -57,7 +57,14 @@ namespace hardware_interface
 				voltage_compensation_saturation_(0),
 				voltage_measurement_filter_(0),
 				voltage_compensation_enable_(false),
-				voltage_compensation_changed_(false)
+				voltage_compensation_changed_(false),
+
+				// current limiting
+				current_limit_peak_amps_(0),
+				current_limit_peak_msec_(0),
+				current_limit_continuous_amps_(0),
+				current_limit_enable_(false),
+				current_limit_changed_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -500,64 +507,59 @@ namespace hardware_interface
 				return false;
 			}
 
+			// current limits
+			void setPeakCurrentLimit(int amps)
+			{
+				current_limit_peak_amps_ = amps;
+				current_limit_changed_ = true;
+			}
+			int getPeakCurrentLimit(void) const
+			{
+				return current_limit_peak_amps_;
+			}
 
-			//general
-			void Disable(){ }
-			void Enable(){ }
-			void ClearStickyFaults(){ }
+			void setPeakCurrentDuration(int msec)
+			{
+				current_limit_peak_msec_ = msec;
+				current_limit_changed_ = true;
+			}
+			int getPeakCurrentDuration(void) const
+			{
+				return current_limit_peak_msec_;
+			}
+			void setContinuousCurrentLimit(int amps)
+			{
+				current_limit_continuous_amps_ = amps;
+				current_limit_changed_ = true;
+			}
+			int getContinuousCurrentLimit(void) const
+			{
+				return current_limit_continuous_amps_;
+			}
+			void setCurrentLimitEnable(bool enable)
+			{
+				current_limit_enable_ = enable;
+				current_limit_changed_ = true;
+			}
+			bool getCurrentLimitEnable(void) const
+			{
+				return current_limit_enable_;
+			}
 
-			//voltage
-			void SetVoltageRampRate(double rampRate){ }
-			virtual void SetVoltageCompensationRampRate(double rampRate){ } 
-			void ConfigNeutralMode(NeutralMode mode){ }
-			void ConfigPeakOutputVoltage(double forwardVoltage, double reverseVoltage){ }
-			void SetNominalClosedLoopVoltage(double voltage){ }
-
-			//closed loop control/sensors
-			virtual void SetAnalogPosition(int newPosition){ }
-			virtual void SetEncPosition(int){ }
-			void SetNumberOfQuadIdxRises(int rises){ }
-			virtual void SetPulseWidthPosition(int newpos){ }
-			void ConfigEncoderCodesPerRev(uint16_t codesPerRev){ }
-			void ConfigPotentiometerTurns(uint16_t turns) { }
-			void ConfigSoftPositionLimits(double forwardLimitPosition, double reverseLimitPosition){ }
-			void EnableZeroSensorPositionOnIndex(bool enable, bool risingEdge){ }
-			void EnableZeroSensorPositiononForwardLimit(bool enable){ }
-			void EnableZeroSensorPositionOnReverseLimit(bool enable){ }
-			//void SetFeedbackDevice(FeedbackDevice device){ }
-			void SetSensorDirection(bool reverseSensor){ }
-			void SetClosedLoopOutputDirection(bool reverseOutput){ }
-			void SetCloseLoopRampRate(double rampRate){ }
-
-			//limits
-			void ConfigForwardLimit(double forwardLimitPosition){ }
-			void ConfigReverseLimit(double reverseLimitPosition){ }
-			void ConfigLimitSwitchOverrides(bool bForwardLimitSwitchEn, bool bReverseLimitSwitchEn){ }
-			void ConfigForwardSoftLimitEnable(bool bForwardSoftLimitEn){ }
-			void ConfigReverseSoftLimitEnable(bool bReverseSoftLimitEn){ }
-			void ConfigFwdLimitSwitchNormallyOpen(bool normallyOpen){ }
-			void ConfigRevLimitSwitchNormallyOpen(bool normallyOpen){ }
-			void ConfigLimitMode(int mode){ }
-
-			//motion profiling
-			void ChangeMotionControlFramePeriod(int period){ }
-			void ClearMotionProfileTrajectories(){ }
-			//bool PushMotionProfileTrajectory(const TrajectoryPoint& trajPt){ }
-			void ProcessMotionProfileBuffer(){ }
-			void ClearMotionProfileHasUnderrun(){ }
-			int SetMotionMagicCruiseVelocity(double motMagicCruiseVeloc){ }
-			int SetMotionMagicAcceleration(double motMagicAccel){ }
-			int SetCurrentLimit(uint32_t amps){ }
-			int EnableCurrentLimit(bool enable){ }
-			int SetCustomParam0(int32_t value){ }
-			int SetCustomParam1(int32_t value){ }
-			//void SetInverted(bool isInverted) override{ }
-			void SetDataPortOutputPeriod(uint32_t periodMs){ }
-			void SetDataPortOutputEnable(uint32_t idx, bool enable){ }
-			void SetDataPortOutput(uint32_t idx, uint32_t OnTimeMs){ }
+			bool currentLimitChanged(int &peak_amps, int &peak_msec, int &continuous_amps, bool &enable)
+			{
+				peak_amps = current_limit_peak_amps_;
+				peak_msec = current_limit_peak_msec_;
+				continuous_amps = current_limit_continuous_amps_;
+				enable = current_limit_enable_;
+				if (!current_limit_changed_)
+					return false;
+				current_limit_changed_ = true;
+				return true;
+			}
 
 		private:
-			double     command_; // motor setpoint - % vbus, velocity, position, etc
+			double    command_; // motor setpoint - % vbus, velocity, position, etc
 			bool      command_changed_;
 			TalonMode mode_;         // talon mode - % vbus, close loop, motion profile, etc
 			bool      mode_changed_; // set if mode needs to be updated on the talon hw
@@ -593,15 +595,21 @@ namespace hardware_interface
 			bool  voltage_compensation_enable_;
 			bool  voltage_compensation_changed_;
 
+			int current_limit_peak_amps_;
+			int current_limit_peak_msec_;
+			int current_limit_continuous_amps_;
+			bool current_limit_enable_;
+			bool current_limit_changed_;
+
 			// 2 entries in the Talon HW for each of these settings
-			double     p_[2];
-			double     i_[2];
-			int       i_zone_[2];
-			double     d_[2];
-			double     f_[2];
-			int       allowable_closed_loop_error_[2];
-			double     max_integral_accumulator_[2];
-			bool      pidf_changed_[2];
+			double p_[2];
+			double i_[2];
+			int    i_zone_[2];
+			double d_[2];
+			double f_[2];
+			int    allowable_closed_loop_error_[2];
+			double max_integral_accumulator_[2];
+			bool   pidf_changed_[2];
 	};
 
 	// Handle - used by each controller to get, by name of the

@@ -58,7 +58,11 @@ class TalonCIParams
 				neutral_deadband_(0.),
 				voltage_compensation_saturation_(0),
 				voltage_measurement_filter_(0),
-				voltage_compensation_enable_(false)
+				voltage_compensation_enable_(false),
+				current_limit_peak_amps_(0),
+				current_limit_peak_msec_(0),
+				current_limit_continuous_amps_(0),
+				current_limit_enable_(false)
 		{
 		}
 
@@ -93,6 +97,10 @@ class TalonCIParams
 			voltage_compensation_saturation_ = config.voltage_compensation_saturation;
 			voltage_measurement_filter_ = config.voltage_measurement_filter;
 			voltage_compensation_enable_ = config.voltage_compensation_enable;
+			current_limit_peak_amps_ = config.current_limit_peak_amps;
+			current_limit_peak_msec_ = config.current_limit_peak_msec;
+			current_limit_continuous_amps_ = config.current_limit_continuous_amps;
+			current_limit_enable_ = config.current_limit_enable;
 		}
 
 		// Copy from internal state to TalonConfigConfig state
@@ -128,6 +136,10 @@ class TalonCIParams
 			config.voltage_compensation_saturation = voltage_compensation_saturation_;
 			config.voltage_measurement_filter = voltage_measurement_filter_;
 			config.voltage_compensation_enable = voltage_compensation_enable_;
+			config.current_limit_peak_amps = current_limit_peak_amps_;
+			config.current_limit_peak_msec = current_limit_peak_msec_;
+			config.current_limit_continuous_amps = current_limit_continuous_amps_;
+			config.current_limit_enable = current_limit_enable_;
 			return config;
 		}
 
@@ -276,15 +288,55 @@ class TalonCIParams
 		}
 		bool readVoltageCompensation(ros::NodeHandle &n)
 		{
+			int params_read = 0;
 			double double_val;
 			if (n.getParam("voltage_compensation_saturation", double_val))
+			{
 				voltage_compensation_saturation_ = double_val;
+				params_read += 1;
+			}
 			int int_val;
 			if (n.getParam("voltage_measurement_filter", int_val))
+			{
 				voltage_measurement_filter_ = int_val;
+				params_read += 1;
+			}
 			bool bool_val;
 			if (n.getParam("voltage_compensation_enable", bool_val))
+			{
 				voltage_compensation_enable_ = bool_val;
+				if (bool_val && (params_read < 2))
+					ROS_WARN("Not all voltage compensation params set before enabling - using defaults of 0 might not work as expected");
+			}
+			return true;
+		}
+
+		bool readCurrentLimits(ros::NodeHandle &n)
+		{
+			int params_read = 0;
+			int int_val;
+			if (n.getParam("current_limit_peak_amps", int_val))
+			{
+				current_limit_peak_amps_ = int_val;
+				params_read += 1;
+			}
+			if (n.getParam("current_limit_peak_msec", int_val))
+			{
+				current_limit_peak_msec_ = int_val;
+				params_read += 1;
+			}
+			if (n.getParam("current_limit_continusous_amps", int_val))
+			{
+				current_limit_continuous_amps_ = int_val;
+				params_read += 1;
+			}
+			bool bool_val;
+			if (n.getParam("current_limit_enable", bool_val))
+			{
+				current_limit_enable_ = bool_val;
+				if (bool_val && (params_read < 3))
+					ROS_WARN("Not all current limits set before enabling - using defaults of 0 might not work as expected");
+			}
 			return true;
 		}
 
@@ -312,8 +364,12 @@ class TalonCIParams
 		double nominal_output_reverse_;
 		double neutral_deadband_;
 		double voltage_compensation_saturation_;
-		int   voltage_measurement_filter_;
-		bool  voltage_compensation_enable_;
+		int    voltage_measurement_filter_;
+		bool   voltage_compensation_enable_;
+		int    current_limit_peak_amps_;
+		int    current_limit_peak_msec_;
+		int    current_limit_continuous_amps_;
+		bool   current_limit_enable_;
 
 	private:
 		// Read a double named <param_type> from the array/map
@@ -393,6 +449,7 @@ class TalonControllerInterface
 				   params_.readFeedbackType(n) &&
 				   params_.readOutputShaping(n) &&
 				   params_.readVoltageCompensation(n);
+				   params_.readCurrentLimits(n);
 		}
 
 
@@ -459,6 +516,10 @@ class TalonControllerInterface
 			talon_->setVoltageMeasurementFilter(params_.voltage_measurement_filter_);
 			talon_->setVoltageCompensationEnable(params_.voltage_compensation_enable_);
 
+			talon_->setPeakCurrentLimit(params_.current_limit_peak_amps_);
+			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
+			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
+			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 			return true;
 		}
 
@@ -515,24 +576,6 @@ class TalonControllerInterface
 				// time parameters are changed using 
 				// rqt_reconfigure or the like
 				srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));
-
-				//TODO : at some point we'll end up having code which can
-				// modify a setting which is also part of the dynamic
-				// reconfigure code.  In that case, we'll need to do something
-				// like the following to keep the reconfigure value in sync
-				// with the rest of the program state
-				//
-				// void setBlah(const double blah)
-				// {
-				//   params_.blah = blah;
-				//   TalonConfigConfig config = getConfigFromParams();
-				//   config.blah = blah;
-				//   {
-				//     boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
-				//     srv_->updateConfig(config);
-				//   }
-				// talon_->setBlah(blah);
-				// }
 			}
 
 			return result;
@@ -562,12 +605,7 @@ class TalonControllerInterface
 			// If dynamic reconfigure is running update
 			// the reported config there with the new internal
 			// state
-			if (srv_)
-			{
-				TalonConfigConfig config(params_.getConfig());
-				boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
-				srv_->updateConfig(config);
-			}
+			syncDynamicReconfigure();
 
 			talon_->setPidfSlot(params_.pidf_slot_);
 			return true;
@@ -583,6 +621,51 @@ class TalonControllerInterface
 			talon_->setIntegralAccumulator(iaccum);
 		}
 
+		virtual void setPeakCurrentLimit(int amps)
+		{
+			if (amps == params_.current_limit_peak_amps_)
+				return;
+			params_.current_limit_peak_amps_ = amps;
+
+			syncDynamicReconfigure();
+
+			talon_->setPeakCurrentLimit(params_.current_limit_peak_amps_);
+		}
+
+		virtual void setPeakCurrentDuration(int msec)
+		{
+			if (msec == params_.current_limit_peak_msec_)
+				return;
+			params_.current_limit_peak_msec_ = msec;
+
+			syncDynamicReconfigure();
+
+			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
+		}
+
+		virtual void setContinouousCurrentLimit(int amps)
+		{
+			if (amps == params_.current_limit_continuous_amps_)
+				return;
+			params_.current_limit_continuous_amps_ = amps;
+
+			syncDynamicReconfigure();
+
+			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
+		}
+
+		virtual void setCurrentLimitEnable(bool enable)
+		{
+			if (enable == params_.current_limit_enable_)
+				return;
+			params_.current_limit_enable_ = enable;
+
+			syncDynamicReconfigure();
+
+			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
+		}
+
+
 		double getPosition(void) const
 		{
 			return talon_.state()->getPosition();
@@ -593,6 +676,20 @@ class TalonControllerInterface
 		TalonCIParams                          params_;
 		std::shared_ptr<dynamic_reconfigure::Server<TalonConfigConfig>> srv_;
 		std::shared_ptr<boost::recursive_mutex> srv_mutex_;
+
+	private :
+		// If dynamic reconfigure is running update
+		// the reported config there with the new internal
+		// state
+		void syncDynamicReconfigure(void)
+		{
+			if (srv_)
+			{
+				TalonConfigConfig config(params_.getConfig());
+				boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
+				srv_->updateConfig(config);
+			}
+		}
 };
 
 // A derived class which disables mode switching. Any

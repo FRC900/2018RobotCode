@@ -113,6 +113,11 @@ namespace talon_state_controller
       realtime_pub_->msg_.voltage_measurement_filter.push_back(0);
       realtime_pub_->msg_.voltage_compensation_enable.push_back(false);
 
+      realtime_pub_->msg_.current_limit_peak_amps.push_back(0);
+      realtime_pub_->msg_.current_limit_peak_msec.push_back(0);
+      realtime_pub_->msg_.current_limit_continuous_amps.push_back(0);
+      realtime_pub_->msg_.current_limit_enable.push_back(false);
+
       talon_state_.push_back(hw->getHandle(joint_names[i]));
     }
     addExtraJoints(controller_nh, realtime_pub_->msg_);
@@ -263,6 +268,11 @@ namespace talon_state_controller
 		  realtime_pub_->msg_.voltage_compensation_saturation[i] = talon_state_[i]->getVoltageCompensationSaturation();
 		  realtime_pub_->msg_.voltage_measurement_filter[i] = talon_state_[i]->getVoltageMeasurementFilter();
 		  realtime_pub_->msg_.voltage_compensation_enable[i] = talon_state_[i]->getVoltageCompensationEnable();
+
+		  realtime_pub_->msg_.current_limit_peak_amps[i] = talon_state_[i]->getPeakCurrentLimit();
+		  realtime_pub_->msg_.current_limit_peak_msec[i] = talon_state_[i]->getPeakCurrentDuration();
+		  realtime_pub_->msg_.current_limit_continuous_amps[i] = talon_state_[i]->getContinuousCurrentLimit();
+		  realtime_pub_->msg_.current_limit_enable[i] = talon_state_[i]->getCurrentLimitEnable();
         }
         realtime_pub_->unlockAndPublish();
       }
