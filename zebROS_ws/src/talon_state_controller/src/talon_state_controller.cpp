@@ -94,6 +94,10 @@ namespace talon_state_controller
       realtime_pub_->msg_.closed_loop_error.push_back(0);
       realtime_pub_->msg_.integral_accumulator.push_back(0);
       realtime_pub_->msg_.error_derivative.push_back(0);
+      realtime_pub_->msg_.closed_loop_target.push_back(0);
+      realtime_pub_->msg_.active_trajectory_position.push_back(0);
+      realtime_pub_->msg_.active_trajectory_velocity.push_back(0);
+      realtime_pub_->msg_.active_trajectory_heading.push_back(0);
       realtime_pub_->msg_.forward_limit_switch.push_back(0);
       realtime_pub_->msg_.reverse_limit_switch.push_back(0);
       realtime_pub_->msg_.invert.push_back(false);
@@ -191,6 +195,10 @@ namespace talon_state_controller
           realtime_pub_->msg_.closed_loop_error[i] = talon_state_[i]->getClosedLoopError();
           realtime_pub_->msg_.integral_accumulator[i] = talon_state_[i]->getIntegralAccumulator();
           realtime_pub_->msg_.error_derivative[i] = talon_state_[i]->getErrorDerivative();
+          realtime_pub_->msg_.closed_loop_error[i] = talon_state_[i]->getClosedLoopError();
+          realtime_pub_->msg_.active_trajectory_position[i] = talon_state_[i]->getActiveTrajectoryPosition();
+          realtime_pub_->msg_.active_trajectory_velocity[i] = talon_state_[i]->getActiveTrajectoryVelocity();
+          realtime_pub_->msg_.active_trajectory_heading[i] = talon_state_[i]->getActiveTrajectoryHeading();
           realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getFwdLimitSwitch();
           realtime_pub_->msg_.reverse_limit_switch[i] = talon_state_[i]->getRevLimitSwitch();
           //realtime_pub_->msg_.talon_mode[i] = talon_state_[i]->getTalonMode();

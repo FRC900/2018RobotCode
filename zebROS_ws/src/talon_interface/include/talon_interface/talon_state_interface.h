@@ -87,6 +87,10 @@ namespace hardware_interface
 				closed_loop_error_(0.0),
 				integral_accumulator_(0.0),
 				error_derivative_(0.0),
+				closed_loop_target_(0.0),
+				active_trajectory_position_(0.0),
+				active_trajectory_velocity_(0.0),
+				active_trajectory_heading_(0.0),
 				fwd_limit_switch_closed_(0),
 				rev_limit_switch_closed_(0),
 				talon_mode_(TalonMode_Uninitialized),
@@ -182,6 +186,10 @@ namespace hardware_interface
 			double getClosedLoopError(void)  const {return closed_loop_error_;}
 			double getIntegralAccumulator(void)  const {return integral_accumulator_;}
 			double getErrorDerivative(void)      const {return error_derivative_;}
+			double getClosedLoopTarget(void)     const {return closed_loop_target_;}
+			double getActiveTrajectoryPosition(void) const {return active_trajectory_position_;}
+			double getActiveTrajectoryVelocity(void) const {return active_trajectory_velocity_;}
+			double getActiveTrajectoryHeading(void) const {return active_trajectory_heading_;}
 			int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
 			int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
 			TalonMode getTalonMode(void)  const {return talon_mode_;}
@@ -286,6 +294,10 @@ namespace hardware_interface
 			void setClosedLoopError(double closed_loop_error) 	{closed_loop_error_ = closed_loop_error;}
 			void setIntegralAccumulator(double integral_accumulator) {integral_accumulator_ = integral_accumulator; }
 			void setErrorDerivative(double error_derivative) {error_derivative_ = error_derivative; }
+			void setClosedLoopTarget(double closed_loop_target) {closed_loop_target_ = closed_loop_target;}
+			void setActiveTrajectoryPosition(double active_trajectory_position) {active_trajectory_position_ = active_trajectory_position;}
+			void setActiveTrajectoryVelocity(double active_trajectory_velocity) {active_trajectory_velocity_ = active_trajectory_velocity;}
+			void setActiveTrajectoryHeading(double active_trajectory_heading) {active_trajectory_heading_ = active_trajectory_heading;}
 			void setFwdLimitSwitch(int fwd_limit_switch_closed) {fwd_limit_switch_closed_ = fwd_limit_switch_closed;}
 			void setRevLimitSwitch(int rev_limit_switch_closed) {rev_limit_switch_closed_ = rev_limit_switch_closed;}
 			void setTalonMode(TalonMode talon_mode)	     
@@ -344,6 +356,10 @@ namespace hardware_interface
 			double closed_loop_error_;
 			double integral_accumulator_;
 			double error_derivative_;
+			double closed_loop_target_;
+			double active_trajectory_position_;
+			double active_trajectory_velocity_;
+			double active_trajectory_heading_;
 			int fwd_limit_switch_closed_;
 			int rev_limit_switch_closed_;
 			TalonMode talon_mode_;

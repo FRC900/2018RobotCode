@@ -50,6 +50,10 @@ int8[] can_id
 float64[] closed_loop_error
 float64[] integral_accumulator
 float64[] error_derivative
+float64[] closed_loop_target
+float64[] active_trajectory_position
+float64[] active_trajectory_velocity
+float64[] active_trajectory_heading
 int8[] forward_limit_switch
 int8[] reverse_limit_switch
 bool[] invert
