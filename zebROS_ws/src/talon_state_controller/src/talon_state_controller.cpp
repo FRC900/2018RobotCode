@@ -70,6 +70,7 @@ namespace talon_state_controller
       realtime_pub_->msg_.bus_voltage.push_back(0.0);
       realtime_pub_->msg_.motor_output_percent.push_back(0.0);
 
+      realtime_pub_->msg_.pid_slot.push_back(0);
       realtime_pub_->msg_.pid_p0.push_back(0.0);
       realtime_pub_->msg_.pid_p1.push_back(0.0);
 
@@ -111,6 +112,11 @@ namespace talon_state_controller
       realtime_pub_->msg_.voltage_compensation_saturation.push_back(0);
       realtime_pub_->msg_.voltage_measurement_filter.push_back(0);
       realtime_pub_->msg_.voltage_compensation_enable.push_back(false);
+
+      realtime_pub_->msg_.current_limit_peak_amps.push_back(0);
+      realtime_pub_->msg_.current_limit_peak_msec.push_back(0);
+      realtime_pub_->msg_.current_limit_continuous_amps.push_back(0);
+      realtime_pub_->msg_.current_limit_enable.push_back(false);
 
       talon_state_.push_back(hw->getHandle(joint_names[i]));
     }
@@ -165,6 +171,7 @@ namespace talon_state_controller
           realtime_pub_->msg_.bus_voltage[i] = talon_state_[i]->getBusVoltage();
           realtime_pub_->msg_.motor_output_percent[i] = talon_state_[i]->getMotorOutputPercent();
           //publish the array of PIDF values
+          realtime_pub_->msg_.pid_slot[i] = talon_state_[i]->getSlot();
           realtime_pub_->msg_.pid_p0[i] = talon_state_[i]->getPidfP(0);
           realtime_pub_->msg_.pid_i0[i] = talon_state_[i]->getPidfI(0);
           realtime_pub_->msg_.pid_d0[i] = talon_state_[i]->getPidfD(0);
@@ -261,6 +268,11 @@ namespace talon_state_controller
 		  realtime_pub_->msg_.voltage_compensation_saturation[i] = talon_state_[i]->getVoltageCompensationSaturation();
 		  realtime_pub_->msg_.voltage_measurement_filter[i] = talon_state_[i]->getVoltageMeasurementFilter();
 		  realtime_pub_->msg_.voltage_compensation_enable[i] = talon_state_[i]->getVoltageCompensationEnable();
+
+		  realtime_pub_->msg_.current_limit_peak_amps[i] = talon_state_[i]->getPeakCurrentLimit();
+		  realtime_pub_->msg_.current_limit_peak_msec[i] = talon_state_[i]->getPeakCurrentDuration();
+		  realtime_pub_->msg_.current_limit_continuous_amps[i] = talon_state_[i]->getContinuousCurrentLimit();
+		  realtime_pub_->msg_.current_limit_enable[i] = talon_state_[i]->getCurrentLimitEnable();
         }
         realtime_pub_->unlockAndPublish();
       }

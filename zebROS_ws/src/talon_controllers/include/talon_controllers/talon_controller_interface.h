@@ -43,7 +43,7 @@ class TalonCIParams
 				izone_ {0, 0},
 				allowable_closed_loop_error_{0, 0}, // need better defaults
 				max_integral_accumulator_{0, 0},
-				pidf_config_(0),
+				pidf_slot_(0),
 				invert_output_ (false),
 				sensor_phase_(false),
 				neutral_mode_(hardware_interface::NeutralMode_Uninitialized),
@@ -58,7 +58,11 @@ class TalonCIParams
 				neutral_deadband_(0.),
 				voltage_compensation_saturation_(0),
 				voltage_measurement_filter_(0),
-				voltage_compensation_enable_(false)
+				voltage_compensation_enable_(false),
+				current_limit_peak_amps_(0),
+				current_limit_peak_msec_(0),
+				current_limit_continuous_amps_(0),
+				current_limit_enable_(false)
 		{
 		}
 
@@ -78,6 +82,7 @@ class TalonCIParams
 			allowable_closed_loop_error_[1] = config.allowable_closed_loop_error1;
 			max_integral_accumulator_[0] = config.max_integral_accumulator0;
 			max_integral_accumulator_[1] = config.max_integral_accumulator1;
+			pidf_slot_ = config.pid_config;
 			invert_output_ = config.invert_output;
 			sensor_phase_ = config.sensor_phase;
 			feedback_type_ = static_cast<hardware_interface::FeedbackDevice>(config.feedback_type);
@@ -92,15 +97,58 @@ class TalonCIParams
 			voltage_compensation_saturation_ = config.voltage_compensation_saturation;
 			voltage_measurement_filter_ = config.voltage_measurement_filter;
 			voltage_compensation_enable_ = config.voltage_compensation_enable;
+			current_limit_peak_amps_ = config.current_limit_peak_amps;
+			current_limit_peak_msec_ = config.current_limit_peak_msec;
+			current_limit_continuous_amps_ = config.current_limit_continuous_amps;
+			current_limit_enable_ = config.current_limit_enable;
+		}
+
+		// Copy from internal state to TalonConfigConfig state
+		TalonConfigConfig getConfig(void) const
+		{
+			TalonConfigConfig config;
+			config.p0            = p_[0];
+			config.p1            = p_[1];
+			config.i0            = i_[0];
+			config.i1            = i_[1];
+			config.d0            = d_[0];
+			config.d1            = d_[1];
+			config.f0            = f_[0];
+			config.f1            = f_[1];
+			config.izone0        = izone_[0];
+			config.izone1        = izone_[1];
+			config.allowable_closed_loop_error0 = allowable_closed_loop_error_[0];
+			config.allowable_closed_loop_error1 = allowable_closed_loop_error_[1];
+			config.max_integral_accumulator0 = max_integral_accumulator_[0];
+			config.max_integral_accumulator1 = max_integral_accumulator_[1];
+			config.pid_config    = pidf_slot_;
+			config.invert_output = invert_output_;
+			config.sensor_phase  = sensor_phase_;
+			config.feedback_type = feedback_type_;
+			config.neutral_mode  = neutral_mode_;
+			config.closed_loop_ramp = closed_loop_ramp_;
+			config.open_loop_ramp = open_loop_ramp_;
+			config.peak_output_forward = peak_output_forward_;
+			config.peak_output_reverse = peak_output_reverse_;
+			config.nominal_output_forward = nominal_output_forward_;
+			config.nominal_output_reverse = nominal_output_reverse_;
+			config.neutral_deadband = neutral_deadband_;
+			config.voltage_compensation_saturation = voltage_compensation_saturation_;
+			config.voltage_measurement_filter = voltage_measurement_filter_;
+			config.voltage_compensation_enable = voltage_compensation_enable_;
+			config.current_limit_peak_amps = current_limit_peak_amps_;
+			config.current_limit_peak_msec = current_limit_peak_msec_;
+			config.current_limit_continuous_amps = current_limit_continuous_amps_;
+			config.current_limit_enable = current_limit_enable_;
+			return config;
 		}
 
 		// Read a joint name from the given nodehandle's params
-		bool readJointName(ros::NodeHandle &n, const std::string &param_name)
+		bool readJointName(ros::NodeHandle &n)
 		{
-			if (!n.getParam(param_name, joint_name_))
+			if (!n.getParam("joint", joint_name_))
 			{
-				ROS_ERROR("No joint given (namespace: %s, param name: %s)", 
-						  n.getNamespace().c_str(), param_name.c_str());
+				ROS_ERROR("No joint given (namespace: %s)", n.getNamespace().c_str());
 				return false;
 			}
 			return true;
@@ -182,8 +230,6 @@ class TalonCIParams
 			return true;
 		}
 
-		// Read the name of a joint (talon) to follow.  Figure
-		// out which CAN ID that Talon is configured as here
 		bool readInverts(ros::NodeHandle &n)
 		{
 			n.getParam("invert_output", invert_output_);
@@ -223,80 +269,124 @@ class TalonCIParams
 
 		bool readOutputShaping(ros::NodeHandle &n)
 		{
-			float float_val;
-			if (n.getParam("closed_loop_ramp", float_val))
-				closed_loop_ramp_ = float_val;
-			if (n.getParam("open_loop_ramp", float_val))
-				open_loop_ramp_ = float_val;
-			if (n.getParam("peak_output_forward", float_val))
-				peak_output_forward_ = float_val;
-			if (n.getParam("peak_output_reverse", float_val))
-				peak_output_reverse_ = float_val;
-			if (n.getParam("nominal_output_forward", float_val))
-				nominal_output_forward_ = float_val;
-			if (n.getParam("nominal_output_reverse", float_val))
-				nominal_output_reverse_ = float_val;
-			if (n.getParam("neutral_deadband", float_val))
-				neutral_deadband_ = float_val;
+			double double_val;
+			if (n.getParam("closed_loop_ramp", double_val))
+				closed_loop_ramp_ = double_val;
+			if (n.getParam("open_loop_ramp", double_val))
+				open_loop_ramp_ = double_val;
+			if (n.getParam("peak_output_forward", double_val))
+				peak_output_forward_ = double_val;
+			if (n.getParam("peak_output_reverse", double_val))
+				peak_output_reverse_ = double_val;
+			if (n.getParam("nominal_output_forward", double_val))
+				nominal_output_forward_ = double_val;
+			if (n.getParam("nominal_output_reverse", double_val))
+				nominal_output_reverse_ = double_val;
+			if (n.getParam("neutral_deadband", double_val))
+				neutral_deadband_ = double_val;
 			return true;
 		}
 		bool readVoltageCompensation(ros::NodeHandle &n)
 		{
-			float float_val;
-			if (n.getParam("voltage_compensation_saturation", float_val))
-				voltage_compensation_saturation_ = float_val;
+			int params_read = 0;
+			double double_val;
+			if (n.getParam("voltage_compensation_saturation", double_val))
+			{
+				voltage_compensation_saturation_ = double_val;
+				params_read += 1;
+			}
 			int int_val;
 			if (n.getParam("voltage_measurement_filter", int_val))
+			{
 				voltage_measurement_filter_ = int_val;
+				params_read += 1;
+			}
 			bool bool_val;
 			if (n.getParam("voltage_compensation_enable", bool_val))
+			{
 				voltage_compensation_enable_ = bool_val;
+				if (bool_val && (params_read < 2))
+					ROS_WARN("Not all voltage compensation params set before enabling - using defaults of 0 might not work as expected");
+			}
+			return true;
+		}
+
+		bool readCurrentLimits(ros::NodeHandle &n)
+		{
+			int params_read = 0;
+			int int_val;
+			if (n.getParam("current_limit_peak_amps", int_val))
+			{
+				current_limit_peak_amps_ = int_val;
+				params_read += 1;
+			}
+			if (n.getParam("current_limit_peak_msec", int_val))
+			{
+				current_limit_peak_msec_ = int_val;
+				params_read += 1;
+			}
+			if (n.getParam("current_limit_continusous_amps", int_val))
+			{
+				current_limit_continuous_amps_ = int_val;
+				params_read += 1;
+			}
+			bool bool_val;
+			if (n.getParam("current_limit_enable", bool_val))
+			{
+				current_limit_enable_ = bool_val;
+				if (bool_val && (params_read < 3))
+					ROS_WARN("Not all current limits set before enabling - using defaults of 0 might not work as expected");
+			}
 			return true;
 		}
 
 		// TODO : Keep adding config items here
 		std::string joint_name_;
 		int    follow_can_id_;
-		float  p_[2];
-		float  i_[2];
-		float  d_[2];
-		float  f_[2];
+		double  p_[2];
+		double  i_[2];
+		double  d_[2];
+		double  f_[2];
 		int    izone_[2];
 		int    allowable_closed_loop_error_[2];
-		float  max_integral_accumulator_[2];
-		int    pidf_config_;
+		double  max_integral_accumulator_[2];
+		int    pidf_slot_;
 		bool   invert_output_;
 		bool   sensor_phase_;
 		hardware_interface::NeutralMode neutral_mode_;
 		hardware_interface::FeedbackDevice feedback_type_;
 		int   ticks_per_rotation_;
-		float closed_loop_ramp_;
-		float open_loop_ramp_;
-		float peak_output_forward_;
-		float peak_output_reverse_;
-		float nominal_output_forward_;
-		float nominal_output_reverse_;
-		float neutral_deadband_;
-		float voltage_compensation_saturation_;
-		int   voltage_measurement_filter_;
-		bool  voltage_compensation_enable_;
+		double closed_loop_ramp_;
+		double open_loop_ramp_;
+		double peak_output_forward_;
+		double peak_output_reverse_;
+		double nominal_output_forward_;
+		double nominal_output_reverse_;
+		double neutral_deadband_;
+		double voltage_compensation_saturation_;
+		int    voltage_measurement_filter_;
+		bool   voltage_compensation_enable_;
+		int    current_limit_peak_amps_;
+		int    current_limit_peak_msec_;
+		int    current_limit_continuous_amps_;
+		bool   current_limit_enable_;
 
 	private:
-		// Read a float named <param_type> from the array/map
+		// Read a double named <param_type> from the array/map
 		// in params
-		float findFloatParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
+		double findFloatParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
 		{
 			if (!params.hasMember(param_type))
 				return 0;
 			XmlRpc::XmlRpcValue& param = params[param_type];
 			if (!param.valid())
-				throw std::runtime_error(param_type + " was not a float valid type");
+				throw std::runtime_error(param_type + " was not a double valid type");
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
 				return (double)param;
 			else if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
 				return (int)param;
 			else
-				throw std::runtime_error("A non-float value was passed for" + param_type);
+				throw std::runtime_error("A non-double value was passed for" + param_type);
 			return 0;
 		}
 
@@ -342,11 +432,16 @@ class TalonCIParams
 class TalonControllerInterface
 {
 	public:
+		TalonControllerInterface(void) :
+			srv_(nullptr)
+		{
+			srv_mutex_ = std::make_shared<boost::recursive_mutex>();
+		}
 		// Standardize format for reading params for 
 		// motor controller
 		virtual bool readParams(ros::NodeHandle &n, hardware_interface::TalonStateInterface *tsi)
 		{
-			return params_.readJointName(n, "joint") && 
+			return params_.readJointName(n) && 
 				   params_.readFollowerID(n, tsi) && 
 				   params_.readCloseLoopParams(n) &&
 				   params_.readNeutralMode(n) &&
@@ -354,6 +449,7 @@ class TalonControllerInterface
 				   params_.readFeedbackType(n) &&
 				   params_.readOutputShaping(n) &&
 				   params_.readVoltageCompensation(n);
+				   params_.readCurrentLimits(n);
 		}
 
 
@@ -402,7 +498,7 @@ class TalonControllerInterface
 				talon_->setAllowableClosedloopError(params_.allowable_closed_loop_error_[i], i);
 				talon_->setMaxIntegralAccumulator(params_.max_integral_accumulator_[i], i);
 			}
-			talon_->setPidfSlot(params_.pidf_config_);
+			talon_->setPidfSlot(params_.pidf_slot_);
 			talon_->setNeutralMode(params_.neutral_mode_);
 
 			talon_->setInvert(params_.invert_output_);
@@ -420,6 +516,10 @@ class TalonControllerInterface
 			talon_->setVoltageMeasurementFilter(params_.voltage_measurement_filter_);
 			talon_->setVoltageCompensationEnable(params_.voltage_compensation_enable_);
 
+			talon_->setPeakCurrentLimit(params_.current_limit_peak_amps_);
+			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
+			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
+			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 			return true;
 		}
 
@@ -465,43 +565,24 @@ class TalonControllerInterface
 				// under the node's name.  Doing so allows multiple
 				// copies of the class to be started, each getting
 				// their own namespace.
-				srv_mutex_ = std::make_shared<boost::recursive_mutex>();
 				srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(*srv_mutex_, n);
 
 				// Without this, the first call to callback() 
 				// will overwrite anything passed in from the
 				// launch file
-				srv_->updateConfig(getConfigFromParams());
+				srv_->updateConfig(params_.getConfig());
 
 				// Register a callback function which is run each
 				// time parameters are changed using 
 				// rqt_reconfigure or the like
 				srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));
-
-				//TODO : at some point we'll end up having code which can
-				// modify a setting which is also part of the dynamic
-				// reconfigure code.  In that case, we'll need to do something
-				// like the following to keep the reconfigure value in sync
-				// with the rest of the program state
-				//
-				// void setBlah(const float blah)
-				// {
-				//   params_.blah = blah;
-				//   TalonConfigConfig config = getConfigFromParams();
-				//   config.blah = blah;
-				//   {
-				//     boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
-				//     srv_->updateConfig(config);
-				//   }
-				// talon_->setBlah(blah);
-				// }
 			}
 
 			return result;
 		}
 
 		// Set the setpoint for the motor controller
-		virtual void setCommand(const float command)
+		virtual void setCommand(const double command)
 		{
 			talon_->set(command);
 		}
@@ -513,14 +594,20 @@ class TalonControllerInterface
 		}
 
 		// Pick the config slot (0 or 1) for PIDF/IZone values
-		virtual bool setPIDFSlot(int config)
+		virtual bool setPIDFSlot(int slot)
 		{
-			if ((config != 0) && (config != 1))
+			if ((slot != 0) && (slot != 1))
 				return false;
-			if (config == params_.pidf_config_)
+			if (slot == params_.pidf_slot_)
 				return true;
-			params_.pidf_config_ = config;
-			talon_->setPidfSlot(params_.pidf_config_);
+			params_.pidf_slot_ = slot;
+
+			// If dynamic reconfigure is running update
+			// the reported config there with the new internal
+			// state
+			syncDynamicReconfigure();
+
+			talon_->setPidfSlot(params_.pidf_slot_);
 			return true;
 		}
 
@@ -529,12 +616,57 @@ class TalonControllerInterface
 			talon_->setNeutralOutput();
 		}
 
-		virtual void setIntegralAccumulator(float iaccum)
+		virtual void setIntegralAccumulator(double iaccum)
 		{
 			talon_->setIntegralAccumulator(iaccum);
 		}
 
-		float getPosition(void) const
+		virtual void setPeakCurrentLimit(int amps)
+		{
+			if (amps == params_.current_limit_peak_amps_)
+				return;
+			params_.current_limit_peak_amps_ = amps;
+
+			syncDynamicReconfigure();
+
+			talon_->setPeakCurrentLimit(params_.current_limit_peak_amps_);
+		}
+
+		virtual void setPeakCurrentDuration(int msec)
+		{
+			if (msec == params_.current_limit_peak_msec_)
+				return;
+			params_.current_limit_peak_msec_ = msec;
+
+			syncDynamicReconfigure();
+
+			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
+		}
+
+		virtual void setContinouousCurrentLimit(int amps)
+		{
+			if (amps == params_.current_limit_continuous_amps_)
+				return;
+			params_.current_limit_continuous_amps_ = amps;
+
+			syncDynamicReconfigure();
+
+			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
+		}
+
+		virtual void setCurrentLimitEnable(bool enable)
+		{
+			if (enable == params_.current_limit_enable_)
+				return;
+			params_.current_limit_enable_ = enable;
+
+			syncDynamicReconfigure();
+
+			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
+		}
+
+
+		double getPosition(void) const
 		{
 			return talon_.state()->getPosition();
 		}
@@ -546,39 +678,17 @@ class TalonControllerInterface
 		std::shared_ptr<boost::recursive_mutex> srv_mutex_;
 
 	private :
-		// Copy from params_ state to TalonConfigConfig state
-		TalonConfigConfig getConfigFromParams(void) const
+		// If dynamic reconfigure is running update
+		// the reported config there with the new internal
+		// state
+		void syncDynamicReconfigure(void)
 		{
-			TalonConfigConfig config;
-			config.p0            = params_.p_[0];
-			config.p1            = params_.p_[1];
-			config.i0            = params_.i_[0];
-			config.i1            = params_.i_[1];
-			config.d0            = params_.d_[0];
-			config.d1            = params_.d_[1];
-			config.f0            = params_.f_[0];
-			config.f1            = params_.f_[1];
-			config.izone0        = params_.izone_[0];
-			config.izone1        = params_.izone_[1];
-			config.allowable_closed_loop_error0 = params_.allowable_closed_loop_error_[0];
-			config.allowable_closed_loop_error1 = params_.allowable_closed_loop_error_[1];
-			config.max_integral_accumulator0 = params_.max_integral_accumulator_[0];
-			config.max_integral_accumulator1 = params_.max_integral_accumulator_[1];
-			config.invert_output = params_.invert_output_;
-			config.sensor_phase  = params_.sensor_phase_;
-			config.feedback_type = params_.feedback_type_;
-			config.neutral_mode  = params_.neutral_mode_;
-			config.closed_loop_ramp = params_.closed_loop_ramp_;
-			config.open_loop_ramp = params_.open_loop_ramp_;
-			config.peak_output_forward = params_.peak_output_forward_;
-			config.peak_output_reverse = params_.peak_output_reverse_;
-			config.nominal_output_forward = params_.nominal_output_forward_;
-			config.nominal_output_reverse = params_.nominal_output_reverse_;
-			config.neutral_deadband = params_.neutral_deadband_;
-			config.voltage_compensation_saturation = params_.voltage_compensation_saturation_;
-			config.voltage_measurement_filter = params_.voltage_measurement_filter_;
-			config.voltage_compensation_enable = params_.voltage_compensation_enable_;
-			return config;
+			if (srv_)
+			{
+				TalonConfigConfig config(params_.getConfig());
+				boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
+				srv_->updateConfig(config);
+			}
 		}
 };
 
@@ -638,7 +748,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 		}
 		// Maybe disable the setPIDFSlot call since that makes
 		// no sense for a non-PID controller mode?
-		void setCommand(const float /*command*/) override
+		void setCommand(const double /*command*/) override
 		{
 			ROS_WARN("Can't set a command in follower mode!");
 		}
@@ -713,7 +823,7 @@ class TalonCurrentControllerCloseLoopInterface : public TalonCloseLoopController
 		}
 };
 
-class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInterface // float check that this works
+class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
@@ -735,7 +845,7 @@ class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInt
 // KCJ -- in general the code we actually use will get a lot more attention. Not sure if that
 // means we should pull out less-tested stuff like this or leave it in and fix it if
 // we need it at some point?
-class TalonMotionMagicControllerInterface : public TalonCloseLoopControllerInterface // float check that this works
+class TalonMotionMagicControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 

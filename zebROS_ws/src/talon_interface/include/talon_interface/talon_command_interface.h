@@ -57,7 +57,14 @@ namespace hardware_interface
 				voltage_compensation_saturation_(0),
 				voltage_measurement_filter_(0),
 				voltage_compensation_enable_(false),
-				voltage_compensation_changed_(false)
+				voltage_compensation_changed_(false),
+
+				// current limiting
+				current_limit_peak_amps_(0),
+				current_limit_peak_msec_(0),
+				current_limit_continuous_amps_(0),
+				current_limit_enable_(false),
+				current_limit_changed_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -76,7 +83,7 @@ namespace hardware_interface
 			// status actually read from the controller
 			// Need to think about which makes the most
 			// sense to query...
-			bool get(float &command)
+			bool get(double &command)
 			{
 				command = command_;
 				if (!command_changed_)
@@ -87,7 +94,7 @@ namespace hardware_interface
 
 			TalonMode getMode(void) const {return mode_;}
 
-			void setP(float oldP, int index){
+			void setP(double oldP, int index){
 				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setP()");
@@ -95,7 +102,7 @@ namespace hardware_interface
 				}
 				pidf_changed_[index] = true;
 				p_[index] = oldP;}
-			float getP(int index) const {
+			double getP(int index) const {
 				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getP()");
@@ -104,7 +111,7 @@ namespace hardware_interface
 				return p_[index];
 			}
 
-			void setI(float ii, int index){
+			void setI(double ii, int index){
 				if ((index < 0) || ((size_t)index >= (sizeof(i_) / sizeof(i_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setI()");
@@ -112,7 +119,7 @@ namespace hardware_interface
 				}
 				pidf_changed_[index] = true;
 				i_[index] = ii;}
-			float getI(int index) const {
+			double getI(int index) const {
 				if ((index < 0) || ((size_t)index >= (sizeof(i_) / sizeof(i_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getI()");
@@ -121,7 +128,7 @@ namespace hardware_interface
 				return i_[index];
 			}
 
-			void setD(float dd, int index){
+			void setD(double dd, int index){
 				if ((index < 0) || ((size_t)index >= (sizeof(d_) / sizeof(d_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setD()");
@@ -129,7 +136,7 @@ namespace hardware_interface
 				}
 				pidf_changed_[index] = true;
 				d_[index] = dd;}
-			float getD(int index) const {
+			double getD(int index) const {
 				if ((index < 0) || ((size_t)index >= (sizeof(d_) / sizeof(d_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getD()");
@@ -138,7 +145,7 @@ namespace hardware_interface
 				return d_[index];
 			}
 
-			void setF(float ff, int index){
+			void setF(double ff, int index){
 				if ((index < 0) || ((size_t)index >= (sizeof(f_) / sizeof(f_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setF()");
@@ -146,7 +153,7 @@ namespace hardware_interface
 				}
 				pidf_changed_[index] = true;
 				f_[index] = ff;}
-			float getF(int index){
+			double getF(int index){
 				if ((index < 0) || ((size_t)index >= (sizeof(f_) / sizeof(f_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::getF()");
@@ -207,7 +214,7 @@ namespace hardware_interface
 				return max_integral_accumulator_[index];
 			}
 			
-			void setPID(float oldP, float oldI, float oldD, int index){
+			void setPID(double oldP, double oldI, double oldD, int index){
 				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setPID()");
@@ -215,7 +222,7 @@ namespace hardware_interface
 				}
 				pidf_changed_[index] = true;
 				p_[index] = oldP;i_[index] =oldI;d_[index]=oldD;}
-			void setPID(float oldP, float oldI, float oldD, float oldF, int index){
+			void setPID(double oldP, double oldI, double oldD, double oldF, int index){
 				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::setPIF()");
@@ -224,13 +231,13 @@ namespace hardware_interface
 				pidf_changed_[index] = true;
 				p_[index]=oldP;i_[index]=oldI;d_[index]=oldD;f_[index]=oldF;}
 
-			void setIntegralAccumulator(float iaccum)
+			void setIntegralAccumulator(double iaccum)
 			{
 				iaccum_ = iaccum;
 				iaccum_changed_ = true;
 			}
-			float getIntegralAccumulator(void) const { return iaccum_; }
-			bool integralAccumulatorChanged(float &iaccum)
+			double getIntegralAccumulator(void) const { return iaccum_; }
+			bool integralAccumulatorChanged(double &iaccum)
 			{
 				iaccum = iaccum_;
 				if (!iaccum_changed_)
@@ -239,7 +246,7 @@ namespace hardware_interface
 				return true;
 			}
 
-			void set(float command) {command_changed_ = true; command_ = command;}
+			void set(double command) {command_changed_ = true; command_ = command;}
 			void setMode(TalonMode mode)
 			{
 				if ((mode <= TalonMode_Uninitialized) || (mode >= TalonMode_Last))
@@ -283,7 +290,7 @@ namespace hardware_interface
 				pidf_slot_changed_ = false;
 				return true;
 			}
-			bool pidfChanged(float &p, float &i, float &d, float &f, int &iz, int allowable_closed_loop_error, float max_integral_accumulator, int index){
+			bool pidfChanged(double &p, double &i, double &d, double &f, int &iz, int &allowable_closed_loop_error, double &max_integral_accumulator, int index){
 				if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 				{
 					ROS_WARN("Invalid index passed to TalonHWCommand::pidfChanged()");
@@ -344,13 +351,13 @@ namespace hardware_interface
 			}
 			
 			//output shaping
-			bool outputShapingChanged(float &closed_loop_ramp,
-					float &open_loop_ramp,
-					float &peak_output_forward,
-					float &peak_output_reverse,
-					float &nominal_output_forward,
-					float &nominal_output_reverse,
-					float &neutral_deadband)
+			bool outputShapingChanged(double &closed_loop_ramp,
+					double &open_loop_ramp,
+					double &peak_output_forward,
+					double &peak_output_reverse,
+					double &nominal_output_forward,
+					double &nominal_output_reverse,
+					double &neutral_deadband)
 			{
 				closed_loop_ramp = closed_loop_ramp_;
 				open_loop_ramp = open_loop_ramp_;
@@ -389,22 +396,22 @@ namespace hardware_interface
 			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
 
 			//output shaping
-			void setClosedloopRamp(float closed_loop_ramp) {
+			void setClosedloopRamp(double closed_loop_ramp) {
 				if (closed_loop_ramp_ != closed_loop_ramp) {
 					closed_loop_ramp_ = closed_loop_ramp;
 					outputShapingChanged_ = true;
 				}
 			}
-			float getClosedloopRamp(void) const {return closed_loop_ramp_;}
-			void setOpenloopRamp(float open_loop_ramp) {
+			double getClosedloopRamp(void) const {return closed_loop_ramp_;}
+			void setOpenloopRamp(double open_loop_ramp) {
 				if (open_loop_ramp_ != open_loop_ramp) {
 					open_loop_ramp_ = open_loop_ramp;
 					outputShapingChanged_ = true;
 				}
 			}
-			float getOpenloopRamp(void) const {return open_loop_ramp_;}
+			double getOpenloopRamp(void) const {return open_loop_ramp_;}
 
-			void setPeakOutputForward(float peak_output_forward)
+			void setPeakOutputForward(double peak_output_forward)
 			{
 				if (peak_output_forward != peak_output_forward_)
 				{
@@ -412,9 +419,9 @@ namespace hardware_interface
 					outputShapingChanged_ = true;
 				}
 			}
-			float getPeakOutputForward(void) const {return peak_output_forward_;}
+			double getPeakOutputForward(void) const {return peak_output_forward_;}
 
-			void setPeakOutputReverse(float peak_output_reverse)
+			void setPeakOutputReverse(double peak_output_reverse)
 			{
 				if (peak_output_reverse != peak_output_reverse_)
 				{
@@ -422,9 +429,9 @@ namespace hardware_interface
 					outputShapingChanged_ = true;
 				}
 			}
-			float getPeakOutputReverse(void) const {return peak_output_reverse_;}
+			double getPeakOutputReverse(void) const {return peak_output_reverse_;}
 
-			void setNominalOutputForward(float nominal_output_forward)
+			void setNominalOutputForward(double nominal_output_forward)
 			{
 				if (nominal_output_forward != nominal_output_forward_)
 				{
@@ -432,9 +439,9 @@ namespace hardware_interface
 					outputShapingChanged_ = true;
 				}
 			}
-			float getNominalOutputForward(void) const {return nominal_output_forward_;}
+			double getNominalOutputForward(void) const {return nominal_output_forward_;}
 
-			void setNominalOutputReverse(float nominal_output_reverse)
+			void setNominalOutputReverse(double nominal_output_reverse)
 			{
 				if (nominal_output_reverse != nominal_output_reverse_)
 				{
@@ -442,9 +449,9 @@ namespace hardware_interface
 					outputShapingChanged_ = true;
 				}
 			}
-			float getNominalOutputReverse(void) const {return nominal_output_reverse_;}
+			double getNominalOutputReverse(void) const {return nominal_output_reverse_;}
 
-			void setNeutralDeadband(float neutral_deadband)
+			void setNeutralDeadband(double neutral_deadband)
 			{
 				if (neutral_deadband != neutral_deadband_)
 				{
@@ -452,9 +459,9 @@ namespace hardware_interface
 					outputShapingChanged_ = true;
 				}
 			}
-			float getNeutralDeadband(void) const {return neutral_deadband_;}
+			double getNeutralDeadband(void) const {return neutral_deadband_;}
 
-			void setVoltageCompensationSaturation(float voltage)
+			void setVoltageCompensationSaturation(double voltage)
 			{
 				if (voltage != voltage_compensation_saturation_)
 				{
@@ -462,7 +469,7 @@ namespace hardware_interface
 					voltage_compensation_changed_ = true;
 				}
 			}
-			float getVoltageCompensationSaturation(void) const { return voltage_compensation_saturation_;}
+			double getVoltageCompensationSaturation(void) const { return voltage_compensation_saturation_;}
 
 			void setVoltageMeasurementFilter(int filterWindowSamples)
 			{
@@ -485,7 +492,7 @@ namespace hardware_interface
 
 			bool getEnableVoltageCompenation(void) const {return voltage_compensation_enable_;} 
 
-			bool VoltageCompensationChanged(float & voltage_compensation_saturation,
+			bool VoltageCompensationChanged(double & voltage_compensation_saturation,
 					int &voltage_measurement_filter,
 					bool &voltage_compensation_enable)
 			{
@@ -500,71 +507,66 @@ namespace hardware_interface
 				return false;
 			}
 
+			// current limits
+			void setPeakCurrentLimit(int amps)
+			{
+				current_limit_peak_amps_ = amps;
+				current_limit_changed_ = true;
+			}
+			int getPeakCurrentLimit(void) const
+			{
+				return current_limit_peak_amps_;
+			}
 
-			//general
-			void Disable(){ }
-			void Enable(){ }
-			void ClearStickyFaults(){ }
+			void setPeakCurrentDuration(int msec)
+			{
+				current_limit_peak_msec_ = msec;
+				current_limit_changed_ = true;
+			}
+			int getPeakCurrentDuration(void) const
+			{
+				return current_limit_peak_msec_;
+			}
+			void setContinuousCurrentLimit(int amps)
+			{
+				current_limit_continuous_amps_ = amps;
+				current_limit_changed_ = true;
+			}
+			int getContinuousCurrentLimit(void) const
+			{
+				return current_limit_continuous_amps_;
+			}
+			void setCurrentLimitEnable(bool enable)
+			{
+				current_limit_enable_ = enable;
+				current_limit_changed_ = true;
+			}
+			bool getCurrentLimitEnable(void) const
+			{
+				return current_limit_enable_;
+			}
 
-			//voltage
-			void SetVoltageRampRate(double rampRate){ }
-			virtual void SetVoltageCompensationRampRate(double rampRate){ } 
-			void ConfigNeutralMode(NeutralMode mode){ }
-			void ConfigPeakOutputVoltage(double forwardVoltage, double reverseVoltage){ }
-			void SetNominalClosedLoopVoltage(double voltage){ }
-
-			//closed loop control/sensors
-			virtual void SetAnalogPosition(int newPosition){ }
-			virtual void SetEncPosition(int){ }
-			void SetNumberOfQuadIdxRises(int rises){ }
-			virtual void SetPulseWidthPosition(int newpos){ }
-			void ConfigEncoderCodesPerRev(uint16_t codesPerRev){ }
-			void ConfigPotentiometerTurns(uint16_t turns) { }
-			void ConfigSoftPositionLimits(double forwardLimitPosition, double reverseLimitPosition){ }
-			void EnableZeroSensorPositionOnIndex(bool enable, bool risingEdge){ }
-			void EnableZeroSensorPositiononForwardLimit(bool enable){ }
-			void EnableZeroSensorPositionOnReverseLimit(bool enable){ }
-			//void SetFeedbackDevice(FeedbackDevice device){ }
-			void SetSensorDirection(bool reverseSensor){ }
-			void SetClosedLoopOutputDirection(bool reverseOutput){ }
-			void SetCloseLoopRampRate(double rampRate){ }
-
-			//limits
-			void ConfigForwardLimit(double forwardLimitPosition){ }
-			void ConfigReverseLimit(double reverseLimitPosition){ }
-			void ConfigLimitSwitchOverrides(bool bForwardLimitSwitchEn, bool bReverseLimitSwitchEn){ }
-			void ConfigForwardSoftLimitEnable(bool bForwardSoftLimitEn){ }
-			void ConfigReverseSoftLimitEnable(bool bReverseSoftLimitEn){ }
-			void ConfigFwdLimitSwitchNormallyOpen(bool normallyOpen){ }
-			void ConfigRevLimitSwitchNormallyOpen(bool normallyOpen){ }
-			void ConfigLimitMode(int mode){ }
-
-			//motion profiling
-			void ChangeMotionControlFramePeriod(int period){ }
-			void ClearMotionProfileTrajectories(){ }
-			//bool PushMotionProfileTrajectory(const TrajectoryPoint& trajPt){ }
-			void ProcessMotionProfileBuffer(){ }
-			void ClearMotionProfileHasUnderrun(){ }
-			int SetMotionMagicCruiseVelocity(double motMagicCruiseVeloc){ }
-			int SetMotionMagicAcceleration(double motMagicAccel){ }
-			int SetCurrentLimit(uint32_t amps){ }
-			int EnableCurrentLimit(bool enable){ }
-			int SetCustomParam0(int32_t value){ }
-			int SetCustomParam1(int32_t value){ }
-			//void SetInverted(bool isInverted) override{ }
-			void SetDataPortOutputPeriod(uint32_t periodMs){ }
-			void SetDataPortOutputEnable(uint32_t idx, bool enable){ }
-			void SetDataPortOutput(uint32_t idx, uint32_t OnTimeMs){ }
+			bool currentLimitChanged(int &peak_amps, int &peak_msec, int &continuous_amps, bool &enable)
+			{
+				peak_amps = current_limit_peak_amps_;
+				peak_msec = current_limit_peak_msec_;
+				continuous_amps = current_limit_continuous_amps_;
+				enable = current_limit_enable_;
+				if (!current_limit_changed_)
+					return false;
+				current_limit_changed_ = true;
+				return true;
+			}
 
 		private:
-			float     command_; // motor setpoint - % vbus, velocity, position, etc
+			double    command_; // motor setpoint - % vbus, velocity, position, etc
 			bool      command_changed_;
 			TalonMode mode_;         // talon mode - % vbus, close loop, motion profile, etc
 			bool      mode_changed_; // set if mode needs to be updated on the talon hw
 			//RG: shouldn't there be a variable for the peak voltage limits?
 			int       pidf_slot_; // index 0 or 1 of the active PIDF slot
 			bool      pidf_slot_changed_; // set to true to trigger a write to PIDF select on Talon
-			float     iaccum_;
+			double     iaccum_;
 			bool      iaccum_changed_;
 
 			bool      invert_;
@@ -579,29 +581,35 @@ namespace hardware_interface
 			int encoder_tick_per_rotation_;
 
 			//output shaping
-			float closed_loop_ramp_;
-			float open_loop_ramp_;
-			float peak_output_forward_;
-			float peak_output_reverse_;
-			float nominal_output_forward_;
-			float nominal_output_reverse_;
-			float neutral_deadband_;
+			double closed_loop_ramp_;
+			double open_loop_ramp_;
+			double peak_output_forward_;
+			double peak_output_reverse_;
+			double nominal_output_forward_;
+			double nominal_output_reverse_;
+			double neutral_deadband_;
 			bool outputShapingChanged_;
 
-			float voltage_compensation_saturation_;
+			double voltage_compensation_saturation_;
 			int   voltage_measurement_filter_;
 			bool  voltage_compensation_enable_;
 			bool  voltage_compensation_changed_;
 
+			int current_limit_peak_amps_;
+			int current_limit_peak_msec_;
+			int current_limit_continuous_amps_;
+			bool current_limit_enable_;
+			bool current_limit_changed_;
+
 			// 2 entries in the Talon HW for each of these settings
-			float     p_[2];
-			float     i_[2];
-			int       i_zone_[2];
-			float     d_[2];
-			float     f_[2];
-			int       allowable_closed_loop_error_[2];
-			float     max_integral_accumulator_[2];
-			bool      pidf_changed_[2];
+			double p_[2];
+			double i_[2];
+			int    i_zone_[2];
+			double d_[2];
+			double f_[2];
+			int    allowable_closed_loop_error_[2];
+			double max_integral_accumulator_[2];
+			bool   pidf_changed_[2];
 	};
 
 	// Handle - used by each controller to get, by name of the
@@ -630,7 +638,7 @@ namespace hardware_interface
 			// Note that we could create separate methods in
 			// the handle class for every method in the HWState
 			// class, e.g.
-			//     float getFoo(void) const {assert(_state); return state_->getFoo();}
+			//     double getFoo(void) const {assert(_state); return state_->getFoo();}
 			// but if each of them just pass things unchanged between
 			// the calling code and the HWState method there's no
 			// harm in making a single method to do so rather than

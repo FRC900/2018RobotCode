@@ -88,7 +88,7 @@ rm -rf gflags*
 
 # Copy wpilib to roborio
 # cd ~/wpilib/cpp/current/reflib/linux/athena/shared
-#scp *.so <target>
+#scp *.so.* <target>
 #cd ~/wpilib/common/current/lib/linux/athena/shared
 #scp *.so *.so.3.2 <target>
 
