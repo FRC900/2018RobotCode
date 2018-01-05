@@ -225,10 +225,10 @@ class TalonCIParams
 				feedback_type_ = hardware_interface::FeedbackDevice_SensorSum;
 			else if (feedback_type_name == "SensorDifference")
 				feedback_type_ = hardware_interface::FeedbackDevice_SensorDifference;
-			else if (feedback_type_name == "Inertial")
-				feedback_type_ = hardware_interface::FeedbackDevice_Inertial;
-			else if (feedback_type_name == "RemoteSensor")
-				feedback_type_ = hardware_interface::FeedbackDevice_RemoteSensor;
+			else if (feedback_type_name == "RemoteSensor0")
+				feedback_type_ = hardware_interface::FeedbackDevice_RemoteSensor0;
+			else if (feedback_type_name == "RemoteSensor1")
+				feedback_type_ = hardware_interface::FeedbackDevice_RemoteSensor1;
 			else if (feedback_type_name == "SoftwareEmulatedSensor")
 				feedback_type_ = hardware_interface::FeedbackDevice_SoftwareEmulatedSensor;
 			else if (feedback_type_name == "CTRE_MagEncoder_Absolute")
@@ -559,6 +559,7 @@ class TalonControllerInterface
 			// so they can be queried later?
 			params_ = params;
 
+			talon_->setEncoderFeedback(params_.feedback_type_);
 			// perform additional hardware init here
 			// but don't set mode - either force the caller to
 			// set it or use one of the derived, fixed-mode

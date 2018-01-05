@@ -44,9 +44,9 @@ namespace hardware_interface
 		FeedbackDevice_PulseWidthEncodedPosition,
 		FeedbackDevice_SensorSum,
 		FeedbackDevice_SensorDifference,
-		FeedbackDevice_Inertial,
-		FeedbackDevice_RemoteSensor,
-		FeedbackDevice_SoftwareEmulatedSensor, 
+		FeedbackDevice_RemoteSensor0,
+		FeedbackDevice_RemoteSensor1,
+		FeedbackDevice_SoftwareEmulatedSensor,
 		FeedbackDevice_CTRE_MagEncoder_Absolute = FeedbackDevice_PulseWidthEncodedPosition,
 		FeedbackDevice_CTRE_MagEncoder_Relative = FeedbackDevice_QuadEncoder,
 		FeedbackDevice_Last
@@ -427,13 +427,6 @@ namespace hardware_interface
 			}
 			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
 
-		
-			// Add code to read and/or store all the other state from the Talon :
-			// limit switch settings, sensing
-			// pid slot selected and PIDF values
-			// voltage compensation stuff
-			// etc, etc, etc
-			//RG: I think there should be a set peak voltage function - that should go in talon_command since it is something sent to the talon. We could reflect that setting here, though
 		private:
 			double setpoint_;
 			double position_;

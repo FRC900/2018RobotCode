@@ -71,6 +71,8 @@ namespace talon_state_controller
       realtime_pub_->msg_.motor_output_percent.push_back(0.0);
       realtime_pub_->msg_.temperature.push_back(0.0);
 
+      realtime_pub_->msg_.feedback_sensor.push_back("");
+
       realtime_pub_->msg_.pid_slot.push_back(0);
       realtime_pub_->msg_.pid_p0.push_back(0.0);
       realtime_pub_->msg_.pid_p1.push_back(0.0);
@@ -196,6 +198,44 @@ namespace talon_state_controller
           realtime_pub_->msg_.bus_voltage[i] = talon_state_[i]->getBusVoltage();
           realtime_pub_->msg_.motor_output_percent[i] = talon_state_[i]->getMotorOutputPercent();
           realtime_pub_->msg_.temperature[i] = talon_state_[i]->getTemperature();
+
+		 switch(talon_state_[i]->getEncoderFeedback())
+		 {
+			 case hardware_interface::FeedbackDevice_Uninitialized:
+				 realtime_pub_->msg_.feedback_sensor[i] = "Uninitialized";
+				 break;
+			 case hardware_interface::FeedbackDevice_QuadEncoder:
+				 realtime_pub_->msg_.feedback_sensor[i] = "QuadEncoder";
+				 break;
+			 case hardware_interface::FeedbackDevice_Analog:
+				 realtime_pub_->msg_.feedback_sensor[i] = "Analog";
+				 break;
+			 case hardware_interface::FeedbackDevice_Tachometer:
+				 realtime_pub_->msg_.feedback_sensor[i] = "Tachometer";
+				 break;
+			 case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
+				 realtime_pub_->msg_.feedback_sensor[i] = "PusleWidthEncodedPosition";
+				 break;
+			 case hardware_interface::FeedbackDevice_SensorSum:
+				 realtime_pub_->msg_.feedback_sensor[i] =  "SensorSum";
+				 break;
+			 case hardware_interface::FeedbackDevice_SensorDifference:
+				 realtime_pub_->msg_.feedback_sensor[i] = "SensorDifference";
+				 break;
+			 case hardware_interface::FeedbackDevice_RemoteSensor0:
+				 realtime_pub_->msg_.feedback_sensor[i] =  "RemoteSensor0";
+				 break;
+			 case hardware_interface::FeedbackDevice_RemoteSensor1:
+				 realtime_pub_->msg_.feedback_sensor[i] =  "RemoteSensor0";
+				 break;
+			 case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
+				 realtime_pub_->msg_.feedback_sensor[i] = "SoftwareEmulatedSensor";
+				 break;
+			 default:
+				 realtime_pub_->msg_.feedback_sensor[i] = "Unknown";
+				 break;
+		 }
+
           //publish the array of PIDF values
           realtime_pub_->msg_.pid_slot[i] = talon_state_[i]->getSlot();
           realtime_pub_->msg_.pid_p0[i] = talon_state_[i]->getPidfP(0);

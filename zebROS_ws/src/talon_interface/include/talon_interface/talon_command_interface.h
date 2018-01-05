@@ -50,6 +50,7 @@ namespace hardware_interface
 				neutral_mode_changed_(false),
 				neutral_output_(false),
 				encoder_feedback_(FeedbackDevice_Uninitialized),
+				encoder_feedback_changed_(false),
 				encoder_tick_per_rotation_(0),
 				
 				//output shaping
@@ -415,9 +416,20 @@ namespace hardware_interface
 			{
 				if ((encoder_feedback >= FeedbackDevice_Uninitialized) &&
 				    (encoder_feedback <  FeedbackDevice_Last) )
+				{
 					encoder_feedback_ = encoder_feedback;
+					encoder_feedback_changed_ = true;
+				}
 				else
 					ROS_WARN_STREAM("Invalid feedback device requested");
+			}
+			bool encoderFeedbackChanged(FeedbackDevice &encoder_feedback)
+			{
+				encoder_feedback = encoder_feedback_;
+				if (!encoder_feedback_changed_)
+					return false;
+				encoder_feedback_changed_ = false;
+				return true;
 			}
 			int getEncoderTickPerRotation(void) 	const {return encoder_tick_per_rotation_;}
 			void setEncoderTickPerRotation(int encoder_tick_per_rotation) {encoder_tick_per_rotation_ = encoder_tick_per_rotation;}
@@ -767,6 +779,7 @@ namespace hardware_interface
 			bool        neutral_output_;
 
 			FeedbackDevice encoder_feedback_;
+			bool encoder_feedback_changed_;
 			int encoder_tick_per_rotation_;
 
 			//output shaping
