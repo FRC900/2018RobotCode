@@ -68,6 +68,8 @@ class TalonCIParams
 				current_limit_peak_msec_(0),
 				current_limit_continuous_amps_(0),
 				current_limit_enable_(false),
+				motion_cruise_velocity_(10), // No idea at a guess
+				motion_acceleration_(20),
 				motion_control_frame_period_(20) // Guess at 50Hz default?
 		{
 		}
@@ -114,6 +116,8 @@ class TalonCIParams
 			current_limit_peak_msec_ = config.current_limit_peak_msec;
 			current_limit_continuous_amps_ = config.current_limit_continuous_amps;
 			current_limit_enable_ = config.current_limit_enable;
+			motion_cruise_velocity_ = config.motion_cruise_velocity;
+			motion_acceleration_ = config.motion_acceleration;
 			motion_control_frame_period_ = config.motion_control_frame_period;
 		}
 
@@ -159,6 +163,8 @@ class TalonCIParams
 			config.current_limit_peak_msec = current_limit_peak_msec_;
 			config.current_limit_continuous_amps = current_limit_continuous_amps_;
 			config.current_limit_enable = current_limit_enable_;
+			config.motion_cruise_velocity = motion_cruise_velocity_;
+			config.motion_acceleration = motion_acceleration_;
 			config.motion_control_frame_period = motion_control_frame_period_;
 			return config;
 		}
@@ -395,6 +401,8 @@ class TalonCIParams
 
 		bool readMotionControl(ros::NodeHandle &n)
 		{
+			n.getParam("motion_cruise_velocity", motion_cruise_velocity_);
+			n.getParam("motion_acceleration", motion_acceleration_);
 			n.getParam("motion_control_frame_period", motion_control_frame_period_);
 			return true;
 		}
@@ -434,6 +442,8 @@ class TalonCIParams
 		int    current_limit_peak_msec_;
 		int    current_limit_continuous_amps_;
 		bool   current_limit_enable_;
+		double motion_cruise_velocity_;
+		double motion_acceleration_;
 		int    motion_control_frame_period_;
 
 	private:
@@ -592,6 +602,8 @@ class TalonControllerInterface
 			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
 			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
+			talon_->setMotionCruiseVelocity(params_.motion_cruise_velocity_);
+			talon_->setMotionAcceleration(params_.motion_acceleration_);
 
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
 			return true;
@@ -750,6 +762,28 @@ class TalonControllerInterface
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 		}
 
+		
+		virtual void setMotionCruiseVelocity(double velocity)
+		{
+			if (velocity == params_.motion_cruise_velocity_)
+				return;
+			params_.motion_cruise_velocity_ = velocity;
+
+			syncDynamicReconfigure();
+
+			talon_->setMotionCruiseVelocity(params_.motion_cruise_velocity_);
+		}
+
+		virtual void setMotionAcceleration(double acceleration)
+		{
+			if (acceleration == params_.motion_acceleration_)
+				return;
+			params_.motion_acceleration_ = acceleration;
+
+			syncDynamicReconfigure();
+
+			talon_->setMotionAcceleration(params_.motion_acceleration_);
+		}
 		virtual void setMotionControlFramePeriod(int msec)
 		{
 			if (msec == params_.motion_control_frame_period_)
@@ -761,22 +795,22 @@ class TalonControllerInterface
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
 		}
 
-		virtual void ClearMotionProfileTrajectories(void)
+		virtual void clearMotionProfileTrajectories(void)
 		{
 			talon_->setClearMotionProfileTrajectories();
 		}
 
-		virtual void ClearMotionProfileHasUnderrun(void)
+		virtual void clearMotionProfileHasUnderrun(void)
 		{
 			talon_->setClearMotionProfileHasUnderrun();
 		}
 
-		virtual void PushMotionProfileTrajectory(const hardware_interface::TrajectoryPoint &traj_pt)
+		virtual void pushMotionProfileTrajectory(const hardware_interface::TrajectoryPoint &traj_pt)
 		{
 			talon_->PushMotionProfileTrajectory(traj_pt);
 		}
 
-		virtual void ProcessMotionProfileBuffer(void)
+		virtual void processMotionProfileBuffer(void)
 		{
 			talon_->setProcessMotionProfileBuffer();
 		}

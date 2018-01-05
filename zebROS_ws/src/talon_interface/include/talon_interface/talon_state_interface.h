@@ -95,6 +95,7 @@ namespace hardware_interface
 				output_current_(0),
 				bus_voltage_(0), 
 				motor_output_percent_(0),
+				temperature_(0),
 				pidf_p_ {0, 0},
 				pidf_i_ {0, 0},
 				pidf_d_ {0, 0},
@@ -148,6 +149,9 @@ namespace hardware_interface
 				current_limit_continuous_amps_(0),
 				current_limit_enable_(false),
 
+				motion_cruise_velocity_(0),
+				motion_acceleration_(0),
+
 				// motion profiling
 				motion_profile_top_level_buffer_count_(0),
 				motion_profile_top_level_buffer_full_(false),
@@ -163,6 +167,7 @@ namespace hardware_interface
 			double getOutputCurrent(void) const {return output_current_;}
 			double getBusVoltage(void)    const {return bus_voltage_;}
 			double getMotorOutputPercent(void)    const {return motor_output_percent_;}
+			double getTemperature(void)   const {return temperature_;}
 			double getPidfP(int index)    const {
 			if((index == 0) || (index == 1))
 				return pidf_p_[index];
@@ -240,6 +245,7 @@ namespace hardware_interface
 			void setOutputCurrent(double output_current) {output_current_ = output_current;}
 			void setBusVoltage(double bus_voltage)       {bus_voltage_ = bus_voltage;}
 			void setMotorOutputPercent(double motor_output_percent)       {motor_output_percent_ = motor_output_percent;}
+			void setTemperature(double temperature)      {temperature_ = temperature;}
 
 			//output shaping
 			void setClosedloopRamp(double close_loop_ramp) {close_loop_ramp_ = close_loop_ramp;}
@@ -329,6 +335,11 @@ namespace hardware_interface
 			void setCurrentLimitEnable(bool enable) { current_limit_enable_ = enable; }
 			bool getCurrentLimitEnable(void) const { return current_limit_enable_; }
 
+			void setMotionCruiseVelocity(double velocity) { motion_cruise_velocity_ = velocity; }
+			double getMotionCruiseVelocity(void) const {return motion_cruise_velocity_;}
+			void setMotionAcceleration(double acceleration) { motion_acceleration_ = acceleration; }
+			double getMotionAcceleration(void) const {return motion_acceleration_;}
+			
 			void setMotionProfileTopLevelBufferCount(int count) {motion_profile_top_level_buffer_count_ = count; }
 			int getMotionProfileTopLevelBufferCount(void) const {return motion_profile_top_level_buffer_count_; }
 			void setMotionProfileTopLevelBufferFull(bool is_full) {motion_profile_top_level_buffer_full_ = is_full; }
@@ -431,6 +442,7 @@ namespace hardware_interface
 			double output_current_;
 			double bus_voltage_;
 			double motor_output_percent_;
+			double temperature_;
 			double pidf_p_[2];
 			double pidf_i_[2];
 			double pidf_d_[2];
@@ -487,6 +499,12 @@ namespace hardware_interface
 			int current_limit_peak_msec_;
 			int current_limit_continuous_amps_;
 			bool current_limit_enable_;
+
+			// Talon expects these in integral sensorUnitsPer100ms,
+			// but at this level we're still dealing with
+			// radians/sec (or /sec^2 for acceleration)
+			double motion_cruise_velocity_;
+			double motion_acceleration_;
 
 			// Motion profiling
 			int motion_profile_top_level_buffer_count_;

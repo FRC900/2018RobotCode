@@ -30,6 +30,7 @@ float64[] output_voltage
 float64[] output_current
 float64[] bus_voltage
 float64[] motor_output_percent
+float64[] temperature
 int32[]   pid_slot
 float64[] pid_p0
 float64[] pid_p1
@@ -79,6 +80,8 @@ int32[]   current_limit_peak_amps
 int32[]   current_limit_peak_msec
 int32[]   current_limit_continuous_amps
 bool[]    current_limit_enable
+float64[] motion_cruise_velocity
+float64[] motion_acceleration
 int32[]   motion_profile_top_level_buffer_count
 bool[]    motion_profile_top_level_buffer_full
 int32[]   motion_profile_status_top_buffer_rem

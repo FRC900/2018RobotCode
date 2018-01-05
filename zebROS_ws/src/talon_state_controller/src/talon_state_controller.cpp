@@ -69,6 +69,7 @@ namespace talon_state_controller
       realtime_pub_->msg_.output_current.push_back(0.0);
       realtime_pub_->msg_.bus_voltage.push_back(0.0);
       realtime_pub_->msg_.motor_output_percent.push_back(0.0);
+      realtime_pub_->msg_.temperature.push_back(0.0);
 
       realtime_pub_->msg_.pid_slot.push_back(0);
       realtime_pub_->msg_.pid_p0.push_back(0.0);
@@ -128,6 +129,8 @@ namespace talon_state_controller
       realtime_pub_->msg_.current_limit_continuous_amps.push_back(0);
       realtime_pub_->msg_.current_limit_enable.push_back(false);
 
+	  realtime_pub_->msg_.motion_cruise_velocity.push_back(0);
+	  realtime_pub_->msg_.motion_acceleration.push_back(0);
       realtime_pub_->msg_.motion_profile_top_level_buffer_count.push_back(0);
       realtime_pub_->msg_.motion_profile_top_level_buffer_full.push_back(false);
       realtime_pub_->msg_.motion_profile_status_top_buffer_rem.push_back(0);
@@ -192,6 +195,7 @@ namespace talon_state_controller
           realtime_pub_->msg_.output_current[i] = talon_state_[i]->getOutputCurrent();
           realtime_pub_->msg_.bus_voltage[i] = talon_state_[i]->getBusVoltage();
           realtime_pub_->msg_.motor_output_percent[i] = talon_state_[i]->getMotorOutputPercent();
+          realtime_pub_->msg_.temperature[i] = talon_state_[i]->getTemperature();
           //publish the array of PIDF values
           realtime_pub_->msg_.pid_slot[i] = talon_state_[i]->getSlot();
           realtime_pub_->msg_.pid_p0[i] = talon_state_[i]->getPidfP(0);
@@ -306,6 +310,8 @@ namespace talon_state_controller
 		  realtime_pub_->msg_.current_limit_continuous_amps[i] = talon_state_[i]->getContinuousCurrentLimit();
 		  realtime_pub_->msg_.current_limit_enable[i] = talon_state_[i]->getCurrentLimitEnable();
 
+		  realtime_pub_->msg_.motion_cruise_velocity[i] = talon_state_[i]->getMotionCruiseVelocity();
+		  realtime_pub_->msg_.motion_acceleration[i] = talon_state_[i]->getMotionAcceleration();
 		  realtime_pub_->msg_.motion_profile_top_level_buffer_count[i] = talon_state_[i]->getMotionProfileTopLevelBufferCount();
 		  realtime_pub_->msg_.motion_profile_top_level_buffer_full[i] = talon_state_[i]->getMotionProfileTopLevelBufferFull();
 		  hardware_interface::MotionProfileStatus mp_status(talon_state_[i]->getMotionProfileStatus());

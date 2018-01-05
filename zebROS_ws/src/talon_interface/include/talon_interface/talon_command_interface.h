@@ -83,6 +83,10 @@ namespace hardware_interface
 				current_limit_enable_(false),
 				current_limit_changed_(false),
 
+				motion_cruise_velocity_(0),
+				motion_acceleration_(0),
+				motion_cruise_changed_(false),
+
 				motion_profile_clear_trajectories_(false),
 				motion_profile_process_buffer_(false),
 				motion_profile_clear_has_underrun_(false),
@@ -659,6 +663,29 @@ namespace hardware_interface
 				return true;
 			}
 
+			void setMotionCruiseVelocity(double velocity)
+			{
+				motion_cruise_velocity_ = velocity;
+				motion_cruise_changed_ = true;
+			}
+			double getMotionCruiseVelocity(void) const {return motion_cruise_velocity_;}
+			void setMotionAcceleration(double acceleration)
+			{
+				motion_acceleration_ = acceleration;
+				motion_cruise_changed_ = true;
+			}
+			double getMotionAcceleration(void) const {return motion_acceleration_;}
+
+			bool motionCruiseChanged(double &velocity, double &acceleration)
+			{
+				velocity = motion_cruise_velocity_;
+				acceleration = motion_acceleration_;
+				if (!motion_cruise_changed_)
+					return false;
+				motion_cruise_changed_ = false;
+				return true;
+			}
+
 			// This is a one shot - when set, it needs to
 			// call the appropriate Talon function once
 			// then clear itself
@@ -769,6 +796,13 @@ namespace hardware_interface
 			int current_limit_continuous_amps_;
 			bool current_limit_enable_;
 			bool current_limit_changed_;
+
+			// Talon expects these in integral sensorUnitsPer100ms,
+			// but at this level we're still dealing with
+			// radians/sec (or /sec^2 for acceleration)
+			double motion_cruise_velocity_;
+			double motion_acceleration_;
+			bool motion_cruise_changed_;
 
 			bool motion_profile_clear_trajectories_;
 			bool motion_profile_process_buffer_;
