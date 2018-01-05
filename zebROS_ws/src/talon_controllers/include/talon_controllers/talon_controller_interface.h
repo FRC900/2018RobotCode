@@ -67,7 +67,8 @@ class TalonCIParams
 				current_limit_peak_amps_(0),
 				current_limit_peak_msec_(0),
 				current_limit_continuous_amps_(0),
-				current_limit_enable_(false)
+				current_limit_enable_(false),
+				motion_control_frame_period_(20) // Guess at 50Hz default?
 		{
 		}
 
@@ -113,6 +114,7 @@ class TalonCIParams
 			current_limit_peak_msec_ = config.current_limit_peak_msec;
 			current_limit_continuous_amps_ = config.current_limit_continuous_amps;
 			current_limit_enable_ = config.current_limit_enable;
+			motion_control_frame_period_ = config.motion_control_frame_period;
 		}
 
 		// Copy from internal state to TalonConfigConfig state
@@ -157,6 +159,7 @@ class TalonCIParams
 			config.current_limit_peak_msec = current_limit_peak_msec_;
 			config.current_limit_continuous_amps = current_limit_continuous_amps_;
 			config.current_limit_enable = current_limit_enable_;
+			config.motion_control_frame_period = motion_control_frame_period_;
 			return config;
 		}
 
@@ -390,6 +393,12 @@ class TalonCIParams
 			return true;
 		}
 
+		bool readMotionControl(ros::NodeHandle &n)
+		{
+			n.getParam("motion_control_frame_period", motion_control_frame_period_);
+			return true;
+		}
+
 		// TODO : Keep adding config items here
 		std::string joint_name_;
 		int    follow_can_id_;
@@ -425,6 +434,7 @@ class TalonCIParams
 		int    current_limit_peak_msec_;
 		int    current_limit_continuous_amps_;
 		bool   current_limit_enable_;
+		int    motion_control_frame_period_;
 
 	private:
 		// Read a double named <param_type> from the array/map
@@ -505,7 +515,8 @@ class TalonControllerInterface
 				   params_.readOutputShaping(n) &&
 				   params_.readVoltageCompensation(n) &&
 				   params_.readSoftLimits(n) &&
-				   params_.readCurrentLimits(n);
+				   params_.readCurrentLimits(n) &&
+				   params_.readMotionControl(n);
 		}
 
 		// Allow users of the ControllerInterface to get 
@@ -581,11 +592,15 @@ class TalonControllerInterface
 			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
 			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
+
+			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
 			return true;
 		}
 
 		void callback(talon_controllers::TalonConfigConfig &config, uint32_t level)
 		{
+			// TODO : this list is rapidly getting out of date.  
+			// Update it or remove the printout?
 			ROS_INFO("Reconfigure request : %s %f %f %f %f %f %f %f %f %f %f %d %d",
 					talon_.getName().c_str(),
 					config.p0,
@@ -735,6 +750,36 @@ class TalonControllerInterface
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 		}
 
+		virtual void setMotionControlFramePeriod(int msec)
+		{
+			if (msec == params_.motion_control_frame_period_)
+				return;
+			params_.motion_control_frame_period_= msec;
+
+			syncDynamicReconfigure();
+
+			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
+		}
+
+		virtual void ClearMotionProfileTrajectories(void)
+		{
+			talon_->setClearMotionProfileTrajectories();
+		}
+
+		virtual void ClearMotionProfileHasUnderrun(void)
+		{
+			talon_->setClearMotionProfileHasUnderrun();
+		}
+
+		virtual void PushMotionProfileTrajectory(const hardware_interface::TrajectoryPoint &traj_pt)
+		{
+			talon_->PushMotionProfileTrajectory(traj_pt);
+		}
+
+		virtual void ProcessMotionProfileBuffer(void)
+		{
+			talon_->setProcessMotionProfileBuffer();
+		}
 
 		double getPosition(void) const
 		{

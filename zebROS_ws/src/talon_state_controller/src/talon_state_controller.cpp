@@ -128,6 +128,18 @@ namespace talon_state_controller
       realtime_pub_->msg_.current_limit_continuous_amps.push_back(0);
       realtime_pub_->msg_.current_limit_enable.push_back(false);
 
+      realtime_pub_->msg_.motion_profile_top_level_buffer_count.push_back(0);
+      realtime_pub_->msg_.motion_profile_top_level_buffer_full.push_back(false);
+      realtime_pub_->msg_.motion_profile_status_top_buffer_rem.push_back(0);
+      realtime_pub_->msg_.motion_profile_status_top_buffer_cnt.push_back(0);
+      realtime_pub_->msg_.motion_profile_status_btm_buffer_cnt.push_back(0);
+      realtime_pub_->msg_.motion_profile_status_has_underrun.push_back(false);
+      realtime_pub_->msg_.motion_profile_status_is_underrun.push_back(false);
+      realtime_pub_->msg_.motion_profile_status_active_point_valid.push_back(false);
+      realtime_pub_->msg_.motion_profile_status_is_last.push_back(false);
+      realtime_pub_->msg_.motion_profile_status_profile_slot_select.push_back(0);
+      realtime_pub_->msg_.motion_profile_status_output_enable.push_back("");
+
       talon_state_.push_back(hw->getHandle(joint_names[i]));
     }
     addExtraJoints(controller_nh, realtime_pub_->msg_);
@@ -293,6 +305,35 @@ namespace talon_state_controller
 		  realtime_pub_->msg_.current_limit_peak_msec[i] = talon_state_[i]->getPeakCurrentDuration();
 		  realtime_pub_->msg_.current_limit_continuous_amps[i] = talon_state_[i]->getContinuousCurrentLimit();
 		  realtime_pub_->msg_.current_limit_enable[i] = talon_state_[i]->getCurrentLimitEnable();
+
+		  realtime_pub_->msg_.motion_profile_top_level_buffer_count[i] = talon_state_[i]->getMotionProfileTopLevelBufferCount();
+		  realtime_pub_->msg_.motion_profile_top_level_buffer_full[i] = talon_state_[i]->getMotionProfileTopLevelBufferFull();
+		  hardware_interface::MotionProfileStatus mp_status(talon_state_[i]->getMotionProfileStatus());
+		  realtime_pub_->msg_.motion_profile_status_top_buffer_rem[i] = mp_status.topBufferRem;
+		  realtime_pub_->msg_.motion_profile_status_top_buffer_cnt[i] = mp_status.topBufferCnt;
+		  realtime_pub_->msg_.motion_profile_status_btm_buffer_cnt[i] = mp_status.btmBufferCnt;
+		  realtime_pub_->msg_.motion_profile_status_has_underrun[i] = mp_status.hasUnderrun;
+		  realtime_pub_->msg_.motion_profile_status_is_underrun[i] = mp_status.isUnderrun;
+		  realtime_pub_->msg_.motion_profile_status_active_point_valid[i] = mp_status.activePointValid;
+		  realtime_pub_->msg_.motion_profile_status_is_last[i] = mp_status.isLast;
+		  realtime_pub_->msg_.motion_profile_status_profile_slot_select[i] = mp_status.profileSlotSelect;
+		  switch (mp_status.outputEnable)
+		  {
+			  case hardware_interface::Disable:
+				  realtime_pub_->msg_.motion_profile_status_output_enable[i] = "Disable";
+				  break;
+			  case hardware_interface::Enable:
+				  realtime_pub_->msg_.motion_profile_status_output_enable[i] = "Enable";
+				  break;
+			  case hardware_interface::Hold:
+				  realtime_pub_->msg_.motion_profile_status_output_enable[i] = "Hold";
+				  break;
+			  default:
+				  realtime_pub_->msg_.motion_profile_status_output_enable[i] = "Unknown";
+				  break;
+		  }
+
+
         }
         realtime_pub_->unlockAndPublish();
       }

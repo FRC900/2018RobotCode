@@ -79,3 +79,14 @@ int32[]   current_limit_peak_amps
 int32[]   current_limit_peak_msec
 int32[]   current_limit_continuous_amps
 bool[]    current_limit_enable
+int32[]   motion_profile_top_level_buffer_count
+bool[]    motion_profile_top_level_buffer_full
+int32[]   motion_profile_status_top_buffer_rem
+int32[]   motion_profile_status_top_buffer_cnt
+int32[]   motion_profile_status_btm_buffer_cnt
+bool[]    motion_profile_status_has_underrun
+bool[]    motion_profile_status_is_underrun
+bool[]    motion_profile_status_active_point_valid
+bool[]    motion_profile_status_is_last
+int32[]   motion_profile_status_profile_slot_select
+string[]  motion_profile_status_output_enable

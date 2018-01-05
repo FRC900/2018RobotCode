@@ -6,6 +6,15 @@
 
 namespace hardware_interface
 {
+	struct TrajectoryPoint
+	{
+		double position;
+		double velocity;
+		double headingRad;
+		uint32_t profileSlotSelect;
+		bool isLastPoint;
+		bool zeroPos;
+	};
 	
 	// Class to buffer data needed to set the state of the
 	// Talon.  This should (eventually) include anything
@@ -72,7 +81,13 @@ namespace hardware_interface
 				current_limit_peak_msec_(0),
 				current_limit_continuous_amps_(0),
 				current_limit_enable_(false),
-				current_limit_changed_(false)
+				current_limit_changed_(false),
+
+				motion_profile_clear_trajectories_(false),
+				motion_profile_process_buffer_(false),
+				motion_profile_clear_has_underrun_(false),
+				motion_profile_control_frame_period_(20),
+				motion_profile_control_frame_period_changed_(false)
 			{
 				for (int slot = 0; slot < 2; slot++)
 				{
@@ -644,6 +659,67 @@ namespace hardware_interface
 				return true;
 			}
 
+			// This is a one shot - when set, it needs to
+			// call the appropriate Talon function once
+			// then clear itself
+			void setClearMotionProfileTrajectories(void) {motion_profile_clear_trajectories_ = true;}
+			bool getClearMotionProfileTrajectories(void) const {return motion_profile_clear_trajectories_;}
+			bool clearMotionProfileTrajectoriesChanged(void)
+			{
+				if (!motion_profile_clear_trajectories_)
+					return false;
+				motion_profile_clear_trajectories_ = false;
+				return true;
+			}
+			void PushMotionProfileTrajectory(const TrajectoryPoint &traj_pt)
+			{
+				motion_profile_trajectory_points_.push_back(traj_pt);	
+			}
+			std::vector<TrajectoryPoint> getMotionProfileTrajectories(void) const { motion_profile_trajectory_points_; }
+			 bool motionProfileTrajectoriesChanged(std::vector<TrajectoryPoint> &points)
+			{
+				points = motion_profile_trajectory_points_;
+				motion_profile_trajectory_points_.clear();
+				return points.size() != 0;
+			}
+
+			// This is a one shot - when set, it needs to
+			// call the appropriate Talon function once
+			// then clear itself
+			void setProcessMotionProfileBuffer(void) {motion_profile_process_buffer_ = true;}
+			bool getProcessMotionProfileBuffer(void) const {return motion_profile_process_buffer_;}
+			bool processMotionProfileBufferChanged(void)
+			{
+				if (!motion_profile_process_buffer_)
+					return false;
+				motion_profile_process_buffer_ = false;
+				return true;
+			}
+
+			// This is a one shot - when set, it needs to
+			// call the appropriate Talon function once
+			// then clear itself
+			void setClearMotionProfileHasUnderrun(void) {motion_profile_clear_has_underrun_ = true;}
+			bool getClearMotionProfileHasUnderrun(void) const {return motion_profile_clear_has_underrun_;}
+			bool clearMotionProfileHasUnderrunChanged(void)
+			{
+				if (!motion_profile_clear_has_underrun_)
+					return false;
+				motion_profile_clear_has_underrun_= false;
+				return true;
+			}
+
+			void setMotionControlFramePeriod(int msec) {motion_profile_control_frame_period_ = msec; motion_profile_control_frame_period_changed_ = true;}
+			int getMotionControlFramePeriod(int msec) const {return motion_profile_control_frame_period_;}
+			bool motionControlFramePeriodChanged(int &msec)
+			{
+				msec = motion_profile_control_frame_period_;
+				if (!motion_profile_control_frame_period_changed_)
+					return false;
+				motion_profile_control_frame_period_changed_ = false;
+				return true;
+			}
+
 		private:
 			double    command_; // motor setpoint - % vbus, velocity, position, etc
 			bool      command_changed_;
@@ -693,6 +769,13 @@ namespace hardware_interface
 			int current_limit_continuous_amps_;
 			bool current_limit_enable_;
 			bool current_limit_changed_;
+
+			bool motion_profile_clear_trajectories_;
+			bool motion_profile_process_buffer_;
+			bool motion_profile_clear_has_underrun_;
+			std::vector<TrajectoryPoint> motion_profile_trajectory_points_;
+			int motion_profile_control_frame_period_;
+			bool motion_profile_control_frame_period_changed_;
 
 			// 2 entries in the Talon HW for each of these settings
 			double p_[2];

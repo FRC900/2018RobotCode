@@ -52,6 +52,24 @@ namespace hardware_interface
 		FeedbackDevice_Last
 	};
 
+	// Match up with CTRE Motion profile struct
+	enum SetValueMotionProfile {
+		Disable = 0, Enable = 1, Hold = 2,
+	};
+
+	struct MotionProfileStatus 
+	{
+		int  topBufferRem;
+		int  topBufferCnt;
+		int  btmBufferCnt;
+		bool hasUnderrun;
+		bool isUnderrun;
+		bool activePointValid;
+		bool isLast;
+		int  profileSlotSelect;
+		SetValueMotionProfile outputEnable;
+	};
+
 	// Class which contains state information
 	// about a given Talon SRX. This should include
 	// data about the mode the Talon is running in,
@@ -128,7 +146,12 @@ namespace hardware_interface
 				current_limit_peak_amps_(0),
 				current_limit_peak_msec_(0),
 				current_limit_continuous_amps_(0),
-				current_limit_enable_(false)
+				current_limit_enable_(false),
+
+				// motion profiling
+				motion_profile_top_level_buffer_count_(0),
+				motion_profile_top_level_buffer_full_(false),
+				motion_control_frame_period_(20) // Guess at 50Hz?
 			{
 			}
 
@@ -306,6 +329,15 @@ namespace hardware_interface
 			void setCurrentLimitEnable(bool enable) { current_limit_enable_ = enable; }
 			bool getCurrentLimitEnable(void) const { return current_limit_enable_; }
 
+			void setMotionProfileTopLevelBufferCount(int count) {motion_profile_top_level_buffer_count_ = count; }
+			int getMotionProfileTopLevelBufferCount(void) const {return motion_profile_top_level_buffer_count_; }
+			void setMotionProfileTopLevelBufferFull(bool is_full) {motion_profile_top_level_buffer_full_ = is_full; }
+			bool getMotionProfileTopLevelBufferFull(void) const {return motion_profile_top_level_buffer_full_; }
+			void setMotionProfileStatus(const MotionProfileStatus &status) {motion_profile_status_ = status; }
+			MotionProfileStatus getMotionProfileStatus(void) const {return motion_profile_status_; }
+			void setMotionControlFramePeriod(int msec) {motion_control_frame_period_ = msec; }
+			int getMotionControlFramePeriod(void) const {return motion_control_frame_period_; }
+
 			void setPidfP(double pidf_p, int index)	     {
 			if((index == 0) || (index == 1))
 				pidf_p_[index] = pidf_p;
@@ -455,6 +487,12 @@ namespace hardware_interface
 			int current_limit_peak_msec_;
 			int current_limit_continuous_amps_;
 			bool current_limit_enable_;
+
+			// Motion profiling
+			int motion_profile_top_level_buffer_count_;
+			bool motion_profile_top_level_buffer_full_;
+			MotionProfileStatus motion_profile_status_;
+			int motion_control_frame_period_;
 	};
 
 	// Handle - used by each controller to get, by name of the
