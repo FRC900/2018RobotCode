@@ -70,6 +70,11 @@ float64[] neutral_deadband
 float64[] voltage_compensation_saturation
 int32[]   voltage_measurement_filter
 bool[]    voltage_compensation_enable
+float64[] softlimit_forward_threshold
+bool[]    softlimit_forward_enable
+float64[] softlimit_reverse_threshold
+bool[]    softlimit_reverse_enable
+bool[]    softlimits_override_enable
 int32[]   current_limit_peak_amps
 int32[]   current_limit_peak_msec
 int32[]   current_limit_continuous_amps

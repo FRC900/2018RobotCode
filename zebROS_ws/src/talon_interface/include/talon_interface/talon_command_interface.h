@@ -59,6 +59,14 @@ namespace hardware_interface
 				voltage_compensation_enable_(false),
 				voltage_compensation_changed_(false),
 
+				// soft limits
+				softlimit_forward_threshold_(0.0),
+				softlimit_forward_enable_(false),
+				softlimit_reverse_threshold_(0.0),
+				softlimit_reverse_enable_(false),
+				softlimits_override_enable_(false),
+				softlimit_changed_(false),
+
 				// current limiting
 				current_limit_peak_amps_(0),
 				current_limit_peak_msec_(0),
@@ -507,6 +515,84 @@ namespace hardware_interface
 				return false;
 			}
 
+			// softlimits
+			void setForwardSoftLimitThreshold(double threshold)
+			{
+				if (threshold != softlimit_forward_threshold_)
+				{
+					softlimit_forward_threshold_ = threshold;
+					softlimit_changed_ = true;
+				}
+			}
+			double getForwardSoftLimitThreshold(void) const
+			{
+				return softlimit_forward_threshold_;
+			}
+
+			void setForwardSoftLimitEnable(bool enable)
+			{
+				if (enable != softlimit_forward_enable_)
+				{
+					softlimit_forward_enable_ = enable;
+					softlimit_changed_ = true;
+				}
+			}
+			bool getForwardSoftLimitEnable(void) const
+			{
+				return softlimit_forward_enable_;
+			}
+			void setReverseSoftLimitThreshold(double threshold)
+			{
+				if (threshold != softlimit_reverse_threshold_)
+				{
+					softlimit_reverse_threshold_ = threshold;
+					softlimit_changed_ = true;
+				}
+			}
+			double getReverseSoftLimitThreshold(void) const
+			{
+				return softlimit_reverse_threshold_;
+			}
+
+			void setReverseSoftLimitEnable(bool enable)
+			{
+				if (enable != softlimit_reverse_enable_)
+				{
+					softlimit_reverse_enable_ = enable;
+					softlimit_changed_ = true;
+				}
+			}
+			bool getReverseSoftLimitEnable(void) const
+			{
+				return softlimit_reverse_enable_;
+			}
+
+			void setOverrideSoftLimitsEnable(bool enable)
+			{
+				if (enable != softlimits_override_enable_)
+				{
+					softlimits_override_enable_ = enable;
+					softlimit_changed_ = true;
+				}
+			}
+			bool getOverrideSoftsLimitEnable(void) const
+			{
+				return softlimits_override_enable_;
+			}
+
+			bool SoftLimitChanged(double &forward_threshold, bool &forward_enable, double &reverse_threshold, bool &reverse_enable, bool &override_enable)
+			{
+				forward_threshold = softlimit_forward_threshold_;
+				forward_enable = softlimit_forward_enable_;
+				reverse_threshold = softlimit_reverse_threshold_;
+				reverse_enable = softlimit_reverse_enable_;
+				override_enable = softlimits_override_enable_;
+				if (!softlimit_changed_)
+					return false;
+				softlimit_changed_ = false;
+				return true;
+			}
+
 			// current limits
 			void setPeakCurrentLimit(int amps)
 			{
@@ -594,6 +680,13 @@ namespace hardware_interface
 			int   voltage_measurement_filter_;
 			bool  voltage_compensation_enable_;
 			bool  voltage_compensation_changed_;
+
+			double softlimit_forward_threshold_;
+			bool softlimit_forward_enable_;
+			double softlimit_reverse_threshold_;
+			bool softlimit_reverse_enable_;
+			bool softlimits_override_enable_;
+			bool softlimit_changed_;
 
 			int current_limit_peak_amps_;
 			int current_limit_peak_msec_;

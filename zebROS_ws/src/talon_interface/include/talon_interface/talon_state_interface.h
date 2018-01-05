@@ -117,6 +117,13 @@ namespace hardware_interface
 				voltage_measurement_filter_(0),
 				voltage_compensation_enable_(false),
 
+				// soft limits
+				softlimit_forward_threshold_(0.0),
+				softlimit_forward_enable_(false),
+				softlimit_reverse_threshold_(0.0),
+				softlimit_reverse_enable_(false),
+				softlimits_override_enable_(false),
+
 				// current limiting
 				current_limit_peak_amps_(0),
 				current_limit_peak_msec_(0),
@@ -242,6 +249,52 @@ namespace hardware_interface
 
 			void setVoltageCompensationEnable(bool voltage_compensation_enable) { voltage_compensation_enable_ = voltage_compensation_enable;}
 			bool getVoltageCompensationEnable(void) const {return voltage_compensation_enable_;}
+
+
+			void setForwardSoftLimitThreshold(double threshold)
+			{
+				softlimit_forward_threshold_ = threshold;
+			}
+			double getForwardSoftLimitThreshold(void) const
+			{
+				return softlimit_forward_threshold_;
+			}
+
+			void setForwardSoftLimitEnable(bool enable)
+			{
+				softlimit_forward_enable_ = enable;
+			}
+			bool getForwardSoftLimitEnable(void) const
+			{
+				return softlimit_forward_enable_;
+			}
+			void setReverseSoftLimitThreshold(double threshold)
+			{
+				softlimit_reverse_threshold_ = threshold;
+			}
+			double getReverseSoftLimitThreshold(void) const
+			{
+				return softlimit_reverse_threshold_;
+			}
+
+			void setReverseSoftLimitEnable(bool enable)
+			{
+				softlimit_reverse_enable_ = enable;
+			}
+			bool getReverseSoftLimitEnable(void) const
+			{
+				return softlimit_reverse_enable_;
+			}
+
+			void setOverrideSoftLimitsEnable(bool enable)
+			{
+				softlimits_override_enable_ = enable;
+			}
+			bool getOverrideSoftLimitsEnable(void) const
+			{
+				return softlimits_override_enable_;
+			}
+
 
 			void setPeakCurrentLimit(int amps) { current_limit_peak_amps_ = amps; }
 			int getPeakCurrentLimit(void) const { return current_limit_peak_amps_; }
@@ -389,6 +442,13 @@ namespace hardware_interface
 			double voltage_compensation_saturation_;
 			int   voltage_measurement_filter_;
 			bool  voltage_compensation_enable_;
+
+			// soft limits
+			double softlimit_forward_threshold_;
+			bool softlimit_forward_enable_;
+			double softlimit_reverse_threshold_;
+			bool softlimit_reverse_enable_;
+			bool softlimits_override_enable_;
 			
 			// current limiting
 			int current_limit_peak_amps_;

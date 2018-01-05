@@ -117,6 +117,12 @@ namespace talon_state_controller
       realtime_pub_->msg_.voltage_measurement_filter.push_back(0);
       realtime_pub_->msg_.voltage_compensation_enable.push_back(false);
 
+	  realtime_pub_->msg_.softlimit_forward_threshold.push_back(0);
+	  realtime_pub_->msg_.softlimit_forward_enable.push_back(false);
+	  realtime_pub_->msg_.softlimit_reverse_threshold.push_back(0);
+	  realtime_pub_->msg_.softlimit_reverse_enable.push_back(false);
+	  realtime_pub_->msg_.softlimits_override_enable.push_back(false);
+
       realtime_pub_->msg_.current_limit_peak_amps.push_back(0);
       realtime_pub_->msg_.current_limit_peak_msec.push_back(0);
       realtime_pub_->msg_.current_limit_continuous_amps.push_back(0);
@@ -276,6 +282,12 @@ namespace talon_state_controller
 		  realtime_pub_->msg_.voltage_compensation_saturation[i] = talon_state_[i]->getVoltageCompensationSaturation();
 		  realtime_pub_->msg_.voltage_measurement_filter[i] = talon_state_[i]->getVoltageMeasurementFilter();
 		  realtime_pub_->msg_.voltage_compensation_enable[i] = talon_state_[i]->getVoltageCompensationEnable();
+
+		  realtime_pub_->msg_.softlimit_forward_threshold[i] = talon_state_[i]->getForwardSoftLimitThreshold();
+		  realtime_pub_->msg_.softlimit_forward_enable[i] = talon_state_[i]->getForwardSoftLimitEnable();
+		  realtime_pub_->msg_.softlimit_reverse_threshold[i] = talon_state_[i]->getReverseSoftLimitThreshold();
+		  realtime_pub_->msg_.softlimit_reverse_enable[i] = talon_state_[i]->getReverseSoftLimitEnable();
+		  realtime_pub_->msg_.softlimits_override_enable[i] = talon_state_[i]->getOverrideSoftLimitsEnable();
 
 		  realtime_pub_->msg_.current_limit_peak_amps[i] = talon_state_[i]->getPeakCurrentLimit();
 		  realtime_pub_->msg_.current_limit_peak_msec[i] = talon_state_[i]->getPeakCurrentDuration();

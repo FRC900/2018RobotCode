@@ -59,6 +59,11 @@ class TalonCIParams
 				voltage_compensation_saturation_(0),
 				voltage_measurement_filter_(0),
 				voltage_compensation_enable_(false),
+				softlimit_forward_threshold_(0.0),
+				softlimit_forward_enable_(false),
+				softlimit_reverse_threshold_(0.0),
+				softlimit_reverse_enable_(false),
+				softlimits_override_enable_(false),
 				current_limit_peak_amps_(0),
 				current_limit_peak_msec_(0),
 				current_limit_continuous_amps_(0),
@@ -97,6 +102,13 @@ class TalonCIParams
 			voltage_compensation_saturation_ = config.voltage_compensation_saturation;
 			voltage_measurement_filter_ = config.voltage_measurement_filter;
 			voltage_compensation_enable_ = config.voltage_compensation_enable;
+
+			softlimit_forward_threshold_ = config.softlimit_forward_threshold;
+			softlimit_forward_enable_ = config.softlimit_forward_enable;
+			softlimit_reverse_threshold_ = config.softlimit_reverse_threshold;
+			softlimit_reverse_enable_ = config.softlimit_reverse_enable;
+			softlimits_override_enable_ = config.softlimits_override_enable;
+
 			current_limit_peak_amps_ = config.current_limit_peak_amps;
 			current_limit_peak_msec_ = config.current_limit_peak_msec;
 			current_limit_continuous_amps_ = config.current_limit_continuous_amps;
@@ -136,6 +148,11 @@ class TalonCIParams
 			config.voltage_compensation_saturation = voltage_compensation_saturation_;
 			config.voltage_measurement_filter = voltage_measurement_filter_;
 			config.voltage_compensation_enable = voltage_compensation_enable_;
+			config.softlimit_forward_threshold = softlimit_forward_threshold_;
+			config.softlimit_forward_enable = softlimit_forward_enable_;
+			config.softlimit_reverse_threshold = softlimit_reverse_threshold_;
+			config.softlimit_reverse_enable = softlimit_reverse_enable_;
+			config.softlimits_override_enable = softlimits_override_enable_;
 			config.current_limit_peak_amps = current_limit_peak_amps_;
 			config.current_limit_peak_msec = current_limit_peak_msec_;
 			config.current_limit_continuous_amps = current_limit_continuous_amps_;
@@ -311,6 +328,39 @@ class TalonCIParams
 			return true;
 		}
 
+		bool readSoftLimits(ros::NodeHandle &n)
+		{
+			double double_val;
+			bool bool_val;
+			int param_count = 0;
+			if (n.getParam("softlimit_forward_threshold", double_val))
+			{
+				softlimit_forward_threshold_ = double_val;
+				param_count = 1;
+			}
+			if (n.getParam("softlimit_forward_enable", bool_val))
+			{
+				softlimit_forward_enable_ = bool_val;
+				if (bool_val && (param_count == 0))
+					ROS_WARN("Enabling forward softlimits without setting threshold");
+			}
+			param_count = 0;
+			if (n.getParam("softlimit_reverse_threshold", double_val))
+			{
+				softlimit_reverse_threshold_ = double_val;
+				param_count = 1;
+			}
+			if (n.getParam("softlimit_reverse_enable", bool_val))
+			{
+				softlimit_reverse_enable_ = bool_val;
+				if (bool_val && (param_count == 0))
+					ROS_WARN("Enabling forward softlimits without setting threshold");
+			}
+			if (n.getParam("softlimits_override_enable", bool_val))
+				softlimits_override_enable_ = bool_val;
+			return true;
+		}
+
 		bool readCurrentLimits(ros::NodeHandle &n)
 		{
 			int params_read = 0;
@@ -355,7 +405,7 @@ class TalonCIParams
 		bool   sensor_phase_;
 		hardware_interface::NeutralMode neutral_mode_;
 		hardware_interface::FeedbackDevice feedback_type_;
-		int   ticks_per_rotation_;
+		int    ticks_per_rotation_;
 		double closed_loop_ramp_;
 		double open_loop_ramp_;
 		double peak_output_forward_;
@@ -366,6 +416,11 @@ class TalonCIParams
 		double voltage_compensation_saturation_;
 		int    voltage_measurement_filter_;
 		bool   voltage_compensation_enable_;
+		double softlimit_forward_threshold_;
+		bool   softlimit_forward_enable_;
+		double softlimit_reverse_threshold_;
+		bool   softlimit_reverse_enable_;
+		bool   softlimits_override_enable_;
 		int    current_limit_peak_amps_;
 		int    current_limit_peak_msec_;
 		int    current_limit_continuous_amps_;
@@ -448,10 +503,10 @@ class TalonControllerInterface
 				   params_.readInverts(n) &&
 				   params_.readFeedbackType(n) &&
 				   params_.readOutputShaping(n) &&
-				   params_.readVoltageCompensation(n);
+				   params_.readVoltageCompensation(n) &&
+				   params_.readSoftLimits(n) &&
 				   params_.readCurrentLimits(n);
 		}
-
 
 		// Allow users of the ControllerInterface to get 
 		// a copy of the parameters currently set for the
@@ -515,6 +570,12 @@ class TalonControllerInterface
 			talon_->setVoltageCompensationSaturation(params_.voltage_compensation_saturation_);
 			talon_->setVoltageMeasurementFilter(params_.voltage_measurement_filter_);
 			talon_->setVoltageCompensationEnable(params_.voltage_compensation_enable_);
+
+			talon_->setForwardSoftLimitThreshold(params.softlimit_forward_threshold_);
+			talon_->setForwardSoftLimitEnable(params.softlimit_forward_enable_);
+			talon_->setReverseSoftLimitThreshold(params.softlimit_reverse_threshold_);
+			talon_->setReverseSoftLimitEnable(params.softlimit_reverse_enable_);
+			talon_->setOverrideSoftLimitsEnable(params.softlimits_override_enable_);
 
 			talon_->setPeakCurrentLimit(params_.current_limit_peak_amps_);
 			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
@@ -619,6 +680,15 @@ class TalonControllerInterface
 		virtual void setIntegralAccumulator(double iaccum)
 		{
 			talon_->setIntegralAccumulator(iaccum);
+		}
+		
+		virtual void setOverrideSoftLimitsEnable(bool enable)
+		{
+			if (enable == params_.softlimits_override_enable_)
+				return;
+			params_.softlimits_override_enable_ = enable;
+			syncDynamicReconfigure();
+			talon_->setOverrideSoftLimitsEnable(enable);
 		}
 
 		virtual void setPeakCurrentLimit(int amps)
