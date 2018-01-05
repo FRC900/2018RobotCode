@@ -97,8 +97,10 @@ private:
   double publish_rate_;
   unsigned int num_hw_joints_; ///< Number of joints present in the JointStateInterface, excluding extra joints
 
-  void addExtraJoints(const ros::NodeHandle& nh,
-  talon_state_controller::TalonState& msg);
+  void addExtraJoints(const ros::NodeHandle& nh, talon_state_controller::TalonState& msg);
+  std::string limitSwitchSourceToString(const hardware_interface::LimitSwitchSource source);
+  std::string limitSwitchNormalToString(const hardware_interface::LimitSwitchNormal normal);
+  
 };
 
 }

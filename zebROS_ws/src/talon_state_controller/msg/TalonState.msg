@@ -72,6 +72,10 @@ float64[] neutral_deadband
 float64[] voltage_compensation_saturation
 int32[]   voltage_measurement_filter
 bool[]    voltage_compensation_enable
+string[]  limit_switch_local_forward_source
+string[]  limit_switch_local_forward_normal
+string[]  limit_switch_local_reverse_source
+string[]  limit_switch_local_reverse_normal
 float64[] softlimit_forward_threshold
 bool[]    softlimit_forward_enable
 float64[] softlimit_reverse_threshold

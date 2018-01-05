@@ -120,6 +120,10 @@ namespace talon_state_controller
       realtime_pub_->msg_.voltage_measurement_filter.push_back(0);
       realtime_pub_->msg_.voltage_compensation_enable.push_back(false);
 
+	  realtime_pub_->msg_.limit_switch_local_forward_source.push_back("");
+	  realtime_pub_->msg_.limit_switch_local_forward_normal.push_back("");
+	  realtime_pub_->msg_.limit_switch_local_reverse_source.push_back("");
+	  realtime_pub_->msg_.limit_switch_local_reverse_normal.push_back("");
 	  realtime_pub_->msg_.softlimit_forward_threshold.push_back(0);
 	  realtime_pub_->msg_.softlimit_forward_enable.push_back(false);
 	  realtime_pub_->msg_.softlimit_reverse_threshold.push_back(0);
@@ -156,6 +160,43 @@ namespace talon_state_controller
   {
     // initialize time
     last_publish_time_ = time;
+  }
+
+  std::string TalonStateController::limitSwitchSourceToString(const hardware_interface::LimitSwitchSource source)
+  {
+	  switch (source)
+	  {
+		case hardware_interface::LimitSwitchSource_Uninitialized:
+			return "Uninitialized";
+		case hardware_interface::LimitSwitchSource_FeedbackConnector:
+			return "FeedbackConnector";
+		case hardware_interface::LimitSwitchSource_RemoteTalonSRX:
+			return "RemoteTalonSRX";
+		case hardware_interface::LimitSwitchSource_RemoteCANifier:
+			return "RemoteCANifier";
+			break;
+		case hardware_interface::LimitSwitchSource_Deactivated:
+			return "Deactivated";
+		default:
+			return "Unknown";
+	  }
+  }
+  std::string TalonStateController::limitSwitchNormalToString(const hardware_interface::LimitSwitchNormal normal)
+  {
+	  switch (normal)
+	  {
+		case hardware_interface::LimitSwitchNormal_Uninitialized:
+			return "Uninitialized";
+		case hardware_interface::LimitSwitchNormal_NormallyOpen:
+			return "NormallyOpen";
+		case hardware_interface::LimitSwitchNormal_NormallyClosed:
+			return "NormallyClosed";
+		case hardware_interface::LimitSwitchNormal_Disabled:
+			return "Disabled";
+		default:
+			return "Unknown";
+
+	  }
   }
 
   void TalonStateController::update(const ros::Time& time, const ros::Duration& /*period*/)
@@ -338,6 +379,17 @@ namespace talon_state_controller
 		  realtime_pub_->msg_.voltage_compensation_saturation[i] = talon_state_[i]->getVoltageCompensationSaturation();
 		  realtime_pub_->msg_.voltage_measurement_filter[i] = talon_state_[i]->getVoltageMeasurementFilter();
 		  realtime_pub_->msg_.voltage_compensation_enable[i] = talon_state_[i]->getVoltageCompensationEnable();
+		  hardware_interface::LimitSwitchSource ls_source;
+		  hardware_interface::LimitSwitchNormal ls_normal;
+		  talon_state_[i]->getForwardLimitSwitchSource(ls_source, ls_normal);
+
+
+		  realtime_pub_->msg_.limit_switch_local_forward_source[i] = limitSwitchSourceToString(ls_source);
+		  realtime_pub_->msg_.limit_switch_local_forward_normal[i] = limitSwitchNormalToString(ls_normal);
+
+		  talon_state_[i]->getReverseLimitSwitchSource(ls_source, ls_normal);
+		  realtime_pub_->msg_.limit_switch_local_reverse_source[i] = limitSwitchSourceToString(ls_source);
+		  realtime_pub_->msg_.limit_switch_local_reverse_normal[i] = limitSwitchNormalToString(ls_normal);
 
 		  realtime_pub_->msg_.softlimit_forward_threshold[i] = talon_state_[i]->getForwardSoftLimitThreshold();
 		  realtime_pub_->msg_.softlimit_forward_enable[i] = talon_state_[i]->getForwardSoftLimitEnable();

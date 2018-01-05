@@ -59,6 +59,10 @@ class TalonCIParams
 				voltage_compensation_saturation_(0),
 				voltage_measurement_filter_(0),
 				voltage_compensation_enable_(false),
+				limit_switch_local_forward_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
+				limit_switch_local_forward_normal_(hardware_interface::LimitSwitchNormal_NormallyOpen),
+				limit_switch_local_reverse_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
+				limit_switch_local_reverse_normal_(hardware_interface::LimitSwitchNormal_NormallyOpen),
 				softlimit_forward_threshold_(0.0),
 				softlimit_forward_enable_(false),
 				softlimit_reverse_threshold_(0.0),
@@ -105,6 +109,10 @@ class TalonCIParams
 			voltage_compensation_saturation_ = config.voltage_compensation_saturation;
 			voltage_measurement_filter_ = config.voltage_measurement_filter;
 			voltage_compensation_enable_ = config.voltage_compensation_enable;
+			limit_switch_local_forward_source_ = static_cast<hardware_interface::LimitSwitchSource>(config.limit_switch_local_forward_source);
+			limit_switch_local_forward_normal_ = static_cast<hardware_interface::LimitSwitchNormal>(config.limit_switch_local_forward_normal);
+			limit_switch_local_reverse_source_ = static_cast<hardware_interface::LimitSwitchSource>(config.limit_switch_local_reverse_source);
+			limit_switch_local_reverse_normal_ = static_cast<hardware_interface::LimitSwitchNormal>(config.limit_switch_local_reverse_normal);
 
 			softlimit_forward_threshold_ = config.softlimit_forward_threshold;
 			softlimit_forward_enable_ = config.softlimit_forward_enable;
@@ -154,6 +162,10 @@ class TalonCIParams
 			config.voltage_compensation_saturation = voltage_compensation_saturation_;
 			config.voltage_measurement_filter = voltage_measurement_filter_;
 			config.voltage_compensation_enable = voltage_compensation_enable_;
+			config.limit_switch_local_forward_source = limit_switch_local_forward_source_;
+			config.limit_switch_local_forward_normal = limit_switch_local_forward_normal_;
+			config.limit_switch_local_reverse_source = limit_switch_local_reverse_source_;
+			config.limit_switch_local_reverse_normal = limit_switch_local_reverse_normal_;
 			config.softlimit_forward_threshold = softlimit_forward_threshold_;
 			config.softlimit_forward_enable = softlimit_forward_enable_;
 			config.softlimit_reverse_threshold = softlimit_reverse_threshold_;
@@ -337,6 +349,25 @@ class TalonCIParams
 			return true;
 		}
 
+		bool readLimitSwitches(ros::NodeHandle &n)
+		{
+			std::string str_val;
+			hardware_interface::LimitSwitchSource limit_switch_source;
+			hardware_interface::LimitSwitchNormal limit_switch_normal;
+			if (n.getParam("limit_switch_local_forward_source", str_val) &&
+					stringToLimitSwitchSource(str_val, limit_switch_source))
+				limit_switch_local_forward_source_ = limit_switch_source;
+			if (n.getParam("limit_switch_local_forward_normal", str_val) &&
+					stringToLimitSwitchNormal(str_val, limit_switch_normal))
+				limit_switch_local_forward_normal_ = limit_switch_normal;
+			if (n.getParam("limit_switch_local_reverse_source", str_val) &&
+					stringToLimitSwitchSource(str_val, limit_switch_source))
+				limit_switch_local_reverse_source_ = limit_switch_source;
+			if (n.getParam("limit_switch_local_reverse_normal", str_val) &&
+					stringToLimitSwitchNormal(str_val, limit_switch_normal))
+				limit_switch_local_reverse_normal_ = limit_switch_normal;
+		}
+
 		bool readSoftLimits(ros::NodeHandle &n)
 		{
 			double double_val;
@@ -433,6 +464,12 @@ class TalonCIParams
 		double voltage_compensation_saturation_;
 		int    voltage_measurement_filter_;
 		bool   voltage_compensation_enable_;
+
+		hardware_interface::LimitSwitchSource limit_switch_local_forward_source_;
+		hardware_interface::LimitSwitchNormal limit_switch_local_forward_normal_;
+		hardware_interface::LimitSwitchSource limit_switch_local_reverse_source_;
+		hardware_interface::LimitSwitchNormal limit_switch_local_reverse_normal_;
+
 		double softlimit_forward_threshold_;
 		bool   softlimit_forward_enable_;
 		double softlimit_reverse_threshold_;
@@ -496,6 +533,41 @@ class TalonCIParams
 				throw std::runtime_error("A non-bool value was passed for" + param_type);
 			return false;
 		}
+
+		bool stringToLimitSwitchSource(const std::string &str,
+				hardware_interface::LimitSwitchSource &limit_switch_source)
+		{
+			if (str == "FeedbackConnector")
+				limit_switch_source = hardware_interface::LimitSwitchSource_FeedbackConnector;
+			else if (str == "RemoteTalonSRX")
+				limit_switch_source = hardware_interface::LimitSwitchSource_RemoteTalonSRX;
+			else if (str == "RemoteCANifier")
+				limit_switch_source = hardware_interface::LimitSwitchSource_RemoteCANifier;
+			else if (str == "Deactivated")
+				limit_switch_source = hardware_interface::LimitSwitchSource_Deactivated;
+			else
+			{
+				ROS_ERROR_STREAM("Invalid limit switch source : " << str);
+				return false;
+			}
+			return true;
+		}
+		bool stringToLimitSwitchNormal(const std::string &str,
+				hardware_interface::LimitSwitchNormal &limit_switch_source)
+		{
+			if (str == "NormallyOpen")
+				limit_switch_source = hardware_interface::LimitSwitchNormal_NormallyOpen;
+			else if (str == "NormallyClosed")
+				limit_switch_source = hardware_interface::LimitSwitchNormal_NormallyClosed;
+			else if (str == "Disabled")
+				limit_switch_source = hardware_interface::LimitSwitchNormal_Disabled;
+			else
+			{
+				ROS_ERROR_STREAM("Invalid limit switch normal : " << str);
+				return false;
+			}
+			return true;
+		}
 };
 
 // Base class for controller interface types. This class
@@ -524,6 +596,7 @@ class TalonControllerInterface
 				   params_.readFeedbackType(n) &&
 				   params_.readOutputShaping(n) &&
 				   params_.readVoltageCompensation(n) &&
+				   params_.readLimitSwitches(n) &&
 				   params_.readSoftLimits(n) &&
 				   params_.readCurrentLimits(n) &&
 				   params_.readMotionControl(n);
@@ -593,11 +666,13 @@ class TalonControllerInterface
 			talon_->setVoltageMeasurementFilter(params_.voltage_measurement_filter_);
 			talon_->setVoltageCompensationEnable(params_.voltage_compensation_enable_);
 
-			talon_->setForwardSoftLimitThreshold(params.softlimit_forward_threshold_);
-			talon_->setForwardSoftLimitEnable(params.softlimit_forward_enable_);
-			talon_->setReverseSoftLimitThreshold(params.softlimit_reverse_threshold_);
-			talon_->setReverseSoftLimitEnable(params.softlimit_reverse_enable_);
-			talon_->setOverrideSoftLimitsEnable(params.softlimits_override_enable_);
+			talon_->setForwardLimitSwitchSource(params_.limit_switch_local_forward_source_, params_.limit_switch_local_forward_normal_);
+			talon_->setReverseLimitSwitchSource(params_.limit_switch_local_reverse_source_, params_.limit_switch_local_reverse_normal_);
+			talon_->setForwardSoftLimitThreshold(params_.softlimit_forward_threshold_);
+			talon_->setForwardSoftLimitEnable(params_.softlimit_forward_enable_);
+			talon_->setReverseSoftLimitThreshold(params_.softlimit_reverse_threshold_);
+			talon_->setReverseSoftLimitEnable(params_.softlimit_reverse_enable_);
+			talon_->setOverrideSoftLimitsEnable(params_.softlimits_override_enable_);
 
 			talon_->setPeakCurrentLimit(params_.current_limit_peak_amps_);
 			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);

@@ -52,6 +52,35 @@ namespace hardware_interface
 		FeedbackDevice_Last
 	};
 
+	enum LimitSwitchSource 
+	{
+		LimitSwitchSource_Uninitialized,
+		LimitSwitchSource_FeedbackConnector,
+		LimitSwitchSource_RemoteTalonSRX,
+		LimitSwitchSource_RemoteCANifier,
+		LimitSwitchSource_Deactivated,
+		LimitSwitchSource_Last
+	};
+
+	enum RemoteLimitSwitchSource 
+	{
+		RemoteLimitSwitchSource_Uninitialized,
+		RemoteLimitSwitchSource_RemoteTalonSRX,
+		RemoteLimitSwitchSource_RemoteCANifier,
+		RemoteLimitSwitchSource_Deactivated,
+		RemoteLimitSwitchSource_Last
+	};
+
+	enum LimitSwitchNormal 
+	{
+		LimitSwitchNormal_Uninitialized,
+		LimitSwitchNormal_NormallyOpen,
+		LimitSwitchNormal_NormallyClosed,
+		LimitSwitchNormal_Disabled,
+		LimitSwitchNormal_Last
+	};
+
+
 	// Match up with CTRE Motion profile struct
 	enum SetValueMotionProfile {
 		Disable = 0, Enable = 1, Hold = 2,
@@ -135,6 +164,15 @@ namespace hardware_interface
 				voltage_compensation_saturation_(0),
 				voltage_measurement_filter_(0),
 				voltage_compensation_enable_(false),
+
+				limit_switch_local_forward_source_(LimitSwitchSource_FeedbackConnector),
+				limit_switch_local_forward_normal_(LimitSwitchNormal_NormallyOpen),
+				limit_switch_local_reverse_source_(LimitSwitchSource_FeedbackConnector),
+				limit_switch_local_reverse_normal_(LimitSwitchNormal_NormallyOpen),
+				limit_switch_remote_forward_source_(RemoteLimitSwitchSource_Deactivated),
+				limit_switch_remote_forward_normal_(LimitSwitchNormal_NormallyOpen),
+				limit_switch_remote_reverse_source_(RemoteLimitSwitchSource_Deactivated),
+				limit_switch_remote_reverse_normal_(LimitSwitchNormal_NormallyOpen),
 
 				// soft limits
 				softlimit_forward_threshold_(0.0),
@@ -279,6 +317,29 @@ namespace hardware_interface
 			void setVoltageCompensationEnable(bool voltage_compensation_enable) { voltage_compensation_enable_ = voltage_compensation_enable;}
 			bool getVoltageCompensationEnable(void) const {return voltage_compensation_enable_;}
 
+			void setForwardLimitSwitchSource(LimitSwitchSource source, LimitSwitchNormal normal)
+			{
+				limit_switch_local_forward_source_ = source;
+				limit_switch_local_forward_normal_ = normal;
+			}
+
+			void getForwardLimitSwitchSource(LimitSwitchSource &source, LimitSwitchNormal &normal) const
+			{
+				source = limit_switch_local_forward_source_;
+				normal = limit_switch_local_forward_normal_;
+			}
+
+			void setReverseLimitSwitchSource(LimitSwitchSource source, LimitSwitchNormal normal)
+			{
+				limit_switch_local_reverse_source_ = source;
+				limit_switch_local_reverse_normal_ = normal;
+			}
+
+			void getReverseLimitSwitchSource(LimitSwitchSource &source, LimitSwitchNormal &normal) const
+			{
+				source = limit_switch_local_reverse_source_;
+				normal = limit_switch_local_reverse_normal_;
+			}
 
 			void setForwardSoftLimitThreshold(double threshold)
 			{
@@ -479,6 +540,15 @@ namespace hardware_interface
 			double voltage_compensation_saturation_;
 			int   voltage_measurement_filter_;
 			bool  voltage_compensation_enable_;
+
+			LimitSwitchSource limit_switch_local_forward_source_;
+			LimitSwitchNormal limit_switch_local_forward_normal_;
+			LimitSwitchSource limit_switch_local_reverse_source_;
+			LimitSwitchNormal limit_switch_local_reverse_normal_;
+			RemoteLimitSwitchSource limit_switch_remote_forward_source_;
+			LimitSwitchNormal limit_switch_remote_forward_normal_;
+			RemoteLimitSwitchSource limit_switch_remote_reverse_source_;
+			LimitSwitchNormal limit_switch_remote_reverse_normal_;
 
 			// soft limits
 			double softlimit_forward_threshold_;

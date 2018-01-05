@@ -69,6 +69,18 @@ namespace hardware_interface
 				voltage_compensation_enable_(false),
 				voltage_compensation_changed_(false),
 
+				// limit switches
+				limit_switch_local_forward_source_(LimitSwitchSource_FeedbackConnector),
+				limit_switch_local_forward_normal_(LimitSwitchNormal_NormallyOpen),
+				limit_switch_local_reverse_source_(LimitSwitchSource_FeedbackConnector),
+				limit_switch_local_reverse_normal_(LimitSwitchNormal_NormallyOpen),
+				limit_switch_local_changed_(false),
+				limit_switch_remote_forward_source_(RemoteLimitSwitchSource_Deactivated),
+				limit_switch_remote_forward_normal_(LimitSwitchNormal_NormallyOpen),
+				limit_switch_remote_reverse_source_(RemoteLimitSwitchSource_Deactivated),
+				limit_switch_remote_reverse_normal_(LimitSwitchNormal_NormallyOpen),
+				limit_switch_remote_changed_(false),
+
 				// soft limits
 				softlimit_forward_threshold_(0.0),
 				softlimit_forward_enable_(false),
@@ -546,6 +558,75 @@ namespace hardware_interface
 				return false;
 			}
 
+			void setForwardLimitSwitchSource(LimitSwitchSource source, LimitSwitchNormal normal)
+			{
+				if ((source != limit_switch_local_forward_source_) || 
+					(normal != limit_switch_local_forward_normal_))
+				{	
+					if ((source <= LimitSwitchSource_Uninitialized) ||
+						(source >= LimitSwitchSource_Last))
+					{
+						ROS_WARN("Invalid source in setForwardLimitSwitchSource");
+						return;
+					}
+					if ((normal <= LimitSwitchNormal_Uninitialized) ||
+						(normal >= LimitSwitchNormal_Last))
+					{
+						ROS_WARN("Invalid normal in setForwardLimitSwitchSource");
+						return;
+					}
+					limit_switch_local_forward_source_ = source;
+					limit_switch_local_forward_normal_ = normal;
+					limit_switch_local_changed_ = true;
+				}
+			}
+
+			void getForwardLimitSwitchSource(LimitSwitchSource &source, LimitSwitchNormal &normal) const
+			{
+				source = limit_switch_local_forward_source_;
+				normal = limit_switch_local_forward_normal_;
+			}
+
+			void setReverseLimitSwitchSource(LimitSwitchSource source, LimitSwitchNormal normal)
+			{
+				if ((source != limit_switch_local_reverse_source_) || (normal != limit_switch_local_reverse_normal_))
+				{
+					if ((source <= LimitSwitchSource_Uninitialized) ||
+						(source >= LimitSwitchSource_Last))
+					{
+						ROS_WARN("Invalid source in setReverseLimitSwitchSource");
+						return;
+					}
+					if ((normal <= LimitSwitchNormal_Uninitialized) ||
+						(normal >= LimitSwitchNormal_Last))
+					{
+						ROS_WARN("Invalid normal in setReverseLimitSwitchSource");
+						return;
+					}
+					limit_switch_local_reverse_source_ = source;
+					limit_switch_local_reverse_normal_ = normal;
+					limit_switch_local_changed_ = true;
+				}
+			}
+
+			void getReverseLimitSwitchSourceSource(LimitSwitchSource &source, LimitSwitchNormal &normal) const
+			{
+				source = limit_switch_local_reverse_source_;
+				normal = limit_switch_local_reverse_normal_;
+			}
+
+			bool limitSwitchesSourceChanged(LimitSwitchSource &forward_source, LimitSwitchNormal &forward_normal,LimitSwitchSource &reverse_source, LimitSwitchNormal &reverse_normal)
+			{
+				forward_source = limit_switch_local_forward_source_;
+				forward_normal = limit_switch_local_forward_normal_;
+				reverse_source = limit_switch_local_reverse_source_;
+				reverse_normal = limit_switch_local_reverse_normal_;
+				if (!limit_switch_local_changed_)
+					return false;
+				limit_switch_local_changed_ = false;
+				return true;
+			}
+
 			// softlimits
 			void setForwardSoftLimitThreshold(double threshold)
 			{
@@ -627,8 +708,11 @@ namespace hardware_interface
 			// current limits
 			void setPeakCurrentLimit(int amps)
 			{
-				current_limit_peak_amps_ = amps;
-				current_limit_changed_ = true;
+				if (amps != current_limit_peak_amps_)
+				{
+					current_limit_peak_amps_ = amps;
+					current_limit_changed_ = true;
+				}
 			}
 			int getPeakCurrentLimit(void) const
 			{
@@ -637,8 +721,11 @@ namespace hardware_interface
 
 			void setPeakCurrentDuration(int msec)
 			{
-				current_limit_peak_msec_ = msec;
-				current_limit_changed_ = true;
+				if (msec != current_limit_peak_msec_)
+				{
+					current_limit_peak_msec_ = msec;
+					current_limit_changed_ = true;
+				}
 			}
 			int getPeakCurrentDuration(void) const
 			{
@@ -646,8 +733,11 @@ namespace hardware_interface
 			}
 			void setContinuousCurrentLimit(int amps)
 			{
-				current_limit_continuous_amps_ = amps;
-				current_limit_changed_ = true;
+				if (amps != current_limit_continuous_amps_)
+				{
+					current_limit_continuous_amps_ = amps;
+					current_limit_changed_ = true;
+				}
 			}
 			int getContinuousCurrentLimit(void) const
 			{
@@ -655,8 +745,11 @@ namespace hardware_interface
 			}
 			void setCurrentLimitEnable(bool enable)
 			{
-				current_limit_enable_ = enable;
-				current_limit_changed_ = true;
+				if (enable != current_limit_enable_)
+				{
+					current_limit_enable_ = enable;
+					current_limit_changed_ = true;
+				}
 			}
 			bool getCurrentLimitEnable(void) const
 			{
@@ -677,14 +770,20 @@ namespace hardware_interface
 
 			void setMotionCruiseVelocity(double velocity)
 			{
-				motion_cruise_velocity_ = velocity;
-				motion_cruise_changed_ = true;
+				if (velocity != motion_cruise_velocity_)
+				{
+					motion_cruise_velocity_ = velocity;
+					motion_cruise_changed_ = true;
+				}
 			}
 			double getMotionCruiseVelocity(void) const {return motion_cruise_velocity_;}
 			void setMotionAcceleration(double acceleration)
 			{
-				motion_acceleration_ = acceleration;
-				motion_cruise_changed_ = true;
+				if (acceleration != motion_acceleration_)
+				{
+					motion_acceleration_ = acceleration;
+					motion_cruise_changed_ = true;
+				}
 			}
 			double getMotionAcceleration(void) const {return motion_acceleration_;}
 
@@ -748,7 +847,14 @@ namespace hardware_interface
 				return true;
 			}
 
-			void setMotionControlFramePeriod(int msec) {motion_profile_control_frame_period_ = msec; motion_profile_control_frame_period_changed_ = true;}
+			void setMotionControlFramePeriod(int msec) 
+			{
+				if (msec != motion_profile_control_frame_period_)
+				{
+					motion_profile_control_frame_period_ = msec; 
+					motion_profile_control_frame_period_changed_ = true;
+				}
+			}
 			int getMotionControlFramePeriod(int msec) const {return motion_profile_control_frame_period_;}
 			bool motionControlFramePeriodChanged(int &msec)
 			{
@@ -796,6 +902,17 @@ namespace hardware_interface
 			int   voltage_measurement_filter_;
 			bool  voltage_compensation_enable_;
 			bool  voltage_compensation_changed_;
+
+			LimitSwitchSource limit_switch_local_forward_source_;
+			LimitSwitchNormal limit_switch_local_forward_normal_;
+			LimitSwitchSource limit_switch_local_reverse_source_;
+			LimitSwitchNormal limit_switch_local_reverse_normal_;
+			bool limit_switch_local_changed_;
+			RemoteLimitSwitchSource limit_switch_remote_forward_source_;
+			LimitSwitchNormal limit_switch_remote_forward_normal_;
+			RemoteLimitSwitchSource limit_switch_remote_reverse_source_;
+			LimitSwitchNormal limit_switch_remote_reverse_normal_;
+			bool limit_switch_remote_changed_;
 
 			double softlimit_forward_threshold_;
 			bool softlimit_forward_enable_;
