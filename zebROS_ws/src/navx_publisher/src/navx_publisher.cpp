@@ -15,36 +15,56 @@
 
 using namespace std;
 static const boost::array<double, 36> STANDARD_POSE_COVARIANCE =
-{ { 0.1, 0, 0, 0, 0, 0,
-	0, 0.1, 0, 0, 0, 0,
-	0, 0, 0.1, 0, 0, 0,
-	0, 0, 0, 0.17, 0, 0,
-	0, 0, 0, 0, 0.17, 0,
-	0, 0, 0, 0, 0, 0.17 } };
+{
+	{
+		0.1, 0, 0, 0, 0, 0,
+		0, 0.1, 0, 0, 0, 0,
+		0, 0, 0.1, 0, 0, 0,
+		0, 0, 0, 0.17, 0, 0,
+		0, 0, 0, 0, 0.17, 0,
+		0, 0, 0, 0, 0, 0.17
+	}
+};
 static const boost::array<double, 36> STANDARD_TWIST_COVARIANCE =
-{ { 0.05, 0, 0, 0, 0, 0,
-	0, 0.05, 0, 0, 0, 0,
-	0, 0, 0.05, 0, 0, 0,
-	0, 0, 0, 0.09, 0, 0,
-	0, 0, 0, 0, 0.09, 0,
-	0, 0, 0, 0, 0, 0.09 } };
+{
+	{
+		0.05, 0, 0, 0, 0, 0,
+		0, 0.05, 0, 0, 0, 0,
+		0, 0, 0.05, 0, 0, 0,
+		0, 0, 0, 0.09, 0, 0,
+		0, 0, 0, 0, 0.09, 0,
+		0, 0, 0, 0, 0, 0.09
+	}
+};
 
 static const boost::array<double, 9> STANDARD_ORIENTATION_COVARIANCE =
-{ { 0.00015, 0,       0,
-	0,       0.00015, 0,
-	0,       0,       0.00015 } };
+{
+	{
+		0.00015, 0,       0,
+		0,       0.00015, 0,
+		0,       0,       0.00015
+	}
+};
 
 static const boost::array<double, 9> STANDARD_VELOCITY_COVARIANCE =
-{ { 0.0015, 0,     0,
-	0,     0.0015, 0,
-	0,     0,      0.0015 } };
+{
+	{
+		0.0015, 0,     0,
+		0,     0.0015, 0,
+		0,     0,      0.0015
+	}
+};
 
 static const boost::array<double, 9> STANDARD_ACCELERATION_COVARIANCE =
-{ { 0.05, 0,    0,
-	0,    0.05, 0,
-	0,    0,    0.05 } };
+{
+	{
+		0.05, 0,    0,
+		0,    0.05, 0,
+		0,    0,    0.05
+	}
+};
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "navx_publisher");
 
@@ -75,34 +95,34 @@ int main(int argc, char** argv)
 	{
 		//read the file with covariances and apply it to the odometry and IMU
 		ifstream infile("/home/ubuntu/2017VisionCode/zebROS_ws/src/navx_publisher/navx_calib.dat");
-		if(!infile.good())
+		if (!infile.good())
 			cerr << "navx_calib.dat file not opened!" << endl;
 		std::string line;
 		int ln = 0;
-		while(std::getline(infile, line))
+		while (std::getline(infile, line))
 		{
-			if(line == "") break;
+			if (line == "") break;
 			imu_msg.linear_acceleration_covariance[ln] = std::stod(line);
 			ln++;
 		}
 		ln = 0;
-		while(std::getline(infile, line))
+		while (std::getline(infile, line))
 		{
-			if(line == "") break;
+			if (line == "") break;
 			imu_msg.angular_velocity_covariance[ln] = std::stod(line);
 			ln++;
 		}
 		ln = 0;
-		while(std::getline(infile, line))
+		while (std::getline(infile, line))
 		{
-			if(line == "") break;
+			if (line == "") break;
 			imu_msg.orientation_covariance[ln] = std::stod(line);
 			ln++;
 		}
 		ln = 0;
-		while(std::getline(infile, line))
+		while (std::getline(infile, line))
 		{
-			if(line == "") break;
+			if (line == "") break;
 			odom.twist.covariance[ln] = std::stod(line);
 			odom.pose.covariance[ln] = std::stod(line);
 			ln++;
@@ -113,22 +133,23 @@ int main(int argc, char** argv)
 	imu_msg_raw.orientation_covariance = imu_msg.orientation_covariance;
 
 	ros::Time last_time;
-	tf::Quaternion last_rot (tf::Vector3(0.,0.,0.),0.);
+	tf::Quaternion last_rot (tf::Vector3(0., 0., 0.), 0.);
 
 	bool firstrun = true;
 
 	ros::Rate loop_time(210);
 	AHRS nx("/dev/ttyACM0", AHRS::SerialDataType::kProcessedData, 200);
 	nx.ZeroYaw();
-	while(ros::ok()) {
+	while (ros::ok())
+	{
 		unsigned long long nxstamp = nx.GetLastSensorTimestamp();
 		if (firstrun || (nxstamp != timestamp.data))
 		{
 			//set the timestamp for all headers
-			odom.header.stamp = 
-			imu_msg.header.stamp = 
-			imu_msg_raw.header.stamp = 
-			timestamp.header.stamp = ros::Time::now();
+			odom.header.stamp =
+				imu_msg.header.stamp =
+					imu_msg_raw.header.stamp =
+						timestamp.header.stamp = ros::Time::now();
 
 			float nx_roll;
 			float nx_pitch;
@@ -183,9 +204,9 @@ int main(int argc, char** argv)
 			nx_yaw   *= M_PI / 180.;
 			nx_pitch *= M_PI / 180.;
 			nx_roll  *= M_PI / 180.;
-			imu_msg_raw.linear_acceleration.x = imu_msg.linear_acceleration.x + sin(nx_roll)*cos(nx_pitch)*grav;
-			imu_msg_raw.linear_acceleration.y = imu_msg.linear_acceleration.y + cos(nx_roll)*sin(nx_pitch)*grav;
-			imu_msg_raw.linear_acceleration.z = imu_msg.linear_acceleration.z + cos(nx_pitch)*cos(nx_roll)*grav;
+			imu_msg_raw.linear_acceleration.x = imu_msg.linear_acceleration.x + sin(nx_roll) * cos(nx_pitch) * grav;
+			imu_msg_raw.linear_acceleration.y = imu_msg.linear_acceleration.y + cos(nx_roll) * sin(nx_pitch) * grav;
+			imu_msg_raw.linear_acceleration.z = imu_msg.linear_acceleration.z + cos(nx_pitch) * cos(nx_roll) * grav;
 #endif
 
 			tf::Quaternion pose;
@@ -193,9 +214,9 @@ int main(int argc, char** argv)
 			double pitch;
 			double roll;
 			tf::quaternionMsgToTF(imu_msg_raw.orientation, pose); // or imu_msg? they differ in the z value
-			if(firstrun) last_rot = pose;
+			if (firstrun) last_rot = pose;
 			tf::Quaternion rot = pose * last_rot.inverse();
-			tf::Matrix3x3(rot).getRPY(roll,pitch,yaw);
+			tf::Matrix3x3(rot).getRPY(roll, pitch, yaw);
 			const double dTime = odom.header.stamp.toSec() - last_time.toSec();
 			imu_msg.angular_velocity.x = roll / dTime;
 			imu_msg.angular_velocity.y = pitch / dTime;
@@ -217,7 +238,7 @@ int main(int argc, char** argv)
 			odom.twist.twist.linear.z = nx.GetVelocityZ();
 
 			odom.twist.twist.angular = imu_msg.angular_velocity;
-			
+
 			//publish to ROS topics
 			time_pub.publish(timestamp);
 			imu_pub.publish(imu_msg);
