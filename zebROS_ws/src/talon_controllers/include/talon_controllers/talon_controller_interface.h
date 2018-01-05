@@ -354,18 +354,31 @@ class TalonCIParams
 			std::string str_val;
 			hardware_interface::LimitSwitchSource limit_switch_source;
 			hardware_interface::LimitSwitchNormal limit_switch_normal;
-			if (n.getParam("limit_switch_local_forward_source", str_val) &&
-					stringToLimitSwitchSource(str_val, limit_switch_source))
+			if (n.getParam("limit_switch_local_forward_source", str_val))
+			{
+				if (!stringToLimitSwitchSource(str_val, limit_switch_source))
+					return false;
 				limit_switch_local_forward_source_ = limit_switch_source;
-			if (n.getParam("limit_switch_local_forward_normal", str_val) &&
-					stringToLimitSwitchNormal(str_val, limit_switch_normal))
+			}
+			if (n.getParam("limit_switch_local_forward_normal", str_val))
+			{
+				if (!stringToLimitSwitchNormal(str_val, limit_switch_normal))
+					return false;
 				limit_switch_local_forward_normal_ = limit_switch_normal;
-			if (n.getParam("limit_switch_local_reverse_source", str_val) &&
-					stringToLimitSwitchSource(str_val, limit_switch_source))
+			}
+			if (n.getParam("limit_switch_local_reverse_source", str_val))
+			{
+				if (!stringToLimitSwitchSource(str_val, limit_switch_source))
+					return false;
 				limit_switch_local_reverse_source_ = limit_switch_source;
-			if (n.getParam("limit_switch_local_reverse_normal", str_val) &&
-					stringToLimitSwitchNormal(str_val, limit_switch_normal))
+			}
+			if (n.getParam("limit_switch_local_reverse_normal", str_val))
+			{
+				if (!stringToLimitSwitchNormal(str_val, limit_switch_normal))
+					return false;
 				limit_switch_local_reverse_normal_ = limit_switch_normal;
+			}
+			return true;
 		}
 
 		bool readSoftLimits(ros::NodeHandle &n)
@@ -441,13 +454,13 @@ class TalonCIParams
 		// TODO : Keep adding config items here
 		std::string joint_name_;
 		int    follow_can_id_;
-		double  p_[2];
-		double  i_[2];
-		double  d_[2];
-		double  f_[2];
+		double p_[2];
+		double i_[2];
+		double d_[2];
+		double f_[2];
 		int    izone_[2];
 		int    allowable_closed_loop_error_[2];
-		double  max_integral_accumulator_[2];
+		double max_integral_accumulator_[2];
 		int    pidf_slot_;
 		bool   invert_output_;
 		bool   sensor_phase_;
@@ -705,9 +718,7 @@ class TalonControllerInterface
 					 config.invert_output,
 					 config.sensor_phase);
 
-			TalonCIParams params(config);
-
-			writeParamsToHW(params);
+			writeParamsToHW(TalonCIParams(config));
 		}
 
 		// Read params from config file and use them to

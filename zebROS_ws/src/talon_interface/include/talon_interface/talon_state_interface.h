@@ -198,15 +198,15 @@ class TalonHWState
 		{
 		}
 
-		double getSetpoint(void)      const
+		double getSetpoint(void) const
 		{
 			return setpoint_;
 		}
-		double getPosition(void)      const
+		double getPosition(void) const
 		{
 			return position_;
 		}
-		double getSpeed(void)         const
+		double getSpeed(void) const
 		{
 			return speed_;
 		}
@@ -214,7 +214,7 @@ class TalonHWState
 		{
 			return output_voltage_;
 		}
-		int    getCANID(void)         const
+		int    getCANID(void) const
 		{
 			return can_id_;
 		}
@@ -222,19 +222,19 @@ class TalonHWState
 		{
 			return output_current_;
 		}
-		double getBusVoltage(void)    const
+		double getBusVoltage(void) const
 		{
 			return bus_voltage_;
 		}
-		double getMotorOutputPercent(void)    const
+		double getMotorOutputPercent(void) const
 		{
 			return motor_output_percent_;
 		}
-		double getTemperature(void)   const
+		double getTemperature(void) const
 		{
 			return temperature_;
 		}
-		double getPidfP(int index)    const
+		double getPidfP(int index) const
 		{
 			if ((index == 0) || (index == 1))
 				return pidf_p_[index];
@@ -244,7 +244,7 @@ class TalonHWState
 				return 0.0;
 			}
 		}
-		double getPidfI(int index)    const
+		double getPidfI(int index) const
 		{
 			if ((index == 0) || (index == 1))
 				return pidf_i_[index];
@@ -254,7 +254,7 @@ class TalonHWState
 				return 0.0;
 			}
 		}
-		double getPidfD(int index)    const
+		double getPidfD(int index) const
 		{
 			if ((index == 0) || (index == 1))
 				return pidf_d_[index];
@@ -264,7 +264,7 @@ class TalonHWState
 				return 0.0;
 			}
 		}
-		double getPidfF(int index)    const
+		double getPidfF(int index) const
 		{
 			if ((index == 0) || (index == 1))
 				return pidf_f_[index];
@@ -274,7 +274,7 @@ class TalonHWState
 				return 0.0;
 			}
 		}
-		int getPidfIzone(int index)     const
+		int getPidfIzone(int index) const
 		{
 			if ((index == 0) || (index == 1))
 				return pidf_izone_[index];
@@ -305,19 +305,19 @@ class TalonHWState
 			}
 		}
 
-		double getClosedLoopError(void)  const
+		double getClosedLoopError(void) const
 		{
 			return closed_loop_error_;
 		}
-		double getIntegralAccumulator(void)  const
+		double getIntegralAccumulator(void) const
 		{
 			return integral_accumulator_;
 		}
-		double getErrorDerivative(void)      const
+		double getErrorDerivative(void) const
 		{
 			return error_derivative_;
 		}
-		double getClosedLoopTarget(void)     const
+		double getClosedLoopTarget(void) const
 		{
 			return closed_loop_target_;
 		}
@@ -333,28 +333,28 @@ class TalonHWState
 		{
 			return active_trajectory_heading_;
 		}
-		int getFwdLimitSwitch(void)   const
+		int getFwdLimitSwitch(void) const
 		{
 			return fwd_limit_switch_closed_;
 		}
-		int getRevLimitSwitch(void)   const
+		int getRevLimitSwitch(void) const
 		{
 			return rev_limit_switch_closed_;
 		}
-		TalonMode getTalonMode(void)  const
+		TalonMode getTalonMode(void) const
 		{
 			return talon_mode_;
 		}
 
-		int  getSlot(void)            const
+		int  getSlot(void) const
 		{
 			return slot_;
 		}
-		bool getInvert(void)          const
+		bool getInvert(void) const
 		{
 			return invert_;
 		}
-		bool getSensorPhase(void)     const
+		bool getSensorPhase(void) const
 		{
 			return sensor_phase_;
 		}
@@ -363,7 +363,7 @@ class TalonHWState
 		{
 			return neutral_mode_;
 		}
-		bool getNeutralOutput(void)      const
+		bool getNeutralOutput(void) const
 		{
 			return neutral_output_;
 		}
@@ -565,7 +565,6 @@ class TalonHWState
 		{
 			return softlimits_override_enable_;
 		}
-
 
 		void setPeakCurrentLimit(int amps)
 		{
