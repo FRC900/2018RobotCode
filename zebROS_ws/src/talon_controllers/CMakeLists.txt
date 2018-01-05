@@ -35,11 +35,6 @@ catkin_package(
 
 include_directories(include ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})
 
-add_executable(talon_reconfigure_node src/talon_reconfigure_node.cpp)
-add_dependencies(talon_reconfigure_node ${PROJECT_NAME}_gencfg)
-target_link_libraries(talon_reconfigure_node ${catkin_LIBRARIES})
-
-
 add_library(${PROJECT_NAME}
   src/talon_controller.cpp
 )

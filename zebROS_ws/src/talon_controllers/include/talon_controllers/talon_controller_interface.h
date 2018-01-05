@@ -35,46 +35,46 @@ class TalonCIParams
 		// Initialize with relatively sane defaults
 		// for all parameters
 		TalonCIParams(void) :
-				follow_can_id_ (-1),
-				p_ {0, 0},
-				i_ {0, 0},
-				d_ {0, 0},
-				f_ {0, 0},
-				izone_ {0, 0},
-				allowable_closed_loop_error_{0, 0}, // need better defaults
-				max_integral_accumulator_{0, 0},
-				pidf_slot_(0),
-				invert_output_ (false),
-				sensor_phase_(false),
-				neutral_mode_(hardware_interface::NeutralMode_Uninitialized),
-			    feedback_type_(hardware_interface::FeedbackDevice_Uninitialized),
-				ticks_per_rotation_(4096),
-				closed_loop_ramp_(0.),
-				open_loop_ramp_(0.),
-				peak_output_forward_(100.),
-				peak_output_reverse_(100.),
-				nominal_output_forward_(100.),
-				nominal_output_reverse_(100.),
-				neutral_deadband_(0.),
-				voltage_compensation_saturation_(0),
-				voltage_measurement_filter_(0),
-				voltage_compensation_enable_(false),
-				limit_switch_local_forward_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
-				limit_switch_local_forward_normal_(hardware_interface::LimitSwitchNormal_NormallyOpen),
-				limit_switch_local_reverse_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
-				limit_switch_local_reverse_normal_(hardware_interface::LimitSwitchNormal_NormallyOpen),
-				softlimit_forward_threshold_(0.0),
-				softlimit_forward_enable_(false),
-				softlimit_reverse_threshold_(0.0),
-				softlimit_reverse_enable_(false),
-				softlimits_override_enable_(false),
-				current_limit_peak_amps_(0),
-				current_limit_peak_msec_(0),
-				current_limit_continuous_amps_(0),
-				current_limit_enable_(false),
-				motion_cruise_velocity_(10), // No idea at a guess
-				motion_acceleration_(20),
-				motion_control_frame_period_(20) // Guess at 50Hz default?
+			follow_can_id_ (-1),
+			p_ {0, 0},
+			i_ {0, 0},
+			d_ {0, 0},
+			f_ {0, 0},
+			izone_ {0, 0},
+			allowable_closed_loop_error_{0, 0}, // need better defaults
+			max_integral_accumulator_{0, 0},
+			pidf_slot_(0),
+			invert_output_ (false),
+			sensor_phase_(false),
+			neutral_mode_(hardware_interface::NeutralMode_Uninitialized),
+			feedback_type_(hardware_interface::FeedbackDevice_Uninitialized),
+			ticks_per_rotation_(4096),
+			closed_loop_ramp_(0.),
+			open_loop_ramp_(0.),
+			peak_output_forward_(100.),
+			peak_output_reverse_(100.),
+			nominal_output_forward_(100.),
+			nominal_output_reverse_(100.),
+			neutral_deadband_(0.),
+			voltage_compensation_saturation_(0),
+			voltage_measurement_filter_(0),
+			voltage_compensation_enable_(false),
+			limit_switch_local_forward_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
+			limit_switch_local_forward_normal_(hardware_interface::LimitSwitchNormal_NormallyOpen),
+			limit_switch_local_reverse_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
+			limit_switch_local_reverse_normal_(hardware_interface::LimitSwitchNormal_NormallyOpen),
+			softlimit_forward_threshold_(0.0),
+			softlimit_forward_enable_(false),
+			softlimit_reverse_threshold_(0.0),
+			softlimit_reverse_enable_(false),
+			softlimits_override_enable_(false),
+			current_limit_peak_amps_(0),
+			current_limit_peak_msec_(0),
+			current_limit_continuous_amps_(0),
+			current_limit_enable_(false),
+			motion_cruise_velocity_(10), // No idea at a guess
+			motion_acceleration_(20),
+			motion_control_frame_period_(20) // Guess at 50Hz default?
 		{
 		}
 
@@ -204,10 +204,10 @@ class TalonCIParams
 					neutral_mode_ = hardware_interface::NeutralMode_Coast;
 				else if (mode_string == "Brake")
 					neutral_mode_ = hardware_interface::NeutralMode_Brake;
-				else 
+				else
 				{
-					ROS_ERROR("Invalid neutral mode name (namespace: %s, %s)", 
-							n.getNamespace().c_str(), mode_string.c_str());
+					ROS_ERROR("Invalid neutral mode name (namespace: %s, %s)",
+							  n.getNamespace().c_str(), mode_string.c_str());
 					return false;
 				}
 			}
@@ -219,10 +219,10 @@ class TalonCIParams
 			std::string feedback_type_name;
 			if (!n.getParam("feedback_type", feedback_type_name))
 			{
-				//ROS_ERROR("No feedback type given (namespace: %s)", 
-			//			  n.getNamespace().c_str());
-			// TODO : Not all talons will have feedback - figure
-			//        out how to handle that case
+				//ROS_ERROR("No feedback type given (namespace: %s)",
+				//			  n.getNamespace().c_str());
+				// TODO : Not all talons will have feedback - figure
+				//        out how to handle that case
 				return true;
 			}
 			if (feedback_type_name == "QuadEncoder")
@@ -274,27 +274,27 @@ class TalonCIParams
 			n.getParam("sensor_phase", sensor_phase_);
 			return true;
 		}
-	
+
 		bool readCloseLoopParams(ros::NodeHandle &n)
 		{
 			XmlRpc::XmlRpcValue pid_param_list;
-			
+
 			if (!n.getParam("close_loop_values", pid_param_list))
 				return true;
-			if(pid_param_list.size() <= 2)
+			if (pid_param_list.size() <= 2)
 			{
 				for (int i = 0; i < pid_param_list.size(); i++)
 				{
 					XmlRpc::XmlRpcValue &pidparams_ = pid_param_list[i];
 
-					p_[i]=findFloatParam("p",pidparams_);
-					i_[i]=findFloatParam("i",pidparams_);
-					d_[i]=findFloatParam("d",pidparams_);
-					f_[i]=findFloatParam("f",pidparams_);
-					izone_[i]=findIntParam("i_zone",pidparams_);
-					allowable_closed_loop_error_[i]=findIntParam("allowable_closed_loop_error", pidparams_);
-					max_integral_accumulator_[i]=findFloatParam("max_integral_accumulator",pidparams_);
-					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << izone_[i]<< std::endl;
+					p_[i] = findFloatParam("p", pidparams_);
+					i_[i] = findFloatParam("i", pidparams_);
+					d_[i] = findFloatParam("d", pidparams_);
+					f_[i] = findFloatParam("f", pidparams_);
+					izone_[i] = findIntParam("i_zone", pidparams_);
+					allowable_closed_loop_error_[i] = findIntParam("allowable_closed_loop_error", pidparams_);
+					max_integral_accumulator_[i] = findFloatParam("max_integral_accumulator", pidparams_);
+					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << izone_[i] << std::endl;
 				}
 				return true;
 			}
@@ -490,7 +490,7 @@ class TalonCIParams
 		{
 			if (!params.hasMember(param_type))
 				return 0;
-			XmlRpc::XmlRpcValue& param = params[param_type];
+			XmlRpc::XmlRpcValue &param = params[param_type];
 			if (!param.valid())
 				throw std::runtime_error(param_type + " was not a double valid type");
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
@@ -508,7 +508,7 @@ class TalonCIParams
 		{
 			if (!params.hasMember(param_type))
 				return 0;
-			XmlRpc::XmlRpcValue& param = params[param_type];
+			XmlRpc::XmlRpcValue &param = params[param_type];
 			if (!param.valid())
 				throw std::runtime_error(param_type + " was not a valid int type");
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
@@ -524,7 +524,7 @@ class TalonCIParams
 		{
 			if (!params.hasMember(param_type))
 				return false;
-			XmlRpc::XmlRpcValue& param = params[param_type];
+			XmlRpc::XmlRpcValue &param = params[param_type];
 			if (!param.valid())
 				throw std::runtime_error(param_type + " was not a bool valid type");
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
@@ -535,7 +535,7 @@ class TalonCIParams
 		}
 
 		bool stringToLimitSwitchSource(const std::string &str,
-				hardware_interface::LimitSwitchSource &limit_switch_source)
+									   hardware_interface::LimitSwitchSource &limit_switch_source)
 		{
 			if (str == "FeedbackConnector")
 				limit_switch_source = hardware_interface::LimitSwitchSource_FeedbackConnector;
@@ -553,7 +553,7 @@ class TalonCIParams
 			return true;
 		}
 		bool stringToLimitSwitchNormal(const std::string &str,
-				hardware_interface::LimitSwitchNormal &limit_switch_source)
+									   hardware_interface::LimitSwitchNormal &limit_switch_source)
 		{
 			if (str == "NormallyOpen")
 				limit_switch_source = hardware_interface::LimitSwitchNormal_NormallyOpen;
@@ -584,12 +584,12 @@ class TalonControllerInterface
 		{
 			srv_mutex_ = std::make_shared<boost::recursive_mutex>();
 		}
-		// Standardize format for reading params for 
+		// Standardize format for reading params for
 		// motor controller
 		virtual bool readParams(ros::NodeHandle &n, hardware_interface::TalonStateInterface *tsi)
 		{
-			return params_.readJointName(n) && 
-				   params_.readFollowerID(n, tsi) && 
+			return params_.readJointName(n) &&
+				   params_.readFollowerID(n, tsi) &&
 				   params_.readCloseLoopParams(n) &&
 				   params_.readNeutralMode(n) &&
 				   params_.readInverts(n) &&
@@ -602,7 +602,7 @@ class TalonControllerInterface
 				   params_.readMotionControl(n);
 		}
 
-		// Allow users of the ControllerInterface to get 
+		// Allow users of the ControllerInterface to get
 		// a copy of the parameters currently set for the
 		// Talon.  They can then modify them at will and
 		// call initWithParams to reprogram the Talon.
@@ -615,7 +615,7 @@ class TalonControllerInterface
 		}
 
 		// Initialize Talon hardware with the settings in params
-		virtual bool initWithParams(hardware_interface::TalonCommandInterface *tci, 
+		virtual bool initWithParams(hardware_interface::TalonCommandInterface *tci,
 									const TalonCIParams &params)
 		{
 			talon_ = tci->getHandle(params.joint_name_);
@@ -637,7 +637,8 @@ class TalonControllerInterface
 			// but don't set mode - either force the caller to
 			// set it or use one of the derived, fixed-mode
 			// classes instead
-			for (int i = 0; i < 2; i++) {
+			for (int i = 0; i < 2; i++)
+			{
 				talon_->setP(params_.p_[i], i);
 				talon_->setI(params_.i_[i], i);
 				talon_->setD(params_.d_[i], i);
@@ -687,35 +688,35 @@ class TalonControllerInterface
 
 		void callback(talon_controllers::TalonConfigConfig &config, uint32_t level)
 		{
-			// TODO : this list is rapidly getting out of date.  
+			// TODO : this list is rapidly getting out of date.
 			// Update it or remove the printout?
 			ROS_INFO("Reconfigure request : %s %f %f %f %f %f %f %f %f %f %f %d %d",
-					talon_.getName().c_str(),
-					config.p0,
-					config.p1,
-					config.i0,
-					config.i1,
-					config.d0,
-					config.d1,
-					config.f0,
-					config.f1,
-					config.izone0,
-					config.izone1,
-					config.invert_output,
-					config.sensor_phase);
+					 talon_.getName().c_str(),
+					 config.p0,
+					 config.p1,
+					 config.i0,
+					 config.i1,
+					 config.d0,
+					 config.d1,
+					 config.f0,
+					 config.f1,
+					 config.izone0,
+					 config.izone1,
+					 config.invert_output,
+					 config.sensor_phase);
 
 			TalonCIParams params(config);
-			
+
 			writeParamsToHW(params);
 		}
 
-		// Read params from config file and use them to 
+		// Read params from config file and use them to
 		// initialize the Talon hardware
-		// Useful for the hopefully common case where there's 
+		// Useful for the hopefully common case where there's
 		// no need to modify the parameters after reading
 		// them
 		virtual bool initWithNode(hardware_interface::TalonCommandInterface *tci,
-							 	  hardware_interface::TalonStateInterface *tsi,
+								  hardware_interface::TalonStateInterface *tsi,
 								  ros::NodeHandle &n)
 		{
 			// Read params from startup and intialize
@@ -731,13 +732,13 @@ class TalonControllerInterface
 				// their own namespace.
 				srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(*srv_mutex_, n);
 
-				// Without this, the first call to callback() 
+				// Without this, the first call to callback()
 				// will overwrite anything passed in from the
 				// launch file
 				srv_->updateConfig(params_.getConfig());
 
 				// Register a callback function which is run each
-				// time parameters are changed using 
+				// time parameters are changed using
 				// rqt_reconfigure or the like
 				srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));
 			}
@@ -784,7 +785,7 @@ class TalonControllerInterface
 		{
 			talon_->setIntegralAccumulator(iaccum);
 		}
-		
+
 		virtual void setOverrideSoftLimitsEnable(bool enable)
 		{
 			if (enable == params_.softlimits_override_enable_)
@@ -838,7 +839,7 @@ class TalonControllerInterface
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 		}
 
-		
+
 		virtual void setMotionCruiseVelocity(double velocity)
 		{
 			if (velocity == params_.motion_cruise_velocity_)
@@ -864,7 +865,7 @@ class TalonControllerInterface
 		{
 			if (msec == params_.motion_control_frame_period_)
 				return;
-			params_.motion_control_frame_period_= msec;
+			params_.motion_control_frame_period_ = msec;
 
 			syncDynamicReconfigure();
 
@@ -932,8 +933,8 @@ class TalonFixedModeControllerInterface : public TalonControllerInterface
 class TalonPercentOutputControllerInterface : public TalonFixedModeControllerInterface
 {
 	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-				  const TalonCIParams &params) override
+		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
+							const TalonCIParams &params) override
 		{
 			// Call base-class init to load config params
 			if (!TalonControllerInterface::initWithParams(hw, params))
@@ -951,8 +952,8 @@ class TalonPercentOutputControllerInterface : public TalonFixedModeControllerInt
 class TalonFollowerControllerInterface : public TalonFixedModeControllerInterface
 {
 	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-				  const TalonCIParams &params) override
+		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
+							const TalonCIParams &params) override
 		{
 			// Call base-class init to load config params
 			if (!TalonControllerInterface::initWithParams(hw, params))
@@ -960,7 +961,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			if (params.follow_can_id_ < 0 || params.follow_can_id_ > 99)
 				throw std::runtime_error("Invalid follower CAN ID");
 
-			// Set the mode and CAN ID of talon to follow at init time - 
+			// Set the mode and CAN ID of talon to follow at init time -
 			// since this class is derived from the FixedMode class
 			// these can't be reset. Hopefully we never have a case
 			// where a follower mode Talon changes which other
@@ -989,8 +990,8 @@ class TalonCloseLoopControllerInterface : public TalonFixedModeControllerInterfa
 class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
 {
 	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-						    const TalonCIParams &params) override
+		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
+							const TalonCIParams &params) override
 		{
 			// Call base class init for common setup code
 			if (!TalonControllerInterface::initWithParams(hw, params))
@@ -1015,8 +1016,8 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 class TalonVelocityCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
 {
 	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-						    const TalonCIParams &params) override
+		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
+							const TalonCIParams &params) override
 		{
 			// Call base class init for common setup code
 			if (!TalonControllerInterface::initWithParams(hw, params))
@@ -1033,8 +1034,8 @@ class TalonVelocityCloseLoopControllerInterface : public TalonCloseLoopControlle
 class TalonCurrentControllerCloseLoopInterface : public TalonCloseLoopControllerInterface
 {
 	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-						    const TalonCIParams &params) override
+		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
+							const TalonCIParams &params) override
 		{
 			// Call base class init for common setup code
 			if (!TalonControllerInterface::initWithParams(hw, params))
@@ -1051,8 +1052,8 @@ class TalonCurrentControllerCloseLoopInterface : public TalonCloseLoopController
 class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
 {
 	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
-				  const TalonCIParams &params) override
+		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
+							const TalonCIParams &params) override
 		{
 			// Call base-class init to load config params
 			if (!TalonControllerInterface::initWithParams(hw, params))
@@ -1073,7 +1074,7 @@ class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInt
 class TalonMotionMagicControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
 {
 	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface* hw, 
+		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
 							const TalonCIParams &params) override
 		{
 			// Call base-class init to load config params

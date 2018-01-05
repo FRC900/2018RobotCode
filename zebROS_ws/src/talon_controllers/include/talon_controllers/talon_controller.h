@@ -32,14 +32,17 @@ namespace talon_controllers
 // will be the mode the Talon is run in. This is specificed by the type
 // of talon interface, so make this the templated parameter.
 template <class TALON_IF>
-class TalonController: 
-public controller_interface::Controller<hardware_interface::TalonCommandInterface>
+class TalonController:
+	public controller_interface::Controller<hardware_interface::TalonCommandInterface>
 {
 	public:
 		TalonController() {}
-		~TalonController() {sub_command_.shutdown();}
+		~TalonController()
+		{
+			sub_command_.shutdown();
+		}
 
-		virtual bool init(hardware_interface::TalonCommandInterface* hw, ros::NodeHandle &n)
+		virtual bool init(hardware_interface::TalonCommandInterface *hw, ros::NodeHandle &n)
 		{
 			// Read params from command line / config file
 			if (!talon_if_.initWithNode(hw, nullptr, n))
@@ -51,13 +54,13 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 			return true;
 		}
 
-		virtual void starting(const ros::Time& /*time*/)
+		virtual void starting(const ros::Time & /*time*/)
 		{
 			// Start controller with motor stopped
 			// for great safety
 			command_buffer_.writeFromNonRT(0.0);
 		}
-		virtual void update(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+		virtual void update(const ros::Time & /*time*/, const ros::Duration & /*period*/)
 		{
 			// Take the most recent value stored in the command
 			// buffer (the most recent value read from the "command"
@@ -69,7 +72,7 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 		TALON_IF talon_if_;
 		ros::Subscriber sub_command_;
 
-		// Real-time buffer holds the last command value read from the 
+		// Real-time buffer holds the last command value read from the
 		// "command" topic.  This buffer is read in each call to update()
 		// to get the command to send to the Talon
 		realtime_tools::RealtimeBuffer<double> command_buffer_;
@@ -81,18 +84,18 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 		// synchronized to update() calls - the buffer holds the
 		// most recent command value that update() can use
 		// when the update() code is run.
-		void commandCB(const std_msgs::Float64ConstPtr& msg)
+		void commandCB(const std_msgs::Float64ConstPtr &msg)
 		{
 			command_buffer_.writeFromNonRT(msg->data);
 		}
 };
 
-class TalonPercentOutputController: public TalonController<TalonPercentOutputControllerInterface> 
+class TalonPercentOutputController: public TalonController<TalonPercentOutputControllerInterface>
 {
-	// Override or add methods different from the base class here
+		// Override or add methods different from the base class here
 };
 
-// Generic Close Loop controller. Allow users to specify 
+// Generic Close Loop controller. Allow users to specify
 // slot for PID values plus command per message. Trust lower
 // level code will prevent repeatedly switching PID slot if
 // it doesn't actually change from message to message.
@@ -104,27 +107,30 @@ class CloseLoopCommand
 		CloseLoopCommand(void) :
 			config_slot_(0),
 			command_(0.0)
-	{
-	}
+		{
+		}
 		CloseLoopCommand(int config_slot, double command) :
 			config_slot_(config_slot),
 			command_(command)
-	{
-	}
+		{
+		}
 
-	int config_slot_;
-	double command_;
+		int config_slot_;
+		double command_;
 };
 
 template <class TALON_IF>
 class TalonCloseLoopController :
-public controller_interface::Controller<hardware_interface::TalonCommandInterface>
+	public controller_interface::Controller<hardware_interface::TalonCommandInterface>
 {
 	public:
 		TalonCloseLoopController() {}
-		~TalonCloseLoopController() {sub_command_.shutdown();}
+		~TalonCloseLoopController()
+		{
+			sub_command_.shutdown();
+		}
 
-		virtual bool init(hardware_interface::TalonCommandInterface* hw, ros::NodeHandle &n)
+		virtual bool init(hardware_interface::TalonCommandInterface *hw, ros::NodeHandle &n)
 		{
 			// Read params from command line / config file
 			if (!talon_if_.initWithNode(hw, nullptr, n))
@@ -134,15 +140,15 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 			return true;
 		}
 
-		virtual void starting(const ros::Time& /*time*/)
+		virtual void starting(const ros::Time & /*time*/)
 		{
 			// Start controller with motor stopped
 			// for great safety
 			command_buffer_.writeFromNonRT(CloseLoopCommand());
 		}
-		virtual void update(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+		virtual void update(const ros::Time & /*time*/, const ros::Duration & /*period*/)
 		{
-			// Write both PID config slot and 
+			// Write both PID config slot and
 			// output to talon interface
 			CloseLoopCommand cmd = *command_buffer_.readFromRT();
 			talon_if_.setPIDFSlot(cmd.config_slot_);
@@ -153,7 +159,7 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 		TALON_IF talon_if_;
 		ros::Subscriber sub_command_;
 		realtime_tools::RealtimeBuffer<CloseLoopCommand> command_buffer_;
-		void commandCB(const CloseLoopControllerMsgConstPtr& msg)
+		void commandCB(const CloseLoopControllerMsgConstPtr &msg)
 		{
 			command_buffer_.writeFromNonRT(CloseLoopCommand(msg->config_slot, msg->command));
 		}
@@ -161,38 +167,38 @@ public controller_interface::Controller<hardware_interface::TalonCommandInterfac
 
 class TalonPositionCloseLoopController: public TalonCloseLoopController<TalonPositionCloseLoopControllerInterface>
 {
-	// Override or add methods here
+		// Override or add methods here
 };
 class TalonVelocityCloseLoopController: public TalonCloseLoopController<TalonVelocityCloseLoopControllerInterface>
 {
-	// Override or add methods here
+		// Override or add methods here
 };
 
 // Follower controller sets up a Talon to mirror the actions
 // of another talon. This talon is defined by joint name in
 // params/yaml config.
-class TalonFollowerController: 
-public controller_interface::MultiInterfaceController<hardware_interface::TalonCommandInterface,
-													  hardware_interface::TalonStateInterface>
+class TalonFollowerController:
+	public controller_interface::MultiInterfaceController<hardware_interface::TalonCommandInterface,
+	hardware_interface::TalonStateInterface>
 {
 	public:
 		TalonFollowerController() {}
 		~TalonFollowerController() {}
 
-		bool init(hardware_interface::RobotHW* hw, ros::NodeHandle &n)
+		bool init(hardware_interface::RobotHW *hw, ros::NodeHandle &n)
 		{
 			// Read params from command line / config file
-			if (!talon_if_.initWithNode(hw->get<hardware_interface::TalonCommandInterface>(), 
-						                hw->get<hardware_interface::TalonStateInterface>(), n))
+			if (!talon_if_.initWithNode(hw->get<hardware_interface::TalonCommandInterface>(),
+										hw->get<hardware_interface::TalonStateInterface>(), n))
 				return false;
 
 			return true;
 		}
 
-		void starting(const ros::Time& /*time*/)
+		void starting(const ros::Time & /*time*/)
 		{
 		}
-		void update(const ros::Time& /*time*/, const ros::Duration& /*period*/)
+		void update(const ros::Time & /*time*/, const ros::Duration & /*period*/)
 		{
 		}
 
@@ -200,7 +206,7 @@ public controller_interface::MultiInterfaceController<hardware_interface::TalonC
 		// Keep ownership of the Talon being run in follower mode.
 		// Even though there's currently no commands that can be sent
 		// to the Talon keeping this will prevent other controllers
-		// from grabbing that Talon until this controller is 
+		// from grabbing that Talon until this controller is
 		// explicitly unloaded.
 		TalonFollowerControllerInterface talon_if_;
 };

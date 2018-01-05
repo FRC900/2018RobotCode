@@ -25,7 +25,7 @@ using namespace message_filters;
 static ZMSOut *zmsOut = NULL;
 static bool down_sample = false;
 
-void callback(const ImageConstPtr& frameMsg, const ImageConstPtr& depthMsg)
+void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 {
 	cv_bridge::CvImagePtr cvFrame = cv_bridge::toCvCopy(frameMsg, sensor_msgs::image_encodings::BGR8);
 	cv_bridge::CvImagePtr cvDepth = cv_bridge::toCvCopy(depthMsg, sensor_msgs::image_encodings::TYPE_32FC1);
@@ -41,7 +41,7 @@ void callback(const ImageConstPtr& frameMsg, const ImageConstPtr& depthMsg)
 	Mat depth;
 
 	// Downsample for speed purposes
-	if(down_sample)
+	if (down_sample)
 	{
 		pyrDown(*framePtr, frame);
 		pyrDown(*depthPtr, depth);
@@ -55,7 +55,7 @@ void callback(const ImageConstPtr& frameMsg, const ImageConstPtr& depthMsg)
 	zmsOut->saveFrame(*framePtr, *depthPtr);
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "goal_detect");
 
