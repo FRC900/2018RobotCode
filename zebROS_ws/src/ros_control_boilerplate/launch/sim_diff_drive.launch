@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<launch>
+
+	<include file="$(find ros_control_boilerplate)/launch/diff_drive_test.launch">
+		<arg name="hw_or_sim" value="sim"/>
+	</include>
+
+</launch>

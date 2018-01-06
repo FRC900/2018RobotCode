@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Load example URDF -->
+  <param name="robot_description" command="$(find xacro)/xacro '$(find frcrobot_description)/urdf/frcrobot.xacro'" />
+    
+  <!-- Show in Rviz  -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find frcrobot_description)/launch/frcrobot.rviz"/>
+
+  <!-- Convert joint states to /tf tranforms so they display properly -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+</launch>
+

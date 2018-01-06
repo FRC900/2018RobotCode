@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- GDB functionality -->
+	<arg name="debug" default="false" />
+	<arg unless="$(arg debug)" name="launch_prefix" value="" />
+	<arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+	<arg name="hw_or_sim" default="hw" />
+
+	<!-- Load example URDF -->
+	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find frcrobot_description)/urdf/robot_in_a_box.xacro'" />
+
+	<group ns="frcrobot">
+
+		<!-- Load hardware interface -->
+		<node name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
+			output="screen" launch-prefix="$(arg launch_prefix)">
+		</node>
+
+		<!-- Load controller settings -->
+		<rosparam file="$(find ros_control_boilerplate)/config/diff_drive.yaml" command="load"/>
+
+		<!-- Load controller manager -->
+		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
+			output="screen" args="spawn joint_state_controller talon_state_controller diff_drive_controller left_follower_controller right_follower_controller"/>
+
+		<!-- Convert joint states to /tf tranforms -->
+		<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+
+	</group>
+
+</launch>
