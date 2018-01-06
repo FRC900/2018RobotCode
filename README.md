@@ -1,2 +1,2 @@
-# 2017RioPreseason
-Fall 2017 dev environment for RoboRIO and Jetson C++/Python control and vision code
+# 2018 Robot Code
+Competition code for FRC900 for the 2018 Power Up! game
