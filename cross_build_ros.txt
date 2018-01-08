@@ -51,7 +51,9 @@ cd ..
 ./src/catkin/bin/catkin_make_isolated --install --use-ninja -DCMAKE_INSTALL_PREFIX=/usr/arm-frc-linux-gnueabi/opt/ros/kinetic -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2017Preseason/zebROS_ws/rostoolchain.cmake -DCATKIN_ENABLE_TESTING=OFF
 
 Add 2 lines to the bottom of
-/usr/arm-frc-linux-gnueabi/opt/ros/kinetic/share/urdf/cmake/urdfConfig.cmake :
+/usr/arm-frc-linux-gnueabi/opt/ros/kinetic/share/urdf/cmake/urdfConfig.cmake
+/home/ubuntu/catkin_arm_cross_ws/devel_isolated/urdf/share/urdf/cmake/urdfConfig.cmake
+/home/ubuntu/catkin_arm_cross_ws/build_isolated/urdf/catkin_generated/installspace/urdfConfig.cmake :
 
 set(CMAKE_INSTALL_RPATH "/usr/arm-frc-linux-gnueabi/opt/ros/kinetic/lib")
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)

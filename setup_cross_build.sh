@@ -6,7 +6,7 @@ sudo apt-add-repository ppa:wpilib/toolchain
 sudo add-apt-repository ppa:wpilib/toolchain-beta
 sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get update
-sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installer frc-toolchain meshlab cmake libprotobuf-dev libprotoc-dev protobuf-compiler ninja-build
+sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installer frc-toolchain meshlab cmake libprotobuf-dev libprotoc-dev protobuf-compiler ninja-build sip-dev python-empy libtinyxml2-dev
 
 #mkdir -p ~/Downloads
 #cd ~/Downloads
