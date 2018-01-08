@@ -24,7 +24,7 @@ sudo apt install ros-kinetic-ros-base -y
 # To find available packages:
 # apt-cache search ros-kinetic
 # 
-sudo apt install python-rosdep python-rosinstall terminator ros-kinetic-rqt ros-kinetic-rqt-common-plugins ros-kinetic-tf2-ros ros-kinetic-pcl-conversions ros-kinetic-cv-bridge ros-kinetic-tf ros-kinetic-map-server ros-kinetic-rviz ros-kinetic-hector-slam ros-kinetic-hector-slam-launch ros-kinetic-rtabmap-ros ros-kinetic-robot-localization ros-kinetic-navigation ros-kinetic-robot-state-publisher ros-kinetic-rosparam-shortcuts python-wstool ninja-build libsuitesparse-dev ros-kinetic-tf2-tools ros-kinetic-hardware-interface ros-kinetic-controller-manager ros-kinetic-control-msgs ros-kinetic-joint-limits-interface ros-kinetic-transmission-interface ros-kinetic-control-toolbox liblua5.3-dev ros-kinetic-joystick-drivers ros-kinetic-gmapping ros-kinetic-teb-local-planner ros-kinetic-roslint ros-kinetic-xacro ros-kinetic-rqt-controller-manager ros-kinetic-ros-controllers
+sudo apt install python-rosdep python-rosinstall terminator ros-kinetic-rqt ros-kinetic-rqt-common-plugins ros-kinetic-tf2-ros ros-kinetic-pcl-conversions ros-kinetic-cv-bridge ros-kinetic-tf ros-kinetic-map-server ros-kinetic-rviz ros-kinetic-hector-slam ros-kinetic-hector-slam-launch ros-kinetic-rtabmap-ros ros-kinetic-robot-localization ros-kinetic-navigation ros-kinetic-robot-state-publisher ros-kinetic-rosparam-shortcuts python-wstool ninja-build libsuitesparse-dev ros-kinetic-tf2-tools ros-kinetic-hardware-interface ros-kinetic-controller-manager ros-kinetic-control-msgs ros-kinetic-joint-limits-interface ros-kinetic-transmission-interface ros-kinetic-control-toolbox liblua5.3-dev ros-kinetic-joystick-drivers ros-kinetic-gmapping ros-kinetic-teb-local-planner ros-kinetic-roslint ros-kinetic-xacro ros-kinetic-rqt-controller-manager ros-kinetic-ros-controllers ros-kinetic-serial
 
 # Initialize rosdep
 # ssl certificates can get messed up on TX1 for some reason
@@ -34,12 +34,12 @@ sudo rosdep init
 # To find available packages, use:
 rosdep update
 
-cd ~/2017Preseason/zebROS_ws/src
+cd ~/2018RobotCode/zebROS_ws/src
 #wstool init
 #cd ..
 
 # These should all be merged in the GIT repo version
-# of the code.  Check 2017Preseason/zebROS_ws/src/.rosinstall to
+# of the code.  Check 2018RobotCode/zebROS_ws/src/.rosinstall to
 # verify.  Leaving the commands here just in case we need to recreate
 # a workspace elsewhere
 
@@ -71,5 +71,5 @@ rosdep install --from-paths . --ignore-src --rosdistro=kinetic -y
 
 source /opt/ros/kinetic/setup.bash
 
-cd ~/2017Preseason/zebROS_ws/src
+cd ~/2018RobotCode/zebROS_ws/src
 catkin_make

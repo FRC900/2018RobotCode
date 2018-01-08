@@ -119,8 +119,8 @@ rm ./$zed_fn
 #TODO : rethink this - how are we getting the script if the
 #       repo isn't there in the first place?
 cd
-#git clone https://github.com/FRC900/2017Preseason.git
-cd 2017Preseason
+#git clone https://github.com/FRC900/2018RobotCode.git
+cd 2018RobotCode
 git submodule init
 git submodule update
 
@@ -171,11 +171,11 @@ fi
 
 sudo mkdir -p /usr/local/zed/settings
 sudo chmod 755 /usr/local/zed/settings
-sudo cp ~/2017Preseason/calibration_files/*.conf /usr/local/zed/settings
+sudo cp ~/2018RobotCode/calibration_files/*.conf /usr/local/zed/settings
 sudo chmod 644 /usr/local/zed/settings/*
 
-cp ~/2017Preseason/.vimrc ~/2017Preseason/.gvimrc ~
-sudo cp ~/2017Preseason/kjaget.vim /usr/share/vim/vim74/colors
+cp ~/2018RobotCode/.vimrc ~/2018RobotCode/.gvimrc ~
+sudo cp ~/2018RobotCode/kjaget.vim /usr/share/vim/vim74/colors
 
 git config --global user.email "progammers@team900.org"
 git config --global user.name "Team900 Jetson TX1"

@@ -44,8 +44,8 @@ ln -s / /usr/arm-frc-linux-gnueabi
 ln -s /usr/include /include
 
 cd
-mkdir -p 2017Preseason/zebROS_ws/src
-cd 2017Preseason/zebROS_ws
+mkdir -p 2018RobotCode/zebROS_ws/src
+cd 2018RobotCode/zebROS_ws
 catkin_make_isolated --install
 cd 
 
@@ -84,7 +84,7 @@ rm -rf gflags*
 #cd
 #rm -rf poco-1.7.9p1 poco-1.7.9p1.tar.gz 
 
-#scp ~/2017Preseason/os_detect.py admin@<target>:/usr/lib/python2.7/site-packages/rospkg/
+#scp ~/2018RobotCode/os_detect.py admin@<target>:/usr/lib/python2.7/site-packages/rospkg/
 
 # Copy wpilib to roborio
 # cd ~/wpilib/cpp/current/reflib/linux/athena/shared
