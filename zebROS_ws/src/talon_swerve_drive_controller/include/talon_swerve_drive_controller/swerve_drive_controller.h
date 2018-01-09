@@ -143,7 +143,7 @@ namespace talon_swerve_drive_controller{
 
     /// Hardware handles:
     //TODO: IMPORTANT, make generalized, and check    
-    std::vector<talon_controllers::TalonSpeedCloseLoopControllerInterface> speed_joints_;
+    std::vector<talon_controllers::TalonVelocityCloseLoopControllerInterface> speed_joints_;
     std::vector<talon_controllers::TalonPositionCloseLoopControllerInterface> steering_joints_;
     /// Velocity command related:
     

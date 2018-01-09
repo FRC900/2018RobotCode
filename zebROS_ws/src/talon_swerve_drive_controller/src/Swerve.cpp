@@ -46,7 +46,7 @@ swerve::swerve(array<Vector2d, WHEELCOUNT> _wheelCoordinates, string _fileAddres
 	}
 
 };
-array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool forceRead, array<bool, WHEELCOUNT> &reverses, bool park, array <double, WHEELCOUNT> positionsNew, int rotationCenterID, bool overrideID, Vector2d centerOfRotation)
+array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool forceRead, array<bool, WHEELCOUNT> &reverses, bool park, array<double, WHEELCOUNT> positionsNew, int rotationCenterID, bool overrideID, Vector2d centerOfRotation)
 {
 	encoderPosition = positionsNew;
         array<Vector2d, WHEELCOUNT> speedsAndAngles;
