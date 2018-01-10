@@ -170,6 +170,17 @@ sudo make install
 cd
 sudo rm -rf libuuid-1.0.3.tar.gz libuuid-1.0.3
 
+# Build and install yaml-cpp
+wget https://github.com/jbeder/yaml-cpp.git
+cd yaml-cpp
+mkdir build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2018RobotCode/zebROS_ws/rostoolchain.cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/arm-frc-linux-gnueabi -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS:BOOL=OFF ..
+sudo make -j8 install
+cd
+sudo rm -rf yaml-cpp
+
+
 #cd
 #git clone https://github.com/rdiankov/collada-dom.git
 #cd collada-dom
