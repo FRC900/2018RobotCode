@@ -18,7 +18,7 @@ opkg install gcc g++ gcc-symlinks g++-symlinks binutils python-setuptools python
 opkg clean
 opkg install python-pkgutil python-dateutil python-argparse python-nose 
 opkg clean
-opkg install python-netifaces libglog0 python-pip coreutils
+opkg install python-netifaces libglog0 python-pip coreutils gdb
 opkg clean
 
 pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy
