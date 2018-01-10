@@ -7,13 +7,24 @@ sudo rosdep init
 rosdep update
 mkdir ~/catkin_arm_cross_ws
 cd ~/catkin_arm_cross_ws
-rosinstall_generator ros ros_comm robot --rosdistro kinetic --deps --wet-only --tar > kinetic-ros_comm-wet.rosinstall
+rosinstall_generator ros ros_comm robot control_toolbox angles serial robot_localization controller_interface controller_manager combined_robot_hw ros_control ros_controllers tf2_tools tf2_eigen tf2_sensor_msgs rosparam_shortcuts rqt_controller_manager --rosdistro kinetic --deps --wet-only > kinetic-ros_comm-wet.rosinstall
+
+# geometry2
+# geodesy
+# geographic_info
+# geometry2
+# unique_id
+# unique_identifier
+# urdf_geometry_parser
 
 cd ~/catkin_arm_cross_ws/src
 git clone https://raw.githubusercontent.com/ros-gbp/urdfdom_headers-release/master/indigo/package.xml
 cd urdfdom_headers
 wget https://raw.githubusercontent.com/ros-gbp/urdfdom_headers-release/master/indigo/package.xml
 cd ..
+
+cd ~/catkin_arm_cross_ws/src
+git clone https://github.com/jbeder/yaml-cpp.git
 
 wget https://github.com/ros/urdfdom/archive/1.0.0.tar.gz
 tar -xzvf 1.0.0.tar.gz
@@ -48,12 +59,9 @@ find . -name tf2_bullet | xargs rm -rf
 rm -rf robot_model/joint_state_publisher
 cd ..
 
-./src/catkin/bin/catkin_make_isolated --install --use-ninja
--DCMAKE_INSTALL_PREFIX=/usr/arm-frc-linux-gnueabi/opt/ros/kinetic
--DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2018RobotCode/zebROS_ws/rostoolchain.cmake -DCATKIN_ENABLE_TESTING=OFF
+./src/catkin/bin/catkin_make_isolated --install --use-ninja -DCMAKE_INSTALL_PREFIX=/usr/arm-frc-linux-gnueabi/opt/ros/kinetic -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2018RobotCode/zebROS_ws/rostoolchain.cmake -DCATKIN_ENABLE_TESTING=OFF
 
-Add 2 lines to the bottom of
-/usr/arm-frc-linux-gnueabi/opt/ros/kinetic/share/urdf/cmake/urdfConfig.cmake
+Add 2 lines to the bottom of /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/share/urdf/cmake/urdfConfig.cmake
 /home/ubuntu/catkin_arm_cross_ws/devel_isolated/urdf/share/urdf/cmake/urdfConfig.cmake
 /home/ubuntu/catkin_arm_cross_ws/build_isolated/urdf/catkin_generated/installspace/urdfConfig.cmake :
 
