@@ -16,9 +16,10 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen REQUIRED)
 
 catkin_package(
+  CATKIN_DEPENDS
+	  controller_interface
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS
   DEPENDS Eigen
 )
 
@@ -31,7 +32,7 @@ add_library(${PROJECT_NAME}
 src/swerve_drive_controller.cpp 
 src/odometry.cpp 
 src/speed_limiter.cpp
-src/900Math.cpp/
+src/900Math.cpp
 src/SwerveMath.cpp
 src/Swerve.cpp
 )
