@@ -1,6 +1,5 @@
 #include <talon_swerve_drive_controller/Swerve.h>
 #include <iostream>
-#include <math.h>
 #include <fstream>
 #include <iomanip>
 #include <functional>
@@ -8,30 +7,32 @@
 using namespace std;
 using namespace Eigen;
 
-swerve::swerve(array<Vector2d, WHEELCOUNT> _wheelCoordinates, string _fileAddress, bool _wheelAngleInvert, ratios _ratio, encoderUnits _units, driveModel _drive)
+// TODO : use initializaer list rather than assignment.
+// string should be a const & var, as should the swerveVar args
+
+swerve::swerve(array<Vector2d, WHEELCOUNT> wheelCoordinates, string fileName, bool wheelAngleInvert, swerveVar::ratios ratio, swerveVar::encoderUnits units, swerveVar::driveModel drive)
 {
-	wheelCoordinates = _wheelCoordinates;
+	wheelCoordinates_ = wheelCoordinates;
 
-	swerveMath = swerveDriveMath(wheelCoordinates);
+	swerveMath_ = swerveDriveMath(wheelCoordinates_);
 
-	ratio = _ratio;
-	units = _units;
-	drive = _drive;
-	fileAddress = _fileAddress;
+	ratio_ = ratio;
+	units_ = units;
+	drive_ = drive;
+	fileName_ = fileName;
 	for (int i = 0; i < WHEELCOUNT; i++)
 	{
 		getWheelAngle(i);
 	}
-	wheelAngleInvert = _wheelAngleInvert ? -1 : 1;
+	wheelAngleInvert_ = wheelAngleInvert ? -1 : 1;
 	ifstream offsetRead;
-	offsetRead.open(fileAddress);
+	offsetRead.open(fileName);
 	if (!offsetRead)
 	{
 		cout << "No Offset File!!!" << endl;
-		array<double, WHEELCOUNT> darray;
 		for (int i = 0; i < WHEELCOUNT; i++)
 		{
-			offsets[i] = 0;
+			offsets_[i] = 0;
 		}
 	}
 	else
@@ -40,52 +41,65 @@ swerve::swerve(array<Vector2d, WHEELCOUNT> _wheelCoordinates, string _fileAddres
 		int i = 0;
 		while (offsetRead >> offset)
 		{
-			offsets[i] = offset;
+			offsets_[i] = offset;
 			i++;
 		}
 	}
 
-};
-array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool forceRead, array<bool, WHEELCOUNT> &reverses, bool park, array<double, WHEELCOUNT> positionsNew, int rotationCenterID, bool overrideID, Vector2d centerOfRotation)
+	// TODO : this shouldn't be hard-coded
+	setCenterOfRotation(0, {0,0});
+}
+
+void swerve::setCenterOfRotation(int id, const Vector2d &centerOfRotation)
 {
-	encoderPosition = positionsNew;
+	if (id < multiplierSets_.size())
+	{
+		multiplierSet newSet;
+		newSet.multipliers_ = swerveMath_.wheelMultipliersXY(centerOfRotation);
+		newSet.maxRotRate_ = furthestWheel(centerOfRotation) / drive_.maxSpeed;
+		multiplierSets_[id] = newSet;
+	}
+}
+
+// TODO : split into motorOutputsDrive and motorOutputsPark
+// Make positionsNew and all Vector2ds const & arguments
+array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool forceRead, array<bool, WHEELCOUNT> &reverses, bool park, array<double, WHEELCOUNT> positionsNew, int rotationCenterID)
+{
+	if (rotationCenterID >= multiplierSets_.size())
+	{
+		cerr << "Tell Ryan to stop using fixed-sized arrays for dynamically growable stuff" << endl;
+		return array<Vector2d, WHEELCOUNT>();
+	}
+	encoderPosition_ = positionsNew;
 	array<Vector2d, WHEELCOUNT> speedsAndAngles;
 	if (!park)
 	{
-		velocityVector /= drive.maxSpeed;
-
-		if (overrideID)
-		{
-			multiplierSet newSet;
-			newSet.multipliers = swerveMath.wheelMultipliersXY(centerOfRotation);
-			newSet.maxRotRate = furthestWheel(centerOfRotation) / drive.maxSpeed;
-			multiplierSets[rotationCenterID] = newSet;
-		}
-		rotation /= multiplierSets[rotationCenterID].maxRotRate;
-		speedsAndAngles = swerveMath.wheelSpeedsAngles(multiplierSets[rotationCenterID].multipliers, velocityVector, rotation, angle);
+		velocityVector /= drive_.maxSpeed;
+		rotation /= multiplierSets_[rotationCenterID].maxRotRate_;
+		speedsAndAngles = swerveMath_.wheelSpeedsAngles(multiplierSets_[rotationCenterID].multipliers_, velocityVector, rotation, angle);
 		for (int i = 0; i < WHEELCOUNT; i++)
 		{
 			double nearestangle;
 			bool reverse;
 			getWheelAngle(i);
-			nearestangle = leastDistantAngleWithinHalfPi(encoderPosition[i], speedsAndAngles[i][1], reverse);
+			nearestangle = leastDistantAngleWithinHalfPi(encoderPosition_[i], speedsAndAngles[i][1], reverse);
 			reverses[i] = reverse;
-			speedsAndAngles[i][0] *= ((drive.maxSpeed / (drive.wheelRadius * 2 * M_PI)) / ratio.encodertoRotations) * units.rotationSetV * (reverse ? -1 : 1);
-			speedsAndAngles[i][1] = (nearestangle / (2 * M_PI)) * units.steeringSet - offsets[i];
+			speedsAndAngles[i][0] *= ((drive_.maxSpeed / (drive_.wheelRadius * 2.0 * M_PI)) / ratio_.encodertoRotations) * units_.rotationSetV * (reverse ? -1 : 1);
+			speedsAndAngles[i][1] = (nearestangle / (2.0 * M_PI)) * units_.steeringSet - offsets_[i];
 		}
 	}
 	else
 	{
 		for (int i = 0; i < WHEELCOUNT; i++)
 		{
-			speedsAndAngles[i][1] = swerveMath.parkingAngle[i];
+			speedsAndAngles[i][1] = swerveMath_.parkingAngle_[i]; // TODO : find a way not to access member of swervemath here
 			speedsAndAngles[i][0] = 0;
 
 			double nearestangle;
 			bool reverse;
 			getWheelAngle(i);
-			nearestangle = leastDistantAngleWithinHalfPi(encoderPosition[i], speedsAndAngles[i][1], reverse);
-			speedsAndAngles[i][1] = (nearestangle / (2 * M_PI)) * units.steeringSet - offsets[i];
+			nearestangle = leastDistantAngleWithinHalfPi(encoderPosition_[i], speedsAndAngles[i][1], reverse);
+			speedsAndAngles[i][1] = (nearestangle / (2 * M_PI)) * units_.steeringSet - offsets_[i];
 		}
 
 	}
@@ -93,28 +107,28 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 }
 void swerve::saveNewOffsets(bool useVals, array<double, WHEELCOUNT> newOffsets, array<double, WHEELCOUNT> newPosition)
 {
-	encoderPosition = newPosition;
+	encoderPosition_ = newPosition;
 	if (!useVals)
 	{
 		for (int i = 0; i < WHEELCOUNT; i++)
 		{
-			newOffsets[i] = encoderPosition[i];
+			newOffsets[i] = encoderPosition_[i];
 		}
 	}
-	offsets = newOffsets;
-	ofstream offsetFile;
-	offsetFile.open(fileAddress);
+	offsets_ = newOffsets;
+
+	// TODO : Uncondtionally open in out|trunc mode?
+	ofstream offsetFile(fileName_);
 	if (offsetFile)
 	{
 		offsetFile.close();
-		offsetFile.open(fileAddress, ios::out | ios::trunc);
+		offsetFile.open(fileName_, ios::out | ios::trunc);
 
 	}
 	for (int i = 0; i < WHEELCOUNT; i++)
 	{
-		offsetFile << offsets[i] << endl;
+		offsetFile << offsets_[i] << endl;
 	}
-	offsetFile.close();
 }
 /*
 Vector2d calculateOdom()
@@ -125,18 +139,18 @@ Vector2d calculateOdom()
 }
 */
 
-double swerve::getWheelAngle(int index)
+double swerve::getWheelAngle(int index) const
 {
-	savedEncoderVals[index] = (encoderPosition[index] + offsets[index]) * units.steeringGet * 2 * M_PI * wheelAngleInvert;
-	return savedEncoderVals[index];
+	return (encoderPosition_[index] + offsets_[index]) * units_.steeringGet * 2. * M_PI * wheelAngleInvert_;
 }
 
-double swerve::furthestWheel(Vector2d centerOfRotation)
+double swerve::furthestWheel(Vector2d centerOfRotation) const
 {
 	double maxD = 0;
 	for (int i = 0; i < WHEELCOUNT; i++)
 	{
-		double dist = sqrt(pow(wheelCoordinates[i][0] - centerOfRotation[0], 2) + pow(wheelCoordinates[i][1] - centerOfRotation[1], 2));
+		// TODO : rewrite using hypto() function
+		double dist = sqrt(pow(wheelCoordinates_[i][0] - centerOfRotation[0], 2) + pow(wheelCoordinates_[i][1] - centerOfRotation[1], 2));
 		if (dist > maxD)
 		{
 			maxD = dist;

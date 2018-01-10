@@ -1,19 +1,20 @@
 #include <math.h>
 #include <array>
-//#include <Eigen/Dense>
 #include <talon_swerve_drive_controller/SwerveMath.h>
 
-static const double pi = M_PI;
+static const double pi = M_PI; // TODO : why? just use M_PI
 using namespace std;
 
 
-swerveDriveMath::swerveDriveMath( array<Eigen::Vector2d, WHEELCOUNT> _wheelCoordinate)
+// TODO : use intializer list
+// Make arg const &
+swerveDriveMath::swerveDriveMath(array<Eigen::Vector2d, WHEELCOUNT> wheelCoordinate)
 {
-	wheelCoordinate = _wheelCoordinate;
-	parkingAngle = parkingAngles();
+	wheelCoordinate_ = wheelCoordinate;
+	parkingAngle_ = parkingAngles();
 	//The below coordinate pair can potentially change, it is relative to the wheel coordinates
 	Eigen::Vector2d baseRotationCenter = {0, 0};
-	baseWheelMultipliersXY = wheelMultipliersXY(baseRotationCenter);
+	baseWheelMultipliersXY_ = wheelMultipliersXY(baseRotationCenter);
 }
 
 //used for varying center of rotation and must be run once for initialization
@@ -24,9 +25,9 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(Eigen::Ve
 	//int size =  wheelCoordinate::size;
 	for (int i = 0; i < WHEELCOUNT; i++) //increment for each wheel
 	{
-		double x = wheelCoordinate[i][0] - rotationCenter[0];
-		double y = wheelCoordinate[i][1] - rotationCenter[1];
-		wheelMultipliers[i] = sqrt(x * x + y * y);
+		double x = wheelCoordinate_[i][0] - rotationCenter[0];
+		double y = wheelCoordinate_[i][1] - rotationCenter[1];
+		wheelMultipliers[i] = sqrt(x * x + y * y); // TODO : use hypot function
 		wheelAngles[i] = (atan2(x, y) + .5 * pi);
 	}
 	array<Eigen::Vector2d, WHEELCOUNT> multipliersXY;
@@ -43,7 +44,8 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(Eigen::Ve
 //Angle is the angle of the gyro for field centric driving
 //In radians, 0 is horizontal, increases counterclockwise
 //For non field centric set angle to pi/2
-array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eigen::Vector2d, WHEELCOUNT> wheelMultipliersXY, Eigen::Vector2d velocityVector, double rotation, double angle)
+// TOOD : pass array as const & argument
+array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eigen::Vector2d, WHEELCOUNT> wheelMultipliersXY, Eigen::Vector2d velocityVector, double rotation, double angle) const
 {
 	/*if (rotation == 0 && velocityVector[0] == 0 && velocityVector[1] == 0)
 	{
@@ -67,8 +69,8 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eige
 		//Only the rotation of the robot differently effects each wheel
 		double x = wheelMultipliersXY[i][0] * rotation + rotatedVelocity[0];
 		double y = wheelMultipliersXY[i][1] * rotation + rotatedVelocity[1];
-		angles[i] = (atan2(x, y));
-		speeds[i] = sqrt(x * x + y * y); //Use hypot func?
+		angles[i] = atan2(x, y);
+		speeds[i] = sqrt(x * x + y * y); // TODO : Use hypot func?
 	}
 	speeds = normalize(speeds);
 	//Speed and angles are put into one array here because speeds needed to be normalized
@@ -81,23 +83,26 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eige
 	}
 	return speedsAngles;
 }
-array<double, WHEELCOUNT> swerveDriveMath::parkingAngles()
+array<double, WHEELCOUNT> swerveDriveMath::parkingAngles(void) const
 {
 	//only must be run once to determine the angles of the wheels in parking config
 	array<double, WHEELCOUNT> angles;
-	for (int i = 0; i < wheelCoordinate.size(); i++)
+	for (int i = 0; i < wheelCoordinate_.size(); i++)
 	{
-		angles[i] = (atan2(wheelCoordinate[i][0], wheelCoordinate[i][1]));
+		angles[i] = atan2(wheelCoordinate_[i][0], wheelCoordinate_[i][1]);
 	}
 	return angles;
 }
 
-
-array<double, WHEELCOUNT> swerveDriveMath::normalize( array<double, WHEELCOUNT> input)
+// TODO : modify input arg rather than returning
+// a new array.  Change input to & arg, return type to void, 
+// modfiy input rather than normalzied in the last loop,
+// remove the else statement
+array<double, WHEELCOUNT> swerveDriveMath::normalize( array<double, WHEELCOUNT> input) const
 {
 	//Note that this function only works on arrays of size WHEELCOUNT
-	double maxi =  *max_element(input.begin(), input.end());
-	double mini =  *min_element(input.begin(), input.end());
+	double maxi = *max_element(input.begin(), input.end());
+	double mini = *min_element(input.begin(), input.end());
 	double absoluteMax;
 	if ( abs(maxi) > abs(mini) )
 	{

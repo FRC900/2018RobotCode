@@ -58,7 +58,6 @@
 #include <Eigen/Dense>
 
 
-using Eigen::Vector2d;
 namespace talon_swerve_drive_controller
 {
 
@@ -113,34 +112,9 @@ class TalonSwerveDriveController
 		ros::Duration publish_period_;
 		ros::Time last_state_publish_time_;
 		bool open_loop_;
+		bool invertWheelAngle_; //something here to get wheel_angle invert
 
-
-		//TODO: where there is a //get replace something other a hard set
-
-		double check = WHEELCOUNT;
-		Vector2d wheel1 = { -.3, .3};
-		Vector2d wheel3 = {.3, .3};
-		Vector2d wheel2 = { -.3, -.3};
-		Vector2d wheel4 = {.3, -.3};
-		std::array<Vector2d, 4> wheelCoords; //Something here to get wheel coordinates
-		string fileAddr = "offsets.txt"; //FIX TODO
-		bool invertWheelAngle = false;//something here to get wheel_angle invert
-		//something here that can be used to get encoder velocities (using std::function<double(int, int)>)
-		//something here that can be used to get encoder positions  (using std::function<double(int, int)>)
-		swerveVar::ratios driveRatios = {20, 7, 7}; //get
-		//something here to get units
-		// For right now units are set here as 1 for everythinh
-		swerveVar::encoderUnits units = {1, 1, 1, 1, 1, 1};
-
-
-
-		//TODO below parameters should be gotten from somewhere not
-		swerveVar::driveModel model;
-
-		//something here to get encoder units (using swerveVar::encoderUnits) (Should this even be here?)
-		//something here to get drive model stuff (using swerveVar::driveModel)
-
-		swerve swerveC;
+		std::shared_ptr<swerve> swerveC;
 
 		/// Hardware handles:
 		//TODO: IMPORTANT, make generalized, and check
@@ -150,14 +124,11 @@ class TalonSwerveDriveController
 
 		struct Commands
 		{
-			Vector2d lin;
+			Eigen::Vector2d lin;
 			double ang;
 			ros::Time stamp;
 
-			Commands() : lin(
-			{
-				0.0, 0.0
-			}), ang(0.0), stamp(0.0) {}
+			Commands() : lin({0.0, 0.0}), ang(0.0), stamp(0.0) {}
 		};
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
@@ -170,9 +141,6 @@ class TalonSwerveDriveController
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::Odometry> > odom_pub_;
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<tf::tfMessage> > tf_odom_pub_;
 		//Odometry odometry_;
-
-		/// Wheel coordinates
-		array<Vector2d, WHEELCOUNT> wheel_coordinates_ = wheelCoords;
 
 		/// Wheel radius (assuming it's the same for the left and right wheels):
 		double wheel_radius_;
@@ -193,7 +161,7 @@ class TalonSwerveDriveController
 		bool enable_odom_tf_;
 
 		/// Number of wheel joints:
-		size_t wheel_joints_size_ = WHEELCOUNT; //FIX TODO
+		size_t wheel_joints_size_;
 
 		/// Speed limiters:
 		Commands last1_cmd_;

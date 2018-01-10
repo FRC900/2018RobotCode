@@ -3,24 +3,17 @@
 
 #include <vector>
 #include <array>
+#include <cmath>
+#include <functional>
 #include <string>
+#include <vector>
 #include <Eigen/Dense>
 #include "SwerveMath.h"
-#include <functional>
-#include <vector>
-#include <math.h>
 
-#define WHEELCOUNT 4
-
-using namespace std;
-using namespace Eigen;
 //meters, radians, newtons, kg
 //This class will need access to the swerve drive talons
 //Gets should be rotations/encoder unit
 //Sets should be encoder unit/rotation (or rotations/second)
-
-
-
 
 namespace swerveVar
 {
@@ -48,48 +41,55 @@ struct driveModel
 	double motorFreeSpeed;
 	double motorStallTorque;
 	int motorQuantity;
-	double speedLossConstant = .81;
+	double speedLossConstant = .81; // Don't set this here
 }; //more info should be added to this struct
 }
-using namespace swerveVar;
+
+#define WHEELCOUNT 4
+// TODO : Change the swerve class to be 
+// template <unsigned int WHEELCOUNT>
+// instead of #defining WHEELCOUNT
 class swerve
 {
 	public:
-		swerve(array<Vector2d, WHEELCOUNT> _wheelCoordinates, string _fileAddress, bool _wheelAngleInvert, ratios _ratio, encoderUnits _units, driveModel _drive);
+		swerve(std::array<Eigen::Vector2d, WHEELCOUNT> _wheelCoordinates, std::string _fileAddress, bool _wheelAngleInvert, swerveVar::ratios _ratio, swerveVar::encoderUnits _units, swerveVar::driveModel _drive);
 
-		array<Vector2d, WHEELCOUNT> motorOutputs(Vector2d velocityVector, double rotation, double angle, bool forceRead, array<bool, WHEELCOUNT> &reverses, bool park, array<double, WHEELCOUNT> positionsNew, int rotationCenterID = 0, bool overrideID = false, Vector2d centerOfRotation = {0, 0});
+		std::array<Eigen::Vector2d, WHEELCOUNT> motorOutputs(Eigen::Vector2d velocityVector, double rotation, double angle, bool forceRead, std::array<bool, WHEELCOUNT> &reverses, bool park, std::array<double, WHEELCOUNT> positionsNew, int rotationCenterID = 0);
 		//for non field centric drive set angle = pi/2
 		//if rotationCenterID == 0 we will use the base center of rotation
-		void saveNewOffsets(bool useVals, array<double, WHEELCOUNT> newOffsets, array<double, WHEELCOUNT> newPosition); //should these be doubles?
+		void saveNewOffsets(bool useVals, std::array<double, WHEELCOUNT> newOffsets, std::array<double, WHEELCOUNT> newPosition); //should these be doubles?
 		//Note that unless you pass vals in and set useVals to true, it will use the current wheel positions, wheels should be pointing to the right.
-		double getWheelAngle(int index);
-		//should we get them together instead?
-		//the angle it passes out isn't normalized
-		//Vector2d currentOdom;
-		//Vector2d calculateOdom(); //might be some associated private variables
+		//Eigen::Vector2d currentOdom;
+		//Eigen::Vector2d calculateOdom(); //might be some associated private variables
 		//Probably should be called every
 
-		array<Vector2d, WHEELCOUNT> wheelCoordinates; //= {wheel1, wheel2, wheel3, wheel4};
-		swerveDriveMath swerveMath; //this should be public
+		std::array<Eigen::Vector2d, WHEELCOUNT> wheelCoordinates_;
+		swerveDriveMath swerveMath_; //this should be public
 
 	private:
-		array<double, WHEELCOUNT> encoderPosition;
-		array<double, WHEELCOUNT> offsets; //Should these be doubles?
-		string fileAddress;
+		//should we get them together instead?
+		//the angle it passes out isn't normalized
+		double getWheelAngle(int index) const;
+		double furthestWheel(Eigen::Vector2d centerOfRotation) const;
+
+		void setCenterOfRotation(int ID, const Eigen::Vector2d &centerOfRotation);
+
+		std::array<double, WHEELCOUNT> encoderPosition_;
+		std::array<double, WHEELCOUNT> offsets_; //Should these be doubles?
+		std::string fileName_;
 		//Second piece of data is here just for physics/modeling
 
-		array<double, WHEELCOUNT> savedEncoderVals;
-		int8_t wheelAngleInvert;
+		//std::array<double, WHEELCOUNT> savedEncoderVals_;
+		int8_t wheelAngleInvert_;
 
-		double furthestWheel(Vector2d centerOfRotation);
 		struct multiplierSet
 		{
-			array<Vector2d, WHEELCOUNT> multipliers;
-			double maxRotRate;
+			std::array<Eigen::Vector2d, WHEELCOUNT> multipliers_;
+			double maxRotRate_;
 		};
-		array<multiplierSet, 63> multiplierSets;
-		ratios ratio;
-		encoderUnits units;
-		driveModel drive;
+		std::array<multiplierSet, 63> multiplierSets_;
+		swerveVar::ratios ratio_;
+		swerveVar::encoderUnits units_;
+		swerveVar::	driveModel drive_;
 };
 #endif

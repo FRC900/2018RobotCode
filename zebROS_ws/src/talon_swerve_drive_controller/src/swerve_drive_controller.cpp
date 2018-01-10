@@ -52,6 +52,7 @@
 
 //TODO: include swerve stuff from C-Control
 using Eigen::Vector2d;
+using std::array;
 /*
 static double euclideanOfVectors(const urdf::Vector3& vec1, const urdf::Vector3& vec2)
 {
@@ -159,30 +160,17 @@ namespace talon_swerve_drive_controller
 {
 
 
-TalonSwerveDriveController::TalonSwerveDriveController()
-	: open_loop_(false)
-	, command_struct_()
-	  //, wheel_coordinates_()
-	, wheel_radius_(0.0)
-	, cmd_vel_timeout_(0.5)
-	, allow_multiple_cmd_vel_publishers_(true)
-	, base_frame_id_("base_link")
-	, odom_frame_id_("odom")
-	, enable_odom_tf_(true)
-	, wheel_joints_size_(0)
-	, publish_cmd_(false)
-	, swerveC(
+TalonSwerveDriveController::TalonSwerveDriveController() : 
+	open_loop_(false),
+	wheel_radius_(0.0),
+	cmd_vel_timeout_(0.5),
+	allow_multiple_cmd_vel_publishers_(true),
+	base_frame_id_("base_link"),
+	odom_frame_id_("odom"),
+	enable_odom_tf_(true),
+	wheel_joints_size_(0),
+	publish_cmd_(false)
 {
-	wheel1, wheel2, wheel3, wheel4
-}, fileAddr, invertWheelAngle, driveRatios, units, model)
-
-{
-	model.maxSpeed = 3.3528;
-	model.wheelRadius =  wheel_radius_;
-	model.mass = 70;
-	model.motorFreeSpeed = 5330;
-	model.motorStallTorque = 2.41;
-	model.motorQuantity = 4;
 }
 
 bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface *hw,
@@ -279,6 +267,29 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	}
 	*/
 	// Get the joint object to use in the realtime loop
+
+	// TODO : all of these need to be read from params
+	swerveVar::driveModel model;
+
+	model.maxSpeed = 3.3528;
+	model.wheelRadius =  wheel_radius_;
+	model.mass = 70;
+	model.motorFreeSpeed = 5330;
+	model.motorStallTorque = 2.41;
+	model.motorQuantity = 4;
+
+	Eigen::Vector2d wheel1 = { -.3, .3};
+	Eigen::Vector2d wheel3 = {.3, .3};
+	Eigen::Vector2d wheel2 = { -.3, -.3};
+	Eigen::Vector2d wheel4 = {.3, -.3};
+	std::array<Eigen::Vector2d, 4> wheels = {wheel1, wheel2, wheel3, wheel4};
+
+	std::string filename("offsets.txt");
+	bool invertWheelAngle(false);
+	swerveVar::ratios driveRatios({20, 7, 7});
+	swerveVar::encoderUnits units({1,1,1,1,1,1});
+
+	swerveC = std::make_shared<swerve>(wheels, filename, invertWheelAngle, driveRatios, units, model);
 	for (int i = 0; i < wheel_joints_size_; ++i)
 	{
 		ROS_INFO_STREAM_NAMED(name_,
@@ -372,27 +383,20 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	// Limit velocities and accelerations:
 	const double cmd_dt(period.toSec());
 
-
-
-
 	// Compute wheels velocities:
 	//Parse curr_cmd to get velocity vector and rotation (z axis)
 	//TODO: check unit conversions/coordinate frames
 
 	array<double, WHEELCOUNT> curPos;
 	for (int i = 0; i < WHEELCOUNT; i++)
-	{
 		curPos[i] = steering_joints_[i].getPosition();
-		ROS_INFO_STREAM("curPos " << curPos[i] << std::endl);
-	}
-	double angle = M_PI / 2;
+	double angle = M_PI / 2.;
 	std::array<bool, WHEELCOUNT> holder;
-	std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC.motorOutputs(curr_cmd.lin, curr_cmd.ang, angle, false, holder, false, curPos);
+	std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC->motorOutputs(curr_cmd.lin, curr_cmd.ang, angle, false, holder, false, curPos);
 
 	// Set wheels velocities:
 	for (size_t i = 0; i < wheel_joints_size_; ++i)
 	{
-		ROS_INFO_STREAM("Setting " << speeds_angles[i][0] << " " << speeds_angles[i][1] << std::endl);
 		speed_joints_[i].setCommand(speeds_angles[i][0]);
 		steering_joints_[i].setCommand(speeds_angles[i][1]);
 	}
@@ -424,11 +428,10 @@ void TalonSwerveDriveController::brake()
 	{
 		curPos[i] = steering_joints_[i].getPosition();
 	}
-	std::array<Vector2d, WHEELCOUNT> park = swerveC.motorOutputs({0, 0}, 0, 0, false, hold, true, curPos);
-	const double vel = 0.0;
+	std::array<Vector2d, WHEELCOUNT> park = swerveC->motorOutputs({0, 0}, 0, 0, false, hold, true, curPos);
 	for (size_t i = 0; i < wheel_joints_size_; ++i)
 	{
-		speed_joints_[i].setCommand(vel);
+		speed_joints_[i].setCommand(0.0);
 		steering_joints_[i].setCommand(park[i][1]);
 	}
 }
@@ -451,8 +454,9 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 		command_struct_.lin[1] = command.linear.y;
 		command_struct_.stamp = ros::Time::now();
 		command_.writeFromNonRT (command_struct_);
+
 		//TODO fix debug
-		ROS_INFO_STREAM_NAMED(name_,
+		ROS_DEBUG_STREAM_NAMED(name_,
 							  "Added values to command. "
 							  << "Ang: "   << command_struct_.ang << ", "
 							  << "Lin X: "   << command_struct_.lin[0] << ", "
