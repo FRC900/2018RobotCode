@@ -31,7 +31,7 @@ add_library(${PROJECT_NAME}
 src/swerve_drive_controller.cpp 
 src/odometry.cpp 
 src/speed_limiter.cpp
-src/900Math.cpp/
+src/900Math.cpp
 src/SwerveMath.cpp
 src/Swerve.cpp
 )
