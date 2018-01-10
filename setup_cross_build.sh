@@ -6,7 +6,7 @@ sudo add-apt-repository ppa:wpilib/toolchain
 sudo add-apt-repository ppa:wpilib/toolchain-beta
 sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get update
-sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installer frc-toolchain meshlab cmake libprotobuf-dev libprotoc-dev protobuf-compiler ninja-build sip-dev python-empy libtinyxml2-dev
+sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installer frc-toolchain meshlab cmake libprotobuf-dev libprotoc-dev protobuf-compiler ninja-build sip-dev python-empy libtinyxml2-dev libeigen3-dev libpython2.7-dev
 
 #mkdir -p ~/Downloads
 #cd ~/Downloads
@@ -72,7 +72,7 @@ sudo rm -rf console_bridge
 # Build and install Poco libraries
 cd
 wget https://pocoproject.org/releases/poco-1.7.9/poco-1.7.9p1.tar.gz
-tar xzf poco-1.7.9p1.tar.gz 
+tar xzf poco-1.7.9p1.tar.gz
 cd poco-1.7.9p1/
 CROSS_COMPILE=arm-frc-linux-gnueabi- ./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal --prefix=/usr/arm-frc-linux-gnueabi/usr/local --static
 sudo CROSS_COMPILE=arm-frc-linux-gnueabi- make -j4 install
