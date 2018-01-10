@@ -7,8 +7,7 @@ MAINTAINER Team 900
 
 # docker run -it --privileged --net=host -v /tmp/.X11-unix:/tmp/.X11-unix -e DISPLAY=$DISPLAY ubuntu:16.04 /bin/bash
 
-RUN useradd -ms /bin/bash -G wheel ubuntu && \
-    apt update && \
+RUN apt update && \
     apt upgrade -y && \
     apt install -y ubuntu-minimal ubuntu-standard software-properties-common ; \
     apt purge -y plymouth plymouth-theme-ubuntu-text libdrm2 libplymouth4 && \
@@ -16,7 +15,10 @@ RUN useradd -ms /bin/bash -G wheel ubuntu && \
     apt-add-repository -y ppa:wpilib/toolchain-beta && \
     apt-add-repository -y ppa:webupd8team/java && \
     apt update && \
-    apt install -y git libc6-i386 curl jstest-gtk gradle oracle-java8-installer frc-toolchain meshlab cmake libprotobuf-dev libprotoc-dev protobuf-compiler ninja libxtst6
+    apt install -y git libc6-i386 curl jstest-gtk gradle oracle-java8-installer frc-toolchain meshlab cmake libprotobuf-dev libprotoc-dev protobuf-compiler ninja-build sip-dev python-empy libtinyxml2-dev libswt-gtk-3-jni libswt-gtk-3-java && \
+    useradd -ms /bin/bash -G sudo ubuntu
+
+# passwd ubuntu
 
 USER ubuntu
 
