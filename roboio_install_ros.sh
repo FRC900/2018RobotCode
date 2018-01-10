@@ -2,6 +2,8 @@
 opkg update
 
 # Split these up so the disk doesn't fill up with temp files
+# Also need to install pyyaml first for some reason to avoid
+# weird dependency hell issues with opkg
 opkg install python-pyyaml
 opkg clean
 opkg install libeigen python-dev libpython2 python-core 
@@ -19,20 +21,6 @@ opkg clean
 opkg install python-netifaces libglog0 python-pip coreutils
 opkg clean
 
-# There was some weirdness with installing python. Needed to
-#  cd
-#  wget http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/libpython2_2.7.11-r1.49_cortexa9-vfpv3.ipk
-#  ar x libpython2_2.7.11-r1.49_cortexa9-vfpv3.ipk
-#  cd /
-#  tar -xvf ~/data.tar.gz
-#  cd
-#  rm created files
-
-#opkg install libeigen-dev python-dev
-#opkg install libxml2-dev libgnutls-dev
-#opkg install libz-dev
-#opkg install libglog-dev libyaml-dev
-
 pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy
 
 # Copy over ROS tar.bz2 file, extract to /
@@ -49,6 +37,14 @@ cd 2018RobotCode/zebROS_ws
 catkin_make_isolated --install
 cd 
 
+cd
+git clone https://github.com/gflags/gflags.git
+cd gflags
+cmake -DCMAKE_BUILD_TYPE=Release .
+make install
+cd
+rm -rf gflags*
+
 # Changed this to static lib on host, shouldn't need
 # to be installed on target as well
 #cd
@@ -60,14 +56,6 @@ cd
 #make install
 #cd
 #rm -rf console_bridge
-
-cd
-git clone https://github.com/gflags/gflags.git
-cd gflags
-cmake -DCMAKE_BUILD_TYPE=Release .
-make install
-cd
-rm -rf gflags*
 
 # Changed to static libs on host, shouldn't be needed on target
 
@@ -99,57 +87,57 @@ rm -rf gflags*
 # packages we'll probably never bother with.  If we end
 # up getting a missing library error, though, the info
 # on how to build them is here
-cd
-wget https://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz
-tar -xzvf sip-4.17.tar.gz
-cd sip-4.17
-python configure.py
-make -j2 install
-cd
-rm -rf sip-4.17*
+# cd
+# wget https://downloads.sourceforge.net/project/pyqt/sip/sip-4.17/sip-4.17.tar.gz
+# tar -xzvf sip-4.17.tar.gz
+# cd sip-4.17
+# python configure.py
+# make -j2 install
+# cd
+# rm -rf sip-4.17*
 
 # Probably not needed since it produces a static library
-cd
-wget https://downloads.sourceforge.net/project/tinyxml/tinyxml/2.6.2/tinyxml_2_6_2.zip
-unzip tinyxml_2_6_2.zip 
-cd tinyxml
-wget https://gist.githubusercontent.com/TNick/7960323/raw/3046ecda1d4d54d777c407f43ac357846a192e05/TinyXML-CmakeLists.txt
-mv TinyXML-CmakeLists.txt CMakeLists.txt
-add a line to CMakeLists.txt :  
-  set_target_properties(tinyxml PROPERTIES PUBLIC_HEADER "tinyxml.h;tinystr.h")
-add a line to tinyxml.h before line 46 :
-  #define TIXML_USE_STL
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON .
-make -j2 install 
-cd
-rm -rf tinyxml*
+# cd
+# wget https://downloads.sourceforge.net/project/tinyxml/tinyxml/2.6.2/tinyxml_2_6_2.zip
+# unzip tinyxml_2_6_2.zip 
+# cd tinyxml
+# wget https://gist.githubusercontent.com/TNick/7960323/raw/3046ecda1d4d54d777c407f43ac357846a192e05/TinyXML-CmakeLists.txt
+# mv TinyXML-CmakeLists.txt CMakeLists.txt
+# add a line to CMakeLists.txt :  
+  # set_target_properties(tinyxml PROPERTIES PUBLIC_HEADER "tinyxml.h;tinystr.h")
+# add a line to tinyxml.h before line 46 :
+  # #define TIXML_USE_STL
+# cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_POSITION_INDEPENDENT_CODE=ON .
+# make -j2 install 
+# cd
+# rm -rf tinyxml*
 
-cd
-wget http://www.qhull.org/download/qhull-2015-src-7.2.0.tgz
-tar -xzvf qhull-2015-src-7.2.0.tgz
-cd qhull-2015.2/
-cmake -DCMAKE_BUILD_TYPE=Release .
-make -j2 install
-cd
-rm -rf qhull-2015*
+# cd
+# wget http://www.qhull.org/download/qhull-2015-src-7.2.0.tgz
+# tar -xzvf qhull-2015-src-7.2.0.tgz
+# cd qhull-2015.2/
+# cmake -DCMAKE_BUILD_TYPE=Release .
+# make -j2 install
+# cd
+# rm -rf qhull-2015*
 
-cd
-git clone https://github.com/assimp/assimp.git 
-cd assimp
-mkdir build
-cd build
-cmake -DCMAKE_BUILD_TYPE=Release .
-make -j2 install
-cd
-rm -rf assimp
+# cd
+# git clone https://github.com/assimp/assimp.git 
+# cd assimp
+# mkdir build
+# cd build
+# cmake -DCMAKE_BUILD_TYPE=Release .
+# make -j2 install
+# cd
+# rm -rf assimp
 
 
-cd
-wget https://downloads.sourceforge.net/project/libuuid/libuuid-1.0.3.tar.gz
-tar -xzvf libuuid-1.0.3.tar.gz
-cd libuuid-1.0.3/
-./configure 
-make -j2 install
-cd
-rm -rf libuuid-1.0.3*
+# cd
+# wget https://downloads.sourceforge.net/project/libuuid/libuuid-1.0.3.tar.gz
+# tar -xzvf libuuid-1.0.3.tar.gz
+# cd libuuid-1.0.3/
+# ./configure 
+# make -j2 install
+# cd
+# rm -rf libuuid-1.0.3*
 

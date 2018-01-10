@@ -1,0 +1,9 @@
+<library path="lib/libtalon_swerve_drive_controller">
+
+  <class name="talon_swerve_drive_controller/TalonSwerveDriveController" type="talon_swerve_drive_controller::TalonSwerveDriveController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      The SwerveDriveController tracks velocity commands. It expects Talon Controller type of hardware interfaces.
+    </description>
+  </class>
+
+</library>
