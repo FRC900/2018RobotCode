@@ -33,27 +33,27 @@
 // TEST CASES
 TEST_F(DiffDriveControllerTest, testNoOdomFrame)
 {
-  // wait for ROS
-  while(!isControllerAlive())
-  {
-    ros::Duration(0.1).sleep();
-  }
-  // set up tf listener
-  tf::TransformListener listener;
-  ros::Duration(2.0).sleep();
-  // check the odom frame doesn't exist
-  EXPECT_FALSE(listener.frameExists("odom"));
+	// wait for ROS
+	while (!isControllerAlive())
+	{
+		ros::Duration(0.1).sleep();
+	}
+	// set up tf listener
+	tf::TransformListener listener;
+	ros::Duration(2.0).sleep();
+	// check the odom frame doesn't exist
+	EXPECT_FALSE(listener.frameExists("odom"));
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-  testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "diff_drive_odom_tf_test");
+	testing::InitGoogleTest(&argc, argv);
+	ros::init(argc, argv, "diff_drive_odom_tf_test");
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-  int ret = RUN_ALL_TESTS();
-  spinner.stop();
-  ros::shutdown();
-  return ret;
+	ros::AsyncSpinner spinner(1);
+	spinner.start();
+	int ret = RUN_ALL_TESTS();
+	spinner.stop();
+	ros::shutdown();
+	return ret;
 }

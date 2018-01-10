@@ -32,37 +32,37 @@
 // TEST CASES
 TEST_F(DiffDriveControllerTest, testDefaultCmdVelOutTopic)
 {
-  // wait for ROS
-  while(!isControllerAlive())
-  {
-    ros::Duration(0.1).sleep();
-  }
+	// wait for ROS
+	while (!isControllerAlive())
+	{
+		ros::Duration(0.1).sleep();
+	}
 
-  EXPECT_FALSE(isPublishingCmdVelOut());
+	EXPECT_FALSE(isPublishingCmdVelOut());
 
-  // zero everything before test
-  geometry_msgs::Twist cmd_vel;
-  cmd_vel.linear.x = 0.0;
-  cmd_vel.angular.z = 0.0;
-  publish(cmd_vel);
-  ros::Duration(0.1).sleep();
+	// zero everything before test
+	geometry_msgs::Twist cmd_vel;
+	cmd_vel.linear.x = 0.0;
+	cmd_vel.angular.z = 0.0;
+	publish(cmd_vel);
+	ros::Duration(0.1).sleep();
 
-  cmd_vel.linear.x = 0.1;
-  publish(cmd_vel);
-  ros::Duration(0.1).sleep();
+	cmd_vel.linear.x = 0.1;
+	publish(cmd_vel);
+	ros::Duration(0.1).sleep();
 
-  EXPECT_FALSE(isPublishingCmdVelOut());
+	EXPECT_FALSE(isPublishingCmdVelOut());
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-  testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "diff_drive_default_cmd_vel_out_topic_test");
+	testing::InitGoogleTest(&argc, argv);
+	ros::init(argc, argv, "diff_drive_default_cmd_vel_out_topic_test");
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-  int ret = RUN_ALL_TESTS();
-  spinner.stop();
-  ros::shutdown();
-  return ret;
+	ros::AsyncSpinner spinner(1);
+	spinner.start();
+	int ret = RUN_ALL_TESTS();
+	spinner.stop();
+	ros::shutdown();
+	return ret;
 }

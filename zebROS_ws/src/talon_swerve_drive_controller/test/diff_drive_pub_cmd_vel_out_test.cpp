@@ -32,42 +32,42 @@
 // TEST CASES
 TEST_F(DiffDriveControllerTest, testCmdVelOutTopic)
 {
-  // wait for ROS
-  while(!isControllerAlive())
-  {
-    ros::Duration(0.1).sleep();
-  }
+	// wait for ROS
+	while (!isControllerAlive())
+	{
+		ros::Duration(0.1).sleep();
+	}
 
-  EXPECT_TRUE(isPublishingCmdVelOut());
+	EXPECT_TRUE(isPublishingCmdVelOut());
 
-  // zero everything before test
-  geometry_msgs::Twist cmd_vel;
-  cmd_vel.linear.x = 0.0;
-  cmd_vel.angular.z = 0.0;
-  publish(cmd_vel);
-  ros::Duration(0.1).sleep();
+	// zero everything before test
+	geometry_msgs::Twist cmd_vel;
+	cmd_vel.linear.x = 0.0;
+	cmd_vel.angular.z = 0.0;
+	publish(cmd_vel);
+	ros::Duration(0.1).sleep();
 
-  cmd_vel.linear.x = 0.1;
-  publish(cmd_vel);
-  ros::Duration(0.1).sleep();
+	cmd_vel.linear.x = 0.1;
+	publish(cmd_vel);
+	ros::Duration(0.1).sleep();
 
-  EXPECT_TRUE(isPublishingCmdVelOut());
+	EXPECT_TRUE(isPublishingCmdVelOut());
 
-  // get a twist message
-  geometry_msgs::TwistStamped odom_msg = getLastCmdVelOut();
+	// get a twist message
+	geometry_msgs::TwistStamped odom_msg = getLastCmdVelOut();
 
-  EXPECT_GT(fabs(odom_msg.twist.linear.x), 0);
+	EXPECT_GT(fabs(odom_msg.twist.linear.x), 0);
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-  testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "diff_drive_pub_cmd_vel_out_topic_test");
+	testing::InitGoogleTest(&argc, argv);
+	ros::init(argc, argv, "diff_drive_pub_cmd_vel_out_topic_test");
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-  int ret = RUN_ALL_TESTS();
-  spinner.stop();
-  ros::shutdown();
-  return ret;
+	ros::AsyncSpinner spinner(1);
+	spinner.start();
+	int ret = RUN_ALL_TESTS();
+	spinner.stop();
+	ros::shutdown();
+	return ret;
 }

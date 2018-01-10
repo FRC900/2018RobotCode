@@ -33,41 +33,41 @@
 // TEST CASES
 TEST_F(DiffDriveControllerTest, testOdomFrame)
 {
-  // wait for ROS
-  while(!isControllerAlive())
-  {
-    ros::Duration(0.1).sleep();
-  }
-  // set up tf listener
-  tf::TransformListener listener;
-  ros::Duration(2.0).sleep();
-  // check the original odom frame doesn't exist
-  EXPECT_TRUE(listener.frameExists("odom"));
+	// wait for ROS
+	while (!isControllerAlive())
+	{
+		ros::Duration(0.1).sleep();
+	}
+	// set up tf listener
+	tf::TransformListener listener;
+	ros::Duration(2.0).sleep();
+	// check the original odom frame doesn't exist
+	EXPECT_TRUE(listener.frameExists("odom"));
 }
 
 TEST_F(DiffDriveControllerTest, testOdomTopic)
 {
-  // wait for ROS
-  while(!isControllerAlive())
-  {
-    ros::Duration(0.1).sleep();
-  }
+	// wait for ROS
+	while (!isControllerAlive())
+	{
+		ros::Duration(0.1).sleep();
+	}
 
-  // get an odom message
-  nav_msgs::Odometry odom_msg = getLastOdom();
-  // check its frame_id
-  ASSERT_STREQ(odom_msg.header.frame_id.c_str(), "odom");
+	// get an odom message
+	nav_msgs::Odometry odom_msg = getLastOdom();
+	// check its frame_id
+	ASSERT_STREQ(odom_msg.header.frame_id.c_str(), "odom");
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-  testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "diff_drive_default_odom_frame_test");
+	testing::InitGoogleTest(&argc, argv);
+	ros::init(argc, argv, "diff_drive_default_odom_frame_test");
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-  int ret = RUN_ALL_TESTS();
-  spinner.stop();
-  ros::shutdown();
-  return ret;
+	ros::AsyncSpinner spinner(1);
+	spinner.start();
+	int ret = RUN_ALL_TESTS();
+	spinner.stop();
+	ros::shutdown();
+	return ret;
 }

@@ -32,41 +32,41 @@
 // TEST CASES
 TEST_F(DiffDriveControllerTest, testTimeout)
 {
-  // wait for ROS
-  while(!isControllerAlive())
-  {
-    ros::Duration(0.1).sleep();
-  }
-  // zero everything before test
-  geometry_msgs::Twist cmd_vel;
-  cmd_vel.linear.x = 0.0;
-  cmd_vel.angular.z = 0.0;
-  publish(cmd_vel);
-  // give some time to the controller to react to the command
-  ros::Duration(0.1).sleep();
-  // get initial odom
-  nav_msgs::Odometry old_odom = getLastOdom();
-  // send a velocity command of 1 m/s
-  cmd_vel.linear.x = 1.0;
-  publish(cmd_vel);
-  // wait a bit
-  ros::Duration(3.0).sleep();
+	// wait for ROS
+	while (!isControllerAlive())
+	{
+		ros::Duration(0.1).sleep();
+	}
+	// zero everything before test
+	geometry_msgs::Twist cmd_vel;
+	cmd_vel.linear.x = 0.0;
+	cmd_vel.angular.z = 0.0;
+	publish(cmd_vel);
+	// give some time to the controller to react to the command
+	ros::Duration(0.1).sleep();
+	// get initial odom
+	nav_msgs::Odometry old_odom = getLastOdom();
+	// send a velocity command of 1 m/s
+	cmd_vel.linear.x = 1.0;
+	publish(cmd_vel);
+	// wait a bit
+	ros::Duration(3.0).sleep();
 
-  nav_msgs::Odometry new_odom = getLastOdom();
+	nav_msgs::Odometry new_odom = getLastOdom();
 
-  // check if the robot has stopped after 0.5s, thus covering less than 0.5s*1.0m.s-1 + some (big) tolerance
-  EXPECT_LT(fabs(new_odom.pose.pose.position.x - old_odom.pose.pose.position.x), 0.8);
+	// check if the robot has stopped after 0.5s, thus covering less than 0.5s*1.0m.s-1 + some (big) tolerance
+	EXPECT_LT(fabs(new_odom.pose.pose.position.x - old_odom.pose.pose.position.x), 0.8);
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
-  testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "diff_drive_test");
+	testing::InitGoogleTest(&argc, argv);
+	ros::init(argc, argv, "diff_drive_test");
 
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-  int ret = RUN_ALL_TESTS();
-  spinner.stop();
-  ros::shutdown();
-  return ret;
+	ros::AsyncSpinner spinner(1);
+	spinner.start();
+	int ret = RUN_ALL_TESTS();
+	spinner.stop();
+	ros::shutdown();
+	return ret;
 }

@@ -59,193 +59,197 @@
 
 
 using Eigen::Vector2d;
-namespace talon_swerve_drive_controller{
+namespace talon_swerve_drive_controller
+{
 
-  /**
-   * This class makes some assumptions on the model of the robot:
-   *  - the rotation axes of wheels are collinear
-   *  - the wheels are identical in radius
-   * Additional assumptions to not duplicate information readily available in the URDF:
-   *  - the wheels have the same parent frame
-   *  - a wheel collision geometry is a cylinder or sphere in the urdf
-   *  - a wheel joint frame center's vertical projection on the floor must lie within the contact patch
-  */
-  class TalonSwerveDriveController
-      : public controller_interface::Controller<hardware_interface::TalonCommandInterface>
-  {
-  public:
-    TalonSwerveDriveController();
+/**
+ * This class makes some assumptions on the model of the robot:
+ *  - the rotation axes of wheels are collinear
+ *  - the wheels are identical in radius
+ * Additional assumptions to not duplicate information readily available in the URDF:
+ *  - the wheels have the same parent frame
+ *  - a wheel collision geometry is a cylinder or sphere in the urdf
+ *  - a wheel joint frame center's vertical projection on the floor must lie within the contact patch
+*/
+class TalonSwerveDriveController
+	: public controller_interface::Controller<hardware_interface::TalonCommandInterface>
+{
+	public:
+		TalonSwerveDriveController();
 
-    /**
-     * \brief Initialize controller
-     * \param hw            Velocity joint interface for the wheels
-     * \param root_nh       Node handle at root namespace
-     * \param controller_nh Node handle inside the controller namespace
-     */
-    bool init(hardware_interface::TalonCommandInterface* hw,
-              ros::NodeHandle& root_nh,
-              ros::NodeHandle &controller_nh);
+		/**
+		 * \brief Initialize controller
+		 * \param hw            Velocity joint interface for the wheels
+		 * \param root_nh       Node handle at root namespace
+		 * \param controller_nh Node handle inside the controller namespace
+		 */
+		bool init(hardware_interface::TalonCommandInterface *hw,
+				  ros::NodeHandle &root_nh,
+				  ros::NodeHandle &controller_nh);
 
-    /**
-     * \brief Updates controller, i.e. computes the odometry and sets the new velocity commands
-     * \param time   Current time
-     * \param period Time since the last called to update
-     */
-    void update(const ros::Time& time, const ros::Duration& period);
+		/**
+		 * \brief Updates controller, i.e. computes the odometry and sets the new velocity commands
+		 * \param time   Current time
+		 * \param period Time since the last called to update
+		 */
+		void update(const ros::Time &time, const ros::Duration &period);
 
-    /**
-     * \brief Starts controller
-     * \param time Current time
-     */
-    void starting(const ros::Time& time);
+		/**
+		 * \brief Starts controller
+		 * \param time Current time
+		 */
+		void starting(const ros::Time &time);
 
-    /**
-     * \brief Stops controller
-     * \param time Current time
-     */
-    void stopping(const ros::Time& /*time*/);
+		/**
+		 * \brief Stops controller
+		 * \param time Current time
+		 */
+		void stopping(const ros::Time & /*time*/);
 
-  private:
-    std::string name_;
+	private:
+		std::string name_;
 
-    /// Odometry related:
-    ros::Duration publish_period_;
-    ros::Time last_state_publish_time_;
-    bool open_loop_;
-    
-
-    //TODO: where there is a //get replace something other a hard set
-    
-    double check = WHEELCOUNT;
-    Vector2d wheel1 = {-.3, .3};
-    Vector2d wheel3 = {.3, .3};
-    Vector2d wheel2 = {-.3, -.3};
-    Vector2d wheel4 = {.3, -.3};
-    std::array<Vector2d, 4> wheelCoords; //Something here to get wheel coordinates
-    string fileAddr = "offsets.txt"; //FIX TODO
-    bool invertWheelAngle = false;//something here to get wheel_angle invert
-    //something here that can be used to get encoder velocities (using std::function<double(int, int)>)
-    //something here that can be used to get encoder positions  (using std::function<double(int, int)>)
-    swerveVar::ratios driveRatios = {20, 7, 7}; //get
-    //something here to get units
-    // For right now units are set here as 1 for everythinh
-    swerveVar::encoderUnits units = {1, 1, 1, 1, 1, 1};
-    
+		/// Odometry related:
+		ros::Duration publish_period_;
+		ros::Time last_state_publish_time_;
+		bool open_loop_;
 
 
-    //TODO below parameters should be gotten from somewhere not 
-    swerveVar::driveModel model;
-    
-    //something here to get encoder units (using swerveVar::encoderUnits) (Should this even be here?)
-    //something here to get drive model stuff (using swerveVar::driveModel)
-    
-    swerve swerveC;    
+		//TODO: where there is a //get replace something other a hard set
 
-    /// Hardware handles:
-    //TODO: IMPORTANT, make generalized, and check    
-    std::vector<talon_controllers::TalonVelocityCloseLoopControllerInterface> speed_joints_;
-    std::vector<talon_controllers::TalonPositionCloseLoopControllerInterface> steering_joints_;
-    /// Velocity command related:
-    
-    struct Commands
-    {
-      Vector2d lin;
-      double ang;
-      ros::Time stamp;
+		double check = WHEELCOUNT;
+		Vector2d wheel1 = { -.3, .3};
+		Vector2d wheel3 = {.3, .3};
+		Vector2d wheel2 = { -.3, -.3};
+		Vector2d wheel4 = {.3, -.3};
+		std::array<Vector2d, 4> wheelCoords; //Something here to get wheel coordinates
+		string fileAddr = "offsets.txt"; //FIX TODO
+		bool invertWheelAngle = false;//something here to get wheel_angle invert
+		//something here that can be used to get encoder velocities (using std::function<double(int, int)>)
+		//something here that can be used to get encoder positions  (using std::function<double(int, int)>)
+		swerveVar::ratios driveRatios = {20, 7, 7}; //get
+		//something here to get units
+		// For right now units are set here as 1 for everythinh
+		swerveVar::encoderUnits units = {1, 1, 1, 1, 1, 1};
 
-      Commands() : lin({0.0, 0.0}), ang(0.0), stamp(0.0) {}
-    };
-    realtime_tools::RealtimeBuffer<Commands> command_;
-    Commands command_struct_;
-    ros::Subscriber sub_command_;
 
-    /// Publish executed commands
-    //boost::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::TwistStamped> > cmd_vel_pub_;
 
-    /// Odometry related:
-    //boost::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::Odometry> > odom_pub_;
-    //boost::shared_ptr<realtime_tools::RealtimePublisher<tf::tfMessage> > tf_odom_pub_;
-    //Odometry odometry_;
+		//TODO below parameters should be gotten from somewhere not
+		swerveVar::driveModel model;
 
-    /// Wheel coordinates
-    array<Vector2d, WHEELCOUNT> wheel_coordinates_ = wheelCoords;
+		//something here to get encoder units (using swerveVar::encoderUnits) (Should this even be here?)
+		//something here to get drive model stuff (using swerveVar::driveModel)
 
-    /// Wheel radius (assuming it's the same for the left and right wheels):
-    double wheel_radius_;
+		swerve swerveC;
 
-    /// Timeout to consider cmd_vel commands old:
-    double cmd_vel_timeout_;
+		/// Hardware handles:
+		//TODO: IMPORTANT, make generalized, and check
+		std::vector<talon_controllers::TalonVelocityCloseLoopControllerInterface> speed_joints_;
+		std::vector<talon_controllers::TalonPositionCloseLoopControllerInterface> steering_joints_;
+		/// Velocity command related:
 
-    /// Whether to allow multiple publishers on cmd_vel topic or not:
-    bool allow_multiple_cmd_vel_publishers_;
+		struct Commands
+		{
+			Vector2d lin;
+			double ang;
+			ros::Time stamp;
 
-    /// Frame to use for the robot base:
-    std::string base_frame_id_;
+			Commands() : lin(
+			{
+				0.0, 0.0
+			}), ang(0.0), stamp(0.0) {}
+		};
+		realtime_tools::RealtimeBuffer<Commands> command_;
+		Commands command_struct_;
+		ros::Subscriber sub_command_;
 
-    /// Frame to use for odometry and odom tf:
-    std::string odom_frame_id_;
+		/// Publish executed commands
+		//boost::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::TwistStamped> > cmd_vel_pub_;
 
-    /// Whether to publish odometry to tf or not:
-    bool enable_odom_tf_;
+		/// Odometry related:
+		//boost::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::Odometry> > odom_pub_;
+		//boost::shared_ptr<realtime_tools::RealtimePublisher<tf::tfMessage> > tf_odom_pub_;
+		//Odometry odometry_;
 
-    /// Number of wheel joints:
-    size_t wheel_joints_size_ = WHEELCOUNT; //FIX TODO
+		/// Wheel coordinates
+		array<Vector2d, WHEELCOUNT> wheel_coordinates_ = wheelCoords;
 
-    /// Speed limiters:
-    Commands last1_cmd_;
-    Commands last0_cmd_;
+		/// Wheel radius (assuming it's the same for the left and right wheels):
+		double wheel_radius_;
 
-    /// Publish limited velocity:
-    bool publish_cmd_;
+		/// Timeout to consider cmd_vel commands old:
+		double cmd_vel_timeout_;
 
-  private:
-    /**
-     * \brief Brakes the wheels, i.e. sets the velocity to 0
-     * RG: also sets to parking config
-     */
-    void brake();
+		/// Whether to allow multiple publishers on cmd_vel topic or not:
+		bool allow_multiple_cmd_vel_publishers_;
 
-    /**
-     * \brief Velocity command callback
-     * \param command Velocity command message (twist)
-     */
-    void cmdVelCallback(const geometry_msgs::Twist& command);
+		/// Frame to use for the robot base:
+		std::string base_frame_id_;
 
-    /**
-     * \brief Get the wheel names from a wheel param
-     * \param [in]  controller_nh Controller node handler
-     * \param [in]  wheel_param   Param name
-     * \param [out] wheel_names   Vector with the whel names
-     * \return true if the wheel_param is available and the wheel_names are
-     *        retrieved successfully from the param server; false otherwise
-     */
-    bool getWheelNames(ros::NodeHandle& controller_nh,
-                       const std::string& wheel_param,
-                       std::vector<std::string>& wheel_names);
+		/// Frame to use for odometry and odom tf:
+		std::string odom_frame_id_;
 
-    /**
-     * \brief Sets odometry parameters from the URDF, i.e. the wheel radius and separation
-     * \param root_nh Root node handle
-     * \param left_wheel_name Name of the left wheel joint
-     * \param right_wheel_name Name of the right wheel joint
-     */
-   /* 
-   bool setOdomParamsFromUrdf(ros::NodeHandle& root_nh,
-                               const std::string& steering_name,
-                               const std::string& speed_name,
-                               bool lookup_wheel_radius);
+		/// Whether to publish odometry to tf or not:
+		bool enable_odom_tf_;
 
-    */
-     /**
-     * \brief Sets the odometry publishing fields
-     * \param root_nh Root node handle
-     * \param controller_nh Node handle inside the controller namespace
-     */
-    /*
-    void setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh);
-    */
-  };
+		/// Number of wheel joints:
+		size_t wheel_joints_size_ = WHEELCOUNT; //FIX TODO
 
-  PLUGINLIB_EXPORT_CLASS(talon_swerve_drive_controller::TalonSwerveDriveController, controller_interface::ControllerBase);
-  
+		/// Speed limiters:
+		Commands last1_cmd_;
+		Commands last0_cmd_;
+
+		/// Publish limited velocity:
+		bool publish_cmd_;
+
+	private:
+		/**
+		 * \brief Brakes the wheels, i.e. sets the velocity to 0
+		 * RG: also sets to parking config
+		 */
+		void brake();
+
+		/**
+		 * \brief Velocity command callback
+		 * \param command Velocity command message (twist)
+		 */
+		void cmdVelCallback(const geometry_msgs::Twist &command);
+
+		/**
+		 * \brief Get the wheel names from a wheel param
+		 * \param [in]  controller_nh Controller node handler
+		 * \param [in]  wheel_param   Param name
+		 * \param [out] wheel_names   Vector with the whel names
+		 * \return true if the wheel_param is available and the wheel_names are
+		 *        retrieved successfully from the param server; false otherwise
+		 */
+		bool getWheelNames(ros::NodeHandle &controller_nh,
+						   const std::string &wheel_param,
+						   std::vector<std::string> &wheel_names);
+
+		/**
+		 * \brief Sets odometry parameters from the URDF, i.e. the wheel radius and separation
+		 * \param root_nh Root node handle
+		 * \param left_wheel_name Name of the left wheel joint
+		 * \param right_wheel_name Name of the right wheel joint
+		 */
+		/*
+		bool setOdomParamsFromUrdf(ros::NodeHandle& root_nh,
+		                            const std::string& steering_name,
+		                            const std::string& speed_name,
+		                            bool lookup_wheel_radius);
+
+		 */
+		/**
+		* \brief Sets the odometry publishing fields
+		* \param root_nh Root node handle
+		* \param controller_nh Node handle inside the controller namespace
+		*/
+		/*
+		void setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh);
+		*/
+};
+
+PLUGINLIB_EXPORT_CLASS(talon_swerve_drive_controller::TalonSwerveDriveController, controller_interface::ControllerBase);
+
 } // namespace diff_drive_controller
