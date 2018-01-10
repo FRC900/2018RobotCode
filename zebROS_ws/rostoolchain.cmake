@@ -18,9 +18,9 @@ set(Boost_NO_SYSTEM_PATHS=ON)
 
 add_definitions(-std=c++11)
 
-set (CMAKE_RANLIB "arm-frc-linux-gnueabi-gcc-ranlib-5.5")
-set (CMAKE_AR     "arm-frc-linux-gnueabi-gcc-ar-5.5")
-set (OPT_FLAGS "-O3 -flto=4 -mcpu=cortex-a9 -mfpu=neon")
+find_program(CMAKE_RANLIB ${ARM_PREFIX}-gcc-ranlib-5.5)
+find_program(CMAKE_AR ${ARM_PREFIX}-gcc-ar-5.5)
+set(OPT_FLAGS "-O3 -flto=4 -mcpu=cortex-a9 -mfpu=neon")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${OPT_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} ${OPT_FLAGS}")
 
