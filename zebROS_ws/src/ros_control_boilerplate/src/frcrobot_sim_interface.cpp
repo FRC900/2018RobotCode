@@ -105,9 +105,9 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 	// Maybe do a eStop / enabled check instead?
 	//enforceLimits(elapsed_time);
 
-	//ROS_INFO_STREAM_THROTTLE(1,
-	//std::endl << std::string(__FILE__) << ":" << __LINE__ <<
-	//std::endl << "Command" << std::endl << printCommandHelper());
+	ROS_INFO_STREAM_THROTTLE(1,
+			std::endl << std::string(__FILE__) << ":" << __LINE__ <<
+			std::endl << "Command" << std::endl << printCommandHelper());
 
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
@@ -153,22 +153,34 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			talon_state_[joint_id].setSensorPhase(sensor_phase);
 		}
 
-		// Follower doesn't need to be updated - used the
-		// followed talon for state instead
-		if (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_Follower)
-			continue;
+		if (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_Position)
+		{
+			// Assume instant velocity
+			double position;
 
-		// Assume instant acceleration for now
-		double speed;
+			bool position_changed = talon_command_[joint_id].get(position);
+			if (invert)
+				position = -position;
+			if (position_changed)
+				talon_state_[joint_id].setSetpoint(position);
 
-		bool speed_changed = talon_command_[joint_id].get(speed);
-		if (invert)
-			speed = -speed;
-		if (speed_changed)
-			talon_state_[joint_id].setSetpoint(speed);
+			talon_state_[joint_id].setPosition((sensor_phase ? -1 : 1 ) * position);
+			talon_state_[joint_id].setSpeed(0);
+		}
+		else if (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_Velocity)
+		{
+			// Assume instant acceleration for now
+			double speed;
 
-		talon_state_[joint_id].setPosition(talon_state_[joint_id].getPosition() + (sensor_phase ? -1 : 1 ) * speed * elapsed_time.toSec());
-		talon_state_[joint_id].setSpeed((sensor_phase ? -1 : 1 ) * speed);
+			bool speed_changed = talon_command_[joint_id].get(speed);
+			if (invert)
+				speed = -speed;
+			if (speed_changed)
+				talon_state_[joint_id].setSetpoint(speed);
+
+			talon_state_[joint_id].setPosition(talon_state_[joint_id].getPosition() + (sensor_phase ? -1 : 1 ) * speed * elapsed_time.toSec());
+			talon_state_[joint_id].setSpeed((sensor_phase ? -1 : 1 ) * speed);
+		}
 	}
 	for (std::size_t joint_id = 0; joint_id < num_nidec_brushlesses_; ++joint_id)
 	{
