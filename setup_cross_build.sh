@@ -175,7 +175,7 @@ cd
 sudo rm -rf libuuid-1.0.3.tar.gz libuuid-1.0.3
 
 # Build and install yaml-cpp
-wget https://github.com/jbeder/yaml-cpp.git
+git clone https://github.com/jbeder/yaml-cpp.git
 cd yaml-cpp
 mkdir build
 cd build
