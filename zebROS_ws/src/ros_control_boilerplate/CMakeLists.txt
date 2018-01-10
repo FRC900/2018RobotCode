@@ -152,6 +152,14 @@ target_link_libraries(${PROJECT_NAME}_test_trajectory
   ${catkin_LIBRARIES}
 )
 
+add_executable(${PROJECT_NAME}_JoystickSubscriber src/JoystickSubscriber.cpp)
+set_target_properties(${PROJECT_NAME}_JoystickSubscriber PROPERTIES OUTPUT_NAME
+JoystickSubscriber PREFIX "")
+target_link_libraries(${PROJECT_NAME}_JoystickSubscriber
+  ${catkin_LIBRARIES}
+)
+
+
 ## TOOLS ------------------------------------------------------
 
 # Tool for analyzing controller performance
