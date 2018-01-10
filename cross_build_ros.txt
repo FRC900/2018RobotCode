@@ -48,7 +48,7 @@ create package.xml
 
 </package>
 -----------------------
-cd ..
+cd ~/catkin_arm_cross_ws
 
 wstool init -j8 src kinetic-ros_comm-wet.rosinstall
 
