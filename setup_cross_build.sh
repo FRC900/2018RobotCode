@@ -74,7 +74,7 @@ cd
 wget https://pocoproject.org/releases/poco-1.7.9/poco-1.7.9p1.tar.gz
 tar xzf poco-1.7.9p1.tar.gz
 cd poco-1.7.9p1/
-CROSS_COMPILE=arm-frc-linux-gnueabi- ./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal --prefix=/usr/arm-frc-linux-gnueabi/usr/local --static
+CROSS_COMPILE=arm-frc-linux-gnueabi- ./configure --no-tests --no-samples --omit=Data/ODBC,Data/MySQL --minimal --prefix=/usr/arm-frc-linux-gnueabi/usr/local --static --cflags="-fPIC"
 sudo CROSS_COMPILE=arm-frc-linux-gnueabi- make -j4 install
 cd
 sudo rm -rf poco-1.7.9p1.tar.gz poco-1.7.9p1
@@ -175,7 +175,7 @@ cd
 sudo rm -rf libuuid-1.0.3.tar.gz libuuid-1.0.3
 
 # Build and install yaml-cpp
-wget https://github.com/jbeder/yaml-cpp.git
+git clone https://github.com/jbeder/yaml-cpp.git
 cd yaml-cpp
 mkdir build
 cd build
