@@ -2,7 +2,7 @@
 # This should let people build robot (roboRIO) code on a laptop
 
 # Install toolchain 
-sudo apt-add-repository ppa:wpilib/toolchain
+sudo add-apt-repository ppa:wpilib/toolchain
 sudo add-apt-repository ppa:wpilib/toolchain-beta
 sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get update
@@ -11,7 +11,7 @@ sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installe
 #mkdir -p ~/Downloads
 #cd ~/Downloads
 #wget http://mirror.csclub.uwaterloo.ca/eclipse/oomph/epp/neon/R/eclipse-inst-linux64.tar.gz
-#tar -xzvf eclipse-inst-linux64.tar.gz 
+#tar -xzvf eclipse-inst-linux64.tar.gz
 #cd eclipse-installer
 #./eclipse-inst
 
@@ -21,7 +21,7 @@ sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installe
 
 # Help -> Install new software -> Add
     # Name: FRC Plugins
-    # Location: http://first.wpi.edu/FRC/roborio/beta/eclipse/
+    # Location: http://first.wpi.edu/FRC/roborio/release/eclipse/
     # Click OK
     # Expand the WPILib Robot Development repo and choose to install the Robot C++ Development plugin.
     # Follow/confirm the wizard/prompts
@@ -52,6 +52,10 @@ rm roscore_roborio_2018.tar.bz2
 
 # Install roboRIO packages into the cross-root
 sudo perl ~/2018RobotCode/install_cross_package.pl
+
+# Clone 2018RobotCode repo
+cd
+git clone https://github.com/FRC900/2018RobotCode.git
 
 # Build/install cross version of console_bridge
 cd
