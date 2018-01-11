@@ -128,14 +128,14 @@ if (DEFINED CMAKE_TOOLCHAIN_FILE)
 		${CTRE_LIBS}
 	)
 
-## Add cmake target dependencies of the executable
-## same as for the library above. This is needed to force
-## talon controller messages to be built before the
-## talon controller code tries to use them
-add_dependencies(frcrobot_hw_main
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
+    ## Add cmake target dependencies of the executable
+    ## same as for the library above. This is needed to force
+    ## talon controller messages to be built before the
+    ## talon controller code tries to use them
+	add_dependencies(frcrobot_hw_main
+	  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+	  ${catkin_EXPORTED_TARGETS}
+	)
     ## Install ------------------------------------------------------------
 
     # Install executables
@@ -145,7 +145,6 @@ add_dependencies(frcrobot_hw_main
 	  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 	)
 endif()
-
 
 # Test trajectory generator node
 add_executable(${PROJECT_NAME}_test_trajectory src/tools/test_trajectory.cpp)
@@ -160,12 +159,29 @@ joystickSubscriber PREFIX "")
 target_link_libraries(${PROJECT_NAME}_joystickSubscriber
   ${catkin_LIBRARIES}
 )
+## Add cmake target dependencies of the executable
+## same as for the library above. This is needed to force
+## talon controller messages to be built before the
+## talon controller code tries to use them
+add_dependencies(${PROJECT_NAME}_joystickSubscriber
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
 
 add_executable(${PROJECT_NAME}_teleopJoystickCommands src/teleopJoystickCommands.cpp)
 set_target_properties(${PROJECT_NAME}_teleopJoystickCommands PROPERTIES OUTPUT_NAME 
 teleopJoystickCommands PREFIX "")
 target_link_libraries(${PROJECT_NAME}_teleopJoystickCommands
   ${catkin_LIBRARIES}
+)
+
+## Add cmake target dependencies of the executable
+## same as for the library above. This is needed to force
+## talon controller messages to be built before the
+## talon controller code tries to use them
+add_dependencies(${PROJECT_NAME}_teleopJoystickCommands
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
 )
 
 ## TOOLS ------------------------------------------------------
@@ -200,8 +216,6 @@ set_target_properties(${PROJECT_NAME}_keyboard_teleop PROPERTIES OUTPUT_NAME key
 target_link_libraries(${PROJECT_NAME}_keyboard_teleop
   ${catkin_LIBRARIES}
 )
-
-
 
 ## Install ------------------------------------------------------------
 install(TARGETS
