@@ -151,7 +151,16 @@ class TalonSwerveDriveController
 
 		/// Wheel radius (assuming it's the same for the left and right wheels):
 		double wheel_radius_;
+		
+		swerveVar::driveModel model_;
+		
+		std::string filename_;
 
+		bool invertWheelAngle_;
+
+		swerveVar::ratios driveRatios_;
+		
+		swerveVar::encoderUnits units_;
 		/// Timeout to consider cmd_vel commands old:
 		double cmd_vel_timeout_;
 
