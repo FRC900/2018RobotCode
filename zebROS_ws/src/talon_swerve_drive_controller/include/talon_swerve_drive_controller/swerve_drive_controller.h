@@ -106,13 +106,19 @@ class TalonSwerveDriveController
 		void stopping(const ros::Time & /*time*/);
 
 	private:
+		/*
+		void compOdometry(const ros::Time& time, const double inv_delta_t);
+		double last_wheel_rot;
+		Eigen::Matrix2Xd new_wheel_pos_;	
+		Eigen::Matrix2Xd old_wheel_pos_;	
+		*/		
+
 		std::string name_;
 
 		/// Odometry related:
 		ros::Duration publish_period_;
 		ros::Time last_state_publish_time_;
 		bool open_loop_;
-		bool invertWheelAngle_; //something here to get wheel_angle invert
 
 		std::shared_ptr<swerve> swerveC;
 
@@ -144,7 +150,16 @@ class TalonSwerveDriveController
 
 		/// Wheel radius (assuming it's the same for the left and right wheels):
 		double wheel_radius_;
+		
+		swerveVar::driveModel model_;
+		
+		std::string filename_;
 
+		bool invertWheelAngle_;
+
+		swerveVar::ratios driveRatios_;
+		
+		swerveVar::encoderUnits units_;
 		/// Timeout to consider cmd_vel commands old:
 		double cmd_vel_timeout_;
 

@@ -11,7 +11,7 @@ class swerveDriveMath
 		//WHEELCOUNT is defined so arrays can be used.
 		//Arrays are used over vectors for optimization, which may be invalid
 		//There is likely a better way to handle WHEELCOUNT
-		// TODO : redo that as a template : template<unsigned int WHEELCOUNT> class swerveDriveMath...
+		//  TODO : yes, use vectors
 	public:
 		swerveDriveMath(std::array<Eigen::Vector2d, WHEELCOUNT> wheelCoordinate);
 		swerveDriveMath() {};

@@ -44,8 +44,6 @@ namespace ros_control_boilerplate
 FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_model)
 	: name_("generic_hw_interface")
 	, nh_(nh)
-	, use_rosparam_joint_limits_(false)
-	, use_soft_limits_if_available_(false)
 {
 	// Check if the URDF model needs to be loaded
 	if (urdf_model == NULL)
@@ -203,6 +201,45 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 			pwm_pwm_channels_.push_back(pwm_pwm_channel);
 			pwm_inverts_.push_back(invert);
 		}
+		else if (joint_type == "solenoid")
+		{
+			if (!joint_params.hasMember("id"))
+				throw std::runtime_error("A solenoid id was not specified");
+			XmlRpc::XmlRpcValue &xml_solenoid_id = joint_params["solenoid_id"];
+			if (!xml_solenoid_id.valid() ||
+					xml_solenoid_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint solenoid id was specified (expecting an int).");
+
+			const int solenoid_id = xml_solenoid_id;
+
+
+			solenoid_names_.push_back(joint_name);
+			solenoid_ids_.push_back(solenoid_id);
+		}
+		else if (joint_type == "double_solenoid")
+		{
+			if (!joint_params.hasMember("forward_id"))
+				throw std::runtime_error("A double_solenoid forward_id was not specified");
+			XmlRpc::XmlRpcValue &xml_double_solenoid_forward_id = joint_params["double_solenoid_forward_id"];
+			if (!xml_double_solenoid_forward_id.valid() ||
+					xml_double_solenoid_forward_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint double solenoid forward_id was specified (expecting an int).");
+
+			const int double_solenoid_forward_id = xml_double_solenoid_forward_id;
+
+			if (!joint_params.hasMember("reverse_id"))
+				throw std::runtime_error("A double_solenoid reverse_id was not specified");
+			XmlRpc::XmlRpcValue &xml_double_solenoid_reverse_id = joint_params["double_solenoid_reverse_id"];
+			if (!xml_double_solenoid_reverse_id.valid() ||
+					xml_double_solenoid_reverse_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint double solenoid reverse_id was specified (expecting an int).");
+
+			const int double_solenoid_reverse_id = xml_double_solenoid_reverse_id;
+
+			double_solenoid_names_.push_back(joint_name);
+			double_solenoid_forward_ids_.push_back(double_solenoid_forward_id);
+			double_solenoid_reverse_ids_.push_back(double_solenoid_reverse_id);
+		}
 		else
 		{
 			std::stringstream s;
@@ -276,7 +313,6 @@ void FRCRobotInterface::init()
 		joint_velocity_interface_.registerHandle(jh);
 	}
 
-
 	num_digital_inputs_ = digital_input_names_.size();
 	digital_input_state_.resize(num_digital_inputs_);
 	for (size_t i = 0; i < num_digital_inputs_; i++)
@@ -303,7 +339,7 @@ void FRCRobotInterface::init()
 		// Do the same for a command interface for
 		// the digital output
 		hardware_interface::JointHandle doh(dosh, &digital_output_command_[i]);
-		joint_velocity_interface_.registerHandle(doh);
+		joint_position_interface_.registerHandle(doh);
 	}
 
 	num_pwm_ = pwm_names_.size();
@@ -321,6 +357,37 @@ void FRCRobotInterface::init()
 		hardware_interface::JointHandle ph(psh, &brushless_command_[i]);
 		joint_velocity_interface_.registerHandle(ph);
 	}
+	num_solenoids_ = solenoid_names_.size();
+        solenoid_state_.resize(num_solenoids_);
+        solenoid_command_.resize(num_solenoids_);
+        for (size_t i = 0; i < num_solenoids_; i++)
+        {
+                ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << solenoid_names_[i] << " at id " << solenoid_ids_[i]);
+
+                hardware_interface::JointStateHandle dosh(solenoid_names_[i], &solenoid_state_[i], &solenoid_state_[i], &solenoid_state_[i]);
+                joint_state_interface_.registerHandle(dosh);
+
+                // Do the same for a command interface for
+                // the digital output
+                hardware_interface::JointHandle doh(dosh, &solenoid_command_[i]);
+                joint_position_interface_.registerHandle(doh);
+        }
+
+	num_double_solenoids_ = double_solenoid_names_.size();
+        double_solenoid_state_.resize(num_double_solenoids_);
+        double_solenoid_command_.resize(num_double_solenoids_);
+        for (size_t i = 0; i < num_double_solenoids_; i++)
+        {
+                ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << double_solenoid_names_[i] << " at forward id" << double_solenoid_forward_ids_[i] << "at reverse id" << double_solenoid_reverse_ids_[i]);
+
+                hardware_interface::JointStateHandle dosh(double_solenoid_names_[i], &double_solenoid_state_[i], &double_solenoid_state_[i], &double_solenoid_state_[i]);
+                joint_state_interface_.registerHandle(dosh);
+
+                // Do the same for a command interface for
+                // the digital output
+                hardware_interface::JointHandle doh(dosh, &double_solenoid_command_[i]);
+                joint_position_interface_.registerHandle(doh);
+        }
 
 	// Publish various FRC-specific data using generic joint state for now
 	// For simple things this might be OK, but for more complex state
@@ -332,163 +399,13 @@ void FRCRobotInterface::init()
 	registerInterface(&joint_state_interface_);
 	registerInterface(&talon_command_interface_);
 	registerInterface(&joint_velocity_interface_);
-
-#if 0
-	// Limits
-	joint_position_lower_limits_.resize(num_can_talon_srxs_, 0.0);
-	joint_position_upper_limits_.resize(num_can_talon_srxs_, 0.0);
-	joint_velocity_limits_.resize(num_can_talon_srxs_, 0.0);
-	joint_effort_limits_.resize(num_can_talon_srxs_, 0.0);
-#endif
+	registerInterface(&joint_position_interface_);
 
 	ROS_INFO_STREAM_NAMED(name_, "FRCRobotInterface Ready.");
 }
 
-void FRCRobotInterface::registerJointLimits(const hardware_interface::JointHandle &joint_handle_position,
-		const hardware_interface::JointHandle &joint_handle_velocity,
-		const hardware_interface::JointHandle &joint_handle_effort,
-		std::size_t joint_id)
-{
-	// Default values
-	joint_position_lower_limits_[joint_id] = -std::numeric_limits<double>::max();
-	joint_position_upper_limits_[joint_id] = std::numeric_limits<double>::max();
-	joint_velocity_limits_[joint_id] = std::numeric_limits<double>::max();
-	joint_effort_limits_[joint_id] = std::numeric_limits<double>::max();
-
-	// Limits datastructures
-	joint_limits_interface::JointLimits joint_limits;     // Position
-	joint_limits_interface::SoftJointLimits soft_limits;  // Soft Position
-	bool has_joint_limits = false;
-	bool has_soft_limits = false;
-
-	// Get limits from URDF
-	if (urdf_model_ == NULL)
-	{
-		ROS_WARN_STREAM_NAMED(name_, "No URDF model loaded, unable to get joint limits");
-		return;
-	}
-
-	// Get limits from URDF
-	urdf::JointConstSharedPtr urdf_joint = urdf_model_->getJoint(can_talon_srx_names_[joint_id]);
-
-	// Get main joint limits
-	if (urdf_joint == NULL)
-	{
-		ROS_ERROR_STREAM_NAMED(name_, "URDF joint not found " << can_talon_srx_names_[joint_id]);
-		return;
-	}
-
-	// Get limits from URDF
-	if (joint_limits_interface::getJointLimits(urdf_joint, joint_limits))
-	{
-		has_joint_limits = true;
-		ROS_DEBUG_STREAM_NAMED(name_, "Joint " << can_talon_srx_names_[joint_id] << " has URDF position limits ["
-							   << joint_limits.min_position << ", "
-							   << joint_limits.max_position << "]");
-		if (joint_limits.has_velocity_limits)
-			ROS_DEBUG_STREAM_NAMED(name_, "Joint " << can_talon_srx_names_[joint_id] << " has URDF velocity limit ["
-								   << joint_limits.max_velocity << "]");
-	}
-	else
-	{
-		if (urdf_joint->type != urdf::Joint::CONTINUOUS)
-			ROS_WARN_STREAM_NAMED(name_, "Joint " << can_talon_srx_names_[joint_id] << " does not have a URDF "
-								  "position limit");
-	}
-
-	// Get limits from ROS param
-	if (use_rosparam_joint_limits_)
-	{
-		if (joint_limits_interface::getJointLimits(can_talon_srx_names_[joint_id], nh_, joint_limits))
-		{
-			has_joint_limits = true;
-			ROS_DEBUG_STREAM_NAMED(name_,
-								   "Joint " << can_talon_srx_names_[joint_id] << " has rosparam position limits ["
-								   << joint_limits.min_position << ", " << joint_limits.max_position << "]");
-			if (joint_limits.has_velocity_limits)
-				ROS_DEBUG_STREAM_NAMED(name_, "Joint " << can_talon_srx_names_[joint_id]
-									   << " has rosparam velocity limit ["
-									   << joint_limits.max_velocity << "]");
-		}  // the else debug message provided internally by joint_limits_interface
-	}
-
-	// Get soft limits from URDF
-	if (use_soft_limits_if_available_)
-	{
-		if (joint_limits_interface::getSoftJointLimits(urdf_joint, soft_limits))
-		{
-			has_soft_limits = true;
-			ROS_DEBUG_STREAM_NAMED(name_, "Joint " << can_talon_srx_names_[joint_id] << " has soft joint limits.");
-		}
-		else
-		{
-			ROS_DEBUG_STREAM_NAMED(name_, "Joint " << can_talon_srx_names_[joint_id] << " does not have soft joint "
-								   "limits");
-		}
-	}
-
-	// Quit we we haven't found any limits in URDF or rosparam server
-	if (!has_joint_limits)
-	{
-		return;
-	}
-
-	// Copy position limits if available
-	if (joint_limits.has_position_limits)
-	{
-		// Slighly reduce the joint limits to prevent doubleing point errors
-		joint_limits.min_position += std::numeric_limits<double>::epsilon();
-		joint_limits.max_position -= std::numeric_limits<double>::epsilon();
-
-		joint_position_lower_limits_[joint_id] = joint_limits.min_position;
-		joint_position_upper_limits_[joint_id] = joint_limits.max_position;
-	}
-
-	// Copy velocity limits if available
-	if (joint_limits.has_velocity_limits)
-	{
-		joint_velocity_limits_[joint_id] = joint_limits.max_velocity;
-	}
-
-	// Copy effort limits if available
-	if (joint_limits.has_effort_limits)
-	{
-		joint_effort_limits_[joint_id] = joint_limits.max_effort;
-	}
-
-	if (has_soft_limits)  // Use soft limits
-	{
-		ROS_DEBUG_STREAM_NAMED(name_, "Using soft saturation limits");
-		const joint_limits_interface::PositionJointSoftLimitsHandle soft_handle_position(joint_handle_position,
-				joint_limits, soft_limits);
-		pos_jnt_soft_limits_.registerHandle(soft_handle_position);
-		const joint_limits_interface::VelocityJointSoftLimitsHandle soft_handle_velocity(joint_handle_velocity,
-				joint_limits, soft_limits);
-		vel_jnt_soft_limits_.registerHandle(soft_handle_velocity);
-		const joint_limits_interface::EffortJointSoftLimitsHandle soft_handle_effort(joint_handle_effort, joint_limits,
-				soft_limits);
-		eff_jnt_soft_limits_.registerHandle(soft_handle_effort);
-	}
-	else  // Use saturation limits
-	{
-		ROS_DEBUG_STREAM_NAMED(name_, "Using saturation limits (not soft limits)");
-
-		const joint_limits_interface::PositionJointSaturationHandle sat_handle_position(joint_handle_position, joint_limits);
-		pos_jnt_sat_interface_.registerHandle(sat_handle_position);
-
-		const joint_limits_interface::VelocityJointSaturationHandle sat_handle_velocity(joint_handle_velocity, joint_limits);
-		vel_jnt_sat_interface_.registerHandle(sat_handle_velocity);
-
-		const joint_limits_interface::EffortJointSaturationHandle sat_handle_effort(joint_handle_effort, joint_limits);
-		eff_jnt_sat_interface_.registerHandle(sat_handle_effort);
-	}
-}
-
 void FRCRobotInterface::reset()
 {
-	// Reset joint limits state, in case of mode switch or e-stop
-	pos_jnt_sat_interface_.reset();
-	pos_jnt_soft_limits_.reset();
 }
 
 void FRCRobotInterface::printState()
@@ -523,11 +440,7 @@ std::string FRCRobotInterface::printCommandHelper()
 	std::cout.precision(15);
 	ss << "    setpoint" << std::endl;
 	for (std::size_t i = 0; i < num_can_talon_srxs_; ++i)
-	{
-		double setpoint;
-		talon_command_[i].get(setpoint);
-		ss << "j" << i << ": " << std::fixed << setpoint << std::endl;
-	}
+		ss << "j" << i << ": " << std::fixed << talon_command_[i].get() << std::endl;
 	return ss.str();
 }
 

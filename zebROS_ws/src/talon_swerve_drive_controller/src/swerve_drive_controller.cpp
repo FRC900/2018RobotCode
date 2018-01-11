@@ -53,6 +53,11 @@
 //TODO: include swerve stuff from C-Control
 using Eigen::Vector2d;
 using std::array;
+using Eigen::Affine2d;
+using Eigen::Matrix2d;
+using Eigen::Vector2d;
+
+using geometry_msgs::TwistConstPtr;
 /*
 static double euclideanOfVectors(const urdf::Vector3& vec1, const urdf::Vector3& vec2)
 {
@@ -106,6 +111,16 @@ static bool isCylinder(const urdf::LinkConstSharedPtr &link)
 		return false;
 	}
 
+	return true;
+}
+
+/*
+ * \brief Check if the link is modeled as a sphere
+	return true;
+}
+
+/*
+ * \brief Check if the link is modeled as a sphere
 	return true;
 }
 
@@ -170,6 +185,13 @@ TalonSwerveDriveController::TalonSwerveDriveController() :
 	enable_odom_tf_(true),
 	wheel_joints_size_(0),
 	publish_cmd_(false)
+
+	//model_({0, 0, 0, 0, 0, 0}),
+	//invertWheelAngle_(false),
+	//units_({1,1,1,1,1,1}), 
+	//filename_("offsets.txt"),
+	//driveRatios_({0, 0, 0}),
+	//units_({0, 0, 0, 0})
 {
 }
 
@@ -220,16 +242,6 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	ROS_INFO_STREAM_NAMED(name_, "Velocity rolling window size of "
 						  << velocity_rolling_window_size << ".");
 
-
-	// Twist command related:
-	controller_nh.param("cmd_vel_timeout", cmd_vel_timeout_, cmd_vel_timeout_);
-	ROS_INFO_STREAM_NAMED(name_, "Velocity commands will be considered old if they are older than "
-						  << cmd_vel_timeout_ << "s.");
-
-	controller_nh.param("allow_multiple_cmd_vel_publishers", allow_multiple_cmd_vel_publishers_, allow_multiple_cmd_vel_publishers_);
-	ROS_INFO_STREAM_NAMED(name_, "Allow mutiple cmd_vel publishers is "
-						  << (allow_multiple_cmd_vel_publishers_ ? "enabled" : "disabled"));
-
 	controller_nh.param("base_frame_id", base_frame_id_, base_frame_id_);
 	ROS_INFO_STREAM_NAMED(name_, "Base frame_id set to " << base_frame_id_);
 
@@ -246,6 +258,23 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	// If either parameter is not available, we need to look up the value in the URDF
 	//bool lookup_wheel_coordinates = !controller_nh.getParam("wheel_coordinates", wheel_coordinates_);
 	bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius_);
+	bool lookup_max_speed = !controller_nh.getParam("max_speed", model_.maxSpeed);
+	bool lookup_mass = !controller_nh.getParam("mass", model_.mass);
+	bool lookup_motor_free_speed = !controller_nh.getParam("motor_free_speed", model_.motorFreeSpeed);
+	bool lookup_motor_stall_torque = !controller_nh.getParam("motor_stall_torque", model_.motorStallTorque);
+	bool lookup_motor_quantity = !controller_nh.getParam("motor_quantity", model_.motorQuantity);
+	bool lookup_file_name = !controller_nh.getParam("file_name", filename_);
+	bool lookup_invert_wheel_angle = !controller_nh.getParam("invert_wheel_angle", invertWheelAngle_);
+	bool lookup_ratio_encoder_to_rotations = !controller_nh.getParam("ratio_encoder_to_rotations", driveRatios_.encodertoRotations);
+	bool lookup_ratio_motor_to_rotations = !controller_nh.getParam("ratio_motor_to_rotations", driveRatios_.motortoRotations);
+	bool lookup_ratio_motor_to_steering = !controller_nh.getParam("ratio_motor_to_steering", driveRatios_.motortoSteering);
+	bool lookup_encoder_drive_get_V_units = !controller_nh.getParam("encoder_drive_get_V_units", units_.rotationGetV);
+	bool lookup_encoder_drive_get_P_units = !controller_nh.getParam("encoder_drive_get_P_units", units_.rotationGetP);
+	bool lookup_encoder_drive_set_V_units = !controller_nh.getParam("encoder_drive_set_V_units", units_.rotationSetV);
+	bool lookup_encoder_drive_set_P_units = !controller_nh.getParam("encoder_drive_set_P_units", units_.rotationSetP);
+	bool lookup_encoder_steering_get_units = !controller_nh.getParam("encoder_steering_get_units", units_.steeringGet);
+	bool lookup_encoder_steering_set_units = !controller_nh.getParam("encoder_steering_set_units", units_.steeringSet);
+
 	/*
 	if (!setOdomParamsFromUrdf(root_nh,
 	                          speed_names[0],
@@ -269,27 +298,29 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	// Get the joint object to use in the realtime loop
 
 	// TODO : all of these need to be read from params
-	swerveVar::driveModel model;
-
+	/*
 	model.maxSpeed = 3.3528;
 	model.wheelRadius =  wheel_radius_;
 	model.mass = 70;
 	model.motorFreeSpeed = 5330;
 	model.motorStallTorque = 2.41;
 	model.motorQuantity = 4;
+	*/
 
 	Eigen::Vector2d wheel1 = { -.3, .3};
 	Eigen::Vector2d wheel3 = {.3, .3};
 	Eigen::Vector2d wheel2 = { -.3, -.3};
 	Eigen::Vector2d wheel4 = {.3, -.3};
 	std::array<Eigen::Vector2d, 4> wheels = {wheel1, wheel2, wheel3, wheel4};
-
-	std::string filename("offsets.txt");
-	bool invertWheelAngle(false);
+	
+	/*
+	filename = "offsets.txt";
+	invertWheelAngle(false);
 	swerveVar::ratios driveRatios({20, 7, 7});
 	swerveVar::encoderUnits units({1,1,1,1,1,1});
+	*/
 
-	swerveC = std::make_shared<swerve>(wheels, filename, invertWheelAngle, driveRatios, units, model);
+	swerveC = std::make_shared<swerve>(wheels, filename_, invertWheelAngle_, driveRatios_, units_, model_);
 	for (int i = 0; i < wheel_joints_size_; ++i)
 	{
 		ROS_INFO_STREAM_NAMED(name_,
@@ -384,11 +415,13 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
                 last_odom_pub_time_ = time;
           }
         }
-
 */
+
 
 void TalonSwerveDriveController::update(const ros::Time &time, const ros::Duration &period)
 {
+	//if (comp_odom_) compOdometry(time, inv_delta_t);
+	
 	/*
 	// COMPUTE AND PUBLISH ODOMETRY
 	if (open_loop_)
@@ -535,6 +568,7 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 		command_struct_.stamp = ros::Time::now();
 		command_.writeFromNonRT (command_struct_);
 
+
 		//TODO fix debug
 		ROS_DEBUG_STREAM_NAMED(name_,
 							  "Added values to command. "
@@ -642,21 +676,6 @@ bool TalonSwerveDriveController::getWheelNames(ros::NodeHandle &controller_nh,
         ROS_ERROR_STREAM_NAMED(name_, "Couldn't retrieve " << left_wheel_name << " wheel radius");
         return false;
       }
-    }
-
-    return true;
-  }
-
-  void TalonSwerveDriveController::setOdomPubFields(ros::NodeHandle& root_nh, ros::NodeHandle& controller_nh)
-  {
-    // Get and check params for covariances
-    XmlRpc::XmlRpcValue pose_cov_list;
-    controller_nh.getParam("pose_covariance_diagonal", pose_cov_list);
-    ROS_ASSERT(pose_cov_list.getType() == XmlRpc::XmlRpcValue::TypeArray);
-    ROS_ASSERT(pose_cov_list.size() == 6);
-    for (int i = 0; i < pose_cov_list.size(); ++i)
-      ROS_ASSERT(pose_cov_list[i].getType() == XmlRpc::XmlRpcValue::TypeDouble);
-
     XmlRpc::XmlRpcValue twist_cov_list;
     controller_nh.getParam("twist_covariance_diagonal", twist_cov_list);
     ROS_ASSERT(twist_cov_list.getType() == XmlRpc::XmlRpcValue::TypeArray);

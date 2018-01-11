@@ -60,8 +60,6 @@ class FRCRobotSimInterface : public ros_control_boilerplate::FRCRobotInterface
 		/** \brief Write the command to the robot hardware. */
 		virtual void write(ros::Duration &elapsed_time);
 
-		/** \breif Enforce limits for all values before writing */
-		virtual void enforceLimits(ros::Duration &period);
 	private:
 		// Desired kMode setting, or -1 if no need to change this
 		// time through the update loop

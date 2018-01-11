@@ -20,10 +20,6 @@ swerve::swerve(array<Vector2d, WHEELCOUNT> wheelCoordinates, string fileName, bo
 	units_ = units;
 	drive_ = drive;
 	fileName_ = fileName;
-	for (int i = 0; i < WHEELCOUNT; i++)
-	{
-		getWheelAngle(i);
-	}
 	wheelAngleInvert_ = wheelAngleInvert ? -1 : 1;
 	ifstream offsetRead;
 	offsetRead.open(fileName);
@@ -81,7 +77,7 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 		{
 			double nearestangle;
 			bool reverse;
-			getWheelAngle(i);
+			getWheelAngle(i, encoderPosition_[i]);
 			nearestangle = leastDistantAngleWithinHalfPi(encoderPosition_[i], speedsAndAngles[i][1], reverse);
 			reverses[i] = reverse;
 			speedsAndAngles[i][0] *= ((drive_.maxSpeed / (drive_.wheelRadius * 2.0 * M_PI)) / ratio_.encodertoRotations) * units_.rotationSetV * (reverse ? -1 : 1);
@@ -97,7 +93,7 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 
 			double nearestangle;
 			bool reverse;
-			getWheelAngle(i);
+			getWheelAngle(i, encoderPosition_[i]);
 			nearestangle = leastDistantAngleWithinHalfPi(encoderPosition_[i], speedsAndAngles[i][1], reverse);
 			speedsAndAngles[i][1] = (nearestangle / (2 * M_PI)) * units_.steeringSet - offsets_[i];
 		}
@@ -139,9 +135,9 @@ Vector2d calculateOdom()
 }
 */
 
-double swerve::getWheelAngle(int index) const
+double swerve::getWheelAngle(int index, double pos) const
 {
-	return (encoderPosition_[index] + offsets_[index]) * units_.steeringGet * 2. * M_PI * wheelAngleInvert_;
+	return (pos + offsets_[index]) * units_.steeringGet * 2. * M_PI * wheelAngleInvert_;
 }
 
 double swerve::furthestWheel(Vector2d centerOfRotation) const
