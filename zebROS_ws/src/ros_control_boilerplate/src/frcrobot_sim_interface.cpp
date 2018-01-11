@@ -158,7 +158,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			// Assume instant velocity
 			double position;
 
-			bool position_changed = talon_command_[joint_id].get(position);
+			bool position_changed = talon_command_[joint_id].commandChanged(position);
 			if (invert)
 				position = -position;
 			if (position_changed)
@@ -172,7 +172,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			// Assume instant acceleration for now
 			double speed;
 
-			bool speed_changed = talon_command_[joint_id].get(speed);
+			bool speed_changed = talon_command_[joint_id].commandChanged(speed);
 			if (invert)
 				speed = -speed;
 			if (speed_changed)
