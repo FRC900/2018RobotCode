@@ -17,11 +17,12 @@ rosinstall_generator ros ros_comm robot control_toolbox angles serial robot_loca
 # unique_identifier
 # urdf_geometry_parser
 
+mkdir -p ~/catkin_arm_cross_ws/src
 cd ~/catkin_arm_cross_ws/src
-git clone https://raw.githubusercontent.com/ros-gbp/urdfdom_headers-release/master/indigo/package.xml
+git clone https://github.com/ros/urdfdom_headers.git
 cd urdfdom_headers
 wget https://raw.githubusercontent.com/ros-gbp/urdfdom_headers-release/master/indigo/package.xml
-cd ..
+# Fix the version in package.xml to read 1.0.0
 
 cd ~/catkin_arm_cross_ws/src
 git clone https://github.com/jbeder/yaml-cpp.git
@@ -60,6 +61,10 @@ rm -rf robot_model/joint_state_publisher
 cd ..
 
 ./src/catkin/bin/catkin_make_isolated --install --use-ninja -DCMAKE_INSTALL_PREFIX=/usr/arm-frc-linux-gnueabi/opt/ros/kinetic -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2018RobotCode/zebROS_ws/rostoolchain.cmake -DCATKIN_ENABLE_TESTING=OFF
+
+# I needed to add "-DYAML_CPP_INCLUDE_DIRS=/usr/arm-frc-linux-gnueabi/include
+# -DYAML_CPP_LIBRARIES=/usr/arm-frc-linux-gnueabi/lib/libyaml-cpp.a" to
+# catkin_make_isolated to get it to find yaml-cpp
 
 Add 2 lines to the bottom of /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/share/urdf/cmake/urdfConfig.cmake
 /home/ubuntu/catkin_arm_cross_ws/devel_isolated/urdf/share/urdf/cmake/urdfConfig.cmake
