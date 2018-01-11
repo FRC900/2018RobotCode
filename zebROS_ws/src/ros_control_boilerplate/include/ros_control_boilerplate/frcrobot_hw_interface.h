@@ -117,7 +117,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::DigitalOutput>> digital_outputs_;
 		std::vector<std::shared_ptr<frc::SafePWM>> PWMs_;
 		std::vector<std::shared_ptr<frc::Solenoid>> solenoids_;
-		std::vector<std::shared_ptr<frc::DoubleSolenoid> double_solenoids_;
+		std::vector<std::shared_ptr<frc::DoubleSolenoid>> double_solenoids_;
 
 		std::thread hal_thread_;
 		bool        run_hal_thread_;

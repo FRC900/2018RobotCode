@@ -406,11 +406,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
-		solenoid_status_[i] = solenoids_[i]->Get();
+		solenoid_state_[i] = solenoids_[i]->Get();
 	}
 	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
-		double_solenoid_status_[i] = double_solenoids_[i]->Get();
+		double_solenoid_state_[i] = double_solenoids_[i]->Get();
 	}
 }
 
