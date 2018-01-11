@@ -177,7 +177,13 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<bool>        pwm_inverts_;
 		std::size_t              num_pwm_;
 
+		std::vector<std::string> solenoid_names_;
+		std::vector<int>         solenoid_ids_;
+		std::size_t              num_solenoids_;
+
 		urdf::Model *urdf_model_;
+
+
 
 		// Modes
 		bool use_rosparam_joint_limits_;
