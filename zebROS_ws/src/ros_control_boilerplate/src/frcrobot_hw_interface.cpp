@@ -263,6 +263,14 @@ void FRCRobotHWInterface::init(void)
 		PWMs_.push_back(std::make_shared<frc::SafePWM>(pwm_pwm_channels_[i]));
 		PWMs_[i]->SetSafetyEnabled(false);
 	}
+	for (size_t i = 0; i < num_solenoids_; i++)
+	{
+		solenoids_.push_back(std::make_shared<frc::Solenoid>(solenoid_ids_[i]));
+	}
+	for (size_t i = 0; i < num_double_solenoids_; i++)
+	{
+		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
+	}
 
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
@@ -396,7 +404,14 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		// Just reflect state of output in status
 		pwm_state_[i] = PWMs_[i]->GetSpeed();
 	}
-
+	for (size_t i = 0; i < num_solenoids_; i++)
+	{
+		solenoid_status_[i] = solenoids_[i]->Get();
+	}
+	for (size_t i = 0; i < num_double_solenoids_; i++)
+	{
+		double_solenoid_status_[i] = double_solenoids_[i]->Get();
+	}
 }
 
 double FRCRobotHWInterface::getRadiansConversionFactor(hardware_interface::FeedbackDevice encoder_feedback, int joint_id)
@@ -738,7 +753,17 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		int inverter  = (pwm_inverts_[i]) ? -1 : 1;
 		PWMs_[i]->SetSpeed(pwm_command_[i]*inverter);
 	}
+	for (size_t i = 0; i< num_solenoids_; i++)
+	{
+		bool setpoint = solenoid_command_[i] > 0;
+		solenoids_[i]->Set(setpoint);
+	}
 
+	for (size_t i = 0; i< num_double_solenoids_; i++)
+	{
+		DoubleSolenoid::Value setpoint = static_cast<DoubleSolenoid::Value>(double_solenoid_command_[i]);
+		double_solenoids_[i]->Set(setpoint);
+	}
 }
 
 // Convert from internal version of hardware mode ID

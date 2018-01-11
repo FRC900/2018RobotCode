@@ -201,6 +201,45 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 			pwm_pwm_channels_.push_back(pwm_pwm_channel);
 			pwm_inverts_.push_back(invert);
 		}
+		else if (joint_type == "solenoid")
+		{
+			if (!joint_params.hasMember("id"))
+				throw std::runtime_error("A solenoid id was not specified");
+			XmlRpc::XmlRpcValue &xml_solenoid_id = joint_params["solenoid_id"];
+			if (!xml_solenoid_id.valid() ||
+					xml_solenoid_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint solenoid id was specified (expecting an int).");
+
+			const int solenoid_id = xml_solenoid_id;
+
+
+			solenoid_names_.push_back(joint_name);
+			solenoid_ids_.push_back(solenoid_id);
+		}
+		else if (joint_type == "double_solenoid")
+		{
+			if (!joint_params.hasMember("forward_id"))
+				throw std::runtime_error("A double_solenoid forward_id was not specified");
+			XmlRpc::XmlRpcValue &xml_double_solenoid_forward_id = joint_params["double_solenoid_forward_id"];
+			if (!xml_double_solenoid_forward_id.valid() ||
+					xml_double_solenoid_forward_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint double solenoid forward_id was specified (expecting an int).");
+
+			const int double_solenoid_forward_id = xml_double_solenoid_forward_id;
+
+			if (!joint_params.hasMember("reverse_id"))
+				throw std::runtime_error("A double_solenoid reverse_id was not specified");
+			XmlRpc::XmlRpcValue &xml_double_solenoid_reverse_id = joint_params["double_solenoid_reverse_id"];
+			if (!xml_double_solenoid_reverse_id.valid() ||
+					xml_double_solenoid_reverse_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint double solenoid reverse_id was specified (expecting an int).");
+
+			const int double_solenoid_reverse_id = xml_double_solenoid_reverse_id;
+
+			double_solenoid_names_.push_back(joint_name);
+			double_solenoid_forward_ids_.push_back(double_solenoid_forward_id);
+			double_solenoid_reverse_ids_.push_back(double_solenoid_reverse_id);
+		}
 		else
 		{
 			std::stringstream s;
@@ -318,6 +357,37 @@ void FRCRobotInterface::init()
 		hardware_interface::JointHandle ph(psh, &brushless_command_[i]);
 		joint_velocity_interface_.registerHandle(ph);
 	}
+	num_solenoids_ = solenoid_names_.size();
+        solenoid_state_.resize(num_solenoids_);
+        solenoid_command_.resize(num_solenoids_);
+        for (size_t i = 0; i < num_solenoids_; i++)
+        {
+                ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << solenoid_names_[i] << " at id " << solenoid_ids_[i]);
+
+                hardware_interface::JointStateHandle dosh(solenoid_names_[i], &solenoid_state_[i], &solenoid_state_[i], &solenoid_state_[i]);
+                joint_state_interface_.registerHandle(dosh);
+
+                // Do the same for a command interface for
+                // the digital output
+                hardware_interface::JointHandle doh(dosh, &solenoid_command_[i]);
+                joint_position_interface_.registerHandle(doh);
+        }
+
+	num_double_solenoids_ = double_solenoid_names_.size();
+        double_solenoid_state_.resize(num_double_solenoids_);
+        double_solenoid_command_.resize(num_double_solenoids_);
+        for (size_t i = 0; i < num_double_solenoids_; i++)
+        {
+                ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << double_solenoid_names_[i] << " at forward id" << double_solenoid_forward_ids_[i] << "at reverse id" << double_solenoid_reverse_ids_[i]);
+
+                hardware_interface::JointStateHandle dosh(double_solenoid_names_[i], &double_solenoid_state_[i], &double_solenoid_state_[i], &double_solenoid_state_[i]);
+                joint_state_interface_.registerHandle(dosh);
+
+                // Do the same for a command interface for
+                // the digital output
+                hardware_interface::JointHandle doh(dosh, &double_solenoid_command_[i]);
+                joint_position_interface_.registerHandle(doh);
+        }
 
 	// Publish various FRC-specific data using generic joint state for now
 	// For simple things this might be OK, but for more complex state

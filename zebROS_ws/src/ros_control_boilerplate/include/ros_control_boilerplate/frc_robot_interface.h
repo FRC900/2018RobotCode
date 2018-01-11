@@ -154,6 +154,15 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<bool>        pwm_inverts_;
 		std::size_t              num_pwm_;
 
+		std::vector<std::string> solenoid_names_;
+		std::vector<int>         solenoid_ids_;
+		std::size_t              num_solenoids_;
+		
+		std::vector<std::string> double_solenoid_names_;
+		std::vector<int>         double_solenoid_forward_ids_;
+		std::vector<int>         double_solenoid_reverse_ids_;
+		std::size_t              num_double_solenoids_;
+		
 		urdf::Model *urdf_model_;
 
 		// Array holding master cached state of hardware
@@ -167,13 +176,17 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> digital_input_state_;
 		std::vector<double> digital_output_state_; //No actual data
 		std::vector<double> pwm_state_; //No actual data
-
+		std::vector<double> solenoid_state_;
+		std::vector<double> double_solenoid_state_;
+		
 		// Same as above, but for pending commands to be
 		// written to the hardware
 		std::vector<hardware_interface::TalonHWCommand> talon_command_;
 		std::vector<double> brushless_command_;
 		std::vector<double> digital_output_command_;
 		std::vector<double> pwm_command_;
+		std::vector<double> solenoid_command_;
+		std::vector<double> double_solenoid_command_;
 };  // class
 
 }  // namespace
