@@ -66,10 +66,10 @@ class swerve
 		std::array<Eigen::Vector2d, WHEELCOUNT> wheelCoordinates_;
 		swerveDriveMath swerveMath_; //this should be public
 
+		double getWheelAngle(int index, double pos) const;
 	private:
 		//should we get them together instead?
 		//the angle it passes out isn't normalized
-		double getWheelAngle(int index) const;
 		double furthestWheel(Eigen::Vector2d centerOfRotation) const;
 
 		void setCenterOfRotation(int ID, const Eigen::Vector2d &centerOfRotation);

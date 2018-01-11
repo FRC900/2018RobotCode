@@ -53,6 +53,11 @@
 //TODO: include swerve stuff from C-Control
 using Eigen::Vector2d;
 using std::array;
+using Eigen::Affine2d;
+using Eigen::Matrix2d;
+using Eigen::Vector2d;
+
+using geometry_msgs::TwistConstPtr;
 /*
 static double euclideanOfVectors(const urdf::Vector3& vec1, const urdf::Vector3& vec2)
 {
@@ -311,6 +316,7 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
         {
           // Compute the rigid transform from wheel_pos_ to new_wheel_pos_.
           Eigen::Matrix2Xd wheel_pos_;
+	  
 	  for (size_t row = 0; row < WHEELCOUNT; row++)
                 const double delta_rot = new_wheel_rot - last_wheel_rot;
 		const double dist = delta_rot * wheel_radius_;
@@ -389,6 +395,8 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 
 void TalonSwerveDriveController::update(const ros::Time &time, const ros::Duration &period)
 {
+	if (comp_odom_) compOdometry(time, inv_delta_t);
+	
 	/*
 	// COMPUTE AND PUBLISH ODOMETRY
 	if (open_loop_)
