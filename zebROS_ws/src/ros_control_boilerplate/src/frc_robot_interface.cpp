@@ -276,7 +276,6 @@ void FRCRobotInterface::init()
 		joint_velocity_interface_.registerHandle(jh);
 	}
 
-
 	num_digital_inputs_ = digital_input_names_.size();
 	digital_input_state_.resize(num_digital_inputs_);
 	for (size_t i = 0; i < num_digital_inputs_; i++)
@@ -303,7 +302,7 @@ void FRCRobotInterface::init()
 		// Do the same for a command interface for
 		// the digital output
 		hardware_interface::JointHandle doh(dosh, &digital_output_command_[i]);
-		joint_velocity_interface_.registerHandle(doh);
+		joint_position_interface_.registerHandle(doh);
 	}
 
 	num_pwm_ = pwm_names_.size();
@@ -332,6 +331,7 @@ void FRCRobotInterface::init()
 	registerInterface(&joint_state_interface_);
 	registerInterface(&talon_command_interface_);
 	registerInterface(&joint_velocity_interface_);
+	registerInterface(&joint_position_interface_);
 
 #if 0
 	// Limits
