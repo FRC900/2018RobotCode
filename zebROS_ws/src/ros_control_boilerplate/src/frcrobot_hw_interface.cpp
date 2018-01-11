@@ -663,7 +663,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		{
 			talon_state_[joint_id].setMotionCruiseVelocity(motion_cruise_velocity);
 			talon_state_[joint_id].setMotionAcceleration(motion_acceleration);
-			// TODO : covert from rad/sec to native units
+			// TODO : convert from rad/sec to native units
 
 			can_talons_[joint_id]->ConfigMotionCruiseVelocity(motion_cruise_velocity, timeoutMs);
 			can_talons_[joint_id]->ConfigMotionAcceleration(motion_acceleration, timeoutMs);
@@ -700,9 +700,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			}
 		}
 
-		if (talon_command_[joint_id].processMotionProfileBufferChanged())
-			can_talons_[joint_id]->ProcessMotionProfileBuffer();
-
 		// Set new motor setpoint if either the mode or
 		// the setpoint has been changed
 		double command;
@@ -728,6 +725,13 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			talon_state_[joint_id].setSetpoint(command);
 			talon_state_[joint_id].setNeutralOutput(false); // maybe make this a part of setSetpoint?
 		}
+
+		// Do this last so that previously loaded trajectories and settings
+		// have been sent to the talon before processing
+		// Also do it after setting mode to make sure switches to
+		// motion profile mode are done before processing
+		if (talon_command_[joint_id].processMotionProfileBufferChanged())
+			can_talons_[joint_id]->ProcessMotionProfileBuffer();
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
