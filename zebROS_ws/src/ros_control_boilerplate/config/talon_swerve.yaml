@@ -60,6 +60,29 @@ swerve_drive_controller:
     twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     # fix me
     wheel_radius: 0.0762
+    max_speed: 3.3528
+    mass: 70
+    motor_free_speed: 5330
+    motor_stall_torque: 2.41
+    motor_quantity: 4
+    file_name: "offsets.txt"
+    invert_wheel_angle: False
+    ratio_encoder_to_rotations: 20
+    ratio_motor_to_rotations: 7
+    ratio_motor_to_steering: 7
+    encoder_drive_get_V_units: 1 
+    encoder_drive_set_V_units: 1
+    encoder_drive_get_P_units: 1 
+    encoder_drive_set_P_units: 1
+    encoder_steering_get_units: 1
+    encoder_steering_set_units: 1
+    
+    
+    
+    
+    
+
+
 
     cmd_vel_timeout: 0.5 # we test this separately, give plenty for the other tests
     speed_joint_fl:
