@@ -45,6 +45,7 @@
 #include "HAL/DriverStation.h"
 #include "HAL/HAL.h"
 #include "Joystick.h"
+#include "ros_control_boilerplate/MatchSpecificData.h"
 //#include "GenericHID.h"
 #include "math.h"
 
@@ -78,7 +79,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	// Just throw a basic IterativeRobot in here instead?
 	run_hal_thread_ = true;
 	Joystick joystick(0);
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub(nh_, "joystick_states", 4);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4); 
 	while (run_hal_thread_)
 	{
 		robot_.OneIteration();
@@ -145,59 +147,74 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 		*/
 
-		if (realtime_pub.trylock())
+		if (realtime_pub_joystick.trylock())
 		{
-			realtime_pub.msg_.header.stamp = ros::Time::now();
+			realtime_pub_joystick.msg_.header.stamp = ros::Time::now();
 
-			realtime_pub.msg_.leftStickX = joystick.GetRawAxis(0);
-			realtime_pub.msg_.leftStickY = joystick.GetRawAxis(1);
-			realtime_pub.msg_.rightStickX = joystick.GetRawAxis(4);
-			realtime_pub.msg_.rightStickY = joystick.GetRawAxis(5);
+			realtime_pub_joystick.msg_.leftStickX = joystick.GetRawAxis(0);
+			realtime_pub_joystick.msg_.leftStickY = joystick.GetRawAxis(1);
+			realtime_pub_joystick.msg_.rightStickX = joystick.GetRawAxis(4);
+			realtime_pub_joystick.msg_.rightStickY = joystick.GetRawAxis(5);
 
-            realtime_pub.msg_.leftTrigger = joystick.GetRawAxis(2);
-			realtime_pub.msg_.rightTrigger = joystick.GetRawAxis(3);
+          		realtime_pub_joystick.msg_.leftTrigger = joystick.GetRawAxis(2);
+			realtime_pub_joystick.msg_.rightTrigger = joystick.GetRawAxis(3);
 
-			realtime_pub.msg_.buttonAButton = joystick.GetRawButton(1);
-			realtime_pub.msg_.buttonAPress = joystick.GetRawButtonPressed(1);
-			realtime_pub.msg_.buttonARelease = joystick.GetRawButtonReleased(1);
+			realtime_pub_joystick.msg_.buttonAButton = joystick.GetRawButton(1);
+			realtime_pub_joystick.msg_.buttonAPress = joystick.GetRawButtonPressed(1);
+			realtime_pub_joystick.msg_.buttonARelease = joystick.GetRawButtonReleased(1);
 
-			realtime_pub.msg_.buttonBButton = joystick.GetRawButton(2);
-			realtime_pub.msg_.buttonBPress = joystick.GetRawButtonPressed(2);
-			realtime_pub.msg_.buttonBRelease = joystick.GetRawButtonReleased(2);
+			realtime_pub_joystick.msg_.buttonBButton = joystick.GetRawButton(2);
+			realtime_pub_joystick.msg_.buttonBPress = joystick.GetRawButtonPressed(2);
+			realtime_pub_joystick.msg_.buttonBRelease = joystick.GetRawButtonReleased(2);
 
-			realtime_pub.msg_.buttonXButton = joystick.GetRawButton(3);
-			realtime_pub.msg_.buttonXPress = joystick.GetRawButtonPressed(3);
-			realtime_pub.msg_.buttonXRelease = joystick.GetRawButtonReleased(3);
+			realtime_pub_joystick.msg_.buttonXButton = joystick.GetRawButton(3);
+			realtime_pub_joystick.msg_.buttonXPress = joystick.GetRawButtonPressed(3);
+			realtime_pub_joystick.msg_.buttonXRelease = joystick.GetRawButtonReleased(3);
 
-			realtime_pub.msg_.buttonYButton = joystick.GetRawButton(4);
-			realtime_pub.msg_.buttonYPress = joystick.GetRawButtonPressed(4);
-			realtime_pub.msg_.buttonYRelease = joystick.GetRawButtonReleased(4);
+			realtime_pub_joystick.msg_.buttonYButton = joystick.GetRawButton(4);
+			realtime_pub_joystick.msg_.buttonYPress = joystick.GetRawButtonPressed(4);
+			realtime_pub_joystick.msg_.buttonYRelease = joystick.GetRawButtonReleased(4);
 
-			realtime_pub.msg_.bumperLeftButton = joystick.GetRawButton(5);
-			realtime_pub.msg_.bumperLeftPress = joystick.GetRawButtonPressed(5);
-			realtime_pub.msg_.bumperLeftRelease = joystick.GetRawButtonReleased(5);
+			realtime_pub_joystick.msg_.bumperLeftButton = joystick.GetRawButton(5);
+			realtime_pub_joystick.msg_.bumperLeftPress = joystick.GetRawButtonPressed(5);
+			realtime_pub_joystick.msg_.bumperLeftRelease = joystick.GetRawButtonReleased(5);
 
-			realtime_pub.msg_.bumperRightButton = joystick.GetRawButton(6);
-			realtime_pub.msg_.bumperRightPress = joystick.GetRawButtonPressed(6);
-			realtime_pub.msg_.bumperRightRelease = joystick.GetRawButtonReleased(6);
+			realtime_pub_joystick.msg_.bumperRightButton = joystick.GetRawButton(6);
+			realtime_pub_joystick.msg_.bumperRightPress = joystick.GetRawButtonPressed(6);
+			realtime_pub_joystick.msg_.bumperRightRelease = joystick.GetRawButtonReleased(6);
 
-			realtime_pub.msg_.buttonBackButton = joystick.GetRawButton(7);
-			realtime_pub.msg_.buttonBackPress = joystick.GetRawButtonPressed(7);
-			realtime_pub.msg_.buttonBackRelease = joystick.GetRawButtonReleased(7);
+			realtime_pub_joystick.msg_.buttonBackButton = joystick.GetRawButton(7);
+			realtime_pub_joystick.msg_.buttonBackPress = joystick.GetRawButtonPressed(7);
+			realtime_pub_joystick.msg_.buttonBackRelease = joystick.GetRawButtonReleased(7);
 
-			realtime_pub.msg_.buttonStartButton = joystick.GetRawButton(8);
-			realtime_pub.msg_.buttonStartPress = joystick.GetRawButtonPressed(8);
-            realtime_pub.msg_.buttonStartRelease = joystick.GetRawButtonReleased(8);
+			realtime_pub_joystick.msg_.buttonStartButton = joystick.GetRawButton(8);
+			realtime_pub_joystick.msg_.buttonStartPress = joystick.GetRawButtonPressed(8);
+           		realtime_pub_joystick.msg_.buttonStartRelease = joystick.GetRawButtonReleased(8);
 
-			realtime_pub.msg_.stickLeftButton = joystick.GetRawButton(9);
-			realtime_pub.msg_.stickLeftPress = joystick.GetRawButtonPressed(9);
-			realtime_pub.msg_.stickLeftRelease = joystick.GetRawButtonReleased(9);
+			realtime_pub_joystick.msg_.stickLeftButton = joystick.GetRawButton(9);
+			realtime_pub_joystick.msg_.stickLeftPress = joystick.GetRawButtonPressed(9);
+			realtime_pub_joystick.msg_.stickLeftRelease = joystick.GetRawButtonReleased(9);
 
-			realtime_pub.msg_.stickRightButton = joystick.GetRawButton(10);
-			realtime_pub.msg_.stickRightPress = joystick.GetRawButtonPressed(10);
-			realtime_pub.msg_.stickRightRelease = joystick.GetRawButtonReleased(10);
+			realtime_pub_joystick.msg_.stickRightButton = joystick.GetRawButton(10);
+			realtime_pub_joystick.msg_.stickRightPress = joystick.GetRawButtonPressed(10);
+			realtime_pub_joystick.msg_.stickRightRelease = joystick.GetRawButtonReleased(10);
 
-			realtime_pub.unlockAndPublish();
+			realtime_pub_joystick.unlockAndPublish();
+		}
+		
+		if(realtime_pub_match_data.trylock())
+		{
+			realtime_pub_match_data.msg_.header.stamp = ros::Time::now();
+
+			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
+			
+			realtime_pub_match_data.msg_.allianceData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+			realtime_pub_match_data.msg_.allianceColor = DriverStation::GetInstance().GetAlliance();
+			realtime_pub_match_data.msg_.driverStationLocation = DriverStation::GetInstance().GetLocation();
+			realtime_pub_match_data.msg_.matchNumber = DriverStation::GetInstance().GetMatchNumber();
+			realtime_pub_match_data.msg_.matchType = DriverStation::GetInstance().GetMatchType();
+
+			realtime_pub_match_data.unlockAndPublish();
 		}
 		//TODO: Add direction buttons?
 	}
