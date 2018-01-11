@@ -306,6 +306,86 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 
 	return true;
 }
+/*
+void TalonSwerveDriveController::compOdometry(const Time& time, const double inv_delta_t)
+        {
+          // Compute the rigid transform from wheel_pos_ to new_wheel_pos_.
+          Eigen::Matrix2Xd wheel_pos_;
+	  for (size_t row = 0; row < WHEELCOUNT; row++)
+                const double delta_rot = new_wheel_rot - last_wheel_rot;
+		const double dist = delta_rot * wheel_radius_;
+		const double steer_angle = swerveC->getWheelAngle(row, steering_joints_[row].getPosition());
+		const double delta_pos = {dist*cos(steer_angle), dist*sin(steer_angle)};
+		new_wheel_pos_.row(row) = old_wheel_pos_.row(row) + delta_pos;
+          	wheel_pos_.col(row) = old_wheel_pos_.row(row)
+	  const Vector2d centroid = wheel_pos_.rowwise().mean();
+	  wheel_pos_.colwise() -= centroid;
+	  const Eigen::RowVector2d new_wheel_centroid =
+                new_wheel_pos_.colwise().mean();
+          new_wheel_pos_.rowwise() -= new_wheel_centroid;
+
+          const Matrix2d h = wheel_pos_ * new_wheel_pos_;
+          const Eigen::JacobiSVD<Matrix2d> svd(h, Eigen::ComputeFullU | Eigen::ComputeFullV);
+          Matrix2d rot = svd.matrixV() * svd.matrixU().transpose();
+          if (rot.determinant() < 0)
+                rot.col(1) *= -1;
+
+          odom_rigid_transf_.matrix().block(0, 0, 2, 2) = rot;
+          odom_rigid_transf_.translation() =
+                rot * neg_wheel_centroid_ + new_wheel_centroid.transpose();
+          odom_to_base_ = odom_to_base_ * odom_rigid_transf_;
+
+          const double odom_x = odom_to_base_.translation().x();
+          const double odom_y = odom_to_base_.translation().y();
+          const double odom_yaw = atan2(odom_to_base_(1, 0), odom_to_base_(0, 0));
+
+          // Publish the odometry.
+	  
+
+          geometry_msgs::Quaternion orientation;
+          bool orientation_comped = false;
+
+          // tf
+          if (pub_odom_to_base_ && time - last_odom_tf_pub_time_ >= odom_pub_period_ &&
+                  odom_tf_pub_.trylock())
+          {
+                orientation = tf::createQuaternionMsgFromYaw(odom_yaw);
+                orientation_comped = true;
+
+                geometry_msgs::TransformStamped& odom_tf_trans =
+                  odom_tf_pub_.msg_.transforms[0];
+                odom_tf_trans.header.stamp = time;
+                odom_tf_trans.transform.translation.x = odom_x;
+                odom_tf_trans.transform.translation.y = odom_y;
+                odom_tf_trans.transform.rotation = orientation;
+
+                odom_tf_pub_.unlockAndPublish();
+                last_odom_tf_pub_time_ = time;
+          }
+	   // odom
+          if (time - last_odom_pub_time_ >= odom_pub_period_ && odom_pub_.trylock())
+          {
+                if (!orientation_comped)
+                  orientation = tf::createQuaternionMsgFromYaw(odom_yaw);
+
+                odom_pub_.msg_.header.stamp = time;
+                odom_pub_.msg_.pose.pose.position.x = odom_x;
+                odom_pub_.msg_.pose.pose.position.y = odom_y;
+                odom_pub_.msg_.pose.pose.orientation = orientation;
+
+                odom_pub_.msg_.twist.twist.linear.x =
+                  odom_rigid_transf_.translation().x() * inv_delta_t;
+                odom_pub_.msg_.twist.twist.linear.y =
+                  odom_rigid_transf_.translation().y() * inv_delta_t;
+                odom_pub_.msg_.twist.twist.angular.z =
+                  atan2(odom_rigid_transf_(1, 0), odom_rigid_transf_(0, 0)) * inv_delta_t;
+
+                odom_pub_.unlockAndPublish();
+                last_odom_pub_time_ = time;
+          }
+        }
+
+*/
 
 void TalonSwerveDriveController::update(const ros::Time &time, const ros::Duration &period)
 {

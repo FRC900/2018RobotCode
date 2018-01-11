@@ -26,6 +26,7 @@ add_message_files (
   FILES
   JoystickState.msg
   RobotState.msg
+  MatchSpecificData.msg
 )
 generate_messages(
   DEPENDENCIES
@@ -55,7 +56,7 @@ catkin_package(
     std_msgs
     sensor_msgs
     rosparam_shortcuts
-	message_runtime
+    message_runtime
   LIBRARIES
 )
 
