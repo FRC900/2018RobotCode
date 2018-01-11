@@ -395,7 +395,7 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 
 void TalonSwerveDriveController::update(const ros::Time &time, const ros::Duration &period)
 {
-	if (comp_odom_) compOdometry(time, inv_delta_t);
+	//if (comp_odom_) compOdometry(time, inv_delta_t);
 	
 	/*
 	// COMPUTE AND PUBLISH ODOMETRY
