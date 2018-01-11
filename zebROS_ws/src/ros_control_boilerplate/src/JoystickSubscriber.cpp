@@ -81,7 +81,7 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     1000);
     ros::Rate loop_rate(10);
 
-    while(ros::ok()) {
+    while(ros::ok()) { //why...............
         ros_control_boilerplate::JoystickState msg;
 
 
@@ -145,7 +145,7 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
 
 int main(int argc, char **argv) {
 
-    ros::init(argc, argv, "joystick_states_subscriber");
+    ros::init(argc, argv, "joystick_state_subscriber");
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("joystick_states", 1000, joystick);
     ros::spin();

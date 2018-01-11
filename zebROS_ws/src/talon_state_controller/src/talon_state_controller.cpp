@@ -304,12 +304,12 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 				realtime_pub_->msg_.integral_accumulator[i] = talon_state_[i]->getIntegralAccumulator();
 				realtime_pub_->msg_.error_derivative[i] = talon_state_[i]->getErrorDerivative();
 				realtime_pub_->msg_.closed_loop_error[i] = talon_state_[i]->getClosedLoopError();
+				realtime_pub_->msg_.closed_loop_target[i] = talon_state_[i]->getClosedLoopTarget();
 				realtime_pub_->msg_.active_trajectory_position[i] = talon_state_[i]->getActiveTrajectoryPosition();
 				realtime_pub_->msg_.active_trajectory_velocity[i] = talon_state_[i]->getActiveTrajectoryVelocity();
 				realtime_pub_->msg_.active_trajectory_heading[i] = talon_state_[i]->getActiveTrajectoryHeading();
 				realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getFwdLimitSwitch();
 				realtime_pub_->msg_.reverse_limit_switch[i] = talon_state_[i]->getRevLimitSwitch();
-				//realtime_pub_->msg_.talon_mode[i] = talon_state_[i]->getTalonMode();
 				realtime_pub_->msg_.invert[i] = talon_state_[i]->getInvert();
 				realtime_pub_->msg_.sensorPhase[i] = talon_state_[i]->getSensorPhase();
 				int talonMode = talon_state_[i]->getTalonMode();
