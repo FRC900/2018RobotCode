@@ -91,9 +91,6 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		/** \brief Write the command to the robot hardware. */
 		virtual void write(ros::Duration &elapsed_time);
 
-		/** \brief Enforce limits for all values before writing */
-		virtual void enforceLimits(ros::Duration &period);
-
 	protected:
 		void hal_keepalive_thread(void);
 

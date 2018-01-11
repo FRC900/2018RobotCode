@@ -101,10 +101,6 @@ void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 
 void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 {
-	// Safety - should be using Talon Sim to control this
-	// Maybe do a eStop / enabled check instead?
-	//enforceLimits(elapsed_time);
-
 	ROS_INFO_STREAM_THROTTLE(1,
 			std::endl << std::string(__FILE__) << ":" << __LINE__ <<
 			std::endl << "Command" << std::endl << printCommandHelper());
@@ -189,40 +185,6 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 		brushless_pos_[joint_id] += vel * elapsed_time.toSec();
 		brushless_vel_[joint_id] = vel;
 	}
-}
-
-void FRCRobotSimInterface::enforceLimits(ros::Duration &period)
-{
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	//
-	// CHOOSE THE TYPE OF JOINT LIMITS INTERFACE YOU WANT TO USE
-	// YOU SHOULD ONLY NEED TO USE ONE SATURATION INTERFACE,
-	// DEPENDING ON YOUR CONTROL METHOD
-	//
-	// EXAMPLES:
-	//
-	// Saturation Limits ---------------------------
-	//
-	// Enforces position and velocity
-	pos_jnt_sat_interface_.enforceLimits(period);
-	//
-	// Enforces velocity and acceleration limits
-	// vel_jnt_sat_interface_.enforceLimits(period);
-	//
-	// Enforces position, velocity, and effort
-	// eff_jnt_sat_interface_.enforceLimits(period);
-
-	// Soft limits ---------------------------------
-	//
-	// pos_jnt_soft_limits_.enforceLimits(period);
-	// vel_jnt_soft_limits_.enforceLimits(period);
-	// eff_jnt_soft_limits_.enforceLimits(period);
-	//
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	// ----------------------------------------------------
 }
 
 }  // namespace

@@ -447,14 +447,6 @@ double FRCRobotHWInterface::getRadiansPerSecConversionFactor(hardware_interface:
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
-	// Safety - should be using Talon HW to control this
-	// Maybe do a eStop / enabled check instead?
-	//enforceLimits(elapsed_time);
-
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	//
 	ROS_INFO_STREAM_THROTTLE(1, std::endl << std::string(__FILE__) << ":" << __LINE__ <<
 	                    std::endl << printCommandHelper());
 
@@ -747,40 +739,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		PWMs_[i]->SetSpeed(pwm_command_[i]*inverter);
 	}
 
-}
-
-void FRCRobotHWInterface::enforceLimits(ros::Duration &period)
-{
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	//
-	// CHOOSE THE TYPE OF JOINT LIMITS INTERFACE YOU WANT TO USE
-	// YOU SHOULD ONLY NEED TO USE ONE SATURATION INTERFACE,
-	// DEPENDING ON YOUR CONTROL METHOD
-	//
-	// EXAMPLES:
-	//
-	// Saturation Limits ---------------------------
-	//
-	// Enforces position and velocity
-	pos_jnt_sat_interface_.enforceLimits(period);
-	//
-	// Enforces velocity and acceleration limits
-	// vel_jnt_sat_interface_.enforceLimits(period);
-	//
-	// Enforces position, velocity, and effort
-	// eff_jnt_sat_interface_.enforceLimits(period);
-
-	// Soft limits ---------------------------------
-	//
-	// pos_jnt_soft_limits_.enforceLimits(period);
-	// vel_jnt_soft_limits_.enforceLimits(period);
-	// eff_jnt_soft_limits_.enforceLimits(period);
-	//
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	// ----------------------------------------------------
 }
 
 // Convert from internal version of hardware mode ID
