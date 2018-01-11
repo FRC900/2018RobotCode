@@ -119,7 +119,6 @@ class TalonSwerveDriveController
 		ros::Duration publish_period_;
 		ros::Time last_state_publish_time_;
 		bool open_loop_;
-		bool invertWheelAngle_; //something here to get wheel_angle invert
 
 		std::shared_ptr<swerve> swerveC;
 

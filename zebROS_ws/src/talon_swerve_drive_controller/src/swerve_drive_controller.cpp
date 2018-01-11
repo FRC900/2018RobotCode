@@ -184,13 +184,14 @@ TalonSwerveDriveController::TalonSwerveDriveController() :
 	odom_frame_id_("odom"),
 	enable_odom_tf_(true),
 	wheel_joints_size_(0),
-	publish_cmd_(false),
-	model({0, 0, 0, 0, 0, 0}),
-	invertWheelAngle(false),
-	units({1,1,1,1,1,1}), 
-	filename("offsets.txt"),
-	driveRatios({0, 0, 0})
-	units({0, 0, 0, 0})
+	publish_cmd_(false)
+
+	//model_({0, 0, 0, 0, 0, 0}),
+	//invertWheelAngle_(false),
+	//units_({1,1,1,1,1,1}), 
+	//filename_("offsets.txt"),
+	//driveRatios_({0, 0, 0}),
+	//units_({0, 0, 0, 0})
 {
 }
 
@@ -567,20 +568,6 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 		command_struct_.stamp = ros::Time::now();
 		command_.writeFromNonRT (command_struct_);
 
-		//TODO fix debug
-		ROS_DEBUG_STREAM_NAMED(name_,
-							  "Added values to command. "
-		command_struct_.lin[1] = command.linear.y;
-		command_struct_.stamp = ros::Time::now();
-		command_.writeFromNonRT (command_struct_);
-
-		//TODO fix debug
-		ROS_DEBUG_STREAM_NAMED(name_,
-							  "Added values to command. "
-		command_struct_.lin[0] = command.linear.x;
-		command_struct_.lin[1] = command.linear.y;
-		command_struct_.stamp = ros::Time::now();
-		command_.writeFromNonRT (command_struct_);
 
 		//TODO fix debug
 		ROS_DEBUG_STREAM_NAMED(name_,
