@@ -283,12 +283,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		double scale = 1.;
 
 		if (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_Position)
-			scale = 4096.*2 * M_PI;
+			scale = 4096. * 2. * M_PI;
 		else if (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_Velocity)
-			scale = 4096.*2 * M_PI / .1;
+			scale = 4096. * 2. * M_PI / .1;
 		double closed_loop_error = can_talons_[joint_id]->GetClosedLoopError(pidIdx) / scale;
 		talon_state_[joint_id].setClosedLoopError(closed_loop_error);
-		ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << closed_loop_error);
 
 		double integral_accumulator = can_talons_[joint_id]->GetIntegralAccumulator(pidIdx) / scale;
 		talon_state_[joint_id].setIntegralAccumulator(integral_accumulator);
@@ -420,8 +419,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 	// ----------------------------------------------------
 	// ----------------------------------------------------
 	//
-//	ROS_INFO_STREAM_THROTTLE(1, std::endl << std::string(__FILE__) << ":" << __LINE__ <<
-//			                    std::endl << printCommandHelper());
+	ROS_INFO_STREAM_THROTTLE(1, std::endl << std::string(__FILE__) << ":" << __LINE__ <<
+	                    std::endl << printCommandHelper());
 
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
