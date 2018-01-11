@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(ros_control_boilerplate)
+project(teleop_joystick_control)
 
 include ("../cmake_modules/CMakeOpt.cmake")
 
@@ -24,7 +24,8 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_message_files (
   FILES
-  MatchSpecificData.msg
+  JoystickState.msg
+  RobotState.msg
 )
 generate_messages(
   DEPENDENCIES
@@ -75,17 +76,6 @@ include_directories(
 # info for testing code which doens't actually hit
 # RoboRIO or CAN hardware. Eventually expand into
 # controlling some sort of sim?
-add_executable(frcrobot_sim_main 
-	src/frcrobot_sim_main.cpp
-	src/frcrobot_sim_interface.cpp
-	src/frc_robot_interface.cpp
-	src/generic_hw_control_loop.cpp
-)
-
-target_link_libraries(frcrobot_sim_main
-	${catkin_LIBRARIES}
-)
-
 if (DEFINED CMAKE_TOOLCHAIN_FILE)
     # FRCRobot Hardware Interface only
     # should be built for the RoboRIO since
@@ -93,12 +83,6 @@ if (DEFINED CMAKE_TOOLCHAIN_FILE)
     # hardware & attached devices
 
     # Main control executable
-	add_executable(frcrobot_hw_main 
-		src/frcrobot_hw_main.cpp
-		src/frcrobot_hw_interface.cpp
-		src/frc_robot_interface.cpp
-		src/generic_hw_control_loop.cpp
-	)
 
     include_directories(
       $ENV{HOME}/wpilib/user/cpp/include
@@ -130,75 +114,31 @@ if (DEFINED CMAKE_TOOLCHAIN_FILE)
 ## same as for the library above. This is needed to force
 ## talon controller messages to be built before the
 ## talon controller code tries to use them
-add_dependencies(frcrobot_hw_main
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-    ## Install ------------------------------------------------------------
 
-    # Install executables
-	install(TARGETS
-	  frcrobot_hw_main
-	  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-	  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-	)
 endif()
 
 
-# Test trajectory generator node
-add_executable(${PROJECT_NAME}_test_trajectory src/tools/test_trajectory.cpp)
-set_target_properties(${PROJECT_NAME}_test_trajectory PROPERTIES OUTPUT_NAME test_trajectory PREFIX "")
-target_link_libraries(${PROJECT_NAME}_test_trajectory
+
+add_executable(${PROJECT_NAME}_joystickSubscriber src/joystickSubscriber.cpp)
+set_target_properties(${PROJECT_NAME}_joystickSubscriber PROPERTIES OUTPUT_NAME
+joystickSubscriber PREFIX "")
+target_link_libraries(${PROJECT_NAME}_joystickSubscriber
   ${catkin_LIBRARIES}
 )
 
+add_executable(${PROJECT_NAME}_teleopJoystickCommands src/teleopJoystickCommands.cpp)
+set_target_properties(${PROJECT_NAME}_teleopJoystickCommands PROPERTIES OUTPUT_NAME 
+teleopJoystickCommands PREFIX "")
+target_link_libraries(${PROJECT_NAME}_teleopJoystickCommands
+  ${catkin_LIBRARIES}
+)
 
 ## TOOLS ------------------------------------------------------
 
-# Tool for analyzing controller performance
-add_executable(${PROJECT_NAME}_controller_to_csv_main 
-	src/tools/controller_to_csv_main.cpp
-	src/tools/controller_to_csv.cpp)
-set_target_properties(${PROJECT_NAME}_controller_to_csv_main PROPERTIES OUTPUT_NAME controller_to_csv_main PREFIX "")
-target_link_libraries(${PROJECT_NAME}_controller_to_csv_main
-  ${Gflags_LIBRARIES}
-  ${catkin_LIBRARIES}
-)
-
-# Tool for analyzing controller performance
-add_library(csv_to_controller src/tools/csv_to_controller.cpp)
-target_link_libraries(csv_to_controller
-  ${catkin_LIBRARIES}
-)
-add_executable(${PROJECT_NAME}_csv_to_controller_main 
-	src/tools/csv_to_controller_main.cpp
-	src/tools/csv_to_controller.cpp)
-set_target_properties(${PROJECT_NAME}_csv_to_controller_main PROPERTIES OUTPUT_NAME csv_to_controller_main PREFIX "")
-target_link_libraries(${PROJECT_NAME}_csv_to_controller_main
-  ${Gflags_LIBRARIES}
-  ${catkin_LIBRARIES}
-)
-
-# Tool for controlling a robot from keyboard
-add_executable(${PROJECT_NAME}_keyboard_teleop src/tools/keyboard_teleop.cpp)
-set_target_properties(${PROJECT_NAME}_keyboard_teleop PROPERTIES OUTPUT_NAME keyboard_teleop PREFIX "")
-target_link_libraries(${PROJECT_NAME}_keyboard_teleop
-  ${catkin_LIBRARIES}
-)
 
 
 
 ## Install ------------------------------------------------------------
-install(TARGETS
-  frcrobot_sim_main
-    ${PROJECT_NAME}_test_trajectory
-    ${PROJECT_NAME}_controller_to_csv_main
-    ${PROJECT_NAME}_csv_to_controller_main
-    ${PROJECT_NAME}_keyboard_teleop
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
-
 # Install header files
 install(DIRECTORY 
 	include/${PROJECT_NAME}
