@@ -102,20 +102,6 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		{
 		}
 
-		/**
-		 * \brief Register the limits of the joint specified by joint_id and joint_handle. The limits
-		 * are retrieved from the urdf_model.
-		 *
-		 * \return the joint's type, lower position limit, upper position limit, and effort limit.
-		 */
-		virtual void registerJointLimits(const hardware_interface::JointHandle &joint_handle_position,
-										 const hardware_interface::JointHandle &joint_handle_velocity,
-										 const hardware_interface::JointHandle &joint_handle_effort,
-										 std::size_t joint_id);
-
-		/** \breif Enforce limits for all values before writing */
-		virtual void enforceLimits(ros::Duration &period) = 0;
-
 		/** \brief Helper for debugging a joint's state */
 		virtual void printState();
 		std::string printStateHelper();
@@ -137,18 +123,9 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		hardware_interface::JointStateInterface joint_state_interface_;
 		hardware_interface::TalonStateInterface talon_state_interface_;
 
+		hardware_interface::PositionJointInterface joint_position_interface_;
 		hardware_interface::VelocityJointInterface joint_velocity_interface_;
 		hardware_interface::TalonCommandInterface talon_command_interface_;
-
-		// Joint limits interfaces - Saturation
-		joint_limits_interface::PositionJointSaturationInterface pos_jnt_sat_interface_;
-		joint_limits_interface::VelocityJointSaturationInterface vel_jnt_sat_interface_;
-		joint_limits_interface::EffortJointSaturationInterface eff_jnt_sat_interface_;
-
-		// Joint limits interfaces - Soft limits
-		joint_limits_interface::PositionJointSoftLimitsInterface pos_jnt_soft_limits_;
-		joint_limits_interface::VelocityJointSoftLimitsInterface vel_jnt_soft_limits_;
-		joint_limits_interface::EffortJointSoftLimitsInterface eff_jnt_soft_limits_;
 
 		// Configuration
 		std::vector<std::string> can_talon_srx_names_;
@@ -177,17 +154,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<bool>        pwm_inverts_;
 		std::size_t              num_pwm_;
 
-		std::vector<std::string> solenoid_names_;
-		std::vector<int>         solenoid_ids_;
-		std::size_t              num_solenoids_;
-
 		urdf::Model *urdf_model_;
-
-
-
-		// Modes
-		bool use_rosparam_joint_limits_;
-		bool use_soft_limits_if_available_;
 
 		// Array holding master cached state of hardware
 		// resources
@@ -207,12 +174,6 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> brushless_command_;
 		std::vector<double> digital_output_command_;
 		std::vector<double> pwm_command_;
-		// Copy of limits, in case we need them later in our control stack
-		std::vector<double> joint_position_lower_limits_;
-		std::vector<double> joint_position_upper_limits_;
-		std::vector<double> joint_velocity_limits_;
-		std::vector<double> joint_effort_limits_;
-
 };  // class
 
 }  // namespace

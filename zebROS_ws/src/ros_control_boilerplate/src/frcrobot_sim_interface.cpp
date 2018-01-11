@@ -101,13 +101,9 @@ void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 
 void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 {
-	// Safety - should be using Talon Sim to control this
-	// Maybe do a eStop / enabled check instead?
-	//enforceLimits(elapsed_time);
-
-	//ROS_INFO_STREAM_THROTTLE(1,
-	//		std::endl << std::string(__FILE__) << ":" << __LINE__ <<
-	//		std::endl << "Command" << std::endl << printCommandHelper());
+	ROS_INFO_STREAM_THROTTLE(1,
+			std::endl << std::string(__FILE__) << ":" << __LINE__ <<
+			std::endl << "Command" << std::endl << printCommandHelper());
 
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
@@ -158,7 +154,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			// Assume instant velocity
 			double position;
 
-			bool position_changed = talon_command_[joint_id].get(position);
+			bool position_changed = talon_command_[joint_id].commandChanged(position);
 			if (invert)
 				position = -position;
 			if (position_changed)
@@ -172,7 +168,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			// Assume instant acceleration for now
 			double speed;
 
-			bool speed_changed = talon_command_[joint_id].get(speed);
+			bool speed_changed = talon_command_[joint_id].commandChanged(speed);
 			if (invert)
 				speed = -speed;
 			if (speed_changed)
@@ -189,40 +185,6 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 		brushless_pos_[joint_id] += vel * elapsed_time.toSec();
 		brushless_vel_[joint_id] = vel;
 	}
-}
-
-void FRCRobotSimInterface::enforceLimits(ros::Duration &period)
-{
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	//
-	// CHOOSE THE TYPE OF JOINT LIMITS INTERFACE YOU WANT TO USE
-	// YOU SHOULD ONLY NEED TO USE ONE SATURATION INTERFACE,
-	// DEPENDING ON YOUR CONTROL METHOD
-	//
-	// EXAMPLES:
-	//
-	// Saturation Limits ---------------------------
-	//
-	// Enforces position and velocity
-	pos_jnt_sat_interface_.enforceLimits(period);
-	//
-	// Enforces velocity and acceleration limits
-	// vel_jnt_sat_interface_.enforceLimits(period);
-	//
-	// Enforces position, velocity, and effort
-	// eff_jnt_sat_interface_.enforceLimits(period);
-
-	// Soft limits ---------------------------------
-	//
-	// pos_jnt_soft_limits_.enforceLimits(period);
-	// vel_jnt_soft_limits_.enforceLimits(period);
-	// eff_jnt_soft_limits_.enforceLimits(period);
-	//
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	// ----------------------------------------------------
 }
 
 }  // namespace

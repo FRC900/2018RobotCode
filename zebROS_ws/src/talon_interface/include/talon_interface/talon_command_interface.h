@@ -123,7 +123,7 @@ class TalonHWCommand
 		// status actually read from the controller
 		// Need to think about which makes the most
 		// sense to query...
-		bool get(double &command)
+		bool commandChanged(double &command)
 		{
 			command = command_;
 			if (!command_changed_)
@@ -131,6 +131,11 @@ class TalonHWCommand
 			command_changed_ = false;
 			return true;
 		}
+		double get(void) const
+		{
+			return command_;
+		}
+		
 
 		TalonMode getMode(void) const
 		{

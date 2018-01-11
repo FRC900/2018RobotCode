@@ -46,9 +46,7 @@ struct driveModel
 }
 
 #define WHEELCOUNT 4
-// TODO : Change the swerve class to be 
-// template <unsigned int WHEELCOUNT>
-// instead of #defining WHEELCOUNT
+// TODO : remove WHEELCOUNT, use vectors
 class swerve
 {
 	public:

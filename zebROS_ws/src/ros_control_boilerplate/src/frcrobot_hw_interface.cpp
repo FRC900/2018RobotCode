@@ -310,7 +310,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		{
 			double closed_loop_error = can_talons_[joint_id]->GetClosedLoopError(pidIdx) * radians_scale;
 			talon_state_[joint_id].setClosedLoopError(closed_loop_error);
-			ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << closed_loop_error);
+			ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << can_talons_[joint_id]->GetClosedLoopError(pidIdx));
 	
 			double integral_accumulator = can_talons_[joint_id]->GetIntegralAccumulator(pidIdx) * radians_scale;
 			talon_state_[joint_id].setIntegralAccumulator(integral_accumulator);
@@ -325,7 +325,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		{
 			double closed_loop_error = can_talons_[joint_id]->GetClosedLoopError(pidIdx) * radians_per_sec_scale;
 			talon_state_[joint_id].setClosedLoopError(closed_loop_error);
-			ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << closed_loop_error);
+			ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << can_talons_[joint_id]->GetClosedLoopError(pidIdx));
 	
 			double integral_accumulator = can_talons_[joint_id]->GetIntegralAccumulator(pidIdx) * radians_per_sec_scale;
 			talon_state_[joint_id].setIntegralAccumulator(integral_accumulator);
@@ -341,11 +341,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		talon_state_[joint_id].setActiveTrajectoryPosition(active_trajectory_position);
 		double active_trajectory_velocity = can_talons_[joint_id]->GetActiveTrajectoryVelocity() * radians_per_sec_scale;
 		talon_state_[joint_id].setActiveTrajectoryVelocity(active_trajectory_velocity);
-		double active_trajectory_heading = can_talons_[joint_id]->GetActiveTrajectoryHeading() * 2*M_PI / 360; //returns in degrees
+		double active_trajectory_heading = can_talons_[joint_id]->GetActiveTrajectoryHeading() * 2. * M_PI / 360.; //returns in degrees
 		talon_state_[joint_id].setActiveTrajectoryHeading(active_trajectory_heading);
 
-
-		if((talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionProfile) || (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionMagic))
+		if ((talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionProfile) || 
+			(talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionMagic))
 		{
 			talon_state_[joint_id].setMotionProfileTopLevelBufferCount(can_talons_[joint_id]->GetMotionProfileTopLevelBufferCount());
 			talon_state_[joint_id].setMotionProfileTopLevelBufferFull(can_talons_[joint_id]->IsMotionProfileTopLevelBufferFull());
@@ -366,7 +366,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			talon_state_[joint_id].setMotionProfileStatus(internal_status);
 		}
 
-
 		// TODO :: Fix me
 		//talon_state_[joint_id].setFwdLimitSwitch(can_talons_[joint_id]->IsFwdLimitSwitchClosed());
 		//talon_state_[joint_id].setRevLimitSwitch(can_talons_[joint_id]->IsRevLimitSwitchClosed());
@@ -382,7 +381,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for (size_t i = 0; i < num_digital_inputs_; i++)
 	{
 		digital_input_state_[i] = (digital_inputs_[i]->Get()^digital_input_inverts_[i]) ? 1 : 0;
-		//State should really be a bool
+		//State should really be a bool - but we're stuck using
+		//ROS control code which thinks everything to and from
+		//hardware are doubles
 	}
 	for (size_t i = 0; i < num_digital_outputs_; i++)
 	{
@@ -390,13 +391,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//State should really be a bool
 		//This isn't strictly neccesary, it just reads what the DIO is currently set to
 	}
-	/*
 	for (size_t i = 0; i < num_pwm_; i++)
 	{
-		//Nothing to read
-	//// TODO : Add a read of state just so we can monitor what's going on in the code
+		// Just reflect state of output in status
+		pwm_state_[i] = PWMs_[i]->GetSpeed();
 	}
-	*/
 
 }
 
@@ -448,16 +447,8 @@ double FRCRobotHWInterface::getRadiansPerSecConversionFactor(hardware_interface:
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
-	// Safety - should be using Talon HW to control this
-	// Maybe do a eStop / enabled check instead?
-	//enforceLimits(elapsed_time);
-
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	//
-//	ROS_INFO_STREAM_THROTTLE(1, std::endl << std::string(__FILE__) << ":" << __LINE__ <<
-//			                    std::endl << printCommandHelper());
+	ROS_INFO_STREAM_THROTTLE(1, std::endl << std::string(__FILE__) << ":" << __LINE__ <<
+	                    std::endl << printCommandHelper());
 
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
@@ -663,7 +654,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		{
 			talon_state_[joint_id].setMotionCruiseVelocity(motion_cruise_velocity);
 			talon_state_[joint_id].setMotionAcceleration(motion_acceleration);
-			// TODO : covert from rad/sec to native units
+			// TODO : convert from rad/sec to native units
 
 			can_talons_[joint_id]->ConfigMotionCruiseVelocity(motion_cruise_velocity, timeoutMs);
 			can_talons_[joint_id]->ConfigMotionAcceleration(motion_acceleration, timeoutMs);
@@ -700,17 +691,14 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			}
 		}
 
-		if (talon_command_[joint_id].processMotionProfileBufferChanged())
-			can_talons_[joint_id]->ProcessMotionProfileBuffer();
-
 		// Set new motor setpoint if either the mode or
 		// the setpoint has been changed
 		double command;
 		hardware_interface::TalonMode in_mode;
 		ctre::phoenix::motorcontrol::ControlMode out_mode;
 		if ((talon_command_[joint_id].newMode(in_mode) ||
-				talon_command_[joint_id].get(command) ) &&
-				convertControlMode(in_mode, out_mode))
+			talon_command_[joint_id].commandChanged(command) ) &&
+			convertControlMode(in_mode, out_mode))
 		{
 			switch (out_mode)
 			{
@@ -728,6 +716,13 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			talon_state_[joint_id].setSetpoint(command);
 			talon_state_[joint_id].setNeutralOutput(false); // maybe make this a part of setSetpoint?
 		}
+
+		// Do this last so that previously loaded trajectories and settings
+		// have been sent to the talon before processing
+		// Also do it after setting mode to make sure switches to
+		// motion profile mode are done before processing
+		if (talon_command_[joint_id].processMotionProfileBufferChanged())
+			can_talons_[joint_id]->ProcessMotionProfileBuffer();
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -744,40 +739,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		PWMs_[i]->SetSpeed(pwm_command_[i]*inverter);
 	}
 
-}
-
-void FRCRobotHWInterface::enforceLimits(ros::Duration &period)
-{
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	//
-	// CHOOSE THE TYPE OF JOINT LIMITS INTERFACE YOU WANT TO USE
-	// YOU SHOULD ONLY NEED TO USE ONE SATURATION INTERFACE,
-	// DEPENDING ON YOUR CONTROL METHOD
-	//
-	// EXAMPLES:
-	//
-	// Saturation Limits ---------------------------
-	//
-	// Enforces position and velocity
-	pos_jnt_sat_interface_.enforceLimits(period);
-	//
-	// Enforces velocity and acceleration limits
-	// vel_jnt_sat_interface_.enforceLimits(period);
-	//
-	// Enforces position, velocity, and effort
-	// eff_jnt_sat_interface_.enforceLimits(period);
-
-	// Soft limits ---------------------------------
-	//
-	// pos_jnt_soft_limits_.enforceLimits(period);
-	// vel_jnt_soft_limits_.enforceLimits(period);
-	// eff_jnt_soft_limits_.enforceLimits(period);
-	//
-	// ----------------------------------------------------
-	// ----------------------------------------------------
-	// ----------------------------------------------------
 }
 
 // Convert from internal version of hardware mode ID
