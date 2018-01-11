@@ -16,6 +16,8 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>message_generation</build_depend>
+
   <depend>hardware_interface</depend>
   <depend>controller_manager</depend>
   <depend>roscpp</depend>

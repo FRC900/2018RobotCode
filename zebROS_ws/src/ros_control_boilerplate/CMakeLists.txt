@@ -25,6 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files (
   FILES
   JoystickState.msg
+  MatchSpecificData.msg
 )
 generate_messages(
   DEPENDENCIES
@@ -54,7 +55,7 @@ catkin_package(
     std_msgs
     sensor_msgs
     rosparam_shortcuts
-	message_runtime
+    message_runtime
   LIBRARIES
 )
 
@@ -158,7 +159,6 @@ JoystickSubscriber PREFIX "")
 target_link_libraries(${PROJECT_NAME}_JoystickSubscriber
   ${catkin_LIBRARIES}
 )
-
 
 ## TOOLS ------------------------------------------------------
 
