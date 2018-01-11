@@ -310,7 +310,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		{
 			double closed_loop_error = can_talons_[joint_id]->GetClosedLoopError(pidIdx) * radians_scale;
 			talon_state_[joint_id].setClosedLoopError(closed_loop_error);
-			ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << closed_loop_error);
+			ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << can_talons_[joint_id]->GetClosedLoopError(pidIdx));
 	
 			double integral_accumulator = can_talons_[joint_id]->GetIntegralAccumulator(pidIdx) * radians_scale;
 			talon_state_[joint_id].setIntegralAccumulator(integral_accumulator);
@@ -325,7 +325,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		{
 			double closed_loop_error = can_talons_[joint_id]->GetClosedLoopError(pidIdx) * radians_per_sec_scale;
 			talon_state_[joint_id].setClosedLoopError(closed_loop_error);
-			ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << closed_loop_error);
+			ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << can_talons_[joint_id]->GetClosedLoopError(pidIdx));
 	
 			double integral_accumulator = can_talons_[joint_id]->GetIntegralAccumulator(pidIdx) * radians_per_sec_scale;
 			talon_state_[joint_id].setIntegralAccumulator(integral_accumulator);
@@ -341,11 +341,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		talon_state_[joint_id].setActiveTrajectoryPosition(active_trajectory_position);
 		double active_trajectory_velocity = can_talons_[joint_id]->GetActiveTrajectoryVelocity() * radians_per_sec_scale;
 		talon_state_[joint_id].setActiveTrajectoryVelocity(active_trajectory_velocity);
-		double active_trajectory_heading = can_talons_[joint_id]->GetActiveTrajectoryHeading() * 2*M_PI / 360; //returns in degrees
+		double active_trajectory_heading = can_talons_[joint_id]->GetActiveTrajectoryHeading() * 2. * M_PI / 360.; //returns in degrees
 		talon_state_[joint_id].setActiveTrajectoryHeading(active_trajectory_heading);
 
-
-		if((talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionProfile) || (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionMagic))
+		if ((talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionProfile) || 
+			(talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionMagic))
 		{
 			talon_state_[joint_id].setMotionProfileTopLevelBufferCount(can_talons_[joint_id]->GetMotionProfileTopLevelBufferCount());
 			talon_state_[joint_id].setMotionProfileTopLevelBufferFull(can_talons_[joint_id]->IsMotionProfileTopLevelBufferFull());
@@ -366,7 +366,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			talon_state_[joint_id].setMotionProfileStatus(internal_status);
 		}
 
-
 		// TODO :: Fix me
 		//talon_state_[joint_id].setFwdLimitSwitch(can_talons_[joint_id]->IsFwdLimitSwitchClosed());
 		//talon_state_[joint_id].setRevLimitSwitch(can_talons_[joint_id]->IsRevLimitSwitchClosed());
@@ -382,7 +381,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for (size_t i = 0; i < num_digital_inputs_; i++)
 	{
 		digital_input_state_[i] = (digital_inputs_[i]->Get()^digital_input_inverts_[i]) ? 1 : 0;
-		//State should really be a bool
+		//State should really be a bool - but we're stuck using
+		//ROS control code which thinks everything to and from
+		//hardware are doubles
 	}
 	for (size_t i = 0; i < num_digital_outputs_; i++)
 	{
@@ -390,13 +391,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//State should really be a bool
 		//This isn't strictly neccesary, it just reads what the DIO is currently set to
 	}
-	/*
 	for (size_t i = 0; i < num_pwm_; i++)
 	{
-		//Nothing to read
-	//// TODO : Add a read of state just so we can monitor what's going on in the code
+		// Just reflect state of output in status
+		pwm_state_[i] = PWMs_[i]->GetSpeed();
 	}
-	*/
 
 }
 
