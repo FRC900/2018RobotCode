@@ -1,10 +1,11 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>teleop_joystick_control</name>
-  <version>0.4.1</version>
+  <version>0.0.1</version>
   <description>Simple subscriber and publisher for interpreting joystick data into commands for the robot</description>
 
-  <maintainer email="davetcoleman@gmail.com">Dave Coleman</maintainer>
+  <maintainer email="programmers@team900.org">FRC Team 900 Programmers</maintainer>
+  <author email="programmers@team900.org">FRC Team 900 Programmers</author>
 
   <license>BSD</license>
 
@@ -12,7 +13,6 @@
   <url type="butracker">https://github.com/davetcoleman/ros_control_boilerplate/issues</url>
   <url type="repository">https://github.com/davetcoleman/ros_control_boilerplate/</url>
 
-  <author email="davetcoleman@gmail.com">Dave Coleman</author>
 
   <buildtool_depend>catkin</buildtool_depend>
 
@@ -35,6 +35,7 @@
   <depend>rosparam_shortcuts</depend>
   <depend>talon_interface</depend>
   <depend>message_runtime</depend>
+  <depend>ros_control_boilerplate</depend>
 
   <export>
   </export>

@@ -1,7 +1,7 @@
 #include "ros/ros.h"
 #include "ros/console.h"
 #include "ros_control_boilerplate/JoystickState.h"
-#include "ros_control_boilerplate/RobotState.h"
+#include "teleop_joystick_control/RobotState.h"
 
 
 bool ifCube;
@@ -92,7 +92,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
             
 }
 
-void evaluateState(const ros_control_boilerplate::RobotState::ConstPtr &msg) {
+void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &msg) {
     if(msg->ifCube==true) {
         ifCube = true;
         ROS_INFO("I has cube");

@@ -13,6 +13,7 @@ double deadzone(double val) {
     return val;
 }
 
+static ros::Publisher ScaledValPub;
 void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     /*Joystick value scaling and magic stuff */
     double leftStickX = msg->leftStickX;
@@ -72,13 +73,6 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double scaledRightStickX = pow(deadzone(rightStickX), 3);
     double scaledRightStickY = pow(deadzone(rightStickY), 3);
     //ROS_INFO("scaledLetStickX: %f scaledLeftStickY: %f\n", scaledLeftStickX, scaledLeftStickY);
-    int i = 1;
-    char* tmp = 'a';
-    ros::init(i, &tmp, "ScaledJoystickVals");
-    ros::NodeHandle n;
-    ros::Publisher ScaledValPub =
-    n.advertise<ros_control_boilerplate::JoystickState>("ScaledJoystickVals",
-    1000);
     ros::Rate loop_rate(10);
 
     while(ros::ok()) { //why...............
@@ -148,6 +142,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "joystick_state_subscriber");
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("joystick_states", 1000, joystick);
+    ScaledValPub = n.advertise<ros_control_boilerplate::JoystickState>("ScaledJoystickVals", 1000);
     ros::spin();
 
     return 0;
