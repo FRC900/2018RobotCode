@@ -51,7 +51,7 @@ class TalonHWCommand
 			neutral_output_(false),
 			encoder_feedback_(FeedbackDevice_Uninitialized),
 			encoder_feedback_changed_(false),
-			encoder_tick_per_rotation_(0),
+			encoder_cycle_per_revolution_(0),
 
 			//output shaping
 			closed_loop_ramp_(0),
@@ -505,13 +505,13 @@ class TalonHWCommand
 			encoder_feedback_changed_ = false;
 			return true;
 		}
-		int getEncoderTickPerRotation(void) 	const
+		int getEncoderCyclePerRotation(void) 	const
 		{
-			return encoder_tick_per_rotation_;
+			return encoder_cycle_per_revolution_;
 		}
-		void setEncoderTickPerRotation(int encoder_tick_per_rotation)
+		void setEncoderCyclePerRotation(int encoder_cycle_per_revolution)
 		{
-			encoder_tick_per_rotation_ = encoder_tick_per_rotation;
+			encoder_cycle_per_revolution_ = encoder_cycle_per_revolution;
 		}
 
 		//output shaping
@@ -1018,7 +1018,7 @@ class TalonHWCommand
 
 		FeedbackDevice encoder_feedback_;
 		bool encoder_feedback_changed_;
-		int encoder_tick_per_rotation_;
+		int encoder_cycle_per_revolution_;
 
 		//output shaping
 		double closed_loop_ramp_;
