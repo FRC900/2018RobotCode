@@ -25,6 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files (
   FILES
   MatchSpecificData.msg
+  JoystickState.msg
 )
 generate_messages(
   DEPENDENCIES
@@ -150,12 +151,6 @@ set_target_properties(${PROJECT_NAME}_test_trajectory PROPERTIES OUTPUT_NAME tes
 target_link_libraries(${PROJECT_NAME}_test_trajectory
   ${catkin_LIBRARIES}
 )
-
-
-## Add cmake target dependencies of the executable
-## same as for the library above. This is needed to force
-## talon controller messages to be built before the
-## talon controller code tries to use them
 
 ## TOOLS ------------------------------------------------------
 

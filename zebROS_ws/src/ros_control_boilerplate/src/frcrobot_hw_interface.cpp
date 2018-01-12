@@ -51,11 +51,9 @@
 
 namespace frcrobot_control
 {
-// TODO : figure out what these mean
-const int pidIdx = 0;
-const int timeoutMs = 0;
+const int pidIdx = 0; //0 for primary closed-loop, 1 for cascaded closed-loop
+const int timeoutMs = 0; //If nonzero, function will wait for config success and report an error if it times out. If zero, no blocking or checking is performed
 
-//TODO Make nativeU configurable
 int nativeU = 4096;   //native units of ctre magnetic encoders
 //RG: More than just making nativeU configurable, we should consider a much more automated system
 //i.e. set conversion factor based on specified feedback sensor
@@ -209,10 +207,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
 			
 			realtime_pub_match_data.msg_.allianceData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
-			realtime_pub_match_data.msg_.allianceColor = DriverStation::GetInstance().GetAlliance();
+			realtime_pub_match_data.msg_.allianceColor = DriverStation::GetInstance().GetAlliance(); //returns int that corresponds to a DriverStation Alliance enum
 			realtime_pub_match_data.msg_.driverStationLocation = DriverStation::GetInstance().GetLocation();
 			realtime_pub_match_data.msg_.matchNumber = DriverStation::GetInstance().GetMatchNumber();
-			realtime_pub_match_data.msg_.matchType = DriverStation::GetInstance().GetMatchType();
+			realtime_pub_match_data.msg_.matchType = DriverStation::GetInstance().GetMatchType(); //returns int that corresponds to a DriverStation matchType enum
 
 			realtime_pub_match_data.unlockAndPublish();
 		}
@@ -281,22 +279,19 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
-		//
-		// TODO : convert to units which make sense
-		// for rest of code? Add a method which takes current
-		// mode, encoder choice and maybe a user-configurable ticks/rotation
-		// setting and converts from native units to radians (for position)
-		// and radians/src (for velocity)
+
 		hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
 		hardware_interface::TalonMode talon_mode = talon_state_[joint_id].getTalonMode();
+		int encoder_cycle_per_revolution = talon_state_[joint_id].getEncoderCyclePerRevolution();
 
-		double radians_scale = getRadiansConversionFactor(encoder_feedback, joint_id);
-		double radians_per_sec_scale = getRadiansPerSecConversionFactor(encoder_feedback, joint_id);
+		double radians_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
+		double radians_per_second_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
+		double closed_loop_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, talon_mode, joint_id);
 
 		double position = can_talons_[joint_id]->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		talon_state_[joint_id].setPosition(position);
 
-		double speed = can_talons_[joint_id]->GetSelectedSensorVelocity(pidIdx) * radians_per_sec_scale;
+		double speed = can_talons_[joint_id]->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
 		talon_state_[joint_id].setSpeed(speed);
 
 		double bus_voltage = can_talons_[joint_id]->GetBusVoltage();
@@ -310,46 +305,30 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		double output_current = can_talons_[joint_id]->GetOutputCurrent();
 		talon_state_[joint_id].setOutputCurrent(output_current);
 
-		double temperature = can_talons_[joint_id]->GetTemperature(); //returns in C
+		double temperature = can_talons_[joint_id]->GetTemperature(); //returns in Celsius
 		talon_state_[joint_id].setTemperature(temperature);
 
 		//closed-loop
-		if(talon_mode == hardware_interface::TalonMode_Position)
-		{
-			double closed_loop_error = can_talons_[joint_id]->GetClosedLoopError(pidIdx) * radians_scale;
-			talon_state_[joint_id].setClosedLoopError(closed_loop_error);
-			ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << can_talons_[joint_id]->GetClosedLoopError(pidIdx));
+
+		double closed_loop_error = can_talons_[joint_id]->GetClosedLoopError(pidIdx) * closed_loop_scale;
+		talon_state_[joint_id].setClosedLoopError(closed_loop_error);
+		ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << can_talons_[joint_id]->GetClosedLoopError(pidIdx));
 	
-			double integral_accumulator = can_talons_[joint_id]->GetIntegralAccumulator(pidIdx) * radians_scale;
-			talon_state_[joint_id].setIntegralAccumulator(integral_accumulator);
+		double integral_accumulator = can_talons_[joint_id]->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
+		talon_state_[joint_id].setIntegralAccumulator(integral_accumulator);
 
-			double error_derivative = can_talons_[joint_id]->GetErrorDerivative(pidIdx) * radians_scale;
-			talon_state_[joint_id].setErrorDerivative(error_derivative);
+		double error_derivative = can_talons_[joint_id]->GetErrorDerivative(pidIdx) * closed_loop_scale;
+		talon_state_[joint_id].setErrorDerivative(error_derivative);
 
-			double closed_loop_target = can_talons_[joint_id]->GetClosedLoopTarget(pidIdx) * radians_scale;
-			talon_state_[joint_id].setClosedLoopTarget(closed_loop_target);
-		}
-		if(talon_mode == hardware_interface::TalonMode_Velocity)
-		{
-			double closed_loop_error = can_talons_[joint_id]->GetClosedLoopError(pidIdx) * radians_per_sec_scale;
-			talon_state_[joint_id].setClosedLoopError(closed_loop_error);
-			ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << can_talons_[joint_id]->GetClosedLoopError(pidIdx));
-	
-			double integral_accumulator = can_talons_[joint_id]->GetIntegralAccumulator(pidIdx) * radians_per_sec_scale;
-			talon_state_[joint_id].setIntegralAccumulator(integral_accumulator);
+		double closed_loop_target = can_talons_[joint_id]->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
+		talon_state_[joint_id].setClosedLoopTarget(closed_loop_target);
 
-			double error_derivative = can_talons_[joint_id]->GetErrorDerivative(pidIdx) * radians_per_sec_scale;
-			talon_state_[joint_id].setErrorDerivative(error_derivative);
-
-			double closed_loop_target = can_talons_[joint_id]->GetClosedLoopTarget(pidIdx) * radians_per_sec_scale;
-			talon_state_[joint_id].setClosedLoopTarget(closed_loop_target);
-		}
 
 		double active_trajectory_position = can_talons_[joint_id]->GetActiveTrajectoryPosition() * radians_scale;
 		talon_state_[joint_id].setActiveTrajectoryPosition(active_trajectory_position);
-		double active_trajectory_velocity = can_talons_[joint_id]->GetActiveTrajectoryVelocity() * radians_per_sec_scale;
+		double active_trajectory_velocity = can_talons_[joint_id]->GetActiveTrajectoryVelocity() * radians_per_second_scale;
 		talon_state_[joint_id].setActiveTrajectoryVelocity(active_trajectory_velocity);
-		double active_trajectory_heading = can_talons_[joint_id]->GetActiveTrajectoryHeading() * 2. * M_PI / 360.; //returns in degrees
+		double active_trajectory_heading = can_talons_[joint_id]->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
 		talon_state_[joint_id].setActiveTrajectoryHeading(active_trajectory_heading);
 
 		if ((talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionProfile) || 
@@ -414,36 +393,70 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}
 }
 
-double FRCRobotHWInterface::getRadiansConversionFactor(hardware_interface::FeedbackDevice encoder_feedback, int joint_id)
+double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution,
+						hardware_interface::FeedbackDevice encoder_feedback,
+						hardware_interface::TalonMode talon_mode,
+						int joint_id)
 {
-	switch (encoder_feedback)
+	if(talon_mode == hardware_interface::TalonMode_Position)
 	{
-		case hardware_interface::FeedbackDevice_QuadEncoder:
-		case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
-			return 2 * M_PI / 4056; //4056 = 4* encoder cycles per revolution
-		case hardware_interface::FeedbackDevice_Analog:
-			return 2 * M_PI / 1024;
-		case hardware_interface::FeedbackDevice_Tachometer:
-		case hardware_interface::FeedbackDevice_SensorSum:
-		case hardware_interface::FeedbackDevice_SensorDifference:
-		case hardware_interface::FeedbackDevice_RemoteSensor0:
-		case hardware_interface::FeedbackDevice_RemoteSensor1:
-		case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
-		ROS_WARN_STREAM("Unable to convert units.");
-			return 1.;
-		default:
-			ROS_WARN_STREAM("Invalid encoder feedback device. Unable to convert units.");
-			return 1.;
+		switch (encoder_feedback)
+		{
+			case hardware_interface::FeedbackDevice_QuadEncoder:
+			case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
+				return 2 * M_PI / (encoder_cycle_per_revolution * 4);
+			case hardware_interface::FeedbackDevice_Analog:
+				return 2 * M_PI / 1024;
+			case hardware_interface::FeedbackDevice_Tachometer:
+			case hardware_interface::FeedbackDevice_SensorSum:
+			case hardware_interface::FeedbackDevice_SensorDifference:
+			case hardware_interface::FeedbackDevice_RemoteSensor0:
+			case hardware_interface::FeedbackDevice_RemoteSensor1:
+			case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
+				ROS_WARN_STREAM("Unable to convert units.");
+				return 1.;
+			default:
+				ROS_WARN_STREAM("Invalid encoder feedback device. Unable to convert units.");
+				return 1.;
+		}
+	}
+	else if(talon_mode == hardware_interface::TalonMode_Velocity)
+	{
+		switch (encoder_feedback)
+		{
+			case hardware_interface::FeedbackDevice_QuadEncoder:
+			case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
+				return 2 * M_PI / (encoder_cycle_per_revolution * 4) / .1;
+			case hardware_interface::FeedbackDevice_Analog:
+				return 2 * M_PI / 1024 / .1;
+			case hardware_interface::FeedbackDevice_Tachometer:
+			case hardware_interface::FeedbackDevice_SensorSum:
+			case hardware_interface::FeedbackDevice_SensorDifference:
+			case hardware_interface::FeedbackDevice_RemoteSensor0:
+			case hardware_interface::FeedbackDevice_RemoteSensor1:
+			case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
+				ROS_WARN_STREAM("Unable to convert units.");
+				return 1.;
+			default:
+				ROS_WARN_STREAM("Invalid encoder feedback device. Unable to convert units.");
+				return 1.;
+		}
+	}
+	else 
+	{
+		ROS_WARN_STREAM("Unable to convert closed loop units.");
+		return 1.;
 	}
 }
 
-double FRCRobotHWInterface::getRadiansPerSecConversionFactor(hardware_interface::FeedbackDevice encoder_feedback, int joint_id)
+/*
+double FRCRobotHWInterface::getRadiansPerSecConversionFactor(hardware_interface::FeedbackDevice encoder_feedback, hardware_interface::TalonMode talon_mode, int joint_id)
 {
 	switch (encoder_feedback)
 	{
 		case hardware_interface::FeedbackDevice_QuadEncoder:
 		case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
-			return 2 * M_PI / 4056 / .1; //4056 = 4* encoder cycles per revolution
+			return 2 * M_PI / 4096 / .1; //4096 = 4* encoder cycles per revolution
 		case hardware_interface::FeedbackDevice_Analog:
 			return 2 * M_PI / 1024 / .1;
 		case hardware_interface::FeedbackDevice_Tachometer:
@@ -459,6 +472,7 @@ double FRCRobotHWInterface::getRadiansPerSecConversionFactor(hardware_interface:
 			return 1.;
 	}
 }
+*/
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
@@ -470,9 +484,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 		hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
 		hardware_interface::TalonMode talon_mode = talon_state_[joint_id].getTalonMode();
+		int encoder_cycle_per_revolution = talon_state_[joint_id].getEncoderCyclePerRevolution();
 
-		double radians_scale = getRadiansConversionFactor(encoder_feedback, joint_id);
-		double radians_per_sec_scale = getRadiansPerSecConversionFactor(encoder_feedback, joint_id);
+		double radians_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
+		double radians_per_sec_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
+		double closed_loop_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, talon_mode, joint_id);
 
 		int slot;
 		if (talon_command_[joint_id].slotChanged(slot))
@@ -550,7 +566,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double iaccum;
 		if (talon_command_[joint_id].integralAccumulatorChanged(iaccum))
 		{
-			can_talons_[joint_id]->SetIntegralAccumulator(iaccum, pidIdx, timeoutMs); //scale this
+			can_talons_[joint_id]->SetIntegralAccumulator((iaccum / closed_loop_scale), pidIdx, timeoutMs);
 			// Do not set talon state - this changes
 			// dynamically so read it in read() above instead
 		}
@@ -634,14 +650,16 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				softlimit_override_enable))
 		{
 			//TODO : scale forward and reverse thresholds
-			can_talons_[joint_id]->ConfigForwardSoftLimitThreshold(softlimit_forward_threshold, timeoutMs);
+			double softlimit_forward_threshold_NU = softlimit_forward_threshold / radians_scale; //native units
+			double softlimit_reverse_threshold_NU = softlimit_reverse_threshold / radians_scale;
+			can_talons_[joint_id]->ConfigForwardSoftLimitThreshold(softlimit_forward_threshold_NU, timeoutMs);
 			can_talons_[joint_id]->ConfigForwardSoftLimitEnable(softlimit_forward_enable, timeoutMs);
-			can_talons_[joint_id]->ConfigReverseSoftLimitThreshold(softlimit_reverse_threshold, timeoutMs);
+			can_talons_[joint_id]->ConfigReverseSoftLimitThreshold(softlimit_reverse_threshold_NU, timeoutMs);
 			can_talons_[joint_id]->ConfigReverseSoftLimitEnable(softlimit_reverse_enable, timeoutMs);
 			can_talons_[joint_id]->OverrideSoftLimitsEnable(softlimit_override_enable);
-			talon_state_[joint_id].setForwardSoftLimitThreshold(softlimit_forward_threshold);
+			talon_state_[joint_id].setForwardSoftLimitThreshold(softlimit_forward_threshold * radians_scale);
 			talon_state_[joint_id].setForwardSoftLimitEnable(softlimit_forward_enable);
-			talon_state_[joint_id].setReverseSoftLimitThreshold(softlimit_reverse_threshold);
+			talon_state_[joint_id].setReverseSoftLimitThreshold(softlimit_reverse_threshold * radians_scale);
 			talon_state_[joint_id].setReverseSoftLimitEnable(softlimit_reverse_enable);
 			talon_state_[joint_id].setOverrideSoftLimitsEnable(softlimit_override_enable);
 		}
@@ -667,12 +685,12 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double motion_acceleration;
 		if (talon_command_[joint_id].motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
 		{
-			talon_state_[joint_id].setMotionCruiseVelocity(motion_cruise_velocity);
-			talon_state_[joint_id].setMotionAcceleration(motion_acceleration);
-			// TODO : convert from rad/sec to native units
+			talon_state_[joint_id].setMotionCruiseVelocity(motion_cruise_velocity * radians_per_sec_scale);
+			talon_state_[joint_id].setMotionAcceleration(motion_acceleration * radians_per_sec_scale / .1);
 
-			can_talons_[joint_id]->ConfigMotionCruiseVelocity(motion_cruise_velocity, timeoutMs);
-			can_talons_[joint_id]->ConfigMotionAcceleration(motion_acceleration, timeoutMs);
+			//converted from rad/sec to native units
+			can_talons_[joint_id]->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_sec_scale), timeoutMs);
+			can_talons_[joint_id]->ConfigMotionAcceleration((motion_acceleration / radians_per_sec_scale * .1), timeoutMs);
 		}
 		// Do this before rest of motion profile stuff
 		// so it takes effect before starting a buffer?
@@ -718,9 +736,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			switch (out_mode)
 			{
 			case ctre::phoenix::motorcontrol::ControlMode::Velocity:
-				command /= radians_per_sec_scale; //assumes input value is velocity per 100ms there is a chance it is supposed to be 10ms
-				//RG: I am almost certain that it isn't 10 ms. However, if you configure some of the units
-				//using one of the talon functions,  the units are RPM and Rotations
+				command /= radians_per_sec_scale;
 				break;
 			case ctre::phoenix::motorcontrol::ControlMode::Position:
 				command /= radians_scale;

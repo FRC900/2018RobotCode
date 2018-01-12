@@ -5,7 +5,6 @@
 #include <math.h>
 
 #define DEAD .1
-ros::Publisher ScaledValPub; 
 double deadzone(double val) {
     if(fabs(val)<=DEAD) {
         return 0;
@@ -13,6 +12,7 @@ double deadzone(double val) {
     return val;
 }
 
+static ros::Publisher ScaledValPub;
 void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     /*Joystick value scaling and magic stuff */
     double leftStickX = msg->leftStickX;
@@ -72,7 +72,6 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double scaledRightStickX = pow(deadzone(rightStickX), 3);
     double scaledRightStickY = pow(deadzone(rightStickY), 3);
     //ROS_INFO("scaledLetStickX: %f scaledLeftStickY: %f\n", scaledLeftStickX, scaledLeftStickY);
-
     ros::Rate loop_rate(10);
     while(ros::ok()) { //why...............
         ros_control_boilerplate::JoystickState msg;
@@ -146,10 +145,7 @@ int main(int argc, char **argv) {
 
     ros::init(argc, argv, "ScaledJoystickVals");
     ros::NodeHandle n_;
-    ScaledValPub =
-    n_.advertise<ros_control_boilerplate::JoystickState>("ScaledJoystickVals",
-    1000);
-
+    ScaledValPub = n_.advertise<ros_control_boilerplate::JoystickState>("ScaledJoystickVals", 1000);
 
     ros::spin();
 

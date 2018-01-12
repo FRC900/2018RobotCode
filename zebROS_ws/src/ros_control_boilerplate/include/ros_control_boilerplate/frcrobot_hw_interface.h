@@ -87,8 +87,8 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		/** \brief Read the state from the robot hardware. */
 		virtual void read(ros::Duration &elapsed_time);
 
-		virtual double getRadiansConversionFactor(hardware_interface::FeedbackDevice encoder_feedback, int joint_id);
-		virtual double getRadiansPerSecConversionFactor(hardware_interface::FeedbackDevice encoder_feedback, int joint_id);
+		/** Get conversion factor for position, velocity, and closed-loop stuff */
+		virtual double getConversionFactor(int encoder_cycle_per_revolution, hardware_interface::FeedbackDevice encoder_feedback, hardware_interface::TalonMode talon_mode, int joint_id);
 
 		/** \brief Write the command to the robot hardware. */
 		virtual void write(ros::Duration &elapsed_time);
