@@ -73,7 +73,7 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double scaledRightStickY = pow(deadzone(rightStickY), 3);
     //ROS_INFO("scaledLetStickX: %f scaledLeftStickY: %f\n", scaledLeftStickX, scaledLeftStickY);
     int i = 1;
-    char* tmp = "a";
+    char* tmp = 'a';
     ros::init(i, &tmp, "ScaledJoystickVals");
     ros::NodeHandle n;
     ros::Publisher ScaledValPub =

@@ -24,8 +24,6 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_message_files (
   FILES
-  JoystickState.msg
-  RobotState.msg
   MatchSpecificData.msg
 )
 generate_messages(
@@ -153,27 +151,6 @@ target_link_libraries(${PROJECT_NAME}_test_trajectory
   ${catkin_LIBRARIES}
 )
 
-add_executable(${PROJECT_NAME}_joystickSubscriber src/joystickSubscriber.cpp)
-set_target_properties(${PROJECT_NAME}_joystickSubscriber PROPERTIES OUTPUT_NAME
-joystickSubscriber PREFIX "")
-target_link_libraries(${PROJECT_NAME}_joystickSubscriber
-  ${catkin_LIBRARIES}
-)
-## Add cmake target dependencies of the executable
-## same as for the library above. This is needed to force
-## talon controller messages to be built before the
-## talon controller code tries to use them
-add_dependencies(${PROJECT_NAME}_joystickSubscriber
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
-
-add_executable(${PROJECT_NAME}_teleopJoystickCommands src/teleopJoystickCommands.cpp)
-set_target_properties(${PROJECT_NAME}_teleopJoystickCommands PROPERTIES OUTPUT_NAME 
-teleopJoystickCommands PREFIX "")
-target_link_libraries(${PROJECT_NAME}_teleopJoystickCommands
-  ${catkin_LIBRARIES}
-)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above. This is needed to force
