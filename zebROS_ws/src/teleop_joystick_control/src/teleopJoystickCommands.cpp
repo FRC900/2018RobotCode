@@ -87,6 +87,24 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
                 ROS_INFO("Toggled to switch height");
             }
         }
+
+    }
+    double leftStickX = msg->leftStickX;//TODO publish twist message for drivetrain and elevator/pivot
+    double leftStickY = msg->leftStickY;
+    //TODO BUMPERS FOR SLOW MODE
+    if(leftStickX != 0) {
+        ROS_INFO("leftStickX: ");
+    }
+    if(leftStickY!=0) {
+        ROS_INFO("leftStickY: ");
+    } 
+    if(msg->leftTrigger>0.5) {
+        //TODO rotate left
+        ROS_INFO("Rotate left");
+    }
+    if(msg->rightTrigger>0.5) {
+        //TODO rotate right
+        ROS_INFO("Rotate right");
     }
 
             

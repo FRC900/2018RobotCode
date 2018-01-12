@@ -5,7 +5,7 @@
 #include <math.h>
 
 #define DEAD .1
-
+ros::Publisher ScaledValPub; 
 double deadzone(double val) {
     if(fabs(val)<=DEAD) {
         return 0;
@@ -72,15 +72,8 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double scaledRightStickX = pow(deadzone(rightStickX), 3);
     double scaledRightStickY = pow(deadzone(rightStickY), 3);
     //ROS_INFO("scaledLetStickX: %f scaledLeftStickY: %f\n", scaledLeftStickX, scaledLeftStickY);
-    int i = 1;
-    char* tmp = 'a';
-    ros::init(i, &tmp, "ScaledJoystickVals");
-    ros::NodeHandle n;
-    ros::Publisher ScaledValPub =
-    n.advertise<ros_control_boilerplate::JoystickState>("ScaledJoystickVals",
-    1000);
-    ros::Rate loop_rate(10);
 
+    ros::Rate loop_rate(10);
     while(ros::ok()) { //why...............
         ros_control_boilerplate::JoystickState msg;
 
@@ -137,8 +130,10 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
 
         ScaledValPub.publish(msg);
         ros::spinOnce();
+        break;
 
         loop_rate.sleep();
+        break;
     }
 }
 
@@ -148,6 +143,14 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "joystick_state_subscriber");
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("joystick_states", 1000, joystick);
+
+    ros::init(argc, argv, "ScaledJoystickVals");
+    ros::NodeHandle n_;
+    ScaledValPub =
+    n_.advertise<ros_control_boilerplate::JoystickState>("ScaledJoystickVals",
+    1000);
+
+
     ros::spin();
 
     return 0;
