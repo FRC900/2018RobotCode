@@ -254,7 +254,9 @@ class TalonCIParams
 				ROS_ERROR("Invalid feedback device name given");
 				return false;
 			}
-			n.getParam("ticks_per_rotation", ticks_per_rotation_);
+			double dbl_val;
+			if (n.getParam("ticks_per_rotation", dbl_val))
+				ticks_per_rotation_ = dbl_val;
 			return true;
 		}
 
@@ -698,10 +700,12 @@ class TalonControllerInterface
 			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
 			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
+
+#if 0 // broken?
 			talon_->setMotionCruiseVelocity(params_.motion_cruise_velocity_);
 			talon_->setMotionAcceleration(params_.motion_acceleration_);
-
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
+#endif
 			return true;
 		}
 
