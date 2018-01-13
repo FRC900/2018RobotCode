@@ -14,10 +14,10 @@ hardware_interface:
        - {name: fl_angle, type: can_talon_srx, can_id: 11}
        - {name: fr_drive, type: can_talon_srx, can_id: 22}
        - {name: fr_angle, type: can_talon_srx, can_id: 12}
-       - {name: br_drive, type: can_talon_srx, can_id: 23}
-       - {name: br_angle, type: can_talon_srx, can_id: 13}
-       - {name: bl_drive, type: can_talon_srx, can_id: 24}
-       - {name: bl_angle, type: can_talon_srx, can_id: 14}
+       - {name: br_drive, type: can_talon_srx, can_id: 24}
+       - {name: br_angle, type: can_talon_srx, can_id: 14}
+       - {name: bl_drive, type: can_talon_srx, can_id: 23}
+       - {name: bl_angle, type: can_talon_srx, can_id: 13}
 
    # Add more data for each joint here - intitial mode, encoder type
    #    PIDF settings, limit switch settings, etc
@@ -67,11 +67,11 @@ swerve_drive_controller:
     motor_quantity: 4
     file_name: "offsets.txt"
     invert_wheel_angle: False
-    ratio_encoder_to_rotations: 2
+    ratio_encoder_to_rotations: 1
     ratio_motor_to_rotations: 2  
     ratio_motor_to_steering: 100 # that's what Bram said
-    encoder_drive_get_V_units: 1 
-    encoder_drive_set_V_units: 1
+    encoder_drive_get_V_units: 6.2831853
+    encoder_drive_set_V_units: 6.2831853
     encoder_drive_get_P_units: 1 
     encoder_drive_set_P_units: 1
     encoder_steering_get_units: 1

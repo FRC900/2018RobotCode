@@ -21,7 +21,13 @@ swerve::swerve(array<Vector2d, WHEELCOUNT> wheelCoordinates, string fileName, bo
 	drive_ = drive;
 	fileName_ = fileName;
 	wheelAngleInvert_ = wheelAngleInvert ? -1 : 1;
-	ifstream offsetRead;
+	
+	// Hard-coded offsets
+	offsets_[1] = 2.1353; // fr_steering
+	offsets_[3] = 0;//2.01565; // br_steering
+	offsets_[2] = 0;//0.12732; // bl_steering
+	offsets_[0] = 0;//5.14651; // fl_steering
+	/*ifstream offsetRead;
 	offsetRead.open(fileName);
 	if (!offsetRead)
 	{
@@ -40,7 +46,7 @@ swerve::swerve(array<Vector2d, WHEELCOUNT> wheelCoordinates, string fileName, bo
 			offsets_[i] = offset;
 			i++;
 		}
-	}
+	}*/
 
 	// TODO : this shouldn't be hard-coded
 	setCenterOfRotation(0, {0,0});
