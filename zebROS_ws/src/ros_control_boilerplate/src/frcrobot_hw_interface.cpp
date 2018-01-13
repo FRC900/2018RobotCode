@@ -930,7 +930,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			convertControlMode(in_mode, out_mode))
 		{
 			if ((joint_id == 4) || (joint_id == 5))
-				ROS_INFO_STREAM("Joint " << joint_id << "=" << can_talon_srx_names_[joint_id] << "in_mode = " << in_mode << "ros cmd = " << command );
+				ROS_INFO_STREAM_THROTTLE(1, "Joint " << joint_id << "=" << can_talon_srx_names_[joint_id] << " in_mode = " << in_mode << " ros cmd = " << command );
 			
 			switch (out_mode)
 			{
@@ -943,7 +943,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			}
 
 			if ((joint_id == 4) || (joint_id == 5))
-				ROS_INFO_STREAM("\t\tout_mode = " << static_cast<int>(out_mode) << "talon cmd = " << command);
+				ROS_INFO_STREAM_THROTTLE(1, "\t\tout_mode = " << static_cast<int>(out_mode) << " talon cmd = " << command);
 			talon->Set(out_mode, command);
 			safeTalonCall(talon->GetLastError(), "Set");
 			ts.setTalonMode(in_mode);

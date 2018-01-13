@@ -772,7 +772,7 @@ class TalonHWState
 		void setTalonMode(TalonMode talon_mode)
 		{
 			if ((talon_mode_ >= TalonMode_Uninitialized) &&
-					(talon_mode_ <  TalonMode_Last) )
+				(talon_mode_ <  TalonMode_Last) )
 				talon_mode_ = talon_mode;
 			else
 				ROS_WARN_STREAM("Invalid talon mode requested");
@@ -792,7 +792,7 @@ class TalonHWState
 		void setNeutralMode(NeutralMode neutral_mode)
 		{
 			if ((neutral_mode_ >= NeutralMode_Uninitialized) &&
-					(neutral_mode_ <  NeutralMode_Last) )
+				(neutral_mode_ <  NeutralMode_Last) )
 				neutral_mode_ = neutral_mode;
 			else
 				ROS_WARN_STREAM("Invalid neutral mode requested");
@@ -805,7 +805,7 @@ class TalonHWState
 		void setEncoderFeedback(FeedbackDevice encoder_feedback)
 		{
 			if ((encoder_feedback >= FeedbackDevice_Uninitialized) &&
-					(encoder_feedback <  FeedbackDevice_Last) )
+				(encoder_feedback <  FeedbackDevice_Last) )
 				encoder_feedback_ = encoder_feedback;
 			else
 				ROS_WARN_STREAM("Invalid feedback device requested");
