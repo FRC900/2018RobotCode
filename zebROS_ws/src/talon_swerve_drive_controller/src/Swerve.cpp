@@ -10,7 +10,7 @@ using namespace Eigen;
 // TODO : use initializaer list rather than assignment.
 // string should be a const & var, as should the swerveVar args
 
-swerve::swerve(array<Vector2d, WHEELCOUNT> wheelCoordinates, string fileName, bool wheelAngleInvert, swerveVar::ratios ratio, swerveVar::encoderUnits units, swerveVar::driveModel drive)
+swerve::swerve(array<Vector2d, WHEELCOUNT> wheelCoordinates, std::vector<double> offsets, bool wheelAngleInvert, swerveVar::ratios ratio, swerveVar::encoderUnits units, swerveVar::driveModel drive)
 {
 	wheelCoordinates_ = wheelCoordinates;
 
@@ -19,34 +19,11 @@ swerve::swerve(array<Vector2d, WHEELCOUNT> wheelCoordinates, string fileName, bo
 	ratio_ = ratio;
 	units_ = units;
 	drive_ = drive;
-	fileName_ = fileName;
 	wheelAngleInvert_ = wheelAngleInvert ? -1 : 1;
 	
-	// Hard-coded offsets
-	offsets_[1] = 2.1353; // fr_steering
-	offsets_[3] = 0;//2.01565; // br_steering
-	offsets_[2] = 0;//0.12732; // bl_steering
-	offsets_[0] = 0;//5.14651; // fl_steering
-	/*ifstream offsetRead;
-	offsetRead.open(fileName);
-	if (!offsetRead)
-	{
-		cout << "No Offset File!!!" << endl;
-		for (int i = 0; i < WHEELCOUNT; i++)
-		{
-			offsets_[i] = 0;
-		}
-	}
-	else
-	{
-		double offset;
-		int i = 0;
-		while (offsetRead >> offset)
-		{
-			offsets_[i] = offset;
-			i++;
-		}
-	}*/
+	// TODO : Error checking in case offsets.size() != WHEELCOUNT
+	for (size_t i = 0; i < offsets.size() && i < WHEELCOUNT; i++)
+		offsets_[i] = offsets[i];
 
 	// TODO : this shouldn't be hard-coded
 	setCenterOfRotation(0, {0,0});
@@ -109,6 +86,7 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 }
 void swerve::saveNewOffsets(bool useVals, array<double, WHEELCOUNT> newOffsets, array<double, WHEELCOUNT> newPosition)
 {
+#if 0
 	encoderPosition_ = newPosition;
 	if (!useVals)
 	{
@@ -131,6 +109,7 @@ void swerve::saveNewOffsets(bool useVals, array<double, WHEELCOUNT> newOffsets, 
 	{
 		offsetFile << offsets_[i] << endl;
 	}
+#endif
 }
 /*
 Vector2d calculateOdom()

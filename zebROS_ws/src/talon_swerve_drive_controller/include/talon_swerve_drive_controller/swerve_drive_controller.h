@@ -153,8 +153,6 @@ class TalonSwerveDriveController
 		
 		swerveVar::driveModel model_;
 		
-		std::string filename_;
-
 		bool invertWheelAngle_;
 
 		swerveVar::ratios driveRatios_;
