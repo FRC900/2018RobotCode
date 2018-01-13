@@ -316,46 +316,60 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
 
 		double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
+		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
 		ts.setPosition(position);
 
 		double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
+		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 		ts.setSpeed(speed);
 
 		double bus_voltage = talon->GetBusVoltage();
+		safeTalonCall(talon->GetLastError(), "GetBusVoltage");
 		ts.setBusVoltage(bus_voltage);
 
 		double motor_output_percent = talon->GetMotorOutputPercent();
+		safeTalonCall(talon->GetLastError(), "GetMotorOutputPercent");
 		ts.setMotorOutputPercent(motor_output_percent);
 
 		double output_voltage = talon->GetMotorOutputVoltage(); 
+		safeTalonCall(talon->GetLastError(), "GetMotorOutputVoltage");
 		ts.setOutputVoltage(output_voltage);
 		double output_current = talon->GetOutputCurrent();
+		safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
 		ts.setOutputCurrent(output_current);
 
 		double temperature = talon->GetTemperature(); //returns in Celsius
+		safeTalonCall(talon->GetLastError(), "GetTemperature");
 		ts.setTemperature(temperature);
 
 		//closed-loop
 
 		double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
+		safeTalonCall(talon->GetLastError(), "GetClosedLoopError");
 		ts.setClosedLoopError(closed_loop_error);
 	
 		double integral_accumulator = talon->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
+		safeTalonCall(talon->GetLastError(), "GetIntegralAccumulator");
 		ts.setIntegralAccumulator(integral_accumulator);
 
 		double error_derivative = talon->GetErrorDerivative(pidIdx) * closed_loop_scale;
+		safeTalonCall(talon->GetLastError(), "GetErrorDerivative");
 		ts.setErrorDerivative(error_derivative);
 
 		double closed_loop_target = talon->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
+		safeTalonCall(talon->GetLastError(), "GetClosedLoopTarget");
 		ts.setClosedLoopTarget(closed_loop_target);
 
 
 #if 0 // no workie?
 		double active_trajectory_position = talon->GetActiveTrajectoryPosition() * radians_scale;
+		safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryPosition");
 		ts.setActiveTrajectoryPosition(active_trajectory_position);
 		double active_trajectory_velocity = talon->GetActiveTrajectoryVelocity() * radians_per_second_scale;
+		safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryVelocity");
 		ts.setActiveTrajectoryVelocity(active_trajectory_velocity);
 		double active_trajectory_heading = talon->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
+		safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
 		ts.setActiveTrajectoryHeading(active_trajectory_heading);
 #endif
 
@@ -363,7 +377,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			(ts.getTalonMode() == hardware_interface::TalonMode_MotionMagic))
 		{
 			ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
+			safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
 			ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
+			safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
 			ctre::phoenix::motion::MotionProfileStatus talon_status;
 			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
@@ -379,7 +395,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
 		
 			ts.setMotionProfileStatus(internal_status);
-
 		}
 
 		ctre::phoenix::motorcontrol::Faults faults;
@@ -396,7 +411,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		ctre::phoenix::motorcontrol::StickyFaults sticky_faults;
 		safeTalonCall(talon->GetStickyFaults(sticky_faults), "GetStickyFaults");
 		ts.setStickyFaults(sticky_faults.ToBitfield());
-
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -714,7 +728,9 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		if (tc.invertChanged(invert, sensor_phase))
 		{
 			talon->SetInverted(invert);
+			safeTalonCall(talon->GetLastError(), "SetInverted");
 			talon->SetSensorPhase(sensor_phase);
+			safeTalonCall(talon->GetLastError(), "SetSensorPhase");
 			ts.setInvert(invert);
 			ts.setSensorPhase(sensor_phase);
 		}
@@ -726,12 +742,14 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				convertNeutralMode(neutral_mode, ctre_neutral_mode))
 		{
 			talon->SetNeutralMode(ctre_neutral_mode);
+			safeTalonCall(talon->GetLastError(), "SetNeutralMode");
 			ts.setNeutralMode(neutral_mode);
 		}
 
 		if (tc.neutralOutputChanged())
 		{
 			talon->NeutralOutput();
+			safeTalonCall(talon->GetLastError(), "NeutralOutput");
 			ts.setNeutralOutput(true);
 		}
 
@@ -783,6 +801,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			safeTalonCall(talon->ConfigVoltageCompSaturation(v_c_saturation, timeoutMs),"ConfigVoltageCompSaturation");
 			safeTalonCall(talon->ConfigVoltageMeasurementFilter(v_measurement_filter, timeoutMs),"ConfigVoltageMeasurementFilter");
 			talon->EnableVoltageCompensation(v_c_enable);
+			safeTalonCall(talon->GetLastError(), "EnableVoltageCompensation");
 
 			ts.setVoltageCompensationSaturation(v_c_saturation);
 			ts.setVoltageMeasurementFilter(v_measurement_filter);
@@ -829,6 +848,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			safeTalonCall(talon->ConfigReverseSoftLimitThreshold(softlimit_reverse_threshold_NU, timeoutMs),"ConfigReverseSoftLimitThreshold");
 			safeTalonCall(talon->ConfigReverseSoftLimitEnable(softlimit_reverse_enable, timeoutMs),"ConfigReverseSoftLimitEnable");
 			talon->OverrideSoftLimitsEnable(softlimit_override_enable);
+			safeTalonCall(talon->GetLastError(), "OverrideSoftLimitsEnable");
 
 			ts.setForwardSoftLimitThreshold(softlimit_forward_threshold);
 			ts.setForwardSoftLimitEnable(softlimit_forward_enable);
@@ -847,6 +867,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			safeTalonCall(talon->ConfigPeakCurrentDuration(peak_msec, timeoutMs),"ConfigPeakCurrentDuration");
 			safeTalonCall(talon->ConfigContinuousCurrentLimit(continuous_amps, timeoutMs),"ConfigContinuousCurrentLimit");
 			talon->EnableCurrentLimit(enable);
+			safeTalonCall(talon->GetLastError(), "EnableCurrentLimit");
 
 			ts.setPeakCurrentLimit(peak_amps);
 			ts.setPeakCurrentDuration(peak_msec);
@@ -875,7 +896,10 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		}
 
 		if (tc.clearMotionProfileTrajectoriesChanged())
+		{
 			talon->ClearMotionProfileTrajectories();
+			safeTalonCall(talon->GetLastError(), "ClearMotionProfileTrajectories");
+		}
 
 		if (tc.clearMotionProfileHasUnderrunChanged())
 			safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
@@ -921,6 +945,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			if ((joint_id == 4) || (joint_id == 5))
 				ROS_INFO_STREAM("\t\tout_mode = " << static_cast<int>(out_mode) << "talon cmd = " << command);
 			talon->Set(out_mode, command);
+			safeTalonCall(talon->GetLastError(), "Set");
 			ts.setTalonMode(in_mode);
 			ts.setSetpoint(command);
 			ts.setNeutralOutput(false); // maybe make this a part of setSetpoint?
@@ -931,7 +956,10 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		// Also do it after setting mode to make sure switches to
 		// motion profile mode are done before processing
 		if (tc.processMotionProfileBufferChanged())
+		{
 			talon->ProcessMotionProfileBuffer();
+			safeTalonCall(talon->GetLastError(), "ProcessMotionProfileBuffer");
+		}
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
