@@ -407,7 +407,7 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
 				return 1.;
 			case hardware_interface::FeedbackDevice_QuadEncoder:
 			case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
-				return 2 * M_PI / (encoder_ticks_per_rotation * 4);
+				return 2 * M_PI / encoder_ticks_per_rotation;
 			case hardware_interface::FeedbackDevice_Analog:
 				return 2 * M_PI / 1024;
 			case hardware_interface::FeedbackDevice_Tachometer:
@@ -431,7 +431,7 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
 				return 1.;
 			case hardware_interface::FeedbackDevice_QuadEncoder:
 			case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
-				return 2 * M_PI / (encoder_ticks_per_rotation * 4) / .1;
+				return 2 * M_PI / encoder_ticks_per_rotation / .1;
 			case hardware_interface::FeedbackDevice_Analog:
 				return 2 * M_PI / 1024 / .1;
 			case hardware_interface::FeedbackDevice_Tachometer:

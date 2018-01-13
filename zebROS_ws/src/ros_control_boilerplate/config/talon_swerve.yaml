@@ -113,7 +113,7 @@ swerve_drive_controller:
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
         invert_output: False
         sensor_phase: True
-        feedback_type: CTRE_MagEncoder_Relative
+        feedback_type: CTRE_MagEncoder_Absolute
     steering_joint_fr:
         joint: fr_angle
         close_loop_values:
@@ -121,7 +121,7 @@ swerve_drive_controller:
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
         invert_output: False
         sensor_phase: True
-        feedback_type: CTRE_MagEncoder_Relative
+        feedback_type: CTRE_MagEncoder_Absolute
     steering_joint_br:
         joint: br_angle
         close_loop_values:
@@ -129,7 +129,7 @@ swerve_drive_controller:
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
         invert_output: False
         sensor_phase: True
-        feedback_type: CTRE_MagEncoder_Relative
+        feedback_type: CTRE_MagEncoder_Absolute
     steering_joint_bl:
         joint: bl_angle
         close_loop_values:
@@ -137,5 +137,5 @@ swerve_drive_controller:
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
         invert_output: False
         sensor_phase: True
-        feedback_type: CTRE_MagEncoder_Relative
+        feedback_type: CTRE_MagEncoder_Absolute
 
