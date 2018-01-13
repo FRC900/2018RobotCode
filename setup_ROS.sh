@@ -71,5 +71,5 @@ rosdep install --from-paths . --ignore-src --rosdistro=kinetic -y
 
 source /opt/ros/kinetic/setup.bash
 
-cd ~/2018RobotCode/zebROS_ws/src
+cd ~/2018RobotCode/zebROS_ws
 catkin_make

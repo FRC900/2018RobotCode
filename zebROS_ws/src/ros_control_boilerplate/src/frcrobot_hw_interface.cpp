@@ -154,7 +154,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_joystick.msg_.rightStickX = joystick.GetRawAxis(4);
 			realtime_pub_joystick.msg_.rightStickY = joystick.GetRawAxis(5);
 
-          		realtime_pub_joystick.msg_.leftTrigger = joystick.GetRawAxis(2);
+			realtime_pub_joystick.msg_.leftTrigger = joystick.GetRawAxis(2);
 			realtime_pub_joystick.msg_.rightTrigger = joystick.GetRawAxis(3);
 
 			realtime_pub_joystick.msg_.buttonAButton = joystick.GetRawButton(1);
@@ -187,7 +187,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_joystick.msg_.buttonStartButton = joystick.GetRawButton(8);
 			realtime_pub_joystick.msg_.buttonStartPress = joystick.GetRawButtonPressed(8);
-           		realtime_pub_joystick.msg_.buttonStartRelease = joystick.GetRawButtonReleased(8);
+			realtime_pub_joystick.msg_.buttonStartRelease = joystick.GetRawButtonReleased(8);
 
 			realtime_pub_joystick.msg_.stickLeftButton = joystick.GetRawButton(9);
 			realtime_pub_joystick.msg_.stickLeftPress = joystick.GetRawButtonPressed(9);
@@ -232,41 +232,66 @@ void FRCRobotHWInterface::init(void)
 
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << can_talon_srx_names_[i] <<
+							  " as CAN id " << can_talon_srx_can_ids_[i]);
 		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i] /*, CAN update rate*/ ));
-
-		// Need config information for each talon
-		// Should probably be part of YAML params for controller
-		// set close loop ramp rate - same as above
-		// set voltage compensation rate
-		// set soft limits - forward/reverse limits and enables - yes
-		// set limit switch config - enable, NO/NC  - probably yes
-
-		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 0); // Make sure motor is stopped
+		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, timeoutMs); // Make sure motor is stopped
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << nidec_brushless_names_[i] <<
+							  " as PWM channel " << nidec_brushless_pwm_channels_[i] <<
+							  " / DIO channel " << nidec_brushless_dio_channels_[i] <<
+							  " invert " << nidec_brushless_inverts_[i]);
+		
 		nidec_brushlesses_.push_back(std::make_shared<frc::NidecBrushless>(nidec_brushless_pwm_channels_[i], nidec_brushless_dio_channels_[i]));
 		nidec_brushlesses_[i]->SetInverted(nidec_brushless_inverts_[i]);
 	}
 	for (size_t i = 0; i < num_digital_inputs_; i++)
 	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << digital_input_names_[i] <<
+							  " as Digitial Input " << digital_input_dio_channels_[i] <<
+							  " invert " << digital_input_inverts_[i]);
+		
 		digital_inputs_.push_back(std::make_shared<frc::DigitalInput>(digital_input_dio_channels_[i]));
 	}
 	for (size_t i = 0; i < num_digital_outputs_; i++)
 	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << digital_output_names_[i] <<
+							  " as Digitial Output " << digital_output_dio_channels_[i] <<
+							  " invert " << digital_output_inverts_[i]);
+		
 		digital_outputs_.push_back(std::make_shared<frc::DigitalOutput>(digital_output_dio_channels_[i]));
 	}
 	for (size_t i = 0; i < num_pwm_; i++)
 	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << digital_output_names_[i] <<
+							  " as Digitial Output " << digital_output_dio_channels_[i] <<
+							  " invert " << digital_output_inverts_[i]);
+
 		PWMs_.push_back(std::make_shared<frc::SafePWM>(pwm_pwm_channels_[i]));
 		PWMs_[i]->SetSafetyEnabled(false);
 	}
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << solenoid_names_[i] <<
+							  " as Solenoid " << solenoid_ids_[i]);
+		
 		solenoids_.push_back(std::make_shared<frc::Solenoid>(solenoid_ids_[i]));
 	}
 	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << double_solenoid_names_[i] <<
+							  " as Double Solenoid  forward " << double_solenoid_forward_ids_[i] <<
+							  " reverse " << double_solenoid_reverse_ids_[i]);
+		
 		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
 	}
 
@@ -277,67 +302,86 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
+		auto &ts = talon_state_[joint_id];
+		auto &talon = can_talons_[joint_id];
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
 
-		hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
-		hardware_interface::TalonMode talon_mode = talon_state_[joint_id].getTalonMode();
-		int encoder_cycle_per_revolution = talon_state_[joint_id].getEncoderCyclePerRevolution();
+		hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
+		hardware_interface::TalonMode talon_mode = ts.getTalonMode();
+		int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
 
-		double radians_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
-		double radians_per_second_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
-		double closed_loop_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, talon_mode, joint_id);
+		double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
+		double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
+		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
 
-		double position = can_talons_[joint_id]->GetSelectedSensorPosition(pidIdx) * radians_scale;
-		talon_state_[joint_id].setPosition(position);
+		double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
+		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
+		ts.setPosition(position);
 
-		double speed = can_talons_[joint_id]->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
-		talon_state_[joint_id].setSpeed(speed);
+		double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
+		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
+		ts.setSpeed(speed);
 
-		double bus_voltage = can_talons_[joint_id]->GetBusVoltage();
-		talon_state_[joint_id].setBusVoltage(bus_voltage);
+		double bus_voltage = talon->GetBusVoltage();
+		safeTalonCall(talon->GetLastError(), "GetBusVoltage");
+		ts.setBusVoltage(bus_voltage);
 
-		double motor_output_percent = can_talons_[joint_id]->GetMotorOutputPercent();
-		talon_state_[joint_id].setMotorOutputPercent(motor_output_percent);
+		double motor_output_percent = talon->GetMotorOutputPercent();
+		safeTalonCall(talon->GetLastError(), "GetMotorOutputPercent");
+		ts.setMotorOutputPercent(motor_output_percent);
 
-		double output_voltage = can_talons_[joint_id]->GetMotorOutputVoltage(); 
-		talon_state_[joint_id].setOutputVoltage(output_voltage);
-		double output_current = can_talons_[joint_id]->GetOutputCurrent();
-		talon_state_[joint_id].setOutputCurrent(output_current);
+		double output_voltage = talon->GetMotorOutputVoltage(); 
+		safeTalonCall(talon->GetLastError(), "GetMotorOutputVoltage");
+		ts.setOutputVoltage(output_voltage);
+		double output_current = talon->GetOutputCurrent();
+		safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
+		ts.setOutputCurrent(output_current);
 
-		double temperature = can_talons_[joint_id]->GetTemperature(); //returns in Celsius
-		talon_state_[joint_id].setTemperature(temperature);
+		double temperature = talon->GetTemperature(); //returns in Celsius
+		safeTalonCall(talon->GetLastError(), "GetTemperature");
+		ts.setTemperature(temperature);
 
 		//closed-loop
 
-		double closed_loop_error = can_talons_[joint_id]->GetClosedLoopError(pidIdx) * closed_loop_scale;
-		talon_state_[joint_id].setClosedLoopError(closed_loop_error);
-		ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << can_talons_[joint_id]->GetClosedLoopError(pidIdx));
+		double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
+		safeTalonCall(talon->GetLastError(), "GetClosedLoopError");
+		ts.setClosedLoopError(closed_loop_error);
 	
-		double integral_accumulator = can_talons_[joint_id]->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
-		talon_state_[joint_id].setIntegralAccumulator(integral_accumulator);
+		double integral_accumulator = talon->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
+		safeTalonCall(talon->GetLastError(), "GetIntegralAccumulator");
+		ts.setIntegralAccumulator(integral_accumulator);
 
-		double error_derivative = can_talons_[joint_id]->GetErrorDerivative(pidIdx) * closed_loop_scale;
-		talon_state_[joint_id].setErrorDerivative(error_derivative);
+		double error_derivative = talon->GetErrorDerivative(pidIdx) * closed_loop_scale;
+		safeTalonCall(talon->GetLastError(), "GetErrorDerivative");
+		ts.setErrorDerivative(error_derivative);
 
-		double closed_loop_target = can_talons_[joint_id]->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
-		talon_state_[joint_id].setClosedLoopTarget(closed_loop_target);
+		double closed_loop_target = talon->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
+		safeTalonCall(talon->GetLastError(), "GetClosedLoopTarget");
+		ts.setClosedLoopTarget(closed_loop_target);
 
 
-		double active_trajectory_position = can_talons_[joint_id]->GetActiveTrajectoryPosition() * radians_scale;
-		talon_state_[joint_id].setActiveTrajectoryPosition(active_trajectory_position);
-		double active_trajectory_velocity = can_talons_[joint_id]->GetActiveTrajectoryVelocity() * radians_per_second_scale;
-		talon_state_[joint_id].setActiveTrajectoryVelocity(active_trajectory_velocity);
-		double active_trajectory_heading = can_talons_[joint_id]->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
-		talon_state_[joint_id].setActiveTrajectoryHeading(active_trajectory_heading);
+#if 0 // no workie?
+		double active_trajectory_position = talon->GetActiveTrajectoryPosition() * radians_scale;
+		safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryPosition");
+		ts.setActiveTrajectoryPosition(active_trajectory_position);
+		double active_trajectory_velocity = talon->GetActiveTrajectoryVelocity() * radians_per_second_scale;
+		safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryVelocity");
+		ts.setActiveTrajectoryVelocity(active_trajectory_velocity);
+		double active_trajectory_heading = talon->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
+		safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
+		ts.setActiveTrajectoryHeading(active_trajectory_heading);
+#endif
 
-		if ((talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionProfile) || 
-			(talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionMagic))
+		if ((ts.getTalonMode() == hardware_interface::TalonMode_MotionProfile) || 
+			(ts.getTalonMode() == hardware_interface::TalonMode_MotionMagic))
 		{
-			talon_state_[joint_id].setMotionProfileTopLevelBufferCount(can_talons_[joint_id]->GetMotionProfileTopLevelBufferCount());
-			talon_state_[joint_id].setMotionProfileTopLevelBufferFull(can_talons_[joint_id]->IsMotionProfileTopLevelBufferFull());
+			ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
+			safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
+			ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
+			safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
 			ctre::phoenix::motion::MotionProfileStatus talon_status;
-			can_talons_[joint_id]->GetMotionProfileStatus(talon_status);
+			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
 			hardware_interface::MotionProfileStatus internal_status;
 			internal_status.topBufferRem = talon_status.topBufferRem;
@@ -350,12 +394,23 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.profileSlotSelect = talon_status.profileSlotSelect;
 			internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
 		
-			talon_state_[joint_id].setMotionProfileStatus(internal_status);
+			ts.setMotionProfileStatus(internal_status);
 		}
 
-		// TODO :: Fix me
-		//talon_state_[joint_id].setFwdLimitSwitch(can_talons_[joint_id]->IsFwdLimitSwitchClosed());
-		//talon_state_[joint_id].setRevLimitSwitch(can_talons_[joint_id]->IsRevLimitSwitchClosed());
+		ctre::phoenix::motorcontrol::Faults faults;
+		safeTalonCall(talon->GetFaults(faults), "GetFaults");
+		ts.setFaults(faults.ToBitfield());
+
+		// Grab limit switch and softlimit here
+		ts.setForwardLimitSwitch(faults.ForwardLimitSwitch);
+		ts.setReverseLimitSwitch(faults.ReverseLimitSwitch);
+
+		ts.setForwardSoftlimitHit(faults.ForwardSoftLimit);
+		ts.setReverseSoftlimitHit(faults.ReverseSoftLimit);
+
+		ctre::phoenix::motorcontrol::StickyFaults sticky_faults;
+		safeTalonCall(talon->GetStickyFaults(sticky_faults), "GetStickyFaults");
+		ts.setStickyFaults(sticky_faults.ToBitfield());
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -393,7 +448,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}
 }
 
-double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution,
+double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
 						hardware_interface::FeedbackDevice encoder_feedback,
 						hardware_interface::TalonMode talon_mode,
 						int joint_id)
@@ -402,9 +457,11 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution
 	{
 		switch (encoder_feedback)
 		{
+			case hardware_interface::FeedbackDevice_Uninitialized:
+				return 1.;
 			case hardware_interface::FeedbackDevice_QuadEncoder:
 			case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
-				return 2 * M_PI / (encoder_cycle_per_revolution * 4);
+				return 2 * M_PI / encoder_ticks_per_rotation;
 			case hardware_interface::FeedbackDevice_Analog:
 				return 2 * M_PI / 1024;
 			case hardware_interface::FeedbackDevice_Tachometer:
@@ -413,7 +470,7 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution
 			case hardware_interface::FeedbackDevice_RemoteSensor0:
 			case hardware_interface::FeedbackDevice_RemoteSensor1:
 			case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
-				ROS_WARN_STREAM("Unable to convert units.");
+				//ROS_WARN_STREAM("Unable to convert units.");
 				return 1.;
 			default:
 				ROS_WARN_STREAM("Invalid encoder feedback device. Unable to convert units.");
@@ -424,9 +481,11 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution
 	{
 		switch (encoder_feedback)
 		{
+			case hardware_interface::FeedbackDevice_Uninitialized:
+				return 1.;
 			case hardware_interface::FeedbackDevice_QuadEncoder:
 			case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
-				return 2 * M_PI / (encoder_cycle_per_revolution * 4) / .1;
+				return 2 * M_PI / encoder_ticks_per_rotation / .1;
 			case hardware_interface::FeedbackDevice_Analog:
 				return 2 * M_PI / 1024 / .1;
 			case hardware_interface::FeedbackDevice_Tachometer:
@@ -435,7 +494,7 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution
 			case hardware_interface::FeedbackDevice_RemoteSensor0:
 			case hardware_interface::FeedbackDevice_RemoteSensor1:
 			case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
-				ROS_WARN_STREAM("Unable to convert units.");
+				//ROS_WARN_STREAM("Unable to convert units.");
 				return 1.;
 			default:
 				ROS_WARN_STREAM("Invalid encoder feedback device. Unable to convert units.");
@@ -444,7 +503,7 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution
 	}
 	else 
 	{
-		ROS_WARN_STREAM("Unable to convert closed loop units.");
+		//ROS_WARN_STREAM("Unable to convert closed loop units.");
 		return 1.;
 	}
 }
@@ -474,6 +533,127 @@ double FRCRobotHWInterface::getRadiansPerSecConversionFactor(hardware_interface:
 }
 */
 
+bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, const std::string talon_method_name)
+{
+	std::string error_name;
+	switch (error_code)
+	{
+		case ctre::phoenix::OK :
+			return true; // Yay us!
+
+		case ctre::phoenix::CAN_MSG_STALE :
+			error_name = "CAN_MSG_STALE/CAN_TX_FULL/TxFailed";
+			break;
+		case ctre::phoenix::InvalidParamValue :
+			error_name = "InvalidParamValue/CAN_INVALID_PARAM";
+			break;
+		case ctre::phoenix::RxTimeout :
+			error_name = "RxTimeout/CAN_MSG_NOT_FOUND";
+			break;
+		case ctre::phoenix::TxTimeout :
+			error_name = "TxTimeout/CAN_NO_MORE_TX_JOBS";
+			break;
+		case ctre::phoenix::UnexpectedArbId :
+			error_name = "UnexpectedArbId/CAN_NO_SESSIONS_AVAIL";
+			break;
+		case ctre::phoenix::BufferFull :
+			error_name = "BufferFull/CAN_OVERFLOW";
+			break;
+		case ctre::phoenix::SensorNotPresent :
+			error_name = "SensorNotPresent";
+			break;
+		case ctre::phoenix::FirmwareTooOld :
+			error_name = "FirmwareTooOld";
+			break;
+		case ctre::phoenix::CouldNotChangePeriod :
+			error_name = "CouldNotChangePeriod";
+			break;
+
+		case ctre::phoenix::GENERAL_ERROR :
+			error_name = "GENERAL_ERROR";
+			break;
+
+		case ctre::phoenix::SIG_NOT_UPDATED :
+			error_name = "SIG_NOT_UPDATED";
+			break;
+		case ctre::phoenix::NotAllPIDValuesUpdated :
+			error_name = "NotAllPIDValuesUpdated";
+			break;
+
+		case ctre::phoenix::GEN_PORT_ERROR :
+			error_name = "GEN_PORT_ERROR";
+			break;
+		case ctre::phoenix::PORT_MODULE_TYPE_MISMATCH :
+			error_name = "PORT_MODULE_TYPE_MISMATCH";
+			break;
+
+		case ctre::phoenix::GEN_MODULE_ERROR :
+			error_name = "GEN_MODULE_ERROR";
+			break;
+		case ctre::phoenix::MODULE_NOT_INIT_SET_ERROR :
+			error_name = "MODULE_NOT_INIT_SET_ERROR";
+			break;
+		case ctre::phoenix::MODULE_NOT_INIT_GET_ERROR :
+			error_name = "MODULE_NOT_INIT_GET_ERROR";
+			break;
+
+		case ctre::phoenix::WheelRadiusTooSmall :
+			error_name = "WheelRadiusTooSmall";
+			break;
+		case ctre::phoenix::TicksPerRevZero :
+			error_name = "TicksPerRevZero";
+			break;
+		case ctre::phoenix::DistanceBetweenWheelsTooSmall :
+			error_name = "DistanceBetweenWheelsTooSmall";
+			break;
+		case ctre::phoenix::GainsAreNotSet :
+			error_name = "GainsAreNotSet";
+			break;
+		case ctre::phoenix::IncompatibleMode :
+			error_name = "IncompatibleMode";
+			break;
+		case ctre::phoenix::InvalidHandle :
+			error_name = "InvalidHandle";
+			break;
+
+
+		case ctre::phoenix::PulseWidthSensorNotPresent :
+			error_name = "PulseWidthSensorNotPresent";
+			break;
+		case ctre::phoenix::GeneralWarning :
+			error_name = "GeneralWarning";
+			break;
+		case ctre::phoenix::FeatureNotSupported :
+			error_name = "FeatureNotSupported";
+			break;
+		case ctre::phoenix::NotImplemented :
+			error_name = "NotImplemented";
+			break;
+		case ctre::phoenix::FirmVersionCouldNotBeRetrieved :
+			error_name = "FirmVersionCouldNotBeRetrieved";
+			break;
+		case ctre::phoenix::FeaturesNotAvailableYet :
+			error_name = "FeaturesNotAvailableYet";
+			break;
+		case ctre::phoenix::ControlModeNotValid :
+			error_name = "ControlModeNotValid";
+			break;
+
+		case ctre::phoenix::ControlModeNotSupportedYet :
+			error_name = "case";
+			break;
+		case ctre::phoenix::CascadedPIDNotSupporteYet:
+			error_name = "CascadedPIDNotSupporteYet";
+			break;
+		case ctre::phoenix::RemoteSensorsNotSupportedYet:
+			error_name = "RemoteSensorsNotSupportedYet";
+			break;
+		
+	}
+	ROS_ERROR_STREAM("Error calling " << talon_method_name << " : " << error_name);
+	return false;
+}
+
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
 	ROS_INFO_STREAM_THROTTLE(1, std::endl << std::string(__FILE__) << ":" << __LINE__ <<
@@ -481,31 +661,37 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
+		// Save some typing by making references to commonly
+		// used variables
+		auto &ts = talon_state_[joint_id];
+		auto &tc = talon_command_[joint_id];
+		auto &talon = can_talons_[joint_id];
 
-		hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
-		hardware_interface::TalonMode talon_mode = talon_state_[joint_id].getTalonMode();
-		int encoder_cycle_per_revolution = talon_state_[joint_id].getEncoderCyclePerRevolution();
+		hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
+		hardware_interface::TalonMode talon_mode = ts.getTalonMode();
+		int encoder_ticks_per_rotation = tc.getEncoderTicksPerRotation();
+		ts.setEncoderTicksPerRotation(encoder_ticks_per_rotation);
 
-		double radians_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
-		double radians_per_sec_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
-		double closed_loop_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, talon_mode, joint_id);
+		double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
+		double radians_per_sec_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
+		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
 
 		int slot;
-		if (talon_command_[joint_id].slotChanged(slot))
+		if (tc.slotChanged(slot))
 		{
 			ROS_INFO_STREAM("Updated joint " << joint_id << " PIDF slot to " << slot << std::endl);
 
-			can_talons_[joint_id]->SelectProfileSlot(slot, timeoutMs);
-			talon_state_[joint_id].setSlot(slot);
+			safeTalonCall(talon->SelectProfileSlot(slot, timeoutMs),"SelectProfileSlot");
+			ts.setSlot(slot);
 		}
 
 		hardware_interface::FeedbackDevice internal_feedback_device;
 		ctre::phoenix::motorcontrol::FeedbackDevice talon_feedback_device;
-		if (talon_command_[joint_id].encoderFeedbackChanged(internal_feedback_device) &&
-				convertFeedbackDevice(internal_feedback_device, talon_feedback_device))
+		if (tc.encoderFeedbackChanged(internal_feedback_device) &&
+			convertFeedbackDevice(internal_feedback_device, talon_feedback_device))
 		{
-			can_talons_[joint_id]->ConfigSelectedFeedbackSensor(talon_feedback_device, pidIdx, timeoutMs);
-			talon_state_[joint_id].setEncoderFeedback(internal_feedback_device);
+			safeTalonCall(talon->ConfigSelectedFeedbackSensor(talon_feedback_device, pidIdx, timeoutMs),"ConfigSelectedFeedbackSensor");
+			ts.setEncoderFeedback(internal_feedback_device);
 		}
 
 		double p;
@@ -517,56 +703,60 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double max_integral_accumulator;
 		for (int j = 0; j < 2; j++)
 		{
-			if (talon_command_[joint_id].pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, j))
+			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, j))
 			{
-				can_talons_[joint_id]->Config_kP(j, p, timeoutMs);
-				can_talons_[joint_id]->Config_kI(j, i, timeoutMs);
-				can_talons_[joint_id]->Config_kD(j, d, timeoutMs);
-				can_talons_[joint_id]->Config_kF(j, f, timeoutMs);
-				can_talons_[joint_id]->Config_IntegralZone(j, iz, timeoutMs);
-				can_talons_[joint_id]->ConfigAllowableClosedloopError(j, allowable_closed_loop_error, timeoutMs);
-				can_talons_[joint_id]->ConfigMaxIntegralAccumulator(j, max_integral_accumulator, timeoutMs);
+				safeTalonCall(talon->Config_kP(j, p, timeoutMs),"Config_kP");
+				safeTalonCall(talon->Config_kI(j, i, timeoutMs),"Config_kI");
+				safeTalonCall(talon->Config_kD(j, d, timeoutMs),"Config_kD");
+				safeTalonCall(talon->Config_kF(j, f, timeoutMs),"Config_kF");
+				safeTalonCall(talon->Config_IntegralZone(j, iz, timeoutMs),"Config_IntegralZone");
+				safeTalonCall(talon->ConfigAllowableClosedloopError(j, allowable_closed_loop_error, timeoutMs),"ConfigAllowableClosedloopError");
+				safeTalonCall(talon->ConfigMaxIntegralAccumulator(j, max_integral_accumulator, timeoutMs),"ConfigMaxIntegralAccumulator");
 
-				talon_state_[joint_id].setPidfP(p, j);
-				talon_state_[joint_id].setPidfI(i, j);
-				talon_state_[joint_id].setPidfD(d, j);
-				talon_state_[joint_id].setPidfF(f, j);
-				talon_state_[joint_id].setPidfIzone(iz, j);
-				talon_state_[joint_id].setAllowableClosedLoopError(allowable_closed_loop_error, j);
-				talon_state_[joint_id].setMaxIntegralAccumulator(max_integral_accumulator, j);
+				ts.setPidfP(p, j);
+				ts.setPidfI(i, j);
+				ts.setPidfD(d, j);
+				ts.setPidfF(f, j);
+				ts.setPidfIzone(iz, j);
+				ts.setAllowableClosedLoopError(allowable_closed_loop_error, j);
+				ts.setMaxIntegralAccumulator(max_integral_accumulator, j);
 			}
 		}
 
 		bool invert;
 		bool sensor_phase;
-		if (talon_command_[joint_id].invertChanged(invert, sensor_phase))
+		if (tc.invertChanged(invert, sensor_phase))
 		{
-			can_talons_[joint_id]->SetInverted(invert);
-			can_talons_[joint_id]->SetSensorPhase(sensor_phase);
-			talon_state_[joint_id].setInvert(invert);
-			talon_state_[joint_id].setSensorPhase(sensor_phase);
+			talon->SetInverted(invert);
+			safeTalonCall(talon->GetLastError(), "SetInverted");
+			talon->SetSensorPhase(sensor_phase);
+			safeTalonCall(talon->GetLastError(), "SetSensorPhase");
+			ts.setInvert(invert);
+			ts.setSensorPhase(sensor_phase);
 		}
 
 		hardware_interface::NeutralMode neutral_mode;
 		ctre::phoenix::motorcontrol::NeutralMode ctre_neutral_mode;
 
-		if (talon_command_[joint_id].neutralModeChanged(neutral_mode) &&
+		if (tc.neutralModeChanged(neutral_mode) &&
 				convertNeutralMode(neutral_mode, ctre_neutral_mode))
 		{
-			can_talons_[joint_id]->SetNeutralMode(ctre_neutral_mode);
-			talon_state_[joint_id].setNeutralMode(neutral_mode);
+			talon->SetNeutralMode(ctre_neutral_mode);
+			safeTalonCall(talon->GetLastError(), "SetNeutralMode");
+			ts.setNeutralMode(neutral_mode);
 		}
 
-		if (talon_command_[joint_id].neutralOutputChanged())
+		if (tc.neutralOutputChanged())
 		{
-			can_talons_[joint_id]->NeutralOutput();
-			talon_state_[joint_id].setNeutralOutput(true);
+			talon->NeutralOutput();
+			safeTalonCall(talon->GetLastError(), "NeutralOutput");
+			ts.setNeutralOutput(true);
 		}
 
 		double iaccum;
-		if (talon_command_[joint_id].integralAccumulatorChanged(iaccum))
+		if (tc.integralAccumulatorChanged(iaccum))
 		{
-			can_talons_[joint_id]->SetIntegralAccumulator((iaccum / closed_loop_scale), pidIdx, timeoutMs);
+			safeTalonCall(talon->SetIntegralAccumulator((iaccum / closed_loop_scale), pidIdx, timeoutMs),"SetIntegralAccumulator(");
 			// Do not set talon state - this changes
 			// dynamically so read it in read() above instead
 		}
@@ -578,43 +768,44 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double nominal_output_forward;
 		double nominal_output_reverse;
 		double neutral_deadband;
-		if (talon_command_[joint_id].outputShapingChanged(closed_loop_ramp,
-				open_loop_ramp,
-				peak_output_forward,
-				peak_output_reverse,
-				nominal_output_forward,
-				nominal_output_reverse,
-				neutral_deadband))
+		if (tc.outputShapingChanged(closed_loop_ramp,
+									open_loop_ramp,
+									peak_output_forward,
+									peak_output_reverse,
+									nominal_output_forward,
+									nominal_output_reverse,
+									neutral_deadband))
 		{
-			can_talons_[joint_id]->ConfigOpenloopRamp(open_loop_ramp, timeoutMs);
-			can_talons_[joint_id]->ConfigClosedloopRamp(closed_loop_ramp, timeoutMs);
-			can_talons_[joint_id]->ConfigPeakOutputForward(peak_output_forward, timeoutMs);
-			can_talons_[joint_id]->ConfigPeakOutputReverse(peak_output_reverse, timeoutMs);
-			can_talons_[joint_id]->ConfigNominalOutputForward(nominal_output_forward, timeoutMs);
-			can_talons_[joint_id]->ConfigNominalOutputReverse(nominal_output_reverse, timeoutMs);
-			can_talons_[joint_id]->ConfigNeutralDeadband(neutral_deadband, timeoutMs);
+			safeTalonCall(talon->ConfigOpenloopRamp(open_loop_ramp, timeoutMs),"ConfigOpenloopRamp");
+			safeTalonCall(talon->ConfigClosedloopRamp(closed_loop_ramp, timeoutMs),"ConfigClosedloopRamp");
+			safeTalonCall(talon->ConfigPeakOutputForward(peak_output_forward, timeoutMs),"ConfigPeakOutputForward");
+			safeTalonCall(talon->ConfigPeakOutputReverse(peak_output_reverse, timeoutMs),"ConfigPeakOutputReverse");
+			safeTalonCall(talon->ConfigNominalOutputForward(nominal_output_forward, timeoutMs),"ConfigNominalOutputForward");
+			safeTalonCall(talon->ConfigNominalOutputReverse(nominal_output_reverse, timeoutMs),"ConfigNominalOutputReverse");
+			safeTalonCall(talon->ConfigNeutralDeadband(neutral_deadband, timeoutMs),"ConfigNeutralDeadband");
 
-			talon_state_[joint_id].setOpenloopRamp(open_loop_ramp);
-			talon_state_[joint_id].setClosedloopRamp(closed_loop_ramp);
-			talon_state_[joint_id].setPeakOutputForward(peak_output_forward);
-			talon_state_[joint_id].setPeakOutputReverse(peak_output_reverse);
-			talon_state_[joint_id].setNominalOutputForward(nominal_output_forward);
-			talon_state_[joint_id].setNominalOutputReverse(nominal_output_reverse);
+			ts.setOpenloopRamp(open_loop_ramp);
+			ts.setClosedloopRamp(closed_loop_ramp);
+			ts.setPeakOutputForward(peak_output_forward);
+			ts.setPeakOutputReverse(peak_output_reverse);
+			ts.setNominalOutputForward(nominal_output_forward);
+			ts.setNominalOutputReverse(nominal_output_reverse);
 		}
 		double v_c_saturation;
 		int v_measurement_filter;
 		bool v_c_enable;
-		if (talon_command_[joint_id].VoltageCompensationChanged(v_c_saturation,
-				v_measurement_filter,
-				v_c_enable))
+		if (tc.VoltageCompensationChanged(v_c_saturation,
+										  v_measurement_filter,
+										  v_c_enable))
 		{
-			can_talons_[joint_id]->ConfigVoltageCompSaturation(v_c_saturation, timeoutMs);
-			can_talons_[joint_id]->ConfigVoltageMeasurementFilter(v_measurement_filter, timeoutMs);
-			can_talons_[joint_id]->EnableVoltageCompensation(v_c_enable);
+			safeTalonCall(talon->ConfigVoltageCompSaturation(v_c_saturation, timeoutMs),"ConfigVoltageCompSaturation");
+			safeTalonCall(talon->ConfigVoltageMeasurementFilter(v_measurement_filter, timeoutMs),"ConfigVoltageMeasurementFilter");
+			talon->EnableVoltageCompensation(v_c_enable);
+			safeTalonCall(talon->GetLastError(), "EnableVoltageCompensation");
 
-			talon_state_[joint_id].setVoltageCompensationSaturation(v_c_saturation);
-			talon_state_[joint_id].setVoltageMeasurementFilter(v_measurement_filter);
-			talon_state_[joint_id].setVoltageCompensationEnable(v_c_enable);
+			ts.setVoltageCompensationSaturation(v_c_saturation);
+			ts.setVoltageMeasurementFilter(v_measurement_filter);
+			ts.setVoltageCompensationEnable(v_c_enable);
 		}
 
 		hardware_interface::LimitSwitchSource internal_local_forward_source;
@@ -625,17 +816,17 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		ctre::phoenix::motorcontrol::LimitSwitchNormal talon_local_forward_normal;
 		ctre::phoenix::motorcontrol::LimitSwitchSource talon_local_reverse_source;
 		ctre::phoenix::motorcontrol::LimitSwitchNormal talon_local_reverse_normal;
-		if (talon_command_[joint_id].limitSwitchesSourceChanged(internal_local_forward_source, internal_local_forward_normal,
-				internal_local_reverse_source, internal_local_reverse_normal) &&
+		if (tc.limitSwitchesSourceChanged(internal_local_forward_source, internal_local_forward_normal,
+										  internal_local_reverse_source, internal_local_reverse_normal) &&
 				convertLimitSwitchSource(internal_local_forward_source, talon_local_forward_source) &&
 				convertLimitSwitchNormal(internal_local_forward_normal, talon_local_forward_normal) &&
 				convertLimitSwitchSource(internal_local_reverse_source, talon_local_reverse_source) &&
 				convertLimitSwitchNormal(internal_local_reverse_normal, talon_local_reverse_normal) )
 		{
-			can_talons_[joint_id]->ConfigForwardLimitSwitchSource(talon_local_forward_source, talon_local_forward_normal, timeoutMs);
-			can_talons_[joint_id]->ConfigReverseLimitSwitchSource(talon_local_reverse_source, talon_local_reverse_normal, timeoutMs);
-			talon_state_[joint_id].setForwardLimitSwitchSource(internal_local_forward_source, internal_local_forward_normal);
-			talon_state_[joint_id].setReverseLimitSwitchSource(internal_local_reverse_source, internal_local_reverse_normal);
+			safeTalonCall(talon->ConfigForwardLimitSwitchSource(talon_local_forward_source, talon_local_forward_normal, timeoutMs),"ConfigForwardLimitSwitchSource");
+			safeTalonCall(talon->ConfigReverseLimitSwitchSource(talon_local_reverse_source, talon_local_reverse_normal, timeoutMs),"ConfigReverseLimitSwitchSource");
+			ts.setForwardLimitSwitchSource(internal_local_forward_source, internal_local_forward_normal);
+			ts.setReverseLimitSwitchSource(internal_local_reverse_source, internal_local_reverse_normal);
 		}
 
 		double softlimit_forward_threshold;
@@ -643,7 +834,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double softlimit_reverse_threshold;
 		bool softlimit_reverse_enable;
 		bool softlimit_override_enable;
-		if (talon_command_[joint_id].SoftLimitChanged(softlimit_forward_threshold,
+		if (tc.SoftLimitChanged(softlimit_forward_threshold,
 				softlimit_forward_enable,
 				softlimit_reverse_threshold,
 				softlimit_reverse_enable,
@@ -652,64 +843,70 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			//TODO : scale forward and reverse thresholds
 			double softlimit_forward_threshold_NU = softlimit_forward_threshold / radians_scale; //native units
 			double softlimit_reverse_threshold_NU = softlimit_reverse_threshold / radians_scale;
-			can_talons_[joint_id]->ConfigForwardSoftLimitThreshold(softlimit_forward_threshold_NU, timeoutMs);
-			can_talons_[joint_id]->ConfigForwardSoftLimitEnable(softlimit_forward_enable, timeoutMs);
-			can_talons_[joint_id]->ConfigReverseSoftLimitThreshold(softlimit_reverse_threshold_NU, timeoutMs);
-			can_talons_[joint_id]->ConfigReverseSoftLimitEnable(softlimit_reverse_enable, timeoutMs);
-			can_talons_[joint_id]->OverrideSoftLimitsEnable(softlimit_override_enable);
-			talon_state_[joint_id].setForwardSoftLimitThreshold(softlimit_forward_threshold * radians_scale);
-			talon_state_[joint_id].setForwardSoftLimitEnable(softlimit_forward_enable);
-			talon_state_[joint_id].setReverseSoftLimitThreshold(softlimit_reverse_threshold * radians_scale);
-			talon_state_[joint_id].setReverseSoftLimitEnable(softlimit_reverse_enable);
-			talon_state_[joint_id].setOverrideSoftLimitsEnable(softlimit_override_enable);
+			safeTalonCall(talon->ConfigForwardSoftLimitThreshold(softlimit_forward_threshold_NU, timeoutMs),"ConfigForwardSoftLimitThreshold");
+			safeTalonCall(talon->ConfigForwardSoftLimitEnable(softlimit_forward_enable, timeoutMs),"ConfigForwardSoftLimitEnable");
+			safeTalonCall(talon->ConfigReverseSoftLimitThreshold(softlimit_reverse_threshold_NU, timeoutMs),"ConfigReverseSoftLimitThreshold");
+			safeTalonCall(talon->ConfigReverseSoftLimitEnable(softlimit_reverse_enable, timeoutMs),"ConfigReverseSoftLimitEnable");
+			talon->OverrideSoftLimitsEnable(softlimit_override_enable);
+			safeTalonCall(talon->GetLastError(), "OverrideSoftLimitsEnable");
+
+			ts.setForwardSoftLimitThreshold(softlimit_forward_threshold);
+			ts.setForwardSoftLimitEnable(softlimit_forward_enable);
+			ts.setReverseSoftLimitThreshold(softlimit_reverse_threshold);
+			ts.setReverseSoftLimitEnable(softlimit_reverse_enable);
+			ts.setOverrideSoftLimitsEnable(softlimit_override_enable);
 		}
 
 		int peak_amps;
 		int peak_msec;
 		int continuous_amps;
 		bool enable;
-		if (talon_command_[joint_id].currentLimitChanged(peak_amps, peak_msec, continuous_amps, enable))
+		if (tc.currentLimitChanged(peak_amps, peak_msec, continuous_amps, enable))
 		{
-			can_talons_[joint_id]->ConfigPeakCurrentLimit(peak_amps, timeoutMs);
-			can_talons_[joint_id]->ConfigPeakCurrentDuration(peak_msec, timeoutMs);
-			can_talons_[joint_id]->ConfigContinuousCurrentLimit(continuous_amps, timeoutMs);
-			can_talons_[joint_id]->EnableCurrentLimit(enable);
+			safeTalonCall(talon->ConfigPeakCurrentLimit(peak_amps, timeoutMs),"ConfigPeakCurrentLimit");
+			safeTalonCall(talon->ConfigPeakCurrentDuration(peak_msec, timeoutMs),"ConfigPeakCurrentDuration");
+			safeTalonCall(talon->ConfigContinuousCurrentLimit(continuous_amps, timeoutMs),"ConfigContinuousCurrentLimit");
+			talon->EnableCurrentLimit(enable);
+			safeTalonCall(talon->GetLastError(), "EnableCurrentLimit");
 
-			talon_state_[joint_id].setPeakCurrentLimit(peak_amps);
-			talon_state_[joint_id].setPeakCurrentDuration(peak_msec);
-			talon_state_[joint_id].setContinuousCurrentLimit(continuous_amps);
-			talon_state_[joint_id].setCurrentLimitEnable(enable);
+			ts.setPeakCurrentLimit(peak_amps);
+			ts.setPeakCurrentDuration(peak_msec);
+			ts.setContinuousCurrentLimit(continuous_amps);
+			ts.setCurrentLimitEnable(enable);
 		}
 
 		double motion_cruise_velocity;
 		double motion_acceleration;
-		if (talon_command_[joint_id].motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
+		if (tc.motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
 		{
-			talon_state_[joint_id].setMotionCruiseVelocity(motion_cruise_velocity * radians_per_sec_scale);
-			talon_state_[joint_id].setMotionAcceleration(motion_acceleration * radians_per_sec_scale / .1);
+			ts.setMotionCruiseVelocity(motion_cruise_velocity);
+			ts.setMotionAcceleration(motion_acceleration);
 
 			//converted from rad/sec to native units
-			can_talons_[joint_id]->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_sec_scale), timeoutMs);
-			can_talons_[joint_id]->ConfigMotionAcceleration((motion_acceleration / radians_per_sec_scale * .1), timeoutMs);
+			safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_sec_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
+			safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_sec_scale * .1), timeoutMs),"ConfigMotionAcceleration(");
 		}
 		// Do this before rest of motion profile stuff
 		// so it takes effect before starting a buffer?
 		int motion_control_frame_period;
-		if (talon_command_[joint_id].motionControlFramePeriodChanged(motion_control_frame_period))
+		if (tc.motionControlFramePeriodChanged(motion_control_frame_period))
 		{
-			can_talons_[joint_id]->ChangeMotionControlFramePeriod(motion_control_frame_period);
-			talon_state_[joint_id].setMotionControlFramePeriod(motion_control_frame_period);
+			safeTalonCall(talon->ChangeMotionControlFramePeriod(motion_control_frame_period),"ChangeMotionControlFramePeriod");
+			ts.setMotionControlFramePeriod(motion_control_frame_period);
 		}
 
-		if (talon_command_[joint_id].clearMotionProfileTrajectoriesChanged())
-			can_talons_[joint_id]->ClearMotionProfileTrajectories();
+		if (tc.clearMotionProfileTrajectoriesChanged())
+		{
+			talon->ClearMotionProfileTrajectories();
+			safeTalonCall(talon->GetLastError(), "ClearMotionProfileTrajectories");
+		}
 
-		if (talon_command_[joint_id].clearMotionProfileHasUnderrunChanged())
-			can_talons_[joint_id]->ClearMotionProfileHasUnderrun(timeoutMs);
+		if (tc.clearMotionProfileHasUnderrunChanged())
+			safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
 
 		std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
 
-		if (talon_command_[joint_id].motionProfileTrajectoriesChanged(trajectory_points))
+		if (tc.motionProfileTrajectoriesChanged(trajectory_points))
 		{
 			for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
 			{
@@ -720,7 +917,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				pt.profileSlotSelect = it->profileSlotSelect;
 				pt.isLastPoint = it->isLastPoint;
 				pt.zeroPos = it->zeroPos;
-				can_talons_[joint_id]->PushMotionProfileTrajectory(pt);
+				safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
 			}
 		}
 
@@ -729,31 +926,40 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double command;
 		hardware_interface::TalonMode in_mode;
 		ctre::phoenix::motorcontrol::ControlMode out_mode;
-		if ((talon_command_[joint_id].newMode(in_mode) ||
-			talon_command_[joint_id].commandChanged(command) ) &&
+		if ((tc.newMode(in_mode) || tc.commandChanged(command) ) &&
 			convertControlMode(in_mode, out_mode))
 		{
+			if ((joint_id == 4) || (joint_id == 5))
+				ROS_INFO_STREAM_THROTTLE(1, "Joint " << joint_id << "=" << can_talon_srx_names_[joint_id] << " in_mode = " << in_mode << " ros cmd = " << command );
+			
 			switch (out_mode)
 			{
-			case ctre::phoenix::motorcontrol::ControlMode::Velocity:
-				command /= radians_per_sec_scale;
-				break;
-			case ctre::phoenix::motorcontrol::ControlMode::Position:
-				command /= radians_scale;
-				break;
+				case ctre::phoenix::motorcontrol::ControlMode::Velocity:
+					command /= radians_per_sec_scale;
+					break;
+				case ctre::phoenix::motorcontrol::ControlMode::Position:
+					command /= radians_scale;
+					break;
 			}
-			can_talons_[joint_id]->Set(out_mode, command);
-			talon_state_[joint_id].setTalonMode(in_mode);
-			talon_state_[joint_id].setSetpoint(command);
-			talon_state_[joint_id].setNeutralOutput(false); // maybe make this a part of setSetpoint?
+
+			if ((joint_id == 4) || (joint_id == 5))
+				ROS_INFO_STREAM_THROTTLE(1, "\t\tout_mode = " << static_cast<int>(out_mode) << " talon cmd = " << command);
+			talon->Set(out_mode, command);
+			safeTalonCall(talon->GetLastError(), "Set");
+			ts.setTalonMode(in_mode);
+			ts.setSetpoint(command);
+			ts.setNeutralOutput(false); // maybe make this a part of setSetpoint?
 		}
 
 		// Do this last so that previously loaded trajectories and settings
 		// have been sent to the talon before processing
 		// Also do it after setting mode to make sure switches to
 		// motion profile mode are done before processing
-		if (talon_command_[joint_id].processMotionProfileBufferChanged())
-			can_talons_[joint_id]->ProcessMotionProfileBuffer();
+		if (tc.processMotionProfileBufferChanged())
+		{
+			talon->ProcessMotionProfileBuffer();
+			safeTalonCall(talon->GetLastError(), "ProcessMotionProfileBuffer");
+		}
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -777,6 +983,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 	for (size_t i = 0; i< num_double_solenoids_; i++)
 	{
+		// TODO - maybe check for < 0, 0, >0 and map to forward/reverse?
 		DoubleSolenoid::Value setpoint = static_cast<DoubleSolenoid::Value>(double_solenoid_command_[i]);
 		double_solenoids_[i]->Set(setpoint);
 	}
@@ -813,11 +1020,11 @@ bool FRCRobotHWInterface::convertControlMode(
 	case hardware_interface::TalonMode_MotionMagic:
 		output_mode = ctre::phoenix::motorcontrol::ControlMode::MotionMagic;
 		break;
-	case hardware_interface::TalonMode_TimedPercentOutput:
+	//case hardware_interface::TalonMode_TimedPercentOutput:
 		//output_mode = ctre::phoenix::motorcontrol::ControlMode::TimedPercentOutput;
-		output_mode = ctre::phoenix::motorcontrol::ControlMode::Disabled;
-		ROS_WARN("TimedPercentOutput mode seen in HW interface");
-		break;
+		//output_mode = ctre::phoenix::motorcontrol::ControlMode::Disabled;
+		//ROS_WARN("TimedPercentOutput mode seen in HW interface");
+		//break;
 	case hardware_interface::TalonMode_Disabled:
 		output_mode = ctre::phoenix::motorcontrol::ControlMode::Disabled;
 		break;

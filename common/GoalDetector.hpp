@@ -60,8 +60,8 @@ class GoalDetector
 		bool        _isValid;
 		float       _dist_to_goal;
 		float       _angle_to_goal;
-		cv::Rect    _goal_top_rect;
-		cv::Rect    _goal_bottom_rect;
+		cv::Rect    _goal_left_rect;
+		cv::Rect    _goal_right_rect;
 		cv::Point3f _goal_pos;
 
 		float       _min_valid_confidence;

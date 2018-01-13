@@ -98,6 +98,7 @@ class TalonCIParams
 			invert_output_ = config.invert_output;
 			sensor_phase_ = config.sensor_phase;
 			feedback_type_ = static_cast<hardware_interface::FeedbackDevice>(config.feedback_type);
+			ticks_per_rotation_ = config.encoder_ticks_per_rotation;
 			neutral_mode_ = static_cast<hardware_interface::NeutralMode>(config.neutral_mode);
 			closed_loop_ramp_ = config.closed_loop_ramp;
 			open_loop_ramp_ = config.open_loop_ramp;
@@ -151,6 +152,7 @@ class TalonCIParams
 			config.invert_output = invert_output_;
 			config.sensor_phase  = sensor_phase_;
 			config.feedback_type = feedback_type_;
+			config.encoder_ticks_per_rotation = ticks_per_rotation_;
 			config.neutral_mode  = neutral_mode_;
 			config.closed_loop_ramp = closed_loop_ramp_;
 			config.open_loop_ramp = open_loop_ramp_;
@@ -252,6 +254,9 @@ class TalonCIParams
 				ROS_ERROR("Invalid feedback device name given");
 				return false;
 			}
+			double dbl_val;
+			if (n.getParam("ticks_per_rotation", dbl_val))
+				ticks_per_rotation_ = dbl_val;
 			return true;
 		}
 
@@ -294,7 +299,6 @@ class TalonCIParams
 					izone_[i] = findIntParam("i_zone", pidparams_);
 					allowable_closed_loop_error_[i] = findIntParam("allowable_closed_loop_error", pidparams_);
 					max_integral_accumulator_[i] = findFloatParam("max_integral_accumulator", pidparams_);
-					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << izone_[i] << std::endl;
 				}
 				return true;
 			}
@@ -665,6 +669,9 @@ class TalonControllerInterface
 			talon_->setPidfSlot(params_.pidf_slot_);
 			talon_->setNeutralMode(params_.neutral_mode_);
 
+			talon_->setEncoderFeedback(params_.feedback_type_);
+			talon_->setEncoderTicksPerRotation(params_.ticks_per_rotation_);
+
 			talon_->setInvert(params_.invert_output_);
 			talon_->setSensorPhase(params_.sensor_phase_);
 
@@ -692,10 +699,12 @@ class TalonControllerInterface
 			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
 			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
+
+#if 0 // broken?
 			talon_->setMotionCruiseVelocity(params_.motion_cruise_velocity_);
 			talon_->setMotionAcceleration(params_.motion_acceleration_);
-
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
+#endif
 			return true;
 		}
 

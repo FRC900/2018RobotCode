@@ -181,6 +181,13 @@ ObjectType::ObjectType(int contour_type_id=1) {
 			contour_.push_back(Point2f(0,0.0122875187586));
 			name_ = "bottom_boiler_tape";
 			break;
+		case 6: //target on the switch fence (2018)
+			depth_ = 0;
+			contour_.push_back(Point2f(0,0));
+			contour_.push_back(Point2f(0,0.41));
+			contour_.push_back(Point2f(0.0508,0.41));
+			contour_.push_back(Point2f(0.0508,0));
+			name_ = "plate_location_tape";
 		default:
 			cerr << "error initializing object!" << endl;
 	}
