@@ -65,7 +65,6 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     bool stickRightButton = msg->stickRightButton;
     bool stickRightPress = msg->stickRightPress;
     bool stickRightRelease = msg->stickRightRelease;
-/*
     bool directionUpButton = msg->directionUpButton;
     bool directionUpPress = msg->directionUpPress;
     bool directionUpRelease = msg->directionUpRelease;
@@ -81,7 +80,6 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     bool directionRightButton = msg->directionRightButton;
     bool directionRightPress = msg->directionRightPress;
     bool directionRightRelease = msg->directionRightRelease;
-*/
     double scaledLeftStickX = 0-pow(deadzone(leftStickX), 3);
     double scaledLeftStickY = 0-pow(deadzone(leftStickY), 3);
 
@@ -152,7 +150,7 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
         msg.stickRightPress = stickRightPress;
         msg.stickRightRelease = stickRightRelease;
 
-        /*
+       
         msg.directionUpButton = directionUpButton;
         msg.directionUpPress = directionUpPress;
         msg.directionUpRelease = directionUpRelease;
@@ -168,7 +166,7 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
         msg.directionRightButton = directionRightButton;
         msg.directionRightPress = directionRightPress;
         msg.directionRightRelease = directionRightRelease;
-        */
+        
 
         ScaledValPub.publish(msg);
         ros::spinOnce();

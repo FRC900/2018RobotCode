@@ -26,7 +26,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
         Auto place - right Joy
         Toggles override each other and are turned off when the current toggle is pressed again - right joy press
     */
-    /*
     if(msg->directionUpPress == true) {
         //TODO call auto climb file
         ROS_INFO("Auto climb");
@@ -44,7 +43,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
             ROS_INFO("Deploy ramp");
         }
     }
-    */
     if(msg->buttonBButton == true && ifCube==true) {
         //TODO auto scale
         //call auto scale file with a contained while loop that listens
