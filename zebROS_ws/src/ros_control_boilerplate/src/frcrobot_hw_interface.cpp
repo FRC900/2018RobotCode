@@ -282,11 +282,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 		hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
 		hardware_interface::TalonMode talon_mode = talon_state_[joint_id].getTalonMode();
-		int encoder_cycle_per_revolution = talon_state_[joint_id].getEncoderCyclePerRevolution();
+		int encoder_ticks_per_rotation = talon_state_[joint_id].getEncoderTicksPerRotation();
 
-		double radians_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
-		double radians_per_second_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
-		double closed_loop_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, talon_mode, joint_id);
+		double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
+		double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
+		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
 
 		double position = can_talons_[joint_id]->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		talon_state_[joint_id].setPosition(position);
@@ -312,7 +312,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 		double closed_loop_error = can_talons_[joint_id]->GetClosedLoopError(pidIdx) * closed_loop_scale;
 		talon_state_[joint_id].setClosedLoopError(closed_loop_error);
-		ROS_INFO_STREAM_THROTTLE(1, std::endl << "ClosedLoopError:" << can_talons_[joint_id]->GetClosedLoopError(pidIdx));
 	
 		double integral_accumulator = can_talons_[joint_id]->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
 		talon_state_[joint_id].setIntegralAccumulator(integral_accumulator);
@@ -324,12 +323,14 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		talon_state_[joint_id].setClosedLoopTarget(closed_loop_target);
 
 
+#if 0 // no workie?
 		double active_trajectory_position = can_talons_[joint_id]->GetActiveTrajectoryPosition() * radians_scale;
 		talon_state_[joint_id].setActiveTrajectoryPosition(active_trajectory_position);
 		double active_trajectory_velocity = can_talons_[joint_id]->GetActiveTrajectoryVelocity() * radians_per_second_scale;
 		talon_state_[joint_id].setActiveTrajectoryVelocity(active_trajectory_velocity);
 		double active_trajectory_heading = can_talons_[joint_id]->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
 		talon_state_[joint_id].setActiveTrajectoryHeading(active_trajectory_heading);
+#endif
 
 		if ((talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionProfile) || 
 			(talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_MotionMagic))
@@ -393,7 +394,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}
 }
 
-double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution,
+double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
 						hardware_interface::FeedbackDevice encoder_feedback,
 						hardware_interface::TalonMode talon_mode,
 						int joint_id)
@@ -402,9 +403,11 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution
 	{
 		switch (encoder_feedback)
 		{
+			case hardware_interface::FeedbackDevice_Uninitialized:
+				return 1.;
 			case hardware_interface::FeedbackDevice_QuadEncoder:
 			case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
-				return 2 * M_PI / (encoder_cycle_per_revolution * 4);
+				return 2 * M_PI / (encoder_ticks_per_rotation * 4);
 			case hardware_interface::FeedbackDevice_Analog:
 				return 2 * M_PI / 1024;
 			case hardware_interface::FeedbackDevice_Tachometer:
@@ -413,7 +416,7 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution
 			case hardware_interface::FeedbackDevice_RemoteSensor0:
 			case hardware_interface::FeedbackDevice_RemoteSensor1:
 			case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
-				ROS_WARN_STREAM("Unable to convert units.");
+				//ROS_WARN_STREAM("Unable to convert units.");
 				return 1.;
 			default:
 				ROS_WARN_STREAM("Invalid encoder feedback device. Unable to convert units.");
@@ -424,9 +427,11 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution
 	{
 		switch (encoder_feedback)
 		{
+			case hardware_interface::FeedbackDevice_Uninitialized:
+				return 1.;
 			case hardware_interface::FeedbackDevice_QuadEncoder:
 			case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
-				return 2 * M_PI / (encoder_cycle_per_revolution * 4) / .1;
+				return 2 * M_PI / (encoder_ticks_per_rotation * 4) / .1;
 			case hardware_interface::FeedbackDevice_Analog:
 				return 2 * M_PI / 1024 / .1;
 			case hardware_interface::FeedbackDevice_Tachometer:
@@ -435,7 +440,7 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution
 			case hardware_interface::FeedbackDevice_RemoteSensor0:
 			case hardware_interface::FeedbackDevice_RemoteSensor1:
 			case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
-				ROS_WARN_STREAM("Unable to convert units.");
+				//ROS_WARN_STREAM("Unable to convert units.");
 				return 1.;
 			default:
 				ROS_WARN_STREAM("Invalid encoder feedback device. Unable to convert units.");
@@ -444,7 +449,7 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_cycle_per_revolution
 	}
 	else 
 	{
-		ROS_WARN_STREAM("Unable to convert closed loop units.");
+		//ROS_WARN_STREAM("Unable to convert closed loop units.");
 		return 1.;
 	}
 }
@@ -484,11 +489,12 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 		hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
 		hardware_interface::TalonMode talon_mode = talon_state_[joint_id].getTalonMode();
-		int encoder_cycle_per_revolution = talon_state_[joint_id].getEncoderCyclePerRevolution();
+		int encoder_ticks_per_rotation = talon_command_[joint_id].getEncoderTicksPerRotation();
+		talon_state_[joint_id].setEncoderTicksPerRotation(encoder_ticks_per_rotation);
 
-		double radians_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
-		double radians_per_sec_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
-		double closed_loop_scale = getConversionFactor(encoder_cycle_per_revolution, encoder_feedback, talon_mode, joint_id);
+		double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
+		double radians_per_sec_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
+		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
 
 		int slot;
 		if (talon_command_[joint_id].slotChanged(slot))
@@ -813,11 +819,11 @@ bool FRCRobotHWInterface::convertControlMode(
 	case hardware_interface::TalonMode_MotionMagic:
 		output_mode = ctre::phoenix::motorcontrol::ControlMode::MotionMagic;
 		break;
-	case hardware_interface::TalonMode_TimedPercentOutput:
+	//case hardware_interface::TalonMode_TimedPercentOutput:
 		//output_mode = ctre::phoenix::motorcontrol::ControlMode::TimedPercentOutput;
-		output_mode = ctre::phoenix::motorcontrol::ControlMode::Disabled;
-		ROS_WARN("TimedPercentOutput mode seen in HW interface");
-		break;
+		//output_mode = ctre::phoenix::motorcontrol::ControlMode::Disabled;
+		//ROS_WARN("TimedPercentOutput mode seen in HW interface");
+		//break;
 	case hardware_interface::TalonMode_Disabled:
 		output_mode = ctre::phoenix::motorcontrol::ControlMode::Disabled;
 		break;

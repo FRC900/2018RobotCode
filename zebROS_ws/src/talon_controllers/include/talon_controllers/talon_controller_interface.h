@@ -98,6 +98,7 @@ class TalonCIParams
 			invert_output_ = config.invert_output;
 			sensor_phase_ = config.sensor_phase;
 			feedback_type_ = static_cast<hardware_interface::FeedbackDevice>(config.feedback_type);
+			ticks_per_rotation_ = config.encoder_ticks_per_rotation;
 			neutral_mode_ = static_cast<hardware_interface::NeutralMode>(config.neutral_mode);
 			closed_loop_ramp_ = config.closed_loop_ramp;
 			open_loop_ramp_ = config.open_loop_ramp;
@@ -151,6 +152,7 @@ class TalonCIParams
 			config.invert_output = invert_output_;
 			config.sensor_phase  = sensor_phase_;
 			config.feedback_type = feedback_type_;
+			config.encoder_ticks_per_rotation = ticks_per_rotation_;
 			config.neutral_mode  = neutral_mode_;
 			config.closed_loop_ramp = closed_loop_ramp_;
 			config.open_loop_ramp = open_loop_ramp_;
@@ -252,6 +254,7 @@ class TalonCIParams
 				ROS_ERROR("Invalid feedback device name given");
 				return false;
 			}
+			n.getParam("ticks_per_rotation", ticks_per_rotation_);
 			return true;
 		}
 
@@ -664,6 +667,9 @@ class TalonControllerInterface
 			}
 			talon_->setPidfSlot(params_.pidf_slot_);
 			talon_->setNeutralMode(params_.neutral_mode_);
+
+			talon_->setEncoderFeedback(params_.feedback_type_);
+			talon_->setEncoderTicksPerRotation(params_.ticks_per_rotation_);
 
 			talon_->setInvert(params_.invert_output_);
 			talon_->setSensorPhase(params_.sensor_phase_);

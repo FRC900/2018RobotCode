@@ -255,6 +255,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	// Publish limited velocity:
 	//controller_nh.param("publish_cmd", publish_cmd_, publish_cmd_);
 
+	// TODO : see if model_, driveRatios, units can be local instead of member vars
 	// If either parameter is not available, we need to look up the value in the URDF
 	//bool lookup_wheel_coordinates = !controller_nh.getParam("wheel_coordinates", wheel_coordinates_);
 	bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius_);
@@ -262,6 +263,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	bool lookup_mass = !controller_nh.getParam("mass", model_.mass);
 	bool lookup_motor_free_speed = !controller_nh.getParam("motor_free_speed", model_.motorFreeSpeed);
 	bool lookup_motor_stall_torque = !controller_nh.getParam("motor_stall_torque", model_.motorStallTorque);
+	// TODO : why not just use the number of wheels read from yaml?
 	bool lookup_motor_quantity = !controller_nh.getParam("motor_quantity", model_.motorQuantity);
 	bool lookup_file_name = !controller_nh.getParam("file_name", filename_);
 	bool lookup_invert_wheel_angle = !controller_nh.getParam("invert_wheel_angle", invertWheelAngle_);
@@ -300,12 +302,12 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	// TODO : all of these need to be read from params
 	/*
 	model.maxSpeed = 3.3528;
-	model.wheelRadius =  wheel_radius_;
 	model.mass = 70;
 	model.motorFreeSpeed = 5330;
 	model.motorStallTorque = 2.41;
 	model.motorQuantity = 4;
 	*/
+	model_.wheelRadius =  wheel_radius_;
 
 	Eigen::Vector2d wheel1 = { -.3, .3};
 	Eigen::Vector2d wheel3 = {.3, .3};
