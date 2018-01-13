@@ -48,3 +48,19 @@ bool stickLeftRelease
 bool stickRightButton
 bool stickRightPress
 bool stickRightRelease
+
+bool directionUpButton
+bool directionUpPress
+bool directionUpRelease
+
+bool directionDownButton
+bool directionDownPress
+bool directionDownRelease
+
+bool directionLeftButton
+bool directionLeftPress
+bool directionLeftRelease
+
+bool directionRightButton
+bool directionRightPress
+bool directionRightRelease
