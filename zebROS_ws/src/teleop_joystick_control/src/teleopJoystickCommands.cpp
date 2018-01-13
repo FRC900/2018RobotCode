@@ -3,6 +3,7 @@
 #include "ros_control_boilerplate/JoystickState.h"
 #include "teleop_joystick_control/RobotState.h"
 
+#include <string>
 
 bool ifCube;
 double elevatorHeight;
@@ -25,11 +26,16 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
         Auto place - right Joy
         Toggles override each other and are turned off when the current toggle is pressed again - right joy press
     */
-    if(msg->buttonAButton == true) {
+    /*
+    if(msg->directionUpPress == true) {
         //TODO call auto climb file
         ROS_INFO("Auto climb");
     }
-    if(msg->buttonXPress == true) {
+    if(msg->directionUpRelease == true) {
+        //TODO stop auto climb
+        //publish a stop message?
+    }
+    if(msg->directionRightPress == true) {
         lastTimeSecs = timeSecs;
         timeSecs = ros::Time::now().toSec();
         if(timeSecs - lastTimeSecs< 1.0) {
@@ -38,6 +44,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
             ROS_INFO("Deploy ramp");
         }
     }
+    */
     if(msg->buttonBButton == true && ifCube==true) {
         //TODO auto scale
         //call auto scale file with a contained while loop that listens
@@ -55,10 +62,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
         }
 
         lastToggle = currentToggle;
+        //exchange height toggle
         if(msg->buttonXPress==true) {
             currentToggle = 'X';
             if(lastToggle==' ') {
-                elevatorHeightBefore = ' '; //TODO access elevator height
+                elevatorHeightBefore = elevatorHeight; //TODO access elevator height
                 ROS_INFO("ElevatorHeightbefore set");
             }
             if(currentToggle == lastToggle) {
@@ -71,10 +79,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
                 ROS_INFO("Toggled to exchange height");
             }
         }   
+
+        //switch height toggle
         if(msg->buttonYPress==true) {
             currentToggle = 'Y';
             if(lastToggle==' ') {
-                elevatorHeightBefore = ' '; //TODO access elevator height
+                elevatorHeightBefore = elevatorHeight; //TODO access elevator height
                 ROS_INFO("ElevatorHeightbefore set");
             }
             if(currentToggle == lastToggle) {
@@ -92,21 +102,18 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
     double leftStickX = msg->leftStickX;//TODO publish twist message for drivetrain and elevator/pivot
     double leftStickY = msg->leftStickY;
     //TODO BUMPERS FOR SLOW MODE
-    if(leftStickX != 0) {
-        ROS_INFO("leftStickX: ");
-    }
-    if(leftStickY!=0) {
-        ROS_INFO("leftStickY: ");
-    } 
-    if(msg->leftTrigger>0.5) {
-        //TODO rotate left
-        ROS_INFO("Rotate left");
-    }
-    if(msg->rightTrigger>0.5) {
-        //TODO rotate right
-        ROS_INFO("Rotate right");
-    }
-
+    ROS_INFO("leftStickX: %f", leftStickX);
+    ROS_INFO("leftStickY: %f", leftStickY);
+    double rightStickX = msg->rightStickX;//TODO publish twist message for drivetrain and elevator/pivot
+    double rightStickY = msg->rightStickY;
+    //TODO BUMPERS FOR SLOW MODE
+    ROS_INFO("rightStickX: %f", rightStickX);
+    ROS_INFO("rightStickY: %f", rightStickY);
+    //TODO rotate left
+    ROS_INFO("Rotate left: %f", msg->leftTrigger);
+    //TODO rotate right
+    ROS_INFO("Rotate right: %f", msg->rightTrigger);
+    ROS_INFO("\n");
             
 }
 
@@ -119,9 +126,7 @@ void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &msg) {
         ifCube = false;
         ROS_INFO("I has no cube");
     }
-    if(msg->elevatorHeight!=NULL) {
-        elevatorHeight = msg->elevatorHeight;
-    }
+    elevatorHeight = msg->elevatorHeight;
 }
 int main(int argc, char **argv) {
     ros::init(argc, argv, "scaled_joystick_state_subscriber");

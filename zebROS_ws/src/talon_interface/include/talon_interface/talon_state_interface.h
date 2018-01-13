@@ -150,7 +150,7 @@ class TalonHWState
 			neutral_mode_(NeutralMode_Uninitialized),
 			neutral_output_(false),
 			encoder_feedback_(FeedbackDevice_Uninitialized),
-			encoder_cycle_per_revolution_(1024),
+			encoder_ticks_per_rotation_(4096),
 
 			//output shaping
 			close_loop_ramp_(0),
@@ -371,9 +371,9 @@ class TalonHWState
 		{
 			return encoder_feedback_;
 		}
-		int getEncoderCyclePerRevolution(void) 	const
+		int getEncoderTicksPerRotation(void) 	const
 		{
-			return encoder_cycle_per_revolution_;
+			return encoder_ticks_per_rotation_;
 		}
 
 		void setSetpoint(double setpoint)
@@ -777,9 +777,9 @@ class TalonHWState
 			else
 				ROS_WARN_STREAM("Invalid feedback device requested");
 		}
-		void setEncoderCyclePerRevolution(int encoder_cycle_per_revolution)
+		void setEncoderTicksPerRotation(int encoder_ticks_per_rotation)
 		{
-			encoder_cycle_per_revolution_ = encoder_cycle_per_revolution;
+			encoder_ticks_per_rotation_ = encoder_ticks_per_rotation;
 		}
 
 	private:
@@ -819,7 +819,7 @@ class TalonHWState
 		bool        neutral_output_;
 
 		FeedbackDevice encoder_feedback_;
-		int encoder_cycle_per_revolution_;
+		int encoder_ticks_per_rotation_;
 
 		// output shaping
 		double close_loop_ramp_;
