@@ -345,7 +345,7 @@ class TalonHWCommand
 		void setNeutralMode(NeutralMode neutral_mode)
 		{
 			if (neutral_mode == NeutralMode_Uninitialized)
-				return;
+				return; // Don't warn on this?
 			else if ((neutral_mode < NeutralMode_Uninitialized) ||
 					 (neutral_mode >= NeutralMode_Last))
 			{

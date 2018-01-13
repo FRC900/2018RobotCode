@@ -299,7 +299,6 @@ class TalonCIParams
 					izone_[i] = findIntParam("i_zone", pidparams_);
 					allowable_closed_loop_error_[i] = findIntParam("allowable_closed_loop_error", pidparams_);
 					max_integral_accumulator_[i] = findFloatParam("max_integral_accumulator", pidparams_);
-					std::cout << "p_value = " << p_[i] << " i_value = " << i_[i] << " d_value = " << d_[i] << " f_value = " << f_[i] << " i _zone value = " << izone_[i] << std::endl;
 				}
 				return true;
 			}
