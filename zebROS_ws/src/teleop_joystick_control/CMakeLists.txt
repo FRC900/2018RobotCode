@@ -42,8 +42,8 @@ find_package(Eigen3 REQUIRED)
 
 
 catkin_package(
-  INCLUDE_DIRS
-    include
+#  INCLUDE_DIRS
+#    include
   CATKIN_DEPENDS
     hardware_interface
     controller_manager
@@ -58,7 +58,7 @@ catkin_package(
     sensor_msgs
     rosparam_shortcuts
     message_runtime
-	ros_control_boilerplate
+    ros_control_boilerplate
   LIBRARIES
 )
 

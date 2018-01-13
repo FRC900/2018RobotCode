@@ -21,7 +21,13 @@ swerve::swerve(array<Vector2d, WHEELCOUNT> wheelCoordinates, string fileName, bo
 	drive_ = drive;
 	fileName_ = fileName;
 	wheelAngleInvert_ = wheelAngleInvert ? -1 : 1;
-	ifstream offsetRead;
+	
+	// Hard-coded offsets
+	offsets_[1] = 2.1353; // fr_steering
+	offsets_[3] = 0;//2.01565; // br_steering
+	offsets_[2] = 0;//0.12732; // bl_steering
+	offsets_[0] = 0;//5.14651; // fl_steering
+	/*ifstream offsetRead;
 	offsetRead.open(fileName);
 	if (!offsetRead)
 	{
@@ -40,7 +46,7 @@ swerve::swerve(array<Vector2d, WHEELCOUNT> wheelCoordinates, string fileName, bo
 			offsets_[i] = offset;
 			i++;
 		}
-	}
+	}*/
 
 	// TODO : this shouldn't be hard-coded
 	setCenterOfRotation(0, {0,0});
@@ -80,8 +86,8 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 			getWheelAngle(i, encoderPosition_[i]);
 			nearestangle = leastDistantAngleWithinHalfPi(encoderPosition_[i], speedsAndAngles[i][1], reverse);
 			reverses[i] = reverse;
-			speedsAndAngles[i][0] *= ((drive_.maxSpeed / (drive_.wheelRadius * 2.0 * M_PI)) / ratio_.encodertoRotations) * units_.rotationSetV * (reverse ? -1 : 1);
-			speedsAndAngles[i][1] = (nearestangle / (2.0 * M_PI)) * units_.steeringSet - offsets_[i];
+			speedsAndAngles[i][0] *= ((drive_.maxSpeed / (drive_.wheelRadius)) / ratio_.encodertoRotations) * units_.rotationSetV * (reverse ? -1 : 1);
+			speedsAndAngles[i][1] *= units_.steeringSet - offsets_[i];
 		}
 	}
 	else
@@ -95,7 +101,7 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 			bool reverse;
 			getWheelAngle(i, encoderPosition_[i]);
 			nearestangle = leastDistantAngleWithinHalfPi(encoderPosition_[i], speedsAndAngles[i][1], reverse);
-			speedsAndAngles[i][1] = (nearestangle / (2 * M_PI)) * units_.steeringSet - offsets_[i];
+			speedsAndAngles[i][1] *= units_.steeringSet - offsets_[i];
 		}
 
 	}
@@ -137,7 +143,7 @@ Vector2d calculateOdom()
 
 double swerve::getWheelAngle(int index, double pos) const
 {
-	return (pos + offsets_[index]) * units_.steeringGet * 2. * M_PI * wheelAngleInvert_;
+	return (pos + offsets_[index]) * units_.steeringGet * wheelAngleInvert_;
 }
 
 double swerve::furthestWheel(Vector2d centerOfRotation) const

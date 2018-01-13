@@ -14,10 +14,10 @@ hardware_interface:
        - {name: fl_angle, type: can_talon_srx, can_id: 11}
        - {name: fr_drive, type: can_talon_srx, can_id: 22}
        - {name: fr_angle, type: can_talon_srx, can_id: 12}
-       - {name: br_drive, type: can_talon_srx, can_id: 23}
-       - {name: br_angle, type: can_talon_srx, can_id: 13}
-       - {name: bl_drive, type: can_talon_srx, can_id: 24}
-       - {name: bl_angle, type: can_talon_srx, can_id: 14}
+       - {name: br_drive, type: can_talon_srx, can_id: 24}
+       - {name: br_angle, type: can_talon_srx, can_id: 14}
+       - {name: bl_drive, type: can_talon_srx, can_id: 23}
+       - {name: bl_angle, type: can_talon_srx, can_id: 13}
 
    # Add more data for each joint here - intitial mode, encoder type
    #    PIDF settings, limit switch settings, etc
@@ -59,7 +59,7 @@ swerve_drive_controller:
     pose_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     # fix me
-    wheel_radius: 0.0762
+    wheel_radius: 0.08255 # m
     max_speed: 3.3528
     mass: 70
     motor_free_speed: 5330
@@ -67,11 +67,11 @@ swerve_drive_controller:
     motor_quantity: 4
     file_name: "offsets.txt"
     invert_wheel_angle: False
-    ratio_encoder_to_rotations: 20
-    ratio_motor_to_rotations: 7
-    ratio_motor_to_steering: 7
-    encoder_drive_get_V_units: 1 
-    encoder_drive_set_V_units: 1
+    ratio_encoder_to_rotations: 1
+    ratio_motor_to_rotations: 2  
+    ratio_motor_to_steering: 100 # that's what Bram said
+    encoder_drive_get_V_units: 6.2831853
+    encoder_drive_set_V_units: 6.2831853
     encoder_drive_get_P_units: 1 
     encoder_drive_set_P_units: 1
     encoder_steering_get_units: 1
@@ -83,28 +83,28 @@ swerve_drive_controller:
         close_loop_values:
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
-        sensor_phase: False
+        sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
     speed_joint_fr:
         joint: fr_drive #fix pid
         close_loop_values:
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
-        sensor_phase: False
+        sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
     speed_joint_bl:
         joint: bl_drive #fix pid
         close_loop_values:
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
-        sensor_phase: False
+        sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
     speed_joint_br:
         joint: br_drive #fix pid
         close_loop_values:
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
-        sensor_phase: False
+        sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
     steering_joint_fl:
         joint: fl_angle
@@ -112,7 +112,7 @@ swerve_drive_controller:
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
         invert_output: False
-        sensor_phase: False
+        sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
     steering_joint_fr:
         joint: fr_angle
@@ -120,7 +120,7 @@ swerve_drive_controller:
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
         invert_output: False
-        sensor_phase: False
+        sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
     steering_joint_br:
         joint: br_angle
@@ -128,7 +128,7 @@ swerve_drive_controller:
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
         invert_output: False
-        sensor_phase: False
+        sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
     steering_joint_bl:
         joint: bl_angle
@@ -136,6 +136,6 @@ swerve_drive_controller:
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
             - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
         invert_output: False
-        sensor_phase: False
+        sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
 
