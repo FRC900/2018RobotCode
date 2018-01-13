@@ -60,105 +60,106 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 						realtime_tools::RealtimePublisher<talon_state_controller::TalonState>(root_nh, "talon_states",
 								4));
 
+	auto &m = realtime_pub_->msg_;
 	// get joints and allocate message
 	for (unsigned i = 0; i < num_hw_joints_; i++)
 	{
-		realtime_pub_->msg_.name.push_back(joint_names[i]);
-		realtime_pub_->msg_.talon_mode.push_back("");
-		realtime_pub_->msg_.position.push_back(0.0);
-		realtime_pub_->msg_.speed.push_back(0.0);
-		realtime_pub_->msg_.output_voltage.push_back(0.0);
-		realtime_pub_->msg_.output_current.push_back(0.0);
-		realtime_pub_->msg_.bus_voltage.push_back(0.0);
-		realtime_pub_->msg_.motor_output_percent.push_back(0.0);
-		realtime_pub_->msg_.temperature.push_back(0.0);
+		m.name.push_back(joint_names[i]);
+		m.talon_mode.push_back("");
+		m.position.push_back(0.0);
+		m.speed.push_back(0.0);
+		m.output_voltage.push_back(0.0);
+		m.output_current.push_back(0.0);
+		m.bus_voltage.push_back(0.0);
+		m.motor_output_percent.push_back(0.0);
+		m.temperature.push_back(0.0);
 
-		realtime_pub_->msg_.feedback_sensor.push_back("");
-		realtime_pub_->msg_.encoder_ticks_per_rotation.push_back(0);
+		m.feedback_sensor.push_back("");
+		m.encoder_ticks_per_rotation.push_back(0);
 
-		realtime_pub_->msg_.pid_slot.push_back(0);
-		realtime_pub_->msg_.pid_p0.push_back(0.0);
-		realtime_pub_->msg_.pid_p1.push_back(0.0);
+		m.pid_slot.push_back(0);
+		m.pid_p0.push_back(0.0);
+		m.pid_p1.push_back(0.0);
 
-		realtime_pub_->msg_.pid_i0.push_back(0.0);
-		realtime_pub_->msg_.pid_i1.push_back(0.0);
+		m.pid_i0.push_back(0.0);
+		m.pid_i1.push_back(0.0);
 
-		realtime_pub_->msg_.pid_d0.push_back(0.0);
-		realtime_pub_->msg_.pid_d1.push_back(0.0);
+		m.pid_d0.push_back(0.0);
+		m.pid_d1.push_back(0.0);
 
-		realtime_pub_->msg_.pid_f0.push_back(0.0);
-		realtime_pub_->msg_.pid_f1.push_back(0.0);
+		m.pid_f0.push_back(0.0);
+		m.pid_f1.push_back(0.0);
 
-		realtime_pub_->msg_.pid_izone0.push_back(0);
-		realtime_pub_->msg_.pid_izone1.push_back(0);
-		realtime_pub_->msg_.pid_allowable_closed_loop_error0.push_back(0);
-		realtime_pub_->msg_.pid_allowable_closed_loop_error1.push_back(0);
-		realtime_pub_->msg_.pid_max_integral_accumulator0.push_back(0);
-		realtime_pub_->msg_.pid_max_integral_accumulator1.push_back(0);
-		realtime_pub_->msg_.set_point.push_back(0.0);
-		realtime_pub_->msg_.can_id.push_back(0);
-		realtime_pub_->msg_.closed_loop_error.push_back(0);
-		realtime_pub_->msg_.integral_accumulator.push_back(0);
-		realtime_pub_->msg_.error_derivative.push_back(0);
-		realtime_pub_->msg_.closed_loop_target.push_back(0);
-		realtime_pub_->msg_.active_trajectory_position.push_back(0);
-		realtime_pub_->msg_.active_trajectory_velocity.push_back(0);
-		realtime_pub_->msg_.active_trajectory_heading.push_back(0);
-		realtime_pub_->msg_.forward_limit_switch.push_back(false);
-		realtime_pub_->msg_.reverse_limit_switch.push_back(false);
-		realtime_pub_->msg_.forward_softlimit.push_back(false);
-		realtime_pub_->msg_.reverse_softlimit.push_back(false);
-		realtime_pub_->msg_.invert.push_back(false);
-		realtime_pub_->msg_.sensorPhase.push_back(false);
-		realtime_pub_->msg_.neutral_mode.push_back("");
-		realtime_pub_->msg_.neutral_output.push_back(false);
+		m.pid_izone0.push_back(0);
+		m.pid_izone1.push_back(0);
+		m.pid_allowable_closed_loop_error0.push_back(0);
+		m.pid_allowable_closed_loop_error1.push_back(0);
+		m.pid_max_integral_accumulator0.push_back(0);
+		m.pid_max_integral_accumulator1.push_back(0);
+		m.set_point.push_back(0.0);
+		m.can_id.push_back(0);
+		m.closed_loop_error.push_back(0);
+		m.integral_accumulator.push_back(0);
+		m.error_derivative.push_back(0);
+		m.closed_loop_target.push_back(0);
+		m.active_trajectory_position.push_back(0);
+		m.active_trajectory_velocity.push_back(0);
+		m.active_trajectory_heading.push_back(0);
+		m.forward_limit_switch.push_back(false);
+		m.reverse_limit_switch.push_back(false);
+		m.forward_softlimit.push_back(false);
+		m.reverse_softlimit.push_back(false);
+		m.invert.push_back(false);
+		m.sensorPhase.push_back(false);
+		m.neutral_mode.push_back("");
+		m.neutral_output.push_back(false);
 
-		realtime_pub_->msg_.closed_loop_ramp.push_back(0);
-		realtime_pub_->msg_.open_loop_ramp.push_back(0);
-		realtime_pub_->msg_.peak_output_forward.push_back(0);
-		realtime_pub_->msg_.peak_output_reverse.push_back(0);
-		realtime_pub_->msg_.nominal_output_forward.push_back(0);
-		realtime_pub_->msg_.nominal_output_reverse.push_back(0);
-		realtime_pub_->msg_.neutral_deadband.push_back(0);
+		m.closed_loop_ramp.push_back(0);
+		m.open_loop_ramp.push_back(0);
+		m.peak_output_forward.push_back(0);
+		m.peak_output_reverse.push_back(0);
+		m.nominal_output_forward.push_back(0);
+		m.nominal_output_reverse.push_back(0);
+		m.neutral_deadband.push_back(0);
 
-		realtime_pub_->msg_.voltage_compensation_saturation.push_back(0);
-		realtime_pub_->msg_.voltage_measurement_filter.push_back(0);
-		realtime_pub_->msg_.voltage_compensation_enable.push_back(false);
+		m.voltage_compensation_saturation.push_back(0);
+		m.voltage_measurement_filter.push_back(0);
+		m.voltage_compensation_enable.push_back(false);
 
-		realtime_pub_->msg_.limit_switch_local_forward_source.push_back("");
-		realtime_pub_->msg_.limit_switch_local_forward_normal.push_back("");
-		realtime_pub_->msg_.limit_switch_local_reverse_source.push_back("");
-		realtime_pub_->msg_.limit_switch_local_reverse_normal.push_back("");
-		realtime_pub_->msg_.softlimit_forward_threshold.push_back(0);
-		realtime_pub_->msg_.softlimit_forward_enable.push_back(false);
-		realtime_pub_->msg_.softlimit_reverse_threshold.push_back(0);
-		realtime_pub_->msg_.softlimit_reverse_enable.push_back(false);
-		realtime_pub_->msg_.softlimits_override_enable.push_back(false);
+		m.limit_switch_local_forward_source.push_back("");
+		m.limit_switch_local_forward_normal.push_back("");
+		m.limit_switch_local_reverse_source.push_back("");
+		m.limit_switch_local_reverse_normal.push_back("");
+		m.softlimit_forward_threshold.push_back(0);
+		m.softlimit_forward_enable.push_back(false);
+		m.softlimit_reverse_threshold.push_back(0);
+		m.softlimit_reverse_enable.push_back(false);
+		m.softlimits_override_enable.push_back(false);
 
-		realtime_pub_->msg_.current_limit_peak_amps.push_back(0);
-		realtime_pub_->msg_.current_limit_peak_msec.push_back(0);
-		realtime_pub_->msg_.current_limit_continuous_amps.push_back(0);
-		realtime_pub_->msg_.current_limit_enable.push_back(false);
+		m.current_limit_peak_amps.push_back(0);
+		m.current_limit_peak_msec.push_back(0);
+		m.current_limit_continuous_amps.push_back(0);
+		m.current_limit_enable.push_back(false);
 
-		realtime_pub_->msg_.motion_cruise_velocity.push_back(0);
-		realtime_pub_->msg_.motion_acceleration.push_back(0);
-		realtime_pub_->msg_.motion_profile_top_level_buffer_count.push_back(0);
-		realtime_pub_->msg_.motion_profile_top_level_buffer_full.push_back(false);
-		realtime_pub_->msg_.motion_profile_status_top_buffer_rem.push_back(0);
-		realtime_pub_->msg_.motion_profile_status_top_buffer_cnt.push_back(0);
-		realtime_pub_->msg_.motion_profile_status_btm_buffer_cnt.push_back(0);
-		realtime_pub_->msg_.motion_profile_status_has_underrun.push_back(false);
-		realtime_pub_->msg_.motion_profile_status_is_underrun.push_back(false);
-		realtime_pub_->msg_.motion_profile_status_active_point_valid.push_back(false);
-		realtime_pub_->msg_.motion_profile_status_is_last.push_back(false);
-		realtime_pub_->msg_.motion_profile_status_profile_slot_select.push_back(0);
-		realtime_pub_->msg_.motion_profile_status_output_enable.push_back("");
-		realtime_pub_->msg_.faults.push_back("");
-		realtime_pub_->msg_.sticky_faults.push_back("");
+		m.motion_cruise_velocity.push_back(0);
+		m.motion_acceleration.push_back(0);
+		m.motion_profile_top_level_buffer_count.push_back(0);
+		m.motion_profile_top_level_buffer_full.push_back(false);
+		m.motion_profile_status_top_buffer_rem.push_back(0);
+		m.motion_profile_status_top_buffer_cnt.push_back(0);
+		m.motion_profile_status_btm_buffer_cnt.push_back(0);
+		m.motion_profile_status_has_underrun.push_back(false);
+		m.motion_profile_status_is_underrun.push_back(false);
+		m.motion_profile_status_active_point_valid.push_back(false);
+		m.motion_profile_status_is_last.push_back(false);
+		m.motion_profile_status_profile_slot_select.push_back(0);
+		m.motion_profile_status_output_enable.push_back("");
+		m.faults.push_back("");
+		m.sticky_faults.push_back("");
 
 		talon_state_.push_back(hw->getHandle(joint_names[i]));
 	}
-	addExtraJoints(controller_nh, realtime_pub_->msg_);
+	addExtraJoints(controller_nh, m);
 
 	return true;
 }
@@ -221,216 +222,218 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 			// populate joint state message:
 			// - fill only joints that are present in the JointStateInterface, i.e. indices [0, num_hw_joints_)
 			// - leave unchanged extra joints, which have static values, i.e. indices from num_hw_joints_ onwards
-			realtime_pub_->msg_.header.stamp = time;
+			auto &m = realtime_pub_->msg_;
+			m.header.stamp = time;
 			for (unsigned i = 0; i < num_hw_joints_; i++)
 			{
-				realtime_pub_->msg_.set_point[i] = talon_state_[i]->getSetpoint();
-				realtime_pub_->msg_.position[i] = talon_state_[i]->getPosition();
-				realtime_pub_->msg_.speed[i] = talon_state_[i]->getSpeed();
-				realtime_pub_->msg_.output_voltage[i] = talon_state_[i]->getOutputVoltage();
-				realtime_pub_->msg_.can_id[i] = talon_state_[i]->getCANID();
-				realtime_pub_->msg_.output_current[i] = talon_state_[i]->getOutputCurrent();
-				realtime_pub_->msg_.bus_voltage[i] = talon_state_[i]->getBusVoltage();
-				realtime_pub_->msg_.motor_output_percent[i] = talon_state_[i]->getMotorOutputPercent();
-				realtime_pub_->msg_.temperature[i] = talon_state_[i]->getTemperature();
+				auto &ts = talon_state_[i];
+				m.set_point[i] = ts->getSetpoint();
+				m.position[i] = ts->getPosition();
+				m.speed[i] = ts->getSpeed();
+				m.output_voltage[i] = ts->getOutputVoltage();
+				m.can_id[i] = ts->getCANID();
+				m.output_current[i] = ts->getOutputCurrent();
+				m.bus_voltage[i] = ts->getBusVoltage();
+				m.motor_output_percent[i] = ts->getMotorOutputPercent();
+				m.temperature[i] = ts->getTemperature();
 
-				switch (talon_state_[i]->getEncoderFeedback())
+				switch (ts->getEncoderFeedback())
 				{
-				case hardware_interface::FeedbackDevice_Uninitialized:
-					realtime_pub_->msg_.feedback_sensor[i] = "Uninitialized";
-					break;
-				case hardware_interface::FeedbackDevice_QuadEncoder:
-					realtime_pub_->msg_.feedback_sensor[i] = "QuadEncoder";
-					break;
-				case hardware_interface::FeedbackDevice_Analog:
-					realtime_pub_->msg_.feedback_sensor[i] = "Analog";
-					break;
-				case hardware_interface::FeedbackDevice_Tachometer:
-					realtime_pub_->msg_.feedback_sensor[i] = "Tachometer";
-					break;
-				case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
-					realtime_pub_->msg_.feedback_sensor[i] = "PusleWidthEncodedPosition";
-					break;
-				case hardware_interface::FeedbackDevice_SensorSum:
-					realtime_pub_->msg_.feedback_sensor[i] =  "SensorSum";
-					break;
-				case hardware_interface::FeedbackDevice_SensorDifference:
-					realtime_pub_->msg_.feedback_sensor[i] = "SensorDifference";
-					break;
-				case hardware_interface::FeedbackDevice_RemoteSensor0:
-					realtime_pub_->msg_.feedback_sensor[i] =  "RemoteSensor0";
-					break;
-				case hardware_interface::FeedbackDevice_RemoteSensor1:
-					realtime_pub_->msg_.feedback_sensor[i] =  "RemoteSensor0";
-					break;
-				case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
-					realtime_pub_->msg_.feedback_sensor[i] = "SoftwareEmulatedSensor";
-					break;
-				default:
-					realtime_pub_->msg_.feedback_sensor[i] = "Unknown";
-					break;
+					case hardware_interface::FeedbackDevice_Uninitialized:
+						m.feedback_sensor[i] = "Uninitialized";
+						break;
+					case hardware_interface::FeedbackDevice_QuadEncoder:
+						m.feedback_sensor[i] = "QuadEncoder";
+						break;
+					case hardware_interface::FeedbackDevice_Analog:
+						m.feedback_sensor[i] = "Analog";
+						break;
+					case hardware_interface::FeedbackDevice_Tachometer:
+						m.feedback_sensor[i] = "Tachometer";
+						break;
+					case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
+						m.feedback_sensor[i] = "PusleWidthEncodedPosition";
+						break;
+					case hardware_interface::FeedbackDevice_SensorSum:
+						m.feedback_sensor[i] =  "SensorSum";
+						break;
+					case hardware_interface::FeedbackDevice_SensorDifference:
+						m.feedback_sensor[i] = "SensorDifference";
+						break;
+					case hardware_interface::FeedbackDevice_RemoteSensor0:
+						m.feedback_sensor[i] =  "RemoteSensor0";
+						break;
+					case hardware_interface::FeedbackDevice_RemoteSensor1:
+						m.feedback_sensor[i] =  "RemoteSensor0";
+						break;
+					case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
+						m.feedback_sensor[i] = "SoftwareEmulatedSensor";
+						break;
+					default:
+						m.feedback_sensor[i] = "Unknown";
+						break;
 				}
-				realtime_pub_->msg_.encoder_ticks_per_rotation[i] = talon_state_[i]->getEncoderTicksPerRotation();
+				m.encoder_ticks_per_rotation[i] = ts->getEncoderTicksPerRotation();
 
 				//publish the array of PIDF values
-				realtime_pub_->msg_.pid_slot[i] = talon_state_[i]->getSlot();
-				realtime_pub_->msg_.pid_p0[i] = talon_state_[i]->getPidfP(0);
-				realtime_pub_->msg_.pid_i0[i] = talon_state_[i]->getPidfI(0);
-				realtime_pub_->msg_.pid_d0[i] = talon_state_[i]->getPidfD(0);
-				realtime_pub_->msg_.pid_f0[i] = talon_state_[i]->getPidfF(0);
-				realtime_pub_->msg_.pid_izone0[i] = talon_state_[i]->getPidfIzone(0);
-				realtime_pub_->msg_.pid_allowable_closed_loop_error0[i] = talon_state_[i]->getAllowableClosedLoopError(0);
-				realtime_pub_->msg_.pid_max_integral_accumulator0[i] = talon_state_[i]->getMaxIntegralAccumulator(0);
+				m.pid_slot[i] = ts->getSlot();
+				m.pid_p0[i] = ts->getPidfP(0);
+				m.pid_i0[i] = ts->getPidfI(0);
+				m.pid_d0[i] = ts->getPidfD(0);
+				m.pid_f0[i] = ts->getPidfF(0);
+				m.pid_izone0[i] = ts->getPidfIzone(0);
+				m.pid_allowable_closed_loop_error0[i] = ts->getAllowableClosedLoopError(0);
+				m.pid_max_integral_accumulator0[i] = ts->getMaxIntegralAccumulator(0);
 
-				realtime_pub_->msg_.pid_p1[i] = talon_state_[i]->getPidfP(1);
-				realtime_pub_->msg_.pid_i1[i] = talon_state_[i]->getPidfI(1);
-				realtime_pub_->msg_.pid_d1[i] = talon_state_[i]->getPidfD(1);
-				realtime_pub_->msg_.pid_f1[i] = talon_state_[i]->getPidfF(1);
-				realtime_pub_->msg_.pid_izone1[i] = talon_state_[i]->getPidfIzone(1);
-				realtime_pub_->msg_.pid_allowable_closed_loop_error1[i] = talon_state_[i]->getAllowableClosedLoopError(1);
-				realtime_pub_->msg_.pid_max_integral_accumulator1[i] = talon_state_[i]->getMaxIntegralAccumulator(1);
+				m.pid_p1[i] = ts->getPidfP(1);
+				m.pid_i1[i] = ts->getPidfI(1);
+				m.pid_d1[i] = ts->getPidfD(1);
+				m.pid_f1[i] = ts->getPidfF(1);
+				m.pid_izone1[i] = ts->getPidfIzone(1);
+				m.pid_allowable_closed_loop_error1[i] = ts->getAllowableClosedLoopError(1);
+				m.pid_max_integral_accumulator1[i] = ts->getMaxIntegralAccumulator(1);
 
-				realtime_pub_->msg_.closed_loop_error[i] = talon_state_[i]->getClosedLoopError();
-				realtime_pub_->msg_.integral_accumulator[i] = talon_state_[i]->getIntegralAccumulator();
-				realtime_pub_->msg_.error_derivative[i] = talon_state_[i]->getErrorDerivative();
-				realtime_pub_->msg_.closed_loop_error[i] = talon_state_[i]->getClosedLoopError();
-				realtime_pub_->msg_.closed_loop_target[i] = talon_state_[i]->getClosedLoopTarget();
-				realtime_pub_->msg_.active_trajectory_position[i] = talon_state_[i]->getActiveTrajectoryPosition();
-				realtime_pub_->msg_.active_trajectory_velocity[i] = talon_state_[i]->getActiveTrajectoryVelocity();
-				realtime_pub_->msg_.active_trajectory_heading[i] = talon_state_[i]->getActiveTrajectoryHeading();
-				realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getForwardLimitSwitch();
-				realtime_pub_->msg_.reverse_limit_switch[i] = talon_state_[i]->getReverseLimitSwitch();
-				realtime_pub_->msg_.forward_softlimit[i] = talon_state_[i]->getForwardSoftlimitHit();
-				realtime_pub_->msg_.reverse_softlimit[i] = talon_state_[i]->getReverseSoftlimitHit();
-				realtime_pub_->msg_.invert[i] = talon_state_[i]->getInvert();
-				realtime_pub_->msg_.sensorPhase[i] = talon_state_[i]->getSensorPhase();
-				int talonMode = talon_state_[i]->getTalonMode();
+				m.closed_loop_error[i] = ts->getClosedLoopError();
+				m.integral_accumulator[i] = ts->getIntegralAccumulator();
+				m.error_derivative[i] = ts->getErrorDerivative();
+				m.closed_loop_error[i] = ts->getClosedLoopError();
+				m.closed_loop_target[i] = ts->getClosedLoopTarget();
+				m.active_trajectory_position[i] = ts->getActiveTrajectoryPosition();
+				m.active_trajectory_velocity[i] = ts->getActiveTrajectoryVelocity();
+				m.active_trajectory_heading[i] = ts->getActiveTrajectoryHeading();
+				m.forward_limit_switch[i] = ts->getForwardLimitSwitch();
+				m.reverse_limit_switch[i] = ts->getReverseLimitSwitch();
+				m.forward_softlimit[i] = ts->getForwardSoftlimitHit();
+				m.reverse_softlimit[i] = ts->getReverseSoftlimitHit();
+				m.invert[i] = ts->getInvert();
+				m.sensorPhase[i] = ts->getSensorPhase();
+				hardware_interface::TalonMode talonMode = ts->getTalonMode();
 				switch (talonMode)
 				{
-				case hardware_interface::TalonMode_Uninitialized:
-					realtime_pub_->msg_.talon_mode[i] = "Uninitialized";
-					break;
-				case hardware_interface::TalonMode_PercentOutput:
-					realtime_pub_->msg_.talon_mode[i] = "Percent Output";
-					break;
-				case hardware_interface::TalonMode_Position:
-					realtime_pub_->msg_.talon_mode[i] = "Closed Loop Position";
-					break;
-				case hardware_interface::TalonMode_Velocity:
-					realtime_pub_->msg_.talon_mode[i] = "Closed Loop Velocity";
-					break;
-				case hardware_interface::TalonMode_Current:
-					realtime_pub_->msg_.talon_mode[i] = "Closed Loop Current";
-					break;
-				case hardware_interface::TalonMode_Follower:
-					realtime_pub_->msg_.talon_mode[i] = "Follower";
-					break;
-				case hardware_interface::TalonMode_MotionProfile:
-					realtime_pub_->msg_.talon_mode[i] = "Motion Profile";
-					break;
-				case hardware_interface::TalonMode_MotionMagic:
-					realtime_pub_->msg_.talon_mode[i] = "Motion Magic";
-					break;
-				case hardware_interface::TalonMode_TimedPercentOutput:
-					realtime_pub_->msg_.talon_mode[i] = "Timed Percent Output";
-					break;
-				case hardware_interface::TalonMode_Disabled:
-					realtime_pub_->msg_.talon_mode[i] = "Disabled";
-					break;
-				case hardware_interface::TalonMode_Last:
-					realtime_pub_->msg_.talon_mode[i] = "Last";
-					break;
-				default:
-					realtime_pub_->msg_.talon_mode[i] = "Unknown";
-					break;
+					case hardware_interface::TalonMode_Uninitialized:
+						m.talon_mode[i] = "Uninitialized";
+						break;
+					case hardware_interface::TalonMode_PercentOutput:
+						m.talon_mode[i] = "Percent Output";
+						break;
+					case hardware_interface::TalonMode_Position:
+						m.talon_mode[i] = "Closed Loop Position";
+						break;
+					case hardware_interface::TalonMode_Velocity:
+						m.talon_mode[i] = "Closed Loop Velocity";
+						break;
+					case hardware_interface::TalonMode_Current:
+						m.talon_mode[i] = "Closed Loop Current";
+						break;
+					case hardware_interface::TalonMode_Follower:
+						m.talon_mode[i] = "Follower";
+						break;
+					case hardware_interface::TalonMode_MotionProfile:
+						m.talon_mode[i] = "Motion Profile";
+						break;
+					case hardware_interface::TalonMode_MotionMagic:
+						m.talon_mode[i] = "Motion Magic";
+						break;
+					case hardware_interface::TalonMode_TimedPercentOutput:
+						m.talon_mode[i] = "Timed Percent Output";
+						break;
+					case hardware_interface::TalonMode_Disabled:
+						m.talon_mode[i] = "Disabled";
+						break;
+					case hardware_interface::TalonMode_Last:
+						m.talon_mode[i] = "Last";
+						break;
+					default:
+						m.talon_mode[i] = "Unknown";
+						break;
 				}
-				switch (talon_state_[i]->getNeutralMode())
+				switch (ts->getNeutralMode())
 				{
-				case hardware_interface::NeutralMode_Uninitialized:
-					realtime_pub_->msg_.neutral_mode[i] = "Uninitialized";
-					break;
-				case hardware_interface::NeutralMode_EEPROM_Setting:
-					realtime_pub_->msg_.neutral_mode[i] = "EEPROM_Setting";
-					break;
-				case hardware_interface::NeutralMode_Coast:
-					realtime_pub_->msg_.neutral_mode[i] = "Coast";
-					break;
-				case hardware_interface::NeutralMode_Brake:
-					realtime_pub_->msg_.neutral_mode[i] = "Brake";
-					break;
-				case hardware_interface::NeutralMode_Last:
-					realtime_pub_->msg_.neutral_mode[i] = "Last";
-					break;
-				default:
-					realtime_pub_->msg_.neutral_mode[i] = "Unknown";
-					break;
+					case hardware_interface::NeutralMode_Uninitialized:
+						m.neutral_mode[i] = "Uninitialized";
+						break;
+					case hardware_interface::NeutralMode_EEPROM_Setting:
+						m.neutral_mode[i] = "EEPROM_Setting";
+						break;
+					case hardware_interface::NeutralMode_Coast:
+						m.neutral_mode[i] = "Coast";
+						break;
+					case hardware_interface::NeutralMode_Brake:
+						m.neutral_mode[i] = "Brake";
+						break;
+					case hardware_interface::NeutralMode_Last:
+						m.neutral_mode[i] = "Last";
+						break;
+					default:
+						m.neutral_mode[i] = "Unknown";
+						break;
 				}
-				realtime_pub_->msg_.neutral_output[i] = talon_state_[i]->getNeutralOutput();
-				realtime_pub_->msg_.closed_loop_ramp[i] = talon_state_[i]->getClosedloopRamp();
-				realtime_pub_->msg_.open_loop_ramp[i] = talon_state_[i]->getOpenloopRamp();
-				realtime_pub_->msg_.peak_output_forward[i] = talon_state_[i]->getPeakOutputForward();
-				realtime_pub_->msg_.peak_output_reverse[i] = talon_state_[i]->getPeakOutputReverse();
-				realtime_pub_->msg_.nominal_output_forward[i] = talon_state_[i]->getNominalOutputForward();
-				realtime_pub_->msg_.nominal_output_reverse[i] = talon_state_[i]->getNominalOutputReverse();
-				realtime_pub_->msg_.neutral_deadband[i] = talon_state_[i]->getNeutralDeadband();
+				m.neutral_output[i] = ts->getNeutralOutput();
+				m.closed_loop_ramp[i] = ts->getClosedloopRamp();
+				m.open_loop_ramp[i] = ts->getOpenloopRamp();
+				m.peak_output_forward[i] = ts->getPeakOutputForward();
+				m.peak_output_reverse[i] = ts->getPeakOutputReverse();
+				m.nominal_output_forward[i] = ts->getNominalOutputForward();
+				m.nominal_output_reverse[i] = ts->getNominalOutputReverse();
+				m.neutral_deadband[i] = ts->getNeutralDeadband();
 
-				realtime_pub_->msg_.voltage_compensation_saturation[i] = talon_state_[i]->getVoltageCompensationSaturation();
-				realtime_pub_->msg_.voltage_measurement_filter[i] = talon_state_[i]->getVoltageMeasurementFilter();
-				realtime_pub_->msg_.voltage_compensation_enable[i] = talon_state_[i]->getVoltageCompensationEnable();
+				m.voltage_compensation_saturation[i] = ts->getVoltageCompensationSaturation();
+				m.voltage_measurement_filter[i] = ts->getVoltageMeasurementFilter();
+				m.voltage_compensation_enable[i] = ts->getVoltageCompensationEnable();
 				hardware_interface::LimitSwitchSource ls_source;
 				hardware_interface::LimitSwitchNormal ls_normal;
-				talon_state_[i]->getForwardLimitSwitchSource(ls_source, ls_normal);
+				ts->getForwardLimitSwitchSource(ls_source, ls_normal);
 
 
-				realtime_pub_->msg_.limit_switch_local_forward_source[i] = limitSwitchSourceToString(ls_source);
-				realtime_pub_->msg_.limit_switch_local_forward_normal[i] = limitSwitchNormalToString(ls_normal);
+				m.limit_switch_local_forward_source[i] = limitSwitchSourceToString(ls_source);
+				m.limit_switch_local_forward_normal[i] = limitSwitchNormalToString(ls_normal);
 
-				talon_state_[i]->getReverseLimitSwitchSource(ls_source, ls_normal);
-				realtime_pub_->msg_.limit_switch_local_reverse_source[i] = limitSwitchSourceToString(ls_source);
-				realtime_pub_->msg_.limit_switch_local_reverse_normal[i] = limitSwitchNormalToString(ls_normal);
+				ts->getReverseLimitSwitchSource(ls_source, ls_normal);
+				m.limit_switch_local_reverse_source[i] = limitSwitchSourceToString(ls_source);
+				m.limit_switch_local_reverse_normal[i] = limitSwitchNormalToString(ls_normal);
 
-				realtime_pub_->msg_.softlimit_forward_threshold[i] = talon_state_[i]->getForwardSoftLimitThreshold();
-				realtime_pub_->msg_.softlimit_forward_enable[i] = talon_state_[i]->getForwardSoftLimitEnable();
-				realtime_pub_->msg_.softlimit_reverse_threshold[i] = talon_state_[i]->getReverseSoftLimitThreshold();
-				realtime_pub_->msg_.softlimit_reverse_enable[i] = talon_state_[i]->getReverseSoftLimitEnable();
-				realtime_pub_->msg_.softlimits_override_enable[i] = talon_state_[i]->getOverrideSoftLimitsEnable();
+				m.softlimit_forward_threshold[i] = ts->getForwardSoftLimitThreshold();
+				m.softlimit_forward_enable[i] = ts->getForwardSoftLimitEnable();
+				m.softlimit_reverse_threshold[i] = ts->getReverseSoftLimitThreshold();
+				m.softlimit_reverse_enable[i] = ts->getReverseSoftLimitEnable();
+				m.softlimits_override_enable[i] = ts->getOverrideSoftLimitsEnable();
 
-				realtime_pub_->msg_.current_limit_peak_amps[i] = talon_state_[i]->getPeakCurrentLimit();
-				realtime_pub_->msg_.current_limit_peak_msec[i] = talon_state_[i]->getPeakCurrentDuration();
-				realtime_pub_->msg_.current_limit_continuous_amps[i] = talon_state_[i]->getContinuousCurrentLimit();
-				realtime_pub_->msg_.current_limit_enable[i] = talon_state_[i]->getCurrentLimitEnable();
+				m.current_limit_peak_amps[i] = ts->getPeakCurrentLimit();
+				m.current_limit_peak_msec[i] = ts->getPeakCurrentDuration();
+				m.current_limit_continuous_amps[i] = ts->getContinuousCurrentLimit();
+				m.current_limit_enable[i] = ts->getCurrentLimitEnable();
 
-				realtime_pub_->msg_.motion_cruise_velocity[i] = talon_state_[i]->getMotionCruiseVelocity();
-				realtime_pub_->msg_.motion_acceleration[i] = talon_state_[i]->getMotionAcceleration();
-				realtime_pub_->msg_.motion_profile_top_level_buffer_count[i] = talon_state_[i]->getMotionProfileTopLevelBufferCount();
-				realtime_pub_->msg_.motion_profile_top_level_buffer_full[i] = talon_state_[i]->getMotionProfileTopLevelBufferFull();
-				hardware_interface::MotionProfileStatus mp_status(talon_state_[i]->getMotionProfileStatus());
-				realtime_pub_->msg_.motion_profile_status_top_buffer_rem[i] = mp_status.topBufferRem;
-				realtime_pub_->msg_.motion_profile_status_top_buffer_cnt[i] = mp_status.topBufferCnt;
-				realtime_pub_->msg_.motion_profile_status_btm_buffer_cnt[i] = mp_status.btmBufferCnt;
-				realtime_pub_->msg_.motion_profile_status_has_underrun[i] = mp_status.hasUnderrun;
-				realtime_pub_->msg_.motion_profile_status_is_underrun[i] = mp_status.isUnderrun;
-				realtime_pub_->msg_.motion_profile_status_active_point_valid[i] = mp_status.activePointValid;
-				realtime_pub_->msg_.motion_profile_status_is_last[i] = mp_status.isLast;
-				realtime_pub_->msg_.motion_profile_status_profile_slot_select[i] = mp_status.profileSlotSelect;
+				m.motion_cruise_velocity[i] = ts->getMotionCruiseVelocity();
+				m.motion_acceleration[i] = ts->getMotionAcceleration();
+				m.motion_profile_top_level_buffer_count[i] = ts->getMotionProfileTopLevelBufferCount();
+				m.motion_profile_top_level_buffer_full[i] = ts->getMotionProfileTopLevelBufferFull();
+				hardware_interface::MotionProfileStatus mp_status(ts->getMotionProfileStatus());
+				m.motion_profile_status_top_buffer_rem[i] = mp_status.topBufferRem;
+				m.motion_profile_status_top_buffer_cnt[i] = mp_status.topBufferCnt;
+				m.motion_profile_status_btm_buffer_cnt[i] = mp_status.btmBufferCnt;
+				m.motion_profile_status_has_underrun[i] = mp_status.hasUnderrun;
+				m.motion_profile_status_is_underrun[i] = mp_status.isUnderrun;
+				m.motion_profile_status_active_point_valid[i] = mp_status.activePointValid;
+				m.motion_profile_status_is_last[i] = mp_status.isLast;
+				m.motion_profile_status_profile_slot_select[i] = mp_status.profileSlotSelect;
 				switch (mp_status.outputEnable)
 				{
-				case hardware_interface::Disable:
-					realtime_pub_->msg_.motion_profile_status_output_enable[i] = "Disable";
-					break;
-				case hardware_interface::Enable:
-					realtime_pub_->msg_.motion_profile_status_output_enable[i] = "Enable";
-					break;
-				case hardware_interface::Hold:
-					realtime_pub_->msg_.motion_profile_status_output_enable[i] = "Hold";
-					break;
-				default:
-					realtime_pub_->msg_.motion_profile_status_output_enable[i] = "Unknown";
-					break;
+					case hardware_interface::Disable:
+						m.motion_profile_status_output_enable[i] = "Disable";
+						break;
+					case hardware_interface::Enable:
+						m.motion_profile_status_output_enable[i] = "Enable";
+						break;
+					case hardware_interface::Hold:
+						m.motion_profile_status_output_enable[i] = "Hold";
+						break;
+					default:
+						m.motion_profile_status_output_enable[i] = "Unknown";
+						break;
 				}
 
 				{
-					unsigned faults = talon_state_[i]->getFaults();
+					unsigned faults = ts->getFaults();
 					unsigned int mask = 1;
 					std::string str;
 					if (faults)
@@ -447,11 +450,11 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 						if (faults & mask) str += "HardwareESDReset "; mask <<= 1;
 						if (faults & mask) str += "RemoteLossOfSignal "; mask <<= 1;
 					}
-					realtime_pub_->msg_.faults[i] = str;
+					m.faults[i] = str;
 				}
 
 				{
-					unsigned faults = talon_state_[i]->getStickyFaults();
+					unsigned faults = ts->getStickyFaults();
 					unsigned int mask = 1;
 					std::string str;
 					if (faults)
@@ -467,7 +470,7 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 						if (faults & mask) str += "HardwareESDReset "; mask <<= 1;
 						if (faults & mask) str += "RemoteLossOfSignal "; mask <<= 1;
 					}
-					realtime_pub_->msg_.sticky_faults[i] = str;
+					m.sticky_faults[i] = str;
 				}
 			}
 			realtime_pub_->unlockAndPublish();
