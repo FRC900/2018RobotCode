@@ -140,8 +140,10 @@ class TalonHWState
 			active_trajectory_position_(0.0),
 			active_trajectory_velocity_(0.0),
 			active_trajectory_heading_(0.0),
-			fwd_limit_switch_closed_(0),
-			rev_limit_switch_closed_(0),
+			forward_limit_switch_closed_(false),
+			reverse_limit_switch_closed_(false),
+			forward_softlimit_hit_(false),
+			reverse_softlimit_hit_(false),
 			talon_mode_(TalonMode_Uninitialized),
 			can_id_(can_id),
 			slot_(0),
@@ -194,7 +196,11 @@ class TalonHWState
 			// motion profiling
 			motion_profile_top_level_buffer_count_(0),
 			motion_profile_top_level_buffer_full_(false),
-			motion_control_frame_period_(20) // Guess at 50Hz?
+			motion_control_frame_period_(20), // Guess at 50Hz?
+
+			// faults
+			faults_(0),
+			sticky_faults_(0)
 		{
 		}
 
@@ -333,14 +339,23 @@ class TalonHWState
 		{
 			return active_trajectory_heading_;
 		}
-		int getFwdLimitSwitch(void) const
+		bool getForwardLimitSwitch(void) const
 		{
-			return fwd_limit_switch_closed_;
+			return forward_limit_switch_closed_;
 		}
-		int getRevLimitSwitch(void) const
+		bool getReverseLimitSwitch(void) const
 		{
-			return rev_limit_switch_closed_;
+			return reverse_limit_switch_closed_;
 		}
+		bool getForwardSoftlimitHit(void) const
+		{
+			return forward_softlimit_hit_;
+		}
+		bool getReverseSoftlimitHit(void) const
+		{
+			return reverse_softlimit_hit_;
+		}
+
 		TalonMode getTalonMode(void) const
 		{
 			return talon_mode_;
@@ -374,6 +389,15 @@ class TalonHWState
 		int getEncoderTicksPerRotation(void) 	const
 		{
 			return encoder_ticks_per_rotation_;
+		}
+
+		unsigned int getFaults(void) const
+		{
+			return faults_;
+		}
+		unsigned int getStickyFaults(void) const
+		{
+			return sticky_faults_;
 		}
 
 		void setSetpoint(double setpoint)
@@ -728,14 +752,23 @@ class TalonHWState
 		{
 			active_trajectory_heading_ = active_trajectory_heading;
 		}
-		void setFwdLimitSwitch(int fwd_limit_switch_closed)
+		void setForwardLimitSwitch(bool forward_limit_switch_closed)
 		{
-			fwd_limit_switch_closed_ = fwd_limit_switch_closed;
+			forward_limit_switch_closed_ = forward_limit_switch_closed;
 		}
-		void setRevLimitSwitch(int rev_limit_switch_closed)
+		void setReverseLimitSwitch(bool reverse_limit_switch_closed)
 		{
-			rev_limit_switch_closed_ = rev_limit_switch_closed;
+			reverse_limit_switch_closed_ = reverse_limit_switch_closed;
 		}
+		void setForwardSoftlimitHit(bool forward_softlimit_hit)
+		{
+			forward_softlimit_hit_ = forward_softlimit_hit;
+		}
+		void setReverseSoftlimitHit(bool reverse_softlimit_hit)
+		{
+			reverse_softlimit_hit_ = reverse_softlimit_hit;
+		}
+
 		void setTalonMode(TalonMode talon_mode)
 		{
 			if ((talon_mode_ >= TalonMode_Uninitialized) &&
@@ -781,6 +814,14 @@ class TalonHWState
 		{
 			encoder_ticks_per_rotation_ = encoder_ticks_per_rotation;
 		}
+		void setFaults(unsigned int faults)
+		{
+			faults_ = faults;
+		}
+		void setStickyFaults(unsigned int sticky_faults)
+		{
+			sticky_faults_ = sticky_faults;
+		}
 
 	private:
 		double setpoint_;
@@ -805,8 +846,10 @@ class TalonHWState
 		double active_trajectory_position_;
 		double active_trajectory_velocity_;
 		double active_trajectory_heading_;
-		int fwd_limit_switch_closed_;
-		int rev_limit_switch_closed_;
+		bool forward_limit_switch_closed_;
+		bool reverse_limit_switch_closed_;
+		bool forward_softlimit_hit_;
+		bool reverse_softlimit_hit_;
 		TalonMode talon_mode_;
 
 		int can_id_;
@@ -868,6 +911,9 @@ class TalonHWState
 		bool motion_profile_top_level_buffer_full_;
 		MotionProfileStatus motion_profile_status_;
 		int motion_control_frame_period_;
+
+		unsigned int faults_;
+		unsigned int sticky_faults_;
 };
 
 // Handle - used by each controller to get, by name of the

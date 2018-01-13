@@ -26,7 +26,7 @@
 //////////////////////////////////////////////////////////////////////////////
 
 /*
- * Author: Wim Meeussen
+ * Original joint_state_controller Author: Wim Meeussen
  */
 
 #include <algorithm>
@@ -104,8 +104,10 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 		realtime_pub_->msg_.active_trajectory_position.push_back(0);
 		realtime_pub_->msg_.active_trajectory_velocity.push_back(0);
 		realtime_pub_->msg_.active_trajectory_heading.push_back(0);
-		realtime_pub_->msg_.forward_limit_switch.push_back(0);
-		realtime_pub_->msg_.reverse_limit_switch.push_back(0);
+		realtime_pub_->msg_.forward_limit_switch.push_back(false);
+		realtime_pub_->msg_.reverse_limit_switch.push_back(false);
+		realtime_pub_->msg_.forward_softlimit.push_back(false);
+		realtime_pub_->msg_.reverse_softlimit.push_back(false);
 		realtime_pub_->msg_.invert.push_back(false);
 		realtime_pub_->msg_.sensorPhase.push_back(false);
 		realtime_pub_->msg_.neutral_mode.push_back("");
@@ -151,6 +153,8 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 		realtime_pub_->msg_.motion_profile_status_is_last.push_back(false);
 		realtime_pub_->msg_.motion_profile_status_profile_slot_select.push_back(0);
 		realtime_pub_->msg_.motion_profile_status_output_enable.push_back("");
+		realtime_pub_->msg_.faults.push_back("");
+		realtime_pub_->msg_.sticky_faults.push_back("");
 
 		talon_state_.push_back(hw->getHandle(joint_names[i]));
 	}
@@ -217,22 +221,6 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 			// populate joint state message:
 			// - fill only joints that are present in the JointStateInterface, i.e. indices [0, num_hw_joints_)
 			// - leave unchanged extra joints, which have static values, i.e. indices from num_hw_joints_ onwards
-			/*
-				double getPosition(void)      const {return position_;}
-				double getSpeed(void)         const {return speed_;}
-				double getOutputVoltage(void) const {return output_voltage_;}
-				int    getCANID(void)         const {return can_id_;}
-				double getOutputCurrent(void) const {return output_current_;}
-				double getBusVoltage(void)    const {return bus_voltage_;}
-				double getPidfP(void)	      const {return pidf_p_;}
-				double getPidfI(void)	      const {return pidf_i_;}
-				double getPidfD(void)	      const {return pidf_d_;}
-				double getPidfF(void)	      const {return pidf_f_;}
-				int getClosedLoopError(void)  const {return closed_loop_error_;}
-				int getFwdLimitSwitch(void)   const {return fwd_limit_switch_closed_;}
-				int getRevLimitSwitch(void)   const {return rev_limit_switch_closed_;}
-				TalonMode getTalonMode(void)  const {return talon_mode_;}
-			    */
 			realtime_pub_->msg_.header.stamp = time;
 			for (unsigned i = 0; i < num_hw_joints_; i++)
 			{
@@ -310,8 +298,10 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 				realtime_pub_->msg_.active_trajectory_position[i] = talon_state_[i]->getActiveTrajectoryPosition();
 				realtime_pub_->msg_.active_trajectory_velocity[i] = talon_state_[i]->getActiveTrajectoryVelocity();
 				realtime_pub_->msg_.active_trajectory_heading[i] = talon_state_[i]->getActiveTrajectoryHeading();
-				realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getFwdLimitSwitch();
-				realtime_pub_->msg_.reverse_limit_switch[i] = talon_state_[i]->getRevLimitSwitch();
+				realtime_pub_->msg_.forward_limit_switch[i] = talon_state_[i]->getForwardLimitSwitch();
+				realtime_pub_->msg_.reverse_limit_switch[i] = talon_state_[i]->getReverseLimitSwitch();
+				realtime_pub_->msg_.forward_softlimit[i] = talon_state_[i]->getForwardSoftlimitHit();
+				realtime_pub_->msg_.reverse_softlimit[i] = talon_state_[i]->getReverseSoftlimitHit();
 				realtime_pub_->msg_.invert[i] = talon_state_[i]->getInvert();
 				realtime_pub_->msg_.sensorPhase[i] = talon_state_[i]->getSensorPhase();
 				int talonMode = talon_state_[i]->getTalonMode();
@@ -439,7 +429,46 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 					break;
 				}
 
+				{
+					unsigned faults = talon_state_[i]->getFaults();
+					unsigned int mask = 1;
+					std::string str;
+					if (faults)
+					{
+						if (faults & mask) str += "UnderVoltage "; mask <<= 1;
+						if (faults & mask) str += "ForwardLimitSwitch "; mask <<= 1;
+						if (faults & mask) str += "ReverseLimitSwitch "; mask <<= 1;
+						if (faults & mask) str += "ForwardSoftLimit "; mask <<= 1;
+						if (faults & mask) str += "ReverseSoftLimit "; mask <<= 1;
+						if (faults & mask) str += "HardwareFailure "; mask <<= 1;
+						if (faults & mask) str += "ResetDuringEn "; mask <<= 1;
+						if (faults & mask) str += "SensorOverflow "; mask <<= 1;
+						if (faults & mask) str += "SensorOutOfPhase "; mask <<= 1;
+						if (faults & mask) str += "HardwareESDReset "; mask <<= 1;
+						if (faults & mask) str += "RemoteLossOfSignal "; mask <<= 1;
+					}
+					realtime_pub_->msg_.faults[i] = str;
+				}
 
+				{
+					unsigned faults = talon_state_[i]->getStickyFaults();
+					unsigned int mask = 1;
+					std::string str;
+					if (faults)
+					{
+						if (faults & mask) str += "UnderVoltage "; mask <<= 1;
+						if (faults & mask) str += "ForwardLimitSwitch "; mask <<= 1;
+						if (faults & mask) str += "ReverseLimitSwitch "; mask <<= 1;
+						if (faults & mask) str += "ForwardSoftLimit "; mask <<= 1;
+						if (faults & mask) str += "ReverseSoftLimit "; mask <<= 1;
+						if (faults & mask) str += "ResetDuringEn "; mask <<= 1;
+						if (faults & mask) str += "SensorOverflow "; mask <<= 1;
+						if (faults & mask) str += "SensorOutOfPhase "; mask <<= 1;
+						if (faults & mask) str += "HardwareESDReset "; mask <<= 1;
+						if (faults & mask) str += "RemoteLossOfSignal "; mask <<= 1;
+					}
+					realtime_pub_->msg_.sticky_faults[i] = str;
+				}
 			}
 			realtime_pub_->unlockAndPublish();
 		}

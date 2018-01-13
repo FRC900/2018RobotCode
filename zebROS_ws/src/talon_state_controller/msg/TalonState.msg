@@ -57,8 +57,10 @@ float64[] closed_loop_target
 float64[] active_trajectory_position
 float64[] active_trajectory_velocity
 float64[] active_trajectory_heading
-int8[] forward_limit_switch
-int8[] reverse_limit_switch
+bool[] forward_limit_switch
+bool[] reverse_limit_switch
+bool[] forward_softlimit
+bool[] reverse_softlimit
 bool[] invert
 bool[] sensorPhase
 string[] neutral_mode
@@ -99,3 +101,5 @@ bool[]    motion_profile_status_active_point_valid
 bool[]    motion_profile_status_is_last
 int32[]   motion_profile_status_profile_slot_select
 string[]  motion_profile_status_output_enable
+string[]  faults
+string[]  sticky_faults
