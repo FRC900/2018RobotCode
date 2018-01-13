@@ -74,6 +74,7 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 		realtime_pub_->msg_.temperature.push_back(0.0);
 
 		realtime_pub_->msg_.feedback_sensor.push_back("");
+		realtime_pub_->msg_.encoder_ticks_per_rotation.push_back(0);
 
 		realtime_pub_->msg_.pid_slot.push_back(0);
 		realtime_pub_->msg_.pid_p0.push_back(0.0);
@@ -281,6 +282,7 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 					realtime_pub_->msg_.feedback_sensor[i] = "Unknown";
 					break;
 				}
+				realtime_pub_->msg_.encoder_ticks_per_rotation[i] = talon_state_[i]->getEncoderTicksPerRotation();
 
 				//publish the array of PIDF values
 				realtime_pub_->msg_.pid_slot[i] = talon_state_[i]->getSlot();

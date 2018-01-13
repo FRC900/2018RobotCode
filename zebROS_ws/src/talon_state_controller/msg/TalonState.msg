@@ -32,6 +32,7 @@ float64[] bus_voltage
 float64[] motor_output_percent
 float64[] temperature
 string[]  feedback_sensor
+int32[]   encoder_ticks_per_rotation
 int32[]   pid_slot
 float64[] pid_p0
 float64[] pid_p1
