@@ -864,6 +864,11 @@ class TalonControllerInterface
 			talon_->setSelectedSensorPosition(position);
 		}
 
+		virtual void clearStickyFaults(void)
+		{
+			talon_->setClearStickyFaults();
+		}
+
 		virtual void setMotionCruiseVelocity(double velocity)
 		{
 			if (velocity == params_.motion_cruise_velocity_)

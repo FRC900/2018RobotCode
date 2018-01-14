@@ -107,7 +107,9 @@ class TalonHWCommand
 			motion_profile_process_buffer_(false),
 			motion_profile_clear_has_underrun_(false),
 			motion_profile_control_frame_period_(20),
-			motion_profile_control_frame_period_changed_(false)
+			motion_profile_control_frame_period_changed_(false),
+
+			clear_sticky_faults_(false)
 		{
 			for (int slot = 0; slot < 2; slot++)
 			{
@@ -1021,6 +1023,22 @@ class TalonHWCommand
 			return true;
 		}
 
+		void setClearStickyFaults(void)
+		{
+			clear_sticky_faults_ = true;
+		}
+		bool getClearStickyFaults(void) const
+		{
+			return clear_sticky_faults_;
+		}
+		bool clearStickyFaultsChanged(void)
+		{
+			if (!clear_sticky_faults_)
+				return false;
+			clear_sticky_faults_ = false;
+			return true;
+		}
+
 	private:
 		double    command_; // motor setpoint - % vbus, velocity, position, etc
 		bool      command_changed_;
@@ -1099,6 +1117,8 @@ class TalonHWCommand
 		std::vector<TrajectoryPoint> motion_profile_trajectory_points_;
 		int motion_profile_control_frame_period_;
 		bool motion_profile_control_frame_period_changed_;
+
+		bool clear_sticky_faults_;
 
 		// 2 entries in the Talon HW for each of these settings
 		double p_[2];

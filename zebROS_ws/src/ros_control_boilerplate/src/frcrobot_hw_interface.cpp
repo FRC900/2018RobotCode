@@ -960,6 +960,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			talon->ProcessMotionProfileBuffer();
 			safeTalonCall(talon->GetLastError(), "ProcessMotionProfileBuffer");
 		}
+
+		if (tc.clearStickyFaultsChanged())
+		{
+			safeTalonCall(talon->ClearStickyFaults(timeoutMs), "ClearStickyFaults");
+		}
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
