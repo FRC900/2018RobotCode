@@ -19,27 +19,14 @@
 		</node>
 
 		<!-- Load controller settings -->
-		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve.yaml" command="load"/>
-		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/linear_talon_control.yaml" command="load"/>
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller swerve_drive_controller"/>
-
+			output="screen" args="spawn joint_state_controller talon_state_controller talon1_controller talon2_controller talon_linear_controller nidec_brushless1_controller" />
 		<!-- Convert joint states to /tf tranforms -->
 		<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
-        <!-- launch joystick command interpreter-->
-		<node name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands"
-			output="screen" >
-            <remap from="/cmd_vel" to="/frcrobot/swerve_drive_controller/cmd_vel"/> 
-		</node>
-
-        <!-- launch joystick subscriber-->
-		<node name="joystickSubscriber" pkg="teleop_joystick_control" type="joystickSubscriber"
-			output="screen" >
-            <remap from="/cmd_vel" to="/frcrobot/swerve_drive_controller/cmd_vel"/> 
-		</node>
 	</group>
 
 </launch>

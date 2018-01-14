@@ -189,7 +189,6 @@ TalonSwerveDriveController::TalonSwerveDriveController() :
 	//model_({0, 0, 0, 0, 0, 0}),
 	//invertWheelAngle_(false),
 	//units_({1,1,1,1,1,1}), 
-	//filename_("offsets.txt"),
 	//driveRatios_({0, 0, 0}),
 	//units_({0, 0, 0, 0})
 {
@@ -265,17 +264,26 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	bool lookup_motor_stall_torque = !controller_nh.getParam("motor_stall_torque", model_.motorStallTorque);
 	// TODO : why not just use the number of wheels read from yaml?
 	bool lookup_motor_quantity = !controller_nh.getParam("motor_quantity", model_.motorQuantity);
-	bool lookup_file_name = !controller_nh.getParam("file_name", filename_);
 	bool lookup_invert_wheel_angle = !controller_nh.getParam("invert_wheel_angle", invertWheelAngle_);
 	bool lookup_ratio_encoder_to_rotations = !controller_nh.getParam("ratio_encoder_to_rotations", driveRatios_.encodertoRotations);
 	bool lookup_ratio_motor_to_rotations = !controller_nh.getParam("ratio_motor_to_rotations", driveRatios_.motortoRotations);
-	bool lookup_ratio_motor_to_steering = !controller_nh.getParam("ratio_motor_to_steering", driveRatios_.motortoSteering);
+	bool lookup_ratio_motor_to_steering = !controller_nh.getParam("ratio_motor_to_steering", driveRatios_.motortoSteering); // TODO : not used?
 	bool lookup_encoder_drive_get_V_units = !controller_nh.getParam("encoder_drive_get_V_units", units_.rotationGetV);
 	bool lookup_encoder_drive_get_P_units = !controller_nh.getParam("encoder_drive_get_P_units", units_.rotationGetP);
 	bool lookup_encoder_drive_set_V_units = !controller_nh.getParam("encoder_drive_set_V_units", units_.rotationSetV);
 	bool lookup_encoder_drive_set_P_units = !controller_nh.getParam("encoder_drive_set_P_units", units_.rotationSetP);
 	bool lookup_encoder_steering_get_units = !controller_nh.getParam("encoder_steering_get_units", units_.steeringGet);
 	bool lookup_encoder_steering_set_units = !controller_nh.getParam("encoder_steering_set_units", units_.steeringSet);
+
+	std::vector<double> offsets;
+	for (auto it = steering_names.cbegin(); it != steering_names.cend(); ++it)
+	{
+		ros::NodeHandle nh(controller_nh, *it);
+		double dbl_val = 0;
+		if (!nh.getParam("offset", dbl_val))
+			ROS_ERROR_STREAM("Can not read offset for " << *it);
+		offsets.push_back(dbl_val);
+	}
 
 	/*
 	if (!setOdomParamsFromUrdf(root_nh,
@@ -322,7 +330,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	swerveVar::encoderUnits units({1,1,1,1,1,1});
 	*/
 
-	swerveC = std::make_shared<swerve>(wheels, filename_, invertWheelAngle_, driveRatios_, units_, model_);
+	swerveC = std::make_shared<swerve>(wheels, offsets, invertWheelAngle_, driveRatios_, units_, model_);
 	for (int i = 0; i < wheel_joints_size_; ++i)
 	{
 		ROS_INFO_STREAM_NAMED(name_,

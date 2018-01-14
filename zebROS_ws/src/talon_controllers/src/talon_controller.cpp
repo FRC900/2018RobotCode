@@ -12,3 +12,7 @@ PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonPositionCloseLoopController,
 
 PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonVelocityCloseLoopController,
 					   controller_interface::ControllerBase)
+
+PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonLinearPositionCloseLoopController,
+					   controller_interface::ControllerBase)
+

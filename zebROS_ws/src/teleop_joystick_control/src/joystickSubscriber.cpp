@@ -6,6 +6,7 @@
 
 #define DEAD .1
 #define SLOW .3
+#define MAXSPEED 3.528
 
 double deadzone(double val) {
     if(fabs(val)<=DEAD) {
@@ -23,8 +24,6 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double  rightStickX = msg->rightStickX;
     double  rightStickY = msg->rightStickY;
 
-    double  leftTrigger = msg->leftTrigger;
-    double  rightTrigger = msg->rightTrigger;
 
     bool buttonAButton = msg->buttonAButton;
     bool buttonAPress = msg->buttonAPress;
@@ -80,11 +79,15 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     bool directionRightButton = msg->directionRightButton;
     bool directionRightPress = msg->directionRightPress;
     bool directionRightRelease = msg->directionRightRelease;
-    double scaledLeftStickX = 0-pow(deadzone(leftStickX), 3);
-    double scaledLeftStickY = 0-pow(deadzone(leftStickY), 3);
 
-    double scaledRightStickX = 0-pow(deadzone(rightStickX), 3);
-    double scaledRightStickY = 0-pow(deadzone(rightStickY), 3);
+    double  leftTrigger = msg->leftTrigger;
+    double  rightTrigger = msg->rightTrigger;
+
+    double scaledLeftStickX = (pow(deadzone(leftStickX), 3))*MAXSPEED;
+    double scaledLeftStickY = (0-pow(deadzone(leftStickY), 3))*MAXSPEED;
+
+    double scaledRightStickX = (0-pow(deadzone(rightStickX), 3));
+    double scaledRightStickY = (0-pow(deadzone(rightStickY), 3));
     if(bumperLeftButton == true) {
         scaledLeftStickX *= SLOW;
         scaledLeftStickY *= SLOW;
