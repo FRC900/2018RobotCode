@@ -155,7 +155,7 @@ class TalonCloseLoopController :
 			talon_if_.setCommand(cmd.command_);
 		}
 
-	private:
+	protected:
 		TALON_IF talon_if_;
 		ros::Subscriber sub_command_;
 		realtime_tools::RealtimeBuffer<CloseLoopCommand> command_buffer_;
@@ -211,4 +211,40 @@ class TalonFollowerController:
 		TalonFollowerControllerInterface talon_if_;
 };
 
-} // end namespace
+// Convert Linear Position and Displacement to radians
+// and input on the Talon
+// Use of Positional PID and the radius of the gear next
+// to the Talon
+class TalonLinearPositionCloseLoopController :
+	public TalonCloseLoopController<TalonPositionCloseLoopControllerInterface>
+
+
+{	
+	//Used radius	
+	private:
+		double radius_;
+	public:
+		
+		virtual bool init(hardware_interface::TalonCommandInterface *hw, ros::NodeHandle &n)
+		{
+			// Read params from command line / config file
+			if (!TalonCloseLoopController<TalonPositionCloseLoopControllerInterface>::init(hw,n))
+				return false;
+
+			//radius for length
+			n.getParam("radius", radius_);
+		}
+
+		// Same as TalonClosedLoopController but setCommand
+		// has converted radians as input
+		virtual void update(const ros::Time & /*time*/, const ros::Duration & /*period*/) override
+		{
+			// Write both PID config slot and
+			// output to talon interface
+			CloseLoopCommand cmd = *command_buffer_.readFromRT();
+			talon_if_.setPIDFSlot(cmd.config_slot_);
+			talon_if_.setCommand(cmd.command_ / radius_);
+		}
+};
+
+}

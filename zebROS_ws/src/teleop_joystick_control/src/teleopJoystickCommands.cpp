@@ -2,12 +2,14 @@
 #include "ros/console.h"
 #include "ros_control_boilerplate/JoystickState.h"
 #include "teleop_joystick_control/RobotState.h"
-
+#include "geometry_msgs/Twist.h"
 #include <string>
+
 
 bool ifCube;
 double elevatorHeight;
 
+static ros::Publisher JoystickRobotVel;
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double timeSecs, lastTimeSecs;
     bool ifcube = false;
@@ -97,11 +99,29 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
         }
 
     }
-    double leftStickX = msg->leftStickX;//TODO publish twist message for drivetrain and elevator/pivot
-    double leftStickY = msg->leftStickY;
-    //TODO BUMPERS FOR SLOW MODE
-    ROS_INFO("leftStickX: %f", leftStickX);
-    ROS_INFO("leftStickY: %f", leftStickY);
+    ros::Rate loop_rate(10);
+    while(ros::ok()) {
+        geometry_msgs::Twist vel;
+        double leftStickX = msg->leftStickX;//TODO publish twist message for drivetrain and elevator/pivot
+        double leftStickY = msg->leftStickY;
+        vel.linear.x = leftStickX;
+        vel.linear.y = leftStickY;
+        vel.linear.z = 0;
+
+        vel.angular.x = 0;
+        vel.angular.y = 0;
+        vel.angular.z = msg->leftTrigger-msg->rightTrigger;
+        JoystickRobotVel.publish(vel);
+        
+
+        ros::spinOnce();
+        
+        loop_rate.sleep();
+    }
+
+        //TODO BUMPERS FOR SLOW MODE
+        //ROS_INFO("leftStickX: %f", leftStickX);
+        //ROS_INFO("leftStickY: %f", leftStickY);
     double rightStickX = msg->rightStickX;//TODO publish twist message for drivetrain and elevator/pivot
     double rightStickY = msg->rightStickY;
     //TODO BUMPERS FOR SLOW MODE
@@ -135,7 +155,10 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "robot_state_subscriber");
     ros::NodeHandle n_;
     ros::Subscriber sub2 = n_.subscribe("RobotState", 1000, evaluateState);
-
+    
+    ros::init(argc, argv, "cmd_vel");
+    ros::NodeHandle r;
+    JoystickRobotVel = r.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
 
     ros::spin();
 
