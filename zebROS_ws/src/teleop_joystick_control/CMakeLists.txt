@@ -75,39 +75,37 @@ include_directories(
 )
 
 
-add_executable(${PROJECT_NAME}_joystickSubscriber src/joystickSubscriber.cpp)
-set_target_properties(${PROJECT_NAME}_joystickSubscriber PROPERTIES OUTPUT_NAME
+add_executable(joystickSubscriber src/joystickSubscriber.cpp)
+set_target_properties(joystickSubscriber PROPERTIES OUTPUT_NAME
 joystickSubscriber PREFIX "")
-target_link_libraries(${PROJECT_NAME}_joystickSubscriber
+target_link_libraries(joystickSubscriber
   ${catkin_LIBRARIES}
 )
 
-add_executable(${PROJECT_NAME}_teleopJoystickCommands src/teleopJoystickCommands.cpp)
-set_target_properties(${PROJECT_NAME}_teleopJoystickCommands PROPERTIES OUTPUT_NAME 
+add_executable(teleopJoystickCommands src/teleopJoystickCommands.cpp)
+set_target_properties(teleopJoystickCommands PROPERTIES OUTPUT_NAME 
 teleopJoystickCommands PREFIX "")
-target_link_libraries(${PROJECT_NAME}_teleopJoystickCommands
+target_link_libraries(teleopJoystickCommands
   ${catkin_LIBRARIES}
 )
 ## Add cmake target dependencies of the executable
 ## same as for the library above. This is needed to force
 ## talon controller messages to be built before the
 ## talon controller code tries to use them
-add_dependencies(${PROJECT_NAME}_teleopJoystickCommands
+add_dependencies(teleopJoystickCommands
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
 
 ## TOOLS ------------------------------------------------------
 
-
-
-
-## Install ------------------------------------------------------------
-# Install header files
-#install(DIRECTORY 
-#include/${PROJECT_NAME}
-#DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#)
+# Install ------------------------------------------------------------
+#Install header files
+install(TARGETS joystickSubscriber teleopJoystickCommands
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 #install(DIRECTORY
 #launch

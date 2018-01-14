@@ -324,7 +324,6 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	std::array<Eigen::Vector2d, 4> wheels = {wheel1, wheel2, wheel3, wheel4};
 	
 	/*
-	filename = "offsets.txt";
 	invertWheelAngle(false);
 	swerveVar::ratios driveRatios({20, 7, 7});
 	swerveVar::encoderUnits units({1,1,1,1,1,1});
