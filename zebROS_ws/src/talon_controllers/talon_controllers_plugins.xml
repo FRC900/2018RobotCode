@@ -19,5 +19,10 @@
     <description>
      Configure and run a Talon SRX in velocity close loop (PIDF) mode
     </description>
+  </class> 
+  <class name="talon_controllers/TalonLinearPositionCloseLoopController" type="talon_controllers::TalonLinearPositionCloseLoopController" base_class_type="controller_interface::ControllerBase">
+    <description>
+     Configure and run a Talon SRX connected to a gear box for the elevator
+    </description>
   </class>
 </library>
