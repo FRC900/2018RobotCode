@@ -149,16 +149,16 @@ void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &msg) {
 int main(int argc, char **argv) {
     ros::init(argc, argv, "scaled_joystick_state_subscriber");
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("ScaledJoystickVals", 1000, evaluateCommands);
+    ros::Subscriber sub = n.subscribe("ScaledJoystickVals", 1, evaluateCommands);
     //subscribe to robot state stuff for possession of cube and elevator height
     //added to global vars
     ros::init(argc, argv, "robot_state_subscriber");
     ros::NodeHandle n_;
-    ros::Subscriber sub2 = n_.subscribe("RobotState", 1000, evaluateState);
+    ros::Subscriber sub2 = n_.subscribe("RobotState", 1, evaluateState);
     
     ros::init(argc, argv, "cmd_vel");
     ros::NodeHandle r;
-    JoystickRobotVel = r.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
+    JoystickRobotVel = r.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
     ros::spin();
 
