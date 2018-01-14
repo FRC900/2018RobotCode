@@ -495,6 +495,12 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		curr_cmd.ang = 0.0;
 	}
 
+	if (fabs(curr_cmd.lin[0]) <= 1e-6 && fabs(curr_cmd.lin[1]) <= 1e-6 && fabs(curr_cmd.ang) <= 1e-6)
+	{
+		brake();
+		return;
+	}
+
 	// Limit velocities and accelerations:
 	const double cmd_dt(period.toSec());
 
@@ -505,7 +511,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	array<double, WHEELCOUNT> curPos;
 	for (int i = 0; i < WHEELCOUNT; i++)
 		curPos[i] = steering_joints_[i].getPosition();
-	double angle = M_PI / 2.;
+	double angle = M_PI / 2.; // TODO: integrate navx and change this to use field-centric driving
 	std::array<bool, WHEELCOUNT> holder;
 	std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC->motorOutputs(curr_cmd.lin, curr_cmd.ang, angle, false, holder, false, curPos);
 
