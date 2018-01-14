@@ -20,7 +20,7 @@ swerve::swerve(array<Vector2d, WHEELCOUNT> wheelCoordinates, std::vector<double>
 	units_ = units;
 	drive_ = drive;
 	wheelAngleInvert_ = wheelAngleInvert ? -1 : 1;
-	
+
 	// TODO : Error checking in case offsets.size() != WHEELCOUNT
 	for (size_t i = 0; i < offsets.size() && i < WHEELCOUNT; i++)
 		offsets_[i] = offsets[i];
@@ -35,7 +35,7 @@ void swerve::setCenterOfRotation(int id, const Vector2d &centerOfRotation)
 	{
 		multiplierSet newSet;
 		newSet.multipliers_ = swerveMath_.wheelMultipliersXY(centerOfRotation);
-		newSet.maxRotRate_ = furthestWheel(centerOfRotation) / drive_.maxSpeed;
+		newSet.maxRotRate_ = pow((2*M_PI), 2) * furthestWheel(centerOfRotation) / drive_.maxSpeed;
 		multiplierSets_[id] = newSet;
 	}
 }
@@ -64,7 +64,8 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 			nearestangle = leastDistantAngleWithinHalfPi(encoderPosition_[i], speedsAndAngles[i][1], reverse);
 			reverses[i] = reverse;
 			speedsAndAngles[i][0] *= ((drive_.maxSpeed / (drive_.wheelRadius)) / ratio_.encodertoRotations) * units_.rotationSetV * (reverse ? -1 : 1);
-			speedsAndAngles[i][1] *= units_.steeringSet - offsets_[i];
+			speedsAndAngles[i][1] *= units_.steeringSet;
+			speedsAndAngles[i][1] -= offsets_[i];
 		}
 	}
 	else
@@ -78,7 +79,8 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 			bool reverse;
 			getWheelAngle(i, encoderPosition_[i]);
 			nearestangle = leastDistantAngleWithinHalfPi(encoderPosition_[i], speedsAndAngles[i][1], reverse);
-			speedsAndAngles[i][1] *= units_.steeringSet - offsets_[i];
+			speedsAndAngles[i][1] *= units_.steeringSet;
+			speedsAndAngles[i][1] -= offsets_[i];
 		}
 
 	}
