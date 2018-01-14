@@ -69,6 +69,9 @@ class TalonHWCommand
 			voltage_compensation_enable_(false),
 			voltage_compensation_changed_(false),
 
+			sensor_position_value_(0.),
+			sensor_position_changed_(false),
+
 			// limit switches
 			limit_switch_local_forward_source_(LimitSwitchSource_FeedbackConnector),
 			limit_switch_local_forward_normal_(LimitSwitchNormal_NormallyOpen),
@@ -662,6 +665,25 @@ class TalonHWCommand
 			return false;
 		}
 
+		void setSelectedSensorPosition(double position)
+		{
+			sensor_position_value_ = position;
+			sensor_position_changed_ = true;
+		}
+		double getSelectedSensorPosition(void) const
+		{
+			return sensor_position_value_;
+		}
+
+		bool sensorPositionChanged(double &position)
+		{
+			position = sensor_position_value_;
+			if (!sensor_position_changed_)
+				return false;
+			sensor_position_changed_ = false;
+			return true;
+		}
+
 		void setForwardLimitSwitchSource(LimitSwitchSource source, LimitSwitchNormal normal)
 		{
 			if ((source != limit_switch_local_forward_source_) ||
@@ -1036,6 +1058,9 @@ class TalonHWCommand
 		int   voltage_measurement_filter_;
 		bool  voltage_compensation_enable_;
 		bool  voltage_compensation_changed_;
+
+		double sensor_position_value_;
+		bool sensor_position_changed_;
 
 		LimitSwitchSource limit_switch_local_forward_source_;
 		LimitSwitchNormal limit_switch_local_forward_normal_;

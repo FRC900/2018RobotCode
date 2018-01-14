@@ -805,6 +805,13 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ts.setVoltageCompensationEnable(v_c_enable);
 		}
 
+		double sensor_position;
+		if (tc.sensorPositionChanged(sensor_position))
+		{
+			safeTalonCall(talon->SetSelectedSensorPosition(sensor_position / radians_scale, pidIdx, timeoutMs),
+					"SetSelectedSensorPosition");
+		}
+
 		hardware_interface::LimitSwitchSource internal_local_forward_source;
 		hardware_interface::LimitSwitchNormal internal_local_forward_normal;
 		hardware_interface::LimitSwitchSource internal_local_reverse_source;
@@ -926,9 +933,10 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		if ((tc.newMode(in_mode) || tc.commandChanged(command) ) &&
 			convertControlMode(in_mode, out_mode))
 		{
-			//if ((joint_id == 4) || (joint_id == 5))
-				//ROS_INFO_STREAM_THROTTLE(1, "Joint " << joint_id << "=" << can_talon_srx_names_[joint_id] << " in_mode = " << in_mode << " ros cmd = " << command );
-			
+			ts.setTalonMode(in_mode);
+			ts.setSetpoint(command);
+			ts.setNeutralOutput(false); // maybe make this a part of setSetpoint?
+
 			switch (out_mode)
 			{
 				case ctre::phoenix::motorcontrol::ControlMode::Velocity:
@@ -939,13 +947,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					break;
 			}
 
-			//if ((joint_id == 4) || (joint_id == 5))
-				//ROS_INFO_STREAM_THROTTLE(1, "\t\tout_mode = " << static_cast<int>(out_mode) << " talon cmd = " << command);
 			talon->Set(out_mode, command);
 			safeTalonCall(talon->GetLastError(), "Set");
-			ts.setTalonMode(in_mode);
-			ts.setSetpoint(command);
-			ts.setNeutralOutput(false); // maybe make this a part of setSetpoint?
 		}
 
 		// Do this last so that previously loaded trajectories and settings
