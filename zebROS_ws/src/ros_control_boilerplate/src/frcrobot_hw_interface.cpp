@@ -656,9 +656,6 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
-	ROS_INFO_STREAM_THROTTLE(1, std::endl << std::string(__FILE__) << ":" << __LINE__ <<
-	                    std::endl << printCommandHelper());
-
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		// Save some typing by making references to commonly
