@@ -79,7 +79,7 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 			bool reverse;
 			getWheelAngle(i, encoderPosition_[i]);
 			nearestanglep = leastDistantAngleWithinHalfPi(encoderPosition_[i], speedsAndAngles[i][1], reverse);
-			speedsAndAngles[i][1] = nearestanglep units_.steeringSet;
+			speedsAndAngles[i][1] = nearestanglep * units_.steeringSet;
 			speedsAndAngles[i][1] -= offsets_[i];
 		}
 
