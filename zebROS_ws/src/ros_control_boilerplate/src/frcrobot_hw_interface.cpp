@@ -781,7 +781,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		}
 
 		double iaccum;
-		if (tc.integralAccumulatorChanged(iaccum))
+		if (closed_loop_mode && tc.integralAccumulatorChanged(iaccum))
 		{
 			safeTalonCall(talon->SetIntegralAccumulator((iaccum / closed_loop_scale), pidIdx, timeoutMs),"SetIntegralAccumulator(");
 			// Do not set talon state - this changes
