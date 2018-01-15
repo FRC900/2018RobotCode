@@ -152,8 +152,10 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 		m.motion_profile_status_is_underrun.push_back(false);
 		m.motion_profile_status_active_point_valid.push_back(false);
 		m.motion_profile_status_is_last.push_back(false);
-		m.motion_profile_status_profile_slot_select.push_back(0);
+		m.motion_profile_status_profile_slot_select0.push_back(0);
+		m.motion_profile_status_profile_slot_select1.push_back(0);
 		m.motion_profile_status_output_enable.push_back("");
+		m.motion_profile_time_dur_ms.push_back(0);
 		m.faults.push_back("");
 		m.sticky_faults.push_back("");
 
@@ -415,7 +417,8 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 				m.motion_profile_status_is_underrun[i] = mp_status.isUnderrun;
 				m.motion_profile_status_active_point_valid[i] = mp_status.activePointValid;
 				m.motion_profile_status_is_last[i] = mp_status.isLast;
-				m.motion_profile_status_profile_slot_select[i] = mp_status.profileSlotSelect;
+				m.motion_profile_status_profile_slot_select0[i] = mp_status.profileSlotSelect0;
+				m.motion_profile_status_profile_slot_select1[i] = mp_status.profileSlotSelect1;
 				switch (mp_status.outputEnable)
 				{
 					case hardware_interface::Disable:
@@ -431,6 +434,7 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 						m.motion_profile_status_output_enable[i] = "Unknown";
 						break;
 				}
+				m.motion_profile_time_dur_ms[i] = mp_status.timeDurMs;
 
 				{
 					unsigned faults = ts->getFaults();

@@ -96,8 +96,10 @@ struct MotionProfileStatus
 	bool isUnderrun;
 	bool activePointValid;
 	bool isLast;
-	int  profileSlotSelect;
+	int  profileSlotSelect0;
+	int  profileSlotSelect1;
 	SetValueMotionProfile outputEnable;
+	int  timeDurMs;
 };
 
 // Class which contains state information

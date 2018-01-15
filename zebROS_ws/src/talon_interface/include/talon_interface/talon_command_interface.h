@@ -6,14 +6,28 @@
 
 namespace hardware_interface
 {
+enum TrajectoryDuration 
+{
+	TrajectoryDuration_0ms = 0,
+	TrajectoryDuration_5ms = 5,
+	TrajectoryDuration_10ms = 10,
+	TrajectoryDuration_20ms = 20,
+	TrajectoryDuration_30ms = 30,
+	TrajectoryDuration_40ms = 40,
+	TrajectoryDuration_50ms = 50,
+	TrajectoryDuration_100ms = 100,
+};
+	
 struct TrajectoryPoint
 {
 	double position;
 	double velocity;
 	double headingRad;
-	uint32_t profileSlotSelect;
+	uint32_t profileSlotSelect0;
+	uint32_t profileSlotSelect1;
 	bool isLastPoint;
 	bool zeroPos;
+	TrajectoryDuration trajectoryDuration;
 };
 
 // Class to buffer data needed to set the state of the

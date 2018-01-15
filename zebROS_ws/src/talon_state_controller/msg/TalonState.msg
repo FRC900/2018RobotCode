@@ -99,7 +99,9 @@ bool[]    motion_profile_status_has_underrun
 bool[]    motion_profile_status_is_underrun
 bool[]    motion_profile_status_active_point_valid
 bool[]    motion_profile_status_is_last
-int32[]   motion_profile_status_profile_slot_select
+int32[]   motion_profile_status_profile_slot_select0
+int32[]   motion_profile_status_profile_slot_select1
 string[]  motion_profile_status_output_enable
+int32[]   motion_profile_time_dur_ms
 string[]  faults
 string[]  sticky_faults

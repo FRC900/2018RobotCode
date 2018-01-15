@@ -393,8 +393,10 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.isUnderrun = talon_status.isUnderrun;
 			internal_status.activePointValid = talon_status.activePointValid;
 			internal_status.isLast = talon_status.isLast;
-			internal_status.profileSlotSelect = talon_status.profileSlotSelect;
+			internal_status.profileSlotSelect0 = talon_status.profileSlotSelect0;
+			internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
 			internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
+			internal_status.timeDurMs = talon_status.timeDurMs;
 		
 			ts.setMotionProfileStatus(internal_status);
 		}
@@ -920,9 +922,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				pt.position = it->position;
 				pt.velocity = it->velocity;
 				pt.headingDeg = it->headingRad * 180. / M_PI;
-				pt.profileSlotSelect = it->profileSlotSelect;
+				pt.profileSlotSelect0 = it->profileSlotSelect0;
+				pt.profileSlotSelect1 = it->profileSlotSelect1;
 				pt.isLastPoint = it->isLastPoint;
 				pt.zeroPos = it->zeroPos;
+				pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
 				safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
 			}
 		}
