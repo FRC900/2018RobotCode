@@ -345,39 +345,43 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		ts.setTemperature(temperature);
 
 		//closed-loop
-
-		double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
-		safeTalonCall(talon->GetLastError(), "GetClosedLoopError");
-		ts.setClosedLoopError(closed_loop_error);
-	
-		double integral_accumulator = talon->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
-		safeTalonCall(talon->GetLastError(), "GetIntegralAccumulator");
-		ts.setIntegralAccumulator(integral_accumulator);
-
-		double error_derivative = talon->GetErrorDerivative(pidIdx) * closed_loop_scale;
-		safeTalonCall(talon->GetLastError(), "GetErrorDerivative");
-		ts.setErrorDerivative(error_derivative);
-
-		double closed_loop_target = talon->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
-		safeTalonCall(talon->GetLastError(), "GetClosedLoopTarget");
-		ts.setClosedLoopTarget(closed_loop_target);
-
-
-#if 0 // no workie?
-		double active_trajectory_position = talon->GetActiveTrajectoryPosition() * radians_scale;
-		safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryPosition");
-		ts.setActiveTrajectoryPosition(active_trajectory_position);
-		double active_trajectory_velocity = talon->GetActiveTrajectoryVelocity() * radians_per_second_scale;
-		safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryVelocity");
-		ts.setActiveTrajectoryVelocity(active_trajectory_velocity);
-		double active_trajectory_heading = talon->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
-		safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
-		ts.setActiveTrajectoryHeading(active_trajectory_heading);
-#endif
-
-		if ((ts.getTalonMode() == hardware_interface::TalonMode_MotionProfile) || 
-			(ts.getTalonMode() == hardware_interface::TalonMode_MotionMagic))
+		if ((talon_mode == hardware_interface::TalonMode_Position) ||
+		    (talon_mode == hardware_interface::TalonMode_Velocity) ||
+		    (talon_mode == hardware_interface::TalonMode_Current ) ||
+			(talon_mode == hardware_interface::TalonMode_MotionProfile) ||
+			(talon_mode == hardware_interface::TalonMode_MotionMagic))
 		{
+			double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
+			safeTalonCall(talon->GetLastError(), "GetClosedLoopError");
+			ts.setClosedLoopError(closed_loop_error);
+
+			double integral_accumulator = talon->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
+			safeTalonCall(talon->GetLastError(), "GetIntegralAccumulator");
+			ts.setIntegralAccumulator(integral_accumulator);
+
+			double error_derivative = talon->GetErrorDerivative(pidIdx) * closed_loop_scale;
+			safeTalonCall(talon->GetLastError(), "GetErrorDerivative");
+			ts.setErrorDerivative(error_derivative);
+
+			double closed_loop_target = talon->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
+			safeTalonCall(talon->GetLastError(), "GetClosedLoopTarget");
+			ts.setClosedLoopTarget(closed_loop_target);
+		}
+
+		if ((talon_mode == hardware_interface::TalonMode_MotionProfile) ||
+			(talon_mode == hardware_interface::TalonMode_MotionMagic))
+		{
+#if 0 // no workie?
+			double active_trajectory_position = talon->GetActiveTrajectoryPosition() * radians_scale;
+			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryPosition");
+			ts.setActiveTrajectoryPosition(active_trajectory_position);
+			double active_trajectory_velocity = talon->GetActiveTrajectoryVelocity() * radians_per_second_scale;
+			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryVelocity");
+			ts.setActiveTrajectoryVelocity(active_trajectory_velocity);
+			double active_trajectory_heading = talon->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
+			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
+			ts.setActiveTrajectoryHeading(active_trajectory_heading);
+#endif
 			ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
 			safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
 			ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
@@ -662,6 +666,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
+		//TODO : skip over most or all of this if the talon is in follower mode
+		//       Only do the Set() call and then 
+		//       never do anything else?  Need to make sure things like inverts
+		//       and so on are copied from the talon it is following
+		//
 		// Save some typing by making references to commonly
 		// used variables
 		auto &ts = talon_state_[joint_id];
@@ -677,8 +686,24 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double radians_per_sec_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
 		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
 
+		bool close_loop_mode = false;
+		bool motion_profile_mode = false;
+
+		if ((talon_mode == hardware_interface::TalonMode_Position) ||
+		    (talon_mode == hardware_interface::TalonMode_Velocity) ||
+		    (talon_mode == hardware_interface::TalonMode_Current ))
+		{
+			close_loop_mode = true;
+		}
+		else if ((talon_mode == hardware_interface::TalonMode_MotionProfile) ||
+			     (talon_mode == hardware_interface::TalonMode_MotionMagic))
+		{
+			close_loop_mode = true;
+			motion_profile_mode = true;
+		}
+
 		int slot;
-		if (tc.slotChanged(slot))
+		if (close_loop_mode && tc.slotChanged(slot))
 		{
 			ROS_INFO_STREAM("Updated joint " << joint_id << " PIDF slot to " << slot << std::endl);
 
@@ -695,15 +720,16 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ts.setEncoderFeedback(internal_feedback_device);
 		}
 
-		double p;
-		double i;
-		double d;
-		double f;
-		int    iz;
-		int    allowable_closed_loop_error;
-		double max_integral_accumulator;
-		for (int j = 0; j < 2; j++)
+		for (int j = 0; close_loop_mode && (j < 2); j++)
 		{
+			double p;
+			double i;
+			double d;
+			double f;
+			int    iz;
+			int    allowable_closed_loop_error;
+			double max_integral_accumulator;
+
 			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, j))
 			{
 				safeTalonCall(talon->Config_kP(j, p, timeoutMs),"Config_kP");
@@ -883,51 +909,54 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ts.setCurrentLimitEnable(enable);
 		}
 
-		double motion_cruise_velocity;
-		double motion_acceleration;
-		if (tc.motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
+		if (motion_profile_mode)
 		{
-			ts.setMotionCruiseVelocity(motion_cruise_velocity);
-			ts.setMotionAcceleration(motion_acceleration);
-
-			//converted from rad/sec to native units
-			safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_sec_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
-			safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_sec_scale * .1), timeoutMs),"ConfigMotionAcceleration(");
-		}
-		// Do this before rest of motion profile stuff
-		// so it takes effect before starting a buffer?
-		int motion_control_frame_period;
-		if (tc.motionControlFramePeriodChanged(motion_control_frame_period))
-		{
-			safeTalonCall(talon->ChangeMotionControlFramePeriod(motion_control_frame_period),"ChangeMotionControlFramePeriod");
-			ts.setMotionControlFramePeriod(motion_control_frame_period);
-		}
-
-		if (tc.clearMotionProfileTrajectoriesChanged())
-		{
-			talon->ClearMotionProfileTrajectories();
-			safeTalonCall(talon->GetLastError(), "ClearMotionProfileTrajectories");
-		}
-
-		if (tc.clearMotionProfileHasUnderrunChanged())
-			safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
-
-		std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
-
-		if (tc.motionProfileTrajectoriesChanged(trajectory_points))
-		{
-			for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
+			double motion_cruise_velocity;
+			double motion_acceleration;
+			if (tc.motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
 			{
-				ctre::phoenix::motion::TrajectoryPoint pt;
-				pt.position = it->position;
-				pt.velocity = it->velocity;
-				pt.headingDeg = it->headingRad * 180. / M_PI;
-				pt.profileSlotSelect0 = it->profileSlotSelect0;
-				pt.profileSlotSelect1 = it->profileSlotSelect1;
-				pt.isLastPoint = it->isLastPoint;
-				pt.zeroPos = it->zeroPos;
-				pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
-				safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
+				ts.setMotionCruiseVelocity(motion_cruise_velocity);
+				ts.setMotionAcceleration(motion_acceleration);
+
+				//converted from rad/sec to native units
+				safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_sec_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
+				safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_sec_scale * .1), timeoutMs),"ConfigMotionAcceleration(");
+			}
+			// Do this before rest of motion profile stuff
+			// so it takes effect before starting a buffer?
+			int motion_control_frame_period;
+			if (tc.motionControlFramePeriodChanged(motion_control_frame_period))
+			{
+				safeTalonCall(talon->ChangeMotionControlFramePeriod(motion_control_frame_period),"ChangeMotionControlFramePeriod");
+				ts.setMotionControlFramePeriod(motion_control_frame_period);
+			}
+
+			if (tc.clearMotionProfileTrajectoriesChanged())
+			{
+				talon->ClearMotionProfileTrajectories();
+				safeTalonCall(talon->GetLastError(), "ClearMotionProfileTrajectories");
+			}
+
+			if (tc.clearMotionProfileHasUnderrunChanged())
+				safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
+
+			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
+
+			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
+			{
+				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
+				{
+					ctre::phoenix::motion::TrajectoryPoint pt;
+					pt.position = it->position;
+					pt.velocity = it->velocity;
+					pt.headingDeg = it->headingRad * 180. / M_PI;
+					pt.profileSlotSelect0 = it->profileSlotSelect0;
+					pt.profileSlotSelect1 = it->profileSlotSelect1;
+					pt.isLastPoint = it->isLastPoint;
+					pt.zeroPos = it->zeroPos;
+					pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
+					safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
+				}
 			}
 		}
 
@@ -961,7 +990,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		// have been sent to the talon before processing
 		// Also do it after setting mode to make sure switches to
 		// motion profile mode are done before processing
-		if (tc.processMotionProfileBufferChanged())
+		if (motion_profile_mode && tc.processMotionProfileBufferChanged())
 		{
 			talon->ProcessMotionProfileBuffer();
 			safeTalonCall(talon->GetLastError(), "ProcessMotionProfileBuffer");
