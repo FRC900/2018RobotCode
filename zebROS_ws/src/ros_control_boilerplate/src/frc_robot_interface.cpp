@@ -240,6 +240,20 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 			double_solenoid_forward_ids_.push_back(double_solenoid_forward_id);
 			double_solenoid_reverse_ids_.push_back(double_solenoid_reverse_id);
 		}
+		else if (joint_type == "rumble")
+		{
+			if (!joint_params.hasMember("rumble_port"))
+				throw std::runtime_error("A rumble_port was not specified");
+			XmlRpc::XmlRpcValue &xml_rumble_port = joint_params["rumble_port"];
+			if (!xml_rumble_port.valid() ||
+					xml_rumble_port.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint dio_channel was specified (expecting an int).");
+
+			const int rumble_port = xml_rumble_port;
+
+			rumble_names_.push_back(joint_name);
+			rumble_ports_.push_back(rumble_port);
+		}
 		else
 		{
 			std::stringstream s;
@@ -388,6 +402,21 @@ void FRCRobotInterface::init()
                 hardware_interface::JointHandle doh(dosh, &double_solenoid_command_[i]);
                 joint_position_interface_.registerHandle(doh);
         }
+	num_rumble_ = rumble_names_.size();
+	rumble_state_.resize(num_rumble_);
+	rumble_command_.resize(num_rumble_);
+	for (size_t i = 0; i < num_rumble_; i++)
+	{
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << rumble_names_[i] << " at port " <<rumble_ports_[i]);
+
+		hardware_interface::JointStateHandle rsh(rumble_names_[i], &rumble_state_[i], &rumble_state_[i], &rumble_state_[i]);
+		joint_state_interface_.registerHandle(rsh);
+
+		// Do the same for a command interface for
+		// the same brushless motor
+		hardware_interface::JointHandle rh(rsh, &rumble_command_[i]);
+		joint_velocity_interface_.registerHandle(rh);
+	}
 
 	// Publish various FRC-specific data using generic joint state for now
 	// For simple things this might be OK, but for more complex state
