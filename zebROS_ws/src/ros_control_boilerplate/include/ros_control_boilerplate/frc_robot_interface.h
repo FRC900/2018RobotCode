@@ -163,6 +163,10 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<int>         double_solenoid_reverse_ids_;
 		std::size_t              num_double_solenoids_;
 		
+		std::vector<std::string> rumble_names_;
+		std::vector<int>         rumble_ports_;
+		std::size_t              num_rumble_;
+		
 		urdf::Model *urdf_model_;
 
 		// Array holding master cached state of hardware
@@ -178,6 +182,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> pwm_state_; //No actual data
 		std::vector<double> solenoid_state_;
 		std::vector<double> double_solenoid_state_;
+		std::vector<double> rumble_state_; //No actual data
 		
 		// Same as above, but for pending commands to be
 		// written to the hardware
@@ -187,6 +192,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> pwm_command_;
 		std::vector<double> solenoid_command_;
 		std::vector<double> double_solenoid_command_;
+		std::vector<double> rumble_command_;
 };  // class
 
 }  // namespace
