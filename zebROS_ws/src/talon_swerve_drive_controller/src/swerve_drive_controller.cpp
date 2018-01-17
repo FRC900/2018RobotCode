@@ -336,6 +336,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 		
 
 	sub_command_ = controller_nh.subscribe("cmd_vel", 1, &TalonSwerveDriveController::cmdVelCallback, this);
+	/*
 	double odom_pub_freq;
         controller_nh.param("odometry_publishing_frequency", odom_pub_freq, DEF_ODOM_PUB_FREQ);	
 	
@@ -402,14 +403,14 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
                   odom_tf_pub_.init(controller_nh, "/tf", 1);
                 }
           }
-
+	*/
 
 
 
 
 	return true;
 }
-
+/*
 void TalonSwerveDriveController::compOdometry(const Time& time, const double inv_delta_t)
         {
           // Compute the rigid transform from wheel_pos_ to new_wheel_pos_.
@@ -495,13 +496,13 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
           }
         }
 
-
+*/
 
 void TalonSwerveDriveController::update(const ros::Time &time, const ros::Duration &period)
 {
-	const double delta_t = period.toSec();
-	const double inv_delta_t = 1 / delta_t;
-	if (comp_odom_) compOdometry(time, inv_delta_t);
+	//const double delta_t = period.toSec();
+	//const double inv_delta_t = 1 / delta_t;
+	//if (comp_odom_) compOdometry(time, inv_delta_t);
 	
 	/*
 	// COMPUTE AND PUBLISH ODOMETRY
