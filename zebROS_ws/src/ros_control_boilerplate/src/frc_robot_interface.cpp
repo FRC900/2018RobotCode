@@ -41,9 +41,18 @@
 
 namespace ros_control_boilerplate
 {
-FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_model)
-	: name_("generic_hw_interface")
+FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_model) :
+   	  name_("generic_hw_interface")
 	, nh_(nh)
+	, num_can_talon_srxs_(0)
+	, num_nidec_brushlesses_(0)
+	, num_digital_inputs_(0)
+	, num_digital_outputs_(0)
+	, num_pwm_(0)
+	, num_solenoids_(0)
+	, num_double_solenoids_(0)
+	, num_rumble_(0)
+	, match_time_state_(0)
 {
 	// Check if the URDF model needs to be loaded
 	if (urdf_model == NULL)

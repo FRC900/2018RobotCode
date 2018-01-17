@@ -100,6 +100,22 @@ struct MotionProfileStatus
 	int  profileSlotSelect1;
 	SetValueMotionProfile outputEnable;
 	int  timeDurMs;
+
+	MotionProfileStatus(void):
+		topBufferRem(0),
+		topBufferCnt(0),
+		btmBufferCnt(0),
+		hasUnderrun(false),
+		isUnderrun(false),
+		activePointValid(false),
+		isLast(false),
+		profileSlotSelect0(0),
+		profileSlotSelect1(0),
+		outputEnable(Disable),
+		timeDurMs(0)
+	{
+	}
+
 };
 
 // Class which contains state information

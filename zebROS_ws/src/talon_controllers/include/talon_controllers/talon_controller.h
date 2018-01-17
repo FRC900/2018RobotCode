@@ -217,13 +217,12 @@ class TalonFollowerController:
 // to the Talon
 class TalonLinearPositionCloseLoopController :
 	public TalonCloseLoopController<TalonPositionCloseLoopControllerInterface>
-
-
 {	
 	//Used radius	
 	private:
 		double radius_;
 	public:
+		TalonLinearPositionCloseLoopController(void) {}
 		
 		virtual bool init(hardware_interface::TalonCommandInterface *hw, ros::NodeHandle &n)
 		{

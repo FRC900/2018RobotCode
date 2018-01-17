@@ -541,7 +541,7 @@ double FRCRobotHWInterface::getRadiansPerSecConversionFactor(hardware_interface:
 }
 */
 
-bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, const std::string talon_method_name)
+bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, const std::string &talon_method_name)
 {
 	std::string error_name;
 	switch (error_code)
