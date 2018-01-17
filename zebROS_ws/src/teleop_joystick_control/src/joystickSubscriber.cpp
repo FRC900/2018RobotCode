@@ -15,6 +15,7 @@ double deadzone(double val) {
     return val;
 }
 
+static double dead_zone, slow_mode, max_speed, joystick_scale;
 static ros::Publisher ScaledValPub;
 void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     /*Joystick value scaling and magic stuff */
