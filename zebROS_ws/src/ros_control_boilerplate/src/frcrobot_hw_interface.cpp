@@ -238,7 +238,7 @@ void FRCRobotHWInterface::init(void)
 		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i] /*, CAN update rate*/ ));
 		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, timeoutMs); // Make sure motor is stopped
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
-							  "\tTaln SRX firmware version " << can_talons_[i]->GetFirmwareVersion());
+							  "\tTalon SRX firmware version " << can_talons_[i]->GetFirmwareVersion());
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -737,6 +737,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				safeTalonCall(talon->Config_kD(j, d, timeoutMs),"Config_kD");
 				safeTalonCall(talon->Config_kF(j, f, timeoutMs),"Config_kF");
 				safeTalonCall(talon->Config_IntegralZone(j, iz, timeoutMs),"Config_IntegralZone");
+				// TODO : Scale these two?
 				safeTalonCall(talon->ConfigAllowableClosedloopError(j, allowable_closed_loop_error, timeoutMs),"ConfigAllowableClosedloopError");
 				safeTalonCall(talon->ConfigMaxIntegralAccumulator(j, max_integral_accumulator, timeoutMs),"ConfigMaxIntegralAccumulator");
 
