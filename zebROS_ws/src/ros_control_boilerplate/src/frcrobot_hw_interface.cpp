@@ -966,7 +966,12 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double command;
 		hardware_interface::TalonMode in_mode;
 		ctre::phoenix::motorcontrol::ControlMode out_mode;
-		if ((tc.newMode(in_mode) || tc.commandChanged(command) ) &&
+		// Note thie has to be | rather than ||
+		// Using || gives a chance of it being short-circuted ... 
+		// that is, if newMode is true commandChanged won't
+		// be called.  That' bad because then command would
+		// be undefined
+		if ((tc.newMode(in_mode) | tc.commandChanged(command) ) && 
 			convertControlMode(in_mode, out_mode))
 		{
 			ts.setTalonMode(in_mode);

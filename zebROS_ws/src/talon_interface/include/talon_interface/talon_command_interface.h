@@ -670,9 +670,9 @@ class TalonHWCommand
 										int &voltage_measurement_filter,
 										bool &voltage_compensation_enable)
 		{
-			voltage_compensation_saturation_ = voltage_compensation_saturation;
-			voltage_measurement_filter_ = voltage_measurement_filter;
-			voltage_compensation_enable_ = voltage_compensation_enable;
+			voltage_compensation_saturation = voltage_compensation_saturation_;
+			voltage_measurement_filter      = voltage_measurement_filter_;
+			voltage_compensation_enable     = voltage_compensation_enable_;
 			if (voltage_compensation_changed_)
 			{
 				voltage_compensation_changed_ = false;
@@ -969,7 +969,7 @@ class TalonHWCommand
 		}
 		std::vector<TrajectoryPoint> getMotionProfileTrajectories(void) const
 		{
-			motion_profile_trajectory_points_;
+			return motion_profile_trajectory_points_;
 		}
 		bool motionProfileTrajectoriesChanged(std::vector<TrajectoryPoint> &points)
 		{
