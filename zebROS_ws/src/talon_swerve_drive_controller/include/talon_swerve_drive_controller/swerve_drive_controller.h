@@ -107,7 +107,7 @@ class TalonSwerveDriveController
 
 	private:
 		
-		void compOdometry(const ros::Time& time, const double inv_delta_t);
+		//void compOdometry(const ros::Time& time, const double inv_delta_t);
 		Eigen::Matrix2Xd new_wheel_pos_;	
 		std::array<Eigen::Vector2d, WHEELCOUNT> old_wheel_pos_; //	
 		std::array<double, WHEELCOUNT> last_wheel_rot;	//
