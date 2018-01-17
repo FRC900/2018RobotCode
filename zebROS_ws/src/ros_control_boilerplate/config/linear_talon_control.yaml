@@ -57,7 +57,7 @@ talon_linear_controller:
     type: talon_controllers/TalonLinearPositionCloseLoopController
     joint: talon_linear
     neutral_mode: Brake
-    radius: .254
+    radius: .0254
     sensor_phase: False
     close_loop_values:
         - {p: 2.0, i: .001, d: 2.0, f: 0.0, i_zone: 0}
