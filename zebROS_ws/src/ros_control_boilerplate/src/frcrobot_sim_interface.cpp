@@ -355,9 +355,9 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 		// TODO - maybe check for < 0, 0, >0 and map to forward/reverse?
 		const double command = double_solenoid_command_[i];
 		double setpoint;
-		if (setpoint >= 1.)
+		if (command >= 1.)
 			setpoint = 1.;
-		else if (setpoint <= -1.)
+		else if (command <= -1.)
 			setpoint = -1.;
 		else
 			setpoint = 0.;
