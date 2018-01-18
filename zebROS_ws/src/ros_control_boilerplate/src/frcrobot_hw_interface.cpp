@@ -1029,15 +1029,19 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 	for (size_t i = 0; i< num_double_solenoids_; i++)
 	{
-		// TODO - maybe check for < 0, 0, >0 and map to forward/reverse?
-		DoubleSolenoid::Value setpoint = static_cast<DoubleSolenoid::Value>(double_solenoid_command_[i]);
+		DoubleSolenoid::Value setpoint = DoubleSolenoid::Value::kOff;
+		if (double_solenoid_command_[i] >= 1.0)
+			setpoint = DoubleSolenoid::Value::kForward;
+		else if (double_solenoid_command_[i] <= -1.0)
+			setpoint = DoubleSolenoid::Value::kReverse;
+
 		double_solenoids_[i]->Set(setpoint);
 	}
 	for (size_t i = 0; i < num_rumble_; i++)
 	{
 		unsigned int rumbles = *((unsigned int*)(&rumble_command_[i]));	
-		unsigned int left_rumble = (rumbles >> 16) & 0xFFFF;
-		unsigned int right_rumble = (rumbles       ) & 0xFFFF;
+		unsigned int left_rumble  = (rumbles >> 16) & 0xFFFF;
+		unsigned int right_rumble = (rumbles      ) & 0xFFFF;
 		HAL_SetJoystickOutputs(rumble_ports_[i], 0, left_rumble, right_rumble);
 	}
 }
