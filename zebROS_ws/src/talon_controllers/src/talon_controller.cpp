@@ -21,3 +21,9 @@ PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonLinearPositionCloseLoopController
 
 PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonLinearMotionMagicCloseLoopController,
 					   controller_interface::ControllerBase)
+
+PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonAnglePositionCloseLoopController,
+					   controller_interface::ControllerBase)
+
+PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonAngleMotionMagicCloseLoopController,
+					   controller_interface::ControllerBase)

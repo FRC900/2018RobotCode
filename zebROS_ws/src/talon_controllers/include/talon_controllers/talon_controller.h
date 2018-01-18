@@ -277,5 +277,65 @@ class TalonLinearMotionMagicCloseLoopController :
 			talon_if_.setCommand(cmd.command_ / radius_);
 		}
 };
+class TalonAnglePositionCloseLoopController :
+	public TalonCloseLoopController<TalonPositionCloseLoopControllerInterface>
+{	
+	//Ratio	
+	private:
+		double gear_ratio_from_encoder_;
+	public:
+		TalonAnglePositionCloseLoopController(void) {}
+		
+		virtual bool init(hardware_interface::TalonCommandInterface *hw, ros::NodeHandle &n)
+		{
+			// Read params from command line / config file
+			if (!TalonCloseLoopController<TalonPositionCloseLoopControllerInterface>::init(hw,n))
+				return false;
+
+			//Ratio to convert to correct angle
+			n.getParam("gear_ratio_from_encoder", gear_ratio_from_encoder_);
+		}
+
+		// Same as TalonClosedLoopController but setCommand
+		// has converted radians as input
+		virtual void update(const ros::Time & /*time*/, const ros::Duration & /*period*/) override
+		{
+			// Write both PID config slot and
+			// output to talon interface
+			CloseLoopCommand cmd = *command_buffer_.readFromRT();
+			talon_if_.setPIDFSlot(cmd.config_slot_);
+			talon_if_.setCommand(cmd.command_ / gear_ratio_from_encoder_);
+		}
+};
+class TalonAngleMotionMagicCloseLoopController :
+	public TalonCloseLoopController<TalonMotionMagicCloseLoopControllerInterface>
+{	
+	//Used ratio	
+	private:
+		double gear_ratio_from_encoder_;
+	public:
+		TalonAngleMotionMagicCloseLoopController(void) {}
+		
+		virtual bool init(hardware_interface::TalonCommandInterface *hw, ros::NodeHandle &n)
+		{
+			// Read params from command line / config file
+			if (!TalonCloseLoopController<TalonMotionMagicCloseLoopControllerInterface>::init(hw,n))
+				return false;
+
+			//ratio to convert to correct angle
+			n.getParam("gear_ratio_from_encoder", gear_ratio_from_encoder_);
+		}
+
+		// Same as TalonClosedLoopController but setCommand
+		// has converted radians as input
+		virtual void update(const ros::Time & /*time*/, const ros::Duration & /*period*/) override
+		{
+			// Write both PID config slot and
+			// output to talon interface
+			CloseLoopCommand cmd = *command_buffer_.readFromRT();
+			talon_if_.setPIDFSlot(cmd.config_slot_);
+			talon_if_.setCommand(cmd.command_ / gear_ratio_from_encoder_);
+		}
+};
 
 }
