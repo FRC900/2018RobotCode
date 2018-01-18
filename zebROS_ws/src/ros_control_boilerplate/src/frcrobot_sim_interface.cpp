@@ -364,6 +364,19 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 
 		double_solenoid_state_[i] = setpoint;
 	}
+	for (size_t i = 0; i < num_rumble_; i++)
+	{
+		unsigned int rumbles = *((unsigned int*)(&rumble_command_[i]));	
+		unsigned int left_rumble  = (rumbles >> 16) & 0xFFFF;
+		unsigned int right_rumble = (rumbles      ) & 0xFFFF;
+#if 0
+		ROS_INFO_STREAM_THROTTLE(1,
+				"Joystick at port " << rumble_ports_[i] <<
+				" left rumble = " << std::dec << left_rumble << "(" << std::hex << left_rumble << 
+				") right rumble = " << std::dec << right_rumble << "(" << std::hex << right_rumble <<  ")" << std::dec);
+#endif
+	}
+	
 }
 
 }  // namespace

@@ -37,7 +37,6 @@
 */
 
 #include <ros_control_boilerplate/frc_robot_interface.h>
-#include <ros_control_boilerplate/imu_sensor_interface.h>
 #include <limits>
 
 namespace ros_control_boilerplate
@@ -257,7 +256,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 			XmlRpc::XmlRpcValue &xml_rumble_port = joint_params["rumble_port"];
 			if (!xml_rumble_port.valid() ||
 					xml_rumble_port.getType() != XmlRpc::XmlRpcValue::TypeInt)
-				throw std::runtime_error("An invalid joint dio_channel was specified (expecting an int).");
+				throw std::runtime_error("An invalid joint rumble_port was specified (expecting an int).");
 
 			const int rumble_port = xml_rumble_port;
 

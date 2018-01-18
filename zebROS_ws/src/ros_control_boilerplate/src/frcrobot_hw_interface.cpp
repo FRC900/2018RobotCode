@@ -46,19 +46,12 @@
 #include "HAL/HAL.h"
 #include "Joystick.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
-//#include "GenericHID.h"
 #include "math.h"
 
 namespace frcrobot_control
 {
 const int pidIdx = 0; //0 for primary closed-loop, 1 for cascaded closed-loop
 const int timeoutMs = 0; //If nonzero, function will wait for config success and report an error if it times out. If zero, no blocking or checking is performed
-
-int nativeU = 4096;   //native units of ctre magnetic encoders
-//RG: More than just making nativeU configurable, we should consider a much more automated system
-//i.e. set conversion factor based on specified feedback sensor
-//note that you can add a conversion factors that will automatically be applied for speed and position
-
 
 FRCRobotHWInterface::FRCRobotHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_model)
 	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model),
@@ -236,7 +229,7 @@ void FRCRobotHWInterface::init(void)
 							  "Loading joint " << i << "=" << can_talon_srx_names_[i] <<
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
 		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i] /*, CAN update rate*/ ));
-		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, timeoutMs); // Make sure motor is stopped
+		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 10); // Make sure motor is stopped
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "\tTalon SRX firmware version " << can_talons_[i]->GetFirmwareVersion());
 	}

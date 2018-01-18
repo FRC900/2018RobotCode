@@ -146,7 +146,7 @@ include_directories(
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
 
 
-install(DIRECTORY launch urdf configuration_files
+install(DIRECTORY launch urdf configuration_files config
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 

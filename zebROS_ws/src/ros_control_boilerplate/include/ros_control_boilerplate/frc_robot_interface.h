@@ -44,14 +44,11 @@
 #include <urdf/model.h>
 
 // ROS Controls
+#include <controller_manager/controller_manager.h>
+#include <hardware_interface/joint_command_interface.h>
+#include <hardware_interface/imu_sensor_interface.h>
 #include <hardware_interface/robot_hw.h>
 #include <talon_interface/talon_command_interface.h>
-#include <controller_manager/controller_manager.h>
-#include <joint_limits_interface/joint_limits.h>
-#include <joint_limits_interface/joint_limits_interface.h>
-#include <joint_limits_interface/joint_limits_rosparam.h>
-#include <joint_limits_interface/joint_limits_urdf.h>
-#include <ros_control_boilerplate/imu_sensor_interface.h>
 
 namespace ros_control_boilerplate
 {

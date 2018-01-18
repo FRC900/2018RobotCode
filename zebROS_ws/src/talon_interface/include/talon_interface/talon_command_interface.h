@@ -123,20 +123,16 @@ class TalonHWCommand
 			motion_profile_control_frame_period_(20),
 			motion_profile_control_frame_period_changed_(false),
 
-			clear_sticky_faults_(false)
+			clear_sticky_faults_(false),
+			p_{0, 0},
+			i_{0, 0},
+			d_{0, 0},
+			f_{0, 0},
+			i_zone_{0, 0},
+			allowable_closed_loop_error_{0, 0}, // need better defaults
+			max_integral_accumulator_{0, 0},
+			pidf_changed_{false, false}
 		{
-			for (int slot = 0; slot < 2; slot++)
-			{
-				p_[slot] = 0.0;
-				i_[slot] = 0.0;
-				d_[slot] = 0.0;
-				f_[slot] = 0.0;
-				i_zone_[slot] = 0;
-				allowable_closed_loop_error_[slot] = 0;
-				max_integral_accumulator_[slot] = 0;
-
-				pidf_changed_[slot] = true;
-			}
 		}
 		// This gets the requested setpoint, not the
 		// status actually read from the controller
