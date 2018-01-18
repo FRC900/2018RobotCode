@@ -37,6 +37,7 @@
 */
 
 #include <ros_control_boilerplate/frc_robot_interface.h>
+#include <ros_control_boilerplate/imu_sensor_interface.h>
 #include <limits>
 
 namespace ros_control_boilerplate
@@ -263,6 +264,20 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 			rumble_names_.push_back(joint_name);
 			rumble_ports_.push_back(rumble_port);
 		}
+		else if (joint_type == "navX")
+		{
+			if (!joint_params.hasMember("id"))
+				throw std::runtime_error("A navX id was not specified");
+			XmlRpc::XmlRpcValue &xml_navX_id = joint_params["id"];
+			if (!xml_navX_id.valid() ||
+					xml_navX_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint id was specified (expecting an int).");
+
+			const int navX_id = xml_navX_id;
+
+			navX_names_.push_back(joint_name);
+			navX_ids_.push_back(navX_id);
+		}
 		else
 		{
 			std::stringstream s;
@@ -425,6 +440,22 @@ void FRCRobotInterface::init()
 		// the same brushless motor
 		hardware_interface::JointHandle rh(rsh, &rumble_command_[i]);
 		joint_velocity_interface_.registerHandle(rh);
+	}
+	num_navX_ = navX_names_.size();
+	navX_state_.resize(num_navX_);
+	for (size_t i = 0; i < num_navX_; i++)
+	{
+		navX_state_.push_back(hardware_interface::ImuSensorHandle());
+	}
+	for (size_t i = 0; i < num_navX_; i++)
+	{
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering navX interface for : " << navX_names_[i] << " at id " << navX_ids_[i]);
+		// Create state interface for the given digital input
+		// and point it to the data stored in the
+		// corresponding brushless_state array entry
+		hardware_interface::ImuSensorHandle nxsh;
+		navX_interface_.registerHandle((nxsh));
+		
 	}
 
 	// Publish various FRC-specific data using generic joint state for now

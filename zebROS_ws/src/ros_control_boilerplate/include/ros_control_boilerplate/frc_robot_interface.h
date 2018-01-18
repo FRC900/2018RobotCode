@@ -51,6 +51,7 @@
 #include <joint_limits_interface/joint_limits_interface.h>
 #include <joint_limits_interface/joint_limits_rosparam.h>
 #include <joint_limits_interface/joint_limits_urdf.h>
+#include <ros_control_boilerplate/imu_sensor_interface.h>
 
 namespace ros_control_boilerplate
 {
@@ -127,6 +128,8 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		hardware_interface::VelocityJointInterface joint_velocity_interface_;
 		hardware_interface::TalonCommandInterface talon_command_interface_;
 
+		hardware_interface::ImuSensorInterface navX_interface_;
+
 		// Configuration
 		std::vector<std::string> can_talon_srx_names_;
 		std::vector<int>         can_talon_srx_can_ids_;
@@ -166,6 +169,10 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<std::string> rumble_names_;
 		std::vector<int>         rumble_ports_;
 		std::size_t              num_rumble_;
+
+		std::vector<std::string> navX_names_;
+		std::vector<int> 	 navX_ids_;
+		std::size_t		 num_navX_;
 		
 		urdf::Model *urdf_model_;
 
@@ -183,7 +190,8 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> solenoid_state_;
 		std::vector<double> double_solenoid_state_;
 		std::vector<double> rumble_state_; //No actual data
-		
+		std::vector<hardware_interface::ImuSensorHandle> navX_state_;
+			
 		// Same as above, but for pending commands to be
 		// written to the hardware
 		std::vector<hardware_interface::TalonHWCommand> talon_command_;

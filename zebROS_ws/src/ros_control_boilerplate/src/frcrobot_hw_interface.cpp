@@ -296,7 +296,7 @@ void FRCRobotHWInterface::init(void)
 		
 		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
 	}
-
+	//Add navX hw objects
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
@@ -454,6 +454,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		double_solenoid_state_[i] = double_solenoids_[i]->Get();
 	}
+	//navX read here
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
