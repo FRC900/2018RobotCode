@@ -685,11 +685,11 @@ class TalonControllerInterface
 			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 
-#if 0 // broken?
+//#if 0 // broken?
 			talon_->setMotionCruiseVelocity(params_.motion_cruise_velocity_);
 			talon_->setMotionAcceleration(params_.motion_acceleration_);
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
-#endif
+//#endif
 			return true;
 		}
 
@@ -1080,12 +1080,10 @@ class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInt
 		}
 };
 
-//RG: I can think of few to no situations were we would have a talon in motion magic mode for an entire match
-//Honestly I wouldn't ever use motion magic mode, I would use the MotionProfile mode (above)
 // KCJ -- in general the code we actually use will get a lot more attention. Not sure if that
 // means we should pull out less-tested stuff like this or leave it in and fix it if
 // we need it at some point?
-class TalonMotionMagicControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
+class TalonMotionMagicCloseLoopControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
