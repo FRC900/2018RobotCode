@@ -56,9 +56,8 @@ joint_state_controller:
 talon_linear_controller:
     type: talon_controllers/TalonLinearPositionCloseLoopController
     joint: talon_linear
-    neutral_mode: Brake
     radius: .03048
-    sensor_phase: False
+    feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
         - {p: .75, i: 0.05, d: 0.0, f: 0.0, i_zone: 500}
         - {p: .75, i: 0.05, d: 0.0, f: 0.0, i_zone: 500}

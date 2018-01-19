@@ -217,8 +217,6 @@ class TalonFollowerController:
 // to the Talon
 class TalonLinearPositionCloseLoopController :
 	public TalonCloseLoopController<TalonPositionCloseLoopControllerInterface>
-
-
 {	
 	//Used radius	
 	private:
