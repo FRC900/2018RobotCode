@@ -35,16 +35,16 @@ class TalonCIParams
 		// Initialize with relatively sane defaults
 		// for all parameters
 		TalonCIParams(void) :
-			follow_can_id_(-1),
-			p_{0, 0},
-			i_{0, 0},
-			d_{0, 0},
-			f_{0, 0},
-			izone_{0, 0},
+			follow_can_id_ (-1),
+			p_ {0, 0},
+			i_ {0, 0},
+			d_ {0, 0},
+			f_ {0, 0},
+			izone_ {0, 0},
 			allowable_closed_loop_error_{0, 0}, // need better defaults
 			max_integral_accumulator_{0, 0},
 			pidf_slot_(0),
-			invert_output_(false),
+			invert_output_ (false),
 			sensor_phase_(false),
 			neutral_mode_(hardware_interface::NeutralMode_Uninitialized),
 			feedback_type_(hardware_interface::FeedbackDevice_Uninitialized),
@@ -80,7 +80,6 @@ class TalonCIParams
 
 		TalonCIParams(const TalonConfigConfig &config)
 		{
-			follow_can_id_ = -1; // this can't be changed?
 			p_[0] = config.p0;
 			p_[1] = config.p1;
 			i_[0] = config.i0;
@@ -536,6 +535,22 @@ class TalonCIParams
 			return 0;
 		}
 
+		// Read a bool named <param_type> from the array/map
+		// in params
+		bool findBoolParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
+		{
+			if (!params.hasMember(param_type))
+				return false;
+			XmlRpc::XmlRpcValue &param = params[param_type];
+			if (!param.valid())
+				throw std::runtime_error(param_type + " was not a bool valid type");
+			if (param.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
+				return (bool)param;
+			else
+				throw std::runtime_error("A non-bool value was passed for" + param_type);
+			return false;
+		}
+
 		bool stringToLimitSwitchSource(const std::string &str,
 									   hardware_interface::LimitSwitchSource &limit_switch_source)
 		{
@@ -582,9 +597,9 @@ class TalonControllerInterface
 {
 	public:
 		TalonControllerInterface(void) :
-			srv_(nullptr),
-			srv_mutex_(std::make_shared<boost::recursive_mutex>())
+			srv_(nullptr)
 		{
+			srv_mutex_ = std::make_shared<boost::recursive_mutex>();
 		}
 		// Standardize format for reading params for
 		// motor controller
@@ -685,11 +700,11 @@ class TalonControllerInterface
 			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 
-//#if 0 // broken?
+#if 0 // broken?
 			talon_->setMotionCruiseVelocity(params_.motion_cruise_velocity_);
 			talon_->setMotionAcceleration(params_.motion_acceleration_);
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
-//#endif
+#endif
 			return true;
 		}
 
@@ -844,15 +859,6 @@ class TalonControllerInterface
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 		}
 
-		virtual void setSelectedSensorPosition(double position)
-		{
-			talon_->setSelectedSensorPosition(position);
-		}
-
-		virtual void clearStickyFaults(void)
-		{
-			talon_->setClearStickyFaults();
-		}
 
 		virtual void setMotionCruiseVelocity(double velocity)
 		{
@@ -1080,10 +1086,12 @@ class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInt
 		}
 };
 
+//RG: I can think of few to no situations were we would have a talon in motion magic mode for an entire match
+//Honestly I wouldn't ever use motion magic mode, I would use the MotionProfile mode (above)
 // KCJ -- in general the code we actually use will get a lot more attention. Not sure if that
 // means we should pull out less-tested stuff like this or leave it in and fix it if
 // we need it at some point?
-class TalonMotionMagicCloseLoopControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
+class TalonMotionMagicControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
 {
 	public:
 		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
