@@ -68,7 +68,7 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eige
 	{
 		//Only the rotation of the robot differently effects each wheel
 		double x = wheelMultipliersXY[i][0] * rotation + rotatedVelocity[0];
-		double y = wheelMultipliersXY[i][1] * rotation + rotatedVelocity[1];
+		double y = wheelMultipliersXY[i][1] * rotation - rotatedVelocity[1];
 		angles[i] = atan2(x, y);
 		speeds[i] = sqrt(x * x + y * y); // TODO : Use hypot func?
 	}
