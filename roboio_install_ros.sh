@@ -45,6 +45,18 @@ make install
 cd
 rm -rf gflags*
 
+#scp ~/2018RobotCode/os_detect.py admin@<target>:/usr/lib/python2.7/site-packages/rospkg/
+
+# Copy wpilib to roborio
+# cd ~/wpilib/cpp/current/reflib/linux/athena/shared
+#scp *.so.* <target>:wpilib
+#cd ~/wpilib/common/current/lib/linux/athena/shared
+#scp *.so *.so.3.2 <target>:wpilib
+
+#*******************************************************
+# STOP HERE
+#*******************************************************
+
 # Changed this to static lib on host, shouldn't need
 # to be installed on target as well
 #cd
@@ -71,14 +83,6 @@ rm -rf gflags*
 #make -j2 install
 #cd
 #rm -rf poco-1.7.9p1 poco-1.7.9p1.tar.gz 
-
-#scp ~/2018RobotCode/os_detect.py admin@<target>:/usr/lib/python2.7/site-packages/rospkg/
-
-# Copy wpilib to roborio
-# cd ~/wpilib/cpp/current/reflib/linux/athena/shared
-#scp *.so.* <target>
-#cd ~/wpilib/common/current/lib/linux/athena/shared
-#scp *.so *.so.3.2 <target>
 
 # KCJ - I'm skeptical any of the below libs are really
 # needed.  Many of the produce static libs so installed
