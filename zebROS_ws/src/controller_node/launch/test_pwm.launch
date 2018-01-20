@@ -19,11 +19,11 @@
 		</node>
 
 		<!-- Load controller settings -->
-		<rosparam file="$(find ros_control_boilerplate)/config/robot_in_a_box.yaml" command="load"/>
+		<rosparam file="$(find controller_node)/config/test_pwm.yaml" command="load"/>
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller talon1_controller talon2_controller pwm1_controller" />
+			output="screen" args="spawn joint_state_controller pwm_test_controller" />
 		<!-- Convert joint states to /tf tranforms -->
 		<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 
