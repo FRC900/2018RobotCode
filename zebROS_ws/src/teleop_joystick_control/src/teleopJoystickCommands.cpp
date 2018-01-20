@@ -15,6 +15,7 @@ static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickArmVel;
 static double armPos;
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
+    ROS_INFO("eval");
     bool ifcube = false;
     char currentToggle = ' ';
     char lastToggle = ' ';
@@ -124,7 +125,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
 
         vel.angular.z = msg->leftTrigger-msg->rightTrigger;
         JoystickRobotVel.publish(vel);
-        JoystickArmVel.publish(arm);
+        ROS_INFO("arm%f" , arm);
+	JoystickArmVel.publish(arm);
         
 
         ros::spinOnce();
@@ -175,6 +177,7 @@ int main(int argc, char **argv) {
 
     ros::init(argc, argv, "arm_controller");
     ros::NodeHandle a;
+    ROS_INFO("work?");
     JoystickArmVel = a.advertise<talon_controllers::CloseLoopControllerMsg>("frcrobot/talon_linear_controller/command", 1);
     ros::spin();
 

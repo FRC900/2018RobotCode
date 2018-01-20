@@ -391,7 +391,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
 			safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
 			ctre::phoenix::motion::MotionProfileStatus talon_status;
-			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+			//UNCOMMENT BELOW TODO
+			//safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
 			hardware_interface::MotionProfileStatus internal_status;
 			internal_status.topBufferRem = talon_status.topBufferRem;

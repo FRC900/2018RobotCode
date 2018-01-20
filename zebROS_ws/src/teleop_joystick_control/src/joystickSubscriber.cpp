@@ -22,7 +22,8 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double  rightStickX = msg->rightStickX;
     double  rightStickY = msg->rightStickY;
 
-
+    ROS_INFO_STREAM("right Y: " << rightStickY <<"right X: " << rightStickX );
+    ROS_INFO("WE BROKE");
     bool buttonAButton = msg->buttonAButton;
     bool buttonAPress = msg->buttonAPress;
     bool buttonARelease = msg->buttonARelease;
@@ -171,10 +172,10 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
 
         ScaledValPub.publish(msg);
         ros::spinOnce();
-        break;
+        //break;
 
         loop_rate.sleep();
-        break;
+        //break;
     }
 }
 
@@ -182,14 +183,23 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
 int main(int argc, char **argv) {
     ROS_INFO("hi");
     ros::init(argc, argv, "param_loader");
+    ROS_INFO("hi");
     ros::NodeHandle nh;
+    ROS_INFO("hi");
     nh.param("dead_zone", dead_zone, .1);
+    ROS_INFO("hi");
     nh.param("slow_mode", slow_mode, .33);
+    ROS_INFO("hi");
     nh.param("max_speed", max_speed, 3.285);
+    ROS_INFO("hi");
     nh.param("joystick_scale", joystick_scale, 3.0);
+    ROS_INFO("hi");
     ros::init(argc, argv, "joystick_state_subscriber");
+    ROS_INFO("hi1");
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("joystick_states", 1, joystick);
+    ROS_INFO("hi2");
+    ros::Subscriber sub = n.subscribe("frcrobot/joystick_states", 1, joystick);
+    ROS_INFO("hi3");
 
     ros::init(argc, argv, "ScaledJoystickVals");
     ros::NodeHandle n_;

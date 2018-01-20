@@ -275,6 +275,7 @@ class TalonLinearMotionMagicCloseLoopController :
 			CloseLoopCommand cmd = *command_buffer_.readFromRT();
 			talon_if_.setPIDFSlot(cmd.config_slot_);
 			talon_if_.setCommand(cmd.command_ / radius_);
+			//ROS_INFO_STREAM(cmd.command_ / radius_ << "works?");
 		}
 };
 class TalonAnglePositionCloseLoopController :
