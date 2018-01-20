@@ -72,4 +72,3 @@ talon_linear_controller:
     nominal_output_reverse: 0.0
     motion_cruise_velocity: 3000
     motion_acceleration: 1000
-    motion_control_frame_period: 10
