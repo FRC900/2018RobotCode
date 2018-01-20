@@ -452,7 +452,7 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 						if (faults & mask) str += "SensorOverflow "; mask <<= 1;
 						if (faults & mask) str += "SensorOutOfPhase "; mask <<= 1;
 						if (faults & mask) str += "HardwareESDReset "; mask <<= 1;
-						if (faults & mask) str += "RemoteLossOfSignal "; mask <<= 1;
+						if (faults & mask) str += "RemoteLossOfSignal ";
 					}
 					m.faults[i] = str;
 				}
@@ -472,7 +472,7 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 						if (faults & mask) str += "SensorOverflow "; mask <<= 1;
 						if (faults & mask) str += "SensorOutOfPhase "; mask <<= 1;
 						if (faults & mask) str += "HardwareESDReset "; mask <<= 1;
-						if (faults & mask) str += "RemoteLossOfSignal "; mask <<= 1;
+						if (faults & mask) str += "RemoteLossOfSignal ";
 					}
 					m.sticky_faults[i] = str;
 				}

@@ -111,7 +111,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 			const hardware_interface::LimitSwitchNormal input_ls,
 			ctre::phoenix::motorcontrol::LimitSwitchNormal &output_ls);
 		bool safeTalonCall(ctre::phoenix::ErrorCode error_code, 
-				const std::string talon_method_name);
+				const std::string &talon_method_name);
 
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;
 		std::vector<std::shared_ptr<frc::NidecBrushless>> nidec_brushlesses_;
@@ -120,6 +120,8 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::SafePWM>> PWMs_;
 		std::vector<std::shared_ptr<frc::Solenoid>> solenoids_;
 		std::vector<std::shared_ptr<frc::DoubleSolenoid>> double_solenoids_;
+		//some vector here of "navXes"		
+
 
 		std::thread hal_thread_;
 		bool        run_hal_thread_;

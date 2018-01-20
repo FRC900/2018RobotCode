@@ -123,7 +123,6 @@ class TeleopJointsKeyboard
 		void keyboardLoop()
 		{
 			char c;
-			bool dirty = false;
 
 			// get the console in raw mode
 			tcgetattr(kfd, &cooked);
@@ -156,7 +155,7 @@ class TeleopJointsKeyboard
 					exit(-1);
 				}
 
-				dirty = true;
+				bool dirty = true;
 				switch (c)
 				{
 				case KEYCODE_q:

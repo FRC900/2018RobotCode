@@ -61,6 +61,17 @@ using Eigen::Vector2d;
 using ros::Time;
 using geometry_msgs::TwistConstPtr;
 using ros::Duration;
+
+const std::string talon_swerve_drive_controller::TalonSwerveDriveController::DEF_BASE_LINK = "base_link";
+const double talon_swerve_drive_controller::TalonSwerveDriveController::DEF_ODOM_PUB_FREQ = 50.;
+const bool talon_swerve_drive_controller::TalonSwerveDriveController::DEF_PUB_ODOM_TO_BASE = false;
+const std::string talon_swerve_drive_controller::TalonSwerveDriveController::DEF_ODOM_FRAME = "odom";
+const std::string talon_swerve_drive_controller::TalonSwerveDriveController::DEF_BASE_FRAME = "base_link";
+const double talon_swerve_drive_controller::TalonSwerveDriveController::DEF_INIT_X = 0.;
+const double talon_swerve_drive_controller::TalonSwerveDriveController::DEF_INIT_Y = 0.;
+const double talon_swerve_drive_controller::TalonSwerveDriveController::DEF_INIT_YAW = 0.;
+const double talon_swerve_drive_controller::TalonSwerveDriveController::DEF_SD = 0.01;
+
 /*
 static double euclideanOfVectors(const urdf::Vector3& vec1, const urdf::Vector3& vec2)
 {
