@@ -84,8 +84,8 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double scaledLeftStickX = (pow(dead_zoneCheck(leftStickX), joystick_scale))*max_speed;
     double scaledLeftStickY = (0-pow(dead_zoneCheck(leftStickY), joystick_scale))*max_speed;
 
-    double scaledRightStickX = (0-pow(dead_zoneCheck(rightStickX),joystick_scale))*10000;
-    double scaledRightStickY = (0-pow(dead_zoneCheck(rightStickY),joystick_scale))*10000;
+    double scaledRightStickX = (0-pow(dead_zoneCheck(rightStickX),joystick_scale));
+    double scaledRightStickY = (0-pow(dead_zoneCheck(rightStickY),joystick_scale));
     if(bumperLeftButton == true) {
         scaledLeftStickX *= slow_mode;
         scaledLeftStickY *= slow_mode;
