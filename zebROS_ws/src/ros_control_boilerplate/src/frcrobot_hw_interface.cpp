@@ -47,6 +47,7 @@
 #include "Joystick.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
 #include "math.h"
+#include <networktables/NetworkTable.h>
 
 namespace frcrobot_control
 {
@@ -72,8 +73,18 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4); 
+	
+	auto table = NetworkTable::GetTable("DB/String 0");
+	double x = 0;
+	double y = 0;
+	
 	while (run_hal_thread_)
 	{
+		table->PutNumber("X", x);
+		table->PutNumber("Y", y);
+		x += 0.01;
+		y += 0.01;
+
 		robot_.OneIteration();
 		// Things to keep track of
 		//    Alliance Station Id
