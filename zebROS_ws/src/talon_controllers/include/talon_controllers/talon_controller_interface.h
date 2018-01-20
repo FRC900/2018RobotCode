@@ -843,7 +843,6 @@ class TalonControllerInterface
 
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 		}
-
 		virtual void setSelectedSensorPosition(double position)
 		{
 			talon_->setSelectedSensorPosition(position);

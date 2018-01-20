@@ -778,7 +778,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double iaccum;
 		if (close_loop_mode && tc.integralAccumulatorChanged(iaccum))
 		{
-			safeTalonCall(talon->SetIntegralAccumulator((iaccum / closed_loop_scale), pidIdx, timeoutMs),"SetIntegralAccumulator(");
+			safeTalonCall(talon->SetIntegralAccumulator(iaccum / closed_loop_scale, pidIdx, timeoutMs),"SetIntegralAccumulator");
 			// Do not set talon state - this changes
 			// dynamically so read it in read() above instead
 		}
@@ -869,7 +869,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				softlimit_reverse_enable,
 				softlimit_override_enable))
 		{
-			//TODO : scale forward and reverse thresholds
 			double softlimit_forward_threshold_NU = softlimit_forward_threshold / radians_scale; //native units
 			double softlimit_reverse_threshold_NU = softlimit_reverse_threshold / radians_scale;
 			safeTalonCall(talon->ConfigForwardSoftLimitThreshold(softlimit_forward_threshold_NU, timeoutMs),"ConfigForwardSoftLimitThreshold");
