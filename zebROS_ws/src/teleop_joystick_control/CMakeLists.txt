@@ -42,8 +42,8 @@ find_package(Eigen3 REQUIRED)
 
 
 catkin_package(
-#  INCLUDE_DIRS
-#    include
+  INCLUDE_DIRS
+    include
   CATKIN_DEPENDS
     hardware_interface
     controller_manager
@@ -80,6 +80,14 @@ set_target_properties(joystickSubscriber PROPERTIES OUTPUT_NAME
 joystickSubscriber PREFIX "")
 target_link_libraries(joystickSubscriber
   ${catkin_LIBRARIES}
+)
+## Add cmake target dependencies of the executable
+## same as for the library above. This is needed to force
+## talon controller messages to be built before the
+## talon controller code tries to use them
+add_dependencies(joystickSubscriber
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
 )
 
 add_executable(teleopJoystickCommands src/teleopJoystickCommands.cpp)

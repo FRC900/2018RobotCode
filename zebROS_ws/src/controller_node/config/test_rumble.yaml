@@ -10,7 +10,7 @@ generic_hw_control_loop:
 # of several types of HW interface : CAN_id, PWM_id, DIO_id, AIO_id, etc.
 hardware_interface:
    joints:
-       - {name: joystick_rumble, type: rumble, rumble_port: 3}
+       - {name: joystick_rumble, type: rumble, rumble_port: 0}
 
 # Create controllers for each joint
 #
