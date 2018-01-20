@@ -15,7 +15,7 @@ build:
 
 notifications:
   email: false
-  slack
+  slack:
     rooms:
       frc900:RnRsEbHYnvZohI1NwZuGlsOd#github
     on_success: always
