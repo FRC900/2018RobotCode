@@ -22,8 +22,7 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double  rightStickX = msg->rightStickX;
     double  rightStickY = msg->rightStickY;
 
-    ROS_INFO_STREAM("right Y: " << rightStickY <<"right X: " << rightStickX );
-    ROS_INFO("WE BROKE");
+
     bool buttonAButton = msg->buttonAButton;
     bool buttonAPress = msg->buttonAPress;
     bool buttonARelease = msg->buttonARelease;
@@ -85,8 +84,8 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double scaledLeftStickX = (pow(dead_zoneCheck(leftStickX), joystick_scale))*max_speed;
     double scaledLeftStickY = (0-pow(dead_zoneCheck(leftStickY), joystick_scale))*max_speed;
 
-    double scaledRightStickX = (0-pow(dead_zoneCheck(rightStickX), joystick_scale));
-    double scaledRightStickY = (0-pow(dead_zoneCheck(rightStickY), joystick_scale));
+    double scaledRightStickX = (0-pow(dead_zoneCheck(rightStickX),joystick_scale))*10000;
+    double scaledRightStickY = (0-pow(dead_zoneCheck(rightStickY),joystick_scale))*10000;
     if(bumperLeftButton == true) {
         scaledLeftStickX *= slow_mode;
         scaledLeftStickY *= slow_mode;
@@ -98,112 +97,86 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
         rightTrigger *= slow_mode;
     }
     //ROS_INFO("scaledLetStickX: %f scaledLeftStickY: %f\n", scaledLeftStickX, scaledLeftStickY);
-    ros::Rate loop_rate(10);
-    while(ros::ok()) { //why...............
-        ros_control_boilerplate::JoystickState msg;
+    ros_control_boilerplate::JoystickState msa;
 
 
-        msg.leftStickX = scaledLeftStickX;
-        msg.leftStickY = scaledLeftStickY;
+    msa.leftStickX = scaledLeftStickX;
+    msa.leftStickY = scaledLeftStickY;
 
-        msg.rightStickX = scaledRightStickX;
-        msg.rightStickY = scaledRightStickY;
+    msa.rightStickX = scaledRightStickX;
+    msa.rightStickY = scaledRightStickY;
 
-        msg.leftTrigger = leftTrigger;
-        msg.rightTrigger = rightTrigger;
+    msa.leftTrigger = leftTrigger;
+    msa.rightTrigger = rightTrigger;
 
-        msg.buttonAButton = buttonAButton;
-        msg.buttonAPress = buttonAPress;
-        msg.buttonARelease = buttonARelease;
+    msa.buttonAButton = buttonAButton;
+    msa.buttonAPress = buttonAPress;
+    msa.buttonARelease = buttonARelease;
 
-        msg.buttonBButton = buttonBButton;
-        msg.buttonBPress = buttonBPress;
-        msg.buttonBRelease = buttonBRelease;
+    msa.buttonBButton = buttonBButton;
+    msa.buttonBPress = buttonBPress;
+    msa.buttonBRelease = buttonBRelease;
 
-        msg.buttonYButton = buttonYButton;
-        msg.buttonYPress = buttonYPress;
-        msg.buttonYRelease = buttonYRelease;
+    msa.buttonYButton = buttonYButton;
+    msa.buttonYPress = buttonYPress;
+    msa.buttonYRelease = buttonYRelease;
 
-        msg.buttonXButton = buttonXButton;
-        msg.buttonXPress = buttonXPress;
-        msg.buttonXRelease = buttonXRelease;
+    msa.buttonXButton = buttonXButton;
+    msa.buttonXPress = buttonXPress;
+    msa.buttonXRelease = buttonXRelease;
 
-        msg.bumperLeftButton = bumperLeftButton;
-        msg.bumperLeftPress = bumperLeftPress;
-        msg.bumperLeftRelease = bumperLeftRelease;
+    msa.bumperLeftButton = bumperLeftButton;
+    msa.bumperLeftPress = bumperLeftPress;
+    msa.bumperLeftRelease = bumperLeftRelease;
 
-        msg.bumperRightButton = bumperRightButton;
-        msg.bumperRightPress = bumperRightPress;
-        msg.bumperRightRelease = bumperRightRelease;
+    msa.bumperRightButton = bumperRightButton;
+    msa.bumperRightPress = bumperRightPress;
+    msa.bumperRightRelease = bumperRightRelease;
 
-        msg.buttonBackButton = buttonBackButton;
-        msg.buttonBackPress = buttonBackPress;
-        msg.buttonBackRelease = buttonBackRelease;
+    msa.buttonBackButton = buttonBackButton;
+    msa.buttonBackPress = buttonBackPress;
+    msa.buttonBackRelease = buttonBackRelease;
 
-        msg.buttonStartButton = buttonStartButton;
-        msg.buttonStartPress = buttonStartPress;
-        msg.buttonStartRelease = buttonStartRelease;
+    msa.buttonStartButton = buttonStartButton;
+    msa.buttonStartPress = buttonStartPress;
+    msa.buttonStartRelease = buttonStartRelease;
 
-        msg.stickLeftButton = stickLeftButton;
-        msg.stickLeftPress = stickLeftPress;
-        msg.stickLeftRelease = stickLeftRelease;
+    msa.stickLeftButton = stickLeftButton;
+    msa.stickLeftPress = stickLeftPress;
+    msa.stickLeftRelease = stickLeftRelease;
 
-        msg.stickRightButton = stickRightButton;
-        msg.stickRightPress = stickRightPress;
-        msg.stickRightRelease = stickRightRelease;
+    msa.stickRightButton = stickRightButton;
+    msa.stickRightPress = stickRightPress;
+    msa.stickRightRelease = stickRightRelease;
 
-       
-        msg.directionUpButton = directionUpButton;
-        msg.directionUpPress = directionUpPress;
-        msg.directionUpRelease = directionUpRelease;
+   
+    msa.directionUpButton = directionUpButton;
+    msa.directionUpPress = directionUpPress;
+    msa.directionUpRelease = directionUpRelease;
 
-        msg.directionDownButton = directionDownButton;
-        msg.directionDownPress = directionDownPress;
-        msg.directionDownRelease = directionDownRelease;
+    msa.directionDownButton = directionDownButton;
+    msa.directionDownPress = directionDownPress;
+    msa.directionDownRelease = directionDownRelease;
 
-        msg.directionLeftButton = directionLeftButton;
-        msg.directionLeftPress = directionLeftPress;
-        msg.directionLeftRelease = directionLeftRelease;
+    msa.directionLeftButton = directionLeftButton;
+    msa.directionLeftPress = directionLeftPress;
+    msa.directionLeftRelease = directionLeftRelease;
 
-        msg.directionRightButton = directionRightButton;
-        msg.directionRightPress = directionRightPress;
-        msg.directionRightRelease = directionRightRelease;
-        
+    msa.directionRightButton = directionRightButton;
+    msa.directionRightPress = directionRightPress;
+    msa.directionRightRelease = directionRightRelease;
+    
 
-        ScaledValPub.publish(msg);
-        ros::spinOnce();
-        //break;
-
-        loop_rate.sleep();
-        //break;
-    }
+    ScaledValPub.publish(msa);
 }
 
 
 int main(int argc, char **argv) {
-    ROS_INFO("hi");
-    ros::init(argc, argv, "param_loader");
-    ROS_INFO("hi");
-    ros::NodeHandle nh;
-    ROS_INFO("hi");
-    nh.param("dead_zone", dead_zone, .1);
-    ROS_INFO("hi");
-    nh.param("slow_mode", slow_mode, .33);
-    ROS_INFO("hi");
-    nh.param("max_speed", max_speed, 3.285);
-    ROS_INFO("hi");
-    nh.param("joystick_scale", joystick_scale, 3.0);
-    ROS_INFO("hi");
     ros::init(argc, argv, "joystick_state_subscriber");
-    ROS_INFO("hi1");
     ros::NodeHandle n;
-    ROS_INFO("hi2");
-    ros::Subscriber sub = n.subscribe("frcrobot/joystick_states", 1, joystick);
-    ROS_INFO("hi3");
+    ros::Subscriber sub = n.subscribe("joystick_states", 1, joystick);
 
-    ros::init(argc, argv, "ScaledJoystickVals");
-    ros::NodeHandle n_;
-    ScaledValPub = n_.advertise<ros_control_boilerplate::JoystickState>("ScaledJoystickVals", 1);
+    ScaledValPub = n.advertise<ros_control_boilerplate::JoystickState>("ScaledJoystickVals", 1);
 
     ros::spin();
 
