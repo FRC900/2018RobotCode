@@ -59,6 +59,14 @@ talon_linear_controller:
     radius: .03048
     feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
-        - {p: .75, i: 0.05, d: 0.0, f: 0.0, i_zone: 500}
-        - {p: .75, i: 0.05, d: 0.0, f: 0.0, i_zone: 500}
-
+        - {p: .75, i: 0.01, d: 0.1, f: 0.0, i_zone: 500}
+        - {p: .75, i: 0.01, d: 0.1, f: 0.0, i_zone: 500}
+    softlimit_forward_threshold: 3600.0
+    softlimit_reverse_threshold: -15000.0
+    softlimit_forward_enable: true 
+    softlimit_reverse_enable: true
+    #softlimit_override_enable: true 
+    peak_output_forward: 1.0
+    peak_output_reverse: -1.0
+    nominal_output_forward: 0.0
+    nominal_output_reverse: 0.0
