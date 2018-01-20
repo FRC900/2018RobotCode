@@ -35,7 +35,7 @@ class TalonCIParams
 		// Initialize with relatively sane defaults
 		// for all parameters
 		TalonCIParams(void) :
-			follow_can_id_(-1),
+			follow_can_id_ (-1),
 			p_{0, 0},
 			i_{0, 0},
 			d_{0, 0},
@@ -63,11 +63,11 @@ class TalonCIParams
 			limit_switch_local_forward_normal_(hardware_interface::LimitSwitchNormal_NormallyOpen),
 			limit_switch_local_reverse_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
 			limit_switch_local_reverse_normal_(hardware_interface::LimitSwitchNormal_NormallyOpen),
-			softlimits_override_enable_(true),
 			softlimit_forward_threshold_(0.0),
 			softlimit_forward_enable_(false),
 			softlimit_reverse_threshold_(0.0),
 			softlimit_reverse_enable_(false),
+			softlimits_override_enable_(true),
 			current_limit_peak_amps_(0),
 			current_limit_peak_msec_(0),
 			current_limit_continuous_amps_(0),
@@ -78,9 +78,9 @@ class TalonCIParams
 		{
 		}
 
-		TalonCIParams(const TalonConfigConfig &config)
+		TalonCIParams(const TalonConfigConfig &config, int follow_can_id)
 		{
-			follow_can_id_ = -1; // this can't be changed?
+			follow_can_id_ = follow_can_id;
 			p_[0] = config.p0;
 			p_[1] = config.p1;
 			i_[0] = config.i0;
@@ -116,12 +116,11 @@ class TalonCIParams
 			limit_switch_local_reverse_source_ = static_cast<hardware_interface::LimitSwitchSource>(config.limit_switch_local_reverse_source);
 			limit_switch_local_reverse_normal_ = static_cast<hardware_interface::LimitSwitchNormal>(config.limit_switch_local_reverse_normal);
 
-			softlimits_override_enable_ = true;
-			
 			softlimit_forward_threshold_ = config.softlimit_forward_threshold;
 			softlimit_forward_enable_ = config.softlimit_forward_enable;
 			softlimit_reverse_threshold_ = config.softlimit_reverse_threshold;
 			softlimit_reverse_enable_ = config.softlimit_reverse_enable;
+			softlimits_override_enable_ = config.softlimits_override_enable;
 
 			current_limit_peak_amps_ = config.current_limit_peak_amps;
 			current_limit_peak_msec_ = config.current_limit_peak_msec;
@@ -415,8 +414,6 @@ class TalonCIParams
 				if (bool_val && (param_count == 0))
 					ROS_WARN("Enabling forward softlimits without setting threshold");
 			}
-			if (n.getParam("softlimits_override_enable", bool_val))
-				softlimits_override_enable_ = bool_val;
 			return true;
 		}
 
@@ -675,22 +672,22 @@ class TalonControllerInterface
 
 			talon_->setForwardLimitSwitchSource(params_.limit_switch_local_forward_source_, params_.limit_switch_local_forward_normal_);
 			talon_->setReverseLimitSwitchSource(params_.limit_switch_local_reverse_source_, params_.limit_switch_local_reverse_normal_);
+			talon_->setOverrideSoftLimitsEnable(params_.softlimits_override_enable_);
 			talon_->setForwardSoftLimitThreshold(params_.softlimit_forward_threshold_);
 			talon_->setForwardSoftLimitEnable(params_.softlimit_forward_enable_);
 			talon_->setReverseSoftLimitThreshold(params_.softlimit_reverse_threshold_);
 			talon_->setReverseSoftLimitEnable(params_.softlimit_reverse_enable_);
-			talon_->setOverrideSoftLimitsEnable(params_.softlimits_override_enable_);
 
 			talon_->setPeakCurrentLimit(params_.current_limit_peak_amps_);
 			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
 			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 
-//#if 0 // broken?
+#if 0 // broken?
 			talon_->setMotionCruiseVelocity(params_.motion_cruise_velocity_);
 			talon_->setMotionAcceleration(params_.motion_acceleration_);
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
-//#endif
+#endif
 			return true;
 		}
 
@@ -713,7 +710,7 @@ class TalonControllerInterface
 					 config.invert_output,
 					 config.sensor_phase);
 
-			writeParamsToHW(TalonCIParams(config));
+			writeParamsToHW(TalonCIParams(config, params_.follow_can_id_));
 		}
 
 		// Read params from config file and use them to
@@ -844,7 +841,6 @@ class TalonControllerInterface
 
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 		}
-
 		virtual void setSelectedSensorPosition(double position)
 		{
 			talon_->setSelectedSensorPosition(position);
@@ -1081,6 +1077,8 @@ class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInt
 		}
 };
 
+//RG: I can think of few to no situations were we would have a talon in motion magic mode for an entire match
+//Honestly I wouldn't ever use motion magic mode, I would use the MotionProfile mode (above)
 // KCJ -- in general the code we actually use will get a lot more attention. Not sure if that
 // means we should pull out less-tested stuff like this or leave it in and fix it if
 // we need it at some point?

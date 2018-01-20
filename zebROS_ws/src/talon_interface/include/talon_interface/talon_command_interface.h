@@ -103,7 +103,7 @@ class TalonHWCommand
 			softlimit_forward_enable_(false),
 			softlimit_reverse_threshold_(0.0),
 			softlimit_reverse_enable_(false),
-			softlimits_override_enable_(false),
+			softlimits_override_enable_(true),
 			softlimit_changed_(false),
 
 			// current limiting
