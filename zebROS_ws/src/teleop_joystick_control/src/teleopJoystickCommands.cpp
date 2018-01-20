@@ -3,15 +3,15 @@
 #include "ros_control_boilerplate/JoystickState.h"
 #include "teleop_joystick_control/RobotState.h"
 #include "geometry_msgs/Twist.h"
+#include "ros/time.h"
 #include <string>
 
 
 bool ifCube;
 double elevatorHeight;
-
+static double timeSecs, lastTimeSecs;
 static ros::Publisher JoystickRobotVel;
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
-    double timeSecs, lastTimeSecs;
     bool ifcube = false;
     char currentToggle = ' ';
     char lastToggle = ' ';
@@ -39,6 +39,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
     if(msg->directionRightPress == true) {
         lastTimeSecs = timeSecs;
         timeSecs = ros::Time::now().toSec();
+        ROS_INFO("%f, %f", lastTimeSecs, timeSecs);
         if(timeSecs - lastTimeSecs< 1.0) {
             //TODO deploy ramp  or something
             //publish true to RampDeploy
