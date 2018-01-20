@@ -58,6 +58,7 @@ talon_linear_controller:
     joint: talon_linear
     radius: .03048
     feedback_type: CTRE_MagEncoder_Absolute
+    #Note, needs an f term for motion magic mode
     close_loop_values:
         - {p: .75, i: 0.01, d: 0.1, f: 0.0, i_zone: 500}
         - {p: .75, i: 0.01, d: 0.1, f: 0.0, i_zone: 500}

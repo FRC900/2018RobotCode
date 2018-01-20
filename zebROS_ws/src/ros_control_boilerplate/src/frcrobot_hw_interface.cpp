@@ -922,8 +922,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			double motion_acceleration;
 			if (tc.motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
 			{
-				ts.setMotionCruiseVelocity(motion_cruise_velocity);
-				ts.setMotionAcceleration(motion_acceleration);
+				ts.setMotionCruiseVelocity(motion_cruise_velocity / radians_per_sec_scale);
+				ts.setMotionAcceleration(motion_acceleration / radians_per_sec_scale);
 
 				//converted from rad/sec to native units
 				safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_sec_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
@@ -990,6 +990,9 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					command /= radians_per_sec_scale;
 					break;
 				case ctre::phoenix::motorcontrol::ControlMode::Position:
+					command /= radians_scale;
+					break;
+				case ctre::phoenix::motorcontrol::ControlMode::MotionMagic:
 					command /= radians_scale;
 					break;
 			}
