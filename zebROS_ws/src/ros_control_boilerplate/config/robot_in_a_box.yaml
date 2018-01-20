@@ -15,7 +15,7 @@ hardware_interface:
          #- {name: talon_3, type: can_talon_srx, can_id: 3}
          #- {name: talon_4, type: can_talon_srx, can_id: 4}
          #- {name: talon_5, type: can_talon_srx, can_id: 5}
-       - {name: nidec_brushless_1, type: nidec_brushless, pwm_channel: 1, dio_channel: 1}
+       - {name: digital_input_1, type: digital_input, dio_channel: 0}
 
    # Add more data for each joint here - intitial mode, encoder type
    #    PIDF settings, limit switch settings, etc
@@ -93,7 +93,10 @@ talon2_controller:
 #joint: talon_5
 #follow_joint: talon_1
 
-nidec_brushless1_controller:
-    type: velocity_controllers/JointVelocityController
-    joint: nidec_brushless_1
+#nidec_brushless1_controller:
+#    type: velocity_controllers/JointVelocityController
+#    joint: nidec_brushless_1
 
+digital_input_1_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: digital_input_1
