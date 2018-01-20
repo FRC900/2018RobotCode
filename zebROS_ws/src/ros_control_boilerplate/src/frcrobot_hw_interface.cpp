@@ -49,6 +49,7 @@
 #include "math.h"
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
+#include <geometry_msgs/Twist.h>
 
 namespace frcrobot_control
 {
@@ -73,20 +74,28 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	run_hal_thread_ = true;
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4); 
-	
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
+
 	// Setup writing to a network table that already exists on the dashboard
-	std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
-	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("SmartDashboard");
-	
+	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
+	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
+	ros::NodeHandle n;
+	ros::Publisher nt_pub = n.advertise<geometry_msgs::Twist>("/frcrobot/cmd_vel", 1000);
+	ros::Rate loopRate(10);
+
+
 	while (run_hal_thread_)
 	{
 		// Network tables work!
-		pubTable->PutString("String 9", "WORK");
-		ROS_WARN_STREAM(subTable->GetEntry("Auto Selector").GetString("ERRORRRR"));
+		//pubTable->PutString("String 9", "WORK");
+		double sub = subTable->GetEntry("Reset Angular Z").GetDouble(0);
 
 		// SmartDashboard works!
 		frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+
+		geometry_msgs::Twist twist;
+		twist.angular.z = sub;
+		nt_pub.publish(twist);
 
 		robot_.OneIteration();
 		// Things to keep track of
