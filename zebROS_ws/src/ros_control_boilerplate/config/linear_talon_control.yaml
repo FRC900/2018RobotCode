@@ -54,10 +54,11 @@ joint_state_controller:
    publish_rate: 100
 
 talon_linear_controller:
-    type: talon_controllers/TalonLinearPositionCloseLoopController
+    type: talon_controllers/TalonLinearMotionMagicCloseLoopController
     joint: talon_linear
     radius: .03048
     feedback_type: CTRE_MagEncoder_Absolute
+    #Note, needs an f term for motion magic mode
     close_loop_values:
         - {p: .75, i: 0.01, d: 0.1, f: 0.0, i_zone: 500}
         - {p: .75, i: 0.01, d: 0.1, f: 0.0, i_zone: 500}
@@ -70,3 +71,5 @@ talon_linear_controller:
     peak_output_reverse: -1.0
     nominal_output_forward: 0.0
     nominal_output_reverse: 0.0
+    motion_cruise_velocity: 3000
+    motion_acceleration: 1000

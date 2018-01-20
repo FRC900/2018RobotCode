@@ -48,6 +48,7 @@
 #include "ros_control_boilerplate/MatchSpecificData.h"
 #include "math.h"
 #include <networktables/NetworkTable.h>
+#include <SmartDashboard/SmartDashboard.h>
 
 namespace frcrobot_control
 {
@@ -74,16 +75,18 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4); 
 	
-	auto table = NetworkTable::GetTable("DB/String 0");
-	double x = 0;
-	double y = 0;
+	// Setup writing to a network table that already exists on the dashboard
+	std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
+	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("SmartDashboard");
 	
 	while (run_hal_thread_)
 	{
-		table->PutNumber("X", x);
-		table->PutNumber("Y", y);
-		x += 0.01;
-		y += 0.01;
+		// Network tables work!
+		pubTable->PutString("String 9", "WORK");
+		ROS_WARN_STREAM(subTable->GetEntry("Auto Selector").GetString("ERRORRRR"));
+
+		// SmartDashboard works!
+		frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
 		robot_.OneIteration();
 		// Things to keep track of
@@ -259,7 +262,7 @@ void FRCRobotHWInterface::init(void)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << digital_input_names_[i] <<
-							  " as Digitial Input " << digital_input_dio_channels_[i] <<
+							  " as Digital Input " << digital_input_dio_channels_[i] <<
 							  " invert " << digital_input_inverts_[i]);
 		
 		digital_inputs_.push_back(std::make_shared<frc::DigitalInput>(digital_input_dio_channels_[i]));
@@ -268,7 +271,7 @@ void FRCRobotHWInterface::init(void)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << digital_output_names_[i] <<
-							  " as Digitial Output " << digital_output_dio_channels_[i] <<
+							  " as Digital Output " << digital_output_dio_channels_[i] <<
 							  " invert " << digital_output_inverts_[i]);
 		
 		digital_outputs_.push_back(std::make_shared<frc::DigitalOutput>(digital_output_dio_channels_[i]));
@@ -276,12 +279,12 @@ void FRCRobotHWInterface::init(void)
 	for (size_t i = 0; i < num_pwm_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
-							  "Loading joint " << i << "=" << digital_output_names_[i] <<
-							  " as Digitial Output " << digital_output_dio_channels_[i] <<
-							  " invert " << digital_output_inverts_[i]);
+							  "Loading joint " << i << "=" << pwm_names_[i] <<
+							  " as Digitial Output " << pwm_pwm_channels_[i] <<
+							  " invert " << pwm_inverts_[i]);
 
 		PWMs_.push_back(std::make_shared<frc::SafePWM>(pwm_pwm_channels_[i]));
-		PWMs_[i]->SetSafetyEnabled(false);
+		PWMs_[i]->SetSafetyEnabled(true);
 	}
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
@@ -391,7 +394,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
 			safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
 			ctre::phoenix::motion::MotionProfileStatus talon_status;
-			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+			//UNCOMMENT BELOW TODO
+			//safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
 			hardware_interface::MotionProfileStatus internal_status;
 			internal_status.topBufferRem = talon_status.topBufferRem;
@@ -448,7 +452,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for (size_t i = 0; i < num_pwm_; i++)
 	{
 		// Just reflect state of output in status
-		pwm_state_[i] = PWMs_[i]->GetSpeed();
+		//pwm_state_[i] = PWMs_[i]->GetSpeed();
 	}
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
@@ -789,7 +793,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double iaccum;
 		if (close_loop_mode && tc.integralAccumulatorChanged(iaccum))
 		{
-			safeTalonCall(talon->SetIntegralAccumulator((iaccum / closed_loop_scale), pidIdx, timeoutMs),"SetIntegralAccumulator(");
+			safeTalonCall(talon->SetIntegralAccumulator(iaccum / closed_loop_scale, pidIdx, timeoutMs),"SetIntegralAccumulator");
 			// Do not set talon state - this changes
 			// dynamically so read it in read() above instead
 		}
@@ -880,21 +884,20 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				softlimit_reverse_enable,
 				softlimit_override_enable))
 		{
-			//TODO : scale forward and reverse thresholds
 			double softlimit_forward_threshold_NU = softlimit_forward_threshold / radians_scale; //native units
 			double softlimit_reverse_threshold_NU = softlimit_reverse_threshold / radians_scale;
+			talon->OverrideSoftLimitsEnable(softlimit_override_enable);
+			safeTalonCall(talon->GetLastError(), "OverrideSoftLimitsEnable");
 			safeTalonCall(talon->ConfigForwardSoftLimitThreshold(softlimit_forward_threshold_NU, timeoutMs),"ConfigForwardSoftLimitThreshold");
 			safeTalonCall(talon->ConfigForwardSoftLimitEnable(softlimit_forward_enable, timeoutMs),"ConfigForwardSoftLimitEnable");
 			safeTalonCall(talon->ConfigReverseSoftLimitThreshold(softlimit_reverse_threshold_NU, timeoutMs),"ConfigReverseSoftLimitThreshold");
 			safeTalonCall(talon->ConfigReverseSoftLimitEnable(softlimit_reverse_enable, timeoutMs),"ConfigReverseSoftLimitEnable");
-			talon->OverrideSoftLimitsEnable(softlimit_override_enable);
-			safeTalonCall(talon->GetLastError(), "OverrideSoftLimitsEnable");
 
+			ts.setOverrideSoftLimitsEnable(softlimit_override_enable);
 			ts.setForwardSoftLimitThreshold(softlimit_forward_threshold);
 			ts.setForwardSoftLimitEnable(softlimit_forward_enable);
 			ts.setReverseSoftLimitThreshold(softlimit_reverse_threshold);
 			ts.setReverseSoftLimitEnable(softlimit_reverse_enable);
-			ts.setOverrideSoftLimitsEnable(softlimit_override_enable);
 		}
 
 		int peak_amps;
@@ -921,8 +924,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			double motion_acceleration;
 			if (tc.motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
 			{
-				ts.setMotionCruiseVelocity(motion_cruise_velocity);
-				ts.setMotionAcceleration(motion_acceleration);
+				ts.setMotionCruiseVelocity(motion_cruise_velocity / radians_per_sec_scale);
+				ts.setMotionAcceleration(motion_acceleration / radians_per_sec_scale);
 
 				//converted from rad/sec to native units
 				safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_sec_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
@@ -989,6 +992,9 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					command /= radians_per_sec_scale;
 					break;
 				case ctre::phoenix::motorcontrol::ControlMode::Position:
+					command /= radians_scale;
+					break;
+				case ctre::phoenix::motorcontrol::ControlMode::MotionMagic:
 					command /= radians_scale;
 					break;
 			}

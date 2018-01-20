@@ -10,7 +10,7 @@ generic_hw_control_loop:
 # of several types of HW interface : CAN_id, PWM_id, DIO_id, AIO_id, etc.
 hardware_interface:
    joints:
-       - {name: joystick_rumble, type: rumble, rumble_port: 0}
+       - {name: pwm_test, type: pwm, pwm_channel: 0}
 
 # Create controllers for each joint
 #
@@ -33,6 +33,6 @@ joint_state_controller:
    publish_rate: 100
 
 # Create a controller to test rumble
-rumble_controller:
+pwm_test_controller:
     type: velocity_controllers/JointVelocityController
-    joint: joystick_rumble
+    joint: pwm_test

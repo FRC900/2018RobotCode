@@ -63,7 +63,7 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 			bool reverse;
 			double currpos = getWheelAngle(i, encoderPosition_[i]);
 			nearestangle = leastDistantAngleWithinHalfPi(currpos, speedsAndAngles[i][1], reverse);
-			ROS_INFO_STREAM(" id: " << i << " currpos: " << currpos << "target" <<nearestangle);
+			//ROS_INFO_STREAM(" id: " << i << " currpos: " << currpos << "target" <<nearestangle);
 			reverses[i] = reverse;
 			speedsAndAngles[i][0] *= ((drive_.maxSpeed / (drive_.wheelRadius)) / ratio_.encodertoRotations) * units_.rotationSetV * (reverse ? -1 : 1);
 			speedsAndAngles[i][1] = nearestangle * units_.steeringSet;
@@ -81,7 +81,7 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 			bool reverse;
 			double currpos = getWheelAngle(i, encoderPosition_[i]);
 			nearestanglep = leastDistantAngleWithinHalfPi(currpos, speedsAndAngles[i][1], reverse);
-			ROS_INFO_STREAM(" id: " << i << " currpos: " << currpos << "target" <<nearestanglep);
+			//ROS_INFO_STREAM(" id: " << i << " currpos: " << currpos << "target" <<nearestanglep);
 			speedsAndAngles[i][1] = nearestanglep * units_.steeringSet;
 			speedsAndAngles[i][1] += offsets_[i];
 		}

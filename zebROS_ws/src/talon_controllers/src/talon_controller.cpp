@@ -10,9 +10,20 @@ PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonFollowerController,
 PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonPositionCloseLoopController,
 					   controller_interface::ControllerBase)
 
+PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonMotionMagicCloseLoopController,
+					   controller_interface::ControllerBase)
+
 PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonVelocityCloseLoopController,
 					   controller_interface::ControllerBase)
 
 PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonLinearPositionCloseLoopController,
 					   controller_interface::ControllerBase)
 
+PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonLinearMotionMagicCloseLoopController,
+					   controller_interface::ControllerBase)
+
+PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonAnglePositionCloseLoopController,
+					   controller_interface::ControllerBase)
+
+PLUGINLIB_EXPORT_CLASS(talon_controllers::TalonAngleMotionMagicCloseLoopController,
+					   controller_interface::ControllerBase)
