@@ -103,40 +103,32 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
         }
 
     }
-    ros::Rate loop_rate(10);
-    while(ros::ok()) {
-        geometry_msgs::Twist vel;
-        talon_controllers::CloseLoopControllerMsg arm;
-        double leftStickX = msg->leftStickX;//TODO publish twist message for drivetrain and elevator/pivot
-        double leftStickY = msg->leftStickY;
+    geometry_msgs::Twist vel;
+    talon_controllers::CloseLoopControllerMsg arm;
+    double leftStickX = msg->leftStickX;//TODO publish twist message for drivetrain and elevator/pivot
+    double leftStickY = msg->leftStickY;
 
-        double rightStickX = msg->rightStickX;//TODO publish twist message for drivetrain and elevator/pivot
-        double rightStickY = msg->rightStickY;
-        vel.linear.x = leftStickX;
-        vel.linear.y = leftStickY;
-        vel.linear.z = 0;
+    double rightStickX = msg->rightStickX;//TODO publish twist message for drivetrain and elevator/pivot
+    double rightStickY = msg->rightStickY;
+    vel.linear.x = leftStickX;
+    vel.linear.y = leftStickY;
+    vel.linear.z = 0;
 
-        vel.angular.x = 0;
-        vel.angular.y = 0;
+    vel.angular.x = 0;
+    vel.angular.y = 0;
 
-        armPos += .1*rightStickY;
-        arm.command = armPos;
+    armPos += .1*rightStickY;
+    arm.command = armPos;
 
-        vel.angular.z = msg->leftTrigger-msg->rightTrigger;
-        JoystickRobotVel.publish(vel);
-        JoystickArmVel.publish(arm);
-        
+    vel.angular.z = msg->leftTrigger - msg->rightTrigger;
+    JoystickRobotVel.publish(vel);
+    JoystickArmVel.publish(arm);
+    ros::spinOnce();    
 
-        ros::spinOnce();
-        
-        loop_rate.sleep();
-    }
 
         //TODO BUMPERS FOR SLOW MODE
         //ROS_INFO("leftStickX: %f", leftStickX);
         //ROS_INFO("leftStickY: %f", leftStickY);
-    double rightStickX = msg->rightStickX;//TODO publish twist message for drivetrain and elevator/pivot
-    double rightStickY = msg->rightStickY;
     //TODO BUMPERS FOR SLOW MODE
     ROS_INFO("rightStickX: %f", rightStickX);
     ROS_INFO("rightStickY: %f", rightStickY);
@@ -165,17 +157,11 @@ int main(int argc, char **argv) {
     ros::Subscriber sub = n.subscribe("ScaledJoystickVals", 1, evaluateCommands);
     //subscribe to robot state stuff for possession of cube and elevator height
     //added to global vars
-    ros::init(argc, argv, "robot_state_subscriber");
-    ros::NodeHandle n_;
-    ros::Subscriber sub2 = n_.subscribe("RobotState", 1, evaluateState);
+    ros::Subscriber sub2 = n.subscribe("RobotState", 1, evaluateState);
     
-    ros::init(argc, argv, "cmd_vel");
-    ros::NodeHandle r;
-    JoystickRobotVel = r.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+    JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
-    ros::init(argc, argv, "arm_controller");
-    ros::NodeHandle a;
-    JoystickArmVel = a.advertise<talon_controllers::CloseLoopControllerMsg>("frcrobot/talon_linear_controller/command", 1);
+    JoystickArmVel = n.advertise<talon_controllers::CloseLoopControllerMsg>("talon_linear_controller/command", 1);
     ros::spin();
 
     return 0;
