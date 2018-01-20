@@ -25,4 +25,19 @@
      Configure and run a Talon SRX connected to a gear box for the elevator
     </description>
   </class>
+  <class name="talon_controllers/TalonLinearMotionMagicCloseLoopController" type="talon_controllers::TalonLinearMotionMagicCloseLoopController" base_class_type="controller_interface::ControllerBase">
+    <description>
+     Configure and run a Talon SRX connected to a gear box for the elevator
+    </description>
+  </class>
+  <class name="talon_controllers/TalonAnglePositionCloseLoopController" type="talon_controllers::TalonAnglePositionCloseLoopController" base_class_type="controller_interface::ControllerBase">
+    <description>
+     Configure and run a Talon SRX connected to a gear box for the elevator
+    </description>
+  </class>
+  <class name="talon_controllers/TalonAngleMotionMagicCloseLoopController" type="talon_controllers::TalonAngleMotionMagicCloseLoopController" base_class_type="controller_interface::ControllerBase">
+    <description>
+     Configure and run a Talon SRX connected to a gear box for the elevator
+    </description>
+  </class>
 </library>

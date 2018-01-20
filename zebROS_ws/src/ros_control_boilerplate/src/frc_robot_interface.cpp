@@ -376,7 +376,7 @@ void FRCRobotInterface::init()
 		// Do the same for a command interface for
 		// the digital output
 		hardware_interface::JointHandle doh(dosh, &digital_output_command_[i]);
-		joint_position_interface_.registerHandle(doh);
+		joint_velocity_interface_.registerHandle(doh);
 	}
 
 	num_pwm_ = pwm_names_.size();
@@ -391,7 +391,7 @@ void FRCRobotInterface::init()
 
 		// Do the same for a command interface for
 		// the same brushless motor
-		hardware_interface::JointHandle ph(psh, &brushless_command_[i]);
+		hardware_interface::JointHandle ph(psh, &pwm_command_[i]);
 		joint_velocity_interface_.registerHandle(ph);
 	}
 	num_solenoids_ = solenoid_names_.size();
@@ -401,13 +401,13 @@ void FRCRobotInterface::init()
         {
                 ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << solenoid_names_[i] << " at id " << solenoid_ids_[i]);
 
-                hardware_interface::JointStateHandle dosh(solenoid_names_[i], &solenoid_state_[i], &solenoid_state_[i], &solenoid_state_[i]);
-                joint_state_interface_.registerHandle(dosh);
+                hardware_interface::JointStateHandle ssh(solenoid_names_[i], &solenoid_state_[i], &solenoid_state_[i], &solenoid_state_[i]);
+                joint_state_interface_.registerHandle(ssh);
 
                 // Do the same for a command interface for
                 // the digital output
-                hardware_interface::JointHandle doh(dosh, &solenoid_command_[i]);
-                joint_position_interface_.registerHandle(doh);
+                hardware_interface::JointHandle soh(ssh, &solenoid_command_[i]);
+                joint_position_interface_.registerHandle(soh);
         }
 
 	num_double_solenoids_ = double_solenoid_names_.size();
@@ -417,13 +417,13 @@ void FRCRobotInterface::init()
         {
                 ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << double_solenoid_names_[i] << " at forward id" << double_solenoid_forward_ids_[i] << "at reverse id" << double_solenoid_reverse_ids_[i]);
 
-                hardware_interface::JointStateHandle dosh(double_solenoid_names_[i], &double_solenoid_state_[i], &double_solenoid_state_[i], &double_solenoid_state_[i]);
-                joint_state_interface_.registerHandle(dosh);
+                hardware_interface::JointStateHandle dssh(double_solenoid_names_[i], &double_solenoid_state_[i], &double_solenoid_state_[i], &double_solenoid_state_[i]);
+                joint_state_interface_.registerHandle(dssh);
 
                 // Do the same for a command interface for
                 // the digital output
-                hardware_interface::JointHandle doh(dosh, &double_solenoid_command_[i]);
-                joint_position_interface_.registerHandle(doh);
+                hardware_interface::JointHandle dsoh(dssh, &double_solenoid_command_[i]);
+                joint_position_interface_.registerHandle(dsoh);
         }
 	num_rumble_ = rumble_names_.size();
 	rumble_state_.resize(num_rumble_);
