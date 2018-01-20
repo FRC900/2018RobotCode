@@ -74,16 +74,17 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4); 
 	
-	auto table = NetworkTable::GetTable("DB/String 0");
-	double x = 0;
-	double y = 0;
+	// Setup writing to a network table that already exists on the dashboard
+	auto table = NetworkTable::GetTable("FMSInfo");
 	
 	while (run_hal_thread_)
 	{
-		table->PutNumber("X", x);
-		table->PutNumber("Y", y);
-		x += 0.01;
-		y += 0.01;
+		//ROS_WARN_STREAM(table->PutString("MatchType", "WORK"));
+		//ROS_WARN_STREAM(table->GetEntry("MatchType"));
+		nt::NetworkTableEntry matchType = table->GetEntry("MatchType");
+		matchType.ForceSetDouble(0);
+		ROS_WARN_STREAM(matchType.GetString("ERROR"));
+		ROS_WARN_STREAM("TEEEEEEST");
 
 		robot_.OneIteration();
 		// Things to keep track of
