@@ -13,6 +13,7 @@ double elevatorHeight;
 static double timeSecs, lastTimeSecs;
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickArmVel;
+static double armPos;
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     bool ifcube = false;
     char currentToggle = ' ';
@@ -118,7 +119,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
         vel.angular.x = 0;
         vel.angular.y = 0;
 
-        arm.command = rightStickY;
+        armPos += .1*rightStickY;
+        arm.command = armPos;
+
         vel.angular.z = msg->leftTrigger-msg->rightTrigger;
         JoystickRobotVel.publish(vel);
         JoystickArmVel.publish(arm);
