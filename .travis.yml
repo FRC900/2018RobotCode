@@ -7,5 +7,6 @@ services:
 
 before_install:
   - docker pull eblau1/zebros-dev:latest
-  - docker run eblau1/zebros-dev:latest /bin/sh -c "cd ~ && git clone https://$GITHUB_USER:$GITHUB_PASS@github.com/FRC900/2018RobotCode/ && cd ./2018RobotCode/ && git submodule init && git submodule update && cd zebROS_ws && wstool update -t src && catkin_make && source /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/setup.bash && ./cross_build.sh && echo YEET!"
+  - docker run eblau1/zebros-dev:latest /bin/bash -l -c "cd ~ && git clone https://$GITHUB_USER:$GITHUB_PASS@github.com/FRC900/2018RobotCode/ && cd ./2018RobotCode/ && git submodule init && git submodule update && cd zebROS_ws && wstool update -t src && catkin_make && echo YEET!"
+  - docker run eblau1/zebros-dev:latest /bin/bash -l -c "cd ~ && git clone https://$GITHUB_USER:$GITHUB_PASS@github.com/FRC900/2018RobotCode/ && cd ./2018RobotCode/ && git submodule init && git submodule update && cd zebROS_ws && wstool update -t src && source /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/setup.bash && ./cross_build.sh && echo YEET2!"
 
