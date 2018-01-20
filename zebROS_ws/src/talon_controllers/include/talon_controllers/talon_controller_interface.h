@@ -671,14 +671,18 @@ class TalonControllerInterface
 			talon_->setVoltageCompensationSaturation(params_.voltage_compensation_saturation_);
 			talon_->setVoltageMeasurementFilter(params_.voltage_measurement_filter_);
 			talon_->setVoltageCompensationEnable(params_.voltage_compensation_enable_);
-
+			
+			talon_->setOverrideSoftLimitsEnable(true);
+			
+			//This is hard coded beacuse it allows the below params to be set
+			
 			talon_->setForwardLimitSwitchSource(params_.limit_switch_local_forward_source_, params_.limit_switch_local_forward_normal_);
 			talon_->setReverseLimitSwitchSource(params_.limit_switch_local_reverse_source_, params_.limit_switch_local_reverse_normal_);
 			talon_->setForwardSoftLimitThreshold(params_.softlimit_forward_threshold_);
 			talon_->setForwardSoftLimitEnable(params_.softlimit_forward_enable_);
 			talon_->setReverseSoftLimitThreshold(params_.softlimit_reverse_threshold_);
 			talon_->setReverseSoftLimitEnable(params_.softlimit_reverse_enable_);
-			talon_->setOverrideSoftLimitsEnable(params_.softlimits_override_enable_);
+
 
 			talon_->setPeakCurrentLimit(params_.current_limit_peak_amps_);
 			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
