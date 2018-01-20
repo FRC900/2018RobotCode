@@ -279,12 +279,12 @@ void FRCRobotHWInterface::init(void)
 	for (size_t i = 0; i < num_pwm_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
-							  "Loading joint " << i << "=" << digital_output_names_[i] <<
-							  " as Digitial Output " << digital_output_dio_channels_[i] <<
-							  " invert " << digital_output_inverts_[i]);
+							  "Loading joint " << i << "=" << pwm_names_[i] <<
+							  " as Digitial Output " << pwm_pwm_channels_[i] <<
+							  " invert " << pwm_inverts_[i]);
 
 		PWMs_.push_back(std::make_shared<frc::SafePWM>(pwm_pwm_channels_[i]));
-		PWMs_[i]->SetSafetyEnabled(false);
+		PWMs_[i]->SetSafetyEnabled(true);
 	}
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
@@ -452,7 +452,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for (size_t i = 0; i < num_pwm_; i++)
 	{
 		// Just reflect state of output in status
-		pwm_state_[i] = PWMs_[i]->GetSpeed();
+		//pwm_state_[i] = PWMs_[i]->GetSpeed();
 	}
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
