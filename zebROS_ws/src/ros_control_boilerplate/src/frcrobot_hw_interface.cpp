@@ -48,6 +48,7 @@
 #include "ros_control_boilerplate/MatchSpecificData.h"
 #include "math.h"
 #include <networktables/NetworkTable.h>
+#include <SmartDashboard/SmartDashboard.h>
 
 namespace frcrobot_control
 {
@@ -75,16 +76,17 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4); 
 	
 	// Setup writing to a network table that already exists on the dashboard
-	auto table = NetworkTable::GetTable("FMSInfo");
+	std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
+	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("SmartDashboard");
 	
 	while (run_hal_thread_)
 	{
-		//ROS_WARN_STREAM(table->PutString("MatchType", "WORK"));
-		//ROS_WARN_STREAM(table->GetEntry("MatchType"));
-		nt::NetworkTableEntry matchType = table->GetEntry("MatchType");
-		matchType.ForceSetDouble(0);
-		ROS_WARN_STREAM(matchType.GetString("ERROR"));
-		ROS_WARN_STREAM("TEEEEEEST");
+		// Network tables work!
+		pubTable->PutString("String 9", "WORK");
+		ROS_WARN_STREAM(subTable->GetEntry("Auto Selector").GetString("ERRORRRR"));
+
+		// SmartDashboard works!
+		frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
 		robot_.OneIteration();
 		// Things to keep track of
@@ -277,12 +279,12 @@ void FRCRobotHWInterface::init(void)
 	for (size_t i = 0; i < num_pwm_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
-							  "Loading joint " << i << "=" << digital_output_names_[i] <<
-							  " as Digitial Output " << digital_output_dio_channels_[i] <<
-							  " invert " << digital_output_inverts_[i]);
+							  "Loading joint " << i << "=" << pwm_names_[i] <<
+							  " as Digitial Output " << pwm_pwm_channels_[i] <<
+							  " invert " << pwm_inverts_[i]);
 
 		PWMs_.push_back(std::make_shared<frc::SafePWM>(pwm_pwm_channels_[i]));
-		PWMs_[i]->SetSafetyEnabled(false);
+		PWMs_[i]->SetSafetyEnabled(true);
 	}
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
@@ -450,7 +452,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for (size_t i = 0; i < num_pwm_; i++)
 	{
 		// Just reflect state of output in status
-		pwm_state_[i] = PWMs_[i]->GetSpeed();
+		//pwm_state_[i] = PWMs_[i]->GetSpeed();
 	}
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
