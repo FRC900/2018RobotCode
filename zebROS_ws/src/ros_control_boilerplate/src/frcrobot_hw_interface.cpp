@@ -933,12 +933,12 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			double motion_acceleration;
 			if (tc.motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
 			{
-				ts.setMotionCruiseVelocity(motion_cruise_velocity / radians_per_sec_scale);
-				ts.setMotionAcceleration(motion_acceleration / radians_per_sec_scale);
+				ts.setMotionCruiseVelocity(motion_cruise_velocity);
+				ts.setMotionAcceleration(motion_acceleration);
 
 				//converted from rad/sec to native units
 				safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_sec_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
-				safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_sec_scale * .1), timeoutMs),"ConfigMotionAcceleration(");
+				safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_sec_scale), timeoutMs),"ConfigMotionAcceleration(");
 			}
 			// Do this before rest of motion profile stuff
 			// so it takes effect before starting a buffer?
