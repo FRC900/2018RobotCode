@@ -23,7 +23,7 @@ notifications:
     on_success: always
     on_failure: always
     template:
-      - "Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of %{repository_slug}@%{branch} by %{author} %{result} in %{duration}. If it failed we can probably blame <!channel>. :black_large_square:"
+      - "Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of %{repository_slug}@%{branch} by %{author} %{result} in %{duration}. If it failed we can probably blame <@U0S1T88TG>. :black_large_square:"
 
 script:
   - echo "Yeet3"
