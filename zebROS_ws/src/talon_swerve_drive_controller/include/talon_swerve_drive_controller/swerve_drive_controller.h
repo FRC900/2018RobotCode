@@ -107,10 +107,11 @@ class TalonSwerveDriveController
 
 	private:
 		
-		//void compOdometry(const ros::Time& time, const double inv_delta_t);
+		void compOdometry(const ros::Time& time, const double inv_delta_t);
 		Eigen::Matrix2Xd new_wheel_pos_;	
 		std::array<Eigen::Vector2d, WHEELCOUNT> old_wheel_pos_; //	
 		std::array<double, WHEELCOUNT> last_wheel_rot;	//
+
 
         	Eigen::Vector2d neg_wheel_centroid_;
 		bool comp_odom_;
@@ -146,7 +147,7 @@ class TalonSwerveDriveController
 		/// Publish executed commands
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::TwistStamped> > cmd_vel_pub_;
 
-		/// Odometry related:
+		//Odometry related:
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::Odometry> > odom_pub_;
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<tf::tfMessage> > tf_odom_pub_;
 		//Odometry odometry_;
