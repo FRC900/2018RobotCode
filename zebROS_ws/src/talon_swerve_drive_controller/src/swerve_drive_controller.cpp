@@ -616,7 +616,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		brake();
 		return;
 	}
-
+	
 	// Limit velocities and accelerations:
 	const double cmd_dt(period.toSec());
 
@@ -689,7 +689,18 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 			brake();
 			return;
 		}
-		//TODO change to twist msg
+		if(command.linear.z != 0)
+		{
+			ROS_WARN("Rotors not up to speed!");
+		}
+		if(command.angular.x != 0 | command.angular.y != 0)
+		{
+			ROS_WARN("Reaction wheels need alignment. Please reverse polarity on neutron flux capacitor");
+		}
+		if(command.linear.x > 3.0*pow(10, 8) | command.linear.y > 3.0*pow(10, 8) | command.linear.z > 3.0*pow(10, 8))
+		{
+			ROS_WARN("PHYSICS VIOLATION DETECTED. DISABLE TELEPORTATION UNIT!");
+		}
 		command_struct_.ang = command.angular.z;
 		command_struct_.lin[0] = command.linear.x;
 		command_struct_.lin[1] = command.linear.y;
