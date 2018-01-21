@@ -323,7 +323,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	Eigen::Vector2d wheel3 = {.3, .3};
 	Eigen::Vector2d wheel2 = { -.3, -.3};
 	Eigen::Vector2d wheel4 = {.3, -.3};
-	std::array<Eigen::Vector2d, 4> wheels = {wheel1, wheel2, wheel3, wheel4};
+	wheel_coords = {wheel1, wheel2, wheel3, wheel4};
 	
 	/*
 	invertWheelAngle(false);
@@ -331,7 +331,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	swerveVar::encoderUnits units({1,1,1,1,1,1});
 	*/
 
-	swerveC = std::make_shared<swerve>(wheels, offsets, invertWheelAngle_, driveRatios_, units_, model_);
+	swerveC = std::make_shared<swerve>(wheel_coords, offsets, invertWheelAngle_, driveRatios_, units_, model_);
 	for (int i = 0; i < wheel_joints_size_; ++i)
 	{
 		ROS_INFO_STREAM_NAMED(name_,
@@ -379,12 +379,14 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
                 odom_to_base_ = init_odom_to_base_;
                 odom_rigid_transf_.setIdentity();
 
+
+		wheel_pos_.resize(2, WHEELCOUNT);
 		ROS_WARN("working h");
                 for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
-			ROS_INFO_STREAM("id: " << i << "pos" << wheels[i]);
-			wheel_pos_.col(i) = wheels[i];
-			ROS_INFO_STREAM(wheels[i]);
+			ROS_INFO_STREAM("id: " << i << "pos" << wheel_coords[i]);
+			wheel_pos_.col(i) = wheel_coords[i];
+			ROS_WARN("f1.test");
 		}
 
 
@@ -458,16 +460,12 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 		const double steer_angle = swerveC->getWheelAngle(row, steering_joints_[row].getPosition());
 		const Eigen::Vector2d delta_pos = {dist*cos(steer_angle), dist*sin(steer_angle)};
 	  	ROS_WARN("WORKING1"); 
-		new_wheel_pos_.row(row) = old_wheel_pos_[row] + delta_pos;
+		new_wheel_pos_.row(row) = wheel_coords[row] + delta_pos;
 	  	ROS_WARN("WORKING2"); 
 		last_wheel_rot[row] = new_wheel_rot;
 	  	ROS_WARN("WORKING3"); 
-		old_wheel_pos_[row] = new_wheel_pos_.row(row);
-		ROS_WARN("WORKING4");
 	  }
 
-	  const Vector2d centroid = wheel_pos_.rowwise().mean();
-	  wheel_pos_.colwise() -= centroid;
 	  const Eigen::RowVector2d new_wheel_centroid =
                 new_wheel_pos_.colwise().mean();
           new_wheel_pos_.rowwise() -= new_wheel_centroid;
@@ -488,7 +486,7 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
           const double odom_yaw = atan2(odom_to_base_(1, 0), odom_to_base_(0, 0));
 
           // Publish the odometry.
-	  
+	  //TODO CHECK THIS PUB 
 
           geometry_msgs::Quaternion orientation;
           bool orientation_comped = false;
