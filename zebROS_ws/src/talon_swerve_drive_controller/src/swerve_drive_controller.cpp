@@ -352,7 +352,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
         controller_nh.param("odometry_publishing_frequency", odom_pub_freq, DEF_ODOM_PUB_FREQ);	
 	
 	comp_odom_ = odom_pub_freq > 0;
-	ROS_WARN("COMPUTING ODOM");
+	//ROS_WARN("COMPUTING ODOM");
 	if (comp_odom_)
           {
 
@@ -381,12 +381,12 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 
 
 		wheel_pos_.resize(2, WHEELCOUNT);
-		ROS_WARN("working h");
+		//ROS_WARN("working h");
                 for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
-			ROS_INFO_STREAM("id: " << i << "pos" << wheel_coords[i]);
+			//ROS_INFO_STREAM("id: " << i << "pos" << wheel_coords[i]);
 			wheel_pos_.col(i) = wheel_coords[i];
-			ROS_WARN("f1.test");
+			//ROS_WARN("f1.test");
 		}
 
 
@@ -449,7 +449,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 
 void TalonSwerveDriveController::compOdometry(const Time& time, const double inv_delta_t)
         {
-	  ROS_INFO_STREAM("WORKS");
+	  //ROS_INFO_STREAM("WORKS");
           // Compute the rigid transform from wheel_pos_ to new_wheel_pos_.
 	  
 	  for (size_t row = 0; row < WHEELCOUNT; row++)
@@ -459,11 +459,11 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 		const double dist = delta_rot * wheel_radius_;
 		const double steer_angle = swerveC->getWheelAngle(row, steering_joints_[row].getPosition());
 		const Eigen::Vector2d delta_pos = {dist*cos(steer_angle), dist*sin(steer_angle)};
-	  	ROS_WARN("WORKING1"); 
+	  	//ROS_WARN("WORKING1"); 
 		new_wheel_pos_.row(row) = wheel_coords[row] + delta_pos;
-	  	ROS_WARN("WORKING2"); 
+	  	//ROS_WARN("WORKING2"); 
 		last_wheel_rot[row] = new_wheel_rot;
-	  	ROS_WARN("WORKING3"); 
+	  	//ROS_WARN("WORKING3"); 
 	  }
 
 	  const Eigen::RowVector2d new_wheel_centroid =
@@ -485,7 +485,8 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
           const double odom_y = odom_to_base_.translation().y();
           const double odom_yaw = atan2(odom_to_base_(1, 0), odom_to_base_(0, 0));
 
-          // Publish the odometry.
+          ROS_INFO_STREAM("odom_x: " << odom_x << " odom_y: " << odom_y << " odom_yaw: " << odom_yaw);
+	  // Publish the odometry.
 	  //TODO CHECK THIS PUB 
 
           geometry_msgs::Quaternion orientation;
