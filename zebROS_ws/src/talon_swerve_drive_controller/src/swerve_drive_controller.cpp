@@ -485,7 +485,7 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
           const double odom_y = odom_to_base_.translation().y();
           const double odom_yaw = atan2(odom_to_base_(1, 0), odom_to_base_(0, 0));
 
-          ROS_INFO_STREAM("odom_x: " << odom_x << " odom_y: " << odom_y << " odom_yaw: " << odom_yaw);
+          //ROS_INFO_STREAM("odom_x: " << odom_x << " odom_y: " << odom_y << " odom_yaw: " << odom_yaw);
 	  // Publish the odometry.
 	  //TODO CHECK THIS PUB 
 
