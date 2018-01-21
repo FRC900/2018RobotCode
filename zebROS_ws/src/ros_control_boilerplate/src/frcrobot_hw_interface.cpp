@@ -1034,6 +1034,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 	{
 		bool setpoint = solenoid_command_[i] > 0;
 		solenoids_[i]->Set(setpoint);
+
 	}
 
 	for (size_t i = 0; i< num_double_solenoids_; i++)
@@ -1044,6 +1045,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		else if (double_solenoid_command_[i] <= -1.0)
 			setpoint = DoubleSolenoid::Value::kReverse;
 
+		ROS_INFO_STREAM("id: " << i<< " solenoid set:" << setpoint);
 		double_solenoids_[i]->Set(setpoint);
 	}
 	for (size_t i = 0; i < num_rumble_; i++)
