@@ -75,6 +75,12 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, cons
 	}
 
 	gd->findBoilers(*framePtr, *depthPtr);
+	Mat tempFrame(framePtr->clone());
+	gd->drawOnFrame(tempFrame, gd->getContours(tempFrame));
+
+		rectangle(tempFrame, gd->goal_rect(), Scalar(255,0,0), 2);
+		imshow ("Image", tempFrame);
+
 	const Point3f pt = gd->goal_pos();
 
 	goal_detection::GoalDetection gd_msg;
