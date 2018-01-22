@@ -147,6 +147,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
 void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &msg) {
     if(msg->ifCube==true) {
         ifCube = true;
+        rumbleTypeConverterPublish(0, 32767);
         ROS_INFO("I has cube");
     }
     else {
@@ -168,9 +169,7 @@ void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &ms
         leftRumble = 65535;
         rightRumble = 65535;
     }
-    std_msgs::Float64 rumbleMsg;
-    rumbleMsg.data = rumbleTypeConverter(leftRumble, rightRumble);
-    JoystickRumble.publish(rumbleMsg);
+    rumbleTypeConverterPublish(leftRumble, rightRumble);
 }
 int main(int argc, char **argv) {
     ros::init(argc, argv, "scaled_joystick_state_subscriber");
@@ -191,9 +190,12 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-double rumbleTypeConverter(uint16_t leftRumble, uint16_t rightRumble) { 
+void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) { 
     int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF); 
     double rumble_val;
     rumble_val = *((double*)(&rumble));
+    std_msgs::Float64 rumbleMsg;
+    rumbleMsg.data = rumble_val
+    JoystickRumble.publish(rumbleMsg);
     return rumble_val;
 }
