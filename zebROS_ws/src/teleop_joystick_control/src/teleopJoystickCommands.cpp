@@ -3,20 +3,24 @@
 #include "ros_control_boilerplate/JoystickState.h"
 #include "teleop_joystick_control/RobotState.h"
 #include "talon_controllers/CloseLoopControllerMsg.h"
+#include "ros_control_boilerplate/MatchSpecificData.h"
+#include "std_msgs/Float64.h"
 #include "geometry_msgs/Twist.h"
+#include "teleop_joystick_control/teleopJoystickCommands.h"
 #include "ros/time.h"
 #include <string>
 
 
+// TODO : initialize values to meaningful defaults
 bool ifCube;
 double elevatorHeight;
 static double timeSecs, lastTimeSecs;
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickArmVel;
+static ros::Publisher JoystickRumble;
 static double armPos;
+
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
-    ROS_INFO("eval");
-    bool ifcube = false;
     char currentToggle = ' ';
     char lastToggle = ' ';
     double elevatorHeightBefore;
@@ -31,7 +35,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
         Left joy - triggers
         Auto place - right Joy
         Toggles override each other and are turned off when the current toggle is pressed again - right joy press
-    */
+   */ 
     if(msg->directionUpPress == true) {
         //TODO call auto climb file
         ROS_INFO("Auto climb");
@@ -104,41 +108,32 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
         }
 
     }
-    ros::Rate loop_rate(10);
-    while(ros::ok()) {
-        geometry_msgs::Twist vel;
-        talon_controllers::CloseLoopControllerMsg arm;
-        double leftStickX = msg->leftStickX;//TODO publish twist message for drivetrain and elevator/pivot
-        double leftStickY = msg->leftStickY;
+    geometry_msgs::Twist vel;
+    talon_controllers::CloseLoopControllerMsg arm;
+    double leftStickX = msg->leftStickX;//TODO publish twist message for drivetrain and elevator/pivot
+    double leftStickY = msg->leftStickY;
 
-        double rightStickX = msg->rightStickX;//TODO publish twist message for drivetrain and elevator/pivot
-        double rightStickY = msg->rightStickY;
-        vel.linear.x = leftStickX;
-        vel.linear.y = leftStickY;
-        vel.linear.z = 0;
+    double rightStickX = msg->rightStickX;//TODO publish twist message for drivetrain and elevator/pivot
+    double rightStickY = msg->rightStickY;
+    vel.linear.x = leftStickX;
+    vel.linear.y = leftStickY;
+    vel.linear.z = 0;
 
-        vel.angular.x = 0;
-        vel.angular.y = 0;
+    vel.angular.x = 0;
+    vel.angular.y = 0;
 
-        armPos += .1*rightStickY;
-        arm.command = armPos;
+    armPos += .1*rightStickY;
+    arm.command = armPos;
 
-        vel.angular.z = msg->leftTrigger-msg->rightTrigger;
-        JoystickRobotVel.publish(vel);
-        ROS_INFO("arm%f" , arm);
-	JoystickArmVel.publish(arm);
-        
+    vel.angular.z = msg->leftTrigger - msg->rightTrigger;
+    JoystickRobotVel.publish(vel);
+    JoystickArmVel.publish(arm);
+    ros::spinOnce();    
 
-        ros::spinOnce();
-        
-        loop_rate.sleep();
-    }
 
         //TODO BUMPERS FOR SLOW MODE
         //ROS_INFO("leftStickX: %f", leftStickX);
         //ROS_INFO("leftStickY: %f", leftStickY);
-    double rightStickX = msg->rightStickX;//TODO publish twist message for drivetrain and elevator/pivot
-    double rightStickY = msg->rightStickY;
     //TODO BUMPERS FOR SLOW MODE
     ROS_INFO("rightStickX: %f", rightStickX);
     ROS_INFO("rightStickY: %f", rightStickY);
@@ -153,6 +148,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
 void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &msg) {
     if(msg->ifCube==true) {
         ifCube = true;
+        rumbleTypeConverterPublish(0, 32767);
         ROS_INFO("I has cube");
     }
     else {
@@ -161,25 +157,60 @@ void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &msg) {
     }
     elevatorHeight = msg->elevatorHeight;
 }
+void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &msg) {
+    uint16_t leftRumble=0, rightRumble=0;
+    double matchTimeRemaining = msg->matchTimeRemaining;
+	// TODO : make these a set of else if blocks?
+    if(matchTimeRemaining < 61 && matchTimeRemaining > 59) { 
+        leftRumble = 65535;
+    }
+    if(matchTimeRemaining < 31 && matchTimeRemaining > 29) {
+        rightRumble = 65535;
+    }
+    if(matchTimeRemaining <17 && matchTimeRemaining > 14) {
+        leftRumble = 65535;
+        rightRumble = 65535;
+    }
+    rumbleTypeConverterPublish(leftRumble, rightRumble);
+}
 int main(int argc, char **argv) {
     ros::init(argc, argv, "scaled_joystick_state_subscriber");
     ros::NodeHandle n;
+	// TODO : combine these into 1 callback with joystick val and robot 
+	// state synchronized by approximate message time.  See http://wiki.ros.org/message_filters#ApproximateTime_Policy
+	// as well as the goal detection code for an example.  This will allow
+	// the callback to get both a joystick value and the robot state
+	// in one function.  Might want to combine match data as well?
     ros::Subscriber sub = n.subscribe("ScaledJoystickVals", 1, evaluateCommands);
     //subscribe to robot state stuff for possession of cube and elevator height
     //added to global vars
-    ros::init(argc, argv, "robot_state_subscriber");
-    ros::NodeHandle n_;
-    ros::Subscriber sub2 = n_.subscribe("RobotState", 1, evaluateState);
+    ros::Subscriber sub2 = n.subscribe("RobotState", 1, evaluateState);
+    ros::Subscriber MatchData = n.subscribe("match_data", 1, evaluateTime);
     
-    ros::init(argc, argv, "cmd_vel");
-    ros::NodeHandle r;
-    JoystickRobotVel = r.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+    JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
-    ros::init(argc, argv, "arm_controller");
-    ros::NodeHandle a;
-    ROS_INFO("work?");
-    JoystickArmVel = a.advertise<talon_controllers::CloseLoopControllerMsg>("frcrobot/talon_linear_controller/command", 1);
+    JoystickArmVel = n.advertise<talon_controllers::CloseLoopControllerMsg>("talon_linear_controller/command", 1);
+    JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
+
     ros::spin();
 
     return 0;
 }
+void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) { 
+    unsigned int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF); 
+    double rumble_val;
+    rumble_val = *((double*)(&rumble));
+    std_msgs::Float64 rumbleMsg;
+    rumbleMsg.data = rumble_val;
+    JoystickRumble.publish(rumbleMsg);
+}
+/*
+void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) {
+    unsigned int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF);
+    double rumble_val;
+    rumble_val = *((double*)(&rumble));
+    std_msgs::Float64 rumbleMsg;
+    rumbleMsg.data = rumble_val;
+    JoystickRumble.publish(rumbleMsg);
+}
+*/

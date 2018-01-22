@@ -39,3 +39,5 @@ rules.ninja
 *.avi
 *.zms
 
+# IntelliJ Environment
+.idea/

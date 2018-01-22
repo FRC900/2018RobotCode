@@ -1,3 +1,4 @@
+#!/bin/bash
 jetson=true
 version="tx2"
 gpu=true

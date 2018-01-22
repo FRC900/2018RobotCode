@@ -1,3 +1,4 @@
+#!/bin/bash
 echo "WARNING this script will not work with custom configs for vim as well as some other programs, please read over this script before running if this is not a fresh install, press CTRL+C to quit"
 read -n1 -r -p "Press any key to continue..." key
 

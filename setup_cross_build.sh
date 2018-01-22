@@ -1,3 +1,4 @@
+#!/bin/bash
 # script to install cross-development environment on a laptop
 # This should let people build robot (roboRIO) code on a laptop
 
