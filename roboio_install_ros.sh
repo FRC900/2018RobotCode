@@ -1,3 +1,4 @@
+#!/bin/bash
 #sed -i 's#nickdanger\.amer\.corp\.natinst\.com/feeds/\([^/]\+\)/\([^/]\+\)/#download.ni.com/ni-linux-rt/feeds/\1/\2/ipk/#' /etc/opkg/base-feeds.conf
 opkg update
 

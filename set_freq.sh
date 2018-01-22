@@ -1,3 +1,4 @@
+#!/bin/bash
 
 echo 0 > /sys/devices/system/cpu/cpuquiet/tegra_cpuquiet/enable
 echo 1 > /sys/devices/system/cpu/cpu0/online
