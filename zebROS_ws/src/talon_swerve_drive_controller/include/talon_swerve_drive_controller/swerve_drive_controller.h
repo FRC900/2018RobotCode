@@ -48,7 +48,7 @@
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 
-#include <talon_swerve_drive_controller/odometry.h>
+//#include <talon_swerve_drive_controller/odometry.h>
 #include <talon_swerve_drive_controller/speed_limiter.h>
 
 #include <functional>
@@ -107,10 +107,11 @@ class TalonSwerveDriveController
 
 	private:
 		
-		//void compOdometry(const ros::Time& time, const double inv_delta_t);
-		Eigen::Matrix2Xd new_wheel_pos_;	
+		void compOdometry(const ros::Time& time, const double inv_delta_t);
+		Eigen::MatrixX2d new_wheel_pos_;	
 		std::array<Eigen::Vector2d, WHEELCOUNT> old_wheel_pos_; //	
 		std::array<double, WHEELCOUNT> last_wheel_rot;	//
+
 
         	Eigen::Vector2d neg_wheel_centroid_;
 		bool comp_odom_;
@@ -146,7 +147,7 @@ class TalonSwerveDriveController
 		/// Publish executed commands
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::TwistStamped> > cmd_vel_pub_;
 
-		/// Odometry related:
+		//Odometry related:
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<nav_msgs::Odometry> > odom_pub_;
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<tf::tfMessage> > tf_odom_pub_;
 		//Odometry odometry_;
@@ -186,7 +187,6 @@ class TalonSwerveDriveController
 		/// Publish limited velocity:
 		bool publish_cmd_;
 
-	private:
 		/**
 		 * \brief Brakes the wheels, i.e. sets the velocity to 0
 		 * RG: also sets to parking config
@@ -264,6 +264,8 @@ class TalonSwerveDriveController
           	static const double DEF_SD;
 		
 
+		std::array<Eigen::Vector2d, WHEELCOUNT> wheel_coords;
+		
 		static const Eigen::Vector2d X_DIR;
 		
 		bool pub_odom_to_base_;       // Publish the odometry to base frame transform

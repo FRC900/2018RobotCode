@@ -214,7 +214,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 		{
 			if (!joint_params.hasMember("id"))
 				throw std::runtime_error("A solenoid id was not specified");
-			XmlRpc::XmlRpcValue &xml_solenoid_id = joint_params["solenoid_id"];
+			XmlRpc::XmlRpcValue &xml_solenoid_id = joint_params["id"];
 			if (!xml_solenoid_id.valid() ||
 					xml_solenoid_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
 				throw std::runtime_error("An invalid joint solenoid id was specified (expecting an int).");
@@ -229,7 +229,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 		{
 			if (!joint_params.hasMember("forward_id"))
 				throw std::runtime_error("A double_solenoid forward_id was not specified");
-			XmlRpc::XmlRpcValue &xml_double_solenoid_forward_id = joint_params["double_solenoid_forward_id"];
+			XmlRpc::XmlRpcValue &xml_double_solenoid_forward_id = joint_params["forward_id"];
 			if (!xml_double_solenoid_forward_id.valid() ||
 					xml_double_solenoid_forward_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
 				throw std::runtime_error("An invalid joint double solenoid forward_id was specified (expecting an int).");
@@ -238,7 +238,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 
 			if (!joint_params.hasMember("reverse_id"))
 				throw std::runtime_error("A double_solenoid reverse_id was not specified");
-			XmlRpc::XmlRpcValue &xml_double_solenoid_reverse_id = joint_params["double_solenoid_reverse_id"];
+			XmlRpc::XmlRpcValue &xml_double_solenoid_reverse_id = joint_params["reverse_id"];
 			if (!xml_double_solenoid_reverse_id.valid() ||
 					xml_double_solenoid_reverse_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
 				throw std::runtime_error("An invalid joint double solenoid reverse_id was specified (expecting an int).");
@@ -407,7 +407,7 @@ void FRCRobotInterface::init()
                 // Do the same for a command interface for
                 // the digital output
                 hardware_interface::JointHandle soh(ssh, &solenoid_command_[i]);
-                joint_position_interface_.registerHandle(soh);
+                joint_velocity_interface_.registerHandle(soh);
         }
 
 	num_double_solenoids_ = double_solenoid_names_.size();
@@ -423,7 +423,7 @@ void FRCRobotInterface::init()
                 // Do the same for a command interface for
                 // the digital output
                 hardware_interface::JointHandle dsoh(dssh, &double_solenoid_command_[i]);
-                joint_position_interface_.registerHandle(dsoh);
+                joint_velocity_interface_.registerHandle(dsoh);
         }
 	num_rumble_ = rumble_names_.size();
 	rumble_state_.resize(num_rumble_);
