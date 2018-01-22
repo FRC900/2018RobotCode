@@ -11,6 +11,7 @@
 #include <string>
 
 
+// TODO : initialize values to meaningful defaults
 bool ifCube;
 double elevatorHeight;
 static double timeSecs, lastTimeSecs;
@@ -18,6 +19,15 @@ static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickArmVel;
 static ros::Publisher JoystickRumble;
 static double armPos;
+
+void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) {
+    unsigned int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF);
+    double rumble_val;
+    rumble_val = *((double*)(&rumble));
+    std_msgs::Float64 rumbleMsg;
+    rumbleMsg.data = rumble_val;
+    JoystickRumble.publish(rumbleMsg);
+}
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     bool ifcube = false;
     char currentToggle = ' ';
@@ -189,13 +199,4 @@ int main(int argc, char **argv) {
     ros::spin();
 
     return 0;
-}
-void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) { 
-    int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF); 
-    double rumble_val;
-    rumble_val = *((double*)(&rumble));
-    std_msgs::Float64 rumbleMsg;
-    rumbleMsg.data = rumble_val
-    JoystickRumble.publish(rumbleMsg);
-    return rumble_val;
 }
