@@ -48,7 +48,7 @@
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 
-#include <talon_swerve_drive_controller/odometry.h>
+//#include <talon_swerve_drive_controller/odometry.h>
 #include <talon_swerve_drive_controller/speed_limiter.h>
 
 #include <functional>
@@ -108,7 +108,7 @@ class TalonSwerveDriveController
 	private:
 		
 		void compOdometry(const ros::Time& time, const double inv_delta_t);
-		Eigen::Matrix2Xd new_wheel_pos_;	
+		Eigen::MatrixX2d new_wheel_pos_;	
 		std::array<Eigen::Vector2d, WHEELCOUNT> old_wheel_pos_; //	
 		std::array<double, WHEELCOUNT> last_wheel_rot;	//
 

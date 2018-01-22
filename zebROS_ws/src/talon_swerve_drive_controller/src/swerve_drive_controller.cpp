@@ -1,6 +1,4 @@
-/*********************************************************************
- * Software License Agreement (BSD License)
- *
+/*
  *  Copyright (c) 2013, PAL Robotics, S.L.
  *  All rights reserved.
  *
@@ -320,8 +318,8 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	model_.wheelRadius =  wheel_radius_;
 
 	Eigen::Vector2d wheel1 = { -.3, .3};
-	Eigen::Vector2d wheel3 = {.3, .3};
 	Eigen::Vector2d wheel2 = { -.3, -.3};
+	Eigen::Vector2d wheel3 = {.3, .3};
 	Eigen::Vector2d wheel4 = {.3, -.3};
 	wheel_coords = {wheel1, wheel2, wheel3, wheel4};
 	
@@ -452,24 +450,30 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 	  //ROS_INFO_STREAM("WORKS");
           // Compute the rigid transform from wheel_pos_ to new_wheel_pos_.
 	  
-	  for (size_t row = 0; row < WHEELCOUNT; row++)
-	  {
-          	const double new_wheel_rot = speed_joints_[row].getPosition();
-		const double delta_rot = new_wheel_rot - last_wheel_rot[row];
-		const double dist = delta_rot * wheel_radius_;
-		const double steer_angle = swerveC->getWheelAngle(row, steering_joints_[row].getPosition());
-		const Eigen::Vector2d delta_pos = {dist*cos(steer_angle), dist*sin(steer_angle)};
-	  	//ROS_WARN("WORKING1"); 
-		new_wheel_pos_.row(row) = wheel_coords[row] + delta_pos;
-	  	//ROS_WARN("WORKING2"); 
-		last_wheel_rot[row] = new_wheel_rot;
-	  	//ROS_WARN("WORKING3"); 
-	  }
+	  for (size_t k = 0; k < WHEELCOUNT; k++)
+          {
+                const double new_wheel_rot = speed_joints_[k].getPosition();
+                const double delta_rot = new_wheel_rot - last_wheel_rot[k];
+                int inverterD = (k%2==0) ? -1 : 1;
+		const double dist = delta_rot * wheel_radius_ * inverterD;
+                //NOTE: below is a hack, TODO: REMOVE
+		
+		const double steer_angle = swerveC->getWheelAngle(k, steering_joints_[k].getPosition());
+                const Eigen::Vector2d delta_pos = {-dist*sin(steer_angle), dist*cos(steer_angle)};
+		new_wheel_pos_(k, 0) = wheel_coords[k][0] + delta_pos[0];
+                new_wheel_pos_(k, 1) = wheel_coords[k][1] + delta_pos[1];
+                
+		ROS_INFO_STREAM("id: " << k << " delta: " << delta_pos << " steer: " << steer_angle << " dist: " << dist);
+		last_wheel_rot[k] = new_wheel_rot;
+          }
 
 	  const Eigen::RowVector2d new_wheel_centroid =
                 new_wheel_pos_.colwise().mean();
           new_wheel_pos_.rowwise() -= new_wheel_centroid;
-
+	
+	  //ROS_INFO_STREAM("rows: " << wheel_pos_.rows() << " cols: " << wheel_pos_.cols());
+	  //ROS_INFO_STREAM("neg wheel centroid" << neg_wheel_centroid_ << " new centroid: " << new_wheel_centroid);
+	
           const Matrix2d h = wheel_pos_ * new_wheel_pos_;
           const Eigen::JacobiSVD<Matrix2d> svd(h, Eigen::ComputeFullU | Eigen::ComputeFullV);
           Matrix2d rot = svd.matrixV() * svd.matrixU().transpose();
