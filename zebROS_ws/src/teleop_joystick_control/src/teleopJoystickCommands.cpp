@@ -29,7 +29,6 @@ void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) {
     JoystickRumble.publish(rumbleMsg);
 }
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
-    bool ifcube = false;
     char currentToggle = ' ';
     char lastToggle = ' ';
     double elevatorHeightBefore;
@@ -169,6 +168,7 @@ void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &msg) {
 void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &msg) {
     uint16_t leftRumble=0, rightRumble=0;
     double matchTimeRemaining = msg->matchTimeRemaining;
+	// TODO : make these a set of else if blocks?
     if(matchTimeRemaining < 61 && matchTimeRemaining > 59) { 
         leftRumble = 65535;
     }
@@ -184,6 +184,11 @@ void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &ms
 int main(int argc, char **argv) {
     ros::init(argc, argv, "scaled_joystick_state_subscriber");
     ros::NodeHandle n;
+	// TODO : combine these into 1 callback with joystick val and robot 
+	// state synchronized by approximate message time.  See http://wiki.ros.org/message_filters#ApproximateTime_Policy
+	// as well as the goal detection code for an example.  This will allow
+	// the callback to get both a joystick value and the robot state
+	// in one function.  Might want to combine match data as well?
     ros::Subscriber sub = n.subscribe("ScaledJoystickVals", 1, evaluateCommands);
     //subscribe to robot state stuff for possession of cube and elevator height
     //added to global vars
@@ -194,7 +199,6 @@ int main(int argc, char **argv) {
 
     JoystickArmVel = n.advertise<talon_controllers::CloseLoopControllerMsg>("talon_linear_controller/command", 1);
     JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
-
 
     ros::spin();
 
