@@ -195,7 +195,6 @@ void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) {
     double rumble_val;
     rumble_val = *((double*)(&rumble));
     std_msgs::Float64 rumbleMsg;
-    rumbleMsg.data = rumble_val
+    rumbleMsg.data = rumble_val;
     JoystickRumble.publish(rumbleMsg);
-    return rumble_val;
 }
