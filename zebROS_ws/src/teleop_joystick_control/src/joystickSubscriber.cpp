@@ -22,6 +22,9 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double  rightStickX = msg->rightStickX;
     double  rightStickY = msg->rightStickY;
 
+	// TODO : probably no reason to read these here, just assign them
+	// to the appropriate fields in msa if they aren't used in
+	// interim code
 
     bool buttonAButton = msg->buttonAButton;
     bool buttonAPress = msg->buttonAPress;
@@ -82,6 +85,8 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     double  rightTrigger = msg->rightTrigger;
 
     double scaledLeftStickX = (pow(dead_zoneCheck(leftStickX), joystick_scale))*max_speed;
+	// TODO : can just use -pow(), unless maybe we're going
+	// to replae 0 with a constant some day?
     double scaledLeftStickY = (0-pow(dead_zoneCheck(leftStickY), joystick_scale))*max_speed;
 
     double scaledRightStickX = (0-pow(dead_zoneCheck(rightStickX),joystick_scale));
