@@ -127,7 +127,7 @@ Vector2d calculateOdom()
 
 double swerve::getWheelAngle(int index, double pos) const
 {
-	return ((-(pos)) - offsets_[index]) * units_.steeringGet;
+	return (((pos)) - offsets_[index]) * units_.steeringGet;
 }
 
 double swerve::furthestWheel(Vector2d centerOfRotation) const
