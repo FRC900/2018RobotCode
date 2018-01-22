@@ -3,7 +3,10 @@
 #include "ros_control_boilerplate/JoystickState.h"
 #include "teleop_joystick_control/RobotState.h"
 #include "talon_controllers/CloseLoopControllerMsg.h"
+#include "ros_control_boilerplate/MatchSpecificData.h"
+#include "std_msgs/Float64.h"
 #include "geometry_msgs/Twist.h"
+#include "teleop_joystick_control/teleopJoystickCommands.h"
 #include "ros/time.h"
 #include <string>
 
@@ -13,6 +16,7 @@ double elevatorHeight;
 static double timeSecs, lastTimeSecs;
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickArmVel;
+static ros::Publisher JoystickRumble;
 static double armPos;
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     bool ifcube = false;
@@ -151,6 +155,23 @@ void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &msg) {
     }
     elevatorHeight = msg->elevatorHeight;
 }
+void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &msg) {
+    uint16_t leftRumble=0, rightRumble=0;
+    double matchTimeRemaining = msg->matchTimeRemaining;
+    if(matchTimeRemaining < 61 && matchTimeRemaining > 59) { 
+        leftRumble = 65535;
+    }
+    if(matchTimeRemaining < 31 && matchTimeRemaining > 29) {
+        rightRumble = 65535;
+    }
+    if(matchTimeRemaining <17 && matchTimeRemaining > 14) {
+        leftRumble = 65535;
+        rightRumble = 65535;
+    }
+    std_msgs::Float64 rumbleMsg;
+    rumbleMsg.data = rumbleTypeConverter(leftRumble, rightRumble);
+    JoystickRumble.publish(rumbleMsg);
+}
 int main(int argc, char **argv) {
     ros::init(argc, argv, "scaled_joystick_state_subscriber");
     ros::NodeHandle n;
@@ -158,11 +179,21 @@ int main(int argc, char **argv) {
     //subscribe to robot state stuff for possession of cube and elevator height
     //added to global vars
     ros::Subscriber sub2 = n.subscribe("RobotState", 1, evaluateState);
+    ros::Subscriber MatchData = n.subscribe("match_data", 1, evaluateTime);
     
     JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
     JoystickArmVel = n.advertise<talon_controllers::CloseLoopControllerMsg>("talon_linear_controller/command", 1);
+    JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
+
+
     ros::spin();
 
     return 0;
+}
+double rumbleTypeConverter(uint16_t leftRumble, uint16_t rightRumble) { 
+    int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF); 
+    double rumble_val;
+    rumble_val = *((double*)(&rumble));
+    return rumble_val;
 }

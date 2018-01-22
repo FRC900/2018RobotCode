@@ -323,7 +323,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	Eigen::Vector2d wheel3 = {.3, .3};
 	Eigen::Vector2d wheel2 = { -.3, -.3};
 	Eigen::Vector2d wheel4 = {.3, -.3};
-	std::array<Eigen::Vector2d, 4> wheels = {wheel1, wheel2, wheel3, wheel4};
+	wheel_coords = {wheel1, wheel2, wheel3, wheel4};
 	
 	/*
 	invertWheelAngle(false);
@@ -331,7 +331,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	swerveVar::encoderUnits units({1,1,1,1,1,1});
 	*/
 
-	swerveC = std::make_shared<swerve>(wheels, offsets, invertWheelAngle_, driveRatios_, units_, model_);
+	swerveC = std::make_shared<swerve>(wheel_coords, offsets, invertWheelAngle_, driveRatios_, units_, model_);
 	for (int i = 0; i < wheel_joints_size_; ++i)
 	{
 		ROS_INFO_STREAM_NAMED(name_,
@@ -352,7 +352,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
         controller_nh.param("odometry_publishing_frequency", odom_pub_freq, DEF_ODOM_PUB_FREQ);	
 	
 	comp_odom_ = odom_pub_freq > 0;
-	ROS_WARN("COMPUTING ODOM");
+	//ROS_WARN("COMPUTING ODOM");
 	if (comp_odom_)
           {
 
@@ -379,12 +379,14 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
                 odom_to_base_ = init_odom_to_base_;
                 odom_rigid_transf_.setIdentity();
 
-		ROS_WARN("working h");
+
+		wheel_pos_.resize(2, WHEELCOUNT);
+		//ROS_WARN("working h");
                 for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
-			ROS_INFO_STREAM("id: " << i << "pos" << wheels[i]);
-			wheel_pos_.col(i) = wheels[i];
-			ROS_INFO_STREAM(wheels[i]);
+			//ROS_INFO_STREAM("id: " << i << "pos" << wheel_coords[i]);
+			wheel_pos_.col(i) = wheel_coords[i];
+			//ROS_WARN("f1.test");
 		}
 
 
@@ -447,7 +449,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 
 void TalonSwerveDriveController::compOdometry(const Time& time, const double inv_delta_t)
         {
-	  ROS_INFO_STREAM("WORKS");
+	  //ROS_INFO_STREAM("WORKS");
           // Compute the rigid transform from wheel_pos_ to new_wheel_pos_.
 	  
 	  for (size_t row = 0; row < WHEELCOUNT; row++)
@@ -457,17 +459,13 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 		const double dist = delta_rot * wheel_radius_;
 		const double steer_angle = swerveC->getWheelAngle(row, steering_joints_[row].getPosition());
 		const Eigen::Vector2d delta_pos = {dist*cos(steer_angle), dist*sin(steer_angle)};
-	  	ROS_WARN("WORKING1"); 
-		new_wheel_pos_.row(row) = old_wheel_pos_[row] + delta_pos;
-	  	ROS_WARN("WORKING2"); 
+	  	//ROS_WARN("WORKING1"); 
+		new_wheel_pos_.row(row) = wheel_coords[row] + delta_pos;
+	  	//ROS_WARN("WORKING2"); 
 		last_wheel_rot[row] = new_wheel_rot;
-	  	ROS_WARN("WORKING3"); 
-		old_wheel_pos_[row] = new_wheel_pos_.row(row);
-		ROS_WARN("WORKING4");
+	  	//ROS_WARN("WORKING3"); 
 	  }
 
-	  const Vector2d centroid = wheel_pos_.rowwise().mean();
-	  wheel_pos_.colwise() -= centroid;
 	  const Eigen::RowVector2d new_wheel_centroid =
                 new_wheel_pos_.colwise().mean();
           new_wheel_pos_.rowwise() -= new_wheel_centroid;
@@ -487,8 +485,9 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
           const double odom_y = odom_to_base_.translation().y();
           const double odom_yaw = atan2(odom_to_base_(1, 0), odom_to_base_(0, 0));
 
-          // Publish the odometry.
-	  
+          //ROS_INFO_STREAM("odom_x: " << odom_x << " odom_y: " << odom_y << " odom_yaw: " << odom_yaw);
+	  // Publish the odometry.
+	  //TODO CHECK THIS PUB 
 
           geometry_msgs::Quaternion orientation;
           bool orientation_comped = false;
@@ -617,7 +616,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		brake();
 		return;
 	}
-
+	
 	// Limit velocities and accelerations:
 	const double cmd_dt(period.toSec());
 
@@ -690,7 +689,18 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 			brake();
 			return;
 		}
-		//TODO change to twist msg
+		if(command.linear.z != 0)
+		{
+			ROS_WARN("Rotors not up to speed!");
+		}
+		if(command.angular.x != 0 | command.angular.y != 0)
+		{
+			ROS_WARN("Reaction wheels need alignment. Please reverse polarity on neutron flux capacitor");
+		}
+		if(command.linear.x > 3.0*pow(10, 8) | command.linear.y > 3.0*pow(10, 8) | command.linear.z > 3.0*pow(10, 8))
+		{
+			ROS_WARN("PHYSICS VIOLATION DETECTED. DISABLE TELEPORTATION UNIT!");
+		}
 		command_struct_.ang = command.angular.z;
 		command_struct_.lin[0] = command.linear.x;
 		command_struct_.lin[1] = command.linear.y;

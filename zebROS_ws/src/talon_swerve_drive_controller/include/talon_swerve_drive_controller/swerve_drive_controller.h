@@ -187,7 +187,6 @@ class TalonSwerveDriveController
 		/// Publish limited velocity:
 		bool publish_cmd_;
 
-	private:
 		/**
 		 * \brief Brakes the wheels, i.e. sets the velocity to 0
 		 * RG: also sets to parking config
@@ -265,6 +264,8 @@ class TalonSwerveDriveController
           	static const double DEF_SD;
 		
 
+		std::array<Eigen::Vector2d, WHEELCOUNT> wheel_coords;
+		
 		static const Eigen::Vector2d X_DIR;
 		
 		bool pub_odom_to_base_;       // Publish the odometry to base frame transform
