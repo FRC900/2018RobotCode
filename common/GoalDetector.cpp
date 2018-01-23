@@ -7,7 +7,7 @@ using namespace std;
 using namespace cv;
 
 #define VERBOSE
-//#define VERBOSE_BOILER
+#define VERBOSE_BOILER
 
 GoalDetector::GoalDetector(const cv::Point2f &fov_size, const cv::Size &frame_size, bool gui) :
 	_fov_size(fov_size),
@@ -94,24 +94,15 @@ void GoalDetector::findBoilers(const cv::Mat& image, const cv::Mat& depth) {
 #ifdef VERBOSE_BOILER
 			cout << left_info[i].vec_index << " " << right_info[j].vec_index << " cidx" << endl;
 #endif
-
-			// Make sure left goal is actually above right goal
-			if (left_info[i].com.y > right_info[j].com.y)
-			{
-#ifdef VERBOSE_BOILER
-				cout << i << " " << j << " " << left_info[i].com.y << " " << right_info[j].com.y << " screen y order check failed" << endl;
-#endif
-				continue;
-			}
 			
 
-			// Make sure the goal parts are close 
-			// together on the screen
+			// Make sure the goal parts are reasonably close 
+			// together on the screen and proportionally accurate to the tapes.
 			const float screendx = left_info[i].com.x - right_info[j].com.x;
 			const float screendy = left_info[i].com.y - right_info[j].com.y;
 			const float screenDist = sqrtf(screendx * screendx + screendy * screendy);
 
-			if (screenDist > left_info[i].br.width)
+			if (screenDist > (2 * (left_info[i].br.width + right_info[i].br.width)))
 			{
 #ifdef VERBOSE_BOILER
 				cout << i << " " << j << " " << screenDist << " screen dist check failed" << endl;
@@ -156,8 +147,8 @@ void GoalDetector::findBoilers(const cv::Mat& image, const cv::Mat& depth) {
 				continue;
 			}
 
-			// Make sure the right contour overlaps at least
-			// part of the left contour
+			// Make sure the left contour overlaps at least
+			// part of the right contour
 			if ((rightBr.br().y - (rightBr.width/2)) < leftBr.y)
 			{
 #ifdef VERBOSE_BOILER
