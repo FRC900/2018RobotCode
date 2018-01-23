@@ -52,10 +52,10 @@ TebLocalPlannerROS:
      
   # Robot
           
-  max_vel_x: 3.0
-  max_vel_y: 3.0
-  max_vel_x_backwards: 3.0
-  max_vel_theta: 6.0
+  max_vel_x: 0.5
+  max_vel_y: 0.5
+  max_vel_x_backwards: 0.5
+  max_vel_theta: 1.0
   acc_lim_x: 1.5
   acc_lim_y: 1.5
   acc_lim_theta: 3.5
@@ -80,11 +80,11 @@ TebLocalPlannerROS:
      
   # Obstacles
      
-  min_obstacle_dist: 0.1
+  min_obstacle_dist: 0.01
   include_costmap_obstacles: True
   costmap_obstacles_behind_robot_dist: 5.0 # 
   obstacle_poses_affected: 30
-  inflation_dist: 0.6
+  inflation_dist: 0.1
   legacy_obstacle_association: False
   obstacle_association_force_inclusion_factor: 1.5
   obstacle_association_cutoff_factor: 5.0
@@ -108,7 +108,7 @@ TebLocalPlannerROS:
   weight_acc_lim_y: 1 #  in order to get faster computation time
   weight_acc_lim_theta: 1
 
-  weight_kinematics_nh: 10   # higher = drive forward vs strafe tradeoff
+  weight_kinematics_nh: 1   # higher = drive forward vs strafe tradeoff
   weight_kinematics_forward_drive: 1
   weight_kinematics_turning_radius: 1
 

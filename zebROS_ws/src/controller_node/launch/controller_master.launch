@@ -8,7 +8,8 @@
   * NavX Publisher Node
   * Rosbag recording (Optional)
 	-->
-  <arg name="resolution" default="3" />
+  
+  <arg name="resolution" default="2" />
   <arg name="frame_rate" default="60" />
   <arg name="quality" default="3" />
   <arg name="brightness" default="2" />
