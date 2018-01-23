@@ -43,6 +43,16 @@ sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installe
 #cd ..
 #rm -rf ctre CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
 
+# Install navX-MXP libraries
+#cd
+#wget https://www.kauailabs.com/public_files/navx-mxp/navx-mxp-libs.zip
+#mkdir navx
+#cd navx
+#unzip ../navx-mxp-libs.zip
+#rsync -a roborio/cpp/ ~/wpilib/user/cpp/
+#cd ..
+#rm -rf navx navx-mxp-libs.zip
+
 # Get ros for RoboRIO libraries
 cd
 wget -O roscore_roborio_2018.tar.bz2 "https://drive.google.com/uc?export=download&id=1IggQt9DtTnZb6R1hxzKRPCUhEW44rQLj"
