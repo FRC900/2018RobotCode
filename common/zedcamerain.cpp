@@ -25,8 +25,8 @@ ZedCameraIn::ZedCameraIn(bool gui, ZvSettings *settings) :
 	contrast_(6),
 	hue_(7),
 	saturation_(4),
-	gain_(1),
-	exposure_(1), // Should set exposure = -1 => auto exposure/auto-gain
+	gain_(10),
+	exposure_(10),
 	whiteBalance_(0), // Auto white-balance?
 	opened_(false)
 {
@@ -35,6 +35,13 @@ ZedCameraIn::ZedCameraIn(bool gui, ZvSettings *settings) :
 		cerr << "ZED camera not found" << endl;
 		return;
 	}
+	int major_ver;
+	int minor_ver;
+	int patch_ver;
+	getZEDSDKRuntimeVersion(major_ver, minor_ver, patch_ver);
+	cout << "ZED SDK runtime version " << major_ver << "." << minor_ver << "." << patch_ver <<endl;
+	getZEDSDKBuildVersion(major_ver, minor_ver, patch_ver);
+	cout << "ZED SDK build version " << major_ver << "." << minor_ver << "." << patch_ver <<endl;
 
 	InitParameters parameters;
 	parameters.camera_resolution = RESOLUTION_HD720;
@@ -56,26 +63,36 @@ ZedCameraIn::ZedCameraIn(bool gui, ZvSettings *settings) :
 	//parameters.depth_minimum_distance = 1; // in coordinate_units, so ~1m
 
 	// init computation mode of the zed
-	ERROR_CODE err = zed_.open(parameters);
+	const ERROR_CODE err = zed_.open(parameters);
 	// Quit if an error occurred
 	if (err != SUCCESS)
 	{
-		cout << errorCode2str(err) << endl;
+		cerr << toString(err) << endl;
 		return;
 	}
 	opened_ = true;
-	zed_.setCameraFPS(parameters.camera_fps);
+
+	//zed_.setCameraFPS(parameters.camera_fps);
+
     // Create sl and cv Mat to get ZED left image and depth image
     // Best way of sharing sl::Mat and cv::Mat :
     // Create a sl::Mat and then construct a cv::Mat using the ptr to sl::Mat data.
-    Resolution image_size = zed_.getResolution();
+    const Resolution image_size = zed_.getResolution();
 	width_  = image_size.width;
 	height_ = image_size.height;
-    localFrameZed_.alloc(image_size, MAT_TYPE_8U_C4); // Create a sl::Mat to handle Left image
+
+	while (height_ > 700)
+	{
+		width_  /= 2;
+		height_ /= 2;
+	}
+
+    localFrameZed_.alloc(width_, height_, MAT_TYPE_8U_C4); // Create a sl::Mat to handle Left image
     localFrameRGBA_ = cv::Mat(height_, width_, CV_8UC4, localFrameZed_.getPtr<sl::uchar1>(sl::MEM_CPU)); // Create an OpenCV Mat that shares sl::Mat buffer
 
-    localDepthZed_.alloc(image_size, MAT_TYPE_32F_C1);
+    localDepthZed_.alloc(width_, height_, MAT_TYPE_32F_C1);
     localDepth_ = cv::Mat(height_, width_, CV_32FC1, localDepthZed_.getPtr<sl::uchar1>(sl::MEM_CPU));
+	localCloud_.points.resize(width_ * height_);
 
 	if (!loadSettings())
 		cerr << "Failed to load ZedCameraIn settings from XML" << endl;
@@ -95,6 +112,7 @@ ZedCameraIn::ZedCameraIn(bool gui, ZvSettings *settings) :
 	cout << "gain_ = " << zed_.getCameraSettings(CAMERA_SETTINGS_GAIN) << endl;
 	cout << "exposure_ = " << zed_.getCameraSettings(CAMERA_SETTINGS_EXPOSURE) << endl;
 	cout << "whiteBalance_ = " << zed_.getCameraSettings(CAMERA_SETTINGS_WHITEBALANCE) << endl;
+	cout << "autoWhiteBalance_ = " << zed_.getCameraSettings(CAMERA_SETTINGS_AUTO_WHITEBALANCE) << endl;
 	if (gui)
 	{
 		cv::namedWindow("Adjustments", CV_WINDOW_NORMAL);
@@ -105,12 +123,6 @@ ZedCameraIn::ZedCameraIn(bool gui, ZvSettings *settings) :
 		cv::createTrackbar("Gain", "Adjustments", &gain_, 101, zedGainCallback, this);
 		cv::createTrackbar("Exposure", "Adjustments", &exposure_, 102, zedExposureCallback, this);
 		cv::createTrackbar("WhiteBalance", "Adjustments", &whiteBalance_, 39, zedWhiteBalanceCallback, this);
-	}
-
-	while (height_ > 700)
-	{
-		width_  /= 2;
-		height_ /= 2;
 	}
 
 	params_.init(zed_, true);
@@ -200,7 +212,7 @@ bool ZedCameraIn::preLockUpdate(void)
 			return false;
 	}
 
-	zed_.retrieveImage(localFrameZed_, left ? VIEW_LEFT : VIEW_RIGHT);
+	zed_.retrieveImage(localFrameZed_, left ? VIEW_LEFT : VIEW_RIGHT, sl::MEM_CPU, width_, height_);
 #if 0
 	if (localFrameZed_.getMemoryType() == MEM_GPU)
 		localFrameZed_.updateCPUfromGPU();
@@ -208,33 +220,36 @@ bool ZedCameraIn::preLockUpdate(void)
 	// TODO :: See about running the cvtColor in GPU space?
 	cvtColor(localFrameRGBA_, localFrameRGB_, CV_RGBA2RGB);
 
-	zed_.retrieveMeasure(localDepthZed_, MEASURE_DEPTH);
+	zed_.retrieveMeasure(localDepthZed_, MEASURE_DEPTH, sl::MEM_CPU, width_, height_);
 #if 0
 	if (localDepthZed_.getMemoryType() == MEM_GPU)
 		localDepthZed_.updateCPUfromGPU();
 #endif
 
-	localCloud_.clear();
 	if (usePointCloud_)
 	{
-		zed_.retrieveMeasure(localCloudZed_, MEASURE_XYZRGBA);
+		zed_.retrieveMeasure(localCloudZed_, MEASURE_XYZRGBA, sl::MEM_CPU, width_, height_);
 		float *pCloud = localCloudZed_.getPtr<float>();
-		for (int i = 0; i < (localDepth_.rows * localDepth_.cols); i++)
+		size_t index = 0;
+		for (auto &it : localCloud_.points)
 		{
-			if (isValidMeasure(pCloud[i * 4]))
+			if (!isValidMeasure(pCloud[index]))
 			{
-				pcl::PointXYZRGB pt;
-				pt.x = pCloud[i * 4 + 0];
-				pt.y = pCloud[i * 4 + 1];
-				pt.z = pCloud[i * 4 + 2];
-				float color = pCloud[i * 4 + 3];
+				it.x = it.y = it.z = it.rgb = 0;
+			}
+			else
+			{
+				it.x = pCloud[index + 0];
+				it.y = pCloud[index + 1];
+				it.z = pCloud[index + 2];
+				float color = pCloud[index + 3];
 				// Color conversion (RGBA as float32 -> RGB as uint32)
 				uint32_t color_uint = *(uint32_t*) &color;
 				unsigned char* color_uchar = (unsigned char*) &color_uint;
 				color_uint = ((uint32_t) color_uchar[0] << 16 | (uint32_t) color_uchar[1] << 8 | (uint32_t) color_uchar[2]);
-				pt.rgb = *reinterpret_cast<float*> (&color_uint);
-				localCloud_.push_back(pt);
+				it.rgb = *reinterpret_cast<float*> (&color_uint);
 			}
+			index += 4;
 		}
 	}
 
@@ -314,7 +329,7 @@ void zedWhiteBalanceCallback(int value, void *data)
 	{
 		// Defines the color temperature control. Affected
 		// value should be between 2800 and 6500 with a step
-		// of 100. A value of -1 set the AWB ( auto white balance),
+		// of 100. A value of -1 sets the AWB ( auto white balance),
 		// as the boolean parameter (default) does. 
 		if (value == 0)
 		{
