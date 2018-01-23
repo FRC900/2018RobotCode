@@ -29,16 +29,16 @@ class ZedCameraIn : public AsyncIn
 		ZedCameraIn(const ZedCameraIn &zedcamerain) = delete;
 		ZedCameraIn* operator=(const ZedCameraIn &zedcamerain) = delete;
 
-		bool         isOpened(void) const;
-		CameraParams getCameraParams(void) const;
+		bool         isOpened(void) const override;
+		CameraParams getCameraParams(void) const override;
 #endif
 	protected:
 		// Defined in derived classes to handle the nuts
 		// and bolts of grabbing a frame from a given
 		// source.  preLock happens before the mutex
 		// while postLock happens inside it
-		bool preLockUpdate(void);
-		bool postLockUpdate(cv::Mat &frame, cv::Mat &depth, pcl::PointCloud<pcl::PointXYZRGB> &cloud);
+		bool preLockUpdate(void) override;
+		bool postLockUpdate(cv::Mat &frame, cv::Mat &depth, pcl::PointCloud<pcl::PointXYZRGB> &cloud) override;
 #ifdef ZED_SUPPORT
 	private:
 		sl::Camera                        zed_;
