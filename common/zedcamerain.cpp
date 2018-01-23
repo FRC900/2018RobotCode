@@ -30,7 +30,9 @@ ZedCameraIn::ZedCameraIn(bool gui, ZvSettings *settings) :
 	whiteBalance_(0), // Auto white-balance?
 	opened_(false)
 {
-	if (!Camera::isZEDconnected()) // Open an actual camera for input
+	auto zedCameras = Camera::getDeviceList();
+
+	if (!zedCameras.size()) 
 	{
 		cerr << "ZED camera not found" << endl;
 		return;
@@ -42,6 +44,27 @@ ZedCameraIn::ZedCameraIn(bool gui, ZvSettings *settings) :
 	cout << "ZED SDK runtime version " << major_ver << "." << minor_ver << "." << patch_ver <<endl;
 	getZEDSDKBuildVersion(major_ver, minor_ver, patch_ver);
 	cout << "ZED SDK build version " << major_ver << "." << minor_ver << "." << patch_ver <<endl;
+
+	for (auto it : zedCameras)
+	{
+		cout << "id : " << it.id << " = " << it.path;
+		cout << ", model : ";
+		switch(it.camera_model)
+		{
+			case MODEL_ZED:
+				cout << "ZED";
+				break;
+			case MODEL_ZED_M:
+				cout << "ZED Mini";
+				break;
+			default:
+				cout << "Unknown";
+				break;
+		}
+		cout << ", SN : " << it.serial_number;
+		cout << ", available : " << (it.camera_state == CAMERA_STATE_AVAILABLE ? "yes" : "no") << endl;
+		
+	}
 
 	InitParameters parameters;
 	parameters.camera_resolution = RESOLUTION_HD720;

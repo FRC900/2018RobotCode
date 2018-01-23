@@ -62,9 +62,9 @@ class ZedCameraIn : public AsyncIn
 		bool                              opened_;
 
 		// Helpers to save and load settings in XML file
-		bool loadSettings(void);
-		bool saveSettings(void) const;
-		std::string getClassName() const { return "ZedCameraIn"; }
+		bool loadSettings(void) override;
+		bool saveSettings(void) const override;
+		std::string getClassName() const override { return "ZedCameraIn"; }
 
 		// Mark these as friends so they can access private class data
 		friend void zedBrightnessCallback(int value, void *data);
