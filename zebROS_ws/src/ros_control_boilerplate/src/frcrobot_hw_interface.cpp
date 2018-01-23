@@ -312,7 +312,20 @@ void FRCRobotHWInterface::init(void)
 		
 		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
 	}
-	//Add navX hw objects
+	//RIGHT NOW THIS WILL ONLY WORK IF THERE IS ONLY ONE NAVX INSTANTIATED
+	for(size_t i = 0; i < num_navX_; i++)
+	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << navX_names_[i] <<
+							  " as navX id" << navX_ids_[i]); 
+	//TODO: fix how we use ids
+		
+		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));
+	}
+
+
+
+
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
@@ -472,6 +485,10 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		double_solenoid_state_[i] = double_solenoids_[i]->Get();
 	}
 	//navX read here
+	for (size_t i = 0; i < num_navX_; i++)
+	{
+		//navX_state_.Data.orientation = navXs_[i]->GetFusedHeading();
+	}
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
