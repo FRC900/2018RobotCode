@@ -47,7 +47,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
     if(msg->directionRightPress == true) {
         lastTimeSecs = timeSecs;
         timeSecs = ros::Time::now().toSec();
-        ROS_INFO("%f, %f", lastTimeSecs, timeSecs);
         if(timeSecs - lastTimeSecs< 1.0) {
             //TODO deploy ramp  or something
             //publish true to RampDeploy
@@ -135,13 +134,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
         //ROS_INFO("leftStickX: %f", leftStickX);
         //ROS_INFO("leftStickY: %f", leftStickY);
     //TODO BUMPERS FOR SLOW MODE
-    ROS_INFO("rightStickX: %f", rightStickX);
-    ROS_INFO("rightStickY: %f", rightStickY);
     //TODO rotate left
-    ROS_INFO("Rotate left: %f", msg->leftTrigger);
     //TODO rotate right
-    ROS_INFO("Rotate right: %f", msg->rightTrigger);
-    ROS_INFO("\n");
             
 }
 
