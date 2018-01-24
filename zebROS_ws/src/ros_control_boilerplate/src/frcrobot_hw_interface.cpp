@@ -321,6 +321,16 @@ void FRCRobotHWInterface::init(void)
 	//TODO: fix how we use ids
 		
 		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));
+		
+		//TODO: something sort of like below
+		//navX_state_[i].orientation = orientations;
+                //navX_state_[i].orientation_covariance = orientation_covariances;
+                //navX_state_[i].angular_velocity = angular_velocities;
+                //navX_state_[i].angular_velocity_covariance = angular_velocity_covariances;
+                //navX_state_[i].linear_acceleration = linear_accelerations;
+                //navX_state_[i].linear_acceleration_covariance = linear_acceleration_covariances;
+
+
 	}
 
 
@@ -487,8 +497,33 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	//navX read here
 	for (size_t i = 0; i < num_navX_; i++)
 	{
-		//navX_state_.Data.orientation = navXs_[i]->GetFusedHeading();
+		//navXs_[i]->GetFusedHeading();
+		//navXs_[i]->GetPitch();
+		//navXs_[i]->GetRoll();
+		//navXs_[i]->IsCalibrating();
+		//navXs_[i]->IsConnected();
+		//navXs_[i]->GetLastSensorTimestamp();
+		//navXs_[i]->GetWorldLinearAccelX();
+		//navXs_[i]->GetWorldLinearAccelY();
+		//navXs_[i]->GetWorldLinearAccelZ();
+		//navXs_[i]->IsMoving();
+		//navXs_[i]->IsRotating();
+		//navXs_[i]->IsMagneticDisturbance();
+		//navXs_[i]->IsMagnetometerCalibrated();
+		//navXs_[i]->GetQuaternionW();
+		//navXs_[i]->GetQuaternionX();
+		//navXs_[i]->GetQuaternionY();
+		//navXs_[i]->GetQuaternionZ();
+		//navXs_[i]->GetVelocityX();
+		//navXs_[i]->GetVelocityY();
+		//navXs_[i]->GetVelocityZ();	
+		//navXs_[i]->GetDisplacementX();
+		//navXs_[i]->GetDisplacementY();
+		//navXs_[i]->GetDisplacementZ();
+		//navXs_[i]->GetAngle(); //continous
+		//TODO: add setter functions
 	}
+
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
