@@ -5,6 +5,7 @@ include ("../cmake_modules/CMakeOpt.cmake")
 
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
+  message_filters
   hardware_interface
   controller_manager
   roscpp
@@ -46,6 +47,7 @@ catkin_package(
     include
   CATKIN_DEPENDS
     hardware_interface
+    message_filters
     controller_manager
     roscpp
     control_msgs
