@@ -111,20 +111,21 @@ if (DEFINED CMAKE_TOOLCHAIN_FILE)
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L ${WPI_LIB_DIR}")
     set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L ${WPI_COMMON_LIB_DIR}")
   
-    set (CTRE_LIB_DIR $ENV{HOME}/wpilib/user/cpp/lib)
-    set (CTRE_LIBS
-        ${CTRE_LIB_DIR}/libCTRE_PhoenixCCI.a
-        ${CTRE_LIB_DIR}/libCTRE_Phoenix.a
+    set (WPI_USER_LIB_DIR $ENV{HOME}/wpilib/user/cpp/lib)
+    set (WPI_USER_LIBS
+        ${WPI_USER_LIB_DIR}/libCTRE_PhoenixCCI.a
+        ${WPI_USER_LIB_DIR}/libCTRE_Phoenix.a
+        ${WPI_USER_LIB_DIR}/libnavx_frc_cpp.a
     )
 
-	# Link against CTRE for CAN talon code and wpilib
-	# for HAL, driver station, and so on
+        # Link against wpi user libraries for CAN talon and navX-MXP code and
+        # wpilib for HAL, driver station, and so on
 	target_link_libraries(frcrobot_hw_main
 		${catkin_LIBRARIES}
 		${WPI_LIB_DIR}/libwpi.so
 		${WPI_LIB_DIR}/libFRC_NetworkCommunication.so.18.0.0
 		${WPI_LIB_DIR}/libRoboRIO_FRC_ChipObject.so.18.0.0
-		${CTRE_LIBS}
+                ${WPI_USER_LIBS}
 	)
 
     ## Add cmake target dependencies of the executable

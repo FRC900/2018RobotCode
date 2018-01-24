@@ -38,6 +38,7 @@ static bool down_sample = false;
 
 void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, const navx_publisher::stampedUInt64ConstPtr &navxMsg)
 {
+	
 	cv_bridge::CvImageConstPtr cvFrame = cv_bridge::toCvShare(frameMsg, sensor_msgs::image_encodings::BGR8);
 	cv_bridge::CvImageConstPtr cvDepth = cv_bridge::toCvShare(depthMsg, sensor_msgs::image_encodings::TYPE_32FC1);
 
@@ -73,13 +74,13 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, cons
 						  hFov * (M_PI / 180.) * ((float)framePtr->rows / framePtr->cols));
 		gd = new GoalDetector(fov, framePtr->size(), !batch);
 	}
-
 	gd->findBoilers(*framePtr, *depthPtr);
 	Mat tempFrame(framePtr->clone());
 	gd->drawOnFrame(tempFrame, gd->getContours(tempFrame));
 
-		rectangle(tempFrame, gd->goal_rect(), Scalar(255,0,0), 2);
+		rectangle(tempFrame, gd->goal_rect(), Scalar(0,0,255), 2);
 		imshow ("Image", tempFrame);
+		waitKey(5);
 
 	const Point3f pt = gd->goal_pos();
 
@@ -106,7 +107,8 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, cons
 	{
 		return;
 	}
-
+	
+	/*
 	//Transform between goal frame and odometry/map.
 	static tf2_ros::TransformBroadcaster br;
 	geometry_msgs::TransformStamped transformStamped;
@@ -151,6 +153,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, cons
 	tf2::doTransform(transformStamped, transformStampedOdomGoal, transformStampedOdomCamera);
 
 	br.sendTransform(transformStampedOdomGoal);
+	*/
 }
 
 void callbackNavx(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, const navx_publisher::stampedUInt64ConstPtr &navxMsg)
