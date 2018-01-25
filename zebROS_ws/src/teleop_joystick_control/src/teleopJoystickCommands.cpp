@@ -171,6 +171,13 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 
             
+        //TODO BUMPERS FOR SLOW MODE
+        //ROS_INFO("leftStickX: %f", leftStickX);
+        //ROS_INFO("leftStickY: %f", leftStickY);
+    //TODO BUMPERS FOR SLOW MODE
+    //TODO rotate left
+    //TODO rotate right
+	//ROS_WARN("be afraid");            
 }
 /*
 void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotState) {
