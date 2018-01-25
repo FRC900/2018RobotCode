@@ -108,7 +108,7 @@ fi
 #https://www.stereolabs.com/developers/downloads/ZED_SDK_Linux_JTX1_v2.1.2.run
 #https://www.stereolabs.com/developers/downloads/ZED_SDK_Linux_Ubuntu16_v2.1.2.run
 
-zed_ver="2.1.2"
+zed_ver="2.3.0"
 zed_fn="ZED_SDK_Linux_"$zed_arch"_v"$zed_ver".run"
 wget --no-check-certificate https://www.stereolabs.com/download/$zed_fn
 chmod 755 $zed_fn
@@ -133,9 +133,9 @@ if [ "$jetson" = true ] ; then
 	# serial devices
 	if [ "$version" = tx2 ] ; then
 		sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/usb/serial
-		sudo cp cp210x.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/serial
+		sudo cp jetson_setup/cp210x.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/serial
 		sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/usb/class
-		sudo cp cdc-acm.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/class
+		sudo cp jetson_setup/cdc-acm.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/class
 		sudo depmod -a
 	fi
 
@@ -179,4 +179,4 @@ cp ~/2018RobotCode/.vimrc ~/2018RobotCode/.gvimrc ~
 sudo cp ~/2018RobotCode/kjaget.vim /usr/share/vim/vim74/colors
 
 git config --global user.email "progammers@team900.org"
-git config --global user.name "Team900 Jetson TX1"
+git config --global user.name "Team900 Jetson TX2"
