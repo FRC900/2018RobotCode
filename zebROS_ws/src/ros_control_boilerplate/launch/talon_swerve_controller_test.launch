@@ -7,6 +7,7 @@
 	<arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
 
 	<arg name="hw_or_sim" default="hw" />
+	<arg name="bot id" default="0" />
 
 	<!-- Load example URDF -->
 	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find frcrobot_description)/urdf/robot_in_a_box.xacro'" />
@@ -20,7 +21,7 @@
 
 		<!-- Load controller settings -->
 		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve.yaml" command="load"/>
-		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets1.yaml" command="load"/>
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"

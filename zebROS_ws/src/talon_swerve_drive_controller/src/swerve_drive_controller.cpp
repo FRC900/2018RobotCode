@@ -455,7 +455,7 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
                 const double new_wheel_rot = speed_joints_[k].getPosition();
                 const double delta_rot = new_wheel_rot - last_wheel_rot[k];
                 //int inverterD = (k%2==0) ? -1 : 1;
-		const double dist = delta_rot * wheel_radius_ / (-2);// * inverterD;
+		const double dist = delta_rot * wheel_radius_ / (-2); //* inverterD;
                 //NOTE: below is a hack, TODO: REMOVE
 		
 		const double steer_angle = swerveC->getWheelAngle(k, steering_joints_[k].getPosition());
@@ -634,10 +634,11 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	double angle = M_PI / 2.; // TODO: integrate navx and change this to use field-centric driving
 	std::array<bool, WHEELCOUNT> holder;
 	std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC->motorOutputs(curr_cmd.lin, curr_cmd.ang, angle, false, holder, false, curPos);
-
+	
 	// Set wheels velocities:
 	for (size_t i = 0; i < wheel_joints_size_; ++i)
 	{
+		ROS_INFO_STREAM("id:" << i << " speed: " <<speeds_angles[i][0]); 
 		speed_joints_[i].setCommand(speeds_angles[i][0]);
 		steering_joints_[i].setCommand(speeds_angles[i][1]);
 	}
