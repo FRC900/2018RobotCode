@@ -21,6 +21,7 @@
   <depend>hardware_interface</depend>
   <depend>controller_manager</depend>
   <depend>roscpp</depend>
+  <depend>message_filters</depend>
   <depend>control_msgs</depend>
   <depend>trajectory_msgs</depend>
   <depend>actionlib</depend>
