@@ -149,10 +149,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     //Publish drivetrain messages and elevator/pivot
     geometry_msgs::Twist vel;
     talon_controllers::CloseLoopControllerMsg arm;
-    double leftStickX = JoystickState->leftStickX;//TODO publish twist message for drivetrain and elevator/pivot
+    double leftStickX = JoystickState->leftStickX;
     double leftStickY = JoystickState->leftStickY;
 
-    double rightStickX = JoystickState->rightStickX;//TODO publish twist message for drivetrain and elevator/pivot
+    double rightStickX = JoystickState->rightStickX;
     double rightStickY = JoystickState->rightStickY;
     vel.linear.x = leftStickX;
     vel.linear.y = leftStickY;
