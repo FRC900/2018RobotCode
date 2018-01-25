@@ -188,8 +188,14 @@ void FRCRobotHWInterface::init(void)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << can_talon_srx_names_[i] <<
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
-		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i] /*, CAN update rate*/ ));
-		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 10); // Make sure motor is stopped
+		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i]));
+		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 0); // Make sure motor is stopped
+		safeTalonCall(can_talons_[i]->GetLastError(), "Initial Set(Disabled, 0)");
+		// TODO : if the talon doesn't initialize - maybe known
+		// by -1 from firmware version read - somehow tag 
+		// the entry in can_talons_[] as uninitialized.
+		// This probably should be a fatal error
+
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "\tTalon SRX firmware version " << can_talons_[i]->GetFirmwareVersion());
 	}
@@ -339,9 +345,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
 			ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
 			safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
+#if 0
 			ctre::phoenix::motion::MotionProfileStatus talon_status;
-			//UNCOMMENT BELOW TODO
-			//safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
 			hardware_interface::MotionProfileStatus internal_status;
 			internal_status.topBufferRem = talon_status.topBufferRem;
@@ -357,6 +363,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.timeDurMs = talon_status.timeDurMs;
 		
 			ts.setMotionProfileStatus(internal_status);
+#endif
 		}
 
 		ctre::phoenix::motorcontrol::Faults faults;
