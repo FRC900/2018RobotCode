@@ -713,7 +713,7 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 
 		//TODO change to twist msg
 		
-		command_struct_.ang = -command.angular.z;
+		command_struct_.ang = command.angular.z;
 		command_struct_.lin[0] = command.linear.x;
 		command_struct_.lin[1] = command.linear.y;
 		command_struct_.stamp = ros::Time::now();
