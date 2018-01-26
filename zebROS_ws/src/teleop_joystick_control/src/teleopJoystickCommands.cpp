@@ -13,7 +13,6 @@ double elevatorHeight;
 static double armPos;
 
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState, const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
-    ROS_WARN("running");
     char currentToggle = ' ';
     char lastToggle = ' ';
     double elevatorHeightBefore;
@@ -57,9 +56,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         rightRumble = 65535;
     }
     rumbleTypeConverterPublish(leftRumble, rightRumble);
-    
-
-
 
     //Joystick Button Press parse
     if(JoystickState->directionUpPress == true) {
@@ -134,7 +130,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
     }
 
-
     //Publish drivetrain messages and elevator/pivot
     geometry_msgs::Twist vel;
     talon_controllers::CloseLoopControllerMsg arm;
@@ -161,9 +156,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
     JoystickRobotVel.publish(vel);
     JoystickArmVel.publish(arm);
-    ros::spinOnce();    
-
-
             
         //TODO BUMPERS FOR SLOW MODE
         //ROS_INFO("leftStickX: %f", leftStickX);
@@ -206,23 +198,27 @@ void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &Ma
 int main(int argc, char **argv) {
     ros::init(argc, argv, "scaled_joystick_state_subscriber");
     ros::NodeHandle n;
+
+    JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+
+    JoystickArmVel = n.advertise<talon_controllers::CloseLoopControllerMsg>("talon_linear_controller/command", 1);
+    JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
+
 	// TODO : combine these into 1 callback with joystick val and robot 
 	// state synchronized by approximate message time.  See http://wiki.ros.org/message_filters#ApproximateTime_Policy
 	// as well as the goal detection code for an example.  This will allow
 	// the callback to get both a joystick value and the robot state
 	// in one function.  Might want to combine match data as well?
     //message_filters::Subscriber<teleop_joystick_control::RobotState> robotStateSub(n, "RobotState", 1);
-    message_filters::Subscriber<ros_control_boilerplate::JoystickState> *joystickSub = new message_filters::Subscriber<ros_control_boilerplate::JoystickState>(n, "ScaledJoystickVals", 3);
-    message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> *matchDataSub = new message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData>(n, "match_data", 3);
+    message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "ScaledJoystickVals", 5);
+    message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
     
     navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
    
-
     ROS_WARN("joy_init");
 
-
     typedef message_filters::sync_policies::ApproximateTime<ros_control_boilerplate::JoystickState, ros_control_boilerplate::MatchSpecificData> JoystickSync;
-    message_filters::Synchronizer<JoystickSync> sync(JoystickSync(10), *joystickSub, *matchDataSub);
+    message_filters::Synchronizer<JoystickSync> sync(JoystickSync(5), joystickSub, matchDataSub);
     sync.registerCallback(boost::bind(&evaluateCommands, _1, _2));
     
     /*
@@ -232,11 +228,6 @@ int main(int argc, char **argv) {
     //added to global vars
     */
     ros::Subscriber sub2 = n.subscribe("RobotState", 1, evaluateState);
-    
-    JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-
-    JoystickArmVel = n.advertise<talon_controllers::CloseLoopControllerMsg>("talon_linear_controller/command", 1);
-    JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
 
     ros::spin();
 
