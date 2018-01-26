@@ -264,6 +264,8 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 		}
 		else if (joint_type == "navX")
 		{
+			// TODO : id might instead be a string - MXP, USB, etc
+			// telling where the navX is attached?
 			if (!joint_params.hasMember("id"))
 				throw std::runtime_error("A navX id was not specified");
 			XmlRpc::XmlRpcValue &xml_navX_id = joint_params["id"];
@@ -442,6 +444,11 @@ void FRCRobotInterface::init()
 		hardware_interface::JointHandle rh(rsh, &rumble_command_[i]);
 		joint_velocity_interface_.registerHandle(rh);
 	}
+	// Differentiate between navX and IMU here
+	// We might want more than 1 type of IMU
+	// at some point - eventually allow this by making IMU
+	// data sized to hold results from all IMU
+	// hardware rather than just navX size
 	num_navX_ = navX_names_.size();
 	imu_orientations_.resize(num_navX_);
 	imu_orientation_covariances_.resize(num_navX_);
