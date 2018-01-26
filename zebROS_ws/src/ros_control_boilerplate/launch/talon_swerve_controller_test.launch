@@ -21,7 +21,7 @@
 
 		<!-- Load controller settings -->
 		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve.yaml" command="load"/>
-		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets1.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets0.yaml" command="load"/>
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
