@@ -196,9 +196,7 @@ TalonSwerveDriveController::TalonSwerveDriveController() :
 	odom_frame_id_("odom"),
 	enable_odom_tf_(true),
 	wheel_joints_size_(0),
-	publish_cmd_(false),
-	navX_angle_(M_PI/2),
-	navX_index_(-1)	
+	publish_cmd_(false)
 
 	//model_({0, 0, 0, 0, 0, 0}),
 	//invertWheelAngle_(false),
@@ -347,7 +345,6 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 		
 
 	sub_command_ = controller_nh.subscribe("cmd_vel", 1, &TalonSwerveDriveController::cmdVelCallback, this);
-	navX_heading_ = controller_nh.subscribe("/frcrobot/joint_states", 1, &TalonSwerveDriveController::navXCallback, this);
 	
 		
 	double odom_pub_freq;
@@ -636,7 +633,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	for (int i = 0; i < WHEELCOUNT; i++)
 		curPos[i] = steering_joints_[i].getPosition();
 	std::array<bool, WHEELCOUNT> holder;
-	std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC->motorOutputs(curr_cmd.lin, curr_cmd.ang, navX_angle_, false, holder, false, curPos);
+	std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC->motorOutputs(curr_cmd.lin, curr_cmd.ang, M_PI/2, false, holder, false, curPos);
 	
 	// Set wheels velocities:
 	for (size_t i = 0; i < wheel_joints_size_; ++i)
@@ -732,40 +729,6 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 	{
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
 	}
-}
-void TalonSwerveDriveController::navXCallback(const sensor_msgs::JointState &navXState)
-{
-	if (isRunning())
-	{
-		if(navX_index_ < 0)
-		{
-			for (size_t i = 0; i < navXState.name.size(); i++)
-			{
-				
-				ROS_WARN("gets calling");
-				if(navXState.name[i] == "navX_0")
-				{
-					navX_index_ = i;
-					ROS_WARN("not found");
-					break;
-				}
-
-			}  
-		}
-		
-		if(navX_index_ > -1)
-		{
-			navX_angle_ = navXState.position[navX_index_];
-			ROS_INFO_STREAM("Works: " << navX_angle_);
-
-		}
-	}
-	else
-	{
-		ROS_WARN("Can't get navX. Controller is not running.");
-	}
-	
-
 }
 
 bool TalonSwerveDriveController::getWheelNames(ros::NodeHandle &controller_nh,

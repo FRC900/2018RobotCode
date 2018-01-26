@@ -441,7 +441,9 @@ void FRCRobotInterface::init()
 		joint_velocity_interface_.registerHandle(rh);
 	}
 	num_navX_ = navX_names_.size();
-	hacky_fused_heading_.resize(num_navX_);
+	fused_heading_.resize(num_navX_);
+	pitch_.resize(num_navX_);
+	roll_.resize(num_navX_);
 	navX_command_.resize(num_navX_);
 	//for (size_t i = 0; i < num_navX_; i++)
 	//{
@@ -454,7 +456,7 @@ void FRCRobotInterface::init()
 		// and point it to the data stored in the
 		// corresponding brushless_state array entry
 		
-		hardware_interface::JointStateHandle nxsh(navX_names_[i], &hacky_fused_heading_[i], &hacky_fused_heading_[i], &hacky_fused_heading_[i]);
+		hardware_interface::JointStateHandle nxsh(navX_names_[i], &fused_heading_[i], &pitch_[i], &roll_[i]);
 		joint_state_interface_.registerHandle(nxsh);
 		
 		hardware_interface::JointHandle nxh(nxsh, &navX_command_[i]);

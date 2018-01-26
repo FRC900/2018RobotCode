@@ -125,7 +125,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		hardware_interface::VelocityJointInterface joint_velocity_interface_;
 		hardware_interface::TalonCommandInterface talon_command_interface_;
 
-		hardware_interface::ImuSensorInterface navX_interface_;
+		//hardware_interface::ImuSensorInterface navX_interface_;
 
 		// Configuration
 		std::vector<std::string> can_talon_srx_names_;
@@ -187,8 +187,10 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> solenoid_state_;
 		std::vector<double> double_solenoid_state_;
 		std::vector<double> rumble_state_; //No actual data
-		std::vector<hardware_interface::ImuSensorHandle> navX_state_;
-		std::vector<double> hacky_fused_heading_;		
+		//std::vector<hardware_interface::ImuSensorHandle> navX_state_;
+		std::vector<double> fused_heading_;		
+		std::vector<double> pitch_;		
+		std::vector<double> roll_;		
 		// Same as above, but for pending commands to be
 		// written to the hardware
 		std::vector<hardware_interface::TalonHWCommand> talon_command_;

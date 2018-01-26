@@ -485,7 +485,12 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}
 	for (size_t i = 0; i < num_navX_; i++)
 	{
-		hacky_fused_heading_[i] = (navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - navX_command_[i]) + M_PI;
+		fused_heading_[i] = (navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - navX_command_[i]) + M_PI;
+		pitch_[i] = navXs_[i]->GetPitch() / -360 * 2 * M_PI;
+		roll_[i] = navXs_[i]->GetRoll() / -360 * 2 * M_PI;  
+
+
+
 	}
 	//navX read here
 }

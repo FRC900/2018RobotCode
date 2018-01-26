@@ -145,9 +145,6 @@ class TalonSwerveDriveController
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		ros::Subscriber sub_command_;
-		ros::Subscriber navX_heading_;
-		double navX_angle_;
-		int navX_index_;
 		/// Publish executed commands
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::TwistStamped> > cmd_vel_pub_;
 
@@ -203,7 +200,6 @@ class TalonSwerveDriveController
 		 */
 		void cmdVelCallback(const geometry_msgs::Twist &command);
 
-		void navXCallback(const sensor_msgs::JointState &navXState);
 		/**
 		 * \brief Get the wheel names from a wheel param
 		 * \param [in]  controller_nh Controller node handler
