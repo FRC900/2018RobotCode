@@ -12,7 +12,7 @@ bool ifCube = true;
 double elevatorHeight;
 static double armPos;
 
-void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState, const teleop_joystick_control::RobotState::ConstPtr &RobotState, const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
+void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState, const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
     char currentToggle = ' ';
     char lastToggle = ' ';
     double elevatorHeightBefore;
@@ -31,7 +31,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         Auto place - right Joy
         Toggles override each other and are turned off when the current toggle is pressed again - right joy press
    */ 
-
+    /*
     if(RobotState->ifCube==true) {
         ifCube = true;
         rumbleTypeConverterPublish(0, 32767);
@@ -42,7 +42,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         ROS_INFO("I has no cube");
     }
     elevatorHeight = RobotState->elevatorHeight;
-
+*/
 
     //Joystick Rumble
     if(matchTimeRemaining < 61 && matchTimeRemaining > 59) { 
@@ -172,7 +172,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     //TODO rotate right
 	//ROS_WARN("be afraid");            
 }
-/*
 void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotState) {
     if(RobotState->ifCube==true) {
         ifCube = true;
@@ -186,6 +185,7 @@ void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotSta
     elevatorHeight = RobotState->elevatorHeight;
 }
 
+/*
 void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
     uint16_t leftRumble=0, rightRumble=0;
     double matchTimeRemaining = MatchData->matchTimeRemaining;
@@ -217,17 +217,18 @@ int main(int argc, char **argv) {
     navX_heading_ = n.subscribe("/frcrobot/joint_states", 1, &navXCallback);
 
 
-    typedef message_filters::sync_policies::ApproximateTime<ros_control_boilerplate::JoystickState, teleop_joystick_control::RobotState, ros_control_boilerplate::MatchSpecificData> JoystickSync;
-    message_filters::Synchronizer<JoystickSync> sync(JoystickSync(10), joystickSub, robotStateSub, matchDataSub);
-    sync.registerCallback(boost::bind(&evaluateCommands, _1, _2, _3));
+    typedef message_filters::sync_policies::ApproximateTime<ros_control_boilerplate::JoystickState, ros_control_boilerplate::MatchSpecificData> JoystickSync;
+    message_filters::Synchronizer<JoystickSync> sync(JoystickSync(10), joystickSub, matchDataSub);
+    sync.registerCallback(boost::bind(&evaluateCommands, _1, _2));
     
     /*
     ros::Subscriber sub = n.subscribe("ScaledJoystickVals", 1, evaluateCommands);
+    ros::Subscriber MatchData = n.subscribe("match_data", 1, evaluateTime);
     //subscribe to robot state stuff for possession of cube and elevator height
     //added to global vars
-    ros::Subscriber sub2 = n.subscribe("RobotState", 1, evaluateState);
-    ros::Subscriber MatchData = n.subscribe("match_data", 1, evaluateTime);
     */
+    ros::Subscriber sub2 = n.subscribe("RobotState", 1, evaluateState);
+    
     JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
     JoystickArmVel = n.advertise<talon_controllers::CloseLoopControllerMsg>("talon_linear_controller/command", 1);
