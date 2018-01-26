@@ -146,7 +146,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     vel.linear.y = rotatedJoyVector[1];
     vel.linear.z = 0;
 
-    vel.angular.z = JoystickState->leftTrigger - JoystickState->rightTrigger;
+    vel.angular.z = JoystickState->rightTrigger - JoystickState->leftTrigger;
     vel.angular.x = 0;
     vel.angular.y = 0;
     
