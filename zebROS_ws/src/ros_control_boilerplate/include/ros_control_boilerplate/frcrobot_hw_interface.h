@@ -122,15 +122,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Solenoid>> solenoids_;
 		std::vector<std::shared_ptr<frc::DoubleSolenoid>> double_solenoids_;
 		std::vector<std::shared_ptr<AHRS>> navXs_;
-		//some vector here of "navXes"		
 		
-		double orientations[3];
-                double orientation_covariances[5]; //TODO: fix the number of elements and actually write to this using a config file
-                double angular_velocities[3];
-                double angular_velocity_covariances[5]; //TODO: fix the number of elements and actually write to this using a config file
-                double linear_accelerations[3];
-                double linear_acceleration_covariances[5]; //TODO: fix the number of elements and actually write to this using a config file 
-
 		std::thread hal_thread_;
 		bool        run_hal_thread_;
 

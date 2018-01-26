@@ -312,29 +312,19 @@ void FRCRobotHWInterface::init(void)
 		
 		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
 	}
+
 	//RIGHT NOW THIS WILL ONLY WORK IF THERE IS ONLY ONE NAVX INSTANTIATED
 	for(size_t i = 0; i < num_navX_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
-							  "Loading joint " << i << "=" << navX_names_[i] <<
-							  " as navX id" << navX_ids_[i]); 
-	//TODO: fix how we use ids
-		
+				"Loading joint " << i << "=" << navX_names_[i] <<
+				" as navX id" << navX_ids_[i]); 
+		//TODO: fix how we use ids
+
 		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));
-		
-		//TODO: something sort of like below
-		//navX_state_[i].orientation = orientations;
-                //navX_state_[i].orientation_covariance = orientation_covariances;
-                //navX_state_[i].angular_velocity = angular_velocities;
-                //navX_state_[i].angular_velocity_covariance = angular_velocity_covariances;
-                //navX_state_[i].linear_acceleration = linear_accelerations;
-                //navX_state_[i].linear_acceleration_covariance = linear_acceleration_covariances;
 
-
+		// TODO :: fill in covariances here?
 	}
-
-
-
 
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
@@ -497,9 +487,14 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	//navX read here
 	for (size_t i = 0; i < num_navX_; i++)
 	{
-		//navXs_[i]->GetFusedHeading();
-		//navXs_[i]->GetPitch();
-		//navXs_[i]->GetRoll();
+		// TODO : fix ordering ?
+		imu_orientations_[i][0] = navXs_[i]->GetFusedHeading();
+		imu_orientations_[i][1] = navXs_[i]->GetPitch();
+		imu_orientations_[i][2] = navXs_[i]->GetRoll();
+
+		// TODO : Fill in imu_angular_velocity[i][]
+		// TODO : Fill in linear_acceleration[i][]
+
 		//navXs_[i]->IsCalibrating();
 		//navXs_[i]->IsConnected();
 		//navXs_[i]->GetLastSensorTimestamp();

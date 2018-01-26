@@ -221,7 +221,6 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 
 			const int solenoid_id = xml_solenoid_id;
 
-
 			solenoid_names_.push_back(joint_name);
 			solenoid_ids_.push_back(solenoid_id);
 		}
@@ -274,7 +273,16 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 
 			const int navX_id = xml_navX_id;
 
+			if (!joint_params.hasMember("frame_id"))
+				throw std::runtime_error("A joint type was not specified");
+			XmlRpc::XmlRpcValue &xml_joint_frame_id= joint_params["frame_id"];
+			if (!xml_joint_frame_id.valid() ||
+					xml_joint_frame_id.getType() != XmlRpc::XmlRpcValue::TypeString)
+				throw std::runtime_error("An invalid navX frame_id was specified (expecting a string).");
+			const std::string frame_id = xml_joint_frame_id;
+
 			navX_names_.push_back(joint_name);
+			navX_frame_ids_.push_back(frame_id);
 			navX_ids_.push_back(navX_id);
 		}
 		else
@@ -389,42 +397,36 @@ void FRCRobotInterface::init()
 		hardware_interface::JointStateHandle psh(pwm_names_[i], &pwm_state_[i], &pwm_state_[i], &pwm_state_[i]);
 		joint_state_interface_.registerHandle(psh);
 
-		// Do the same for a command interface for
-		// the same brushless motor
 		hardware_interface::JointHandle ph(psh, &pwm_command_[i]);
 		joint_velocity_interface_.registerHandle(ph);
 	}
 	num_solenoids_ = solenoid_names_.size();
-        solenoid_state_.resize(num_solenoids_);
-        solenoid_command_.resize(num_solenoids_);
-        for (size_t i = 0; i < num_solenoids_; i++)
-        {
-                ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << solenoid_names_[i] << " at id " << solenoid_ids_[i]);
+	solenoid_state_.resize(num_solenoids_);
+	solenoid_command_.resize(num_solenoids_);
+	for (size_t i = 0; i < num_solenoids_; i++)
+	{
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << solenoid_names_[i] << " at id " << solenoid_ids_[i]);
 
-                hardware_interface::JointStateHandle ssh(solenoid_names_[i], &solenoid_state_[i], &solenoid_state_[i], &solenoid_state_[i]);
-                joint_state_interface_.registerHandle(ssh);
+		hardware_interface::JointStateHandle ssh(solenoid_names_[i], &solenoid_state_[i], &solenoid_state_[i], &solenoid_state_[i]);
+		joint_state_interface_.registerHandle(ssh);
 
-                // Do the same for a command interface for
-                // the digital output
-                hardware_interface::JointHandle soh(ssh, &solenoid_command_[i]);
-                joint_velocity_interface_.registerHandle(soh);
-        }
+		hardware_interface::JointHandle soh(ssh, &solenoid_command_[i]);
+		joint_velocity_interface_.registerHandle(soh);
+	}
 
 	num_double_solenoids_ = double_solenoid_names_.size();
-        double_solenoid_state_.resize(num_double_solenoids_);
-        double_solenoid_command_.resize(num_double_solenoids_);
-        for (size_t i = 0; i < num_double_solenoids_; i++)
-        {
-                ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << double_solenoid_names_[i] << " at forward id" << double_solenoid_forward_ids_[i] << "at reverse id" << double_solenoid_reverse_ids_[i]);
+	double_solenoid_state_.resize(num_double_solenoids_);
+	double_solenoid_command_.resize(num_double_solenoids_);
+	for (size_t i = 0; i < num_double_solenoids_; i++)
+	{
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << double_solenoid_names_[i] << " at forward id" << double_solenoid_forward_ids_[i] << "at reverse id" << double_solenoid_reverse_ids_[i]);
 
-                hardware_interface::JointStateHandle dssh(double_solenoid_names_[i], &double_solenoid_state_[i], &double_solenoid_state_[i], &double_solenoid_state_[i]);
-                joint_state_interface_.registerHandle(dssh);
+		hardware_interface::JointStateHandle dssh(double_solenoid_names_[i], &double_solenoid_state_[i], &double_solenoid_state_[i], &double_solenoid_state_[i]);
+		joint_state_interface_.registerHandle(dssh);
 
-                // Do the same for a command interface for
-                // the digital output
-                hardware_interface::JointHandle dsoh(dssh, &double_solenoid_command_[i]);
-                joint_velocity_interface_.registerHandle(dsoh);
-        }
+		hardware_interface::JointHandle dsoh(dssh, &double_solenoid_command_[i]);
+		joint_velocity_interface_.registerHandle(dsoh);
+	}
 	num_rumble_ = rumble_names_.size();
 	rumble_state_.resize(num_rumble_);
 	rumble_command_.resize(num_rumble_);
@@ -436,25 +438,36 @@ void FRCRobotInterface::init()
 		joint_state_interface_.registerHandle(rsh);
 
 		// Do the same for a command interface for
-		// the same brushless motor
+		// the same rumble interface
 		hardware_interface::JointHandle rh(rsh, &rumble_command_[i]);
 		joint_velocity_interface_.registerHandle(rh);
 	}
 	num_navX_ = navX_names_.size();
-	navX_state_.resize(num_navX_);
-	for (size_t i = 0; i < num_navX_; i++)
-	{
-		navX_state_.push_back(hardware_interface::ImuSensorHandle());
-	}
+	imu_orientations_.resize(num_navX_);
+	imu_orientation_covariances_.resize(num_navX_);
+	imu_angular_velocities_.resize(num_navX_);
+	imu_angular_velocity_covariances_.resize(num_navX_);
+	imu_linear_accelerations_.resize(num_navX_);
+	imu_linear_acceleration_covariances_.resize(num_navX_);
 	for (size_t i = 0; i < num_navX_; i++)
 	{
 		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering navX interface for : " << navX_names_[i] << " at id " << navX_ids_[i]);
-		// Create state interface for the given digital input
+
+		hardware_interface::ImuSensorHandle::Data imu_data;
+		imu_data.name = navX_names_[i];
+		imu_data.frame_id = navX_frame_ids_[i];
+		imu_data.orientation = &imu_orientations_[i][0];
+		imu_data.orientation_covariance = &imu_orientation_covariances_[i][0];
+		imu_data.angular_velocity = &imu_angular_velocities_[i][0];
+		imu_data.angular_velocity_covariance = &imu_angular_velocity_covariances_[i][0];
+		imu_data.linear_acceleration = &imu_linear_accelerations_[i][0];
+		imu_data.linear_acceleration_covariance = &imu_linear_acceleration_covariances_[i][0];
+
+		// Create state interface for the given IMU
 		// and point it to the data stored in the
-		// corresponding brushless_state array entry
-		hardware_interface::ImuSensorHandle nxsh;
-		navX_interface_.registerHandle((nxsh));
-		
+		// corresponding imu arrays
+		hardware_interface::ImuSensorHandle imuh(imu_data);
+		imu_interface_.registerHandle(imuh);
 	}
 
 	// Publish various FRC-specific data using generic joint state for now
@@ -466,8 +479,9 @@ void FRCRobotInterface::init()
 	registerInterface(&talon_state_interface_);
 	registerInterface(&joint_state_interface_);
 	registerInterface(&talon_command_interface_);
-	registerInterface(&joint_velocity_interface_);
 	registerInterface(&joint_position_interface_);
+	registerInterface(&joint_velocity_interface_);
+	registerInterface(&imu_interface_);
 
 	ROS_INFO_STREAM_NAMED(name_, "FRCRobotInterface Ready.");
 }
