@@ -324,6 +324,7 @@ void FRCRobotHWInterface::init(void)
 		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));
 
 		// TODO :: fill in covariances here?
+		// Steal from navx node for now?
 	}
 
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
@@ -487,31 +488,37 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	//navX read here
 	for (size_t i = 0; i < num_navX_; i++)
 	{
-		// TODO : fix ordering ?
-		imu_orientations_[i][0] = navXs_[i]->GetFusedHeading();
-		imu_orientations_[i][1] = navXs_[i]->GetPitch();
-		imu_orientations_[i][2] = navXs_[i]->GetRoll();
+		// TODO : double check we're reading
+		// the correct data
+
+		// navXs_[i]->GetFusedHeading();
+		// navXs_[i]->GetPitch();
+		// navXs_[i]->GetRoll();
 
 		// TODO : Fill in imu_angular_velocity[i][]
-		// TODO : Fill in linear_acceleration[i][]
 
 		//navXs_[i]->IsCalibrating();
 		//navXs_[i]->IsConnected();
 		//navXs_[i]->GetLastSensorTimestamp();
-		//navXs_[i]->GetWorldLinearAccelX();
-		//navXs_[i]->GetWorldLinearAccelY();
-		//navXs_[i]->GetWorldLinearAccelZ();
+		//
+		imu_linear_accelerations_[i][0] = navXs_[i]->GetWorldLinearAccelX();
+		imu_linear_accelerations_[i][1] = navXs_[i]->GetWorldLinearAccelY();
+		imu_linear_accelerations_[i][2] = navXs_[i]->GetWorldLinearAccelZ();
+
 		//navXs_[i]->IsMoving();
 		//navXs_[i]->IsRotating();
 		//navXs_[i]->IsMagneticDisturbance();
 		//navXs_[i]->IsMagnetometerCalibrated();
-		//navXs_[i]->GetQuaternionW();
-		//navXs_[i]->GetQuaternionX();
-		//navXs_[i]->GetQuaternionY();
-		//navXs_[i]->GetQuaternionZ();
-		//navXs_[i]->GetVelocityX();
-		//navXs_[i]->GetVelocityY();
-		//navXs_[i]->GetVelocityZ();	
+		//
+		imu_orientations_[i][3] = navXs_[i]->GetQuaternionW();
+		imu_orientations_[i][0] = navXs_[i]->GetQuaternionX();
+		imu_orientations_[i][1] = navXs_[i]->GetQuaternionY();
+		imu_orientations_[i][2] = navXs_[i]->GetQuaternionZ();
+
+		imu_angular_velocities_[i][0] = navXs_[i]->GetVelocityX();
+		imu_angular_velocities_[i][1] = navXs_[i]->GetVelocityY();
+		imu_angular_velocities_[i][2] = navXs_[i]->GetVelocityZ();	
+
 		//navXs_[i]->GetDisplacementX();
 		//navXs_[i]->GetDisplacementY();
 		//navXs_[i]->GetDisplacementZ();
