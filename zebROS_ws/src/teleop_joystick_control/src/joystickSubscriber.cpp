@@ -7,7 +7,7 @@
 
 
 static ros::Publisher ScaledValPub;
-static double dead_zone=.1, slow_mode=.33, max_speed=5, joystick_scale=3;
+static double dead_zone=.1, slow_mode=.33, max_speed=6.3, joystick_scale=3, ;
 double dead_zoneCheck(double val) {
     if(fabs(val)<=dead_zone) {
         return 0;
@@ -91,6 +91,9 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
 
     double scaledRightStickX = (0-pow(dead_zoneCheck(rightStickX),joystick_scale));
     double scaledRightStickY = (0-pow(dead_zoneCheck(rightStickY),joystick_scale));
+
+    double scaledLeftTrigger = leftTrigger * 6;
+    double scaledRightTrigger = rightTrigger * 6;
     if(bumperLeftButton == true) {
         scaledLeftStickX *= slow_mode;
         scaledLeftStickY *= slow_mode;
@@ -111,8 +114,8 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     msa.rightStickX = scaledRightStickX;
     msa.rightStickY = scaledRightStickY;
 
-    msa.leftTrigger = leftTrigger;
-    msa.rightTrigger = rightTrigger;
+    msa.leftTrigger = scaledLeftTrigger;
+    msa.rightTrigger = scaledRightTrigger;
 
     msa.buttonAButton = buttonAButton;
     msa.buttonAPress = buttonAPress;
