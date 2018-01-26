@@ -7,7 +7,7 @@
 
 
 static ros::Publisher ScaledValPub;
-static double dead_zone=.1, slow_mode=.33, max_speed=6.3, joystick_scale=3, ;
+static double dead_zone=.1, slow_mode=.33, max_speed=6.3, joystick_scale=3. ;
 double dead_zoneCheck(double val) {
     if(fabs(val)<=dead_zone) {
         return 0;
