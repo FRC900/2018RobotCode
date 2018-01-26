@@ -16,7 +16,7 @@
 	  <rosparam file="$(find controller_node)/launch/global_costmap_params_slam.yaml" command="load" />
 	  <rosparam file="$(find controller_node)/launch/base_local_planner_params.yaml" command="load" />
 	  <rosparam file="$(find controller_node)/launch/base_global_planner_params.yaml" command="load" />
-
+	  
 	  <rosparam file="$(find controller_node)/launch/move_base_params.yaml" command="load" />
   </node>
 </launch>

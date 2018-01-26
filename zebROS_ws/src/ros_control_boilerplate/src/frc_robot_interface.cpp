@@ -52,7 +52,8 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 	, num_solenoids_(0)
 	, num_double_solenoids_(0)
 	, num_rumble_(0)
-	, match_time_state_(0)
+	, num_navX_(0)
+	, num_analog_inputs_(0)
 {
 	// Check if the URDF model needs to be loaded
 	if (urdf_model == NULL)
@@ -287,6 +288,22 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 			navX_frame_ids_.push_back(frame_id);
 			navX_ids_.push_back(navX_id);
 		}
+		else if (joint_type == "analog_input")
+		{
+			ROS_WARN("has analog");
+			if (!joint_params.hasMember("analog_channel"))
+				throw std::runtime_error("A Analog input analog_channel was not specified");
+			XmlRpc::XmlRpcValue &xml_analog_input_analog_channel = joint_params["analog_channel"];
+			if (!xml_analog_input_analog_channel.valid() ||
+					xml_analog_input_analog_channel.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint analog_channel was specified (expecting an int).");
+
+			const int analog_input_analog_channel = xml_analog_input_analog_channel;
+
+
+			analog_input_names_.push_back(joint_name);
+			analog_input_analog_channels_.push_back(analog_input_analog_channel);
+		}
 		else
 		{
 			std::stringstream s;
@@ -456,6 +473,12 @@ void FRCRobotInterface::init()
 	imu_angular_velocity_covariances_.resize(num_navX_);
 	imu_linear_accelerations_.resize(num_navX_);
 	imu_linear_acceleration_covariances_.resize(num_navX_);
+	navX_command_.resize(num_navX_);
+	navX_state_.resize(num_navX_);
+	//for (size_t i = 0; i < num_navX_; i++)
+	//{
+	//	navX_state_.push_back(hardware_interface::ImuSensorHandle());
+	//}
 	for (size_t i = 0; i < num_navX_; i++)
 	{
 		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering navX interface for : " << navX_names_[i] << " at id " << navX_ids_[i]);
@@ -475,6 +498,29 @@ void FRCRobotInterface::init()
 		// corresponding imu arrays
 		hardware_interface::ImuSensorHandle imuh(imu_data);
 		imu_interface_.registerHandle(imuh);
+		// corresponding brushless_state array entry
+		
+		hardware_interface::JointStateHandle nxsh(navX_names_[i], &navX_state_[i], &navX_state_[i], &navX_state_[i]);
+		joint_state_interface_.registerHandle(nxsh);
+
+		// Do the same for a command interface for
+		// the same rumble interface
+		
+		hardware_interface::JointHandle nxh(nxsh, &navX_command_[i]);
+		joint_velocity_interface_.registerHandle(nxh);
+		
+	}
+	num_analog_inputs_ = analog_input_names_.size();
+	analog_input_state_.resize(num_analog_inputs_);
+	for (size_t i = 0; i < num_analog_inputs_; i++)
+	{
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << analog_input_names_[i] << " at analog channel " << analog_input_analog_channels_[i]);
+		// Create state interface for the given digital input
+		// and point it to the data stored in the
+		// corresponding brushless_state array entry
+		hardware_interface::JointStateHandle aish(analog_input_names_[i], &analog_input_state_[i], &analog_input_state_[i], &analog_input_state_[i]);
+		joint_state_interface_.registerHandle(aish);
+
 	}
 
 	// Publish various FRC-specific data using generic joint state for now
@@ -482,7 +528,6 @@ void FRCRobotInterface::init()
 	// (e.g. joystick) it probably makes more sense to write a
 	// RealtimePublisher() for the data coming in from
 	// the DS
-	joint_state_interface_.registerHandle(hardware_interface::JointStateHandle("MatchTime", &match_time_state_, &match_time_state_, &match_time_state_));
 	registerInterface(&talon_state_interface_);
 	registerInterface(&joint_state_interface_);
 	registerInterface(&talon_command_interface_);

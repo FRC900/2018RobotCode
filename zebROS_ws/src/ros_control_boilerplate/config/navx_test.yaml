@@ -45,3 +45,6 @@ imu_sensor_controller:
    type:         imu_sensor_controller/ImuSensorController
    publish_rate: 100
 
+navx_controller:
+   type: velocity_controllers/JointVelocityController
+   joint: navx_mxp

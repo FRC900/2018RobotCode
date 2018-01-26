@@ -126,6 +126,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		hardware_interface::TalonCommandInterface talon_command_interface_;
 
 		hardware_interface::ImuSensorInterface imu_interface_;
+		//hardware_interface::ImuSensorInterface navX_interface_;
 
 		// Configuration
 		std::vector<std::string> can_talon_srx_names_;
@@ -169,15 +170,18 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 
 		std::vector<std::string> navX_names_;
 		std::vector<std::string> navX_frame_ids_;
-		std::vector<int>		 navX_ids_;
-		std::size_t				 num_navX_;
+		std::vector<int>	 navX_ids_;
+		std::size_t		  num_navX_;
+		
+		std::vector<std::string> analog_input_names_;
+		std::vector<int>         analog_input_analog_channels_;
+		std::size_t              num_analog_inputs_;
 		
 		urdf::Model *urdf_model_;
 
 		// Array holding master cached state of hardware
 		// resources
 		std::vector<hardware_interface::TalonHWState> talon_state_;
-		double match_time_state_;
 		std::vector<double> brushless_pos_;
 		std::vector<double> brushless_vel_;
 		std::vector<double> brushless_eff_;
@@ -188,7 +192,8 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> solenoid_state_;
 		std::vector<double> double_solenoid_state_;
 		std::vector<double> rumble_state_; //No actual data
-		
+		std::vector<double> navX_state_;	
+	
 		// Each entry in the vector is an array. That array holds
 		// the data returned from one particular imu
 		std::vector<std::array<double,4>> imu_orientations_; // x,y,z,w
@@ -198,6 +203,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<std::array<double,3>> imu_linear_accelerations_; // x,y,z
 		std::vector<std::array<double,9>> imu_linear_acceleration_covariances_;
 			
+		std::vector<double> analog_input_state_;
 		// Same as above, but for pending commands to be
 		// written to the hardware
 		std::vector<hardware_interface::TalonHWCommand> talon_command_;
@@ -207,6 +213,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> solenoid_command_;
 		std::vector<double> double_solenoid_command_;
 		std::vector<double> rumble_command_;
+		std::vector<double> navX_command_;
 };  // class
 
 }  // namespace

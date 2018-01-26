@@ -122,7 +122,8 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Solenoid>> solenoids_;
 		std::vector<std::shared_ptr<frc::DoubleSolenoid>> double_solenoids_;
 		std::vector<std::shared_ptr<AHRS>> navXs_;
-		
+		std::vector<std::shared_ptr<frc::AnalogInput>> analog_inputs_;
+		//some vector here of "navXes"		
 		std::thread hal_thread_;
 		bool        run_hal_thread_;
 

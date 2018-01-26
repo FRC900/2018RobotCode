@@ -27,7 +27,7 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(Eigen::Ve
 	{
 		double x = wheelCoordinate_[i][0] - rotationCenter[0];
 		double y = wheelCoordinate_[i][1] - rotationCenter[1];
-		wheelMultipliers[i] = -sqrt(x * x + y * y)*sign(x)*sign(y); // TODO : use hypot function
+		wheelMultipliers[i] = sqrt(x * x + y * y); // TODO : use hypot function
 		wheelAngles[i] = (atan2(x, y) + .5 * pi);
 	}
 	array<Eigen::Vector2d, WHEELCOUNT> multipliersXY;
@@ -66,6 +66,7 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eige
 	//Sum cartisian velocity for each wheel and then convert to polar coordinates
 	for (int i = 0; i < WHEELCOUNT; i++)
 	{
+		//int inverterD = (i%2==0) ? -1 : 1;
 		//Only the rotation of the robot differently effects each wheel
 		double x = wheelMultipliersXY[i][0] * rotation + rotatedVelocity[0];
 		double y = wheelMultipliersXY[i][1] * rotation - rotatedVelocity[1];
