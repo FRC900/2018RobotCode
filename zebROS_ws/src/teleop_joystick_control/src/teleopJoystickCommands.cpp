@@ -211,9 +211,9 @@ int main(int argc, char **argv) {
 	// as well as the goal detection code for an example.  This will allow
 	// the callback to get both a joystick value and the robot state
 	// in one function.  Might want to combine match data as well?
-    message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "ScaledJoystickVals", 3);
     //message_filters::Subscriber<teleop_joystick_control::RobotState> robotStateSub(n, "RobotState", 1);
-    message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 3);
+    message_filters::Subscriber<ros_control_boilerplate::JoystickState> *joystickSub = new message_filters::Subscriber<ros_control_boilerplate::JoystickState>(n, "ScaledJoystickVals", 3);
+    message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> *matchDataSub = new message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData>(n, "match_data", 3);
     
     navX_heading_ = n.subscribe("/frcrobot/joint_states", 1, &navXCallback);
    
@@ -222,7 +222,7 @@ int main(int argc, char **argv) {
 
 
     typedef message_filters::sync_policies::ApproximateTime<ros_control_boilerplate::JoystickState, ros_control_boilerplate::MatchSpecificData> JoystickSync;
-    message_filters::Synchronizer<JoystickSync> sync(JoystickSync(10), joystickSub, matchDataSub);
+    message_filters::Synchronizer<JoystickSync> sync(JoystickSync(10), *joystickSub, *matchDataSub);
     sync.registerCallback(boost::bind(&evaluateCommands, _1, _2));
     
     /*
