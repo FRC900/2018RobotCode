@@ -15,6 +15,7 @@
   <arg name="name" default="zed_fuel" />
   <arg name="record" default="False" />
   
+	<!-- disabled for now - not used
   <group ns="$(arg name)">
     <include file="$(find zed_wrapper)/launch/zed_camera.launch">
       <arg name="resolution" value="3" />
@@ -22,11 +23,12 @@
       <arg name="quality" value="1" /> 
 
 	  <arg name="zed_name" value="$(arg name)" />
-	  <arg name="publish_tf" value="False" /> <!-- ukf node publishes this -->
+	  <arg name="publish_tf" value="False" />
 	  <arg name="base_frame" value="base_link" />
     </include>
   </group>
   <include file="$(find controller_node)/launch/record_slave.launch" if="$(arg record)"/>
+	-->
   
 	<!-- 
 		Transform: x y z yaw pitch roll

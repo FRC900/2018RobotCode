@@ -31,11 +31,12 @@
 			source of information
 		-->
 		<!-- odom0 (ZED Visual Odom): x, y, z, roll, pitch, yaw -->
+		<!-- odom0 (wheel odom): x, y, z (z is always 0) -->
 		<!-- Think about whether we want Z, roll, pitch - the robot shouldn't
 			 have significant net motion in those directions 
 			 (unless we are tipping over) and even so, do
 			 we want to trust the navx data instead? -->
-		<param name="odom0" value="/zed_fuel/odom" />
+		<param name="odom0" value="/frcrobot/swerve_drive_controller/odom" />
 		<rosparam param="odom0_config"> [true,  true,  true,
                                          false, false, false, 
                                          false, false, false,
@@ -60,9 +61,9 @@
 		<param name="odom1_differential" value="false" />
 		<param name="odom1_relative" value="true" />
 -->
-		<!-- imu0 (NavX): roll, pitch, yaw, x-acc, y-acc, z-acc -->
+		<!-- imu0 (NavX via Rio MXP): roll, pitch, yaw, x-acc, y-acc, z-acc -->
 		<!-- maybe add in r/p/y velocity? /-->
-		<param name="imu0" value="/navx/imu" />
+		<param name="imu0" value="/frcrobot/navx_mxp" />
 		<rosparam param="imu0_config"> [false, false, false,
                                         true,  true,  true, 
                                         false, false, false,
