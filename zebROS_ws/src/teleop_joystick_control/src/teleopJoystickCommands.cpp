@@ -137,19 +137,24 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     //Publish drivetrain messages and elevator/pivot
     geometry_msgs::Twist vel;
     talon_controllers::CloseLoopControllerMsg arm;
-    double leftStickX = JoystickState->leftStickX;
-    double leftStickY = JoystickState->leftStickY;
-
     double rightStickX = JoystickState->rightStickX;
     double rightStickY = JoystickState->rightStickY;
-    vel.linear.x = leftStickX;
-    vel.linear.y = leftStickY;
+
+    Eigen::Vector2d joyVector;
+
+    joyVector[1] = -JoystickState->leftStickX; //intentionally flipped
+    joyVector[0] = JoystickState->leftStickY;
+    Eigen::Rotation2Dd r(M_PI / 2 - navX_angle_);
+    Eigen::Vector2d rotatedJoyVector = r.toRotationMatrix() * joyVector;
+    vel.linear.x = rotatedJoyVector[0];
+    vel.linear.y = rotatedJoyVector[1];
     vel.linear.z = 0;
 
     vel.angular.z = JoystickState->leftTrigger - JoystickState->rightTrigger;
     vel.angular.x = 0;
     vel.angular.y = 0;
-
+    
+ 
     armPos += .1*rightStickY; //Access current elevator position to fix code allowing out of bounds travel
     arm.command = armPos;
 
@@ -208,6 +213,9 @@ int main(int argc, char **argv) {
     message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "ScaledJoystickVals", 1);
     message_filters::Subscriber<teleop_joystick_control::RobotState> robotStateSub(n, "RobotState", 1);
     message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 1);
+    
+    navX_heading_ = n.subscribe("/frcrobot/joint_states", 1, &navXCallback);
+
 
     typedef message_filters::sync_policies::ApproximateTime<ros_control_boilerplate::JoystickState, teleop_joystick_control::RobotState, ros_control_boilerplate::MatchSpecificData> JoystickSync;
     message_filters::Synchronizer<JoystickSync> sync(JoystickSync(10), joystickSub, robotStateSub, matchDataSub);
@@ -247,3 +255,30 @@ void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) {
     JoystickRumble.publish(rumbleMsg);
 }
 */
+void navXCallback(const sensor_msgs::JointState &navXState)
+{
+	if(navX_index_ < 0)
+	{
+		for (size_t i = 0; i < navXState.name.size(); i++)
+		{
+
+			//ROS_WARN("gets calling");
+			if(navXState.name[i] == "navX_0")
+			{
+				navX_index_ = i;
+				ROS_WARN("navX not found");
+				break;
+			}
+
+		}
+	}
+
+	if(navX_index_ > -1)
+	{
+		navX_angle_ = navXState.position[navX_index_];
+		//ROS_INFO_STREAM("Works: " << navX_angle_);
+
+	}
+
+}
+

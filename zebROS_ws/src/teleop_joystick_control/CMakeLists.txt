@@ -23,6 +23,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   ros_control_boilerplate
 )
+find_package(Eigen REQUIRED)
+
 
 add_message_files (
   FILES
@@ -62,6 +64,7 @@ catkin_package(
     message_runtime
     ros_control_boilerplate
   LIBRARIES
+  DEPENDS Eigen
 )
 
 ###########
@@ -74,6 +77,7 @@ include_directories(
   include/
   ${catkin_INCLUDE_DIRS}
   ${Gflags_INCLUDE_DIRS}
+  ${Eigen_INCLUDE_DIRS}
 )
 
 

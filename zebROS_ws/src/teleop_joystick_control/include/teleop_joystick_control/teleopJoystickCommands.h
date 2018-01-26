@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #include "ros/ros.h"
 #include "ros/console.h"
 #include "ros_control_boilerplate/JoystickState.h"
@@ -12,6 +13,9 @@
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
 #include <string>
+#include <cmath>
+#include <Eigen/Dense>
+#include <sensor_msgs/JointState.h>
 
 
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &msg);
@@ -20,3 +24,7 @@ void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &ms
 
 
 
+double navX_angle_ = M_PI/2;
+int navX_index_ = -1;
+ros::Subscriber navX_heading_;
+void navXCallback(const sensor_msgs::JointState &navXState);

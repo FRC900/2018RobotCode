@@ -52,7 +52,6 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 	, num_solenoids_(0)
 	, num_double_solenoids_(0)
 	, num_rumble_(0)
-	, match_time_state_(0)
 {
 	// Check if the URDF model needs to be loaded
 	if (urdf_model == NULL)
@@ -441,19 +440,26 @@ void FRCRobotInterface::init()
 		joint_velocity_interface_.registerHandle(rh);
 	}
 	num_navX_ = navX_names_.size();
-	navX_state_.resize(num_navX_);
-	for (size_t i = 0; i < num_navX_; i++)
-	{
-		navX_state_.push_back(hardware_interface::ImuSensorHandle());
-	}
+	fused_heading_.resize(num_navX_);
+	pitch_.resize(num_navX_);
+	roll_.resize(num_navX_);
+	navX_command_.resize(num_navX_);
+	//for (size_t i = 0; i < num_navX_; i++)
+	//{
+	//	navX_state_.push_back(hardware_interface::ImuSensorHandle());
+	//}
 	for (size_t i = 0; i < num_navX_; i++)
 	{
 		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering navX interface for : " << navX_names_[i] << " at id " << navX_ids_[i]);
 		// Create state interface for the given digital input
 		// and point it to the data stored in the
 		// corresponding brushless_state array entry
-		hardware_interface::ImuSensorHandle nxsh;
-		navX_interface_.registerHandle((nxsh));
+		
+		hardware_interface::JointStateHandle nxsh(navX_names_[i], &fused_heading_[i], &pitch_[i], &roll_[i]);
+		joint_state_interface_.registerHandle(nxsh);
+		
+		hardware_interface::JointHandle nxh(nxsh, &navX_command_[i]);
+		joint_velocity_interface_.registerHandle(nxh);
 		
 	}
 
@@ -462,7 +468,6 @@ void FRCRobotInterface::init()
 	// (e.g. joystick) it probably makes more sense to write a
 	// RealtimePublisher() for the data coming in from
 	// the DS
-	joint_state_interface_.registerHandle(hardware_interface::JointStateHandle("MatchTime", &match_time_state_, &match_time_state_, &match_time_state_));
 	registerInterface(&talon_state_interface_);
 	registerInterface(&joint_state_interface_);
 	registerInterface(&talon_command_interface_);

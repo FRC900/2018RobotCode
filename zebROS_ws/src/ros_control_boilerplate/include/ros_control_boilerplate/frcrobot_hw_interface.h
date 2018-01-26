@@ -51,6 +51,7 @@
 #include <SafePWM.h>
 #include <Solenoid.h>
 #include <DoubleSolenoid.h>
+#include <AHRS.h>
 
 namespace frcrobot_control
 {
@@ -121,7 +122,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Solenoid>> solenoids_;
 		std::vector<std::shared_ptr<frc::DoubleSolenoid>> double_solenoids_;
 		//some vector here of "navXes"		
-
+		std::vector<std::shared_ptr<AHRS>> navXs_;
 
 		std::thread hal_thread_;
 		bool        run_hal_thread_;

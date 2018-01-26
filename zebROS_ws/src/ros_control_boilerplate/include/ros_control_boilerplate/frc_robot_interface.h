@@ -125,7 +125,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		hardware_interface::VelocityJointInterface joint_velocity_interface_;
 		hardware_interface::TalonCommandInterface talon_command_interface_;
 
-		hardware_interface::ImuSensorInterface navX_interface_;
+		//hardware_interface::ImuSensorInterface navX_interface_;
 
 		// Configuration
 		std::vector<std::string> can_talon_srx_names_;
@@ -168,15 +168,14 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::size_t              num_rumble_;
 
 		std::vector<std::string> navX_names_;
-		std::vector<int> 	 navX_ids_;
-		std::size_t		 num_navX_;
+		std::vector<int> 	 	 navX_ids_;
+		std::size_t		 		 num_navX_;
 		
 		urdf::Model *urdf_model_;
 
 		// Array holding master cached state of hardware
 		// resources
 		std::vector<hardware_interface::TalonHWState> talon_state_;
-		double match_time_state_;
 		std::vector<double> brushless_pos_;
 		std::vector<double> brushless_vel_;
 		std::vector<double> brushless_eff_;
@@ -187,8 +186,10 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> solenoid_state_;
 		std::vector<double> double_solenoid_state_;
 		std::vector<double> rumble_state_; //No actual data
-		std::vector<hardware_interface::ImuSensorHandle> navX_state_;
-			
+		//std::vector<hardware_interface::ImuSensorHandle> navX_state_;
+		std::vector<double> fused_heading_;		
+		std::vector<double> pitch_;		
+		std::vector<double> roll_;		
 		// Same as above, but for pending commands to be
 		// written to the hardware
 		std::vector<hardware_interface::TalonHWCommand> talon_command_;
@@ -198,6 +199,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> solenoid_command_;
 		std::vector<double> double_solenoid_command_;
 		std::vector<double> rumble_command_;
+		std::vector<double> navX_command_;
 };  // class
 
 }  // namespace

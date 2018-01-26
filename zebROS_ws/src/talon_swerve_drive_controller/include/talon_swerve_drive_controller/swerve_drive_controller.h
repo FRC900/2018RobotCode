@@ -42,6 +42,7 @@
 #include <pluginlib/class_list_macros.h>
 
 #include <geometry_msgs/TwistStamped.h>
+#include <sensor_msgs/JointState.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/tfMessage.h>
 
