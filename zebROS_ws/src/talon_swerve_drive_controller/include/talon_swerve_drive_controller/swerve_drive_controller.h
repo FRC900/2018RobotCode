@@ -113,11 +113,8 @@ class TalonSwerveDriveController
 		std::array<Eigen::Vector2d, WHEELCOUNT> old_wheel_pos_; //	
 		std::array<double, WHEELCOUNT> last_wheel_rot;	//
 
-
-        	Eigen::Vector2d neg_wheel_centroid_;
+		Eigen::Vector2d neg_wheel_centroid_;
 		bool comp_odom_;
-
-
 
 		std::string name_;
 
@@ -220,9 +217,6 @@ class TalonSwerveDriveController
 		 */
 		/*
 		
-
-
-
 		bool setOdomParamsFromUrdf(ros::NodeHandle& root_nh,
 		                            const std::string& steering_name,
 		                            const std::string& speed_name,
@@ -239,43 +233,41 @@ class TalonSwerveDriveController
 		*/
 
 		static const std::string DEF_ROBOT_DESC_NAME;
-          	static const std::string DEF_BASE_LINK;
-          	static const double DEF_CMD_VEL_TIMEOUT;
-	
-        	static const double DEF_LIN_SPEED_LIMIT;
-        	static const double DEF_LIN_ACCEL_LIMIT;
-          	static const double DEF_LIN_DECEL_LIMIT;
-	
-          	static const double DEF_YAW_SPEED_LIMIT;
-          	static const double DEF_YAW_ACCEL_LIMIT;
-          	static const double DEF_YAW_DECEL_LIMIT;
+		static const std::string DEF_BASE_LINK;
+		static const double DEF_CMD_VEL_TIMEOUT;
 
-          	static const double DEF_FULL_AXLE_SPEED_ANG;
-          	static const double DEF_ZERO_AXLE_SPEED_ANG;
+		static const double DEF_LIN_SPEED_LIMIT;
+		static const double DEF_LIN_ACCEL_LIMIT;
+		static const double DEF_LIN_DECEL_LIMIT;
 
-          	static const double DEF_WHEEL_DIA_SCALE;
+		static const double DEF_YAW_SPEED_LIMIT;
+		static const double DEF_YAW_ACCEL_LIMIT;
+		static const double DEF_YAW_DECEL_LIMIT;
 
-          	static const double DEF_ODOM_PUB_FREQ;
-          	static const bool DEF_PUB_ODOM_TO_BASE;
-          	static const std::string DEF_ODOM_FRAME;
-          	static const std::string DEF_BASE_FRAME;
-          	static const double DEF_INIT_X;
-          	static const double DEF_INIT_Y;
-          	static const double DEF_INIT_YAW;
-          	static const double DEF_SD;
-		
+		static const double DEF_FULL_AXLE_SPEED_ANG;
+		static const double DEF_ZERO_AXLE_SPEED_ANG;
+
+		static const double DEF_WHEEL_DIA_SCALE;
+
+		static const double DEF_ODOM_PUB_FREQ;
+		static const bool DEF_PUB_ODOM_TO_BASE;
+		static const std::string DEF_ODOM_FRAME;
+		static const std::string DEF_BASE_FRAME;
+		static const double DEF_INIT_X;
+		static const double DEF_INIT_Y;
+		static const double DEF_INIT_YAW;
+		static const double DEF_SD;
 
 		std::array<Eigen::Vector2d, WHEELCOUNT> wheel_coords;
 		
 		static const Eigen::Vector2d X_DIR;
 		
 		bool pub_odom_to_base_;       // Publish the odometry to base frame transform
-	        ros::Duration odom_pub_period_;    // Odometry publishing period
-          	Eigen::Affine2d init_odom_to_base_;  // Initial odometry to base frame transform
-          	Eigen::Affine2d odom_to_base_;       // Odometry to base frame transform
-          	Eigen::Affine2d odom_rigid_transf_;
+		ros::Duration odom_pub_period_;    // Odometry publishing period
+		Eigen::Affine2d init_odom_to_base_;  // Initial odometry to base frame transform
+		Eigen::Affine2d odom_to_base_;       // Odometry to base frame transform
+		Eigen::Affine2d odom_rigid_transf_;
 		Eigen::Matrix2Xd wheel_pos_;
-
 
 		realtime_tools::RealtimePublisher<nav_msgs::Odometry> odom_pub_;
           	realtime_tools::RealtimePublisher<tf::tfMessage> odom_tf_pub_;
