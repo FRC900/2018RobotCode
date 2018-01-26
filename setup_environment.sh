@@ -133,9 +133,9 @@ if [ "$jetson" = true ] ; then
 	# serial devices
 	if [ "$version" = tx2 ] ; then
 		sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/usb/serial
-		sudo cp jetson_setup/cp210x.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/serial
+		sudo cp jetson_setup/cp210x.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/serial/cp210x.ko
 		sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/usb/class
-		sudo cp jetson_setup/cdc-acm.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/class
+		sudo cp jetson_setup/cdc-acm.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/class/cdc-acm.ko
 		sudo depmod -a
 	fi
 
