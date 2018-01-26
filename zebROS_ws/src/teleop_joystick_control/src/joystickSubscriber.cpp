@@ -104,7 +104,7 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     //ROS_INFO("scaledLetStickX: %f scaledLeftStickY: %f\n", scaledLeftStickX, scaledLeftStickY);
     ros_control_boilerplate::JoystickState msa;
 
-
+    msa.header = msg->header;
     msa.leftStickX = scaledLeftStickX;
     msa.leftStickY = scaledLeftStickY;
 
