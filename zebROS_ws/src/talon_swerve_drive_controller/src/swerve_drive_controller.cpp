@@ -456,7 +456,7 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
                 const double new_wheel_rot = speed_joints_[k].getPosition();
                 const double delta_rot = new_wheel_rot - last_wheel_rot[k];
                 //int inverterD = (k%2==0) ? -1 : 1;
-		const double dist = delta_rot * wheel_radius_ / (-2); //* inverterD;
+		const double dist = -delta_rot * wheel_radius_ * driveRatios_.encodertoRotations; //* inverterD;
                 //NOTE: below is a hack, TODO: REMOVE
 		
 		const double steer_angle = swerveC->getWheelAngle(k, steering_joints_[k].getPosition());
