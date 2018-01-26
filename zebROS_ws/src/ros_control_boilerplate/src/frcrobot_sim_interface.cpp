@@ -99,6 +99,11 @@ FRCRobotSimInterface::FRCRobotSimInterface(ros::NodeHandle &nh,
 							  " as Double Solenoid  forward " << double_solenoid_forward_ids_[i] <<
 							  " reverse " << double_solenoid_reverse_ids_[i]);
 
+	for(size_t i = 0; i < num_navX_; i++)
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << navX_names_[i] <<
+							  " as navX id" << navX_ids_[i]); 
+
 	ROS_INFO_NAMED("frcrobot_sim_interface", "FRCRobotSimInterface Ready.");
 }
 
