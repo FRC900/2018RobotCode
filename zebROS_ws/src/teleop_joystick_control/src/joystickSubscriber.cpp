@@ -101,8 +101,8 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
         scaledRightStickX *= slow_mode;
         scaledRightStickY *= slow_mode;
     
-        leftTrigger *= slow_mode;
-        rightTrigger *= slow_mode;
+        scaledLeftTrigger *= slow_mode;
+        scaledRightTrigger *= slow_mode;
     }
     //ROS_INFO("scaledLetStickX: %f scaledLeftStickY: %f\n", scaledLeftStickX, scaledLeftStickY);
     ros_control_boilerplate::JoystickState msa;
