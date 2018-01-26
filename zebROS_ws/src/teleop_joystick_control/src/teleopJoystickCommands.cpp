@@ -13,6 +13,7 @@ double elevatorHeight;
 static double armPos;
 
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState, const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
+    ROS_WARN("running");
     char currentToggle = ' ';
     char lastToggle = ' ';
     double elevatorHeightBefore;
@@ -210,11 +211,14 @@ int main(int argc, char **argv) {
 	// as well as the goal detection code for an example.  This will allow
 	// the callback to get both a joystick value and the robot state
 	// in one function.  Might want to combine match data as well?
-    message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "ScaledJoystickVals", 1);
-    message_filters::Subscriber<teleop_joystick_control::RobotState> robotStateSub(n, "RobotState", 1);
-    message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 1);
+    message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "ScaledJoystickVals", 3);
+    //message_filters::Subscriber<teleop_joystick_control::RobotState> robotStateSub(n, "RobotState", 1);
+    message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 3);
     
     navX_heading_ = n.subscribe("/frcrobot/joint_states", 1, &navXCallback);
+   
+
+    ROS_WARN("joy_init");
 
 
     typedef message_filters::sync_policies::ApproximateTime<ros_control_boilerplate::JoystickState, ros_control_boilerplate::MatchSpecificData> JoystickSync;
