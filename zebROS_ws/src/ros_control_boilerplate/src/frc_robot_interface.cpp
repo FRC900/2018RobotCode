@@ -52,6 +52,8 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 	, num_solenoids_(0)
 	, num_double_solenoids_(0)
 	, num_rumble_(0)
+	, num_navX_(0)
+	, num_analog_inputs_(0)
 {
 	// Check if the URDF model needs to be loaded
 	if (urdf_model == NULL)
@@ -276,6 +278,22 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 			navX_names_.push_back(joint_name);
 			navX_ids_.push_back(navX_id);
 		}
+		else if (joint_type == "analog_input")
+		{
+			ROS_WARN("has analog");
+			if (!joint_params.hasMember("analog_channel"))
+				throw std::runtime_error("A Analog input analog_channel was not specified");
+			XmlRpc::XmlRpcValue &xml_analog_input_analog_channel = joint_params["analog_channel"];
+			if (!xml_analog_input_analog_channel.valid() ||
+					xml_analog_input_analog_channel.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint analog_channel was specified (expecting an int).");
+
+			const int analog_input_analog_channel = xml_analog_input_analog_channel;
+
+
+			analog_input_names_.push_back(joint_name);
+			analog_input_analog_channels_.push_back(analog_input_analog_channel);
+		}
 		else
 		{
 			std::stringstream s;
@@ -461,6 +479,18 @@ void FRCRobotInterface::init()
 		hardware_interface::JointHandle nxh(nxsh, &navX_command_[i]);
 		joint_velocity_interface_.registerHandle(nxh);
 		
+	}
+	num_analog_inputs_ = analog_input_names_.size();
+	analog_input_state_.resize(num_analog_inputs_);
+	for (size_t i = 0; i < num_analog_inputs_; i++)
+	{
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << analog_input_names_[i] << " at analog channel " << analog_input_analog_channels_[i]);
+		// Create state interface for the given digital input
+		// and point it to the data stored in the
+		// corresponding brushless_state array entry
+		hardware_interface::JointStateHandle aish(analog_input_names_[i], &analog_input_state_[i], &analog_input_state_[i], &analog_input_state_[i]);
+		joint_state_interface_.registerHandle(aish);
+
 	}
 
 	// Publish various FRC-specific data using generic joint state for now

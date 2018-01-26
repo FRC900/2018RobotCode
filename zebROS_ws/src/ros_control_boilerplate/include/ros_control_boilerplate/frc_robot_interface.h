@@ -168,8 +168,12 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::size_t              num_rumble_;
 
 		std::vector<std::string> navX_names_;
-		std::vector<int> 	 	 navX_ids_;
-		std::size_t		 		 num_navX_;
+		std::vector<int> 	 navX_ids_;
+		std::size_t		 num_navX_;
+		
+		std::vector<std::string> analog_input_names_;
+		std::vector<int>         analog_input_analog_channels_;
+		std::size_t              num_analog_inputs_;
 		
 		urdf::Model *urdf_model_;
 
@@ -190,6 +194,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> fused_heading_;		
 		std::vector<double> pitch_;		
 		std::vector<double> roll_;		
+		std::vector<double> analog_input_state_;
 		// Same as above, but for pending commands to be
 		// written to the hardware
 		std::vector<hardware_interface::TalonHWCommand> talon_command_;

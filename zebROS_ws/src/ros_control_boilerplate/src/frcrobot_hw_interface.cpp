@@ -267,6 +267,13 @@ void FRCRobotHWInterface::init(void)
 	
 
 	}
+	for (size_t i = 0; i < num_analog_inputs_; i++)
+	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << analog_input_names_[i] <<
+							  " as Analog Input " << analog_input_analog_channels_[i]);	
+		analog_inputs_.push_back(std::make_shared<frc::AnalogInput>(analog_input_analog_channels_[i]));
+	}
 	//Add navX hw objects
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
@@ -435,6 +442,10 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 
 
+	}
+	for (size_t i = 0; i < num_analog_inputs_; i++)
+	{
+		analog_input_state_[i] = analog_inputs_[i]->GetValue();
 	}
 	//navX read here
 }
