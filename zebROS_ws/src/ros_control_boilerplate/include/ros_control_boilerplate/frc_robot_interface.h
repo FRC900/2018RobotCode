@@ -192,7 +192,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		// Each entry in the vector is an array. That array holds
 		// the data returned from one particular imu
 		std::vector<std::array<double,4>> imu_orientations_; // x,y,z,w
-		std::vector<std::array<double,16>> imu_orientation_covariances_;
+		std::vector<std::array<double,9>> imu_orientation_covariances_; // [x,y,z] x [x,y,z]
 		std::vector<std::array<double,3>> imu_angular_velocities_; //x,y,z
 		std::vector<std::array<double,9>> imu_angular_velocity_covariances_;
 		std::vector<std::array<double,3>> imu_linear_accelerations_; // x,y,z
