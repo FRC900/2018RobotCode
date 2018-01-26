@@ -19,7 +19,7 @@ class C920CameraIn : public AsyncIn
 	public:
 		C920CameraIn(int stream = -1, bool gui = false, ZvSettings *settings = NULL);
 		~C920CameraIn();
-		
+
 #ifdef __linux__  // Special C920 support only works under linux
 		bool isOpened(void) const;
 
@@ -56,7 +56,7 @@ class C920CameraIn : public AsyncIn
 		bool initCamera(bool gui);
 		bool loadSettings(void);
 		bool saveSettings(void) const;
-		std::string getClassName() const { return "C920CameraIn"; } 
+		std::string getClassName() const { return "C920CameraIn"; }
 
 		// Mark these as friends so they can access private class data
 		friend void brightnessCallback(int value, void *data);
