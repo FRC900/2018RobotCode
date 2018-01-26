@@ -468,7 +468,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//navXs_[i]->IsMagnetometerCalibrated();
 		//
 		tf2::Quaternion tempQ;
-		tempQ.setRPY(navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - navX_command_[i] + M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetRoll() / -360 * 2 * M_PI);  
+		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - navX_command_[i] + M_PI);  
 		
 		
 

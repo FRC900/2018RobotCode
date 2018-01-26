@@ -257,7 +257,6 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 	tf2::Quaternion navQuat(navXState.orientation.x, navXState.orientation.y, navXState.orientation.z, navXState.orientation.w);
 	double roll;
 	tf2::Matrix3x3(navQuat).getRPY(roll, roll, navX_angle_);
-	
 
 }
 
