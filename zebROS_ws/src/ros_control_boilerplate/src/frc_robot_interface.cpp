@@ -52,7 +52,6 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 	, num_solenoids_(0)
 	, num_double_solenoids_(0)
 	, num_rumble_(0)
-	, match_time_state_(0)
 {
 	// Check if the URDF model needs to be loaded
 	if (urdf_model == NULL)
@@ -469,7 +468,6 @@ void FRCRobotInterface::init()
 	// (e.g. joystick) it probably makes more sense to write a
 	// RealtimePublisher() for the data coming in from
 	// the DS
-	joint_state_interface_.registerHandle(hardware_interface::JointStateHandle("MatchTime", &match_time_state_, &match_time_state_, &match_time_state_));
 	registerInterface(&talon_state_interface_);
 	registerInterface(&joint_state_interface_);
 	registerInterface(&talon_command_interface_);

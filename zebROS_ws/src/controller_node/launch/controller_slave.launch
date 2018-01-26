@@ -17,7 +17,7 @@
   
   <group ns="$(arg name)">
     <include file="$(find zed_wrapper)/launch/zed_camera.launch">
-      <arg name="resolution" value="2" />
+      <arg name="resolution" value="3" />
       <arg name="frame_rate" value="60" />
       <arg name="quality" value="1" /> 
 

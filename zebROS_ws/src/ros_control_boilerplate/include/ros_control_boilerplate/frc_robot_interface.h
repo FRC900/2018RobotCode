@@ -168,15 +168,14 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::size_t              num_rumble_;
 
 		std::vector<std::string> navX_names_;
-		std::vector<int> 	 navX_ids_;
-		std::size_t		 num_navX_;
+		std::vector<int> 	 	 navX_ids_;
+		std::size_t		 		 num_navX_;
 		
 		urdf::Model *urdf_model_;
 
 		// Array holding master cached state of hardware
 		// resources
 		std::vector<hardware_interface::TalonHWState> talon_state_;
-		double match_time_state_;
 		std::vector<double> brushless_pos_;
 		std::vector<double> brushless_vel_;
 		std::vector<double> brushless_eff_;
