@@ -312,6 +312,18 @@ void FRCRobotHWInterface::init(void)
 		
 		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
 	}
+	for (size_t i = 0; i < num_navX_; i++)
+	{
+
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << navX_names_[i] <<
+							  " as navX " << navX_ids_[i]);
+		
+		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));
+
+	
+
+	}
 	//Add navX hw objects
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
@@ -470,6 +482,10 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
 		double_solenoid_state_[i] = double_solenoids_[i]->Get();
+	}
+	for (size_t i = 0; i < num_navX_; i++)
+	{
+		hacky_fused_heading_[i] = (navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - navX_command_[i]) + M_PI;
 	}
 	//navX read here
 }

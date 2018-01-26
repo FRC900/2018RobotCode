@@ -188,7 +188,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> double_solenoid_state_;
 		std::vector<double> rumble_state_; //No actual data
 		std::vector<hardware_interface::ImuSensorHandle> navX_state_;
-			
+		std::vector<double> hacky_fused_heading_;		
 		// Same as above, but for pending commands to be
 		// written to the hardware
 		std::vector<hardware_interface::TalonHWCommand> talon_command_;
@@ -198,6 +198,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> solenoid_command_;
 		std::vector<double> double_solenoid_command_;
 		std::vector<double> rumble_command_;
+		std::vector<double> navX_command_;
 };  // class
 
 }  // namespace
