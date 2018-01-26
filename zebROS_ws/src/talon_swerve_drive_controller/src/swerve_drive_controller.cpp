@@ -273,7 +273,24 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	bool lookup_encoder_drive_set_P_units = !controller_nh.getParam("encoder_drive_set_P_units", units_.rotationSetP);
 	bool lookup_encoder_steering_get_units = !controller_nh.getParam("encoder_steering_get_units", units_.steeringGet);
 	bool lookup_encoder_steering_set_units = !controller_nh.getParam("encoder_steering_set_units", units_.steeringSet);
+	std::vector<double> wheel1a;
+	std::vector<double> wheel2a;
+	std::vector<double> wheel3a;
+	std::vector<double> wheel4a;
+	bool lookup_wheel1x = !controller_nh.getParam("wheel_coords1x", wheel_coords[0][0]);
+	bool lookup_wheel2x = !controller_nh.getParam("wheel_coords2x", wheel_coords[1][0]);
+	bool lookup_wheel3x = !controller_nh.getParam("wheel_coords3x", wheel_coords[2][0]);
+	bool lookup_wheel4x = !controller_nh.getParam("wheel_coords4x", wheel_coords[3][0]);
+	bool lookup_wheel1y = !controller_nh.getParam("wheel_coords1y", wheel_coords[0][1]);
+	bool lookup_wheel2y = !controller_nh.getParam("wheel_coords2y", wheel_coords[1][1]);
+	bool lookup_wheel3y = !controller_nh.getParam("wheel_coords3y", wheel_coords[2][1]);
+	bool lookup_wheel4y = !controller_nh.getParam("wheel_coords4y", wheel_coords[3][1]);
+	
 
+
+
+
+	ROS_INFO_STREAM("Coords: " << wheel_coords[0] << "   "<< wheel_coords[1] << "   "<< wheel_coords[2] << "   "<< wheel_coords[3]);
 	std::vector<double> offsets;
 	for (auto it = steering_names.cbegin(); it != steering_names.cend(); ++it)
 	{
@@ -316,11 +333,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	*/
 	model_.wheelRadius =  wheel_radius_;
 
-	Eigen::Vector2d wheel1 = { -.3, .3};
-	Eigen::Vector2d wheel2 = { -.3, -.3};
-	Eigen::Vector2d wheel3 = {.3, .3};
-	Eigen::Vector2d wheel4 = {.3, -.3};
-	wheel_coords = {wheel1, wheel2, wheel3, wheel4};
+
 	
 	/*
 	invertWheelAngle(false);

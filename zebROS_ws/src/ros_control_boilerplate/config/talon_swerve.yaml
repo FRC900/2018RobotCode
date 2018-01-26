@@ -75,7 +75,15 @@ swerve_drive_controller:
     encoder_drive_set_P_units: 1
     encoder_steering_get_units: 1
     encoder_steering_set_units: 1
-    
+    wheel_coords1x: -0.3048
+    wheel_coords1y: 0.3048   
+    wheel_coords2x: 0.3048
+    wheel_coords2y: 0.3048 
+    wheel_coords3x: -0.3048
+    wheel_coords3y: -0.3048   
+    wheel_coords4x: 0.3048
+    wheel_coords4y: -0.3048   
+ 
     cmd_vel_timeout: 0.5 # we test this separately, give plenty for the other tests
     speed_joint_fl:
         joint: fl_drive #fix pid
