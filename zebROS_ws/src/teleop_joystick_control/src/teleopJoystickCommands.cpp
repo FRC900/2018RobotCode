@@ -146,7 +146,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     vel.linear.y = rotatedJoyVector[1];
     vel.linear.z = 0;
 
-    vel.angular.z = JoystickState->rightTrigger - JoystickState->leftTrigger;
+    vel.angular.z = JoystickState->leftTrigger - JoystickState->rightTrigger;
     vel.angular.x = 0;
     vel.angular.y = 0;
     
@@ -190,8 +190,8 @@ void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &Ma
         rightRumble = 65535;
     }
     else if(matchTimeRemaining <17 && matchTimeRemaining > 14) {
-        leftRumble = 65535;
-        rightRumble = 65535;
+        allback(const sensor_msgs::Imu &navXState)
+
     }
     rumbleTypeConverterPublish(leftRumble, rightRumble);
 }*/
@@ -213,7 +213,7 @@ int main(int argc, char **argv) {
     message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "ScaledJoystickVals", 5);
     message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
     
-    navX_heading_ = n.subscribe("/frcrobot/joint_states", 1, &navXCallback);
+    navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
    
     ROS_WARN("joy_init");
 
@@ -251,27 +251,12 @@ void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) {
     JoystickRumble.publish(rumbleMsg);
 }
 */
-void navXCallback(const sensor_msgs::JointState &navXState)
+void navXCallback(const sensor_msgs::Imu &navXState)
 {
-	if(navX_index_ < 0)
-	{
-		for (size_t i = 0; i < navXState.name.size(); i++)
-		{
-			//ROS_WARN("gets calling");
-			if(navXState.name[i] == "navX_0")
-			{
-				navX_index_ = i;
-				ROS_WARN("navX not found");
-				break;
-			}
 
-		}
-	}
+	tf2::Quaternion navQuat(navXState.orientation.x, navXState.orientation.y, navXState.orientation.z, navXState.orientation.w);
+	double roll;
+	tf2::Matrix3x3(navQuat).getRPY(roll, roll, navX_angle_);
 
-	if(navX_index_ > -1)
-	{
-		navX_angle_ = navXState.position[navX_index_];
-		//ROS_INFO_STREAM("Works: " << navX_angle_);
-	}
 }
 

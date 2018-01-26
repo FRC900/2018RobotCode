@@ -125,6 +125,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		hardware_interface::VelocityJointInterface joint_velocity_interface_;
 		hardware_interface::TalonCommandInterface talon_command_interface_;
 
+		hardware_interface::ImuSensorInterface imu_interface_;
 		//hardware_interface::ImuSensorInterface navX_interface_;
 
 		// Configuration
@@ -168,8 +169,9 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::size_t              num_rumble_;
 
 		std::vector<std::string> navX_names_;
-		std::vector<int> 	 navX_ids_;
-		std::size_t		 num_navX_;
+		std::vector<std::string> navX_frame_ids_;
+		std::vector<int>	 navX_ids_;
+		std::size_t		  num_navX_;
 		
 		std::vector<std::string> analog_input_names_;
 		std::vector<int>         analog_input_analog_channels_;
@@ -190,10 +192,17 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> solenoid_state_;
 		std::vector<double> double_solenoid_state_;
 		std::vector<double> rumble_state_; //No actual data
-		//std::vector<hardware_interface::ImuSensorHandle> navX_state_;
-		std::vector<double> fused_heading_;		
-		std::vector<double> pitch_;		
-		std::vector<double> roll_;		
+		std::vector<double> navX_state_;	
+	
+		// Each entry in the vector is an array. That array holds
+		// the data returned from one particular imu
+		std::vector<std::array<double,4>> imu_orientations_; // x,y,z,w
+		std::vector<std::array<double,9>> imu_orientation_covariances_; // [x,y,z] x [x,y,z]
+		std::vector<std::array<double,3>> imu_angular_velocities_; //x,y,z
+		std::vector<std::array<double,9>> imu_angular_velocity_covariances_;
+		std::vector<std::array<double,3>> imu_linear_accelerations_; // x,y,z
+		std::vector<std::array<double,9>> imu_linear_acceleration_covariances_;
+			
 		std::vector<double> analog_input_state_;
 		// Same as above, but for pending commands to be
 		// written to the hardware

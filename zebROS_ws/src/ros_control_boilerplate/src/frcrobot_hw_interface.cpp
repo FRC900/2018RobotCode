@@ -50,6 +50,7 @@
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
 #include <geometry_msgs/Twist.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 namespace frcrobot_control
 {
@@ -255,18 +256,21 @@ void FRCRobotHWInterface::init(void)
 		
 		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
 	}
-	for (size_t i = 0; i < num_navX_; i++)
-	{
 
+	//RIGHT NOW THIS WILL ONLY WORK IF THERE IS ONLY ONE NAVX INSTANTIATED
+	for(size_t i = 0; i < num_navX_; i++)
+	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
-							  "Loading joint " << i << "=" << navX_names_[i] <<
-							  " as navX " << navX_ids_[i]);
-		
+				"Loading joint " << i << "=" << navX_names_[i] <<
+				" as navX id" << navX_ids_[i]); 
+		//TODO: fix how we use ids
+
 		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));
 
-	
-
+		// TODO :: fill in covariances here?
+		// Steal from navx node for now?
 	}
+
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
@@ -434,20 +438,56 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		double_solenoid_state_[i] = double_solenoids_[i]->Get();
 	}
-	for (size_t i = 0; i < num_navX_; i++)
-	{
-		fused_heading_[i] = (navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - navX_command_[i]) + M_PI;
-		pitch_[i] = navXs_[i]->GetPitch() / -360 * 2 * M_PI;
-		roll_[i] = navXs_[i]->GetRoll() / -360 * 2 * M_PI;  
-
-
-
-	}
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
 		analog_input_state_[i] = analog_inputs_[i]->GetValue();
 	}
 	//navX read here
+	for (size_t i = 0; i < num_navX_; i++)
+	{
+		// TODO : double check we're reading
+		// the correct data
+
+		// navXs_[i]->GetFusedHeading();
+		// navXs_[i]->GetPitch();
+		// navXs_[i]->GetRoll();
+
+		// TODO : Fill in imu_angular_velocity[i][]
+
+		//navXs_[i]->IsCalibrating();
+		//navXs_[i]->IsConnected();
+		//navXs_[i]->GetLastSensorTimestamp();
+		//
+		imu_linear_accelerations_[i][0] = navXs_[i]->GetWorldLinearAccelX();
+		imu_linear_accelerations_[i][1] = navXs_[i]->GetWorldLinearAccelY();
+		imu_linear_accelerations_[i][2] = navXs_[i]->GetWorldLinearAccelZ();
+
+		//navXs_[i]->IsMoving();
+		//navXs_[i]->IsRotating();
+		//navXs_[i]->IsMagneticDisturbance();
+		//navXs_[i]->IsMagnetometerCalibrated();
+		//
+		tf2::Quaternion tempQ;
+		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - navX_command_[i] + M_PI);  
+		
+		
+
+		imu_orientations_[i][3] = tempQ.w();
+		imu_orientations_[i][0] = tempQ.x();
+		imu_orientations_[i][1] = tempQ.y();
+		imu_orientations_[i][2] = tempQ.z();	
+
+		imu_angular_velocities_[i][0] = navXs_[i]->GetVelocityX();
+		imu_angular_velocities_[i][1] = navXs_[i]->GetVelocityY();
+		imu_angular_velocities_[i][2] = navXs_[i]->GetVelocityZ();	
+
+		//navXs_[i]->GetDisplacementX();
+		//navXs_[i]->GetDisplacementY();
+		//navXs_[i]->GetDisplacementZ();
+		//navXs_[i]->GetAngle(); //continous
+		//TODO: add setter functions
+	}
+
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
