@@ -69,8 +69,8 @@ swerve_drive_controller:
     ratio_encoder_to_rotations: .35
     ratio_motor_to_rotations: .35  
     ratio_motor_to_steering: 100 # that's what Bram said
-    encoder_drive_get_V_units: 6.28 #TODO: 12.0008839 - this is the value with the 1.9:1 gear ration factored in but it causes errors for some reason?
-    encoder_drive_set_V_units: 6.28 #12.0008839
+    encoder_drive_get_V_units: 1 #TODO: 12.0008839 - this is the value with the 1.9:1 gear ration factored in but it causes errors for some reason?
+    encoder_drive_set_V_units: 1 #12.0008839
     encoder_drive_get_P_units: 1 
     encoder_drive_set_P_units: 1
     encoder_steering_get_units: 1
