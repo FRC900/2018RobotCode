@@ -7,7 +7,7 @@
 
 
 static ros::Publisher ScaledValPub;
-static double dead_zone=.1, slow_mode=.33, max_speed=5, joystick_scale=3;
+static double dead_zone=.1, slow_mode=.33, max_speed=3.3, max_rot=7.65, joystick_scale=3;
 double dead_zoneCheck(double val) {
     if(fabs(val)<=dead_zone) {
         return 0;
@@ -91,6 +91,9 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
 
     double scaledRightStickX = (0-pow(dead_zoneCheck(rightStickX),joystick_scale));
     double scaledRightStickY = (0-pow(dead_zoneCheck(rightStickY),joystick_scale));
+
+    double scaledLeftTrigger = leftTrigger * max_rot;
+    double scaledRightTrigger = rightTrigger * max_rot;
     if(bumperLeftButton == true) {
         scaledLeftStickX *= slow_mode;
         scaledLeftStickY *= slow_mode;
@@ -98,21 +101,21 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
         scaledRightStickX *= slow_mode;
         scaledRightStickY *= slow_mode;
     
-        leftTrigger *= slow_mode;
-        rightTrigger *= slow_mode;
+        scaledLeftTrigger *= slow_mode;
+        scaledRightTrigger *= slow_mode;
     }
     //ROS_INFO("scaledLetStickX: %f scaledLeftStickY: %f\n", scaledLeftStickX, scaledLeftStickY);
     ros_control_boilerplate::JoystickState msa;
 
-
+    msa.header.stamp = msg->header.stamp;
     msa.leftStickX = scaledLeftStickX;
     msa.leftStickY = scaledLeftStickY;
 
     msa.rightStickX = scaledRightStickX;
     msa.rightStickY = scaledRightStickY;
 
-    msa.leftTrigger = leftTrigger;
-    msa.rightTrigger = rightTrigger;
+    msa.leftTrigger = scaledLeftTrigger;
+    msa.rightTrigger = scaledRightTrigger;
 
     msa.buttonAButton = buttonAButton;
     msa.buttonAPress = buttonAPress;

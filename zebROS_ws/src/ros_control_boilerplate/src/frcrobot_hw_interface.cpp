@@ -50,6 +50,7 @@
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
 #include <geometry_msgs/Twist.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 namespace frcrobot_control
 {
@@ -79,13 +80,12 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
-	ros::NodeHandle n;
-	ros::Publisher nt_pub = n.advertise<geometry_msgs::Twist>("/frcrobot/cmd_vel", 1000);
-	ros::Rate loopRate(10);
-
+	realtime_tools::RealtimePublisher<geometry_msgs::Twist> realtime_pub_nt(nh_, "nt_data", 4);
 
 	while (run_hal_thread_)
 	{
+		robot_.OneIteration();
+
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
 		double sub = subTable->GetEntry("Reset Angular Z").GetDouble(0);
@@ -93,73 +93,11 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		// SmartDashboard works!
 		frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
-		geometry_msgs::Twist twist;
-		twist.angular.z = sub;
-		nt_pub.publish(twist);
-
-		robot_.OneIteration();
-		// Things to keep track of
-		//    Alliance Station Id
-		//    Robot / match mode (auto, teleop, test, disabled)
-		//    Match time
-		match_time_state_ = DriverStation::GetInstance().GetMatchTime();
-		//    Joystick state
-		//    This is for testing. Need to expand this
-		//    to include buttons, the ability to set
-		//    rumble state via an external joystick
-		//    controller, etc.  Need to set via config
-		//    files.
-
-		//TODO: match gets with correct labels
-		/*
-		joystick_state_[0].leftStickX  = joystick.GetRawAxis(0);
-		joystick_state_[0].leftStickY  = joystick.GetRawAxis(1);
-		joystick_state_[0].rightStickX = joystick.GetRawAxis(4);
-		joystick_state_[0].rightStickY = joystick.GetRawAxis(5);
-		joystick_state_[0].leftTrigger = joystick.GetRawAxis(2);
-		joystick_state_[0].rightTrigger= joystick.GetRawAxis(3);
-
-		joystick_state_[0].buttonA.button   	 = joystick.GetRawButton(1);
-		joystick_state_[0].buttonA.press    	 = joystick.GetRawButtonPressed(1);
-		joystick_state_[0].buttonA.release  	 = joystick.GetRawButtonReleased(1);
-
-		joystick_state_[0].buttonB.button   	 = joystick.GetRawButton(2);
-		joystick_state_[0].buttonB.press    	 = joystick.GetRawButtonPressed(2);
-		joystick_state_[0].buttonB.release  	 = joystick.GetRawButtonReleased(2);
-
-		joystick_state_[0].buttonX.button   	 = joystick.GetRawButton(3);
-		joystick_state_[0].buttonX.press    	 = joystick.GetRawButtonPressed(3);
-		joystick_state_[0].buttonX.release  	 = joystick.GetRawButtonReleased(3);
-
-		joystick_state_[0].buttonY.button   	 = joystick.GetRawButton(4);
-		joystick_state_[0].buttonY.press    	 = joystick.GetRawButtonPressed(4);
-		joystick_state_[0].buttonY.release  	 = joystick.GetRawButtonReleased(4);
-
-		joystick_state_[0].bumperLeft.button   	 = joystick.GetRawButton(5);
-		joystick_state_[0].bumperLeft.press    	 = joystick.GetRawButtonPressed(5);
-		joystick_state_[0].bumperLeft.release  	 = joystick.GetRawButtonReleased(5);
-
-		joystick_state_[0].bumperRight.button    = joystick.GetRawButton(6);
-		joystick_state_[0].bumperRight.press     = joystick.GetRawButtonPressed(6);
-		joystick_state_[0].bumperRight.release   = joystick.GetRawButtonReleased(6);
-
-		joystick_state_[0].buttonBack.button   	 = joystick.GetRawButton(7);
-		joystick_state_[0].buttonBack.press    	 = joystick.GetRawButtonPressed(7);
-		joystick_state_[0].buttonBack.release  	 = joystick.GetRawButtonReleased(7);
-
-		joystick_state_[0].buttonStart.button    = joystick.GetRawButton(8);
-		joystick_state_[0].buttonStart.press   	 = joystick.GetRawButtonPressed(8);
-		joystick_state_[0].buttonStart.release 	 = joystick.GetRawButtonReleased(8);
-
-		joystick_state_[0].stickLeft.button	     = joystick.GetRawButton(9);
-		joystick_state_[0].stickLeft.press   	 = joystick.GetRawButtonPressed(9);
-		joystick_state_[0].stickLeft.release 	 = joystick.GetRawButtonReleased(9);
-
-		joystick_state_[0].stickRight.button     = joystick.GetRawButton(10);
-		joystick_state_[0].stickRight.press   	 = joystick.GetRawButtonPressed(10);
-		joystick_state_[0].stickRight.release 	 = joystick.GetRawButtonReleased(10);
-
-		*/
+		if (realtime_pub_nt.trylock())
+		{
+			realtime_pub_nt.msg_.angular.z = sub;
+			realtime_pub_nt.unlockAndPublish();
+		}
 
 		if (realtime_pub_joystick.trylock())
 		{
@@ -251,8 +189,14 @@ void FRCRobotHWInterface::init(void)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << can_talon_srx_names_[i] <<
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
-		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i] /*, CAN update rate*/ ));
-		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 10); // Make sure motor is stopped
+		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i]));
+		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 0); // Make sure motor is stopped
+		safeTalonCall(can_talons_[i]->GetLastError(), "Initial Set(Disabled, 0)");
+		// TODO : if the talon doesn't initialize - maybe known
+		// by -1 from firmware version read - somehow tag 
+		// the entry in can_talons_[] as uninitialized.
+		// This probably should be a fatal error
+
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "\tTalon SRX firmware version " << can_talons_[i]->GetFirmwareVersion());
 	}
@@ -311,6 +255,28 @@ void FRCRobotHWInterface::init(void)
 							  " reverse " << double_solenoid_reverse_ids_[i]);
 		
 		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
+	}
+
+	//RIGHT NOW THIS WILL ONLY WORK IF THERE IS ONLY ONE NAVX INSTANTIATED
+	for(size_t i = 0; i < num_navX_; i++)
+	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+				"Loading joint " << i << "=" << navX_names_[i] <<
+				" as navX id" << navX_ids_[i]); 
+		//TODO: fix how we use ids
+
+		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));
+
+		// TODO :: fill in covariances here?
+		// Steal from navx node for now?
+	}
+
+	for (size_t i = 0; i < num_analog_inputs_; i++)
+	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << analog_input_names_[i] <<
+							  " as Analog Input " << analog_input_analog_channels_[i]);	
+		analog_inputs_.push_back(std::make_shared<frc::AnalogInput>(analog_input_analog_channels_[i]));
 	}
 	//Add navX hw objects
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
@@ -402,9 +368,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
 			ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
 			safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
+#if 0
 			ctre::phoenix::motion::MotionProfileStatus talon_status;
-			//UNCOMMENT BELOW TODO
-			//safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
 			hardware_interface::MotionProfileStatus internal_status;
 			internal_status.topBufferRem = talon_status.topBufferRem;
@@ -420,6 +386,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.timeDurMs = talon_status.timeDurMs;
 		
 			ts.setMotionProfileStatus(internal_status);
+#endif
 		}
 
 		ctre::phoenix::motorcontrol::Faults faults;
@@ -471,7 +438,56 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		double_solenoid_state_[i] = double_solenoids_[i]->Get();
 	}
+	for (size_t i = 0; i < num_analog_inputs_; i++)
+	{
+		analog_input_state_[i] = analog_inputs_[i]->GetValue();
+	}
 	//navX read here
+	for (size_t i = 0; i < num_navX_; i++)
+	{
+		// TODO : double check we're reading
+		// the correct data
+
+		// navXs_[i]->GetFusedHeading();
+		// navXs_[i]->GetPitch();
+		// navXs_[i]->GetRoll();
+
+		// TODO : Fill in imu_angular_velocity[i][]
+
+		//navXs_[i]->IsCalibrating();
+		//navXs_[i]->IsConnected();
+		//navXs_[i]->GetLastSensorTimestamp();
+		//
+		imu_linear_accelerations_[i][0] = navXs_[i]->GetWorldLinearAccelX();
+		imu_linear_accelerations_[i][1] = navXs_[i]->GetWorldLinearAccelY();
+		imu_linear_accelerations_[i][2] = navXs_[i]->GetWorldLinearAccelZ();
+
+		//navXs_[i]->IsMoving();
+		//navXs_[i]->IsRotating();
+		//navXs_[i]->IsMagneticDisturbance();
+		//navXs_[i]->IsMagnetometerCalibrated();
+		//
+		tf2::Quaternion tempQ;
+		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - navX_command_[i] + M_PI);  
+		
+		
+
+		imu_orientations_[i][3] = tempQ.w();
+		imu_orientations_[i][0] = tempQ.x();
+		imu_orientations_[i][1] = tempQ.y();
+		imu_orientations_[i][2] = tempQ.z();	
+
+		imu_angular_velocities_[i][0] = navXs_[i]->GetVelocityX();
+		imu_angular_velocities_[i][1] = navXs_[i]->GetVelocityY();
+		imu_angular_velocities_[i][2] = navXs_[i]->GetVelocityZ();	
+
+		//navXs_[i]->GetDisplacementX();
+		//navXs_[i]->GetDisplacementY();
+		//navXs_[i]->GetDisplacementZ();
+		//navXs_[i]->GetAngle(); //continous
+		//TODO: add setter functions
+	}
+
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,

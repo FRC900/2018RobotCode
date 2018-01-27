@@ -58,14 +58,13 @@ double leastDistantAngleWithinHalfPi(double currentAngle, double targetAngle, bo
 double leastDistantAngleWithinPi(double currentAngle, double targetAngle)
 {
 	double normalizedDiff = normalizeAngle(targetAngle) - normalizeAngle(currentAngle);
-	double withinPi = (abs(normalizedDiff) < M_PI) ? normalizedDiff : (normalizedDiff - (2 * M_PI * sign(normalizedDiff)));
+	double withinPi = (fabs(normalizedDiff) < M_PI) ? normalizedDiff : (normalizedDiff - (2 * M_PI * sign(normalizedDiff)));
 	return withinPi + currentAngle;
 }
 
-
 double normalizeAngle(double angle) //normalizes between -M_PI and M_PI
 {
-	return angle - floor((angle + M_PI) / (2 * M_PI)) * 2 * M_PI;
+	return angle - floor((angle + M_PI) / (2 * M_PI)) * 2.0 * M_PI;
 }
 
 double coerce(double value, double lowerBound, double upperBound)

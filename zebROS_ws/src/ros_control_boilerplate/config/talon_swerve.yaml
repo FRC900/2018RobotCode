@@ -18,7 +18,7 @@ hardware_interface:
        - {name: br_angle, type: can_talon_srx, can_id: 14}
        - {name: bl_drive, type: can_talon_srx, can_id: 23}
        - {name: bl_angle, type: can_talon_srx, can_id: 13}
-
+       - {name: navx_mxp, type: navX, frame_id: navx,  id: 0}
    # Add more data for each joint here - intitial mode, encoder type
    #    PIDF settings, limit switch settings, etc
 
@@ -59,7 +59,7 @@ swerve_drive_controller:
     pose_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     # fix me
-    wheel_radius: 0.08255 # m
+    wheel_radius: 0.041275 # m
     max_speed: 3.3528
     mass: 70
     motor_free_speed: 5330
@@ -67,16 +67,24 @@ swerve_drive_controller:
     motor_quantity: 4
     file_name: "offsets.txt"
     invert_wheel_angle: False
-    ratio_encoder_to_rotations: 1
-    ratio_motor_to_rotations: 2  
+    ratio_encoder_to_rotations: 0.525
+    ratio_motor_to_rotations: .35  
     ratio_motor_to_steering: 100 # that's what Bram said
-    encoder_drive_get_V_units: 6.28 #TODO: 12.0008839 - this is the value with the 1.9:1 gear ration factored in but it causes errors for some reason?
-    encoder_drive_set_V_units: 6.28 #12.0008839
+    encoder_drive_get_V_units: 1 #TODO: 12.0008839 - this is the value with the 1.9:1 gear ration factored in but it causes errors for some reason?
+    encoder_drive_set_V_units: 1 #12.0008839
     encoder_drive_get_P_units: 1 
     encoder_drive_set_P_units: 1
     encoder_steering_get_units: 1
     encoder_steering_set_units: 1
-    
+    wheel_coords1x: -0.3048
+    wheel_coords1y: 0.3048   
+    wheel_coords2x: 0.3048
+    wheel_coords2y: 0.3048 
+    wheel_coords3x: -0.3048
+    wheel_coords3y: -0.3048   
+    wheel_coords4x: 0.3048
+    wheel_coords4y: -0.3048   
+ 
     cmd_vel_timeout: 0.5 # we test this separately, give plenty for the other tests
     speed_joint_fl:
         joint: fl_drive #fix pid
@@ -139,3 +147,13 @@ swerve_drive_controller:
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
 
+
+imu_sensor_controller:
+   type:         imu_sensor_controller/ImuSensorController
+   publish_rate: 100
+
+
+
+navx_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: navx_mxp

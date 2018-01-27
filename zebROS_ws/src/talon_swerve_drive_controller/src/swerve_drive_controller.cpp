@@ -55,7 +55,6 @@ using Eigen::Affine2d;
 using Eigen::Matrix2d;
 using Eigen::Vector2d;
 
-
 using ros::Time;
 using geometry_msgs::TwistConstPtr;
 using ros::Duration;
@@ -274,7 +273,24 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	bool lookup_encoder_drive_set_P_units = !controller_nh.getParam("encoder_drive_set_P_units", units_.rotationSetP);
 	bool lookup_encoder_steering_get_units = !controller_nh.getParam("encoder_steering_get_units", units_.steeringGet);
 	bool lookup_encoder_steering_set_units = !controller_nh.getParam("encoder_steering_set_units", units_.steeringSet);
+	std::vector<double> wheel1a;
+	std::vector<double> wheel2a;
+	std::vector<double> wheel3a;
+	std::vector<double> wheel4a;
+	bool lookup_wheel1x = !controller_nh.getParam("wheel_coords1x", wheel_coords[0][0]);
+	bool lookup_wheel2x = !controller_nh.getParam("wheel_coords2x", wheel_coords[1][0]);
+	bool lookup_wheel3x = !controller_nh.getParam("wheel_coords3x", wheel_coords[2][0]);
+	bool lookup_wheel4x = !controller_nh.getParam("wheel_coords4x", wheel_coords[3][0]);
+	bool lookup_wheel1y = !controller_nh.getParam("wheel_coords1y", wheel_coords[0][1]);
+	bool lookup_wheel2y = !controller_nh.getParam("wheel_coords2y", wheel_coords[1][1]);
+	bool lookup_wheel3y = !controller_nh.getParam("wheel_coords3y", wheel_coords[2][1]);
+	bool lookup_wheel4y = !controller_nh.getParam("wheel_coords4y", wheel_coords[3][1]);
+	
 
+
+
+
+	ROS_INFO_STREAM("Coords: " << wheel_coords[0] << "   "<< wheel_coords[1] << "   "<< wheel_coords[2] << "   "<< wheel_coords[3]);
 	std::vector<double> offsets;
 	for (auto it = steering_names.cbegin(); it != steering_names.cend(); ++it)
 	{
@@ -317,11 +333,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	*/
 	model_.wheelRadius =  wheel_radius_;
 
-	Eigen::Vector2d wheel1 = { -.3, .3};
-	Eigen::Vector2d wheel2 = { -.3, -.3};
-	Eigen::Vector2d wheel3 = {.3, .3};
-	Eigen::Vector2d wheel4 = {.3, -.3};
-	wheel_coords = {wheel1, wheel2, wheel3, wheel4};
+
 	
 	/*
 	invertWheelAngle(false);
@@ -346,41 +358,40 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 
 	sub_command_ = controller_nh.subscribe("cmd_vel", 1, &TalonSwerveDriveController::cmdVelCallback, this);
 	
+		
 	double odom_pub_freq;
         controller_nh.param("odometry_publishing_frequency", odom_pub_freq, DEF_ODOM_PUB_FREQ);	
 	
 	comp_odom_ = odom_pub_freq > 0;
 	//ROS_WARN("COMPUTING ODOM");
 	if (comp_odom_)
-          {
+	{
+		odom_pub_period_ = Duration(1 / odom_pub_freq);
+		controller_nh.param("publish_odometry_to_base_transform", pub_odom_to_base_,
+				DEF_PUB_ODOM_TO_BASE);
 
-                odom_pub_period_ = Duration(1 / odom_pub_freq);
-                controller_nh.param("publish_odometry_to_base_transform", pub_odom_to_base_,
-                                           DEF_PUB_ODOM_TO_BASE);
+		double init_x, init_y, init_yaw;
+		controller_nh.param("initial_x", init_x, DEF_INIT_X);
+		controller_nh.param("initial_y", init_y, DEF_INIT_Y);
+		controller_nh.param("initial_yaw", init_yaw, DEF_INIT_YAW);
+		double x_sd, y_sd, yaw_sd;
+		controller_nh.param("x_sd", x_sd, DEF_SD);
+		controller_nh.param("y_sd", y_sd, DEF_SD);
+		controller_nh.param("yaw_sd", yaw_sd, DEF_SD);
+		double x_speed_sd, y_speed_sd, yaw_speed_sd;
+		controller_nh.param("x_speed_sd", x_speed_sd, DEF_SD);
+		controller_nh.param("y_speed_sd", y_speed_sd, DEF_SD);
+		controller_nh.param("yaw_speed_sd", yaw_speed_sd, DEF_SD);
 
-                double init_x, init_y, init_yaw;
-                controller_nh.param("initial_x", init_x, DEF_INIT_X);
-                controller_nh.param("initial_y", init_y, DEF_INIT_Y);
-                controller_nh.param("initial_yaw", init_yaw, DEF_INIT_YAW);
-                double x_sd, y_sd, yaw_sd;
-                controller_nh.param("x_sd", x_sd, DEF_SD);
-                controller_nh.param("y_sd", y_sd, DEF_SD);
-                controller_nh.param("yaw_sd", yaw_sd, DEF_SD);
-                double x_speed_sd, y_speed_sd, yaw_speed_sd;
-                controller_nh.param("x_speed_sd", x_speed_sd, DEF_SD);
-                controller_nh.param("y_speed_sd", y_speed_sd, DEF_SD);
-                controller_nh.param("yaw_speed_sd", yaw_speed_sd, DEF_SD);
-
-                init_odom_to_base_.setIdentity();
-                init_odom_to_base_.rotate(init_yaw);
-                init_odom_to_base_.translation() = Vector2d(init_x, init_y);
-                odom_to_base_ = init_odom_to_base_;
-                odom_rigid_transf_.setIdentity();
-
+		init_odom_to_base_.setIdentity();
+		init_odom_to_base_.rotate(init_yaw);
+		init_odom_to_base_.translation() = Vector2d(init_x, init_y);
+		odom_to_base_ = init_odom_to_base_;
+		odom_rigid_transf_.setIdentity();
 
 		wheel_pos_.resize(2, WHEELCOUNT);
 		//ROS_WARN("working h");
-                for(size_t i = 0; i < WHEELCOUNT; i++)
+		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
 			//ROS_INFO_STREAM("id: " << i << "pos" << wheel_coords[i]);
 			wheel_pos_.col(i) = wheel_coords[i];
@@ -389,153 +400,146 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 
 
 		const Vector2d centroid = wheel_pos_.rowwise().mean();
-                wheel_pos_.colwise() -= centroid;
-                neg_wheel_centroid_ = -centroid;
-
+		wheel_pos_.colwise() -= centroid;
+		neg_wheel_centroid_ = -centroid;
 
 		new_wheel_pos_.resize(WHEELCOUNT, 2);
 
-                std::string odom_frame, base_frame;
-                controller_nh.param("odometry_frame", odom_frame, DEF_ODOM_FRAME);
-                controller_nh.param("base_frame", base_frame, DEF_BASE_FRAME);
+		std::string odom_frame, base_frame;
+		controller_nh.param("odometry_frame", odom_frame, DEF_ODOM_FRAME);
+		controller_nh.param("base_frame", base_frame, DEF_BASE_FRAME);
 
-                odom_pub_.msg_.header.frame_id = odom_frame;
-                odom_pub_.msg_.child_frame_id = base_frame;
+		odom_pub_.msg_.header.frame_id = odom_frame;
+		odom_pub_.msg_.child_frame_id = base_frame;
 
-                odom_pub_.msg_.pose.pose.position.z = 0;
+		odom_pub_.msg_.pose.pose.position.z = 0;
 
-                odom_pub_.msg_.pose.covariance.assign(0);
-                odom_pub_.msg_.pose.covariance[0] = x_sd * x_sd;
-                odom_pub_.msg_.pose.covariance[7] = y_sd * y_sd;
-                odom_pub_.msg_.pose.covariance[35] = yaw_sd * yaw_sd;
+		odom_pub_.msg_.pose.covariance.assign(0);
+		odom_pub_.msg_.pose.covariance[0] = x_sd * x_sd;
+		odom_pub_.msg_.pose.covariance[7] = y_sd * y_sd;
+		odom_pub_.msg_.pose.covariance[35] = yaw_sd * yaw_sd;
 
-                odom_pub_.msg_.twist.twist.linear.z = 0;
-                odom_pub_.msg_.twist.twist.angular.x = 0;
-                odom_pub_.msg_.twist.twist.angular.y = 0;
+		odom_pub_.msg_.twist.twist.linear.z = 0;
+		odom_pub_.msg_.twist.twist.angular.x = 0;
+		odom_pub_.msg_.twist.twist.angular.y = 0;
 
-                odom_pub_.msg_.twist.covariance.assign(0);
-                odom_pub_.msg_.twist.covariance[0] = x_speed_sd * x_speed_sd;
-                odom_pub_.msg_.twist.covariance[7] = y_speed_sd * y_speed_sd;
-                odom_pub_.msg_.twist.covariance[35] = yaw_speed_sd * yaw_speed_sd;
+		odom_pub_.msg_.twist.covariance.assign(0);
+		odom_pub_.msg_.twist.covariance[0] = x_speed_sd * x_speed_sd;
+		odom_pub_.msg_.twist.covariance[7] = y_speed_sd * y_speed_sd;
+		odom_pub_.msg_.twist.covariance[35] = yaw_speed_sd * yaw_speed_sd;
 		odom_pub_.init(controller_nh, "odom", 1);
 
-
-                
 		if (pub_odom_to_base_)
-                {
-                  odom_tf_pub_.msg_.transforms.resize(1);
-                  geometry_msgs::TransformStamped& odom_tf_trans =
-                        odom_tf_pub_.msg_.transforms[0];
-                  odom_tf_trans.header.frame_id = odom_pub_.msg_.header.frame_id;
-                  odom_tf_trans.child_frame_id = odom_pub_.msg_.child_frame_id;
-                  odom_tf_trans.transform.translation.z = 0;
-                  odom_tf_pub_.init(controller_nh, "/tf", 1);
-                }
-	  	for (size_t row = 0; row < WHEELCOUNT; row++)
-	  	{
+		{
+			odom_tf_pub_.msg_.transforms.resize(1);
+			geometry_msgs::TransformStamped& odom_tf_trans =
+				odom_tf_pub_.msg_.transforms[0];
+			odom_tf_trans.header.frame_id = odom_pub_.msg_.header.frame_id;
+			odom_tf_trans.child_frame_id = odom_pub_.msg_.child_frame_id;
+			odom_tf_trans.transform.translation.z = 0;
+			odom_tf_pub_.init(controller_nh, "/tf", 1);
+		}
+
+		for (size_t row = 0; row < WHEELCOUNT; row++)
+		{
 			old_wheel_pos_[row] = {0, 0};
 			last_wheel_rot[row] = speed_joints_[row].getPosition();	
 		}
-          }
+	}
 	
-
-
-
-
 	return true;
 }
 
 void TalonSwerveDriveController::compOdometry(const Time& time, const double inv_delta_t)
-        {
-	  //ROS_INFO_STREAM("WORKS");
-          // Compute the rigid transform from wheel_pos_ to new_wheel_pos_.
-	  
-	  for (size_t k = 0; k < WHEELCOUNT; k++)
-          {
-                const double new_wheel_rot = speed_joints_[k].getPosition();
-                const double delta_rot = new_wheel_rot - last_wheel_rot[k];
-                //int inverterD = (k%2==0) ? -1 : 1;
-		const double dist = delta_rot * wheel_radius_ / (-M_PI); //* inverterD;
-                //NOTE: below is a hack, TODO: REMOVE
-		
+{
+	//ROS_INFO_STREAM("WORKS");
+	// Compute the rigid transform from wheel_pos_ to new_wheel_pos_.
+
+	for (size_t k = 0; k < WHEELCOUNT; k++)
+	{
+		const double new_wheel_rot = speed_joints_[k].getPosition();
+		const double delta_rot = new_wheel_rot - last_wheel_rot[k];
+		//int inverterD = (k%2==0) ? -1 : 1;
+		const double dist = -delta_rot * wheel_radius_ * driveRatios_.encodertoRotations; //* inverterD;
+		//NOTE: below is a hack, TODO: REMOVE
+
 		const double steer_angle = swerveC->getWheelAngle(k, steering_joints_[k].getPosition());
-                const Eigen::Vector2d delta_pos = {-dist*sin(steer_angle), dist*cos(steer_angle)};
+		const Eigen::Vector2d delta_pos = {-dist*sin(steer_angle), dist*cos(steer_angle)};
 		new_wheel_pos_(k, 0) = wheel_coords[k][0] + delta_pos[0];
-                new_wheel_pos_(k, 1) = wheel_coords[k][1] + delta_pos[1];
-                
+		new_wheel_pos_(k, 1) = wheel_coords[k][1] + delta_pos[1];
+
 		//ROS_INFO_STREAM("id: " << k << " delta: " << delta_pos << " steer: " << steer_angle << " dist: " << dist);
 		last_wheel_rot[k] = new_wheel_rot;
-          }
+	}
 
-	  const Eigen::RowVector2d new_wheel_centroid =
-                new_wheel_pos_.colwise().mean();
-          new_wheel_pos_.rowwise() -= new_wheel_centroid;
-	
-	  //ROS_INFO_STREAM("rows: " << wheel_pos_.rows() << " cols: " << wheel_pos_.cols());
-	  //ROS_INFO_STREAM("neg wheel centroid" << neg_wheel_centroid_ << " new centroid: " << new_wheel_centroid);
-	
-          const Matrix2d h = wheel_pos_ * new_wheel_pos_;
-          const Eigen::JacobiSVD<Matrix2d> svd(h, Eigen::ComputeFullU | Eigen::ComputeFullV);
-          Matrix2d rot = svd.matrixV() * svd.matrixU().transpose();
-          if (rot.determinant() < 0)
-                rot.col(1) *= -1;
+	const Eigen::RowVector2d new_wheel_centroid =
+		new_wheel_pos_.colwise().mean();
+	new_wheel_pos_.rowwise() -= new_wheel_centroid;
 
-          odom_rigid_transf_.matrix().block(0, 0, 2, 2) = rot;
-          odom_rigid_transf_.translation() =
-                rot * neg_wheel_centroid_ + new_wheel_centroid.transpose();
-          odom_to_base_ = odom_to_base_ * odom_rigid_transf_;
+	//ROS_INFO_STREAM("rows: " << wheel_pos_.rows() << " cols: " << wheel_pos_.cols());
+	//ROS_INFO_STREAM("neg wheel centroid" << neg_wheel_centroid_ << " new centroid: " << new_wheel_centroid);
 
-          const double odom_x = odom_to_base_.translation().x();
-          const double odom_y = odom_to_base_.translation().y();
-          const double odom_yaw = atan2(odom_to_base_(1, 0), odom_to_base_(0, 0));
+	const Matrix2d h = wheel_pos_ * new_wheel_pos_;
+	const Eigen::JacobiSVD<Matrix2d> svd(h, Eigen::ComputeFullU | Eigen::ComputeFullV);
+	Matrix2d rot = svd.matrixV() * svd.matrixU().transpose();
+	if (rot.determinant() < 0)
+		rot.col(1) *= -1;
 
-          //ROS_INFO_STREAM("odom_x: " << odom_x << " odom_y: " << odom_y << " odom_yaw: " << odom_yaw);
-	  // Publish the odometry.
-	  //TODO CHECK THIS PUB 
+	odom_rigid_transf_.matrix().block(0, 0, 2, 2) = rot;
+	odom_rigid_transf_.translation() =
+		rot * neg_wheel_centroid_ + new_wheel_centroid.transpose();
+	odom_to_base_ = odom_to_base_ * odom_rigid_transf_;
 
-          geometry_msgs::Quaternion orientation;
-          bool orientation_comped = false;
+	const double odom_x = odom_to_base_.translation().x();
+	const double odom_y = odom_to_base_.translation().y();
+	const double odom_yaw = atan2(odom_to_base_(1, 0), odom_to_base_(0, 0));
 
-          // tf
-          if (pub_odom_to_base_ && time - last_odom_tf_pub_time_ >= odom_pub_period_ &&
-                  odom_tf_pub_.trylock())
-          {
-                orientation = tf::createQuaternionMsgFromYaw(odom_yaw);
-                orientation_comped = true;
+	//ROS_INFO_STREAM("odom_x: " << odom_x << " odom_y: " << odom_y << " odom_yaw: " << odom_yaw);
+	// Publish the odometry.
+	//TODO CHECK THIS PUB 
 
-                geometry_msgs::TransformStamped& odom_tf_trans =
-                  odom_tf_pub_.msg_.transforms[0];
-                odom_tf_trans.header.stamp = time;
-                odom_tf_trans.transform.translation.x = odom_x;
-                odom_tf_trans.transform.translation.y = odom_y;
-                odom_tf_trans.transform.rotation = orientation;
+	geometry_msgs::Quaternion orientation;
+	bool orientation_comped = false;
+
+	// tf
+	if (pub_odom_to_base_ && time - last_odom_tf_pub_time_ >= odom_pub_period_ &&
+			odom_tf_pub_.trylock())
+	{
+		orientation = tf::createQuaternionMsgFromYaw(odom_yaw);
+		orientation_comped = true;
+
+		geometry_msgs::TransformStamped& odom_tf_trans =
+			odom_tf_pub_.msg_.transforms[0];
+		odom_tf_trans.header.stamp = time;
+		odom_tf_trans.transform.translation.x = odom_x;
+		odom_tf_trans.transform.translation.y = odom_y;
+		odom_tf_trans.transform.rotation = orientation;
 		ROS_INFO_STREAM(odom_x);
-                odom_tf_pub_.unlockAndPublish();
-                last_odom_tf_pub_time_ = time;
-          }
-	   // odom
-          if (time - last_odom_pub_time_ >= odom_pub_period_ && odom_pub_.trylock())
-          {
-                if (!orientation_comped)
-                  orientation = tf::createQuaternionMsgFromYaw(odom_yaw);
+		odom_tf_pub_.unlockAndPublish();
+		last_odom_tf_pub_time_ = time;
+	}
+	// odom
+	if (time - last_odom_pub_time_ >= odom_pub_period_ && odom_pub_.trylock())
+	{
+		if (!orientation_comped)
+			orientation = tf::createQuaternionMsgFromYaw(odom_yaw);
 
-                odom_pub_.msg_.header.stamp = time;
-                odom_pub_.msg_.pose.pose.position.x = odom_x;
-                odom_pub_.msg_.pose.pose.position.y = odom_y;
-                odom_pub_.msg_.pose.pose.orientation = orientation;
+		odom_pub_.msg_.header.stamp = time;
+		odom_pub_.msg_.pose.pose.position.x = odom_x;
+		odom_pub_.msg_.pose.pose.position.y = odom_y;
+		odom_pub_.msg_.pose.pose.orientation = orientation;
 
-                odom_pub_.msg_.twist.twist.linear.x =
-                  odom_rigid_transf_.translation().x() * inv_delta_t;
-                odom_pub_.msg_.twist.twist.linear.y =
-                  odom_rigid_transf_.translation().y() * inv_delta_t;
-                odom_pub_.msg_.twist.twist.angular.z =
-                  atan2(odom_rigid_transf_(1, 0), odom_rigid_transf_(0, 0)) * inv_delta_t;
+		odom_pub_.msg_.twist.twist.linear.x =
+			odom_rigid_transf_.translation().x() * inv_delta_t;
+		odom_pub_.msg_.twist.twist.linear.y =
+			odom_rigid_transf_.translation().y() * inv_delta_t;
+		odom_pub_.msg_.twist.twist.angular.z =
+			atan2(odom_rigid_transf_(1, 0), odom_rigid_transf_(0, 0)) * inv_delta_t;
 
-                odom_pub_.unlockAndPublish();
-                last_odom_pub_time_ = time;
-          }
-        }
-
+		odom_pub_.unlockAndPublish();
+		last_odom_pub_time_ = time;
+	}
+}
 
 
 void TalonSwerveDriveController::update(const ros::Time &time, const ros::Duration &period)
@@ -631,14 +635,13 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	array<double, WHEELCOUNT> curPos;
 	for (int i = 0; i < WHEELCOUNT; i++)
 		curPos[i] = steering_joints_[i].getPosition();
-	double angle = M_PI / 2.; // TODO: integrate navx and change this to use field-centric driving
 	std::array<bool, WHEELCOUNT> holder;
-	std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC->motorOutputs(curr_cmd.lin, curr_cmd.ang, angle, false, holder, false, curPos);
+	std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC->motorOutputs(curr_cmd.lin, curr_cmd.ang, M_PI/2, false, holder, false, curPos);
 	
 	// Set wheels velocities:
 	for (size_t i = 0; i < wheel_joints_size_; ++i)
 	{
-		ROS_INFO_STREAM("id:" << i << " speed: " <<speeds_angles[i][0]); 
+		//ROS_INFO_STREAM("id:" << i << " speed: " <<speeds_angles[i][0]); 
 		speed_joints_[i].setCommand(speeds_angles[i][0]);
 		steering_joints_[i].setCommand(speeds_angles[i][1]);
 	}
@@ -651,10 +654,10 @@ void TalonSwerveDriveController::starting(const ros::Time &time)
 	// Register starting time used to keep fixed rate
 	last_state_publish_time_ = time;
 	if (comp_odom_)
-        {
-              last_odom_pub_time_ = time;
-              last_odom_tf_pub_time_ = time;
-        }
+	{
+		last_odom_pub_time_ = time;
+		last_odom_tf_pub_time_ = time;
+	}
 	//odometry_.init(time);
 }
 
@@ -710,7 +713,7 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 
 		//TODO change to twist msg
 		
-		command_struct_.ang = -command.angular.z;
+		command_struct_.ang = command.angular.z;
 		command_struct_.lin[0] = command.linear.x;
 		command_struct_.lin[1] = command.linear.y;
 		command_struct_.stamp = ros::Time::now();

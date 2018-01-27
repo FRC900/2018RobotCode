@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(teleop_joystick_control)
+project(elevator_teleop_control)
 
 include ("../cmake_modules/CMakeOpt.cmake")
 
@@ -22,14 +22,13 @@ find_package(catkin REQUIRED COMPONENTS
   talon_interface
   message_generation
   ros_control_boilerplate
+  talon_controllers
 )
-find_package(Eigen REQUIRED)
 
-
-add_message_files (
-  FILES
-  RobotState.msg
-)
+#add_message_files (
+#  FILES
+#  RobotState.msg
+#)
 generate_messages(
   DEPENDENCIES
   std_msgs
@@ -63,8 +62,8 @@ catkin_package(
     rosparam_shortcuts
     message_runtime
     ros_control_boilerplate
+    talon_controllers
   LIBRARIES
-  DEPENDS Eigen
 )
 
 ###########
@@ -77,49 +76,48 @@ include_directories(
   include/
   ${catkin_INCLUDE_DIRS}
   ${Gflags_INCLUDE_DIRS}
-  ${Eigen_INCLUDE_DIRS}
 )
 
 
-add_executable(joystickSubscriber src/joystickSubscriber.cpp)
-set_target_properties(joystickSubscriber PROPERTIES OUTPUT_NAME
-joystickSubscriber PREFIX "")
-target_link_libraries(joystickSubscriber
-  ${catkin_LIBRARIES}
-)
+#add_executable(joystickSubscriber src/joystickSubscriber.cpp)
+#set_target_properties(joystickSubscriber PROPERTIES OUTPUT_NAME
+#joystickSubscriber PREFIX "")
+#target_link_libraries(joystickSubscriber
+#  ${catkin_LIBRARIES}
+#)
 ## Add cmake target dependencies of the executable
 ## same as for the library above. This is needed to force
 ## talon controller messages to be built before the
 ## talon controller code tries to use them
-add_dependencies(joystickSubscriber
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
+#add_dependencies(joystickSubscriber
+#  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+#  ${catkin_EXPORTED_TARGETS}
+#)
 
-add_executable(teleopJoystickCommands src/teleopJoystickCommands.cpp)
-set_target_properties(teleopJoystickCommands PROPERTIES OUTPUT_NAME 
-teleopJoystickCommands PREFIX "")
-target_link_libraries(teleopJoystickCommands
-  ${catkin_LIBRARIES}
-)
+#add_executable(teleopJoystickCommands src/teleopJoystickCommands.cpp)
+#set_target_properties(teleopJoystickCommands PROPERTIES OUTPUT_NAME 
+#teleopJoystickCommands PREFIX "")
+#target_link_libraries(teleopJoystickCommands
+#  ${catkin_LIBRARIES}
+#)
 ## Add cmake target dependencies of the executable
 ## same as for the library above. This is needed to force
 ## talon controller messages to be built before the
 ## talon controller code tries to use them
-add_dependencies(teleopJoystickCommands
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
+#add_dependencies(teleopJoystickCommands
+#  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+#  ${catkin_EXPORTED_TARGETS}
+#)
 
 ## TOOLS ------------------------------------------------------
 
 # Install ------------------------------------------------------------
 #Install header files
-install(TARGETS joystickSubscriber teleopJoystickCommands
-   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+#install(TARGETS joystickSubscriber teleopJoystickCommands
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+#)
 
 #install(DIRECTORY
 #launch
