@@ -1,13 +1,5 @@
 swerve_drive_controller:
-    # I'm commenting out my (anja's) offsets bc I'm not sure which ones are correct @ryan?
-    #steering_joint_fl: 
-        #offset: -2.09388
-    #steering_joint_fr: 
-        #offset: -5.260016
-    #steering_joint_bl: 
-        #offset: 2.98512
-    #steering_joint_br: 
-        #offset: -5.16644
+    steering_joint_fl: 
         offset: -1.957357832
     steering_joint_fr: 
         offset: 0.975609131
