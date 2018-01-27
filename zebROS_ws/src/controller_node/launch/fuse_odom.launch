@@ -35,7 +35,7 @@
 			 have significant net motion in those directions 
 			 (unless we are tipping over) and even so, do
 			 we want to trust the navx data instead? -->
-		<param name="odom0" value="/zed_fuel/odom" />
+		<param name="odom0" value="/frcrobot/swerve_drive_controller/odom" />
 		<rosparam param="odom0_config"> [true,  true,  true,
                                          false, false, false, 
                                          false, false, false,
