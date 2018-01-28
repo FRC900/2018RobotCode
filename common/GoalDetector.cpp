@@ -198,6 +198,19 @@ void GoalDetector::findBoilers(const cv::Mat& image, const cv::Mat& depth) {
 					continue;
 				}
 			}
+				/*
+				// Keep detecting the goal, even if something gets in the way to 					// obstruct the goal.
+				
+				if (!found_goal || left_info[i].confidence[i] )
+				{
+#ifdef VERBOSE_BOILER
+					cout << i << " " << j << " " <<  << " obstruction detected, detecting previous goal" << endl;
+
+				
+#endif
+					continue;
+				} */
+
 
 			// This doesn't work near the edges of the frame?
 			if ((left_info[i].rect & right_info[j].rect).area() > (.5 * min(left_info[i].rect.area(), right_info[j].rect.area())))
