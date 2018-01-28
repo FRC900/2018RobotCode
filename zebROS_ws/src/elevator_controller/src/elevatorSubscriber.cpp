@@ -1,9 +1,1 @@
-#include "ros/ros.h"
-#include "std_msgs/String.h"
-
-int main(int argc, int *argv){
-
-
-
-
-
+//TODO : write subscriber to recieve x,y inputs

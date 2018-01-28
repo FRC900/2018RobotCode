@@ -2,7 +2,7 @@
 #include "elevator_node/linear_control.h"
 
 bool ifCube;
-double 
+double elevatorHeight;
 double pivotAngle;
 bool clampState;
 ros::Publisher RobotStatePub;
@@ -27,10 +27,10 @@ void evaluateCubeState(){
 }
 
 void main(int argc, int *argv){
-  ros::init(argc, argv, "elevator_control"
+ /* ros::init(argc, argv, "elevator_control");
   ros::NodeHandle n;
-  RobotStatePub = n.advertise<elevator_teleop_control::RobotState>("RobotState", 1)
-  ros::Rate loop_rate(10)
-  RobotStatePub.publish(RobotStateMsg)
-  ros::spinOnce();
+  RobotStatePub = n.advertise<elevator_teleop_control::RobotState>("RobotState", 1);
+  ros::Rate loop_rate(10);
+  RobotStatePub.publish(RobotStateMsg);
+  ros::spin();*/
 }

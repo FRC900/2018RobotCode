@@ -1,4 +1,4 @@
 Header header
 
-bool ifCube;
-float64 elevatorHeight;
+bool ifCube
+float64 elevatorHeight
