@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>elevator_teleop_control</name>
+  <name>elevator_controller</name>
   <version>0.0.1</version>
   <description>Controls the elevator</description>
 

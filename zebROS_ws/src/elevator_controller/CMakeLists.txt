@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(elevator_teleop_control)
+project(elevator_controller)
 
 include ("../cmake_modules/CMakeOpt.cmake")
 
