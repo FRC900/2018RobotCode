@@ -38,6 +38,7 @@
   <depend>message_runtime</depend>
   <depend>ros_control_boilerplate</depend>
   <depend>talon_controllers</depend> 
+  <depend>controller_interface</depend>
 
 
   <export>

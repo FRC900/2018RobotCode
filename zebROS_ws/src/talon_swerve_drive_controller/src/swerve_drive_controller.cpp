@@ -652,7 +652,6 @@ void TalonSwerveDriveController::starting(const ros::Time &time)
 	brake();
 
 	// Register starting time used to keep fixed rate
-	last_state_publish_time_ = time;
 	if (comp_odom_)
 	{
 		last_odom_pub_time_ = time;

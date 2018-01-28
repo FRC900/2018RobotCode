@@ -38,12 +38,6 @@ class ElevatorController
 
 		void starting(const ros::Time &time);
 
-                /**
-                 * \brief Stops controller
-                 * \param time Current time
-                 */
-                void stopping(const ros::Time & /*time*/);
-
 	private:
 		bool if_cube_;
 		bool clamp_cmd_;
@@ -75,15 +69,18 @@ class ElevatorController
                 Commands command_struct_;
 		ros::Subscriber sub_command_;
 		double arm_length_;
+		double arm_offset_;
+		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl::ConstPtr &command);
 		void clampCallback(const std_msgs::Bool::ConstPtr &command); 
+		void intakePowerCallback(const std_msgs::Float64::ConstPtr &power); 
+		//Add Callback for intake pneumatics, probably needs to be a custom msg
+		
 		//TODO: add odometry		
 		//void compOdometry(const ros::Time& time, const double inv_delta_t);
-		void intakePowerCallback(const std_msgs::Float64::ConstPtr &power); 
-		//Add stuff for intake pneumatics, probably needs to be a custom msg
 		void evaluateCubeState();
 		//Something for getting the soft limit bounding boxes
-		
+		//some function for making limits based on soft limit bounding box
 
 
 }//Class

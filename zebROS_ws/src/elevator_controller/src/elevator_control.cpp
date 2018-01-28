@@ -61,14 +61,71 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	//TODO: something here to get bounding boxes etc.
 
 	
+	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
+	
+	//TODO: add odom init stuff
 
-/* ros::init(argc, argv, "elevator_control");
-  ros::NodeHandle n;
-  RobotStatePub = n.advertise<elevator_teleop_control::RobotState>("RobotState", 1);
-  ros::Rate loop_rate(10);
-  RobotStatePub.publish(RobotStateMsg);
-  ros::spin();*/
+	return true;
 }
+void ElevatorController::update(const ros::Time &time, const ros::Duration &period)
+{
+	const double delta_t = period.toSec();
+        const double inv_delta_t = 1 / delta_t;
+	//compOdometry(time, inv_delta_t);
+	Commands curr_cmd = *(command_.readFromRT());
+	//Use known info to write to hardware etc.
+	//Put in intelligent bounds checking 
+
+	
+
+
+
 
 
 }
+void ElevatorController::starting(const ros::Time &time)
+{
+	//maybe initialize the target to something if not otherwise set?
+	//We will need to write this time to some variables for odom eventually
+}
+void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorControl::ConstPtr &command)
+{
+	if(isRunning())
+	{
+		command_struct_.lin[0] = command.pose.x;
+		command_struct_.lin[1] = command.pose.z;
+		command_struct_.stamp = ros::Time::now();
+		command_.writeFromNonRT(command_struct_);
+	}	
+	else
+	{
+		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+	}
+}
+void ElevatorController::clampCallback(const std_msgs::Bool::ConstPtr &command)
+{
+
+	if(isRunning())
+	{
+		clamp_cmd_ = command.data;
+
+	}
+	else
+	{
+		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+	}
+}
+void ElevatorController::intakePowerCallback(const std_msgs::Float64::ConstPtr &command)
+{
+
+	if(isRunning())
+	{
+		intake_power_; = command.data;
+
+	}
+	else
+	{
+		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+	}
+}
+}//Namespace
