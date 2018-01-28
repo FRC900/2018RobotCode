@@ -189,7 +189,7 @@ namespace talon_swerve_drive_controller
 TalonSwerveDriveController::TalonSwerveDriveController() : 
 	open_loop_(false),
 	wheel_radius_(0.0),
-	cmd_vel_timeout_(0.5),
+	cmd_vel_timeout_(0.5), //Change to 5.0 for auto path planning testing
 	allow_multiple_cmd_vel_publishers_(true),
 	base_frame_id_("base_link"),
 	odom_frame_id_("odom"),
