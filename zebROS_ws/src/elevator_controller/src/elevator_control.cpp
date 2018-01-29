@@ -65,13 +65,13 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	controller_nh.getParam("max_extension", min_extension_);
 	
 	//Set soft limits using offsets here
-	pivot_joint_->setForwardSoftLimitThreshold(M_PI/2 + pivot_offset_);
-	pivot_joint_->setReverseSoftLimitThreshold(-M_PI/2 + pivot_offset_);
+	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 + pivot_offset_);
+	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + pivot_offset_);
 
-	//TODO: below unit conversion doesn't work because controller mapping only applies to setting pos
+	//below unit conversion will work using conversion_factor
 	//, not soft limits
 
-	lift_joint_->setFowardSoftLimitThreshold(max_extension_ + lift_offset_);
+	lift_joint_.setFowardSoftLimitThreshold(max_extension_ + lift_offset_);
 	lift_joint_->setReverseSoftLimitThreshold(min_extension_ + lift_offset_);
 	//TODO: something here to get bounding boxes etc.
 

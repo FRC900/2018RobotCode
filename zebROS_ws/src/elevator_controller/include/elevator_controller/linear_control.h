@@ -47,6 +47,7 @@ class ElevatorController
 		double intake_power_;
 
 		double max_extension_;
+		double min_extension_;
 		
 		struct IntakePistonCommand //This struct is highly subject to change
 		{			
