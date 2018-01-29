@@ -4,8 +4,13 @@
 #include <controller_interface/controller.h>
 #include <talon_controllers/talon_controller_interface.h>
 #include <pluginlib/class_list_macros.h>
-
+#include "ros/console.h"
+#include "std_msgs/Float64.h"
 #include <sensor_msgs/JointState.h>
+#include <std_msgs/Bool.h>
+#include "teleop_joystick_control/RobotState.h"
+#include "elevator_controller/ElevatorControl.h"
+
 #include <nav_msgs/Odometry.h>
 #include <tf/tfMessage.h>
 
@@ -13,9 +18,6 @@
 #include <realtime_tools/realtime_publisher.h>
 
 //#include <talon_swerve_drive_controller/odometry.h>
-#include <talon_swerve_drive_controller/speed_limiter.h>
-
-#include <talon_swerve_drive_controller/Swerve.h>
 #include <array>
 #include <memory>
 #include <Eigen/Dense>
@@ -39,6 +41,7 @@ class ElevatorController
 		void starting(const ros::Time &time);
 
 	private:
+		std::string name_;
 		bool if_cube_;
 		bool clamp_cmd_;
 		double intake_power_;
@@ -49,13 +52,13 @@ class ElevatorController
 			double left_pressure;
 			double right_pressure;
 	
-		}
-		ros::Publisher RobotStatePub;
-		elevator_teleop_control::RobotState RobotStateMsg;
+		};
+		//ros::Publisher RobotStatePub;
+		//elevator_controller::RobotState RobotStateMsg;
 
-		talon_controllers::TalonLinearMotionMagicCloseLoopControllerInterface lift_joint_;
-                talon_controllers::TalonAngleMotionMagicCloseLoopControllerInterface pivot_joint_;
-		talon_controllers::TalonPercentOutputController intake_joint_;
+		talon_controllers::TalonMotionMagicCloseLoopControllerInterface lift_joint_;
+		talon_controllers::TalonMotionMagicCloseLoopControllerInterface pivot_joint_;
+		talon_controllers::TalonPercentOutputControllerInterface intake_joint_;
 
 		struct Commands
                 {
@@ -69,11 +72,11 @@ class ElevatorController
                 Commands command_struct_;
 		ros::Subscriber sub_command_;
 		double arm_length_;
-		double arm_offset_;
+		double pivot_offset_;
 		double lift_offset_;
-		void cmdPosCallback(const elevator_controller::ElevatorControl::ConstPtr &command);
-		void clampCallback(const std_msgs::Bool::ConstPtr &command); 
-		void intakePowerCallback(const std_msgs::Float64::ConstPtr &power); 
+		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
+		void clampCallback(const std_msgs::Bool& command); 
+		void intakePowerCallback(const std_msgs::Float64& power); 
 		//Add Callback for intake pneumatics, probably needs to be a custom msg
 		
 		//TODO: add odometry		
@@ -83,5 +86,5 @@ class ElevatorController
 		//some function for making limits based on soft limit bounding box
 
 
-}//Class
+};//Class
 }//Namespace
