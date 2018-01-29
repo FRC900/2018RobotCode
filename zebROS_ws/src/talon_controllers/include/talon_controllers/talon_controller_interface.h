@@ -76,7 +76,7 @@ class TalonCIParams
 			motion_acceleration_(20),
 			motion_control_frame_period_(20), // Guess at 50Hz default?
 			
-			conversion_factor_(1)
+			conversion_factor_(1.0)
 		{
 		}
 

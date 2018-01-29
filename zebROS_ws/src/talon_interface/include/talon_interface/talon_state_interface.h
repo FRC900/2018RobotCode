@@ -219,7 +219,8 @@ class TalonHWState
 			// faults
 			faults_(0),
 			sticky_faults_(0),
-			conversion_factor_(0.0)
+
+			conversion_factor_(1.0)
 		{
 		}
 		
