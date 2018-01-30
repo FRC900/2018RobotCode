@@ -1,4 +1,3 @@
-//this file exists so src folder is uploaded for structure
 #include <elevator_controller/linear_control.h>
 #include <dynamic_reconfigure/DoubleParameter.h>
 #include <dynamic_reconfigure/Reconfigure.h>

@@ -1,4 +1,4 @@
-//make this file so include is uploaded to github for structure
+#pragma once
 //
 #include "ros/ros.h"
 #include <controller_interface/controller.h>
@@ -17,7 +17,7 @@
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 
-//#include <talon_swerve_drive_controller/odometry.h>
+
 #include <array>
 #include <memory>
 #include <Eigen/Dense>

@@ -35,9 +35,10 @@ class arm_limits
 		arm_limits(double min_extension, double max_extension, double x_back, double arm_length, 
 		polygon_edges remove_zone_down, int circle_point_count)
 		{
-			saved_polygons =  arm_limitation_polygon(min_extension, max_extension, 
+			saved_polygons_ =  arm_limitation_polygon(min_extension, max_extension, 
 			x_back, arm_length, remove_zone_down, circle_point_count);
-
+			
+			arm_length_ = arm_length;
 			//dis be contructor
 			//TODO: make better
 		}
@@ -45,11 +46,11 @@ class arm_limits
 		{		
 			if(up_or_down)
 			{
-				if(boost::geometry::within(cmd, saved_polygons[0])
+				if(boost::geometry::within(cmd, saved_polygons_[0])
 				{
 					return true;
 				}
-				else if(boost::geometry::within(cmd, saved_polygons[1])
+				else if(boost::geometry::within(cmd, saved_polygons_[1])
 				{
 					up_or_down = false;
 					return false;
@@ -63,11 +64,11 @@ class arm_limits
 			else
 			{
 
-				if(boost::geometry::within(cmd, saved_polygons[1])
+				if(boost::geometry::within(cmd, saved_polygons_[1])
 				{
 					return true;
 				}
-				else if(boost::geometry::within(cmd, saved_polygons[0])
+				else if(boost::geometry::within(cmd, saved_polygons_[0])
 				{
 					up_or_down = true;
 					return false;
@@ -79,9 +80,51 @@ class arm_limits
 				}
 			}
 		}
+		bool safe_cmd(point_type &cmd, bool &up_or_down, bool &reassigned, point_type cur_pos, 
+		bool cur_up_or_down)
+		{
+			//Note: uses heuristics only applicable to our robot
+			reassigned = check_if_possible(cmd, up_or_down);
+			
+			double isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
+			*((up_or_down?) 1 : -1) - sin(acos(cur_pos.x()/arm_length_))*arm_length_
+			*((cur_up_or_down?) 1 : -1) + cur_pos.y();
+			//Could switch above to using circle func instead of trig func	
+			point_type test_pivot_cmd(cmd.x(), isolated_pivot_y);
+			
+			double isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
+
+			if(!check_if_possible(test_pivot_cmd, up_or_down))
+			{
+				cmd.x(test_pivot_cmd.x());
+				cmd.y(test_pivot_cmd.y(isolated_lift_delta_y+test_pivot_cmd.y());
+				return false;				
+			}
+			else
+			{
+				point_type test_lift_cmd(cur_pos.x(), cur_pos.y() + isolated_lift_delta_y);
+				bool temp = up_or_down;
+				if(!check_if_possible(test_lift_cmd, temp))
+				{
+					cmd.y(test_lift_cmd.y() - cur_pos.y() + isolated_pivot_y);
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			} 
+		}
 	private:
-		std::array<polygon_type, 2> saved_polygons;
-		
+		double arm_length_;
+		std::array<polygon_type, 2> saved_polygons_;
+		find_nearest_point(point_type &cmd, bool &up_or_down)
+		{
+			
+
+
+
+		}	
 		polygon_edges quarter_circle_gen(double delta_height, double midpoint_z, double midpoint_x,			   int point_count)
 		{
 			polygon_edges circle;
