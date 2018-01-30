@@ -1,5 +1,9 @@
 //this file exists so src folder is uploaded for structure
 #include <elevator_controller/linear_control.h>
+#include <dynamic_reconfigure/DoubleParameter.h>
+#include <dynamic_reconfigure/Reconfigure.h>
+#include <dynamic_reconfigure/Config.h>
+
 
 namespace elevator_controller
 {
@@ -64,15 +68,44 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	controller_nh.getParam("max_extension", max_extension_);
 	controller_nh.getParam("max_extension", min_extension_);
 	
-	//Set soft limits using offsets here
-	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 + pivot_offset_);
-	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + pivot_offset_);
+	dynamic_reconfigure::ReconfigureRequest srv_req;
+        dynamic_reconfigure::ReconfigureResponse srv_resp;
+        dynamic_reconfigure::DoubleParameter double_param;
+        dynamic_reconfigure::Config confP;
+        dynamic_reconfigure::Config confL;
 
-	//below unit conversion will work using conversion_factor
+        //soft limits need to be enabled in config file
+
+        double_param.name = "softlimit_forward_threshold";
+        double_param.value = M_PI/2 + pivot_offset_;
+        confP.doubles.push_back(double_param);
+
+        double_param.name = "softlimit_reverse_threshold";
+        double_param.value = -M_PI/2 + pivot_offset_;
+        confP.doubles.push_back(double_param);
+
+
+        double_param.name = "softlimit_forward_threshold";
+        double_param.value = max_extension_ + lift_offset_;
+        confL.doubles.push_back(double_param);
+
+        double_param.name = "softlimit_reverse_threshold";
+        double_param.value = min_extension_ + lift_offset_;
+        confL.doubles.push_back(double_param);
+
+        srv_req.config = confP;
+
+        ros::service::call("/frcrobot/pivot/updates", srv_req, srv_resp);
+
+        srv_req.config = confL;
+
+        ros::service::call("/frcrobot/lift/updates", srv_req, srv_resp);
+	
+	//Set soft limits using offsets here
+
+	//unit conversion will work using conversion_factor
 	//, not soft limits
 
-	lift_joint_.setFowardSoftLimitThreshold(max_extension_ + lift_offset_);
-	lift_joint_->setReverseSoftLimitThreshold(min_extension_ + lift_offset_);
 	//TODO: something here to get bounding boxes etc.
 
 	
