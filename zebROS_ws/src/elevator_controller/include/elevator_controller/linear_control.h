@@ -41,6 +41,12 @@ class ElevatorController
 		void starting(const ros::Time &time);
 
 	private:
+		double lift_position;
+		double pivot_angle;
+
+		double lift_velocity;
+		double pivot_anglular_velocity;
+		
 		std::string name_;
 		bool if_cube_;
 		bool clamp_cmd_;
@@ -67,13 +73,16 @@ class ElevatorController
                 {
                         Eigen::Vector2d lin;
                         bool up_or_down;
-                        ros::Time stamp;
+                        bool override_pos_limits;
+			bool override_sensor_limits;			
+			ros::Time stamp;
 
                         Commands() : lin({0.0, 0.0}), up_or_down(true), stamp(0.0) {}
                 };
 		realtime_tools::RealtimeBuffer<Commands> command_;
                 Commands command_struct_;
 		ros::Subscriber sub_command_;
+		//TODO: considering adding x offset?
 		double arm_length_;
 		double pivot_offset_;
 		double lift_offset_;
@@ -81,7 +90,9 @@ class ElevatorController
 		void clampCallback(const std_msgs::Bool& command); 
 		void intakePowerCallback(const std_msgs::Float64& power); 
 		//Add Callback for intake pneumatics, probably needs to be a custom msg
-		
+	
+		std::shared_ptr<arm_limiting::arm_limits> arm_limiter;
+	
 		//TODO: add odometry		
 		//void compOdometry(const ros::Time& time, const double inv_delta_t);
 		void evaluateCubeState();

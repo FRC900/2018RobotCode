@@ -29,7 +29,6 @@ class arm_limits
 {
 	public:	
 
-			
 
 
 		arm_limits(double min_extension, double max_extension, double x_back, double arm_length, 
