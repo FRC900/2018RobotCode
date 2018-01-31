@@ -42,7 +42,7 @@
 #include <thread>
 #include <ros_control_boilerplate/frc_robot_interface.h>
 #include <ctre/phoenix/MotorControl/CAN/TalonSRX.h>
-#include <IterativeRobot.h>
+#include <IterativeRobotBase.h>
 #include <DriverStation.h>
 #include <realtime_tools/realtime_publisher.h>
 #include <NidecBrushless.h>
@@ -55,10 +55,14 @@
 
 namespace frcrobot_control
 {
-class ROSIterativeRobot : public frc::IterativeRobot
+class ROSIterativeRobot : public frc::IterativeRobotBase
 {
 	public:
-		void StartCompetition(void)
+		ROSIterativeRobot(void)
+		{
+			HAL_Report(HALUsageReporting::kResourceType_Framework, 900);
+		}
+		void StartCompetition(void) override
 		{
 			RobotInit();
 			HAL_ObserveUserProgramStarting();
