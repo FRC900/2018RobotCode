@@ -110,9 +110,11 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
 	sub_intake_ = controller_nh.subscribe("intake", 1, &ElevatorController::intakeCallback, this);	
+	sub_clamp_ = controller_nh.subscribe("clamp", 1, &ElevatorController::clampCallback, this);	
 	
 	
 
+	Clamp      	  = controller_nh.advertise<std_msgs::Float64>("clamp/command", 1);  
 
 	IntakeLeftUp      = controller_nh.advertise<std_msgs::Float64>("intake_left_up/command", 1);  
 	IntakeRightUp     = controller_nh.advertise<std_msgs::Float64>("intake_right_up/command", 1);  
@@ -152,6 +154,12 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	holder_msg.data = intake_struct_.spring_right;
 	IntakeRightSpring.publish(holder_msg);
 
+
+
+
+	holder_msg.data = clamp_cmd_;
+	Clamp.publish(holder_msg);
+	
 
 	if(!curr_cmd.override_pos_limits)
 	{
@@ -212,7 +220,7 @@ void ElevatorController::clampCallback(const std_msgs::Bool &command)
 
 	if(isRunning())
 	{
-		clamp_cmd_ = command.data;
+		clamp_cmd_ = command.data ? 1.0 : -1.0;
 
 	}
 	else

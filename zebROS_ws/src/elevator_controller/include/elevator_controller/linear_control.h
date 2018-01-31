@@ -50,7 +50,7 @@ class ElevatorController
 		
 		std::string name_;
 		bool if_cube_;
-		bool clamp_cmd_;
+		double clamp_cmd_;
 
 		double max_extension_;
 		double min_extension_;
@@ -87,7 +87,10 @@ class ElevatorController
 		ros::Subscriber sub_command_;
 		IntakeCommand intake_struct_;
 		ros::Subscriber sub_intake_;
+		ros::Subscriber sub_clamp_;
 		//TODO: considering adding x offset?
+		
+		ros::Publisher Clamp; 
 		
 		ros::Publisher IntakeLeftUp; 
 		ros::Publisher IntakeRightUp; 

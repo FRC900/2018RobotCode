@@ -16,8 +16,11 @@ hardware_interface:
        - {name: pivot, type: can_talon_srx, can_id: 51}
        - {name: intake, type: can_talon_srx, can_id: 31}
        - {name: intake_follower1, type: can_talon_srx, can_id: 32}
+       - {name: intake_left_up, type: double_solenoid, forward_id: 1, reverse_id: 2}
+       - {name: intake_right_up, type: double_solenoid, forward_id: 3, reverse_id: 4}
+       - {name: clamp, type: solenoid, id: 0}
    
-#TODO: add pneumatics and some sensors
+#TODO: add "spring" pneumatics and some sensors
 # Add more data for each joint here - intitial mode, encoder type
    #    PIDF settings, limit switch settings, etc
 
@@ -104,5 +107,15 @@ intake_follower1_controller:
     follow_joint: intake
     invert_output: True #opposite of intake
 
+intake_left_up_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: intake_left_up
 
-    
+intake_right_up_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: intake_right_up
+	
+clamp_controller:
+    type: velocity_controllers/JointVelocityController
+    joint: clamp
+
