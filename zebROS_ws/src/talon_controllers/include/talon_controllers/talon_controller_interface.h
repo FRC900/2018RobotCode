@@ -74,7 +74,9 @@ class TalonCIParams
 			current_limit_enable_(false),
 			motion_cruise_velocity_(10), // No idea at a guess
 			motion_acceleration_(20),
-			motion_control_frame_period_(20) // Guess at 50Hz default?
+			motion_control_frame_period_(20), // Guess at 50Hz default?
+			
+			conversion_factor_(1.0)
 		{
 		}
 
@@ -97,6 +99,7 @@ class TalonCIParams
 			max_integral_accumulator_[1] = config.max_integral_accumulator1;
 			pidf_slot_ = config.pid_config;
 			invert_output_ = config.invert_output;
+
 			sensor_phase_ = config.sensor_phase;
 			feedback_type_ = static_cast<hardware_interface::FeedbackDevice>(config.feedback_type);
 			ticks_per_rotation_ = config.encoder_ticks_per_rotation;
@@ -129,6 +132,8 @@ class TalonCIParams
 			motion_cruise_velocity_ = config.motion_cruise_velocity;
 			motion_acceleration_ = config.motion_acceleration;
 			motion_control_frame_period_ = config.motion_control_frame_period;
+		
+			conversion_factor_ = config.conversion_factor;
 		}
 
 		// Copy from internal state to TalonConfigConfig state
@@ -181,6 +186,7 @@ class TalonCIParams
 			config.motion_cruise_velocity = motion_cruise_velocity_;
 			config.motion_acceleration = motion_acceleration_;
 			config.motion_control_frame_period = motion_control_frame_period_;
+			config.conversion_factor = conversion_factor_;
 			return config;
 		}
 
@@ -192,6 +198,11 @@ class TalonCIParams
 				ROS_ERROR("No joint given (namespace: %s)", n.getNamespace().c_str());
 				return false;
 			}
+			return true;
+		}
+		bool readConversion(ros::NodeHandle &n)
+		{
+			n.getParam("conversion_factor", conversion_factor_);
 			return true;
 		}
 
@@ -498,7 +509,8 @@ class TalonCIParams
 		double motion_cruise_velocity_;
 		double motion_acceleration_;
 		int    motion_control_frame_period_;
-
+		
+		double conversion_factor_;
 	private:
 		// Read a double named <param_type> from the array/map
 		// in params
@@ -589,6 +601,7 @@ class TalonControllerInterface
 		virtual bool readParams(ros::NodeHandle &n, hardware_interface::TalonStateInterface *tsi)
 		{
 			return params_.readJointName(n) &&
+				   params_.readConversion(n) &&
 				   params_.readFollowerID(n, tsi) &&
 				   params_.readCloseLoopParams(n) &&
 				   params_.readNeutralMode(n) &&
@@ -631,7 +644,7 @@ class TalonControllerInterface
 			// Save copy of params written to HW
 			// so they can be queried later?
 			params_ = params;
-
+			
 			talon_->setEncoderFeedback(params_.feedback_type_);
 			// perform additional hardware init here
 			// but don't set mode - either force the caller to
@@ -754,6 +767,7 @@ class TalonControllerInterface
 		{
 			talon_->set(command);
 		}
+		
 
 		// Set the mode of the motor controller
 		virtual void setMode(const hardware_interface::TalonMode mode)
