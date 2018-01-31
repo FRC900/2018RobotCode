@@ -22,17 +22,17 @@
 
 namespace arm_limiting
 {
-	typedef std::vector<point_type> polygon_edges;
 	typedef boost::geometry::model::d2::point_xy<double> point_type;
+	typedef std::vector<point_type> polygon_edges;
 	typedef boost::geometry::model::polygon<point_type> polygon_type;
 class arm_limits
 {
 	public:	
 
-
+		arm_limits() {};
 
 		arm_limits(double min_extension, double max_extension, double x_back, double arm_length, 
-		polygon_edges remove_zone_down, int circle_point_count)
+		polygon_type remove_zone_down, int circle_point_count)
 		{
 			saved_polygons_ =  arm_limitation_polygon(min_extension, max_extension, 
 			x_back, arm_length, remove_zone_down, circle_point_count);
@@ -45,11 +45,11 @@ class arm_limits
 		{		
 			if(up_or_down)
 			{
-				if(boost::geometry::within(cmd, saved_polygons_[0])
+				if(boost::geometry::within(cmd, saved_polygons_[0]))
 				{
 					return true;
 				}
-				else if(boost::geometry::within(cmd, saved_polygons_[1])
+				else if(boost::geometry::within(cmd, saved_polygons_[1]))
 				{
 					up_or_down = false;
 					return false;
@@ -63,11 +63,11 @@ class arm_limits
 			else
 			{
 
-				if(boost::geometry::within(cmd, saved_polygons_[1])
+				if(boost::geometry::within(cmd, saved_polygons_[1]))
 				{
 					return true;
 				}
-				else if(boost::geometry::within(cmd, saved_polygons_[0])
+				else if(boost::geometry::within(cmd, saved_polygons_[0]))
 				{
 					up_or_down = true;
 					return false;
@@ -86,8 +86,8 @@ class arm_limits
 			reassigned = check_if_possible(cmd, up_or_down);
 			
 			double isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
-			*((up_or_down?) 1 : -1) - sin(acos(cur_pos.x()/arm_length_))*arm_length_
-			*((cur_up_or_down?) 1 : -1) + cur_pos.y();
+			*( up_or_down ? 1 : -1) - sin(acos(cur_pos.x()/arm_length_))*arm_length_
+			*(cur_up_or_down ? 1 : -1) + cur_pos.y();
 			//Could switch above to using circle func instead of trig func	
 			point_type test_pivot_cmd(cmd.x(), isolated_pivot_y);
 			
@@ -96,7 +96,7 @@ class arm_limits
 			if(!check_if_possible(test_pivot_cmd, up_or_down))
 			{
 				cmd.x(test_pivot_cmd.x());
-				cmd.y(test_pivot_cmd.y(isolated_lift_delta_y+test_pivot_cmd.y());
+				cmd.y(isolated_lift_delta_y + test_pivot_cmd.y());
 				return false;				
 			}
 			else
@@ -117,12 +117,10 @@ class arm_limits
 	private:
 		double arm_length_;
 		std::array<polygon_type, 2> saved_polygons_;
-		find_nearest_point(point_type &cmd, bool &up_or_down)
+		void find_nearest_point(point_type &cmd, bool &up_or_down)
 		{
-			
-
-
-
+			//Make this an actual function
+			return;			
 		}	
 		polygon_edges quarter_circle_gen(double delta_height, double midpoint_z, double midpoint_x,			   int point_count)
 		{
@@ -131,9 +129,9 @@ class arm_limits
 			point_count++;
 			//(z-midpoint_z)^2+(x-midpoint_x)^2 = radius^2
 			//x = midpoint_x + sqrt(radius^2 - (z-midpoint_z)^2)
-			for(int i  = 1, i < point_count, i++) //Don't need beginning line or end line
+			for(int i  = 1; i < point_count; i++) //Don't need beginning line or end line
 			{
-				circle += point_type(midpoint_x+sqrt(pow(delta_height, 2) - pow(i*delta_height/point_count, 2)), i*delta_height/point_count + midpoint_z);
+				circle.push_back(point_type(midpoint_x+sqrt(pow(delta_height, 2) - pow(i*delta_height/point_count, 2)), i*delta_height/point_count + midpoint_z));
 			}
 			if(delta_height < 0)
 			{
@@ -142,7 +140,7 @@ class arm_limits
 			return circle;
 		}
 		std::array<polygon_type, 2> arm_limitation_polygon(double min_extension, 
-		double max_extension, double x_back, double arm_length, polygon_edges remove_zone_down, 
+		double max_extension, double x_back, double arm_length, polygon_type remove_zone_down, 
 		int circle_point_count)
 		{
 			polygon_edges back_line_down;
@@ -155,10 +153,14 @@ class arm_limits
 			polygon_edges bottom_circle_down;
 			polygon_edges bottom_circle_up;
 
-			back_line_down += point_type(x_back, max_extension - arm_length), point_type(x_back, min_extension - arm_length);
-			back_line_up +=  point_type(x_back, max_extension + arm_length), point_type(x_back, min_extension + arm_length);
-			front_line_down += point_type(x_back + arm_length, min_extension), point_type(x_back + arm_length, max_extension); 	
-			front_line_up += point_type(x_back + arm_length, min_extension), point_type(x_back + arm_length, max_extension); 	
+			back_line_down.push_back(point_type(x_back, max_extension - arm_length));
+			back_line_down.push_back(point_type(x_back, min_extension - arm_length));
+			back_line_up.push_back(point_type(x_back, max_extension + arm_length));
+			back_line_up.push_back(point_type(x_back, min_extension + arm_length));
+			front_line_down.push_back(point_type(x_back + arm_length, min_extension));
+			front_line_down.push_back(point_type(x_back + arm_length, max_extension)); 	
+			front_line_up.push_back(point_type(x_back + arm_length, min_extension));
+			front_line_up.push_back(point_type(x_back + arm_length, max_extension)); 	
 			
 			top_circle_up = quarter_circle_gen(arm_length, max_extension, x_back, circle_point_count);
 			top_circle_down = quarter_circle_gen(-arm_length, max_extension, x_back, circle_point_count);
@@ -179,8 +181,8 @@ class arm_limits
 			back_line_down.insert(back_line_down.end(), top_circle_down.begin(), top_circle_down.end());
 			back_line_down.push_back(back_line_down[0]);
 
-			polygon down_poly;
-			polygon up_poly;
+			polygon_type down_poly;
+			polygon_type up_poly;
 			
 			boost::geometry::assign_points(down_poly, back_line_down);
 			boost::geometry::assign_points(up_poly, back_line_up);
@@ -188,8 +190,8 @@ class arm_limits
 			//TODO: remove excluded points from poly
 			//Also, test these polys with print statements
 			
-			std::array<polygon_type, 2> up_and_down = {up_poly, down_poly};
-			return up_and_down;
+			std::array<polygon_type, 2> up_and_down_polygons = {up_poly, down_poly};
+			return up_and_down_polygons;
 		}
 };
 }

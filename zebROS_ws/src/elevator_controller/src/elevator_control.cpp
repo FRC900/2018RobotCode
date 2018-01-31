@@ -1,5 +1,4 @@
 #include <elevator_controller/linear_control.h>
-#include <elevator_controller/arm_limiting.h>
 #include <dynamic_reconfigure/DoubleParameter.h>
 #include <dynamic_reconfigure/Reconfigure.h>
 #include <dynamic_reconfigure/Config.h>
@@ -109,7 +108,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	//TODO: something here to get bounding boxes etc.
 	arm_limiting::polygon_type remove_zone_poly_down;
 
-	arm_limiting = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0, arm_length_, remove_zone_poly_down, 15);
+	arm_limiter = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, 15);
 	
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
 	
@@ -137,8 +136,8 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	*/
 	if(!curr_cmd.override_pos_limits)
 	{
-		lift_position = lift_joint.getPosition() - lift_offset_;
-		pivot_angle = pivot_joint.getPosition() - pivot_offset_;
+		lift_position = lift_joint_.getPosition() - lift_offset_;
+		pivot_angle = pivot_joint_.getPosition() - pivot_offset_;
 		
 		arm_limiting::point_type cmd_point(curr_cmd.lin[0], curr_cmd.lin[1]);
 
@@ -148,7 +147,7 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 		bool cur_up_or_down = pivot_angle > 0;
 		bool reassignment_holder;
 		
-		arm_limiter.safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down);
+		arm_limiter->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down);
 	
 		//potentially do something if reassignment is needed (Like a ROS_WARN?)
 	
@@ -179,7 +178,7 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 		command_struct_.lin[1] = command.y;
 		command_struct_.up_or_down = command.up_or_down;
 		command_struct_.override_pos_limits = command.override_pos_limits;
-		command_struct_.override_sensor_limits = command.override_sensor_limts;
+		command_struct_.override_sensor_limits = command.override_sensor_limits;
 		
 		command_struct_.stamp = ros::Time::now();
 		command_.writeFromNonRT(command_struct_);

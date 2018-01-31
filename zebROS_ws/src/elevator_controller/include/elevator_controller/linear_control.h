@@ -1,5 +1,4 @@
 #pragma once
-//
 #include "ros/ros.h"
 #include <controller_interface/controller.h>
 #include <talon_controllers/talon_controller_interface.h>
@@ -10,6 +9,7 @@
 #include <std_msgs/Bool.h>
 #include "teleop_joystick_control/RobotState.h"
 #include "elevator_controller/ElevatorControl.h"
+#include <elevator_controller/arm_limiting.h>
 
 #include <nav_msgs/Odometry.h>
 #include <tf/tfMessage.h>
