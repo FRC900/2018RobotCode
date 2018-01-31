@@ -234,8 +234,7 @@ void ElevatorController::intakeCallback(const elevator_controller::Intake &comma
 	if(isRunning())
 	{
                 intake_struct_.power = command.power;
-		intake_struct_.spring_left = command.spring_left;
-                intake_struct_.spring_right = command.spring_right;
+
 
 		if(command.left_up)
 		{
@@ -261,6 +260,34 @@ void ElevatorController::intakeCallback(const elevator_controller::Intake &comma
 		else
 		{
 			intake_struct_.right_command = 0.0;
+		}
+		
+
+		if(command.spring_left_out)
+		{
+			intake_struct_.spring_left = -1.0;
+		}
+		else if(command.spring_left_in)
+		{
+			intake_struct_.spring_left = 1.0;
+		}
+		else
+		{
+			intake_struct_.spring_left = 0.0;
+		}
+		
+
+		if(command.spring_right_out)
+		{
+			intake_struct_.spring_right = -1.0;
+		}
+		else if(command.spring_right_in)
+		{
+			intake_struct_.spring_right = 1.0;
+		}
+		else
+		{
+			intake_struct_.spring_right = 0.0;
 		}
 	}
 	else

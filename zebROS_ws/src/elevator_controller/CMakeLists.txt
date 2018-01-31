@@ -22,7 +22,6 @@ find_package(Eigen REQUIRED)
 add_message_files (
   FILES
   ElevatorControl.msg
-  RobotState.msg
   Intake.msg
 )
 generate_messages(

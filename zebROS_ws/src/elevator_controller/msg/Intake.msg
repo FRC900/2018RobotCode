@@ -3,6 +3,8 @@ bool left_up
 bool left_down
 bool right_up
 bool right_down
-float64 spring_left
-float64 spring_right
+bool spring_left_in
+bool spring_right_out
+bool spring_left_out
+bool spring_right_in
 float64 power
