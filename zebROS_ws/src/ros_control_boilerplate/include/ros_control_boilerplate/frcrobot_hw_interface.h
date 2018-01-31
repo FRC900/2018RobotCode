@@ -62,11 +62,13 @@ class ROSIterativeRobot : public frc::IterativeRobotBase
 		{
 			HAL_Report(HALUsageReporting::kResourceType_Framework, 900);
 		}
+
 		void StartCompetition(void) override
 		{
 			RobotInit();
 			HAL_ObserveUserProgramStarting();
 		}
+
 		void OneIteration(void)
 		{
 			// wait for driver station data so the loop doesn't hog the CPU
