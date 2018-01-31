@@ -267,6 +267,10 @@ void FRCRobotHWInterface::init(void)
 
 		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));
 
+		imu_orientation_covariances_[i] = {0.0015, 0.0, 0.0, 0.0, 0.0015, 0.0, 0.0, 0.0, 0.0015};
+		imu_angular_velocity_covariances_[i] = {0.0015, 0.0, 0.0, 0.0, 0.0015, 0.0, 0.0, 0.0, 0.0015};
+	   	imu_linear_acceleration_covariances_[i] ={0.0015, 0.0, 0.0, 0.0, 0.0015, 0.0, 0.0, 0.0, 0.0015};  	
+
 		// TODO :: fill in covariances here?
 		// Steal from navx node for now?
 	}
