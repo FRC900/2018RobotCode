@@ -9,7 +9,6 @@ namespace elevator_controller
 ElevatorController::ElevatorController():
 	if_cube_(false),
 	clamp_cmd_(false),
-	intake_power_(0.0),
 	arm_length_(0.0)
 {
 }	
@@ -65,7 +64,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	intake_joint_.initWithNode(hw, nullptr, i_nh);		
 		
 	controller_nh.getParam("max_extension", max_extension_);
-	controller_nh.getParam("max_extension", min_extension_);
+	controller_nh.getParam("min_extension", min_extension_);
 	
 	dynamic_reconfigure::ReconfigureRequest srv_req;
         dynamic_reconfigure::ReconfigureResponse srv_resp;
@@ -103,15 +102,25 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	//Set soft limits using offsets here
 
 	//unit conversion will work using conversion_factor
-	//, not soft limits
 
-	//TODO: something here to get bounding boxes etc.
+	//TODO: something here to get bounding boxes etc for limits near bottom of drive train
 	arm_limiting::polygon_type remove_zone_poly_down;
 
 	arm_limiter = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, 15);
 	
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
+	sub_intake_ = controller_nh.subscribe("intake", 1, &ElevatorController::intakeCallback, this);	
 	
+	
+
+
+	IntakeLeftUp      = controller_nh.advertise<std_msgs::Float64>("intake_left_up/command", 1);  
+	IntakeRightUp     = controller_nh.advertise<std_msgs::Float64>("intake_right_up/command", 1);  
+	IntakeRightSpring = controller_nh.advertise<std_msgs::Float64>("intake_right_spring/command", 1);      
+	IntakeLeftSpring  = controller_nh.advertise<std_msgs::Float64>("intake_left_spring/command", 1);      
+
+
+
 	//TODO: add odom init stuff
 
 	return true;
@@ -125,15 +134,25 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	//Use known info to write to hardware etc.
 	//Put in intelligent bounds checking 
 	
-
 	
 
-	intake_joint_.setCommand(intake_power_);
-	/*
-		//TODO: add pnematics
+	intake_joint_.setCommand(intake_struct_.power);
+	
+	std_msgs::Float64 holder_msg;
+
+	holder_msg.data = intake_struct_.left_command;
+	IntakeLeftUp.publish(holder_msg);
+
+	holder_msg.data = intake_struct_.right_command;
+	IntakeRightUp.publish(holder_msg);
+
+	holder_msg.data = intake_struct_.spring_left;
+	IntakeLeftSpring.publish(holder_msg);
+
+	holder_msg.data = intake_struct_.spring_right;
+	IntakeRightSpring.publish(holder_msg);
 
 
-	*/
 	if(!curr_cmd.override_pos_limits)
 	{
 		lift_position = lift_joint_.getPosition() - lift_offset_;
@@ -157,7 +176,7 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	if(!curr_cmd.override_sensor_limits)
 	{
 		//TODO: something here which reads time of flight/ultrasonic pos
-		//will only go up/down to with 6 in
+		//will only go up/down to within 15 cm
 		//if target is beyond dist, will bring arm all the way up or down to go around
 		//this is relatively low priority
 	}
@@ -201,13 +220,40 @@ void ElevatorController::clampCallback(const std_msgs::Bool &command)
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
 	}
 }
-void ElevatorController::intakePowerCallback(const std_msgs::Float64 &command)
+void ElevatorController::intakeCallback(const elevator_controller::Intake &command)
 {
 
 	if(isRunning())
 	{
-		intake_power_ = command.data;
+                intake_struct_.power = command.power;
+		intake_struct_.spring_left = command.spring_left;
+                intake_struct_.spring_right = command.spring_right;
 
+		if(command.left_up)
+		{
+			intake_struct_.left_command = -1.0;
+		}
+		else if(command.left_down)
+		{
+			intake_struct_.left_command = 1.0;
+		}
+		else
+		{
+			intake_struct_.left_command = 0.0;
+		}
+		
+		if(command.right_up)
+		{
+			intake_struct_.right_command = -1.0;
+		}
+		else if(command.right_down)
+		{
+			intake_struct_.right_command = 1.0;
+		}
+		else
+		{
+			intake_struct_.right_command = 0.0;
+		}
 	}
 	else
 	{

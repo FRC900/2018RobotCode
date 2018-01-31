@@ -9,6 +9,7 @@
 #include <std_msgs/Bool.h>
 #include "teleop_joystick_control/RobotState.h"
 #include "elevator_controller/ElevatorControl.h"
+#include <elevator_controller/Intake.h>
 #include <elevator_controller/arm_limiting.h>
 
 #include <nav_msgs/Odometry.h>
@@ -50,16 +51,18 @@ class ElevatorController
 		std::string name_;
 		bool if_cube_;
 		bool clamp_cmd_;
-		double intake_power_;
 
 		double max_extension_;
 		double min_extension_;
 		
-		struct IntakePistonCommand //This struct is highly subject to change
+		struct IntakeCommand //This struct is highly subject to change
 		{			
-			bool pivot_up;
-			double left_pressure;
-			double right_pressure;
+			double left_command;
+			double right_command;
+			double spring_left;
+			double spring_right;
+			double power;
+			IntakeCommand() : left_command(0.0),right_command(0.0), spring_left(0.0), spring_right(0.0), power(0.0) {}
 	
 		};
 		//ros::Publisher RobotStatePub;
@@ -82,13 +85,21 @@ class ElevatorController
 		realtime_tools::RealtimeBuffer<Commands> command_;
                 Commands command_struct_;
 		ros::Subscriber sub_command_;
+		IntakeCommand intake_struct_;
+		ros::Subscriber sub_intake_;
 		//TODO: considering adding x offset?
+		
+		ros::Publisher IntakeLeftUp; 
+		ros::Publisher IntakeRightUp; 
+		ros::Publisher IntakeRightSpring; 
+		ros::Publisher IntakeLeftSpring; 
+
 		double arm_length_;
 		double pivot_offset_;
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
+		void intakeCallback(const elevator_controller::Intake& command);
 		void clampCallback(const std_msgs::Bool& command); 
-		void intakePowerCallback(const std_msgs::Float64& power); 
 		//Add Callback for intake pneumatics, probably needs to be a custom msg
 	
 		std::shared_ptr<arm_limiting::arm_limits> arm_limiter;
