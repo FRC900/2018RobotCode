@@ -63,7 +63,7 @@ class ROSIterativeRobot : public frc::IterativeRobotBase
 	public:
 		ROSIterativeRobot(void)
 		{
-			HAL_Report(HALUsageReporting::kResourceType_Framework, 900);
+			HAL_Report(HALUsageReporting::kResourceType_Framework, 900, 0, "https://www.ros.org");
 		}
 
 		void StartCompetition(void) override
