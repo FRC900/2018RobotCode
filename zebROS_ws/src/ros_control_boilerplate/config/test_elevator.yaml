@@ -118,7 +118,7 @@ intake_left_up_controller:
 intake_right_up_controller:
     type: velocity_controllers/JointVelocityController
     joint: intake_right_up
-	
+
 clamp_controller:
     type: velocity_controllers/JointVelocityController
     joint: clamp
@@ -130,6 +130,3 @@ intake_right_spring_controller:
 intake_left_spring_controller:
     type: velocity_controllers/JointVelocityController
     joint: intake_left_spring
-	
-	
-

@@ -115,4 +115,6 @@ class ElevatorController
 
 
 };//Class
+PLUGINLIB_EXPORT_CLASS(elevator_controller::ElevatorController, controller_interface::ControllerBase);
+
 }//Namespace
