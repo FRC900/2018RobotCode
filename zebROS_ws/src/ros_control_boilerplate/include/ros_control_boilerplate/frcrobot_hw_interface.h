@@ -42,7 +42,7 @@
 #include <thread>
 #include <ros_control_boilerplate/frc_robot_interface.h>
 #include <ctre/phoenix/MotorControl/CAN/TalonSRX.h>
-#include <IterativeRobot.h>
+#include <IterativeRobotBase.h>
 #include <DriverStation.h>
 #include <realtime_tools/realtime_publisher.h>
 #include <NidecBrushless.h>
@@ -55,14 +55,23 @@
 
 namespace frcrobot_control
 {
-class ROSIterativeRobot : public frc::IterativeRobot
+// Very simple code to communicate with the HAL. This recieves
+// packets from the driver station and lets the field management
+// know our robot is alive.  
+class ROSIterativeRobot : public frc::IterativeRobotBase
 {
 	public:
-		void StartCompetition(void)
+		ROSIterativeRobot(void)
+		{
+			HAL_Report(HALUsageReporting::kResourceType_Framework, 900);
+		}
+
+		void StartCompetition(void) override
 		{
 			RobotInit();
 			HAL_ObserveUserProgramStarting();
 		}
+
 		void OneIteration(void)
 		{
 			// wait for driver station data so the loop doesn't hog the CPU
