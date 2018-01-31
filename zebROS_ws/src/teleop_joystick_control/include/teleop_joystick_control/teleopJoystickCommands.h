@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ros/ros.h"
 #include "ros/console.h"
 #include "ros_control_boilerplate/JoystickState.h"
