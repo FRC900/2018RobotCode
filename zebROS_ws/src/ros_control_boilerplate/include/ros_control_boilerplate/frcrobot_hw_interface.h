@@ -55,6 +55,9 @@
 
 namespace frcrobot_control
 {
+// Very simple code to communicate with the HAL. This recieves
+// packets from the driver station and lets the field management
+// know our robot is alive.  
 class ROSIterativeRobot : public frc::IterativeRobotBase
 {
 	public:
