@@ -22,10 +22,8 @@
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &msg);
 void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble);
 void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &msg);
-
-
-
-double navX_angle_ = M_PI/2;
-int navX_index_ = -1;
-ros::Subscriber navX_heading_;
 void navXCallback(const sensor_msgs::Imu &navXState);
+
+extern double navX_angle_;
+extern int navX_index_;
+extern ros::Subscriber navX_heading_;
