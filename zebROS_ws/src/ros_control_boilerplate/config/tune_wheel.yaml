@@ -68,3 +68,4 @@ talon_steer_controller:
     nominal_output_reverse: 0.0
     motion_cruise_velocity: 24
     motion_acceleration: 165
+    voltage_compensation_enable: true
