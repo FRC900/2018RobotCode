@@ -74,6 +74,8 @@ elevator_controller:
         sensor_phase: False
         feedback_type: CTRE_MagEncoder_Absolute
         conversion_factor: 1 #FIX
+        motion_cruise_velocity: 2
+        motion_acceleration: 5
     pivot_joint:
         joint: pivot
         close_loop_values:
@@ -83,7 +85,8 @@ elevator_controller:
         sensor_phase: False
         feedback_type: CTRE_MagEncoder_Absolute
         conversion_factor: 1 #FIX
-
+        motion_cruise_velocity: 10
+        motion_acceleration: 20
     intake_joint:
         joint: intake
         invert_output: False
