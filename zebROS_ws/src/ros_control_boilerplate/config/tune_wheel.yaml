@@ -67,4 +67,4 @@ talon_steer_controller:
     nominal_output_forward: 0.0
     nominal_output_reverse: 0.0
     motion_cruise_velocity: 24
-    motion_acceleration: 160
+    motion_acceleration: 165
