@@ -79,7 +79,7 @@ class TalonHWCommand
 
 			// voltage compensation
 			voltage_compensation_saturation_(0),
-			voltage_measurement_filter_(0),
+			voltage_measurement_filter_(32),
 			voltage_compensation_enable_(false),
 			voltage_compensation_changed_(false),
 
