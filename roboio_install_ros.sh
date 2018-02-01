@@ -14,7 +14,7 @@ opkg install libcurl4 lz4 libboost-filesystem1.60.0 libboost-program-options1.60
 opkg clean
 opkg install libbz2 cmake libxml2 libgnutls-bin libgnutls-openssl27  
 opkg clean
-opkg install libgnutls30 libgnutlsxx28 nettle libgmp10 libgmpxx4 libz1 make 
+opkg install libgnutls30 libgnutlsxx28 nettle libgmp10 libgmpxx4 libz1 git make 
 opkg clean
 opkg install gcc g++ gcc-symlinks g++-symlinks binutils python-setuptools python-docutils 
 opkg clean
