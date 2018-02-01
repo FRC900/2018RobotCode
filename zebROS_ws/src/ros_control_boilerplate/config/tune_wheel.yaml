@@ -12,7 +12,7 @@ hardware_interface:
    joints:
        #- {name: talon_1, type: can_talon_srx, can_id: 3}
        #- {name: talon_2, type: can_talon_srx, can_id: 9}
-       - {name: talon_steer, type: can_talon_srx, can_id: 3}  
+       - {name: talon_steer, type: can_talon_srx, can_id: 4}  
        #- {name: talon_3, type: can_talon_srx, can_id: 3}
        #- {name: talon_4, type: can_talon_srx, can_id: 4}
        #- {name: talon_5, type: can_talon_srx, can_id: 5}
@@ -54,17 +54,18 @@ joint_state_controller:
    publish_rate: 100
 
 talon_steer_controller:
-    type: talon_controllers/TalonPositionCloseLoopController
+    type: talon_controllers/TalonMotionMagicCloseLoopController
     joint: talon_steer
     feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
-        - {p: 4, i: 0.0, d: 0.0, f: 0.0, i_zone: 500}
-        - {p: 4, i: 0.0, d: 0.0, f: 0.0, i_zone: 500}
+        - {p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+        - {p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
     invert_output: False
     sensor_phase: True
     peak_output_forward: 1.0
     peak_output_reverse: -1.0
     nominal_output_forward: 0.0
     nominal_output_reverse: 0.0
-    #motion_cruise_velocity: 3000
-    #motion_acceleration: 1000
+    motion_cruise_velocity: 24
+    motion_acceleration: 165
+    voltage_compensation_enable: true

@@ -3,6 +3,9 @@
 
 //using namespace message_filters;
 static double timeSecs = 0, lastTimeSecs = 0, directionRightLast = 0, YLast = 0, BLast = 0;
+static char currentToggle = ' ';
+static char lastToggle = ' ';
+static double elevatorHeightBefore;
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickArmVel;
 static ros::Publisher JoystickRumble;
@@ -17,9 +20,6 @@ int navX_index_ = -1;
 ros::Subscriber navX_heading_;
 
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState, const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
-    char currentToggle = ' ';
-    char lastToggle = ' ';
-    double elevatorHeightBefore;
     
     uint16_t leftRumble=0, rightRumble=0;
     double matchTimeRemaining = MatchData->matchTimeRemaining;
@@ -126,7 +126,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             }
         }
 
-        if(YLast - timeSecs > .35) {
+        if(timeSecs - YLast > .35 && timeSecs - YLast < .45) {
             currentToggle = 'Y';
             if(lastToggle==' ') {
                 elevatorHeightBefore = elevatorHeight; //TODO access elevator height
@@ -161,9 +161,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 }
                 YLast = 0;
             }
-            YLast = timeSecs;
+            else {
+                YLast = timeSecs;
+            }
         }
-        if(BLast - timeSecs > .35) {
+        if(timeSecs - BLast > .35 && timeSecs - BLast < .45) {
             currentToggle = 'Y';
             if(lastToggle==' ') {
                 elevatorHeightBefore = elevatorHeight; //TODO access elevator height
@@ -181,9 +183,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             BLast = 0;
         }
         if(JoystickState->buttonBPress==true) {
-            ROS_INFO("%d", timeSecs);
-            ROS_INFO("%d", BLast);
-            ROS_INFO("%d", timeSecs-BLast);
+            ROS_INFO("%f", timeSecs);
+            ROS_INFO("%f", BLast);
+            ROS_INFO("%f", timeSecs-BLast);
             if(timeSecs - BLast < .3) {
                 currentToggle = 'Y';
                 if(lastToggle==' ') {
@@ -200,8 +202,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     ROS_WARN("Toggled to high level scale");
                 }
                 BLast = 0;
+
             }
-            BLast = timeSecs;
+            else {
+                BLast = timeSecs;
+            }
         }
 
    //}
