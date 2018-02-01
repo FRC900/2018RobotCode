@@ -58,9 +58,9 @@ joint_state_controller:
 
 elevator_controller:
     type:       elevator_controller/ElevatorController
-    lift: "lift"
-    intake: "intake"
-    pivot: "pivot"
+    lift: "lift_joint"
+    intake: "intake_joint"
+    pivot: "pivot_joint"
     arm_length: 0.495 #FIX
     max_extension: 3.0 #FIX
     min_extension: 1.0 #FIX
@@ -73,7 +73,7 @@ elevator_controller:
         invert_output: False
         sensor_phase: False
         feedback_type: CTRE_MagEncoder_Absolute
-        conversion_factor: 12 #FIX
+        conversion_factor: 1 #FIX
     pivot_joint:
         joint: pivot
         close_loop_values:
@@ -82,7 +82,7 @@ elevator_controller:
         invert_output: False
         sensor_phase: False
         feedback_type: CTRE_MagEncoder_Absolute
-        conversion_factor: 10 #FIX
+        conversion_factor: 1 #FIX
 
     intake_joint:
         joint: intake

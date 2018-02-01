@@ -34,6 +34,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	controller_nh.getParam("intake", intake_name);
 	controller_nh.getParam("pivot", pivot_name);
 	
+	ROS_INFO_STREAM("names: " << lift_name << intake_name << pivot_name);	
 	
 	controller_nh.getParam("arm_length", arm_length_);
 	
@@ -168,12 +169,13 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 		
 		arm_limiting::point_type cmd_point(curr_cmd.lin[0], curr_cmd.lin[1]);
 
-		arm_limiting::point_type cur_pos(lift_position + cos(pivot_angle)*arm_length_, 
+		arm_limiting::point_type cur_pos(cos(pivot_angle)*arm_length_, lift_position + 
 		sin(pivot_angle)*arm_length_);	
 
 		bool cur_up_or_down = pivot_angle > 0;
 		bool reassignment_holder;
 		
+	
 		arm_limiter->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down);
 	
 		//potentially do something if reassignment is needed (Like a ROS_WARN?)
