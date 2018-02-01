@@ -277,7 +277,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 			const int navX_id = xml_navX_id;
 
 			if (!joint_params.hasMember("frame_id"))
-				throw std::runtime_error("A joint type was not specified");
+				throw std::runtime_error("A navX frame ID was not specified");
 			XmlRpc::XmlRpcValue &xml_joint_frame_id= joint_params["frame_id"];
 			if (!xml_joint_frame_id.valid() ||
 					xml_joint_frame_id.getType() != XmlRpc::XmlRpcValue::TypeString)

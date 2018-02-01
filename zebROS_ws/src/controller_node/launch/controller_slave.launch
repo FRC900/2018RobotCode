@@ -48,9 +48,9 @@
   <!-- TODO : check rotation of the NavX - might be off by 90 degrees -->
   <!-- 
   <node name="navx_publisher_node" pkg="navx_publisher" type="navx_publisher_node" respawn="true" />
-  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_navx" args="-0.2914015 -0.072263 0.0244348 0 0 0 base_link navx_frame" />
-
 	-->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_navx" args="-0.2914015 -0.072263 0.0244348 0 0 0 base_link navx" />
+
   <include file="$(find controller_node)/launch/fuse_odom.launch"/>
 
   <!-- start up Lidar, and identify where it is on the robot -->

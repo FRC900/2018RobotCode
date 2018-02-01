@@ -27,7 +27,7 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(Eigen::Ve
 	{
 		double x = wheelCoordinate_[i][0] - rotationCenter[0];
 		double y = wheelCoordinate_[i][1] - rotationCenter[1];
-		wheelMultipliers[i] = sqrt(x * x + y * y); // TODO : use hypot function
+		wheelMultipliers[i] = -sqrt(x * x + y * y); // TODO : use hypot function
 		wheelAngles[i] = (atan2(x, y) + .5 * pi);
 	}
 	array<Eigen::Vector2d, WHEELCOUNT> multipliersXY;

@@ -2,7 +2,10 @@
 
 
 //using namespace message_filters;
-static double timeSecs, lastTimeSecs;
+static double timeSecs = 0, lastTimeSecs = 0, directionRightLast = 0, YLast = 0, BLast = 0;
+static char currentToggle = ' ';
+static char lastToggle = ' ';
+static double elevatorHeightBefore;
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickArmVel;
 static ros::Publisher JoystickRumble;
@@ -12,13 +15,15 @@ bool ifCube = true;
 double elevatorHeight;
 static double armPos;
 
-void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState, const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
-    char currentToggle = ' ';
-    char lastToggle = ' ';
-    double elevatorHeightBefore;
+double navX_angle_ = M_PI/2;
+int navX_index_ = -1;
+ros::Subscriber navX_heading_;
 
+void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState, const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
+    
     uint16_t leftRumble=0, rightRumble=0;
     double matchTimeRemaining = MatchData->matchTimeRemaining;
+    timeSecs = ros::Time::now().toSec();
     /*
         map left joystick+bumpers+triggers into twist
         map right joystick into elevator/pivot position?
@@ -35,11 +40,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     if(RobotState->ifCube==true) {
         ifCube = true;
         rumbleTypeConverterPublish(0, 32767);
-        ROS_INFO("I has cube");
+        ROS_WARN("I has cube");
     }
     else {
         ifCube = false;
-        ROS_INFO("I has no cube");
+        ROS_WARN("I has no cube");
     }
     elevatorHeight = RobotState->elevatorHeight;
 */
@@ -60,75 +65,151 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     //Joystick Button Press parse
     if(JoystickState->directionUpPress == true) {
         //TODO call auto climb file
-        ROS_INFO("Auto climb");
+        ROS_WARN("Auto climb");
     }
     if(JoystickState->directionUpRelease == true) {
         //TODO stop auto climb
         //publish a stop message?
     }
     if(JoystickState->directionRightPress == true) {
-        lastTimeSecs = timeSecs;
+        directionRightLast = timeSecs;
         timeSecs = ros::Time::now().toSec();
-        if(timeSecs - lastTimeSecs< 1.0) {
+        if(timeSecs - directionRightLast < 1.0) {
             //TODO deploy ramp  or something
             //publish true to RampDeploy
-            ROS_INFO("Deploy ramp");
+            ROS_WARN("Deploy ramp");
         }
     }
+    /*
     if(JoystickState->buttonBButton == true && ifCube==true) {
         //TODO auto scale
         //call auto scale file with a contained while loop that listens
         //on topic for stop command that is published to when
         //JoystickState->buttonBRelease == true
-        ROS_INFO("Autoscale");
-    }
-    else {
-        if(JoystickState->buttonBPress == true) {    
-            if(ifCube == false) {
-                //TODO go to intake height
-                //publish half height to ElevatorTarget or something
-                ROS_INFO("go to intake height");
-            }
-        }
-
+        ROS_WARN("Autoscale");
+    }*/
+    //else {
         lastToggle = currentToggle;
         //exchange height toggle
         if(JoystickState->buttonXPress==true) {
             currentToggle = 'X';
             if(lastToggle==' ') {
                 elevatorHeightBefore = elevatorHeight; //TODO access elevator height
-                ROS_INFO("ElevatorHeightbefore set");
+                ROS_WARN("ElevatorHeightbefore set");
             }
             if(currentToggle == lastToggle) {
                 currentToggle = ' ';
-                ROS_INFO("Untoggled");
+                ROS_WARN("Untoggled");
                 //TODO publish elevatorHeightBefore to ElevatorTarget or something
             }
             else {
                 //TODO publish exchange height to ElevatorTarget or something
-                ROS_INFO("Toggled to exchange height");
+                ROS_WARN("Toggled to mid level scale height");
             }
         }   
 
         //switch height toggle
-        if(JoystickState->buttonYPress==true) {
-            currentToggle = 'Y';
+        if(JoystickState->buttonAPress==true) {
+            currentToggle = 'A';
             if(lastToggle==' ') {
                 elevatorHeightBefore = elevatorHeight; //TODO access elevator height
-                ROS_INFO("ElevatorHeightbefore set");
+                ROS_WARN("ElevatorHeightbefore set");
             }
             if(currentToggle == lastToggle) {
                 currentToggle = ' ';
                 //TODO publish elevatorHeightBefore to ElevatorTarget or something
-                ROS_INFO("Untoggled");
+                ROS_WARN("Untoggled");
             }
             else {
                 //TODO publish switch height to ElevatorTarget or something
-                ROS_INFO("Toggled to switch height");
+                ROS_WARN("Toggled to intake config and start intake");
             }
         }
 
-    }
+        if(timeSecs - YLast > .35 && timeSecs - YLast < .45) {
+            currentToggle = 'Y';
+            if(lastToggle==' ') {
+                elevatorHeightBefore = elevatorHeight; //TODO access elevator height
+                ROS_WARN("ElevatorHeightbefore set");
+            }
+            if(currentToggle == lastToggle) {
+                currentToggle = ' ';
+                //TODO publish elevatorHeightBefore to ElevatorTarget or something
+                ROS_WARN("Untoggled");
+            }
+            else {
+                //TODO publish switch height to ElevatorTarget or something
+                ROS_WARN("Toggled to switch height");
+            }
+            YLast = 0;
+        }
+        if(JoystickState->buttonYPress==true) {
+            if(timeSecs - YLast < .3) {
+                currentToggle = 'Y';
+                if(lastToggle==' ') {
+                    elevatorHeightBefore = elevatorHeight; //TODO access elevator height
+                    ROS_WARN("ElevatorHeightbefore set");
+                }
+                if(currentToggle == lastToggle) {
+                    currentToggle = ' ';
+                    //TODO publish elevatorHeightBefore to ElevatorTarget or something
+                    ROS_WARN("Untoggled");
+                }
+                else {
+                    //TODO publish switch height to ElevatorTarget or something
+                    ROS_WARN("Toggled to exchange height");
+                }
+                YLast = 0;
+            }
+            else {
+                YLast = timeSecs;
+            }
+        }
+        if(timeSecs - BLast > .35 && timeSecs - BLast < .45) {
+            currentToggle = 'Y';
+            if(lastToggle==' ') {
+                elevatorHeightBefore = elevatorHeight; //TODO access elevator height
+                ROS_WARN("ElevatorHeightbefore set");
+            }
+            if(currentToggle == lastToggle) {
+                currentToggle = ' ';
+                //TODO publish elevatorHeightBefore to ElevatorTarget or something
+                ROS_WARN("Untoggled");
+            }
+            else {
+                //TODO publish switch height to ElevatorTarget or something
+                ROS_WARN("Toggled to low level scale");
+            }
+            BLast = 0;
+        }
+        if(JoystickState->buttonBPress==true) {
+            ROS_INFO("%f", timeSecs);
+            ROS_INFO("%f", BLast);
+            ROS_INFO("%f", timeSecs-BLast);
+            if(timeSecs - BLast < .3) {
+                currentToggle = 'Y';
+                if(lastToggle==' ') {
+                    elevatorHeightBefore = elevatorHeight; //TODO access elevator height
+                    ROS_WARN("ElevatorHeightbefore set");
+                }
+                if(currentToggle == lastToggle) {
+                    currentToggle = ' ';
+                    //TODO publish elevatorHeightBefore to ElevatorTarget or something
+                    ROS_WARN("Untoggled");
+                }
+                else {
+                    //TODO publish switch height to ElevatorTarget or something
+                    ROS_WARN("Toggled to high level scale");
+                }
+                BLast = 0;
+
+            }
+            else {
+                BLast = timeSecs;
+            }
+        }
+
+   //}
 
     //Publish drivetrain messages and elevator/pivot
     geometry_msgs::Twist vel;
@@ -158,8 +239,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     JoystickArmVel.publish(arm);
             
         //TODO BUMPERS FOR SLOW MODE
-        //ROS_INFO("leftStickX: %f", leftStickX);
-        //ROS_INFO("leftStickY: %f", leftStickY);
+        //ROS_WARN("leftStickX: %f", leftStickX);
+        //ROS_WARN("leftStickY: %f", leftStickY);
     //TODO BUMPERS FOR SLOW MODE
     //TODO rotate left
     //TODO rotate right
@@ -169,11 +250,11 @@ void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotSta
     if(RobotState->ifCube==true) {
         ifCube = true;
         rumbleTypeConverterPublish(0, 32767);
-        ROS_INFO("I has cube");
+        ROS_WARN("I has cube");
     }
     else {
         ifCube = false;
-        ROS_INFO("I has no cube");
+        ROS_WARN("I has no cube");
     }
     elevatorHeight = RobotState->elevatorHeight;
 }
@@ -233,8 +314,8 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) { 
-    unsigned int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF); 
+void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) {
+    unsigned int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF);
     double rumble_val;
     rumble_val = *((double*)(&rumble));
     std_msgs::Float64 rumbleMsg;
@@ -257,6 +338,5 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 	tf2::Quaternion navQuat(navXState.orientation.x, navXState.orientation.y, navXState.orientation.z, navXState.orientation.w);
 	double roll;
 	tf2::Matrix3x3(navQuat).getRPY(roll, roll, navX_angle_);
-
 }
 

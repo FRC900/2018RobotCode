@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Modified from 2017VisionCode/launch/master.sh
+
+# Reload IPv6 networking blocks
+#sudo sysctl -p
+
+. /home/admin/2018RobotCode/zebROS_ws/ROSRioSetup.sh
+#echo 1100-1200,443,80,554,1735 > /proc/sys/net/ipv4/ip_local_reserved_ports
+
+#echo 5800 5810 > /proc/sys/net/ipv4/ip_local_port_range
+#systemctl restart networking
+
+#sudo chmod a+rw /dev/ttyACM0 
+#sudo umount /mnt/900_2
+
+source /home/admin/2018RobotCode/install_isolated/setup.bash
+
+roslaunch ros_control_boilerplate talon_swerve_controller_test.launch
+

@@ -74,13 +74,18 @@ class TalonCIParams
 			current_limit_enable_(false),
 			motion_cruise_velocity_(10), // No idea at a guess
 			motion_acceleration_(20),
-			motion_control_frame_period_(20) // Guess at 50Hz default?
+			motion_control_frame_period_(20), // Guess at 50Hz default?
+			
+			conversion_factor_(1.0)
 		{
 		}
 
-		TalonCIParams(const TalonConfigConfig &config, int follow_can_id)
+		// Update params set by a dynamic reconfig config
+		// Also pass in current params for ones which aren't
+		// dynamically reconfigurable - pass them through
+		// to the new one 
+		void fromConfig(const TalonConfigConfig &config)
 		{
-			follow_can_id_ = follow_can_id;
 			p_[0] = config.p0;
 			p_[1] = config.p1;
 			i_[0] = config.i0;
@@ -97,6 +102,7 @@ class TalonCIParams
 			max_integral_accumulator_[1] = config.max_integral_accumulator1;
 			pidf_slot_ = config.pid_config;
 			invert_output_ = config.invert_output;
+
 			sensor_phase_ = config.sensor_phase;
 			feedback_type_ = static_cast<hardware_interface::FeedbackDevice>(config.feedback_type);
 			ticks_per_rotation_ = config.encoder_ticks_per_rotation;
@@ -129,10 +135,12 @@ class TalonCIParams
 			motion_cruise_velocity_ = config.motion_cruise_velocity;
 			motion_acceleration_ = config.motion_acceleration;
 			motion_control_frame_period_ = config.motion_control_frame_period;
+		
+			conversion_factor_ = config.conversion_factor;
 		}
 
 		// Copy from internal state to TalonConfigConfig state
-		TalonConfigConfig getConfig(void) const
+		TalonConfigConfig toConfig(void) const
 		{
 			TalonConfigConfig config;
 			config.p0            = p_[0];
@@ -181,6 +189,7 @@ class TalonCIParams
 			config.motion_cruise_velocity = motion_cruise_velocity_;
 			config.motion_acceleration = motion_acceleration_;
 			config.motion_control_frame_period = motion_control_frame_period_;
+			config.conversion_factor = conversion_factor_;
 			return config;
 		}
 
@@ -192,6 +201,11 @@ class TalonCIParams
 				ROS_ERROR("No joint given (namespace: %s)", n.getNamespace().c_str());
 				return false;
 			}
+			return true;
+		}
+		bool readConversion(ros::NodeHandle &n)
+		{
+			n.getParam("conversion_factor", conversion_factor_);
 			return true;
 		}
 
@@ -498,7 +512,8 @@ class TalonCIParams
 		double motion_cruise_velocity_;
 		double motion_acceleration_;
 		int    motion_control_frame_period_;
-
+		
+		double conversion_factor_;
 	private:
 		// Read a double named <param_type> from the array/map
 		// in params
@@ -589,6 +604,7 @@ class TalonControllerInterface
 		virtual bool readParams(ros::NodeHandle &n, hardware_interface::TalonStateInterface *tsi)
 		{
 			return params_.readJointName(n) &&
+				   params_.readConversion(n) &&
 				   params_.readFollowerID(n, tsi) &&
 				   params_.readCloseLoopParams(n) &&
 				   params_.readNeutralMode(n) &&
@@ -631,7 +647,7 @@ class TalonControllerInterface
 			// Save copy of params written to HW
 			// so they can be queried later?
 			params_ = params;
-
+			
 			talon_->setEncoderFeedback(params_.feedback_type_);
 			// perform additional hardware init here
 			// but don't set mode - either force the caller to
@@ -683,11 +699,10 @@ class TalonControllerInterface
 			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 
-#if 0 // broken?
 			talon_->setMotionCruiseVelocity(params_.motion_cruise_velocity_);
 			talon_->setMotionAcceleration(params_.motion_acceleration_);
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
-#endif
+
 			return true;
 		}
 
@@ -710,7 +725,8 @@ class TalonControllerInterface
 					 config.invert_output,
 					 config.sensor_phase);
 
-			writeParamsToHW(TalonCIParams(config, params_.follow_can_id_));
+			params_.fromConfig(config);
+			writeParamsToHW(params_);
 		}
 
 		// Read params from config file and use them to
@@ -738,7 +754,7 @@ class TalonControllerInterface
 				// Without this, the first call to callback()
 				// will overwrite anything passed in from the
 				// launch file
-				srv_->updateConfig(params_.getConfig());
+				srv_->updateConfig(params_.toConfig());
 
 				// Register a callback function which is run each
 				// time parameters are changed using
@@ -754,9 +770,10 @@ class TalonControllerInterface
 		{
 			talon_->set(command);
 		}
+		
 
 		// Set the mode of the motor controller
-		virtual void setMode(const hardware_interface::TalonMode mode)
+		virtual void setMode(hardware_interface::TalonMode mode)
 		{
 			talon_->setMode(mode);
 		}
@@ -915,14 +932,14 @@ class TalonControllerInterface
 		std::shared_ptr<boost::recursive_mutex> srv_mutex_;
 
 	private :
-		// If dynamic reconfigure is running update
+		// If dynamic reconfigure is running then update
 		// the reported config there with the new internal
 		// state
 		void syncDynamicReconfigure(void)
 		{
 			if (srv_)
 			{
-				TalonConfigConfig config(params_.getConfig());
+				TalonConfigConfig config(params_.toConfig());
 				boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
 				srv_->updateConfig(config);
 			}
@@ -936,7 +953,7 @@ class TalonFixedModeControllerInterface : public TalonControllerInterface
 	public:
 		// Disable changing mode for controllers derived
 		// from this class
-		void setMode(const hardware_interface::TalonMode /*mode*/) override
+		void setMode(hardware_interface::TalonMode /*mode*/) override
 		{
 			ROS_WARN("Can't reset mode using this TalonControllerInterface");
 		}
