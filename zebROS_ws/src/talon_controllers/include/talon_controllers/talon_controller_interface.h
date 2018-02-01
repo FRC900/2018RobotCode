@@ -80,9 +80,12 @@ class TalonCIParams
 		{
 		}
 
-		TalonCIParams(const TalonConfigConfig &config, int follow_can_id)
+		// Update params set by a dynamic reconfig config
+		// Also pass in current params for ones which aren't
+		// dynamically reconfigurable - pass them through
+		// to the new one 
+		void fromConfig(const TalonConfigConfig &config)
 		{
-			follow_can_id_ = follow_can_id;
 			p_[0] = config.p0;
 			p_[1] = config.p1;
 			i_[0] = config.i0;
@@ -137,7 +140,7 @@ class TalonCIParams
 		}
 
 		// Copy from internal state to TalonConfigConfig state
-		TalonConfigConfig getConfig(void) const
+		TalonConfigConfig toConfig(void) const
 		{
 			TalonConfigConfig config;
 			config.p0            = p_[0];
@@ -696,11 +699,10 @@ class TalonControllerInterface
 			talon_->setContinuousCurrentLimit(params_.current_limit_continuous_amps_);
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
 
-#if 0 // broken?
 			talon_->setMotionCruiseVelocity(params_.motion_cruise_velocity_);
 			talon_->setMotionAcceleration(params_.motion_acceleration_);
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
-#endif
+
 			return true;
 		}
 
@@ -723,7 +725,8 @@ class TalonControllerInterface
 					 config.invert_output,
 					 config.sensor_phase);
 
-			writeParamsToHW(TalonCIParams(config, params_.follow_can_id_));
+			params_.fromConfig(config);
+			writeParamsToHW(params_);
 		}
 
 		// Read params from config file and use them to
@@ -751,7 +754,7 @@ class TalonControllerInterface
 				// Without this, the first call to callback()
 				// will overwrite anything passed in from the
 				// launch file
-				srv_->updateConfig(params_.getConfig());
+				srv_->updateConfig(params_.toConfig());
 
 				// Register a callback function which is run each
 				// time parameters are changed using
@@ -770,7 +773,7 @@ class TalonControllerInterface
 		
 
 		// Set the mode of the motor controller
-		virtual void setMode(const hardware_interface::TalonMode mode)
+		virtual void setMode(hardware_interface::TalonMode mode)
 		{
 			talon_->setMode(mode);
 		}
@@ -929,14 +932,14 @@ class TalonControllerInterface
 		std::shared_ptr<boost::recursive_mutex> srv_mutex_;
 
 	private :
-		// If dynamic reconfigure is running update
+		// If dynamic reconfigure is running then update
 		// the reported config there with the new internal
 		// state
 		void syncDynamicReconfigure(void)
 		{
 			if (srv_)
 			{
-				TalonConfigConfig config(params_.getConfig());
+				TalonConfigConfig config(params_.toConfig());
 				boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
 				srv_->updateConfig(config);
 			}
@@ -950,7 +953,7 @@ class TalonFixedModeControllerInterface : public TalonControllerInterface
 	public:
 		// Disable changing mode for controllers derived
 		// from this class
-		void setMode(const hardware_interface::TalonMode /*mode*/) override
+		void setMode(hardware_interface::TalonMode /*mode*/) override
 		{
 			ROS_WARN("Can't reset mode using this TalonControllerInterface");
 		}

@@ -12,6 +12,10 @@ bool ifCube = true;
 double elevatorHeight;
 static double armPos;
 
+double navX_angle_ = M_PI/2;
+int navX_index_ = -1;
+ros::Subscriber navX_heading_;
+
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState, const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
     char currentToggle = ' ';
     char lastToggle = ' ';
@@ -310,8 +314,8 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) { 
-    unsigned int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF); 
+void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) {
+    unsigned int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF);
     double rumble_val;
     rumble_val = *((double*)(&rumble));
     std_msgs::Float64 rumbleMsg;
@@ -334,6 +338,5 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 	tf2::Quaternion navQuat(navXState.orientation.x, navXState.orientation.y, navXState.orientation.z, navXState.orientation.w);
 	double roll;
 	tf2::Matrix3x3(navQuat).getRPY(roll, roll, navX_angle_);
-
 }
 

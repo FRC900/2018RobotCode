@@ -357,7 +357,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		if ((talon_mode == hardware_interface::TalonMode_MotionProfile) ||
 			(talon_mode == hardware_interface::TalonMode_MotionMagic))
 		{
-#if 0 // no workie?
 			double active_trajectory_position = talon->GetActiveTrajectoryPosition() * radians_scale;
 			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryPosition");
 			ts.setActiveTrajectoryPosition(active_trajectory_position);
@@ -367,12 +366,12 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			double active_trajectory_heading = talon->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
 			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
 			ts.setActiveTrajectoryHeading(active_trajectory_heading);
-#endif
 			ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
+
 			safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
 			ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
 			safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
-#if 0
+
 			ctre::phoenix::motion::MotionProfileStatus talon_status;
 			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
@@ -390,7 +389,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.timeDurMs = talon_status.timeDurMs;
 		
 			ts.setMotionProfileStatus(internal_status);
-#endif
 		}
 
 		ctre::phoenix::motorcontrol::Faults faults;
