@@ -2,7 +2,7 @@
 
 
 //using namespace message_filters;
-static double timeSecs, lastTimeSecs = 0, directionRightLast = 0, YLast = 0, BLast = 0;
+static double timeSecs = 0, lastTimeSecs = 0, directionRightLast = 0, YLast = 0, BLast = 0;
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickArmVel;
 static ros::Publisher JoystickRumble;
@@ -16,9 +16,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     char currentToggle = ' ';
     char lastToggle = ' ';
     double elevatorHeightBefore;
-
+    
     uint16_t leftRumble=0, rightRumble=0;
     double matchTimeRemaining = MatchData->matchTimeRemaining;
+    timeSecs = ros::Time::now().toSec();
     /*
         map left joystick+bumpers+triggers into twist
         map right joystick into elevator/pivot position?
@@ -35,11 +36,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     if(RobotState->ifCube==true) {
         ifCube = true;
         rumbleTypeConverterPublish(0, 32767);
-        ROS_INFO("I has cube");
+        ROS_WARN("I has cube");
     }
     else {
         ifCube = false;
-        ROS_INFO("I has no cube");
+        ROS_WARN("I has no cube");
     }
     elevatorHeight = RobotState->elevatorHeight;
 */
@@ -60,7 +61,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     //Joystick Button Press parse
     if(JoystickState->directionUpPress == true) {
         //TODO call auto climb file
-        ROS_INFO("Auto climb");
+        ROS_WARN("Auto climb");
     }
     if(JoystickState->directionUpRelease == true) {
         //TODO stop auto climb
@@ -72,7 +73,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         if(timeSecs - directionRightLast < 1.0) {
             //TODO deploy ramp  or something
             //publish true to RampDeploy
-            ROS_INFO("Deploy ramp");
+            ROS_WARN("Deploy ramp");
         }
     }
     /*
@@ -81,7 +82,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         //call auto scale file with a contained while loop that listens
         //on topic for stop command that is published to when
         //JoystickState->buttonBRelease == true
-        ROS_INFO("Autoscale");
+        ROS_WARN("Autoscale");
     }*/
     //else {
         lastToggle = currentToggle;
@@ -90,16 +91,16 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             currentToggle = 'X';
             if(lastToggle==' ') {
                 elevatorHeightBefore = elevatorHeight; //TODO access elevator height
-                ROS_INFO("ElevatorHeightbefore set");
+                ROS_WARN("ElevatorHeightbefore set");
             }
             if(currentToggle == lastToggle) {
                 currentToggle = ' ';
-                ROS_INFO("Untoggled");
+                ROS_WARN("Untoggled");
                 //TODO publish elevatorHeightBefore to ElevatorTarget or something
             }
             else {
                 //TODO publish exchange height to ElevatorTarget or something
-                ROS_INFO("Toggled to mid level scale height");
+                ROS_WARN("Toggled to mid level scale height");
             }
         }   
 
@@ -108,16 +109,16 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             currentToggle = 'A';
             if(lastToggle==' ') {
                 elevatorHeightBefore = elevatorHeight; //TODO access elevator height
-                ROS_INFO("ElevatorHeightbefore set");
+                ROS_WARN("ElevatorHeightbefore set");
             }
             if(currentToggle == lastToggle) {
                 currentToggle = ' ';
                 //TODO publish elevatorHeightBefore to ElevatorTarget or something
-                ROS_INFO("Untoggled");
+                ROS_WARN("Untoggled");
             }
             else {
                 //TODO publish switch height to ElevatorTarget or something
-                ROS_INFO("Toggled to intake config and start intake");
+                ROS_WARN("Toggled to intake config and start intake");
             }
         }
 
@@ -125,16 +126,16 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             currentToggle = 'Y';
             if(lastToggle==' ') {
                 elevatorHeightBefore = elevatorHeight; //TODO access elevator height
-                ROS_INFO("ElevatorHeightbefore set");
+                ROS_WARN("ElevatorHeightbefore set");
             }
             if(currentToggle == lastToggle) {
                 currentToggle = ' ';
                 //TODO publish elevatorHeightBefore to ElevatorTarget or something
-                ROS_INFO("Untoggled");
+                ROS_WARN("Untoggled");
             }
             else {
                 //TODO publish switch height to ElevatorTarget or something
-                ROS_INFO("Toggled to switch height");
+                ROS_WARN("Toggled to switch height");
             }
             YLast = 0;
         }
@@ -143,17 +144,18 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 currentToggle = 'Y';
                 if(lastToggle==' ') {
                     elevatorHeightBefore = elevatorHeight; //TODO access elevator height
-                    ROS_INFO("ElevatorHeightbefore set");
+                    ROS_WARN("ElevatorHeightbefore set");
                 }
                 if(currentToggle == lastToggle) {
                     currentToggle = ' ';
                     //TODO publish elevatorHeightBefore to ElevatorTarget or something
-                    ROS_INFO("Untoggled");
+                    ROS_WARN("Untoggled");
                 }
                 else {
                     //TODO publish switch height to ElevatorTarget or something
-                    ROS_INFO("Toggled to exchange height");
+                    ROS_WARN("Toggled to exchange height");
                 }
+                YLast = 0;
             }
             YLast = timeSecs;
         }
@@ -161,35 +163,39 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             currentToggle = 'Y';
             if(lastToggle==' ') {
                 elevatorHeightBefore = elevatorHeight; //TODO access elevator height
-                ROS_INFO("ElevatorHeightbefore set");
+                ROS_WARN("ElevatorHeightbefore set");
             }
             if(currentToggle == lastToggle) {
                 currentToggle = ' ';
                 //TODO publish elevatorHeightBefore to ElevatorTarget or something
-                ROS_INFO("Untoggled");
+                ROS_WARN("Untoggled");
             }
             else {
                 //TODO publish switch height to ElevatorTarget or something
-                ROS_INFO("Toggled to switch height");
+                ROS_WARN("Toggled to low level scale");
             }
             BLast = 0;
         }
         if(JoystickState->buttonBPress==true) {
+            ROS_INFO("%d", timeSecs);
+            ROS_INFO("%d", BLast);
+            ROS_INFO("%d", timeSecs-BLast);
             if(timeSecs - BLast < .3) {
                 currentToggle = 'Y';
                 if(lastToggle==' ') {
                     elevatorHeightBefore = elevatorHeight; //TODO access elevator height
-                    ROS_INFO("ElevatorHeightbefore set");
+                    ROS_WARN("ElevatorHeightbefore set");
                 }
                 if(currentToggle == lastToggle) {
                     currentToggle = ' ';
                     //TODO publish elevatorHeightBefore to ElevatorTarget or something
-                    ROS_INFO("Untoggled");
+                    ROS_WARN("Untoggled");
                 }
                 else {
                     //TODO publish switch height to ElevatorTarget or something
-                    ROS_INFO("Toggled to exchange height");
+                    ROS_WARN("Toggled to high level scale");
                 }
+                BLast = 0;
             }
             BLast = timeSecs;
         }
@@ -224,8 +230,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     JoystickArmVel.publish(arm);
             
         //TODO BUMPERS FOR SLOW MODE
-        //ROS_INFO("leftStickX: %f", leftStickX);
-        //ROS_INFO("leftStickY: %f", leftStickY);
+        //ROS_WARN("leftStickX: %f", leftStickX);
+        //ROS_WARN("leftStickY: %f", leftStickY);
     //TODO BUMPERS FOR SLOW MODE
     //TODO rotate left
     //TODO rotate right
@@ -235,11 +241,11 @@ void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotSta
     if(RobotState->ifCube==true) {
         ifCube = true;
         rumbleTypeConverterPublish(0, 32767);
-        ROS_INFO("I has cube");
+        ROS_WARN("I has cube");
     }
     else {
         ifCube = false;
-        ROS_INFO("I has no cube");
+        ROS_WARN("I has no cube");
     }
     elevatorHeight = RobotState->elevatorHeight;
 }
