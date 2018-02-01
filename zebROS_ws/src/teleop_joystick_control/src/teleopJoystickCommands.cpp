@@ -3,6 +3,9 @@
 
 //using namespace message_filters;
 static double timeSecs = 0, lastTimeSecs = 0, directionRightLast = 0, YLast = 0, BLast = 0;
+static char currentToggle = ' ';
+static char lastToggle = ' ';
+static double elevatorHeightBefore;
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickArmVel;
 static ros::Publisher JoystickRumble;
@@ -17,9 +20,6 @@ int navX_index_ = -1;
 ros::Subscriber navX_heading_;
 
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState, const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
-    char currentToggle = ' ';
-    char lastToggle = ' ';
-    double elevatorHeightBefore;
     
     uint16_t leftRumble=0, rightRumble=0;
     double matchTimeRemaining = MatchData->matchTimeRemaining;
