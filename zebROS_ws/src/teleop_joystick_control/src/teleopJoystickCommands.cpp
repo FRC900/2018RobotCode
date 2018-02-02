@@ -89,6 +89,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         ROS_WARN("Autoscale");
     }*/
     //else {
+
+    //////////////////////// TOGGLES \\\\\\\\\\\\\\\\\\\\\\\\
+
+
         lastToggle = currentToggle;
         //exchange height toggle
         if(JoystickState->buttonXPress==true) {
@@ -183,9 +187,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             BLast = 0;
         }
         if(JoystickState->buttonBPress==true) {
-            ROS_INFO("%f", timeSecs);
-            ROS_INFO("%f", BLast);
-            ROS_INFO("%f", timeSecs-BLast);
             if(timeSecs - BLast < .3) {
                 currentToggle = 'Y';
                 if(lastToggle==' ') {
@@ -210,6 +211,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         }
 
    //}
+
+
+///////////////////// Drivetrain and Elevator Control \\\\\\\\\\\\\\\\\\\
+
 
     //Publish drivetrain messages and elevator/pivot
     geometry_msgs::Twist vel;
