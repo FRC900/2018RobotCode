@@ -20,24 +20,9 @@
      Configure and run a Talon SRX in velocity close loop (PIDF) mode
     </description>
   </class> 
-  <class name="talon_controllers/TalonLinearPositionCloseLoopController" type="talon_controllers::TalonLinearPositionCloseLoopController" base_class_type="controller_interface::ControllerBase">
+  <class name="talon_controllers/TalonMotionMagicCloseLoopController" type="talon_controllers::TalonMotionMagicCloseLoopController" base_class_type="controller_interface::ControllerBase">
     <description>
-     Configure and run a Talon SRX connected to a gear box for the elevator
-    </description>
-  </class>
-  <class name="talon_controllers/TalonLinearMotionMagicCloseLoopController" type="talon_controllers::TalonLinearMotionMagicCloseLoopController" base_class_type="controller_interface::ControllerBase">
-    <description>
-     Configure and run a Talon SRX connected to a gear box for the elevator
-    </description>
-  </class>
-  <class name="talon_controllers/TalonAnglePositionCloseLoopController" type="talon_controllers::TalonAnglePositionCloseLoopController" base_class_type="controller_interface::ControllerBase">
-    <description>
-     Configure and run a Talon SRX connected to a gear box for the elevator
-    </description>
-  </class>
-  <class name="talon_controllers/TalonAngleMotionMagicCloseLoopController" type="talon_controllers::TalonAngleMotionMagicCloseLoopController" base_class_type="controller_interface::ControllerBase">
-    <description>
-     Configure and run a Talon SRX connected to a gear box for the elevator
+     Configure and run a Talon SRX for motion magic
     </description>
   </class>
 </library>

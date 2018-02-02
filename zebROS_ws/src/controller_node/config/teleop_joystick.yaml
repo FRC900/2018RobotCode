@@ -11,7 +11,7 @@ generic_hw_control_loop:
 hardware_interface:
    joints:
        - {name: joystick_rumble, type: rumble, rumble_port: 0}
-       - {name: navX_0, type: navX, id: 0}
+       - {name: navX_0, type: navX, id: 0, frame_id: navX}
 # Create controllers for each joint
 #
 # Entry is the name of the controller. It can be anything.  

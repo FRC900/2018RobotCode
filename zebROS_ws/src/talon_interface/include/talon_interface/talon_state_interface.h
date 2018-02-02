@@ -183,7 +183,7 @@ class TalonHWState
 
 			// voltage compensation
 			voltage_compensation_saturation_(0),
-			voltage_measurement_filter_(0),
+			voltage_measurement_filter_(32),
 			voltage_compensation_enable_(false),
 
 			limit_switch_local_forward_source_(LimitSwitchSource_FeedbackConnector),
@@ -218,10 +218,12 @@ class TalonHWState
 
 			// faults
 			faults_(0),
-			sticky_faults_(0)
+			sticky_faults_(0),
+
+			conversion_factor_(1.0)
 		{
 		}
-
+		
 		double getSetpoint(void) const
 		{
 			return setpoint_;
@@ -417,7 +419,14 @@ class TalonHWState
 		{
 			return sticky_faults_;
 		}
-
+		double getConversion(void) const
+		{
+			return conversion_factor_;
+		}
+		void setConversion(double conversion_factor)
+		{
+			conversion_factor_ = conversion_factor;
+		}		
 		void setSetpoint(double setpoint)
 		{
 			setpoint_ = setpoint;
@@ -842,6 +851,7 @@ class TalonHWState
 		}
 
 	private:
+		double conversion_factor_;
 		double setpoint_;
 		double position_;
 		double speed_;

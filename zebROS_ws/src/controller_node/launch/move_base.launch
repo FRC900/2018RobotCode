@@ -19,4 +19,5 @@
 	  
 	  <rosparam file="$(find controller_node)/launch/move_base_params.yaml" command="load" />
   </node>
+  <node pkg="controller_node" name="set_global_planner_mode" type="set_global_planner_mode.py" output="screen"/>
 </launch>
