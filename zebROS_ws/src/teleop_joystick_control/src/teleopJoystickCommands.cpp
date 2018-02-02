@@ -130,7 +130,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             }
         }
 
-        if(timeSecs - YLast > .35 && timeSecs - YLast < .45) {
+        if(timeSecs - YLast > .21 && timeSecs - YLast < .45) {
             currentToggle = "Yone";
             if(lastToggle==" ") {
                 elevatorHeightBefore = elevatorHeight; //TODO access elevator height
@@ -148,7 +148,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             YLast = 0;
         }
         if(JoystickState->buttonYPress==true) {
-            if(timeSecs - YLast < .3) {
+            if(timeSecs - YLast < .2) {
                 currentToggle = "Ydouble";
                 if(lastToggle==" ") {
                     elevatorHeightBefore = elevatorHeight; //TODO access elevator height
@@ -169,7 +169,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 YLast = timeSecs;
             }
         }
-        if(timeSecs - BLast > .35 && timeSecs - BLast < .45) {
+        if(timeSecs - BLast > .21 && timeSecs - BLast < .45) {
             currentToggle = "Bone";
             if(lastToggle==" ") {
                 elevatorHeightBefore = elevatorHeight; //TODO access elevator height
@@ -187,7 +187,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             BLast = 0;
         }
         if(JoystickState->buttonBPress==true) {
-            if(timeSecs - BLast < .3) {
+            if(timeSecs - BLast < .2) {
                 currentToggle = "doubleB";
                 if(lastToggle==" ") {
                     elevatorHeightBefore = elevatorHeight; //TODO access elevator height
