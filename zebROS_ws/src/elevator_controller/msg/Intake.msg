@@ -1,0 +1,10 @@
+Header header
+bool left_up
+bool left_down
+bool right_up
+bool right_down
+bool spring_left_in
+bool spring_right_out
+bool spring_left_out
+bool spring_right_in
+float64 power

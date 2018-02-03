@@ -11,3 +11,7 @@
 - git:
     local-name: zed-ros-wrapper
     uri: https://github.com/FRC900/zed-ros-wrapper.git
+- git:
+    local-name: px_ros_pkg
+    uri: https://github.com/cvg/px-ros-pkg.git
+

@@ -51,7 +51,7 @@
 #include <SmartDashboard/SmartDashboard.h>
 #include <geometry_msgs/Twist.h>
 #include <tf2/LinearMath/Quaternion.h>
-#include <std_msgs/String>
+#include <std_msgs/String.h>
 
 namespace frcrobot_control
 {
@@ -92,12 +92,12 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
 		double sub = subTableYaw->GetEntry("Reset Angular Z").GetDouble(0);
-		string auto_sel = subTableAuto->GetEntry("Auto Selector".GetString();
+		std::string auto_sel = subTableAuto->GetEntry("Auto Selector").GetString("");
 
 		// SmartDashboard works!
 		frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
-		ROS_INFO_STREAM(frc::SmartDashboard::GetString("DB/String 0", "myDefaultData") << std::endl);
-		ROS_WARN_STREAM("TEST");
+		//ROS_INFO_STREAM(frc::SmartDashboard::GetString("DB/String 0", "myDefaultData") << std::endl);
+		//ROS_WARN_STREAM("TEST");
 
 		if (realtime_pub_nt_zero_yaw.trylock())
 		{
@@ -107,8 +107,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 		if (realtime_pub_nt_auto_selector.trylock())
 		{
-			realtime_pub_nt_auto_selector.msg_.string = auto_sel;
-			reltime_pub_nt_auto_selector.unlockAndPublish();
+			realtime_pub_nt_auto_selector.msg_.data = auto_sel;
+			realtime_pub_nt_auto_selector.unlockAndPublish();
 		}
 
 		if (realtime_pub_joystick.trylock())

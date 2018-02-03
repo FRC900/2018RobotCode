@@ -1,3 +1,6 @@
 [submodule "navXTimeSync"]
 	path = navXTimeSync
 	url = https://github.com/FRC900/navXTimeSync
+[submodule "px-ros-pkg"]
+	path = zebROS_ws/src/px_ros_pkg
+	url = https://github.com/cvg/px-ros-pkg.git
