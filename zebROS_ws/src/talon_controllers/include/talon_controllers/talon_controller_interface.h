@@ -57,7 +57,7 @@ class TalonCIParams
 			nominal_output_reverse_(100.),
 			neutral_deadband_(0.),
 			voltage_compensation_saturation_(0),
-			voltage_measurement_filter_(0),
+			voltage_measurement_filter_(32),
 			voltage_compensation_enable_(false),
 			limit_switch_local_forward_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
 			limit_switch_local_forward_normal_(hardware_interface::LimitSwitchNormal_NormallyOpen),

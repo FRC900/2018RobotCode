@@ -51,6 +51,7 @@
 #include <SmartDashboard/SmartDashboard.h>
 #include <geometry_msgs/Twist.h>
 #include <tf2/LinearMath/Quaternion.h>
+#include <std_msgs/String.h>
 
 namespace frcrobot_control
 {
@@ -79,8 +80,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
-	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
-	realtime_tools::RealtimePublisher<geometry_msgs::Twist> realtime_pub_nt(nh_, "nt_data", 4);
+	std::shared_ptr<nt::NetworkTable> subTableYaw = NetworkTable::GetTable("Zero Yaw");
+	std::shared_ptr<nt::NetworkTable> subTableAuto = NetworkTable::GetTable("Auto Selector");
+	realtime_tools::RealtimePublisher<geometry_msgs::Twist> realtime_pub_nt_zero_yaw(nh_, "nt_data", 4);
+	realtime_tools::RealtimePublisher<std_msgs::String> realtime_pub_nt_auto_selector(nh_, "nt_data", 4);
 
 	while (run_hal_thread_)
 	{
@@ -88,15 +91,24 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
-		double sub = subTable->GetEntry("Reset Angular Z").GetDouble(0);
+		double sub = subTableYaw->GetEntry("Reset Angular Z").GetDouble(0);
+		std::string auto_sel = subTableAuto->GetEntry("Auto Selector").GetString("");
 
 		// SmartDashboard works!
 		frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+		//ROS_INFO_STREAM(frc::SmartDashboard::GetString("DB/String 0", "myDefaultData") << std::endl);
+		//ROS_WARN_STREAM("TEST");
 
-		if (realtime_pub_nt.trylock())
+		if (realtime_pub_nt_zero_yaw.trylock())
 		{
-			realtime_pub_nt.msg_.angular.z = sub;
-			realtime_pub_nt.unlockAndPublish();
+			realtime_pub_nt_zero_yaw.msg_.angular.z = sub;
+			realtime_pub_nt_zero_yaw.unlockAndPublish();
+		}
+
+		if (realtime_pub_nt_auto_selector.trylock())
+		{
+			realtime_pub_nt_auto_selector.msg_.data = auto_sel;
+			realtime_pub_nt_auto_selector.unlockAndPublish();
 		}
 
 		if (realtime_pub_joystick.trylock())
