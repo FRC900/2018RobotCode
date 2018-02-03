@@ -23,6 +23,7 @@ add_message_files (
   FILES
   ElevatorControl.msg
   Intake.msg
+  Clamp.msg
 )
 generate_messages(
   DEPENDENCIES

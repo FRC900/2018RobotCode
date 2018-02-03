@@ -233,12 +233,23 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
 	}
 }
-void ElevatorController::clampCallback(const std_msgs::Bool &command)
+void ElevatorController::clampCallback(const elevator_controller::Clamp &command)
 {
 
 	if(isRunning())
 	{
-		clamp_cmd_ = command.data ? 1.0 : -1.0;
+		if(command.in)
+		{
+			clamp_cmd_ = -1.0;
+		}
+		else if(command.out)
+		{
+			clamp_cmd_ = 1.0;
+		}
+		else
+		{
+			clamp_cmd_ = 0.0;
+		}
 
 	}
 	else

@@ -20,7 +20,7 @@ hardware_interface:
        - {name: intake_right_up, type: double_solenoid, forward_id: 3, reverse_id: 4}
        - {name: intake_left_spring, type: double_solenoid, forward_id: 5, reverse_id: 6}
        - {name: intake_right_spring, type: double_solenoid, forward_id: 7, reverse_id: 8}
-       - {name: clamp, type: solenoid, id: 0}
+       - {name: clamp, type: double_solenoid, forward_id: 7, reverse_id: 8}
 
 
 #TODO: fix ids for pneumatics   

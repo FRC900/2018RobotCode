@@ -10,6 +10,7 @@
 //#include <teleop_joystick_control/RobotState.h>
 #include <elevator_controller/ElevatorControl.h>
 #include <elevator_controller/Intake.h>
+#include <elevator_controller/Clamp.h>
 #include <elevator_controller/arm_limiting.h>
 
 #include <nav_msgs/Odometry.h>
@@ -107,7 +108,7 @@ class ElevatorController
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
 		void intakeCallback(const elevator_controller::Intake& command);
-		void clampCallback(const std_msgs::Bool& command); 
+		void clampCallback(const elevator_controller::Clamp& command); 
 		//Add Callback for intake pneumatics, probably needs to be a custom msg
 	
 		std::shared_ptr<arm_limiting::arm_limits> arm_limiter;

@@ -189,7 +189,7 @@ class arm_limits
 			(cmd.y() > hook_min_height + hook_cmd_height_delta 
 			&& cur_pos.y() < hook_current_height_delta +  hook_max_height)))
 			{
-				ROS_INFO_STREAM("cmd precheck. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+				//ROS_INFO_STREAM("cmd precheck. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 				ROS_WARN("HOOK LIMITED");
 				if(cmd.x() < hook_depth)
 				{
@@ -240,7 +240,7 @@ class arm_limits
 
 
 					
-				ROS_INFO_STREAM("cmd post check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+				//ROS_INFO_STREAM("cmd post check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 				
 			}	
 			
@@ -258,22 +258,22 @@ class arm_limits
 			{
 				cmd.x(test_pivot_cmd.x());
 				cmd.y(isolated_lift_delta_y + test_pivot_cmd.y());
-				ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+				//ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 				return false;				
 			}
 			else
 			{
 				point_type test_lift_cmd(cur_pos.x(), cur_pos.y() + isolated_lift_delta_y);
-				ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
+				//ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
 				if(!check_if_possible(test_lift_cmd, cur_up_or_down, 2))
 				{
 					cmd.y(test_lift_cmd.y() - cur_pos.y() + isolated_pivot_y);
-					ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+					//ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 					return false;
 				}
 				else
 				{
-					ROS_INFO_STREAM("cmd final check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+					//ROS_INFO_STREAM("cmd final check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 					return true;
 				}
 			} 
