@@ -16,11 +16,12 @@ hardware_interface:
        - {name: pivot, type: can_talon_srx, can_id: 51}
        - {name: intake, type: can_talon_srx, can_id: 31}
        - {name: intake_follower1, type: can_talon_srx, can_id: 32}
-       - {name: intake_left_up, type: double_solenoid, forward_id: 1, reverse_id: 2}
-       - {name: intake_right_up, type: double_solenoid, forward_id: 3, reverse_id: 4}
-       - {name: intake_left_spring, type: double_solenoid, forward_id: 5, reverse_id: 6}
-       - {name: intake_right_spring, type: double_solenoid, forward_id: 7, reverse_id: 8}
-       - {name: clamp, type: double_solenoid, forward_id: 7, reverse_id: 8}
+       - {name: clamp, type: double_solenoid, pcm: 0, forward_id: 0, reverse_id: 1}
+       - {name: intake_left_up, type: double_solenoid, pcm: 0, forward_id: 2, reverse_id: 3}
+       - {name: intake_right_up, type: double_solenoid, pcm: 0, forward_id: 4, reverse_id: 5}
+       - {name: intake_left_spring, type: double_solenoid, pcm: 0, forward_id: 6, reverse_id: 7}
+       - {name: intake_right_spring, type: double_solenoid, pcm: 0, forward_id: 0, reverse_id: 1}
+
 
 
 #TODO: fix ids for pneumatics   

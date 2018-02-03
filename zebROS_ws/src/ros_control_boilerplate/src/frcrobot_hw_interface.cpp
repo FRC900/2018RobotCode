@@ -255,18 +255,20 @@ void FRCRobotHWInterface::init(void)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << solenoid_names_[i] <<
-							  " as Solenoid " << solenoid_ids_[i]);
+							  " as Solenoid " << solenoid_ids_[i]
+							  << " with pcm " << solenoid_pcms_[i]);
 		
-		solenoids_.push_back(std::make_shared<frc::Solenoid>(solenoid_ids_[i]));
+		solenoids_.push_back(std::make_shared<frc::Solenoid>(solenoid_pcms_[i], solenoid_ids_[i]));
 	}
 	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << double_solenoid_names_[i] <<
 							  " as Double Solenoid  forward " << double_solenoid_forward_ids_[i] <<
-							  " reverse " << double_solenoid_reverse_ids_[i]);
-		
-		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
+							  " reverse " << double_solenoid_reverse_ids_[i]	
+							  << " with pcm " << double_solenoid_pcms_[i]);
+
+		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_pcms_[i], double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
 	}
 
 	//RIGHT NOW THIS WILL ONLY WORK IF THERE IS ONLY ONE NAVX INSTANTIATED

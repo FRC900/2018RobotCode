@@ -220,10 +220,21 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 					xml_solenoid_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
 				throw std::runtime_error("An invalid joint solenoid id was specified (expecting an int).");
 
+					
 			const int solenoid_id = xml_solenoid_id;
+			
+			if (!joint_params.hasMember("pcm"))
+				throw std::runtime_error("A pcm was not specified");
+			XmlRpc::XmlRpcValue &xml_solenoid_pcm = joint_params["pcm"];
+			if (!xml_solenoid_pcm.valid() ||
+					xml_solenoid_pcm.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint solenoid pcm was specified (expecting an int).");
+
+			const int solenoid_pcm = xml_solenoid_pcm;
 
 			solenoid_names_.push_back(joint_name);
 			solenoid_ids_.push_back(solenoid_id);
+			solenoid_pcms_.push_back(solenoid_pcm);
 		}
 		else if (joint_type == "double_solenoid")
 		{
@@ -245,9 +256,22 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 
 			const int double_solenoid_reverse_id = xml_double_solenoid_reverse_id;
 
+
+	
+			if (!joint_params.hasMember("pcm"))
+				throw std::runtime_error("A pcm was not specified");
+			XmlRpc::XmlRpcValue &xml_double_solenoid_pcm = joint_params["pcm"];
+			if (!xml_double_solenoid_pcm.valid() ||
+					xml_double_solenoid_pcm.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint double solenoid pcm was specified (expecting an int).");
+
+			const int double_solenoid_pcm = xml_double_solenoid_pcm;
+
 			double_solenoid_names_.push_back(joint_name);
 			double_solenoid_forward_ids_.push_back(double_solenoid_forward_id);
 			double_solenoid_reverse_ids_.push_back(double_solenoid_reverse_id);
+			double_solenoid_pcms_.push_back(double_solenoid_pcm);
+
 		}
 		else if (joint_type == "rumble")
 		{
