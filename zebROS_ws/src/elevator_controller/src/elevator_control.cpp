@@ -131,13 +131,15 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	
 	
 
-	Clamp      	  = controller_nh.advertise<std_msgs::Float64>("clamp/command", 1);  
+	Clamp      	  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);  
 
-	IntakeLeftUp      = controller_nh.advertise<std_msgs::Float64>("intake_left_up/command", 1);  
-	IntakeRightUp     = controller_nh.advertise<std_msgs::Float64>("intake_right_up/command", 1);  
-	IntakeRightSpring = controller_nh.advertise<std_msgs::Float64>("intake_right_spring/command", 1);      
-	IntakeLeftSpring  = controller_nh.advertise<std_msgs::Float64>("intake_left_spring/command", 1);      
+	IntakeLeftUp      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_left_up_controller/command", 1);  
+	IntakeRightUp     = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_right_up_controller/command", 1);  
+	IntakeRightSpring = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_right_spring_controller/command", 1);      
+	IntakeLeftSpring  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_left_spring_controller/command", 1);      
 
+
+	ReturnCmd  = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);      
 
 
 	//TODO: add odom init stuff
@@ -178,6 +180,8 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	Clamp.publish(holder_msg);
 	
 
+	elevator_controller::ReturnElevatorCmd return_holder;
+	
 	if(!curr_cmd.override_pos_limits)
 	{
 		lift_position = lift_joint_.getPosition() - lift_offset_;
@@ -191,14 +195,28 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 		bool cur_up_or_down = pivot_angle > 0;
 		bool reassignment_holder;
 		
-	
-		arm_limiter->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, hook_depth_, hook_min_height_, hook_max_height_);
-	
+		arm_limiting::point_type return_cmd;
+		bool return_up_or_down;		
+		arm_limiter->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, hook_depth_, hook_min_height_, hook_max_height_, return_cmd, return_up_or_down);
+
+		return_holder.x = return_cmd.x();
+		return_holder.y = return_cmd.y();
+		return_holder.up_or_down = return_up_or_down;
+
 		//potentially do something if reassignment is needed (Like a ROS_WARN?)
 	
 		curr_cmd.lin[0] = cmd_point.x();
 		curr_cmd.lin[1] = cmd_point.y();
 	}
+	else
+	{
+		return_holder.x = curr_cmd.lin[0];
+		return_holder.y = curr_cmd.lin[1];
+		return_holder.up_or_down = curr_cmd.up_or_down;
+
+	}
+	ReturnCmd.publish(return_holder);
+		
 	if(!curr_cmd.override_sensor_limits)
 	{
 		//TODO: something here which reads time of flight/ultrasonic pos

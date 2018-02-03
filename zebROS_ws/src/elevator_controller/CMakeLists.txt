@@ -24,6 +24,7 @@ add_message_files (
   ElevatorControl.msg
   Intake.msg
   Clamp.msg
+  ReturnElevatorCmd.msg
 )
 generate_messages(
   DEPENDENCIES

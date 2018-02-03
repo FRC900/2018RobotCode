@@ -146,7 +146,8 @@ class arm_limits
 			}
 		}
 		bool safe_cmd(point_type &cmd, bool &up_or_down, bool &cmd_works, point_type &cur_pos, 
-		bool &cur_up_or_down, double &hook_depth, double &hook_min_height, double &hook_max_height)
+		bool &cur_up_or_down, double &hook_depth, double &hook_min_height, double &hook_max_height,
+		point_type &cmd_return, bool &up_or_down_return)
 		{
 			
 			//Note: uses heuristics only applicable to our robot
@@ -154,6 +155,9 @@ class arm_limits
 			//ROS_INFO_STREAM("cmd base check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 			cmd_works = check_if_possible(cmd, up_or_down, 0);
 			
+			cmd_return = cmd;
+			up_or_down_return = up_or_down;
+
 			check_if_possible(cur_pos, cur_up_or_down, 0);
 			
 
@@ -190,7 +194,7 @@ class arm_limits
 			&& cur_pos.y() < hook_current_height_delta +  hook_max_height)))
 			{
 				//ROS_INFO_STREAM("cmd precheck. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
-				ROS_WARN("HOOK LIMITED");
+				//ROS_WARN("HOOK LIMITED");
 				if(cmd.x() < hook_depth)
 				{
 					cmd.x(hook_depth + .05); //adjust this arbitrary constant?

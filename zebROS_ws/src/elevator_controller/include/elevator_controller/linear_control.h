@@ -11,6 +11,7 @@
 #include <elevator_controller/ElevatorControl.h>
 #include <elevator_controller/Intake.h>
 #include <elevator_controller/Clamp.h>
+#include <elevator_controller/ReturnElevatorCmd.h>
 #include <elevator_controller/arm_limiting.h>
 
 #include <nav_msgs/Odometry.h>
@@ -102,6 +103,8 @@ class ElevatorController
 		ros::Publisher IntakeRightUp; 
 		ros::Publisher IntakeRightSpring; 
 		ros::Publisher IntakeLeftSpring; 
+
+		ros::Publisher ReturnCmd; 
 
 		double arm_length_;
 		double pivot_offset_;
