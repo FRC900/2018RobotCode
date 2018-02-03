@@ -64,6 +64,11 @@ elevator_controller:
     arm_length: 0.495 #FIX
     max_extension: 3.0 #FIX
     min_extension: 0.25 #FIX
+    
+    hook_depth: 0.1 #FIX
+    hook_min_height: 1 #FIX
+    hook_max_height: 1.1 #FIX
+    
     polygon_points: [-1.0, .127, 0.1, .127, 0.75, .127, 0.75, -1.0, -1.0, -1.0, -1.0, .127]    
     lift_joint:
         joint: lift

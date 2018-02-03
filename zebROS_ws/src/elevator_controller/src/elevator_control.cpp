@@ -67,6 +67,10 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	controller_nh.getParam("max_extension", max_extension_);
 	controller_nh.getParam("min_extension", min_extension_);
 	
+	controller_nh.getParam("hook_depth", hook_depth_);
+	controller_nh.getParam("hook_min_height", hook_min_height_);
+	controller_nh.getParam("hook_max_height", hook_max_height_);
+	
 	dynamic_reconfigure::ReconfigureRequest srv_req;
         dynamic_reconfigure::ReconfigureResponse srv_resp;
         dynamic_reconfigure::DoubleParameter double_param;
@@ -188,7 +192,7 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 		bool reassignment_holder;
 		
 	
-		arm_limiter->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down);
+		arm_limiter->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, hook_depth_, hook_min_height_, hook_max_height_);
 	
 		//potentially do something if reassignment is needed (Like a ROS_WARN?)
 	
