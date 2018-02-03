@@ -1,6 +1,6 @@
 #Including bumpers we are 35.25x39.25 
 #Check that x and y are correct
-#footprint: [[-0.4927,-0.4985], [0.4927,-0.4985], [0.4927,0.4985], [-0.4927,0.4985]]
+footprint: [[-0.4927,-0.4985], [0.4927,-0.4985], [0.4927,0.4985], [-0.4927,0.4985]]
 
 # robot_radius: ir_of_robot - we are not a circle so
 # use above footprint instead

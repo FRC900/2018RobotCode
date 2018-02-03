@@ -36,6 +36,8 @@
  * Author: Enrique Fernández
  */
 
+#pragma once
+
 #include <string>
 #include <controller_interface/controller.h>
 #include <talon_controllers/talon_controller_interface.h>

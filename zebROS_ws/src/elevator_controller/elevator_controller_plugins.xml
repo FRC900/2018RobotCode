@@ -1,0 +1,9 @@
+<library path="lib/libelevator_controller">
+
+  <class name="elevator_controller/ElevatorController" type="elevator_controller::ElevatorController" base_class_type="controller_interface::ControllerBase">
+    <description>
+      The ElevatorControl controls the superstructure of the robot excluding some climbing only components. It expects Talon Controller type of hardware interfaces.
+    </description>
+  </class>
+
+</library>
