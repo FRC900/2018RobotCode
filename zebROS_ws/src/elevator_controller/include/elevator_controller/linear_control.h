@@ -54,7 +54,12 @@ class ElevatorController
 
 		double max_extension_;
 		double min_extension_;
+	
+		double hook_depth_;
+		double hook_min_height_;
+		double hook_max_height_;
 		
+	
 		struct IntakeCommand //This struct is highly subject to change
 		{			
 			double left_command;

@@ -41,7 +41,10 @@ class arm_limits
 		{
 			saved_polygons_ =  arm_limitation_polygon(min_extension, max_extension, 
 			x_back, arm_length, remove_zone_down, circle_point_count);
-			
+		
+			max_extension_ = max_extension;
+			min_extension_ = min_extension;
+				
 			arm_length_ = arm_length;
 			point_type top(-.01, arm_length_);
 			point_type bottom(-.01, -arm_length_);
@@ -143,7 +146,7 @@ class arm_limits
 			}
 		}
 		bool safe_cmd(point_type &cmd, bool &up_or_down, bool &cmd_works, point_type &cur_pos, 
-		bool &cur_up_or_down)
+		bool &cur_up_or_down, double &hook_depth, double &hook_min_height, double &hook_max_height)
 		{
 			
 			//Note: uses heuristics only applicable to our robot
@@ -151,8 +154,13 @@ class arm_limits
 			//ROS_INFO_STREAM("cmd base check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 			cmd_works = check_if_possible(cmd, up_or_down, 0);
 			
-			//ROS_INFO_STREAM("cur_pos check");
 			check_if_possible(cur_pos, cur_up_or_down, 0);
+			
+
+
+			
+			//ROS_INFO_STREAM("cur_pos check");
+
 			//ROS_INFO_STREAM(" Cmd: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
 			cur_pos.x(.05);
 			cur_pos.y(.5);
@@ -163,39 +171,117 @@ class arm_limits
 			double isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
 			//Could switch above to using circle func instead of trig func	
-			point_type test_pivot_cmd(cmd.x(), isolated_pivot_y);
 		
 	
 			double isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
 
+			double hook_current_height_delta = (cur_lift_height - min_extension_)/2;
+			double hook_cmd_height_delta = (isolated_lift_delta_y)/2 + hook_current_height_delta;
+
+			double y_low_hook_corner =  2 * (hook_min_height) - min_extension_ - sin(acos((hook_depth + 0.05)/arm_length_))*arm_length_;
+			double y_high_hook_corner = 2 * (hook_max_height) - min_extension_ - sin(acos((hook_depth + 0.05)/arm_length_))*arm_length_;
+
+
+			//hook_heights are for when arm is all the way down
+			if((cmd.x() < hook_depth || cur_pos.x() < hook_depth) && 
+			((cur_pos.y() > hook_current_height_delta + hook_min_height  
+			&& cmd.y() < hook_max_height + hook_cmd_height_delta) || 
+			(cmd.y() > hook_min_height + hook_cmd_height_delta 
+			&& cur_pos.y() < hook_current_height_delta +  hook_max_height)))
+			{
+				ROS_INFO_STREAM("cmd precheck. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+				ROS_WARN("HOOK LIMITED");
+				if(cmd.x() < hook_depth)
+				{
+					cmd.x(hook_depth + .05); //adjust this arbitrary constant?
+					if(cmd.y() > hook_min_height + hook_cmd_height_delta)
+					{
+						if(cur_pos.x() < hook_depth)
+						{
+							cmd.y(y_low_hook_corner);
+						}
+						else
+						{
+							cmd.y(cur_lift_height + isolated_lift_delta_y 
+							+ sin(acos((hook_depth+.05)/arm_length_))*arm_length_
+							*(up_or_down ? 1 : -1));
+						}	
+					}
+					else
+					{	
+						if(cur_pos.x() < hook_depth)
+						{
+							cmd.y(y_high_hook_corner);
+						}
+						else
+						{
+							cmd.y(cur_lift_height + isolated_lift_delta_y 
+							+ sin(acos((hook_depth+.05)/arm_length_))*arm_length_
+							*(up_or_down ? 1 : -1));
+						}	
+
+
+					}
+				}
+				else
+				{
+					if(cmd.y() > hook_min_height + hook_cmd_height_delta)
+					{
+						cmd.y(y_low_hook_corner);
+					}
+					else
+					{	
+						cmd.y(y_high_hook_corner);
+					}	
+				}
+
+				//Might need to take in account one more case, up to down
+
+
+
+					
+				ROS_INFO_STREAM("cmd post check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+				
+			}	
+			
+			isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
+			*( up_or_down ? 1 : -1) + cur_lift_height;
+			//Could switch above to using circle func instead of trig func	
+			point_type test_pivot_cmd(cmd.x(), isolated_pivot_y);
+		
+	
+			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
+			
 			//ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
 			
 			if(!check_if_possible(test_pivot_cmd, up_or_down, 1, cur_lift_height))
 			{
 				cmd.x(test_pivot_cmd.x());
 				cmd.y(isolated_lift_delta_y + test_pivot_cmd.y());
-				//ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+				ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 				return false;				
 			}
 			else
 			{
 				point_type test_lift_cmd(cur_pos.x(), cur_pos.y() + isolated_lift_delta_y);
-				//ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
+				ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
 				if(!check_if_possible(test_lift_cmd, cur_up_or_down, 2))
 				{
 					cmd.y(test_lift_cmd.y() - cur_pos.y() + isolated_pivot_y);
-					//ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+					ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 					return false;
 				}
 				else
 				{
+					ROS_INFO_STREAM("cmd final check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 					return true;
 				}
 			} 
 			
-			return true;
 		}
 	private:
+		double min_extension_;
+		double max_extension_;	
 		double arm_length_;
 		std::array<std::vector<linestring_type>, 2> poly_lines;
 		polygon_type pivot_circle;
