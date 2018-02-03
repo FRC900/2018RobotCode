@@ -63,8 +63,8 @@ elevator_controller:
     pivot: "pivot_joint"
     arm_length: 0.495 #FIX
     max_extension: 3.0 #FIX
-    min_extension: 1.0 #FIX
-    
+    min_extension: 0.25 #FIX
+    polygon_points: [-1.0, .127, 0.1, .127, 0.75, .127, 0.75, -1.0, -1.0, -1.0, -1.0, .127]    
     lift_joint:
         joint: lift
         close_loop_values:

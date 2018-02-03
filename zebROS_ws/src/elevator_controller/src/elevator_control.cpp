@@ -106,7 +106,19 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 
 	//TODO: something here to get bounding boxes etc for limits near bottom of drive train
 	arm_limiting::polygon_type remove_zone_poly_down;
-
+	std::vector<arm_limiting::point_type> point_vector;
+	XmlRpc::XmlRpcValue poly_points;
+	controller_nh.getParam("polygon_points", poly_points);
+	point_vector.resize(poly_points.size()/2);
+	//ROS_ERROR("hypothetical errors");
+	ROS_INFO_STREAM(poly_points.size());
+	for (int i = 0; i < poly_points.size()/2.0; ++i)
+	{
+		point_vector[i].x(static_cast<double>(poly_points[2*i]));
+		point_vector[i].y(static_cast<double>(poly_points[2*i + 1]));
+		ROS_INFO_STREAM("point from remove zone: " <<   boost::geometry::wkt(point_vector[i]));
+	}
+	boost::geometry::assign_points(remove_zone_poly_down, point_vector);
 	arm_limiter = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, 15);
 	
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
