@@ -144,7 +144,6 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	Odom  = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("odom", 1);      
 
 
-	//TODO: add odom init stuff
 
 	return true;
 }
@@ -246,7 +245,6 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 void ElevatorController::starting(const ros::Time &time)
 {
 	//maybe initialize the target to something if not otherwise set?
-	//We will need to write this time to some variables for odom eventually
 }
 void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorControl &command)
 {
