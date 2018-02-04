@@ -105,6 +105,8 @@ class ElevatorController
 		ros::Publisher IntakeLeftSpring; 
 
 		ros::Publisher ReturnCmd; 
+		
+		ros::Publisher Odom; 
 
 		double arm_length_;
 		double pivot_offset_;

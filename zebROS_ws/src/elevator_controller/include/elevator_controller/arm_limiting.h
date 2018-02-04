@@ -166,9 +166,9 @@ class arm_limits
 			//ROS_INFO_STREAM("cur_pos check");
 
 			//ROS_INFO_STREAM(" Cmd: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
-			cur_pos.x(.05);
-			cur_pos.y(.5);
-			cur_up_or_down = false;	
+			//cur_pos.x(.05);
+			//cur_pos.y(.5);
+			//cur_up_or_down = false;	
 			double cur_lift_height = cur_pos.y() - sin(acos(cur_pos.x()/arm_length_))*arm_length_
 			*(cur_up_or_down ? 1 : -1); 
 			

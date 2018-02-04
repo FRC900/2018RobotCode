@@ -140,6 +140,8 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 
 
 	ReturnCmd  = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);      
+	
+	Odom  = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("odom", 1);      
 
 
 	//TODO: add odom init stuff
@@ -181,18 +183,31 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	
 
 	elevator_controller::ReturnElevatorCmd return_holder;
+	elevator_controller::ReturnElevatorCmd odom_holder;
+	
+	lift_position = lift_joint_.getPosition() - lift_offset_;
+	pivot_angle = pivot_joint_.getPosition() - pivot_offset_;
+	
+	bool cur_up_or_down = pivot_angle > 0;
+	
+	arm_limiting::point_type cur_pos(cos(pivot_angle)*arm_length_, lift_position + 
+	sin(pivot_angle)*arm_length_);	
+	
+	odom_holder.x = cur_pos.x();
+	odom_holder.y = cur_pos.y();
+	odom_holder.up_or_down = cur_up_or_down;
+
+	Odom.publish(odom_holder);
 	
 	if(!curr_cmd.override_pos_limits)
 	{
-		lift_position = lift_joint_.getPosition() - lift_offset_;
-		pivot_angle = pivot_joint_.getPosition() - pivot_offset_;
+
 		
 		arm_limiting::point_type cmd_point(curr_cmd.lin[0], curr_cmd.lin[1]);
 
-		arm_limiting::point_type cur_pos(cos(pivot_angle)*arm_length_, lift_position + 
-		sin(pivot_angle)*arm_length_);	
 
-		bool cur_up_or_down = pivot_angle > 0;
+
+
 		bool reassignment_holder;
 		
 		arm_limiting::point_type return_cmd;
