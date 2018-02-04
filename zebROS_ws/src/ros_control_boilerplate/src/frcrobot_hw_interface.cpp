@@ -52,7 +52,7 @@
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/String.h>
 #include <std_msgs/Int32.h>
-#include <stdlib.h>
+#include <ctre/phoenix/MotorControl/SensorCollection.h>
 
 namespace frcrobot_control
 {
@@ -424,8 +424,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		ts.setFaults(faults.ToBitfield());
 
 		// Grab limit switch and softlimit here
-		ts.setForwardLimitSwitch(faults.ForwardLimitSwitch);
-		ts.setReverseLimitSwitch(faults.ReverseLimitSwitch);
+		ts.setForwardLimitSwitch(talon->GetSensorCollection().IsFwdLimitSwitchClosed());
+		ts.setReverseLimitSwitch(talon->GetSensorCollection().IsRevLimitSwitchClosed());
 
 		ts.setForwardSoftlimitHit(faults.ForwardSoftLimit);
 		ts.setReverseSoftlimitHit(faults.ReverseSoftLimit);
