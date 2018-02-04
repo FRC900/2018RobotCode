@@ -1,5 +1,5 @@
 global_costmap:
-  global_frame: map # switch to map once mapping is running?
+  global_frame: /map # switch to map once mapping is running?
   robot_base_frame: base_link
   update_frequency: 1.0
   publish_frequency: 1.0 # for rviz debugging?
@@ -9,7 +9,7 @@ global_costmap:
   # That will cause the costmap to fill in spaces
   # the map_server shows as inaccessable (inside walls, etc)
   static_map: true
-  rolling_window: false
+  #rolling_window: false
   map_type: costmap 
   plugins:
     - {name: static_layer,            type: "costmap_2d::StaticLayer"}
