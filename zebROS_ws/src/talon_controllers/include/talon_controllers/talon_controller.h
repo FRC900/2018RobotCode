@@ -253,6 +253,7 @@ class TalonLinearMotionMagicCloseLoopController :
 	//Used radius	
 	private:
 		double radius_;
+		double gear_ratio_from_encoder_;
 	public:
 		TalonLinearMotionMagicCloseLoopController(void) {}
 		
@@ -264,6 +265,8 @@ class TalonLinearMotionMagicCloseLoopController :
 
 			//radius for length
 			n.getParam("radius", radius_);
+			//Ratio to convert to correct angle
+			n.getParam("gear_ratio_from_encoder", gear_ratio_from_encoder_);
 		}
 
 		// Same as TalonClosedLoopController but setCommand
@@ -274,7 +277,7 @@ class TalonLinearMotionMagicCloseLoopController :
 			// output to talon interface
 			CloseLoopCommand cmd = *command_buffer_.readFromRT();
 			talon_if_.setPIDFSlot(cmd.config_slot_);
-			talon_if_.setCommand(cmd.command_ / radius_);
+			talon_if_.setCommand(cmd.command_ / radius_ / gear_ratio_from_encoder_);
 			//ROS_INFO_STREAM(cmd.command_ / radius_ << "works?");
 		}
 };

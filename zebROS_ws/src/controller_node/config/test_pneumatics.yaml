@@ -10,7 +10,7 @@ generic_hw_control_loop:
 # of several types of HW interface : CAN_id, PWM_id, DIO_id, AIO_id, etc.
 hardware_interface:
    joints:
-       - {name: solenoid1, type: double_solenoid, forward_id: 1, reverse_id: 0}
+       - {name: solenoid1, type: double_solenoid, pcm: 0, forward_id: 1, reverse_id: 0}
 
 # Create controllers for each joint
 #

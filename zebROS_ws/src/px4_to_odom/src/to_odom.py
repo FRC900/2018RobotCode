@@ -6,6 +6,7 @@ from nav_msgs.msg import Odometry
 from px_comm.msg import OpticalFlow
 
 global prev_time
+pose_position_x, pose_position_y = 0, 0
 
 pub = rospy.Publisher("px4_odom", Odometry, queue_size=1)
 
@@ -13,7 +14,7 @@ def listener ():
 	rospy.Subscriber("/px4flow/opt_flow", OpticalFlow, callback)
 
 def callback (data):
-	global prev_time
+	global prev_time, pose_position_x, pose_position_y
 	cur_time = rospy.get_rostime().to_sec()
 	dt = cur_time - prev_time
 	prev_time = cur_time
@@ -24,9 +25,14 @@ def callback (data):
 	odom.pose.pose.orientation.w = 1
 	odom.twist.twist.linear.x = data.velocity_x
 	odom.twist.twist.linear.y = data.velocity_y
-	odom.pose.pose.position.x += data.velocity_x / dt
-	odom.pose.pose.position.y += data.velocity_y / dt
-	pub.publish(odom)
+
+        # the first two variables here are necessary because the message attributes don't work with += for some reason
+        pose_position_x += data.velocity_x / dt
+        pose_position_y += data.velocity_y / dt
+	odom.pose.pose.position.x = pose_position_x
+	odom.pose.pose.position.y = pose_position_y
+
+        pub.publish(odom)
 
 
 if __name__ == "__main__":

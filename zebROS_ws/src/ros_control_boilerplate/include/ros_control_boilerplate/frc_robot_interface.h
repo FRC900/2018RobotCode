@@ -157,11 +157,13 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 
 		std::vector<std::string> solenoid_names_;
 		std::vector<int>         solenoid_ids_;
+		std::vector<int>         solenoid_pcms_;
 		std::size_t              num_solenoids_;
 		
 		std::vector<std::string> double_solenoid_names_;
 		std::vector<int>         double_solenoid_forward_ids_;
 		std::vector<int>         double_solenoid_reverse_ids_;
+		std::vector<int>         double_solenoid_pcms_;
 		std::size_t              num_double_solenoids_;
 		
 		std::vector<std::string> rumble_names_;
