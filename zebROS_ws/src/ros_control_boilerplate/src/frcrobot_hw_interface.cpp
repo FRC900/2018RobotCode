@@ -104,12 +104,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		autoMode.data = std::stoi(autoNumber, &sz);
 		nt_pub.publish(autoMode);
 
-		robot_.OneIteration();
-		// Things to keep track of
-		//    Alliance Station Id
-		//    Robot / match mode (auto, teleop, test, disabled)
-		//    Match time
-		double match_time_state_ = DriverStation::GetInstance().GetMatchTime();
 
 		if (realtime_pub_joystick.trylock())
 		{
