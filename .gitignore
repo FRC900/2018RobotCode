@@ -41,3 +41,7 @@ rules.ninja
 
 # IntelliJ Environment
 .idea/
+
+# Rosbag files
+bagfiles_temp/*.bag
+
