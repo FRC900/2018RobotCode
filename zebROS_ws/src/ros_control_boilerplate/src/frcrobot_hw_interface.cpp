@@ -309,6 +309,14 @@ void FRCRobotHWInterface::init(void)
 
 		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_pcms_[i], double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
 	}
+	for (size_t i = 0; i < num_compressors_; i++)
+	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << compressor_names_[i] <<
+							  " as Compressor with pcm " << compressor_pcm_ids_[i]);
+		
+		compressors_.push_back(std::make_shared<frc::Compressor>(compressor_pcm_ids_[i]));
+	}
 	//Add navX hw objects
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
@@ -467,6 +475,10 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
 		double_solenoid_state_[i] = double_solenoids_[i]->Get();
+	}
+	for (size_t i = 0; i < num_compressors_; i++)
+	{
+		compressor_state_[i] = compressors_[i]->GetCompressorCurrent();
 	}
 	//navX read here
 }
@@ -1060,6 +1072,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		unsigned int left_rumble  = (rumbles >> 16) & 0xFFFF;
 		unsigned int right_rumble = (rumbles      ) & 0xFFFF;
 		HAL_SetJoystickOutputs(rumble_ports_[i], 0, left_rumble, right_rumble);
+	}
+	for (size_t i = 0; i< num_compressors_; i++)
+	{
+		bool setpoint = compressor_command_[i] > 0;
+		compressors_[i]->SetClosedLoopControl(setpoint);
 	}
 }
 

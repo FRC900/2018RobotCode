@@ -50,6 +50,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 	, num_digital_outputs_(0)
 	, num_pwm_(0)
 	, num_solenoids_(0)
+	, num_compressors_(0)	
 	, num_double_solenoids_(0)
 	, num_rumble_(0)
 	, num_navX_(0)
@@ -328,6 +329,22 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 			analog_input_names_.push_back(joint_name);
 			analog_input_analog_channels_.push_back(analog_input_analog_channel);
 		}
+		else if (joint_type == "compressor")
+		{
+			if (!joint_params.hasMember("pcm_id"))
+				throw std::runtime_error("A compressor pcm id was not specified");
+			XmlRpc::XmlRpcValue &xml_compressor_pcm_id = joint_params["pcm_id"];
+			if (!xml_compressor_pcm_id.valid() ||
+					xml_compressor_pcm_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint compressor pcm id was specified (expecting an int).");
+
+					
+			const int compressor_pcm_id = xml_compressor_pcm_id;
+			
+
+			compressor_names_.push_back(joint_name);
+			compressor_pcm_ids_.push_back(compressor_pcm_id);
+		}
 		else
 		{
 			std::stringstream s;
@@ -448,7 +465,7 @@ void FRCRobotInterface::init()
 	solenoid_command_.resize(num_solenoids_);
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
-		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << solenoid_names_[i] << " at id " << solenoid_ids_[i]);
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << solenoid_names_[i] << " at id " << solenoid_ids_[i]<< "at pcm" << solenoid_pcms_[i]);
 
 		hardware_interface::JointStateHandle ssh(solenoid_names_[i], &solenoid_state_[i], &solenoid_state_[i], &solenoid_state_[i]);
 		joint_state_interface_.registerHandle(ssh);
@@ -462,7 +479,7 @@ void FRCRobotInterface::init()
 	double_solenoid_command_.resize(num_double_solenoids_);
 	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
-		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << double_solenoid_names_[i] << " at forward id" << double_solenoid_forward_ids_[i] << "at reverse id" << double_solenoid_reverse_ids_[i]);
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << double_solenoid_names_[i] << " at forward id" << double_solenoid_forward_ids_[i] << "at reverse id" << double_solenoid_reverse_ids_[i] << "at pcm" << double_solenoid_pcms_[i]);
 
 		hardware_interface::JointStateHandle dssh(double_solenoid_names_[i], &double_solenoid_state_[i], &double_solenoid_state_[i], &double_solenoid_state_[i]);
 		joint_state_interface_.registerHandle(dssh);
@@ -545,6 +562,19 @@ void FRCRobotInterface::init()
 		hardware_interface::JointStateHandle aish(analog_input_names_[i], &analog_input_state_[i], &analog_input_state_[i], &analog_input_state_[i]);
 		joint_state_interface_.registerHandle(aish);
 
+	}
+	num_compressors_ = compressor_names_.size();
+	compressor_state_.resize(num_compressors_);
+	compressor_command_.resize(num_compressors_);
+	for (size_t i = 0; i < num_compressors_; i++)
+	{
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << compressor_names_[i] << " at pcm_id " << compressor_ids_[i]);
+
+		hardware_interface::JointStateHandle csh(compressor_names_[i], &compressor_state_[i], &compressor_state_[i], &compressor_state_[i]);
+		joint_state_interface_.registerHandle(csh);
+
+		hardware_interface::JointHandle cch(csh, &compressor_command_[i]);
+		joint_velocity_interface_.registerHandle(cch);
 	}
 
 	// Publish various FRC-specific data using generic joint state for now
