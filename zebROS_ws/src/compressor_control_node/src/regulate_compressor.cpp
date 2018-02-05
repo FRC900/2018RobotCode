@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
     double tank_volume_;
     double max_end_game_use_;
     double max_match_non_end_use_;
+    double target_final_pressure_;
     
     n_params.getParam("current_multiplier", current_multiplier_);
     n_params.getParam("pressure_exponent", pressure_exponent_);
@@ -37,6 +38,7 @@ int main(int argc, char **argv) {
     n_params.getParam("tank_volume", tank_volume_);
     n_params.getParam("max_end_game_use", max_end_game_use_);
     n_params.getParam("max_match_non_end_use", max_match_non_end_use_);
+    n_params.getParam("target_final_pressure", target_final_pressure_);
 
 
     max_end_game_use_ *= 60/(tank_count_ * tank_volume_); //converting into tank pressure
@@ -71,11 +73,11 @@ int main(int argc, char **argv) {
 				max_estimated = sensor_estimated;
 			}
 			const double end_pressure_estimate = pressure_ - max_estimated  - max_end_game_use_;
-			if(end_pressure_estimate < 60 || run_last_tick)
+			if(end_pressure_estimate < target_final_pressure || run_last_tick)
 			{
 			const double modelVal = -current_multiplier_ * weighted_average_current_ 
-			+ pressure_multiplier_ * pow(fabs(60 - end_pressure_estimate), pressure_exponent_) 
-			* (((end_pressure_estimate) < 60) ? 1 : -1) 
+			+ pressure_multiplier_ * pow(fabs(target_final_pressure - end_pressure_estimate), 
+			pressure_exponent_) * (((end_pressure_estimate) < target_final_pressure_) ? 1 : -1) 
 			+ ((run_last_tick) ? 1 : 0) * inertial_multiplier_;  
 			 
 			if(modelVal > 0)
