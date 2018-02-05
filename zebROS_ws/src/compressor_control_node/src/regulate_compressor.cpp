@@ -73,10 +73,10 @@ int main(int argc, char **argv) {
 				max_estimated = sensor_estimated;
 			}
 			const double end_pressure_estimate = pressure_ - max_estimated  - max_end_game_use_;
-			if(end_pressure_estimate < target_final_pressure || run_last_tick)
+			if(end_pressure_estimate < target_final_pressure_ || run_last_tick)
 			{
 			const double modelVal = -current_multiplier_ * weighted_average_current_ 
-			+ pressure_multiplier_ * pow(fabs(target_final_pressure - end_pressure_estimate), 
+			+ pressure_multiplier_ * pow(fabs(target_final_pressure_ - end_pressure_estimate), 
 			pressure_exponent_) * (((end_pressure_estimate) < target_final_pressure_) ? 1 : -1) 
 			+ ((run_last_tick) ? 1 : 0) * inertial_multiplier_;  
 			 
