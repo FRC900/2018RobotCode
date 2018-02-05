@@ -531,8 +531,8 @@ void FRCRobotInterface::init()
 		hardware_interface::ImuSensorHandle imuh(imu_data);
 		imu_interface_.registerHandle(imuh);
 
-		// Not sure about this - we can possibly hack it
-		// up to send commands to the IMU?
+		// Set up a command interface to set an
+		// offset for reported heading
 		hardware_interface::JointStateHandle nxsh(navX_names_[i], &navX_state_[i], &navX_state_[i], &navX_state_[i]);
 		joint_state_interface_.registerHandle(nxsh);
 

@@ -274,12 +274,10 @@ void FRCRobotHWInterface::init(void)
 
 		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));
 
+		// This is a guess so TODO : get better estimates
 		imu_orientation_covariances_[i] = {0.0015, 0.0, 0.0, 0.0, 0.0015, 0.0, 0.0, 0.0, 0.0015};
 		imu_angular_velocity_covariances_[i] = {0.0015, 0.0, 0.0, 0.0, 0.0015, 0.0, 0.0, 0.0, 0.0015};
 	   	imu_linear_acceleration_covariances_[i] ={0.0015, 0.0, 0.0, 0.0, 0.0015, 0.0, 0.0, 0.0, 0.0015};
-
-		// TODO :: fill in covariances here?
-		// Steal from navx node for now?
 	}
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
@@ -493,6 +491,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//navXs_[i]->GetDisplacementZ();
 		//navXs_[i]->GetAngle(); //continous
 		//TODO: add setter functions
+		//
+		navX_state_[i] = navX_command_[i];
 	}
 	for (size_t i = 0; i < num_compressors_; i++)
 	{
