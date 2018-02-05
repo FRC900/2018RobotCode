@@ -15,7 +15,6 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <std_msgs/Header.h>
-#include "navx_publisher/stampedUInt64.h"
 
 #include <geometry_msgs/Point32.h>
 #include <cv_bridge/cv_bridge.h>
@@ -33,12 +32,11 @@ using namespace message_filters;
 
 static ros::Publisher pub;
 static GoalDetector *gd = NULL;
-static const bool batch = true;
+static bool batch = true;
 static bool down_sample = false;
 
-void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, const navx_publisher::stampedUInt64ConstPtr &navxMsg)
+void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 {
-	
 	cv_bridge::CvImageConstPtr cvFrame = cv_bridge::toCvShare(frameMsg, sensor_msgs::image_encodings::BGR8);
 	cv_bridge::CvImageConstPtr cvDepth = cv_bridge::toCvShare(depthMsg, sensor_msgs::image_encodings::TYPE_32FC1);
 
@@ -78,10 +76,6 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, cons
 	Mat tempFrame(framePtr->clone());
 	gd->drawOnFrame(tempFrame, gd->getContours(tempFrame));
 
-		rectangle(tempFrame, gd->goal_rect(), Scalar(0,0,255), 2);
-		imshow ("Image", tempFrame);
-		waitKey(5);
-
 	const Point3f pt = gd->goal_pos();
 
 	goal_detection::GoalDetection gd_msg;
@@ -92,7 +86,6 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, cons
 	gd_msg.location.y = pt.y;
 	gd_msg.location.z = pt.z;
 	gd_msg.valid = gd->Valid();
-	gd_msg.navx_timestamp = navxMsg->data;
 	pub.publish(gd_msg);
 
 	if (!batch)
@@ -108,7 +101,6 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, cons
 		return;
 	}
 	
-	/*
 	//Transform between goal frame and odometry/map.
 	static tf2_ros::TransformBroadcaster br;
 	geometry_msgs::TransformStamped transformStamped;
@@ -153,23 +145,6 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, cons
 	tf2::doTransform(transformStamped, transformStampedOdomGoal, transformStampedOdomCamera);
 
 	br.sendTransform(transformStampedOdomGoal);
-	*/
-}
-
-void callbackNavx(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg, const navx_publisher::stampedUInt64ConstPtr &navxMsg)
-{
-	cout << "callback navx" << endl;
-	callback(frameMsg, depthMsg, navxMsg);
-}
-
-void callbackNoNavx(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
-{
-	navx_publisher::stampedUInt64 fakeMsg;
-	fakeMsg.header.stamp = ros::Time::now();
-	fakeMsg.data = 0;
-	const boost::shared_ptr<navx_publisher::stampedUInt64> ptr = boost::make_shared<navx_publisher::stampedUInt64>(fakeMsg);
-	cout << "Callback no navx" << endl;
-	callback(frameMsg, depthMsg, ptr);
 }
 
 int main(int argc, char **argv)
@@ -178,38 +153,19 @@ int main(int argc, char **argv)
 
 	ros::NodeHandle nh("~");
 	down_sample = false;
-	int sub_rate = 10;
+	int sub_rate = 5;
 	int pub_rate = 1;
 	nh.getParam("down_sample", down_sample);
 	nh.getParam("sub_rate", sub_rate);
 	nh.getParam("pub_rate", pub_rate);
+	nh.getParam("batch", batch);
 	message_filters::Subscriber<Image> frame_sub(nh, "/zed_goal/left/image_rect_color", sub_rate);
 	message_filters::Subscriber<Image> depth_sub(nh, "/zed_goal/depth/depth_registered", sub_rate);
-	message_filters::Subscriber<navx_publisher::stampedUInt64> navx_sub(nh, "/navx/time", 50);
-
-	ros::Duration wait_t(5.0); //wait 5 seconds for a navx publisher
-	ros::Time stop_t = ros::Time::now() + wait_t;
-	while (ros::Time::now() < stop_t &&navx_sub.getSubscriber().getNumPublishers() == 0)
-	{
-		ros::Duration(0.5).sleep();
-		ros::spinOnce();
-		ROS_INFO_STREAM("Waiting for a navx publisher" << endl);
-	}
 
 	typedef sync_policies::ApproximateTime<Image, Image > MySyncPolicy2;
-	typedef sync_policies::ApproximateTime<Image, Image, navx_publisher::stampedUInt64> MySyncPolicy3;
 	// ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(xxx)
 	Synchronizer<MySyncPolicy2> sync2(MySyncPolicy2(50), frame_sub, depth_sub);
-	Synchronizer<MySyncPolicy3> sync3(MySyncPolicy3(50), frame_sub, depth_sub, navx_sub);
-	if (navx_sub.getSubscriber().getNumPublishers() == 0)
-	{
-		ROS_WARN_STREAM("Navx not found, running in debug mode" << endl);
-		sync2.registerCallback(boost::bind(&callbackNoNavx, _1, _2));
-	}
-	else
-	{
-		sync3.registerCallback(boost::bind(&callbackNavx, _1, _2, _3));
-	}
+	sync2.registerCallback(boost::bind(&callback, _1, _2));
 
 	// Set up publisher
 	pub = nh.advertise<goal_detection::GoalDetection>("goal_detect_msg", pub_rate);
