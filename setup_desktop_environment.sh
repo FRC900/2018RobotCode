@@ -7,7 +7,7 @@ sudo apt update
 sudo apt upgrade -y
 sudo apt install -y libeigen3-dev build-essential gfortran git cmake libleveldb-dev libsnappy-dev libhdf5-dev libhdf5-serial-dev liblmdb-dev libgflags-dev libgoogle-glog-dev libatlas-base-dev python-dev python-pip libtinyxml2-dev v4l-conf v4l-utils libgtk2.0-dev pkg-config exfat-fuse exfat-utils libprotobuf-dev protobuf-compiler unzip python-numpy python-scipy python-opencv python-matplotlib wget unzip
 sudo apt-get install --no-install-recommends -y libboost-all-dev
-sudo apt-get install libflann-dev libpcl-dev
+sudo apt-get install -y libflann-dev libpcl-dev
 
 #add repos for neovim, vim-backports, and ros
 sudo add-apt-repository -y ppa:jonathonf/vim
@@ -16,7 +16,7 @@ sudo add-apt-repository -y ppa:neovim-ppa/stable
 echo "Do you wish to install ROS? Select No if already installed"
 select yn in "Yes" "No"; do
     case $yn in
-        Yes ) sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' && sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116 && sudo apt update && sudo apt install -y ros-kinetic-desktop-full && source /opt/ros/kinetic/setup.bash && sudo rosdep init && rosdep update; break;;
+        Yes ) sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' && sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116 && sudo apt update && sudo apt install -y --install-recommends ros-kinetic-desktop-full && source /opt/ros/kinetic/setup.bash && sudo rosdep init && rosdep update; break;;
         No ) break;;
     esac
 done
@@ -25,6 +25,7 @@ sudo apt update
 #removes regular vim and installs Vim with py2 support enabled, as well as other tools
 sudo apt remove -y *vim*
 sudo apt install -y vim-gtk-py2 neovim python3-dev python3-pip ros-kinetic-desktop-full python-rosinstall python-rosinstall-generator python-wstool aptitude docker clang colorgcc ranger
+sudo apt install -y ros-kinetic-hardware-interface ros-kinetic-realtime-tools ros-kinetic-controller-interface ros-kinetic-controller-manager ros-kinetic-joint-limits-interface ros-kinetic-transmission-interface ros-kinetic-control-toolbox ros-kinetic-rosparam-shortcuts
 #installs NeoVim Python bindings (for rosvim)
 sudo pip2 install --upgrade neovim
 sudo pip3 install --upgrade neovim
