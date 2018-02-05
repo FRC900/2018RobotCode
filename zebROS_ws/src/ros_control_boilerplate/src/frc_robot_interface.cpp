@@ -568,7 +568,7 @@ void FRCRobotInterface::init()
 	compressor_command_.resize(num_compressors_);
 	for (size_t i = 0; i < num_compressors_; i++)
 	{
-		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << compressor_names_[i] << " at pcm_id " << compressor_ids_[i]);
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << compressor_names_[i] << " at pcm_id " << compressor_pcm_ids_[i]);
 
 		hardware_interface::JointStateHandle csh(compressor_names_[i], &compressor_state_[i], &compressor_state_[i], &compressor_state_[i]);
 		joint_state_interface_.registerHandle(csh);
