@@ -188,9 +188,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		// Array holding master cached state of hardware
 		// resources
 		std::vector<hardware_interface::TalonHWState> talon_state_;
-		std::vector<double> brushless_pos_;
 		std::vector<double> brushless_vel_;
-		std::vector<double> brushless_eff_;
 
 		std::vector<double> digital_input_state_;
 		std::vector<double> digital_output_state_; //No actual data
