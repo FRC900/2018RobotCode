@@ -27,6 +27,8 @@ sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installe
     # Expand the WPILib Robot Development repo and choose to install the Robot C++ Development plugin.
     # Follow/confirm the wizard/prompts
 
+# ~/eclipse/cpp-neon/eclipse/eclipse -nosplash -application org.eclipse.equinox.p2.director -repository http://first.wpi.edu/FRC/roborio/release/eclipse/,http://cmakeed.sourceforge.net/eclipse/ -installIU edu.wpi.first.wpilib.plugins.cpp.feature.feature.group
+
 
 # Install CTRE libraries for TalonSRX controller
 # included in above for now but keep handy
@@ -61,12 +63,12 @@ sudo tar -xjf ~/roscore_roborio_2018.tar.bz2
 cd
 rm roscore_roborio_2018.tar.bz2
 
-# Install roboRIO packages into the cross-root
-sudo perl ~/2018RobotCode/install_cross_package.pl
-
 # Clone 2018RobotCode repo
 cd
 git clone https://github.com/FRC900/2018RobotCode.git
+
+# Install roboRIO packages into the cross-root
+sudo perl ~/2018RobotCode/install_cross_package.pl
 
 # Build/install cross version of console_bridge
 cd

@@ -2,7 +2,7 @@
 
 # Actual ros build and install :
 
-sudo apt-get install python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential ninja-build
+sudo apt-get install -y python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential ninja-build
 sudo rosdep init
 rosdep update
 mkdir ~/catkin_arm_cross_ws
@@ -57,6 +57,7 @@ wstool init -j8 src kinetic-ros_comm-wet.rosinstall
 cd src
 find . -name collada_urdf  | xargs rm -rf
 find . -name tf2_bullet | xargs rm -rf
+find . -name diagnostic_aggregator | xargs rm -rf
 rm -rf robot_model/joint_state_publisher
 cd ..
 
