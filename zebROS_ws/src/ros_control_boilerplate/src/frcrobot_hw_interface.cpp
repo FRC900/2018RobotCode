@@ -74,7 +74,6 @@ FRCRobotHWInterface::~FRCRobotHWInterface()
 
 void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
-	// Just throw a basic IterativeRobot in here instead?
 	run_hal_thread_ = true;
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
@@ -84,26 +83,27 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-	ros::NodeHandle n;
-	ros::Publisher nt_pub = n.advertise<std_msgs::Int32>("Autonomous Mode", 1); //
-	ros::Rate loopRate(10);
-
+	realtime_tools::RealtimePublisher<std_msgs::Int32> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
 
 	while (run_hal_thread_)
 	{
-		// Network tables work!
-		//pubTable->PutString("String 9", "WORK");
-        //subTable->PutString("Auto Selector", "Select Auto");
-		std::string autoNumber = driveTable->GetString("Auto Selector", "0");
+		robot_.OneIteration();
 
-		// SmartDashboard works!
-	    //frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+		if (realtime_pub_nt.trylock())
+		{
+			// Network tables work!
+			//pubTable->PutString("String 9", "WORK");
+			//subTable->PutString("Auto Selector", "Select Auto");
+			const std::string autoNumber = driveTable->GetString("Auto Selector", "0");
 
-		std_msgs::Int32 autoMode;
-        std::string::size_type sz; //necessary dummy variable for stoi to work
-		autoMode.data = std::stoi(autoNumber, &sz);
-		nt_pub.publish(autoMode);
+			// SmartDashboard works!
+			//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
+			// TODO eventually add header to nt message so we can get timestamps
+			// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
+			realtime_pub_nt.msg_.data = std::stoi(autoNumber);
+			realtime_pub_nt.unlockAndPublish();
+		}
 
 		if (realtime_pub_joystick.trylock())
 		{
