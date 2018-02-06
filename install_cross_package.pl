@@ -62,7 +62,7 @@ install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/libboost-signals1.60.0_1.60.0-r0.3_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/libboost-system1.60.0_1.60.0-r0.3_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/libboost-thread1.60.0_1.60.0-r0.3_cortexa9-vfpv3.ipk");
-install_package("http://download.ni.com/ni-linux-rt/feeds/2016/arm/ipk/cortexa9-vfpv3/libeigen-dev_3.2.6-r0.5_cortexa9-vfpv3.ipk");
+install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/libeigen-dev_3.2.6-r0.5_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/libeigen_3.2.6-r0.5_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/libpython2_2.7.11-r1.49_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/python-core_2.7.11-r1.49_cortexa9-vfpv3.ipk");
@@ -138,7 +138,6 @@ install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/opencv-apps_3.1+git0+92387b1ef8-r0.5_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/opencv-dbg_3.1+git0+92387b1ef8-r0.5_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/opencv-dev_3.1+git0+92387b1ef8-r0.5_cortexa9-vfpv3.ipk");
-install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/opencv-java_3.1+git0+92387b1ef8-r0.5_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/opencv-samples-dbg_3.1+git0+92387b1ef8-r0.5_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/opencv-samples_3.1+git0+92387b1ef8-r0.5_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/opencv-staticdev_3.1+git0+92387b1ef8-r0.5_cortexa9-vfpv3.ipk");

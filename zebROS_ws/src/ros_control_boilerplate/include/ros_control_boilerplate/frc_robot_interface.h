@@ -166,14 +166,18 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<int>         double_solenoid_pcms_;
 		std::size_t              num_double_solenoids_;
 		
+		std::vector<std::string> compressor_names_;
+		std::vector<int>         compressor_pcm_ids_;
+		std::size_t              num_compressors_;
+		
 		std::vector<std::string> rumble_names_;
 		std::vector<int>         rumble_ports_;
 		std::size_t              num_rumble_;
 
 		std::vector<std::string> navX_names_;
 		std::vector<std::string> navX_frame_ids_;
-		std::vector<int>	 navX_ids_;
-		std::size_t		  num_navX_;
+		std::vector<int>	 	 navX_ids_;
+		std::size_t		 	 	 num_navX_;
 		
 		std::vector<std::string> analog_input_names_;
 		std::vector<int>         analog_input_analog_channels_;
@@ -184,9 +188,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		// Array holding master cached state of hardware
 		// resources
 		std::vector<hardware_interface::TalonHWState> talon_state_;
-		std::vector<double> brushless_pos_;
 		std::vector<double> brushless_vel_;
-		std::vector<double> brushless_eff_;
 
 		std::vector<double> digital_input_state_;
 		std::vector<double> digital_output_state_; //No actual data
@@ -195,6 +197,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> double_solenoid_state_;
 		std::vector<double> rumble_state_; //No actual data
 		std::vector<double> navX_state_;	
+		std::vector<double> compressor_state_;
 	
 		// Each entry in the vector is an array. That array holds
 		// the data returned from one particular imu
@@ -216,6 +219,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> double_solenoid_command_;
 		std::vector<double> rumble_command_;
 		std::vector<double> navX_command_;
+		std::vector<double> compressor_command_;
 };  // class
 
 }  // namespace

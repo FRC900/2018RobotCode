@@ -2,12 +2,12 @@
 
 # Actual ros build and install :
 
-sudo apt-get install python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential ninja-build
+sudo apt-get install -y python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential ninja-build
 sudo rosdep init
 rosdep update
 mkdir ~/catkin_arm_cross_ws
 cd ~/catkin_arm_cross_ws
-rosinstall_generator ros ros_comm robot control_toolbox angles serial robot_localization controller_interface controller_manager combined_robot_hw ros_control ros_controllers tf2_tools tf2_eigen tf2_sensor_msgs rosparam_shortcuts rqt_controller_manager --rosdistro kinetic --deps --wet-only > kinetic-ros_comm-wet.rosinstall
+rosinstall_generator ros ros_comm robot control_toolbox angles serial robot_localization controller_interface controller_manager combined_robot_hw ros_control ros_controllers tf2_tools tf2_eigen tf2_sensor_msgs rosparam_shortcuts rqt_controller_manager actionlib_tutorials image_transport --rosdistro kinetic --deps --wet-only > kinetic-ros_comm-wet.rosinstall
 
 # geometry2
 # geodesy
@@ -57,6 +57,7 @@ wstool init -j8 src kinetic-ros_comm-wet.rosinstall
 cd src
 find . -name collada_urdf  | xargs rm -rf
 find . -name tf2_bullet | xargs rm -rf
+find . -name diagnostic_aggregator | xargs rm -rf
 rm -rf robot_model/joint_state_publisher
 cd ..
 

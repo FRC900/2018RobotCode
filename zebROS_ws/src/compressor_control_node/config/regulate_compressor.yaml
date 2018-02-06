@@ -1,0 +1,11 @@
+model_params:
+    current_multiplier: 1.0
+    pressure_exponent: 2.0
+    pressure_multiplier: 1.0 
+    inertial_multiplier: 1.0
+    tank_count: 4
+    tank_volume: 35.0
+    max_end_game_use: 10.0
+    max_match_non_end_use: 200.0
+    target_final_pressure: 60.0
+#usages are for 60 psi in^3 

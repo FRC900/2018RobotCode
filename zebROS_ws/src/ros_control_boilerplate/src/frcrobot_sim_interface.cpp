@@ -339,7 +339,6 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 	{
 		// Assume instant acceleration for now
 		const double vel = brushless_command_[joint_id];
-		brushless_pos_[joint_id] += vel * elapsed_time.toSec();
 		brushless_vel_[joint_id] = vel;
 	}
 	for (size_t i = 0; i < num_digital_outputs_; i++)
