@@ -245,7 +245,6 @@ int main(int argc, char **argv)
 			odom_pub.publish(odom);
 			raw_pub.publish(imu_msg_raw);
 		}
-		ros::spinOnce();
 		loop_time.sleep();
 	}
 
