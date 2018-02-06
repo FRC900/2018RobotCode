@@ -27,8 +27,8 @@
 	  <arg name="base_frame" value="base_link" />
     </include>
   </group>
-  <include file="$(find controller_node)/launch/record_slave.launch" if="$(arg record)"/>
 	-->
+  <include file="$(find controller_node)/launch/record_slave.launch" if="$(arg record)"/>
   
 	<!-- 
 		Transform: x y z yaw pitch roll
