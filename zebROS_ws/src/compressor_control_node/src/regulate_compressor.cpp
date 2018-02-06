@@ -1,6 +1,5 @@
 #include "compressor_control_node/regulate_compressor.h"
 
-//using namespace message_filters;
 static ros::Publisher CompressorCommand;
 static ros::Subscriber pressure_sub_;
 static ros::Subscriber current_sub_;
@@ -11,7 +10,7 @@ static double pressure_ = 120;
 static double match_time_ = 0;
 static bool fms_connected_ =  false;
 static double weighted_average_current_ = 0;
-static int game_mode_ = 1; //0 for auto, one for anything else
+static int game_mode_ = 1; //0 for auto, one or greater for anything else
 static bool disable_ = false;
 
 int main(int argc, char **argv) {
@@ -44,23 +43,21 @@ int main(int argc, char **argv) {
 
 	CompressorCommand = n.advertise<std_msgs::Float64>("/frcrobot/compressor_controller/commmand", 1);
 
-	// Might make more sense to use a message filter and async time
-	// filter to make sure message data is in sync
-	pressure_sub_ = n.subscribe("/frcrobot/joint_states", 5, &pressureCallback);
-	current_sub_ = n.subscribe("/frcrobot/total_current", 5, &currentCallback);
-	match_data_sub_ = n.subscribe("/frcrobot/match_data", 5, &matchDataCallback);
+	pressure_sub_ = n.subscribe("/frcrobot/joint_states", 1, &pressureCallback);
+	current_sub_ = n.subscribe("/frcrobot/total_current", 75, &currentCallback);
+	match_data_sub_ = n.subscribe("/frcrobot/match_data", 1, &matchDataCallback);
 	disable_sub_ = n.subscribe("disable", 5, &disableCallback);
-	//TODO FIX ABOVE topic name
+	//TODO FIX ABOVE topic names
 
 	// TODO : fix me.  spin() will loop forever until !ros::ok()
 	// This needs to be a spinOnce at the end of the ros::ok()
 	// loop below instead
-	ros::spin();
 
 	ros::Rate r(1); //1 hz
 	bool run_last_tick;
 	while(ros::ok())
 	{
+		ros::spinOnce();
 		std_msgs::Float64 holder_msg;
 		if(fms_connected_ && !disable_ )
 		{
