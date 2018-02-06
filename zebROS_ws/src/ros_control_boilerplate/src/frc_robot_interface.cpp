@@ -312,7 +312,6 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 		}
 		else if (joint_type == "analog_input")
 		{
-			ROS_WARN("has analog");
 			if (!joint_params.hasMember("analog_channel"))
 				throw std::runtime_error("A Analog input analog_channel was not specified");
 			XmlRpc::XmlRpcValue &xml_analog_input_analog_channel = joint_params["analog_channel"];
@@ -322,7 +321,36 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 
 			const int analog_input_analog_channel = xml_analog_input_analog_channel;
 
+			
+			double analog_input_a;
+			
+			if (!joint_params.hasMember("analog_a"))
+				analog_input_a = 1;
+			else
+			{
+				XmlRpc::XmlRpcValue &xml_analog_input_a = joint_params["analog_a"];
+				if (!xml_analog_input_a.valid() ||
+					xml_analog_input_a.getType() != XmlRpc::XmlRpcValue::TypeDouble)
+					throw std::runtime_error("An invalid joint a term was specified (expecting an double).");
+				analog_input_a = xml_analog_input_a;
+			}
 
+			
+			double analog_input_b;
+			if (!joint_params.hasMember("analog_b"))
+				analog_input_b = 0;
+			else
+			{
+				XmlRpc::XmlRpcValue &xml_analog_input_b = joint_params["analog_b"];
+				if (!xml_analog_input_b.valid() ||
+					xml_analog_input_b.getType() != XmlRpc::XmlRpcValue::TypeDouble)
+					throw std::runtime_error("An invalid joint b term was specified (expecting an double).");
+				analog_input_b = xml_analog_input_b;
+			}
+
+
+			analog_input_a_.push_back(analog_input_a);
+			analog_input_b_.push_back(analog_input_b);
 			analog_input_names_.push_back(joint_name);
 			analog_input_analog_channels_.push_back(analog_input_analog_channel);
 		}

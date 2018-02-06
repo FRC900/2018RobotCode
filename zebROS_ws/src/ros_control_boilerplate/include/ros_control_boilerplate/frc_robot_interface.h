@@ -177,11 +177,13 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<std::string> navX_names_;
 		std::vector<std::string> navX_frame_ids_;
 		std::vector<int>	 	 navX_ids_;
-		std::size_t		 	 	 num_navX_;
+		std::size_t		 		 num_navX_;
 		
 		std::vector<std::string> analog_input_names_;
 		std::vector<int>         analog_input_analog_channels_;
 		std::size_t              num_analog_inputs_;
+		std::vector<double>      analog_input_a_;
+		std::vector<double>      analog_input_b_;
 		
 		urdf::Model *urdf_model_;
 
