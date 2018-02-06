@@ -176,8 +176,8 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 
 		std::vector<std::string> navX_names_;
 		std::vector<std::string> navX_frame_ids_;
-		std::vector<int>	 navX_ids_;
-		std::size_t		  num_navX_;
+		std::vector<int>	 	 navX_ids_;
+		std::size_t		 	 	 num_navX_;
 		
 		std::vector<std::string> analog_input_names_;
 		std::vector<int>         analog_input_analog_channels_;
@@ -188,9 +188,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		// Array holding master cached state of hardware
 		// resources
 		std::vector<hardware_interface::TalonHWState> talon_state_;
-		std::vector<double> brushless_pos_;
 		std::vector<double> brushless_vel_;
-		std::vector<double> brushless_eff_;
 
 		std::vector<double> digital_input_state_;
 		std::vector<double> digital_output_state_; //No actual data
