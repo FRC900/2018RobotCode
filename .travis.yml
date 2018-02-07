@@ -18,7 +18,7 @@ script:
      git checkout $TRAVIS_COMMIT &&
      git log -n1 &&
      git submodule update --init --recursive &&
-     ./install_ros_desktop_packages.sh
+     ./install_ros_desktop_packages.sh &&
      cd zebROS_ws &&
      wstool update -t src &&
      source /opt/ros/kinetic/setup.bash &&
