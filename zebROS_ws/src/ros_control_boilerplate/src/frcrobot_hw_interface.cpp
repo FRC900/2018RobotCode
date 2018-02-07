@@ -54,6 +54,8 @@
 #include <std_msgs/Int32.h>
 #include <ctre/phoenix/MotorControl/SensorCollection.h>
 #include <tf2/LinearMath/Quaternion.h>
+#include "ros_control_boilerplate/PDPData.h"
+#include <PowerDistributionPanel.h>
 
 namespace frcrobot_control
 {
@@ -76,10 +78,11 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	run_hal_thread_ = true;
 	Joystick joystick(0);
+	PowerDistributionPanel pdp(0); //sets module to 0? 
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
 
-	//realtime_tools::RealtimePublisher<ros_control_boilerplate::PDPData> realtime_pub_pdp(nh_, "pdp_data", 4);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::PDPData> realtime_pub_pdp(nh_, "pdp_data", 4);
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -176,6 +179,27 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_match_data.unlockAndPublish();
 		}
+		
+
+		//read data from the PDP
+		if(realtime_pub_pdp.trylock())
+		{
+			realtime_pub_pdp.msg_.header.stamp = ros::Time::now();
+
+			realtime_pub_pdp.msg_.voltage = pdp.PowerDistributionPanel::GetVoltage();
+			realtime_pub_pdp.msg_.temperature = pdp.PowerDistributionPanel::GetTemperature();
+			realtime_pub_pdp.msg_.totalCurrent = pdp.PowerDistributionPanel::GetTotalCurrent();
+			realtime_pub_pdp.msg_.totalPower = pdp.PowerDistributionPanel::GetTotalPower();
+			realtime_pub_pdp.msg_.totalEnergy = pdp.PowerDistributionPanel::GetTotalEnergy();
+
+			for(int channel; channel <= 16; channel++)
+			{
+				realtime_pub_pdp.msg_.current[channel] = pdp.PowerDistributionPanel::GetCurrent(channel);
+			}
+
+			realtime_pub_pdp.unlockAndPublish();
+		}
+
 		//TODO: Add direction buttons?
 	}
 }
@@ -449,7 +473,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
-		analog_input_state_[i] = analog_inputs_[i]->GetValue();
+		ROS_INFO_STREAM("base: " << analog_inputs_[i]->GetValue() << " a: " << analog_input_a_[i] << " b:" 
+		<< analog_input_b_[i]);
+		analog_input_state_[i] = (analog_inputs_[i]->GetValue())*analog_input_a_[i] + analog_input_b_[i];
 	}
  	//navX read here
 	for (size_t i = 0; i < num_navX_; i++)
