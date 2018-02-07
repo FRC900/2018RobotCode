@@ -322,7 +322,6 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 
 			const int analog_input_analog_channel = xml_analog_input_analog_channel;
 
-
 			analog_input_names_.push_back(joint_name);
 			analog_input_analog_channels_.push_back(analog_input_analog_channel);
 		}
@@ -338,9 +337,12 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 
 			const int compressor_pcm_id = xml_compressor_pcm_id;
 
-
 			compressor_names_.push_back(joint_name);
 			compressor_pcm_ids_.push_back(compressor_pcm_id);
+		}
+		else if (joint_type == "dummy")
+		{
+			dummy_joint_names_.push_back(joint_name);
 		}
 		else
 		{
@@ -565,6 +567,16 @@ void FRCRobotInterface::init()
 		joint_position_interface_.registerHandle(cch);
 	}
 
+	num_dummy_joints_ = dummy_joint_names_.size();
+	for (size_t i = 0; i < num_dummy_joints_; i++)
+	{
+		hardware_interface::JointStateHandle dsh(dummy_joint_names_[i], &dummy_joint_val_, &dummy_joint_val_, &dummy_joint_val_);
+		//joint_state_interface_.registerHandle(dsh);
+
+		hardware_interface::JointHandle dch(dsh, &dummy_joint_val_);
+		joint_command_interface_.registerHandle(dch);
+	}
+
 	// Publish various FRC-specific data using generic joint state for now
 	// For simple things this might be OK, but for more complex state
 	// (e.g. joystick) it probably makes more sense to write a
@@ -573,6 +585,7 @@ void FRCRobotInterface::init()
 	registerInterface(&talon_state_interface_);
 	registerInterface(&joint_state_interface_);
 	registerInterface(&talon_command_interface_);
+	registerInterface(&joint_command_interface_);
 	registerInterface(&joint_position_interface_);
 	registerInterface(&joint_velocity_interface_);
 	registerInterface(&imu_interface_);

@@ -1,0 +1,14 @@
+type: "position_controllers/JointCommandInterface"
+joints:
+  - x_linear_joint
+  - y_linear_joint
+  - z_rotation_joint
+
+constraints:
+  goal_time: 0.6
+  stopped_velocity_tolerance: 0.02
+  x_linear_joint: {trajectory: 0.05, goal: 0.02}
+  y_linear_joint: {trajectory: 0.05, goal: 0.02}
+  z_rotation_joint: {trajectory: 0.05, goal: 0.02}
+stop_trajectory_duration: 0.5
+state_publish_rate:  25

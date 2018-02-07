@@ -121,6 +121,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		hardware_interface::JointStateInterface joint_state_interface_;
 		hardware_interface::TalonStateInterface talon_state_interface_;
 
+		hardware_interface::JointCommandInterface  joint_command_interface_;
 		hardware_interface::PositionJointInterface joint_position_interface_;
 		hardware_interface::VelocityJointInterface joint_velocity_interface_;
 		hardware_interface::TalonCommandInterface talon_command_interface_;
@@ -182,6 +183,9 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<std::string> analog_input_names_;
 		std::vector<int>         analog_input_analog_channels_;
 		std::size_t              num_analog_inputs_;
+
+		std::vector<std::string> dummy_joint_names_;
+		std::size_t              num_dummy_joints_;
 		
 		urdf::Model *urdf_model_;
 
@@ -220,6 +224,10 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> rumble_command_;
 		std::vector<double> navX_command_;
 		std::vector<double> compressor_command_;
+
+		// Hack for controllers which need a joint name but
+		// are never actually used as joints 
+		double dummy_joint_val_;
 };  // class
 
 }  // namespace

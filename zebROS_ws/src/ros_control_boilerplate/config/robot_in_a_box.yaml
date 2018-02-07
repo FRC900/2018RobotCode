@@ -16,6 +16,9 @@ hardware_interface:
          #- {name: talon_4, type: can_talon_srx, can_id: 4}
          #- {name: talon_5, type: can_talon_srx, can_id: 5}
        - {name: digital_output_1, type: digital_output, dio_channel: 0}
+       - {name: x_linear_joint, type: dummy}
+       - {name: y_linear_joint, type: dummy}
+       - {name: z_rotation_joint, type: dummy}
 
    # Add more data for each joint here - intitial mode, encoder type
    #    PIDF settings, limit switch settings, etc
@@ -101,3 +104,19 @@ digital_output1_controller:
     type: velocity_controllers/JointVelocityController
     joint: digital_output_1
 
+base_trajectory_controller:
+    type: base_trajectory_controllers/JointTrajectoryController 
+    joints:
+      - x_linear_joint
+      - y_linear_joint
+      - z_rotation_joint
+
+    constraints:
+      goal_time: 0.6
+      stopped_velocity_tolerance: 0.02
+      x_linear_joint: {trajectory: 0.05, goal: 0.02}
+      y_linear_joint: {trajectory: 0.05, goal: 0.02}
+      z_rotation_joint: {trajectory: 0.05, goal: 0.02}
+    stop_trajectory_duration: 0.5
+    state_publish_rate:  25
+        

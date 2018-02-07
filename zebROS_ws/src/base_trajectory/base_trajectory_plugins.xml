@@ -1,0 +1,8 @@
+<library path="lib/libbase_trajectory">
+
+  <class name="base_trajectory_controllers/JointTrajectoryController" type="base_trajectory_controllers::JointTrajectoryController" base_class_type="controller_interface::ControllerBase">
+    <description>
+		Calculate joint trajectory but only publish state rather than controlling joint(s)
+    </description>
+  </class>
+</library>
