@@ -7,7 +7,7 @@ compiler: gcc
 services:
   - docker
 
-before_script:
+install:
   - travis_wait 45 docker pull eblau1/zebros-dev:latest
 
 script:
@@ -37,6 +37,7 @@ script:
      source /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/setup.bash &&
      ./cross_build.sh &&
      echo \"Finished RoboRIO compile.\""
+  - echo "Completed all tests successfully."
 
 notifications:
   email: false
@@ -47,7 +48,3 @@ notifications:
     on_failure: always
     template:
       - "Build <%{build_url}|#%{build_number}> (<%{compare_url}|%{commit}>) of %{repository_slug}@%{branch} by %{author} %{result} in %{duration}."
-
-script:
-  - echo "Completed all tests successfully."
-
