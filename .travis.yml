@@ -7,8 +7,10 @@ compiler: gcc
 services:
   - docker
 
-script:
+before_script:
   - travis_wait 45 docker pull eblau1/zebros-dev:latest
+
+script:
   - docker run --user ubuntu eblau1/zebros-dev:latest /bin/bash -l -c
     "cd ~ &&
      git clone https://$GITHUB_USER:$GITHUB_PASS@github.com/FRC900/2018RobotCode/ &&
@@ -35,9 +37,6 @@ script:
      source /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/setup.bash &&
      ./cross_build.sh &&
      echo \"Finished RoboRIO compile.\""
-
-build:
-  - true
 
 notifications:
   email: false
