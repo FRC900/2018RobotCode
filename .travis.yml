@@ -9,7 +9,7 @@ services:
 
 before_install:
   - travis_wait 45 docker pull eblau1/zebros-dev:latest
-  - docker run eblau1/zebros-dev:latest /bin/bash -l -c
+  - docker run --user ubuntu eblau1/zebros-dev:latest /bin/bash -l -c
     "cd ~ &&
      git clone https://$GITHUB_USER:$GITHUB_PASS@github.com/FRC900/2018RobotCode/ &&
      cd ./2018RobotCode/ &&
@@ -22,7 +22,7 @@ before_install:
      source /opt/ros/kinetic/setup.bash &&
      catkin_make &&
      echo \"Finished Ubuntu compile.\""
-  - docker run eblau1/zebros-dev:latest /bin/bash -l -c
+  - docker run --user ubuntu eblau1/zebros-dev:latest /bin/bash -l -c
     "cd ~ &&
      git clone https://$GITHUB_USER:$GITHUB_PASS@github.com/FRC900/2018RobotCode/ &&
      cd ./2018RobotCode/ &&
