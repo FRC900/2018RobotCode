@@ -39,6 +39,9 @@ script:
      echo \"Finished RoboRIO compile.\""
   - echo "Completed all tests successfully."
 
+build:
+  - true
+
 notifications:
   email: false
   slack:
