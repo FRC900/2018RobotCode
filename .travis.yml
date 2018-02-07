@@ -7,7 +7,7 @@ compiler: gcc
 services:
   - docker
 
-before_install:
+script:
   - travis_wait 45 docker pull eblau1/zebros-dev:latest
   - docker run --user ubuntu eblau1/zebros-dev:latest /bin/bash -l -c
     "cd ~ &&
