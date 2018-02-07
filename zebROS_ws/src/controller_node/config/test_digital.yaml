@@ -10,8 +10,7 @@ generic_hw_control_loop:
 # of several types of HW interface : CAN_id, PWM_id, DIO_id, AIO_id, etc.
 hardware_interface:
    joints:
-       - {name: analog_in, type: analog_input, analog_channel: 0, analog_a: .0633897, analog_b: -24.9}
-       - {name: solenoid1, type: double_solenoid, pcm: 0, forward_id: 1, reverse_id: 0}
+       - {name: digital_input1, type: digital_input, dio_channel: 0}
 # Create controllers for each joint
 #
 # Entry is the name of the controller. It can be anything.  
