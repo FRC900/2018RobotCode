@@ -174,9 +174,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.matchNumber = DriverStation::GetInstance().GetMatchNumber();
 			realtime_pub_match_data.msg_.matchType = DriverStation::GetInstance().GetMatchType(); //returns int that corresponds to a DriverStation matchType enum
 
-			realtime_pub_match_data.msg_.isEnabled = DriverStation::GetInstance().isEnabled();
-			realtime_pub_match_data.msg_.isDisabled = DriverStation::GetInstance().isDisabled();
-			realtime_pub_match_data.msg_.isAutonomous = DriverStation::GetInstance().isAutonomous();
+			realtime_pub_match_data.msg_.isEnabled = DriverStation::GetInstance().IsEnabled();
+			realtime_pub_match_data.msg_.isDisabled = DriverStation::GetInstance().IsDisabled();
+			realtime_pub_match_data.msg_.isAutonomous = DriverStation::GetInstance().IsAutonomous();
 
 			realtime_pub_match_data.unlockAndPublish();
 		}
