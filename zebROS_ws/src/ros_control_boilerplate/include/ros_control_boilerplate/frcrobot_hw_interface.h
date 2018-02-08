@@ -138,7 +138,6 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		bool        run_hal_thread_;
 
 		ROSIterativeRobot robot_;
-
 };  // class
 
 }  // namespace
