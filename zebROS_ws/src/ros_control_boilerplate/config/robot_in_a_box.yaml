@@ -101,7 +101,7 @@ talon2_controller:
 #    joint: nidec_brushless_1
 
 digital_output1_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: digital_output_1
 
 base_trajectory_controller:

@@ -121,21 +121,21 @@ intake_follower1_controller:
     invert_output: True #opposite of intake
 
 intake_left_up_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: intake_left_up
 
 intake_right_up_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: intake_right_up
 
 clamp_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: clamp
 
 intake_right_spring_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: intake_right_spring
 
 intake_left_spring_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: intake_left_spring
