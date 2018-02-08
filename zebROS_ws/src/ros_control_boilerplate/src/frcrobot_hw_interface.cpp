@@ -180,7 +180,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.unlockAndPublish();
 		}
 		
-
 		//read data from the PDP
 		if(realtime_pub_pdp.trylock())
 		{
@@ -200,7 +199,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_pdp.unlockAndPublish();
 		}
 
-		//TODO: Add direction buttons?
 	}
 }
 
@@ -222,7 +220,7 @@ void FRCRobotHWInterface::init(void)
 							  "Loading joint " << i << "=" << can_talon_srx_names_[i] <<
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
 		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i]));
-		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 0); // Make sure motor is stopped
+		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 50); // Make sure motor is stopped, use a long timeout just in case
 		safeTalonCall(can_talons_[i]->GetLastError(), "Initial Set(Disabled, 0)");
 		// TODO : if the talon doesn't initialize - maybe known
 		// by -1 from firmware version read - somehow tag
@@ -329,6 +327,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		auto &ts = talon_state_[joint_id];
 		auto &talon = can_talons_[joint_id];
+		
+		if (!talon) // skip unintialized Talons
+			continue;
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
 
@@ -746,10 +747,13 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		//
 		// Save some typing by making references to commonly
 		// used variables
-		auto &ts = talon_state_[joint_id];
-		auto &tc = talon_command_[joint_id];
 		auto &talon = can_talons_[joint_id];
 
+		if (!talon) // skip unintialized Talons
+			continue;
+
+		auto &ts = talon_state_[joint_id];
+		auto &tc = talon_command_[joint_id];
 		hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
 		hardware_interface::TalonMode talon_mode = ts.getTalonMode();
 		int encoder_ticks_per_rotation = tc.getEncoderTicksPerRotation();
@@ -1013,8 +1017,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			if (tc.clearMotionProfileHasUnderrunChanged())
 				safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
 
+			// TODO : check that Talon motion buffer is not full
+			// before writing, communicate how many have been written
+			// - and thus should be cleared - from the talon_command 
+			// list of requests.
 			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
-
 			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
 			{
 				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
