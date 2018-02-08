@@ -155,5 +155,5 @@ imu_sensor_controller:
 
 
 navx_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: navx_mxp

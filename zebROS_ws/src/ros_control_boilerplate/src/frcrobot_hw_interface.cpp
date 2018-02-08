@@ -46,12 +46,16 @@
 #include "HAL/HAL.h"
 #include "Joystick.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
-#include "math.h"
+#include <cmath>
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
 #include <geometry_msgs/Twist.h>
-#include <tf2/LinearMath/Quaternion.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Int32.h>
+#include <ctre/phoenix/MotorControl/SensorCollection.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include "ros_control_boilerplate/PDPData.h"
+#include <PowerDistributionPanel.h>
 
 namespace frcrobot_control
 {
@@ -72,43 +76,38 @@ FRCRobotHWInterface::~FRCRobotHWInterface()
 
 void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
-	// Just throw a basic IterativeRobot in here instead?
 	run_hal_thread_ = true;
 	Joystick joystick(0);
+	PowerDistributionPanel pdp(0); //sets module to 0? 
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
 
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::PDPData> realtime_pub_pdp(nh_, "pdp_data", 4);
+
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
-	std::shared_ptr<nt::NetworkTable> subTableYaw = NetworkTable::GetTable("Zero Yaw");
-	std::shared_ptr<nt::NetworkTable> subTableAuto = NetworkTable::GetTable("Auto Selector");
-	realtime_tools::RealtimePublisher<geometry_msgs::Twist> realtime_pub_nt_zero_yaw(nh_, "nt_data", 4);
-	realtime_tools::RealtimePublisher<std_msgs::String> realtime_pub_nt_auto_selector(nh_, "nt_data", 4);
+	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
+	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
+	realtime_tools::RealtimePublisher<std_msgs::Int32> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
 
 	while (run_hal_thread_)
 	{
 		robot_.OneIteration();
 
-		// Network tables work!
-		//pubTable->PutString("String 9", "WORK");
-		double sub = subTableYaw->GetEntry("Reset Angular Z").GetDouble(0);
-		std::string auto_sel = subTableAuto->GetEntry("Auto Selector").GetString("");
-
-		// SmartDashboard works!
-		frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
-		//ROS_INFO_STREAM(frc::SmartDashboard::GetString("DB/String 0", "myDefaultData") << std::endl);
-		//ROS_WARN_STREAM("TEST");
-
-		if (realtime_pub_nt_zero_yaw.trylock())
+		if (realtime_pub_nt.trylock())
 		{
-			realtime_pub_nt_zero_yaw.msg_.angular.z = sub;
-			realtime_pub_nt_zero_yaw.unlockAndPublish();
-		}
+			// Network tables work!
+			//pubTable->PutString("String 9", "WORK");
+			//subTable->PutString("Auto Selector", "Select Auto");
+			const std::string autoNumber = driveTable->GetString("Auto Selector", "0");
 
-		if (realtime_pub_nt_auto_selector.trylock())
-		{
-			realtime_pub_nt_auto_selector.msg_.data = auto_sel;
-			realtime_pub_nt_auto_selector.unlockAndPublish();
+			// SmartDashboard works!
+			//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+
+			// TODO eventually add header to nt message so we can get timestamps
+			// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
+			realtime_pub_nt.msg_.data = std::stoi(autoNumber);
+			realtime_pub_nt.unlockAndPublish();
 		}
 
 		if (realtime_pub_joystick.trylock())
@@ -165,13 +164,13 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_joystick.unlockAndPublish();
 		}
-		
+
 		if(realtime_pub_match_data.trylock())
 		{
 			realtime_pub_match_data.msg_.header.stamp = ros::Time::now();
 
 			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
-			
+
 			realtime_pub_match_data.msg_.allianceData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
 			realtime_pub_match_data.msg_.allianceColor = DriverStation::GetInstance().GetAlliance(); //returns int that corresponds to a DriverStation Alliance enum
 			realtime_pub_match_data.msg_.driverStationLocation = DriverStation::GetInstance().GetLocation();
@@ -180,7 +179,26 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_match_data.unlockAndPublish();
 		}
-		//TODO: Add direction buttons?
+		
+		//read data from the PDP
+		if(realtime_pub_pdp.trylock())
+		{
+			realtime_pub_pdp.msg_.header.stamp = ros::Time::now();
+
+			realtime_pub_pdp.msg_.voltage = pdp.PowerDistributionPanel::GetVoltage();
+			realtime_pub_pdp.msg_.temperature = pdp.PowerDistributionPanel::GetTemperature();
+			realtime_pub_pdp.msg_.totalCurrent = pdp.PowerDistributionPanel::GetTotalCurrent();
+			realtime_pub_pdp.msg_.totalPower = pdp.PowerDistributionPanel::GetTotalPower();
+			realtime_pub_pdp.msg_.totalEnergy = pdp.PowerDistributionPanel::GetTotalEnergy();
+
+			for(int channel; channel <= 16; channel++)
+			{
+				realtime_pub_pdp.msg_.current[channel] = pdp.PowerDistributionPanel::GetCurrent(channel);
+			}
+
+			realtime_pub_pdp.unlockAndPublish();
+		}
+
 	}
 }
 
@@ -202,13 +220,12 @@ void FRCRobotHWInterface::init(void)
 							  "Loading joint " << i << "=" << can_talon_srx_names_[i] <<
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
 		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i]));
-		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 0); // Make sure motor is stopped
+		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 50); // Make sure motor is stopped, use a long timeout just in case
 		safeTalonCall(can_talons_[i]->GetLastError(), "Initial Set(Disabled, 0)");
 		// TODO : if the talon doesn't initialize - maybe known
-		// by -1 from firmware version read - somehow tag 
+		// by -1 from firmware version read - somehow tag
 		// the entry in can_talons_[] as uninitialized.
 		// This probably should be a fatal error
-
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "\tTalon SRX firmware version " << can_talons_[i]->GetFirmwareVersion());
 	}
@@ -219,7 +236,7 @@ void FRCRobotHWInterface::init(void)
 							  " as PWM channel " << nidec_brushless_pwm_channels_[i] <<
 							  " / DIO channel " << nidec_brushless_dio_channels_[i] <<
 							  " invert " << nidec_brushless_inverts_[i]);
-		
+
 		nidec_brushlesses_.push_back(std::make_shared<frc::NidecBrushless>(nidec_brushless_pwm_channels_[i], nidec_brushless_dio_channels_[i]));
 		nidec_brushlesses_[i]->SetInverted(nidec_brushless_inverts_[i]);
 	}
@@ -229,7 +246,7 @@ void FRCRobotHWInterface::init(void)
 							  "Loading joint " << i << "=" << digital_input_names_[i] <<
 							  " as Digital Input " << digital_input_dio_channels_[i] <<
 							  " invert " << digital_input_inverts_[i]);
-		
+
 		digital_inputs_.push_back(std::make_shared<frc::DigitalInput>(digital_input_dio_channels_[i]));
 	}
 	for (size_t i = 0; i < num_digital_outputs_; i++)
@@ -238,7 +255,7 @@ void FRCRobotHWInterface::init(void)
 							  "Loading joint " << i << "=" << digital_output_names_[i] <<
 							  " as Digital Output " << digital_output_dio_channels_[i] <<
 							  " invert " << digital_output_inverts_[i]);
-		
+
 		digital_outputs_.push_back(std::make_shared<frc::DigitalOutput>(digital_output_dio_channels_[i]));
 	}
 	for (size_t i = 0; i < num_pwm_; i++)
@@ -255,18 +272,20 @@ void FRCRobotHWInterface::init(void)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << solenoid_names_[i] <<
-							  " as Solenoid " << solenoid_ids_[i]);
-		
-		solenoids_.push_back(std::make_shared<frc::Solenoid>(solenoid_ids_[i]));
+							  " as Solenoid " << solenoid_ids_[i]
+							  << " with pcm " << solenoid_pcms_[i]);
+
+		solenoids_.push_back(std::make_shared<frc::Solenoid>(solenoid_pcms_[i], solenoid_ids_[i]));
 	}
 	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << double_solenoid_names_[i] <<
 							  " as Double Solenoid  forward " << double_solenoid_forward_ids_[i] <<
-							  " reverse " << double_solenoid_reverse_ids_[i]);
-		
-		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
+							  " reverse " << double_solenoid_reverse_ids_[i]
+							  << " with pcm " << double_solenoid_pcms_[i]);
+
+		double_solenoids_.push_back(std::make_shared<frc::DoubleSolenoid>(double_solenoid_pcms_[i], double_solenoid_forward_ids_[i], double_solenoid_reverse_ids_[i]));
 	}
 
 	//RIGHT NOW THIS WILL ONLY WORK IF THERE IS ONLY ONE NAVX INSTANTIATED
@@ -274,27 +293,31 @@ void FRCRobotHWInterface::init(void)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 				"Loading joint " << i << "=" << navX_names_[i] <<
-				" as navX id" << navX_ids_[i]); 
+				" as navX id" << navX_ids_[i]);
 		//TODO: fix how we use ids
 
 		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));
 
+		// This is a guess so TODO : get better estimates
 		imu_orientation_covariances_[i] = {0.0015, 0.0, 0.0, 0.0, 0.0015, 0.0, 0.0, 0.0, 0.0015};
 		imu_angular_velocity_covariances_[i] = {0.0015, 0.0, 0.0, 0.0, 0.0015, 0.0, 0.0, 0.0, 0.0015};
-	   	imu_linear_acceleration_covariances_[i] ={0.0015, 0.0, 0.0, 0.0, 0.0015, 0.0, 0.0, 0.0, 0.0015};  	
-
-		// TODO :: fill in covariances here?
-		// Steal from navx node for now?
+	   	imu_linear_acceleration_covariances_[i] ={0.0015, 0.0, 0.0, 0.0, 0.0015, 0.0, 0.0, 0.0, 0.0015};
 	}
-
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << analog_input_names_[i] <<
-							  " as Analog Input " << analog_input_analog_channels_[i]);	
+							  " as Analog Input " << analog_input_analog_channels_[i]);
 		analog_inputs_.push_back(std::make_shared<frc::AnalogInput>(analog_input_analog_channels_[i]));
 	}
-	//Add navX hw objects
+	for (size_t i = 0; i < num_compressors_; i++)
+	{
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << compressor_names_[i] <<
+							  " as Compressor with pcm " << compressor_pcm_ids_[i]);
+
+		compressors_.push_back(std::make_shared<frc::Compressor>(compressor_pcm_ids_[i]));
+	}
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
@@ -304,6 +327,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		auto &ts = talon_state_[joint_id];
 		auto &talon = can_talons_[joint_id];
+		
+		if (!talon) // skip unintialized Talons
+			continue;
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
 
@@ -331,7 +357,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		safeTalonCall(talon->GetLastError(), "GetMotorOutputPercent");
 		ts.setMotorOutputPercent(motor_output_percent);
 
-		double output_voltage = talon->GetMotorOutputVoltage(); 
+		double output_voltage = talon->GetMotorOutputVoltage();
 		safeTalonCall(talon->GetLastError(), "GetMotorOutputVoltage");
 		ts.setOutputVoltage(output_voltage);
 		double output_current = talon->GetOutputCurrent();
@@ -379,11 +405,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
 			ts.setActiveTrajectoryHeading(active_trajectory_heading);
 			ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
-
 			safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
 			ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
 			safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
-
 			ctre::phoenix::motion::MotionProfileStatus talon_status;
 			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
@@ -399,7 +423,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
 			internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
 			internal_status.timeDurMs = talon_status.timeDurMs;
-		
+
 			ts.setMotionProfileStatus(internal_status);
 		}
 
@@ -408,8 +432,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		ts.setFaults(faults.ToBitfield());
 
 		// Grab limit switch and softlimit here
-		ts.setForwardLimitSwitch(faults.ForwardLimitSwitch);
-		ts.setReverseLimitSwitch(faults.ReverseLimitSwitch);
+		ts.setForwardLimitSwitch(talon->GetSensorCollection().IsFwdLimitSwitchClosed());
+		ts.setReverseLimitSwitch(talon->GetSensorCollection().IsRevLimitSwitchClosed());
 
 		ts.setForwardSoftlimitHit(faults.ForwardSoftLimit);
 		ts.setReverseSoftlimitHit(faults.ReverseSoftLimit);
@@ -420,11 +444,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
-		// TODO : Figure out which of these the setpoint
-		// actually is...
-		brushless_pos_[i] =
-			brushless_vel_[i] =
-				brushless_eff_[i] = nidec_brushlesses_[i]->Get();
+		brushless_vel_[i] = nidec_brushlesses_[i]->Get();
 	}
 	for (size_t i = 0; i < num_digital_inputs_; i++)
 	{
@@ -454,9 +474,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
-		analog_input_state_[i] = analog_inputs_[i]->GetValue();
+		ROS_INFO_STREAM("base: " << analog_inputs_[i]->GetValue() << " a: " << analog_input_a_[i] << " b:" 
+		<< analog_input_b_[i]);
+		analog_input_state_[i] = (analog_inputs_[i]->GetValue())*analog_input_a_[i] + analog_input_b_[i];
 	}
-	//navX read here
+ 	//navX read here
 	for (size_t i = 0; i < num_navX_; i++)
 	{
 		// TODO : double check we're reading
@@ -482,26 +504,30 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//navXs_[i]->IsMagnetometerCalibrated();
 		//
 		tf2::Quaternion tempQ;
-		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - navX_command_[i] + M_PI);  
-		
-		
+		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - navX_command_[i] + M_PI);
 
 		imu_orientations_[i][3] = tempQ.w();
 		imu_orientations_[i][0] = tempQ.x();
 		imu_orientations_[i][1] = tempQ.y();
-		imu_orientations_[i][2] = tempQ.z();	
+		imu_orientations_[i][2] = tempQ.z();
 
 		imu_angular_velocities_[i][0] = navXs_[i]->GetVelocityX();
 		imu_angular_velocities_[i][1] = navXs_[i]->GetVelocityY();
-		imu_angular_velocities_[i][2] = navXs_[i]->GetVelocityZ();	
+		imu_angular_velocities_[i][2] = navXs_[i]->GetVelocityZ();
 
 		//navXs_[i]->GetDisplacementX();
 		//navXs_[i]->GetDisplacementY();
 		//navXs_[i]->GetDisplacementZ();
 		//navXs_[i]->GetAngle(); //continous
 		//TODO: add setter functions
+		//
+		navX_state_[i] = navX_command_[i];
 	}
-
+	for (size_t i = 0; i < num_compressors_; i++)
+	{
+		compressor_state_[i] = compressors_[i]->GetCompressorCurrent();
+	}
+	//navX read here
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
@@ -557,7 +583,7 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
 				return 1.;
 		}
 	}
-	else 
+	else
 	{
 		//ROS_WARN_STREAM("Unable to convert closed loop units.");
 		return 1.;
@@ -704,7 +730,7 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 		case ctre::phoenix::RemoteSensorsNotSupportedYet:
 			error_name = "RemoteSensorsNotSupportedYet";
 			break;
-		
+
 	}
 	ROS_ERROR_STREAM("Error calling " << talon_method_name << " : " << error_name);
 	return false;
@@ -715,16 +741,19 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		//TODO : skip over most or all of this if the talon is in follower mode
-		//       Only do the Set() call and then 
+		//       Only do the Set() call and then
 		//       never do anything else?  Need to make sure things like inverts
 		//       and so on are copied from the talon it is following
 		//
 		// Save some typing by making references to commonly
 		// used variables
-		auto &ts = talon_state_[joint_id];
-		auto &tc = talon_command_[joint_id];
 		auto &talon = can_talons_[joint_id];
 
+		if (!talon) // skip unintialized Talons
+			continue;
+
+		auto &ts = talon_state_[joint_id];
+		auto &tc = talon_command_[joint_id];
 		hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
 		hardware_interface::TalonMode talon_mode = ts.getTalonMode();
 		int encoder_ticks_per_rotation = tc.getEncoderTicksPerRotation();
@@ -988,8 +1017,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			if (tc.clearMotionProfileHasUnderrunChanged())
 				safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
 
+			// TODO : check that Talon motion buffer is not full
+			// before writing, communicate how many have been written
+			// - and thus should be cleared - from the talon_command 
+			// list of requests.
 			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
-
 			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
 			{
 				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
@@ -1014,11 +1046,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		hardware_interface::TalonMode in_mode;
 		ctre::phoenix::motorcontrol::ControlMode out_mode;
 		// Note thie has to be | rather than ||
-		// Using || gives a chance of it being short-circuted ... 
+		// Using || gives a chance of it being short-circuted ...
 		// that is, if newMode is true commandChanged won't
 		// be called.  That' bad because then command would
 		// be undefined
-		if ((tc.newMode(in_mode) | tc.commandChanged(command) ) && 
+		if ((tc.newMode(in_mode) | tc.commandChanged(command) ) &&
 			convertControlMode(in_mode, out_mode))
 		{
 			ts.setTalonMode(in_mode);
@@ -1075,7 +1107,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 	{
 		bool setpoint = solenoid_command_[i] > 0;
 		solenoids_[i]->Set(setpoint);
-
 	}
 
 	for (size_t i = 0; i< num_double_solenoids_; i++)
@@ -1086,15 +1117,19 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		else if (double_solenoid_command_[i] <= -1.0)
 			setpoint = DoubleSolenoid::Value::kReverse;
 
-		ROS_INFO_STREAM("id: " << i<< " solenoid set:" << setpoint);
 		double_solenoids_[i]->Set(setpoint);
 	}
 	for (size_t i = 0; i < num_rumble_; i++)
 	{
-		unsigned int rumbles = *((unsigned int*)(&rumble_command_[i]));	
+		unsigned int rumbles = *((unsigned int*)(&rumble_command_[i]));
 		unsigned int left_rumble  = (rumbles >> 16) & 0xFFFF;
 		unsigned int right_rumble = (rumbles      ) & 0xFFFF;
 		HAL_SetJoystickOutputs(rumble_ports_[i], 0, left_rumble, right_rumble);
+	}
+	for (size_t i = 0; i< num_compressors_; i++)
+	{
+		bool setpoint = compressor_command_[i] > 0;
+		compressors_[i]->SetClosedLoopControl(setpoint);
 	}
 }
 

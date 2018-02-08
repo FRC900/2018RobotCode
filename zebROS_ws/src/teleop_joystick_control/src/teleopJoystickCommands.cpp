@@ -3,8 +3,8 @@
 
 //using namespace message_filters;
 static double timeSecs = 0, lastTimeSecs = 0, directionRightLast = 0, YLast = 0, BLast = 0;
-static char* currentToggle = " ";
-static char* lastToggle = " ";
+static std::string currentToggle = " ";
+static std::string lastToggle = " ";
 static double elevatorHeightBefore;
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickArmVel;

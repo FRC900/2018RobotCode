@@ -50,6 +50,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 	, num_digital_outputs_(0)
 	, num_pwm_(0)
 	, num_solenoids_(0)
+	, num_compressors_(0)
 	, num_double_solenoids_(0)
 	, num_rumble_(0)
 	, num_navX_(0)
@@ -127,7 +128,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 				XmlRpc::XmlRpcValue &xml_invert = joint_params["invert"];
 				if (!xml_invert.valid() ||
 						xml_invert.getType() != XmlRpc::XmlRpcValue::TypeBoolean)
-					throw std::runtime_error("An invalid joint invert was specified (expecting a boolean).");
+					throw std::runtime_error("An invalid Nidec brushless joint invert was specified (expecting a boolean).");
 				invert = xml_invert;
 			}
 
@@ -153,7 +154,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 				XmlRpc::XmlRpcValue &xml_invert = joint_params["invert"];
 				if (!xml_invert.valid() ||
 						xml_invert.getType() != XmlRpc::XmlRpcValue::TypeBoolean)
-					throw std::runtime_error("An invalid joint invert was specified (expecting a boolean).");
+					throw std::runtime_error("An invalid digital input joint invert was specified (expecting a boolean).");
 				invert = xml_invert;
 			}
 
@@ -178,7 +179,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 				XmlRpc::XmlRpcValue &xml_invert = joint_params["invert"];
 				if (!xml_invert.valid() ||
 						xml_invert.getType() != XmlRpc::XmlRpcValue::TypeBoolean)
-					throw std::runtime_error("An invalid joint invert was specified (expecting a boolean).");
+					throw std::runtime_error("An invalid digital output joint invert was specified (expecting a boolean).");
 				invert = xml_invert;
 			}
 
@@ -203,7 +204,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 				XmlRpc::XmlRpcValue &xml_invert = joint_params["invert"];
 				if (!xml_invert.valid() ||
 						xml_invert.getType() != XmlRpc::XmlRpcValue::TypeBoolean)
-					throw std::runtime_error("An invalid joint invert was specified (expecting a boolean).");
+					throw std::runtime_error("An invalid pwm joint invert was specified (expecting a boolean).");
 				invert = xml_invert;
 			}
 
@@ -222,8 +223,18 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 
 			const int solenoid_id = xml_solenoid_id;
 
+			if (!joint_params.hasMember("pcm"))
+				throw std::runtime_error("A pcm was not specified");
+			XmlRpc::XmlRpcValue &xml_solenoid_pcm = joint_params["pcm"];
+			if (!xml_solenoid_pcm.valid() ||
+					xml_solenoid_pcm.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint solenoid pcm was specified (expecting an int).");
+
+			const int solenoid_pcm = xml_solenoid_pcm;
+
 			solenoid_names_.push_back(joint_name);
 			solenoid_ids_.push_back(solenoid_id);
+			solenoid_pcms_.push_back(solenoid_pcm);
 		}
 		else if (joint_type == "double_solenoid")
 		{
@@ -245,9 +256,20 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 
 			const int double_solenoid_reverse_id = xml_double_solenoid_reverse_id;
 
+			if (!joint_params.hasMember("pcm"))
+				throw std::runtime_error("A pcm was not specified");
+			XmlRpc::XmlRpcValue &xml_double_solenoid_pcm = joint_params["pcm"];
+			if (!xml_double_solenoid_pcm.valid() ||
+					xml_double_solenoid_pcm.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid joint double solenoid pcm was specified (expecting an int).");
+
+			const int double_solenoid_pcm = xml_double_solenoid_pcm;
+
 			double_solenoid_names_.push_back(joint_name);
 			double_solenoid_forward_ids_.push_back(double_solenoid_forward_id);
 			double_solenoid_reverse_ids_.push_back(double_solenoid_reverse_id);
+			double_solenoid_pcms_.push_back(double_solenoid_pcm);
+
 		}
 		else if (joint_type == "rumble")
 		{
@@ -290,7 +312,6 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 		}
 		else if (joint_type == "analog_input")
 		{
-			ROS_WARN("has analog");
 			if (!joint_params.hasMember("analog_channel"))
 				throw std::runtime_error("A Analog input analog_channel was not specified");
 			XmlRpc::XmlRpcValue &xml_analog_input_analog_channel = joint_params["analog_channel"];
@@ -300,9 +321,54 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 
 			const int analog_input_analog_channel = xml_analog_input_analog_channel;
 
+			double analog_input_a;
+			
+			if (!joint_params.hasMember("analog_a"))
+				analog_input_a = 1;
+			else
+			{
+				XmlRpc::XmlRpcValue &xml_analog_input_a = joint_params["analog_a"];
+				if (!xml_analog_input_a.valid() ||
+					xml_analog_input_a.getType() != XmlRpc::XmlRpcValue::TypeDouble)
+					throw std::runtime_error("An invalid joint a term was specified (expecting an double).");
+				analog_input_a = xml_analog_input_a;
+			}
 
+			
+			double analog_input_b;
+			if (!joint_params.hasMember("analog_b"))
+				analog_input_b = 0;
+			else
+			{
+				XmlRpc::XmlRpcValue &xml_analog_input_b = joint_params["analog_b"];
+				if (!xml_analog_input_b.valid() ||
+					xml_analog_input_b.getType() != XmlRpc::XmlRpcValue::TypeDouble)
+					throw std::runtime_error("An invalid joint b term was specified (expecting an double).");
+				analog_input_b = xml_analog_input_b;
+			}
+
+			analog_input_a_.push_back(analog_input_a);
+			analog_input_b_.push_back(analog_input_b);
 			analog_input_names_.push_back(joint_name);
 			analog_input_analog_channels_.push_back(analog_input_analog_channel);
+		}
+		else if (joint_type == "compressor")
+		{
+			if (!joint_params.hasMember("pcm_id"))
+				throw std::runtime_error("A compressor pcm id was not specified");
+			XmlRpc::XmlRpcValue &xml_compressor_pcm_id = joint_params["pcm_id"];
+			if (!xml_compressor_pcm_id.valid() ||
+					xml_compressor_pcm_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
+				throw std::runtime_error("An invalid compressor joint pcm id was specified (expecting an int).");
+
+			const int compressor_pcm_id = xml_compressor_pcm_id;
+
+			compressor_names_.push_back(joint_name);
+			compressor_pcm_ids_.push_back(compressor_pcm_id);
+		}
+		else if (joint_type == "dummy")
+		{
+			dummy_joint_names_.push_back(joint_name);
 		}
 		else
 		{
@@ -358,9 +424,7 @@ void FRCRobotInterface::init()
 	// for each of the brushless motors we're trying
 	// to control
 	num_nidec_brushlesses_ = nidec_brushless_names_.size();
-	brushless_pos_.resize(num_nidec_brushlesses_);
 	brushless_vel_.resize(num_nidec_brushlesses_);
-	brushless_eff_.resize(num_nidec_brushlesses_);
 	brushless_command_.resize(num_nidec_brushlesses_);
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -368,7 +432,7 @@ void FRCRobotInterface::init()
 		// Create state interface for the given brushless motor
 		// and point it to the data stored in the
 		// corresponding brushless_state array entry
-		hardware_interface::JointStateHandle jsh(nidec_brushless_names_[i], &brushless_pos_[i], &brushless_vel_[i], &brushless_eff_[i]);
+		hardware_interface::JointStateHandle jsh(nidec_brushless_names_[i], &brushless_vel_[i], &brushless_vel_[i], &brushless_vel_[i]);
 		joint_state_interface_.registerHandle(jsh);
 
 		// Do the same for a command interface for
@@ -424,13 +488,13 @@ void FRCRobotInterface::init()
 	solenoid_command_.resize(num_solenoids_);
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
-		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << solenoid_names_[i] << " at id " << solenoid_ids_[i]);
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << solenoid_names_[i] << " at id " << solenoid_ids_[i]<< "at pcm" << solenoid_pcms_[i]);
 
 		hardware_interface::JointStateHandle ssh(solenoid_names_[i], &solenoid_state_[i], &solenoid_state_[i], &solenoid_state_[i]);
 		joint_state_interface_.registerHandle(ssh);
 
 		hardware_interface::JointHandle soh(ssh, &solenoid_command_[i]);
-		joint_velocity_interface_.registerHandle(soh);
+		joint_position_interface_.registerHandle(soh);
 	}
 
 	num_double_solenoids_ = double_solenoid_names_.size();
@@ -438,13 +502,13 @@ void FRCRobotInterface::init()
 	double_solenoid_command_.resize(num_double_solenoids_);
 	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
-		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << double_solenoid_names_[i] << " at forward id" << double_solenoid_forward_ids_[i] << "at reverse id" << double_solenoid_reverse_ids_[i]);
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << double_solenoid_names_[i] << " at forward id" << double_solenoid_forward_ids_[i] << "at reverse id" << double_solenoid_reverse_ids_[i] << "at pcm" << double_solenoid_pcms_[i]);
 
 		hardware_interface::JointStateHandle dssh(double_solenoid_names_[i], &double_solenoid_state_[i], &double_solenoid_state_[i], &double_solenoid_state_[i]);
 		joint_state_interface_.registerHandle(dssh);
 
 		hardware_interface::JointHandle dsoh(dssh, &double_solenoid_command_[i]);
-		joint_velocity_interface_.registerHandle(dsoh);
+		joint_position_interface_.registerHandle(dsoh);
 	}
 	num_rumble_ = rumble_names_.size();
 	rumble_state_.resize(num_rumble_);
@@ -456,11 +520,10 @@ void FRCRobotInterface::init()
 		hardware_interface::JointStateHandle rsh(rumble_names_[i], &rumble_state_[i], &rumble_state_[i], &rumble_state_[i]);
 		joint_state_interface_.registerHandle(rsh);
 
-		// Do the same for a command interface for
-		// the same rumble interface
 		hardware_interface::JointHandle rh(rsh, &rumble_command_[i]);
-		joint_velocity_interface_.registerHandle(rh);
+		joint_position_interface_.registerHandle(rh);
 	}
+
 	// Differentiate between navX and IMU here
 	// We might want more than 1 type of IMU
 	// at some point - eventually allow this by making IMU
@@ -475,14 +538,14 @@ void FRCRobotInterface::init()
 	imu_linear_acceleration_covariances_.resize(num_navX_);
 	navX_command_.resize(num_navX_);
 	navX_state_.resize(num_navX_);
-	//for (size_t i = 0; i < num_navX_; i++)
-	//{
-	//	navX_state_.push_back(hardware_interface::ImuSensorHandle());
-	//}
+
 	for (size_t i = 0; i < num_navX_; i++)
 	{
 		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering navX interface for : " << navX_names_[i] << " at id " << navX_ids_[i]);
 
+		// Create state interface for the given IMU
+		// and point it to the data stored in the
+		// corresponding imu arrays
 		hardware_interface::ImuSensorHandle::Data imu_data;
 		imu_data.name = navX_names_[i];
 		imu_data.frame_id = navX_frame_ids_[i];
@@ -493,34 +556,51 @@ void FRCRobotInterface::init()
 		imu_data.linear_acceleration = &imu_linear_accelerations_[i][0];
 		imu_data.linear_acceleration_covariance = &imu_linear_acceleration_covariances_[i][0];
 
-		// Create state interface for the given IMU
-		// and point it to the data stored in the
-		// corresponding imu arrays
 		hardware_interface::ImuSensorHandle imuh(imu_data);
 		imu_interface_.registerHandle(imuh);
-		// corresponding brushless_state array entry
-		
+
+		// Set up a command interface to set an
+		// offset for reported heading
 		hardware_interface::JointStateHandle nxsh(navX_names_[i], &navX_state_[i], &navX_state_[i], &navX_state_[i]);
 		joint_state_interface_.registerHandle(nxsh);
 
-		// Do the same for a command interface for
-		// the same rumble interface
-		
 		hardware_interface::JointHandle nxh(nxsh, &navX_command_[i]);
-		joint_velocity_interface_.registerHandle(nxh);
-		
+		joint_position_interface_.registerHandle(nxh);
 	}
+
 	num_analog_inputs_ = analog_input_names_.size();
 	analog_input_state_.resize(num_analog_inputs_);
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
 		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << analog_input_names_[i] << " at analog channel " << analog_input_analog_channels_[i]);
-		// Create state interface for the given digital input
+		// Create state interface for the given analog input
 		// and point it to the data stored in the
 		// corresponding brushless_state array entry
 		hardware_interface::JointStateHandle aish(analog_input_names_[i], &analog_input_state_[i], &analog_input_state_[i], &analog_input_state_[i]);
 		joint_state_interface_.registerHandle(aish);
+	}
+	num_compressors_ = compressor_names_.size();
+	compressor_state_.resize(num_compressors_);
+	compressor_command_.resize(num_compressors_);
+	for (size_t i = 0; i < num_compressors_; i++)
+	{
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << compressor_names_[i] << " at pcm_id " << compressor_pcm_ids_[i]);
 
+		hardware_interface::JointStateHandle csh(compressor_names_[i], &compressor_state_[i], &compressor_state_[i], &compressor_state_[i]);
+		joint_state_interface_.registerHandle(csh);
+
+		hardware_interface::JointHandle cch(csh, &compressor_command_[i]);
+		joint_position_interface_.registerHandle(cch);
+	}
+
+	num_dummy_joints_ = dummy_joint_names_.size();
+	for (size_t i = 0; i < num_dummy_joints_; i++)
+	{
+		hardware_interface::JointStateHandle dsh(dummy_joint_names_[i], &dummy_joint_val_, &dummy_joint_val_, &dummy_joint_val_);
+		//joint_state_interface_.registerHandle(dsh);
+
+		hardware_interface::JointHandle dch(dsh, &dummy_joint_val_);
+		joint_command_interface_.registerHandle(dch);
 	}
 
 	// Publish various FRC-specific data using generic joint state for now
@@ -531,6 +611,7 @@ void FRCRobotInterface::init()
 	registerInterface(&talon_state_interface_);
 	registerInterface(&joint_state_interface_);
 	registerInterface(&talon_command_interface_);
+	registerInterface(&joint_command_interface_);
 	registerInterface(&joint_position_interface_);
 	registerInterface(&joint_velocity_interface_);
 	registerInterface(&imu_interface_);

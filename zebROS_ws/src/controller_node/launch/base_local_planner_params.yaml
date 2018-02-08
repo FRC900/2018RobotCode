@@ -30,7 +30,7 @@ EBandPlannerROS:
     yaw_goal_tolerance: 0.5
 
 TebLocalPlannerROS:
-  odom_topic: odometry/filtered
+    #odom_topic: odometry/filtered
   map_frame: /map
      
   # Trajectory
@@ -47,7 +47,7 @@ TebLocalPlannerROS:
   publish_feedback: False
   shrink_horizon_backup: True
   allow_init_with_backwards_motion: True
-  exact_arc_length: False;
+  exact_arc_length: False
   shrink_horizon_min_duration: 10.0
      
   # Robot
@@ -62,7 +62,7 @@ TebLocalPlannerROS:
   min_turning_radius: 0.0
   footprint_model: # types: "point", "circular", "two_circles", "line", "polygon"
     type: "polygon"
-    #radius: 0.2 # for type "circular"
+    #radius: 0.4 # for type "circular"
     #line_start: [-0.3, 0.0] # for type "line"
     #line_end: [0.3, 0.0] # for type "line"
     #front_offset: 0.2 # for type "two_circles"
@@ -71,20 +71,20 @@ TebLocalPlannerROS:
     #rear_radius: 0.2 # for type "two_circles"
     #vertices: [ [0.25, -0.05], [0.18, -0.05], [0.18, -0.18], [-0.19, -0.18], [-0.25, 0], [-0.19, 0.18], [0.18, 0.18], [0.18, 0.05], [0.25, 0.05] ] # for type "polygon"
     vertices: [[-0.4927,-0.4985], [0.4927,-0.4985], [0.4927,0.4985], [-0.4927,0.4985]]
-    
+
   # GoalTolerance
-    
-  xy_goal_tolerance: 0.5
-  yaw_goal_tolerance: 0.5
+     
+  xy_goal_tolerance: 0.1
+  yaw_goal_tolerance: 0.1
   free_goal_vel: True #False
      
   # Obstacles
      
-  min_obstacle_dist: 0.01
+  min_obstacle_dist: 0.07
   include_costmap_obstacles: True
   costmap_obstacles_behind_robot_dist: 5.0 # 
   obstacle_poses_affected: 30
-  inflation_dist: 0.1
+  inflation_dist: 0.5
   legacy_obstacle_association: False
   obstacle_association_force_inclusion_factor: 1.5
   obstacle_association_cutoff_factor: 5.0
@@ -100,19 +100,19 @@ TebLocalPlannerROS:
   optimization_verbose: False
   penalty_epsilon: 0.1
 
-  weight_max_vel_x: 2
-  weight_max_vel_y: 2
-  weight_max_vel_theta: 1
+  weight_max_vel_x: .01
+  weight_max_vel_y: .01
+  weight_max_vel_theta: .01
 
   weight_acc_lim_x: 1 # set to zero to ignore acceleration limits
   weight_acc_lim_y: 1 #  in order to get faster computation time
   weight_acc_lim_theta: 1
 
-  weight_kinematics_nh: 0.1   # higher = drive forward vs strafe tradeoff
+  weight_kinematics_nh: 1   # higher = drive forward vs strafe tradeoff
   weight_kinematics_forward_drive: 1
-  weight_kinematics_turning_radius: 1
+  weight_kinematics_turning_radius: 0
 
-  weight_optimaltime: 1
+  weight_optimaltime: 1000.
   weight_obstacle: 50
   weight_inflation: 0.1
   weight_adapt_factor: 2.0

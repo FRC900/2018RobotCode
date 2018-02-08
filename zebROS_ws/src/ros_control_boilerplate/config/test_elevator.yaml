@@ -16,11 +16,12 @@ hardware_interface:
        - {name: pivot, type: can_talon_srx, can_id: 51}
        - {name: intake, type: can_talon_srx, can_id: 31}
        - {name: intake_follower1, type: can_talon_srx, can_id: 32}
-       - {name: intake_left_up, type: double_solenoid, forward_id: 1, reverse_id: 2}
-       - {name: intake_right_up, type: double_solenoid, forward_id: 3, reverse_id: 4}
-       - {name: intake_left_spring, type: double_solenoid, forward_id: 5, reverse_id: 6}
-       - {name: intake_right_spring, type: double_solenoid, forward_id: 7, reverse_id: 8}
-       - {name: clamp, type: solenoid, id: 0}
+       - {name: clamp, type: double_solenoid, pcm: 0, forward_id: 0, reverse_id: 1}
+       - {name: intake_left_up, type: double_solenoid, pcm: 0, forward_id: 2, reverse_id: 3}
+       - {name: intake_right_up, type: double_solenoid, pcm: 0, forward_id: 4, reverse_id: 5}
+       - {name: intake_left_spring, type: double_solenoid, pcm: 0, forward_id: 6, reverse_id: 7}
+       - {name: intake_right_spring, type: double_solenoid, pcm: 0, forward_id: 0, reverse_id: 1}
+
 
 
 #TODO: fix ids for pneumatics   
@@ -64,6 +65,11 @@ elevator_controller:
     arm_length: 0.495 #FIX
     max_extension: 3.0 #FIX
     min_extension: 0.25 #FIX
+    
+    hook_depth: 0.1 #FIX
+    hook_min_height: 1 #FIX
+    hook_max_height: 1.1 #FIX
+    
     polygon_points: [-1.0, .127, 0.1, .127, 0.75, .127, 0.75, -1.0, -1.0, -1.0, -1.0, .127]    
     lift_joint:
         joint: lift
@@ -115,21 +121,21 @@ intake_follower1_controller:
     invert_output: True #opposite of intake
 
 intake_left_up_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: intake_left_up
 
 intake_right_up_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: intake_right_up
 
 clamp_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: clamp
 
 intake_right_spring_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: intake_right_spring
 
 intake_left_spring_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: intake_left_spring

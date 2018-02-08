@@ -1,0 +1,33 @@
+# ros_control_boilerplate Settings -----------------------
+# Settings for ros_control control loop
+generic_hw_control_loop:
+  loop_hz: 100
+  cycle_time_error_threshold: 0.01
+
+# Settings for ros_control hardware interface
+# Map a name for each valid joint to a CAN id
+# For future expansion, change hw_id to specify one
+# of several types of HW interface : CAN_id, PWM_id, DIO_id, AIO_id, etc.
+hardware_interface:
+   joints:
+       - {name: digital_input1, type: digital_input, dio_channel: 0}
+# Create controllers for each joint
+#
+# Entry is the name of the controller. It can be anything.  
+# It will create a namespace with that name under the main
+# controller namespace. Subscribed topics for that controller
+# will be most often show up under 
+# <top level controller manager ns>/<controller ns>/topic
+# e.g.
+# /frcrobot/joint1_talon_controller/command
+# /frcrobot/joint2_talon_controller/command
+# /frcrobot/talon_states
+#
+
+# Similar to above, but this one prints non-Talon state
+# (stuff that fits into the more standard ROS position/
+# speed/effort paradigm)
+joint_state_controller:
+   type:         joint_state_controller/JointStateController
+   publish_rate: 100
+
