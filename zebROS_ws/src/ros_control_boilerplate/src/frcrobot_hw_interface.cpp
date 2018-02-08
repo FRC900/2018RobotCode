@@ -79,8 +79,11 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	run_hal_thread_ = true;
 	Joystick joystick(0);
 	PowerDistributionPanel pdp(0); //sets module to 0? 
+	pdp.ClearStickyFaults();
+	pdp.ResetTotalEnergy();
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
+	//ROS_INFO_STREAM("hal_keepalive_thread is running..........................................");
 
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::PDPData> realtime_pub_pdp(nh_, "pdp_data", 4);
 
@@ -92,7 +95,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 	while (run_hal_thread_)
 	{
+		//ROS_INFO_STREAM("run_hal_thread_ is true before robot_.OneIteration ......................................");
 		robot_.OneIteration();
+		//ROS_INFO_STREAM("run_hal_thread_ is true ......................................");
+
 
 		if (realtime_pub_nt.trylock())
 		{
@@ -179,21 +185,24 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_match_data.unlockAndPublish();
 		}
+		//ROS_INFO_STREAM("run_hal_thread_ is true, after robot.OneIteration......................................");
 		
 		//read data from the PDP
 		if(realtime_pub_pdp.trylock())
 		{
+			//ROS_INFO_STREAM("pdp_data is running.......................................");
+
 			realtime_pub_pdp.msg_.header.stamp = ros::Time::now();
 
-			realtime_pub_pdp.msg_.voltage = pdp.PowerDistributionPanel::GetVoltage();
-			realtime_pub_pdp.msg_.temperature = pdp.PowerDistributionPanel::GetTemperature();
-			realtime_pub_pdp.msg_.totalCurrent = pdp.PowerDistributionPanel::GetTotalCurrent();
-			realtime_pub_pdp.msg_.totalPower = pdp.PowerDistributionPanel::GetTotalPower();
-			realtime_pub_pdp.msg_.totalEnergy = pdp.PowerDistributionPanel::GetTotalEnergy();
+			realtime_pub_pdp.msg_.voltage = pdp.GetVoltage();
+			realtime_pub_pdp.msg_.temperature = pdp.GetTemperature();
+			realtime_pub_pdp.msg_.totalCurrent = pdp.GetTotalCurrent();
+			realtime_pub_pdp.msg_.totalPower = pdp.GetTotalPower();
+			realtime_pub_pdp.msg_.totalEnergy = pdp.GetTotalEnergy();
 
-			for(int channel; channel <= 16; channel++)
+			for(int channel = 0; channel <= 15; channel++)
 			{
-				realtime_pub_pdp.msg_.current[channel] = pdp.PowerDistributionPanel::GetCurrent(channel);
+				realtime_pub_pdp.msg_.current[channel] = pdp.GetCurrent(channel);
 			}
 
 			realtime_pub_pdp.unlockAndPublish();
@@ -207,6 +216,7 @@ void FRCRobotHWInterface::init(void)
 	// Do base class init. This loads common interface info
 	// used by both the real and sim interfaces
 	FRCRobotInterface::init();
+	//ROS_INFO_STREAM("init is running");
 
 	// Make sure to initialize WPIlib code before creating
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
