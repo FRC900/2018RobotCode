@@ -52,10 +52,9 @@ target_link_libraries(swerve_command_combiner
 )
 
 add_dependencies(swerve_command_combiner
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${swerve_command_combiner_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
-
 
 add_library(${PROJECT_NAME} 
 src/swerve_drive_controller.cpp 
