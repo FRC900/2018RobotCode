@@ -4,14 +4,15 @@ project(talon_swerve_drive_controller)
 include ("../cmake_modules/CMakeOpt.cmake")
 
 find_package(catkin REQUIRED COMPONENTS
-	cmake_modules
+    cmake_modules
     controller_interface
     std_msgs
     nav_msgs
     geometry_msgs
+    trajectory_msgs
     realtime_tools
-	talon_interface
-	talon_controllers
+    talon_interface
+    talon_controllers
     tf
     urdf
     message_generation
@@ -31,7 +32,7 @@ generate_messages(
 
 catkin_package(
   CATKIN_DEPENDS
-	  controller_interface
+  controller_interface
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
   DEPENDS Eigen
@@ -52,7 +53,7 @@ target_link_libraries(swerve_command_combiner
 )
 
 add_dependencies(swerve_command_combiner
-  ${swerve_command_combiner_EXPORTED_TARGETS}
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
 
@@ -63,6 +64,11 @@ src/speed_limiter.cpp
 src/900Math.cpp
 src/SwerveMath.cpp
 src/Swerve.cpp
+)
+
+add_dependencies(${PROJECT_NAME}
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
 )
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
