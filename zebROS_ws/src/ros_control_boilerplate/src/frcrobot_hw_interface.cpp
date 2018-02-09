@@ -78,41 +78,38 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	run_hal_thread_ = true;
 	Joystick joystick(0);
-	PowerDistributionPanel pdp(0); //sets module to 0? 
+	PowerDistributionPanel pdp(0); //sets module to 0?
 	pdp.ClearStickyFaults();
 	pdp.ResetTotalEnergy();
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
-	//ROS_INFO_STREAM("hal_keepalive_thread is running..........................................");
-
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::PDPData> realtime_pub_pdp(nh_, "pdp_data", 4);
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-	realtime_tools::RealtimePublisher<std_msgs::Int32> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
+	realtime_tools::RealtimePublisher<std_msgs::String> realtime_pub_nt(nh_, "autonomous_mode", 4);
 
 	while (run_hal_thread_)
 	{
-		//ROS_INFO_STREAM("run_hal_thread_ is true before robot_.OneIteration ......................................");
 		robot_.OneIteration();
-		//ROS_INFO_STREAM("run_hal_thread_ is true ......................................");
-
 
 		if (realtime_pub_nt.trylock())
 		{
 			// Network tables work!
 			//pubTable->PutString("String 9", "WORK");
 			//subTable->PutString("Auto Selector", "Select Auto");
-			const std::string autoNumber = driveTable->GetString("Auto Selector", "0");
+			if (driveTable)
+			{
+				// SmartDashboard works!
+				//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
-			// SmartDashboard works!
-			//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+				// TODO eventually add header to nt message so we can get timestamps
+				// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
+				realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
+			}
 
-			// TODO eventually add header to nt message so we can get timestamps
-			// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
-			realtime_pub_nt.msg_.data = std::stoi(autoNumber);
 			realtime_pub_nt.unlockAndPublish();
 		}
 
@@ -185,13 +182,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_match_data.unlockAndPublish();
 		}
-		//ROS_INFO_STREAM("run_hal_thread_ is true, after robot.OneIteration......................................");
 		
 		//read data from the PDP
 		if(realtime_pub_pdp.trylock())
 		{
-			//ROS_INFO_STREAM("pdp_data is running.......................................");
-
 			realtime_pub_pdp.msg_.header.stamp = ros::Time::now();
 
 			realtime_pub_pdp.msg_.voltage = pdp.GetVoltage();
@@ -207,7 +201,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_pdp.unlockAndPublish();
 		}
-
 	}
 }
 
@@ -303,7 +296,7 @@ void FRCRobotHWInterface::init(void)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 				"Loading joint " << i << "=" << navX_names_[i] <<
-				" as navX id" << navX_ids_[i]);
+				" as navX id " << navX_ids_[i]);
 		//TODO: fix how we use ids
 
 		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));

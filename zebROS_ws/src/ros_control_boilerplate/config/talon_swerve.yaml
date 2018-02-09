@@ -18,7 +18,6 @@ hardware_interface:
        - {name: br_angle, type: can_talon_srx, can_id: 14}
        - {name: bl_drive, type: can_talon_srx, can_id: 23}
        - {name: bl_angle, type: can_talon_srx, can_id: 13}
-       - {name: navx_mxp, type: navX, frame_id: navx,  id: 0}
    # Add more data for each joint here - intitial mode, encoder type
    #    PIDF settings, limit switch settings, etc
 
@@ -147,13 +146,3 @@ swerve_drive_controller:
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
 
-
-imu_sensor_controller:
-   type:         imu_sensor_controller/ImuSensorController
-   publish_rate: 100
-
-
-
-navx_controller:
-    type: position_controllers/JointPositionController
-    joint: navx_mxp
