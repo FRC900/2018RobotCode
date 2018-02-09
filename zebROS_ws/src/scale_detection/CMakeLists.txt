@@ -9,7 +9,7 @@ include ("../cmake_modules/CMakeOpt.cmake")
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-
+if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   find_package(catkin REQUIRED COMPONENTS
     roscpp
     message_filters
@@ -42,13 +42,12 @@ include ("../cmake_modules/CMakeOpt.cmake")
     ${PCL_INCLUDE_DIRS}
   )
 
-## Declare a C++ executable
-## With catkin_make all packages are built within a single CMake context
-## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/scale_detection_node.cpp)
+  ## Declare a C++ executable
+  ## With catkin_make all packages are built within a single CMake context
+  ## The recommended prefix ensures that target names across packages don't collide
+  # add_executable(${PROJECT_NAME}_node src/scale_detection_node.cpp)
   add_executable (planar_seg_node src/planar_segmentation.cpp)
 
-if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   ## Specify libraries to link a library or executable target against
   target_link_libraries(planar_seg_node
     ${catkin_LIBRARIES}
@@ -58,7 +57,6 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     ${LibTinyXML2} 
     ${PCL_LIBRARIES}
   )
-endif()
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -94,14 +92,12 @@ target_link_libraries(planar_seg_node
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
-if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-# Mark executables and/or libraries for installation
+  # Mark executables and/or libraries for installation
   install(TARGETS planar_seg_node
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION} # Might need to be ${CATKIN_GLOBAL_BIN_DESTINATION} ?
   )
-endif()
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/
@@ -129,3 +125,4 @@ endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+endif()
