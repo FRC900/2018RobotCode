@@ -26,7 +26,7 @@ else()
     message_generation
     geometry_msgs
     std_msgs
-	sensor_msgs
+    sensor_msgs
     cv_bridge
     tf2
     tf2_ros
