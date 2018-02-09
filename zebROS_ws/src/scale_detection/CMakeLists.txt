@@ -150,7 +150,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/scale_detection_node.cpp)
-  add_executable (planar_segmentation src/point_extraction/planar_segmentation.cpp)
+  add_executable (planar_seg_node src/planar_segmentation.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -164,7 +164,7 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(planar_segmentation
+target_link_libraries(planar_seg_node
    ${catkin_LIBRARIES}
    ${OpenCV_LIBS} 
    ${ZED_LIBRARIES} 
@@ -187,12 +187,14 @@ target_link_libraries(planar_segmentation
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
-## Mark executables and/or libraries for installation
-# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+# Mark executables and/or libraries for installation
+  install(TARGETS planar_seg_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION} # Might need to be ${CATKIN_GLOBAL_BIN_DESTINATION} ?
+  )
+endif()
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/
