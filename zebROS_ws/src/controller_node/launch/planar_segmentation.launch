@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+<node name="planar_seg_node" pkg="scale_detection" type="planar_seg_node"/>
+</launch>
