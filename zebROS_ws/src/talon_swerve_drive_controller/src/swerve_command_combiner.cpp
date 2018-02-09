@@ -3,6 +3,7 @@
 #include "talon_swerve_drive_controller/CompleteCmd.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "trajectory_msgs/JointTrajectory.h"
+#include "ros/time.h"
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"

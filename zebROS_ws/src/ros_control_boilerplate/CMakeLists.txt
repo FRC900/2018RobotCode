@@ -207,5 +207,6 @@ install(DIRECTORY
 install(DIRECTORY
 	launch
 	config
+	urdf
 	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

@@ -118,5 +118,5 @@ base_trajectory_controller:
       y_linear_joint: {trajectory: 0.05, goal: 0.02}
       z_rotation_joint: {trajectory: 0.05, goal: 0.02}
     stop_trajectory_duration: 0.5
-    state_publish_rate:  25
+    state_publish_rate:  20
         

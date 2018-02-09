@@ -357,6 +357,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 		
 
 	sub_command_ = controller_nh.subscribe("combined_cmd", 1, &TalonSwerveDriveController::cmdCallback, this);
+	sub_run_profile_ = controller_nh.subscribe("run_profile", 1, &TalonSwerveDriveController::runCallback, this);
 	
 		
 	double odom_pub_freq;
