@@ -9,7 +9,7 @@ include ("../cmake_modules/CMakeOpt.cmake")
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+
   find_package(catkin REQUIRED COMPONENTS
     roscpp
     message_filters
@@ -42,18 +42,15 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     ${PCL_INCLUDE_DIRS}
   )
 
-<<<<<<< HEAD
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/scale_detection_node.cpp)
   add_executable (planar_seg_node src/planar_segmentation.cpp)
-=======
-  add_executable (planar_segmentation src/point_extraction/planar_segmentation.cpp)
->>>>>>> ad55f3d4773b7d69a5b453a84ca50a0ddde3ec0f
 
+if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   ## Specify libraries to link a library or executable target against
-  target_link_libraries(planar_segmentation
+  target_link_libraries(planar_seg_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS} 
     ${ZED_LIBRARIES} 
@@ -63,7 +60,6 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   )
 endif()
 
-<<<<<<< HEAD
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -133,5 +129,3 @@ endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
-=======
->>>>>>> ad55f3d4773b7d69a5b453a84ca50a0ddde3ec0f
