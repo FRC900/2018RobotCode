@@ -735,7 +735,7 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 			break;
 
 	}
-	ROS_ERROR_STREAM("Error calling " << talon_method_name << " : " << error_name);
+	//ROS_ERROR_STREAM("Error calling " << talon_method_name << " : " << error_name);
 	return false;
 }
 
