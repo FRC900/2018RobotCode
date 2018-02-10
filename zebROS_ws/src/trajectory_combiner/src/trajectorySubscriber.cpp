@@ -10,23 +10,23 @@
 
 static ros::Publisher points_publisher;
 static bool run_;
-static std::vector<trajectory_msgs::JointTrajectoryPoint> points_;	
-void combine(const control_msgs::JointTrajectoryControllerState &point) 
+static std::vector<trajectory_msgs::JointTrajectoryPoint> points_;
+void combine(const control_msgs::JointTrajectoryControllerState &point)
 {
     points_.push_back(point.desired);
-   
+
 
 
 
 }
-void callRun(const std_msgs::Bool &run) 
+void callRun(const std_msgs::Bool &run)
 {
 	run_ = run.data;
     if(run_)
     {
     	trajectory_msgs::JointTrajectory holder;
    	holder.points = points_;
-	holder.header.stamp = ros::Time::now(); 
+	holder.header.stamp = ros::Time::now();
 	points_publisher.publish(holder);
 	points_.clear();
     }

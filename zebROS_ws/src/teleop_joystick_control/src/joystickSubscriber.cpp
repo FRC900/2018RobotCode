@@ -68,7 +68,7 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     bool directionUpButton = msg->directionUpButton;
     bool directionUpPress = msg->directionUpPress;
     bool directionUpRelease = msg->directionUpRelease;
-    
+
     bool directionDownButton = msg->directionDownButton;
     bool directionDownPress = msg->directionDownPress;
     bool directionDownRelease = msg->directionDownRelease;
@@ -97,10 +97,10 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     if(bumperLeftButton == true) {
         scaledLeftStickX *= slow_mode;
         scaledLeftStickY *= slow_mode;
-        
+
         scaledRightStickX *= slow_mode;
         scaledRightStickY *= slow_mode;
-    
+
         scaledLeftTrigger *= slow_mode;
         scaledRightTrigger *= slow_mode;
     }
@@ -157,7 +157,7 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     msa.stickRightPress = stickRightPress;
     msa.stickRightRelease = stickRightRelease;
 
-   
+
     msa.directionUpButton = directionUpButton;
     msa.directionUpPress = directionUpPress;
     msa.directionUpRelease = directionUpRelease;
@@ -173,7 +173,7 @@ void joystick(const ros_control_boilerplate::JoystickState::ConstPtr &msg) {
     msa.directionRightButton = directionRightButton;
     msa.directionRightPress = directionRightPress;
     msa.directionRightRelease = directionRightRelease;
-    
+
 
     ScaledValPub.publish(msa);
 }

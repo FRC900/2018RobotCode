@@ -20,7 +20,7 @@ int navX_index_ = -1;
 ros::Subscriber navX_heading_;
 
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState, const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
-    
+
     uint16_t leftRumble=0, rightRumble=0;
     double matchTimeRemaining = MatchData->matchTimeRemaining;
     timeSecs = ros::Time::now().toSec();
@@ -28,14 +28,14 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         map left joystick+bumpers+triggers into twist
         map right joystick into elevator/pivot position?
         autoscale to specific elevator height and pivot angle for now->->->
-        
+
         press for auto climb height / pivot (CLIMB REGARDLESS OF CUBE)
         Double tap deploy ramp
         Auto scale (only with cube) (overrides drive train)
         Left joy - triggers
         Auto place - right Joy
         Toggles override each other and are turned off when the current toggle is pressed again - right joy press
-   */ 
+   */
     /*
     if(RobotState->ifCube==true) {
         ifCube = true;
@@ -50,7 +50,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 */
 
     //Joystick Rumble
-    if(matchTimeRemaining < 61 && matchTimeRemaining > 59) { 
+    if(matchTimeRemaining < 61 && matchTimeRemaining > 59) {
         leftRumble = 65535;
     }
     else if(matchTimeRemaining < 31 && matchTimeRemaining > 29) {
@@ -110,7 +110,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 //TODO publish exchange height to ElevatorTarget or something
                 ROS_WARN("Toggled to mid level scale height");
             }
-        }   
+        }
 
         //switch height toggle
         if(JoystickState->buttonAPress==true) {
@@ -235,21 +235,21 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     vel.angular.z = JoystickState->leftTrigger - JoystickState->rightTrigger;
     vel.angular.x = 0;
     vel.angular.y = 0;
-    
- 
+
+
     armPos += .1*rightStickY; //Access current elevator position to fix code allowing out of bounds travel
     arm.command = armPos;
 
     JoystickRobotVel.publish(vel);
     JoystickArmVel.publish(arm);
-            
+
         //TODO BUMPERS FOR SLOW MODE
         //ROS_WARN("leftStickX: %f", leftStickX);
         //ROS_WARN("leftStickY: %f", leftStickY);
     //TODO BUMPERS FOR SLOW MODE
     //TODO rotate left
     //TODO rotate right
-	//ROS_WARN("be afraid");            
+	//ROS_WARN("be afraid");
 }
 void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotState) {
     if(RobotState->ifCube==true) {
@@ -269,7 +269,7 @@ void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &Ma
     uint16_t leftRumble=0, rightRumble=0;
     double matchTimeRemaining = MatchData->matchTimeRemaining;
 	// TODO : make these a set of else if blocks?
-    if(matchTimeRemaining < 61 && matchTimeRemaining > 59) { 
+    if(matchTimeRemaining < 61 && matchTimeRemaining > 59) {
         leftRumble = 65535;
     }
     else if(matchTimeRemaining < 31 && matchTimeRemaining > 29) {
@@ -290,7 +290,7 @@ int main(int argc, char **argv) {
     JoystickArmVel = n.advertise<talon_controllers::CloseLoopControllerMsg>("talon_linear_controller/command", 1);
     JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
 
-	// TODO : combine these into 1 callback with joystick val and robot 
+	// TODO : combine these into 1 callback with joystick val and robot
 	// state synchronized by approximate message time.  See http://wiki.ros.org/message_filters#ApproximateTime_Policy
 	// as well as the goal detection code for an example.  This will allow
 	// the callback to get both a joystick value and the robot state
@@ -298,15 +298,15 @@ int main(int argc, char **argv) {
     //message_filters::Subscriber<teleop_joystick_control::RobotState> robotStateSub(n, "RobotState", 1);
     message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "ScaledJoystickVals", 5);
     message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
-    
+
     navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
-   
+
     ROS_WARN("joy_init");
 
     typedef message_filters::sync_policies::ApproximateTime<ros_control_boilerplate::JoystickState, ros_control_boilerplate::MatchSpecificData> JoystickSync;
     message_filters::Synchronizer<JoystickSync> sync(JoystickSync(5), joystickSub, matchDataSub);
     sync.registerCallback(boost::bind(&evaluateCommands, _1, _2));
-    
+
     /*
     ros::Subscriber sub = n.subscribe("ScaledJoystickVals", 1, evaluateCommands);
     ros::Subscriber MatchData = n.subscribe("match_data", 1, evaluateTime);

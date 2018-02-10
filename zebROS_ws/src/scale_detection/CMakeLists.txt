@@ -47,9 +47,19 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   ## The recommended prefix ensures that target names across packages don't collide
   # add_executable(${PROJECT_NAME}_node src/scale_detection_node.cpp)
   add_executable (planar_seg_node src/planar_segmentation.cpp)
+  add_executable (led_detection_node src/detect_leds.cpp)
 
   ## Specify libraries to link a library or executable target against
   target_link_libraries(planar_seg_node
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS} 
+    ${ZED_LIBRARIES} 
+    ${Boost_LIBRARIES} 
+    ${LibTinyXML2} 
+    ${PCL_LIBRARIES}
+  )
+   
+  target_link_libraries(led_detection_node
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS} 
     ${ZED_LIBRARIES} 
@@ -77,6 +87,7 @@ target_link_libraries(planar_seg_node
    ${LibTinyXML2} 
    ${PCL_LIBRARIES}
  )
+
 
 #############
 ## Install ##

@@ -9,6 +9,7 @@ include ("../cmake_modules/CMakeOpt.cmake")
 find_package(catkin REQUIRED COMPONENTS
   joint_trajectory_controller
   controller_interface
+  talon_swerve_drive_controller
   actionlib
   roscpp
 )
@@ -153,10 +154,10 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
 
-#add_executable(driver_node src/driver.cpp)
-#target_link_libraries(driver_node
-#${catkin_LIBRARIES}
-#)
+add_executable(driver_node src/driver.cpp)
+target_link_libraries(driver_node
+	${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##

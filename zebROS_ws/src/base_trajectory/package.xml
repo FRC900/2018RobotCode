@@ -50,11 +50,13 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <depend>joint_trajectory_controller</depend>
+  <depend>trajectory_interface</depend>
   <depend>roscpp</depend>
   <depend>controller_interface</depend>
   <depend>hardware_interface</depend>
   <depend>trajectory_msgs</depend>
   <depend>actionlib</depend>
+  <depend>talon_swerve_drive_controller</depend>
   <depend>urdf</depend>
 
   <!-- The export tag contains other, unspecified, tags -->

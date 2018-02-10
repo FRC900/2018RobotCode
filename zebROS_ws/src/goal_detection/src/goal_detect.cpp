@@ -100,7 +100,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	{
 		return;
 	}
-	
+
 	//Transform between goal frame and odometry/map.
 	static tf2_ros::TransformBroadcaster br;
 	geometry_msgs::TransformStamped transformStamped;

@@ -322,7 +322,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 			const int analog_input_analog_channel = xml_analog_input_analog_channel;
 
 			double analog_input_a;
-			
+
 			if (!joint_params.hasMember("analog_a"))
 				analog_input_a = 1;
 			else
@@ -334,7 +334,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 				analog_input_a = xml_analog_input_a;
 			}
 
-			
+
 			double analog_input_b;
 			if (!joint_params.hasMember("analog_b"))
 				analog_input_b = 0;

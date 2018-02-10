@@ -37,11 +37,11 @@ TEST_F(DiffDriveControllerTest, breakWithMultiplePublishers)
   {
     ros::Duration(0.1).sleep();
   }
- 
+
   nav_msgs::Odometry old_odom = getLastOdom();
   //TODO: we should be programatically publish from 2 different nodes
   // not the current hacky solution with the launch files
-  ros::Duration(1.0).sleep(); 
+  ros::Duration(1.0).sleep();
   nav_msgs::Odometry new_odom = getLastOdom();
 
   const double dx = new_odom.pose.pose.position.x - old_odom.pose.pose.position.x;

@@ -13,7 +13,7 @@
 
 static ros::Publisher combined_msg;
 
-void combine(const geometry_msgs::TwistStamped::ConstPtr &cmd_vel, const trajectory_msgs::JointTrajectory::ConstPtr &points) 
+void combine(const geometry_msgs::TwistStamped::ConstPtr &cmd_vel, const trajectory_msgs::JointTrajectory::ConstPtr &points)
 {
 	talon_swerve_drive_controller::CompleteCmd holder;
 	if(fabs(cmd_vel->header.stamp.toSec()- points->header.stamp.toSec()) < .05)
@@ -38,7 +38,7 @@ void combine(const geometry_msgs::TwistStamped::ConstPtr &cmd_vel, const traject
 int main(int argc, char **argv) {
     ros::init(argc, argv, "swerve_drive_parser");
     ros::NodeHandle n;
-    
+
     message_filters::Subscriber<geometry_msgs::TwistStamped> cmd_vel_sub(n, "/frcrobot/swerve_drive_controller/cmd_vel", 3);
     message_filters::Subscriber<trajectory_msgs::JointTrajectory> points_sub(n, "/frcrobot/swerve_drive_controller/trajectory_points", 3);
     combined_msg = n.advertise<talon_swerve_drive_controller::CompleteCmd>("combined_cmd", 1);

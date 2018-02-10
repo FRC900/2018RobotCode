@@ -11,13 +11,13 @@ ElevatorController::ElevatorController():
 	clamp_cmd_(false),
 	arm_length_(0.0)
 {
-}	
+}
 
 void ElevatorController::evaluateCubeState(){
      //TODO : get state of linebreak and publish cube holding state
 }
 
- 
+
 bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
                 			             ros::NodeHandle &root_nh,
              	                        	     ros::NodeHandle &controller_nh)
@@ -34,7 +34,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	controller_nh.getParam("intake", intake_name);
 	controller_nh.getParam("pivot", pivot_name);
 
-	ROS_INFO_STREAM("names: " << lift_name << intake_name << pivot_name);	
+	ROS_INFO_STREAM("names: " << lift_name << intake_name << pivot_name);
 
 	controller_nh.getParam("arm_length", arm_length_);
 
@@ -49,7 +49,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_STREAM("Can not read offset for " << pivot_name);
 
 	//Offset for arm should be the angle at arm all the way up, faces flush, - pi / 2
-	//Offset for lift should be lift sensor pos when all the way down + height of carriage pivot point 
+	//Offset for lift should be lift sensor pos when all the way down + height of carriage pivot point
 	//when all the way down
 
 
@@ -58,11 +58,11 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 			<< " and lift with joint name: "   << lift_name
 			<< " and intake with joint name: " << intake_name);
 	ros::NodeHandle l_nh(controller_nh, pivot_name);
-	pivot_joint_.initWithNode(hw, nullptr, l_nh);		
+	pivot_joint_.initWithNode(hw, nullptr, l_nh);
 	ros::NodeHandle p_nh(controller_nh, lift_name);
-	lift_joint_.initWithNode(hw, nullptr, p_nh);		
+	lift_joint_.initWithNode(hw, nullptr, p_nh);
 	ros::NodeHandle i_nh(controller_nh, intake_name);
-	intake_joint_.initWithNode(hw, nullptr, i_nh);		
+	intake_joint_.initWithNode(hw, nullptr, i_nh);
 
 	controller_nh.getParam("max_extension", max_extension_);
 	controller_nh.getParam("min_extension", min_extension_);
@@ -126,22 +126,22 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	arm_limiter = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, 15);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
-	sub_intake_ = controller_nh.subscribe("intake", 1, &ElevatorController::intakeCallback, this);	
-	sub_clamp_ = controller_nh.subscribe("clamp", 1, &ElevatorController::clampCallback, this);	
+	sub_intake_ = controller_nh.subscribe("intake", 1, &ElevatorController::intakeCallback, this);
+	sub_clamp_ = controller_nh.subscribe("clamp", 1, &ElevatorController::clampCallback, this);
 
 
 
-	Clamp      	  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);  
+	Clamp      	  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);
 
-	IntakeLeftUp      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_left_up_controller/command", 1);  
-	IntakeRightUp     = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_right_up_controller/command", 1);  
-	IntakeRightSpring = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_right_spring_controller/command", 1);      
-	IntakeLeftSpring  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_left_spring_controller/command", 1);      
+	IntakeLeftUp      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_left_up_controller/command", 1);
+	IntakeRightUp     = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_right_up_controller/command", 1);
+	IntakeRightSpring = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_right_spring_controller/command", 1);
+	IntakeLeftSpring  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_left_spring_controller/command", 1);
 
 
-	ReturnCmd  = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);      
+	ReturnCmd  = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);
 
-	Odom  = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("odom", 1);      
+	Odom  = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("odom", 1);
 
 
 
@@ -154,7 +154,7 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	//compOdometry(time, inv_delta_t);
 	Commands curr_cmd = *(command_.readFromRT());
 	//Use known info to write to hardware etc.
-	//Put in intelligent bounds checking 
+	//Put in intelligent bounds checking
 
 
 
@@ -189,8 +189,8 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 
 	bool cur_up_or_down = pivot_angle > 0;
 
-	arm_limiting::point_type cur_pos(cos(pivot_angle)*arm_length_, lift_position + 
-			sin(pivot_angle)*arm_length_);	
+	arm_limiting::point_type cur_pos(cos(pivot_angle)*arm_length_, lift_position +
+			sin(pivot_angle)*arm_length_);
 
 	odom_holder.x = cur_pos.x();
 	odom_holder.y = cur_pos.y();
@@ -210,7 +210,7 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 		bool reassignment_holder;
 
 		arm_limiting::point_type return_cmd;
-		bool return_up_or_down;		
+		bool return_up_or_down;
 		arm_limiter->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, hook_depth_, hook_min_height_, hook_max_height_, return_cmd, return_up_or_down);
 
 		return_holder.x = return_cmd.x();
@@ -258,7 +258,7 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 
 		command_struct_.stamp = ros::Time::now();
 		command_.writeFromNonRT(command_struct_);
-	}	
+	}
 	else
 	{
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
