@@ -22,7 +22,7 @@ def callback (data):
 	prev_time = cur_time
 
         #debug
-        pref_time_debug = prev_time
+        prev_time_debug = prev_time
 
 	odom = Odometry()
 	odom.header.stamp = data.header.stamp
