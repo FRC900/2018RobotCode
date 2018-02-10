@@ -41,4 +41,10 @@
   	<param name="sub_rate" value="$(arg sub_rate)" />
   	<param name="pub_rate" value="$(arg pub_rate)" />
   </node>
+
+  <node name="led_detection_node" pkg="scale_detection" type="led_detection_node">
+  	<param name="down_sample" value="$(arg down_sample)" />
+  	<param name="sub_rate" value="$(arg sub_rate)" />
+  	<param name="pub_rate" value="$(arg pub_rate)" />
+  </node>
 </launch>
