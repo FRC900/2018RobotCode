@@ -19,8 +19,10 @@ using namespace sensor_msgs;
 using namespace message_filters;
 
 void callback (const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg){
+
   cv_bridge::CvImageConstPtr cvFrame = cv_bridge::toCvShare(frameMsg, sensor_msgs::image_encodings::BGR8);
   cv_bridge::CvImageConstPtr cvDepth = cv_bridge::toCvShare(depthMsg, sensor_msgs::image_encodings::TYPE_32FC1);
+
   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 
   // Fill in the cloud data
@@ -58,7 +60,7 @@ void callback (const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg){
   seg.setModelType (pcl::SACMODEL_PLANE);
   seg.setMethodType (pcl::SAC_RANSAC);
   // Set a limit on the distance of points
-  seg.setDistanceThreshold (1);
+  seg.setDistanceThreshold (20);
   seg.setInputCloud (cloud);
   seg.segment (*inliers, *coefficients);
 
@@ -86,8 +88,8 @@ int main(int argc, char **argv){
   ros::init(argc, argv, "goal_detect");
   ros::NodeHandle nh("~");
   int sub_rate = 5;
-  message_filters::Subscriber<Image> frame_sub(nh, "/zed/left/image_rect_color", sub_rate);
-  message_filters::Subscriber<Image> depth_sub(nh, "/zed/depth/depth_registered", sub_rate);
+  message_filters::Subscriber<Image> frame_sub(nh, "/zed_goal/left/image_rect_color", sub_rate);
+  message_filters::Subscriber<Image> depth_sub(nh, "/zed_goal/depth/depth_registered", sub_rate);
   typedef sync_policies::ApproximateTime<Image, Image> MySyncPolicy2;
   // ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(xxx)
   Synchronizer<MySyncPolicy2> sync2(MySyncPolicy2(50), frame_sub, depth_sub);
