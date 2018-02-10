@@ -6,7 +6,7 @@ from nav_msgs.msg import Odometry
 from px_comm.msg import OpticalFlow
 
 
-global prev_time
+global prev_time,starting_time
 pose_position_x, pose_position_y = 0, 0
 
 pub = rospy.Publisher("px4_odom", Odometry, queue_size=1)
@@ -15,14 +15,15 @@ pub = rospy.Publisher("px4_odom", Odometry, queue_size=1)
 def listener():
 	rospy.Subscriber("/px4flow/opt_flow", OpticalFlow, callback)
 
-def callback (data):
-	global prev_time, pose_position_x, pose_position_y
+def callback(data):
+	global prev_time, pose_position_x, pose_position_y,starting_time
 	cur_time = rospy.get_rostime().to_sec()
 	dt = cur_time - prev_time
 	prev_time = cur_time
 
         #debug
         prev_time_debug = prev_time
+        
 
 	odom = Odometry()
 	odom.header.stamp = data.header.stamp
@@ -40,8 +41,7 @@ def callback (data):
 	odom.pose.pose.position.y = pose_position_y
 	
         pub.publish(odom)
-
-        if rospy.get_rostime().to_sec() < starting_time + 1:
+        if rospy.get_rostime().to_sec() > starting_time + 1:
             rospy.loginfo("""
                            cur_time : %f
                            prev_time: %f
@@ -51,19 +51,16 @@ def callback (data):
 
                            """, 
                            cur_time, prev_time_debug, dt, data.velocity_y, pose_position_y)
+            starting_time = rospy.get_rostime().to_sec()
 
 
 if __name__ == "__main__":
-	global prev_time
+	global prev_time,starting_time
 	rospy.init_node("to_odom")
-	prev_time = 0
+	prev_time,starting_time = 0,rospy.get_rostime().to_sec()
 	listener()
 	rate = rospy.Rate(10)
 
-
-        # for debug
-        starting_time = rospy.get_rostime().to_sec()
-
 	while not rospy.is_shutdown():
 		rate.sleep()
-		rospy.spin()
+                rospy.spin()
