@@ -1,12 +1,16 @@
-#include "PowerDistributionPanel.h"
 #include "iostream"
 #include "pdp_data/PDPData.h" 
+#include <ros/ros.h>
+#include <thread>
+#include <realtime_tools/realtime_publisher.h>
+//#include "../../wpilib/cpp/current/include/PowerDistributionPanel.h"
+
 
 int main(int argc, char **argv){
 	ros::init(argc, argv, "pdp_data_publisher");
 	ros::NodeHandle n;
 
-	PowerDistributionPanel pdp(0);
+/*	PowerDistributionPanel pdp(0);
 	pdp.ClearStickyFaults();
 	pdp.ResetTotalEnergy();
 
@@ -26,7 +30,7 @@ int main(int argc, char **argv){
 
 		for(int channel = 0; channel < 16; channel++)
 		{
-			pdp_data_publisher.msg_current[channel] = pdp.GetCurrent(channel);
+			pdp_data_publisher.msg_.current[channel] = pdp.GetCurrent(channel);
 		}
 
 		pdp_data_publisher.unlockAndPublish();		
@@ -36,5 +40,6 @@ int main(int argc, char **argv){
 	}
 
 	return 0;
+	*/
 }
 

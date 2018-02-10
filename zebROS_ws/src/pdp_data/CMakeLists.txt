@@ -12,6 +12,14 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   message_generation
+  realtime_tools
+  message_runtime
+  hardware_interface
+  controller_manager
+  control_msgs
+  urdf
+  control_toolbox
+  rosparam_shortcuts
 )
 
 ## System dependencies are found with CMake's conventions
@@ -103,9 +111,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES pdp_data
-CATKIN_DEPENDS roscpp rospy std_msgs message_generation
+INCLUDE_DIRS 
+	include
+CATKIN_DEPENDS roscpp rospy std_msgs message_generation message_runtime hardware_interface controller_manager control_msgs urdf control_toolbox rosparam_shortcuts
+LIBRARIES
 #  DEPENDS system_lib
 )
 
@@ -197,3 +206,6 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+add_executable(PDPPublisher src/PDPPublisher.cpp)
+target_link_libraries(PDPPublisher ${catkin_LIBRARIES})

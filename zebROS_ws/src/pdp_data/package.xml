@@ -55,6 +55,13 @@
   <depend>std_msgs</depend>
   <depend>message_generation</depend>
   <depend>message_runtime</depend>
+  <depend>realtime_tools</depend>
+  <depend>hardware_interface</depend>
+  <depend>controller_manager</depend>
+  <depend>control_msgs</depend>
+  <depend>urdf</depend>
+  <depend>control_toolbox</depend>
+  <depend>rosparam_shortcuts</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
