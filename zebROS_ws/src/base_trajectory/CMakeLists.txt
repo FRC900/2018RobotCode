@@ -154,10 +154,10 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
 
-#add_executable(driver_node src/driver.cpp)
-#target_link_libraries(driver_node
-#${catkin_LIBRARIES}
-#)
+add_executable(driver_node src/driver.cpp)
+target_link_libraries(driver_node
+	${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##

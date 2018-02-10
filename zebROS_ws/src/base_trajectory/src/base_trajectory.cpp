@@ -3,8 +3,6 @@
 #include <joint_trajectory_controller/joint_trajectory_segment.h>
 #include <trajectory_interface/quintic_spline_segment.h>
 #include <trajectory_msgs/JointTrajectory.h>
-#include <trajectory_msgs/JointTrajectoryPoint.h>
-#include <talon_swerve_drive_controller/CompleteCmd.h>
 
 typedef joint_trajectory_controller::JointTrajectorySegment<trajectory_interface::QuinticSplineSegment<double>> Segment;
 
@@ -152,8 +150,8 @@ void callback(const JointTrajectoryConstPtr& msg)
 	}
 	pub.publish(out_msg);
 
-	ros::Time pub = ros::Time::now();
-	std::cout << "Pub time = " << (pub - gen).toSec() << std::endl;
+	ros::Time pub_time = ros::Time::now();
+	std::cout << "Pub time = " << (pub_time - gen).toSec() << std::endl;
 }
 
 int main(int argc, char **argv)
