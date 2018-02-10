@@ -96,7 +96,7 @@ array<double, WHEELCOUNT> swerveDriveMath::parkingAngles(void) const
 }
 
 // TODO : modify input arg rather than returning
-// a new array.  Change input to & arg, return type to void, 
+// a new array.  Change input to & arg, return type to void,
 // modfiy input rather than normalzied in the last loop,
 // remove the else statement
 array<double, WHEELCOUNT> swerveDriveMath::normalize( array<double, WHEELCOUNT> input) const

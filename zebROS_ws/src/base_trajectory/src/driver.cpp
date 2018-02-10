@@ -7,13 +7,13 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 class RobotBase
 {
 	private:
-		// Action client for the joint trajectory action 
+		// Action client for the joint trajectory action
 		// used to trigger the arm movement action
 		TrajClient* traj_client_;
 
 	public:
 		//! Initialize the action client and wait for action server to come up
-		RobotBase() 
+		RobotBase()
 		{
 			// tell the action client that we want to spin a thread by default
 			traj_client_ = new TrajClient("/base_trajectory/follow_joint_trajectory", true);

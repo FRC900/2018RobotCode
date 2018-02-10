@@ -182,7 +182,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_match_data.unlockAndPublish();
 		}
-		
+
 		//read data from the PDP
 		if(realtime_pub_pdp.trylock())
 		{
@@ -330,7 +330,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		auto &ts = talon_state_[joint_id];
 		auto &talon = can_talons_[joint_id];
-		
+
 		if (!talon) // skip unintialized Talons
 			continue;
 		// read position and velocity from can_talons_[joint_id]
@@ -477,7 +477,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
-		ROS_INFO_STREAM("base: " << analog_inputs_[i]->GetValue() << " a: " << analog_input_a_[i] << " b:" 
+		ROS_INFO_STREAM("base: " << analog_inputs_[i]->GetValue() << " a: " << analog_input_a_[i] << " b:"
 		<< analog_input_b_[i]);
 		analog_input_state_[i] = (analog_inputs_[i]->GetValue())*analog_input_a_[i] + analog_input_b_[i];
 	}
@@ -1022,7 +1022,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 			// TODO : check that Talon motion buffer is not full
 			// before writing, communicate how many have been written
-			// - and thus should be cleared - from the talon_command 
+			// - and thus should be cleared - from the talon_command
 			// list of requests.
 			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
 			if (tc.motionProfileTrajectoriesChanged(trajectory_points))

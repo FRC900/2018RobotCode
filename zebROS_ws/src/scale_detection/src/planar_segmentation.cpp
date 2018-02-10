@@ -71,9 +71,9 @@ void callback (const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg){
     return;
   }
 
-  std::cerr << "Model coefficients: " << coefficients->values[0] << " " 
+  std::cerr << "Model coefficients: " << coefficients->values[0] << " "
                                       << coefficients->values[1] << " "
-                                      << coefficients->values[2] << " " 
+                                      << coefficients->values[2] << " "
                                       << coefficients->values[3] << std::endl;
 
   //Show the final model inliers (points that meet criteria)

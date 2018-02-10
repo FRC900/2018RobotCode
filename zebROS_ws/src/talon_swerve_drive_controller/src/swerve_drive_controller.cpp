@@ -186,7 +186,7 @@ namespace talon_swerve_drive_controller
 {
 
 
-TalonSwerveDriveController::TalonSwerveDriveController() : 
+TalonSwerveDriveController::TalonSwerveDriveController() :
 	open_loop_(false),
 	wheel_radius_(0.0),
 	cmd_vel_timeout_(0.5), //Change to 5.0 for auto path planning testing
@@ -199,7 +199,7 @@ TalonSwerveDriveController::TalonSwerveDriveController() :
 
 	//model_({0, 0, 0, 0, 0, 0}),
 	//invertWheelAngle_(false),
-	//units_({1,1,1,1,1,1}), 
+	//units_({1,1,1,1,1,1}),
 	//driveRatios_({0, 0, 0}),
 	//units_({0, 0, 0, 0})
 {
@@ -245,7 +245,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 						  << publish_rate << "Hz.");
 	publish_period_ = ros::Duration(1.0 / publish_rate);
 
-	
+
 
 
 
@@ -285,7 +285,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	bool lookup_wheel2y = !controller_nh.getParam("wheel_coords2y", wheel_coords[1][1]);
 	bool lookup_wheel3y = !controller_nh.getParam("wheel_coords3y", wheel_coords[2][1]);
 	bool lookup_wheel4y = !controller_nh.getParam("wheel_coords4y", wheel_coords[3][1]);
-	
+
 
 
 
@@ -334,7 +334,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	model_.wheelRadius =  wheel_radius_;
 
 
-	
+
 	/*
 	invertWheelAngle(false);
 	swerveVar::ratios driveRatios({20, 7, 7});
@@ -353,16 +353,16 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 		ros::NodeHandle r_nh(controller_nh, steering_names[i]);
 		steering_joints_[i].initWithNode(hw, nullptr, r_nh);
 	}
-	
-		
+
+
 
 	sub_command_ = controller_nh.subscribe("combined_cmd", 1, &TalonSwerveDriveController::cmdCallback, this);
 	sub_run_profile_ = controller_nh.subscribe("run_profile", 1, &TalonSwerveDriveController::runCallback, this);
-	
-		
+
+
 	double odom_pub_freq;
-        controller_nh.param("odometry_publishing_frequency", odom_pub_freq, DEF_ODOM_PUB_FREQ);	
-	
+        controller_nh.param("odometry_publishing_frequency", odom_pub_freq, DEF_ODOM_PUB_FREQ);
+
 	comp_odom_ = odom_pub_freq > 0;
 	//ROS_WARN("COMPUTING ODOM");
 	if (comp_odom_)
@@ -444,10 +444,10 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 		for (size_t row = 0; row < WHEELCOUNT; row++)
 		{
 			old_wheel_pos_[row] = {0, 0};
-			last_wheel_rot[row] = speed_joints_[row].getPosition();	
+			last_wheel_rot[row] = speed_joints_[row].getPosition();
 		}
 	}
-	
+
 	return true;
 }
 
@@ -497,7 +497,7 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 
 	//ROS_INFO_STREAM("odom_x: " << odom_x << " odom_y: " << odom_y << " odom_yaw: " << odom_yaw);
 	// Publish the odometry.
-	//TODO CHECK THIS PUB 
+	//TODO CHECK THIS PUB
 
 	geometry_msgs::Quaternion orientation;
 	bool orientation_comped = false;
@@ -548,7 +548,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	const double delta_t = period.toSec();
 	const double inv_delta_t = 1 / delta_t;
 	if (comp_odom_) compOdometry(time, inv_delta_t);
-	
+
 	/*
 	// COMPUTE AND PUBLISH ODOMETRY
 	if (open_loop_)
@@ -610,12 +610,12 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	*/
 	// MOVE ROBOT
 	// Retreive current velocity command and time step:
-	
+
 	if(*(mode_.readFromRT()))
 	{
 		Commands curr_cmd = *(command_.readFromRT());
 		const double dt = (time - curr_cmd.stamp).toSec();
-		
+
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
 			speed_joints_[i].setMode(velocity_mode);
@@ -633,7 +633,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			brake();
 			return;
 		}
-		
+
 		// Limit velocities and accelerations:
 		const double cmd_dt(period.toSec());
 
@@ -646,17 +646,17 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			curPos[i] = steering_joints_[i].getPosition();
 		std::array<bool, WHEELCOUNT> holder;
 		std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC->motorOutputs(curr_cmd.lin, curr_cmd.ang, M_PI/2, false, holder, false, curPos);
-		
+
 		// Set wheels velocities:
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
-			//ROS_INFO_STREAM("id:" << i << " speed: " <<speeds_angles[i][0]); 
+			//ROS_INFO_STREAM("id:" << i << " speed: " <<speeds_angles[i][0]);
 			speed_joints_[i].setCommand(speeds_angles[i][0]);
 			steering_joints_[i].setCommand(speeds_angles[i][1]);
 		}
 	}
 	else
-	{	
+	{
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
 			speed_joints_[i].setMode(motion_profile);
@@ -666,26 +666,26 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		{
 			first_call = false;
 			cmd_points curr_cmd = *(command_points_.readFromRT());
-			
+
 			array<double, WHEELCOUNT> curPos;
 			for (int i = 0; i < WHEELCOUNT; i++)
 				curPos[i] = steering_joints_[i].getPosition();
-			
+
 			std::array<bool, WHEELCOUNT> holder;
-			
+
 			std::array<Vector2d, WHEELCOUNT> angles_positions  = swerveC->motorOutputs(curr_cmd.lin_points_pos[0], curr_cmd.ang_pos[0], M_PI/2, false, holder, false, curPos);
 				//TODO: angles on the velocity array below are superfluous, could remove
 			std::array<Vector2d, WHEELCOUNT> angles_velocities  = swerveC->motorOutputs(curr_cmd.lin_points_vel[0], curr_cmd.ang_vel[0], M_PI/2, false, holder, false, curPos);
 			for (size_t i = 0; i < WHEELCOUNT; i++)
 				curPos[i] = angles_positions[i][1];
 			//Do first point and initialize stuff
-			
+
 			for(size_t i = 0; i < WHEELCOUNT; i++)
 			{
-				
+
 				steering_joints_[i].clearMotionProfileTrajectories();
 				speed_joints_[i].clearMotionProfileTrajectories();
-				
+
 				holder_points_[i][0].position = angles_positions[i][0];
 				holder_points_[i][1].position = angles_positions[i][1];
 				holder_points_[i][0].velocity = angles_velocities[i][0];
@@ -696,14 +696,14 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				holder_points_[i][1].zeroPos = false;
 				holder_points_[i][0].trajectoryDuration = curr_cmd.dt;
 				holder_points_[i][1].trajectoryDuration = curr_cmd.dt;
-				
+
 				speed_joints_[i].pushMotionProfileTrajectory(holder_points_[i][0]);
 				steering_joints_[i].pushMotionProfileTrajectory(holder_points_[i][1]);
 				holder_points_[i][0].zeroPos = false;
 			}
-			
 
-	
+
+
 			const int point_count = curr_cmd.lin_points_pos.size();
 			for(size_t i = 0; i < point_count - 2; i++)
 			{
@@ -712,15 +712,15 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				angles_velocities  = swerveC->motorOutputs(curr_cmd.lin_points_vel[i], curr_cmd.ang_vel[i], M_PI/2, false, holder, false, curPos);
 				for (size_t k = 0; k < WHEELCOUNT; k++)
 					curPos[k] = angles_positions[k][1];
-			
+
 				for(size_t k = 0; k < WHEELCOUNT; k++)
                         	{
 					holder_points_[k][0].position += angles_positions[k][0];
 					holder_points_[k][1].position = angles_positions[k][1];
 					holder_points_[k][0].velocity = angles_velocities[k][0];
-						
+
 					speed_joints_[k].pushMotionProfileTrajectory(holder_points_[k][0]);
-					steering_joints_[k].pushMotionProfileTrajectory(holder_points_[k][1]);	
+					steering_joints_[k].pushMotionProfileTrajectory(holder_points_[k][1]);
                         	}
 			}
 			//Final Setter
@@ -731,16 +731,16 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			{
 				holder_points_[k][0].position += angles_positions[k][0];
 				holder_points_[k][1].position = angles_positions[k][1];
-				holder_points_[k][0].velocity = angles_velocities[k][0];			
-						
+				holder_points_[k][0].velocity = angles_velocities[k][0];
+
 				holder_points_[k][0].isLastPoint = true;
 				holder_points_[k][1].isLastPoint = true;
-	
+
 				speed_joints_[k].pushMotionProfileTrajectory(holder_points_[k][0]);
 				steering_joints_[k].pushMotionProfileTrajectory(holder_points_[k][1]);
 			}
 		}
-		const int set_on  = *(run_.readFromRT()) ? 1 : 0;	
+		const int set_on  = *(run_.readFromRT()) ? 1 : 0;
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
 			speed_joints_[i].setCommand(set_on);
@@ -800,7 +800,7 @@ void TalonSwerveDriveController::cmdCallback(const talon_swerve_drive_controller
 		}
 		mode_.writeFromNonRT(command.cmd_vel_or_points);
 		if(command.cmd_vel_or_points)
-		{	
+		{
 			command_struct_.ang = command.twist_.angular.z;
 			command_struct_.lin[0] = command.twist_.linear.x;
 			command_struct_.lin[1] = command.twist_.linear.y;
@@ -813,9 +813,9 @@ void TalonSwerveDriveController::cmdCallback(const talon_swerve_drive_controller
 			points_struct_.lin_points_vel.clear();
 			points_struct_.ang_pos.clear();
 			points_struct_.ang_vel.clear();
-			double duration = command.joint_trajectory.points[1].time_from_start.toSec() 
+			double duration = command.joint_trajectory.points[1].time_from_start.toSec()
 			- command.joint_trajectory.points[0].time_from_start.toSec();
-			
+
 			if(duration < .0025)
 			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_0ms;
@@ -823,29 +823,29 @@ void TalonSwerveDriveController::cmdCallback(const talon_swerve_drive_controller
 			else if(duration < .0075)
 			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_5ms;
-			}	
+			}
 			else if(duration < .015)
 			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_10ms;
-			}	
+			}
 			else if(duration < .025)
 			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_20ms;
-			}	
+			}
 			else if(duration < .035)
 			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_30ms;
-			}	
+			}
 			else if(duration < .045)
 			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_40ms;
-			}	
+			}
 			else if(duration < .075)
 			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_50ms;
 			}
 			else
-			{	
+			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_100ms;
 			}
 			for(size_t i; i < command.joint_trajectory.points.size(); i++)
@@ -875,7 +875,7 @@ void TalonSwerveDriveController::runCallback(const std_msgs::Bool &run)
 			run_.writeFromNonRT(false);
 			return;
 		}
-		
+
 			run_.writeFromNonRT(run.data);
 	}
 	else

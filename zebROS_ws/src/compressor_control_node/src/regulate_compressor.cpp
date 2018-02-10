@@ -62,10 +62,10 @@ int main(int argc, char **argv) {
 		if(fms_connected_ && !disable_ )
 		{
 			if(game_mode_ != 0 && match_time_ > 30 && (pressure_ < 110 || (run_last_tick && pressure_ < 120)))
-			{	
+			{
 				const double sensor_estimated = (match_time_-30) * (120 - pressure_) / (150 - match_time_);
 				//FIX ABOVE SO IT TAKES INTO ACCOUNT REFILLS
-				double max_estimated = max_match_non_end_use_ * (match_time_ - 30)/(120); 
+				double max_estimated = max_match_non_end_use_ * (match_time_ - 30)/(120);
 				if(sensor_estimated > max_estimated)
 				{
 					max_estimated = sensor_estimated;
@@ -73,10 +73,10 @@ int main(int argc, char **argv) {
 				const double end_pressure_estimate = pressure_ - max_estimated  - max_end_game_use_;
 				if(end_pressure_estimate < target_final_pressure_ || run_last_tick)
 				{
-					const double modelVal = -current_multiplier_ * weighted_average_current_ 
-						+ pressure_multiplier_ * pow(fabs(target_final_pressure_ - end_pressure_estimate), 
-								pressure_exponent_) * ((end_pressure_estimate < target_final_pressure_) ? 1 : -1) 
-						+ (run_last_tick ? 1 : 0) * inertial_multiplier_;  
+					const double modelVal = -current_multiplier_ * weighted_average_current_
+						+ pressure_multiplier_ * pow(fabs(target_final_pressure_ - end_pressure_estimate),
+								pressure_exponent_) * ((end_pressure_estimate < target_final_pressure_) ? 1 : -1)
+						+ (run_last_tick ? 1 : 0) * inertial_multiplier_;
 
 					if(modelVal > 0)
 					{
@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 				holder_msg.data = 0;
 				run_last_tick = false;
 
-			}	
+			}
 		}
 		else if(pressure_ < 100 || run_last_tick && pressure_ < 120)
 		{
