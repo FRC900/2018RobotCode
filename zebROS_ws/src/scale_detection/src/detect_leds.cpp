@@ -16,6 +16,7 @@ using namespace std;
 using namespace sensor_msgs;
 using namespace message_filters;
 
+static bool down_sample = false;
 
 void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 {
@@ -33,7 +34,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	Mat depth;
 
  	Mat gray;
-	Mat tresh;
+	Mat thresh;
 
 	// Downsample for speed purposes
 	if (down_sample)
@@ -47,7 +48,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 
 	//convert to grayscale and threshold
 	cvtColor(frame, gray, CV_BGR2GRAY);
- 	threshold(gray, thesh, 50, 255, 0);
+ 	threshold(gray, thresh, 50, 255, 0);
 
 	//apply erosion and dilation to filter our noise
 	int dilation_size = 5;
@@ -61,25 +62,25 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
         element = getStructuringElement(MORPH_ELLIPSE,
                                        Size(2*dilation_size + 1, 2*dilation_size+1 ),
                                        Point(dilation_size, dilation_size));
-  	dilate(thesh, thresh, element);
+  	dilate(thresh, thresh, element);
 
-	GaussianBlur(thresh, thresh, Size(61, 61), 0, 0 )
+	GaussianBlur(thresh, thresh, Size(61, 61), 0, 0 );
 
 	//extract remaining contours from thresholded image
-	vector<vector<Point> > contours;
+	vector<vector<Point>> contours;
 	vector<Vec4i> hierarchy;
 	findContours(thresh, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 
 	//check if there are contours
-	if contours.size() == 0{
+	if(contours.size() == 0) {
 		//TODO : add ros error message
-	}else{
+	} else {
 		//iterate through vector and draw contours
 		vector<RotatedRect> minRect(contours.size());
-		Mat img = Mat::zeros( threshold_output.size(), CV_8UC3 );
+		Mat img = Mat::zeros( thresh.size(), CV_8UC3 );
 		for( int i = 0; i< contours.size(); i++){
 			drawContours(img, contours, i, (0,0,255), 2, 8, hierarchy);
-			minRect[i] = minAreaRect(Mat(contours[i])
+			minRect[i] = minAreaRect(Mat(contours[i]));
 		}
 	}
 }
@@ -98,7 +99,7 @@ int main(int argc, char **argv)
 	Synchronizer<MySyncPolicy2> sync2(MySyncPolicy2(50), frame_sub, depth_sub);
 	sync2.registerCallback(boost::bind(&callback, _1, _2));
 
-	ros::spin(0)
+	ros::spin();
 
 	return 0;
 }
