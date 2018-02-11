@@ -3,7 +3,7 @@
 # Reload IPv6 networking blocks
 sudo sysctl -p
 
-. /home/ubuntu/2017VisionCode/zebROS_ws/ROSJetsonMaster.sh
+. /home/ubuntu/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh
 #echo 1100-1200,443,80,554,1735 > /proc/sys/net/ipv4/ip_local_reserved_ports
 
 #echo 5800 5810 > /proc/sys/net/ipv4/ip_local_port_range
@@ -25,5 +25,5 @@ fi
 
 nvpmodel -m 0
 /home/ubuntu/jetson_clocks.sh
-/home/ubuntu/2017VisionCode/launch/clocks.sh &
+/home/ubuntu/2018RobotCode/jetson_setup/clocks.sh &
 
