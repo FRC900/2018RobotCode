@@ -603,6 +603,9 @@ void FRCRobotInterface::init()
 		joint_command_interface_.registerHandle(dch);
 	}
 
+	hardware_interface::PDPStateHandle psh("pdp_name", &pdp_state_);
+	pdp_state_interface_.registerHandle(psh);
+
 	// Publish various FRC-specific data using generic joint state for now
 	// For simple things this might be OK, but for more complex state
 	// (e.g. joystick) it probably makes more sense to write a
@@ -615,6 +618,7 @@ void FRCRobotInterface::init()
 	registerInterface(&joint_position_interface_);
 	registerInterface(&joint_velocity_interface_);
 	registerInterface(&imu_interface_);
+	registerInterface(&pdp_state_interface_);
 
 	ROS_INFO_STREAM_NAMED(name_, "FRCRobotInterface Ready.");
 }

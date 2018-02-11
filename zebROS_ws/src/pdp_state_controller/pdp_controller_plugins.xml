@@ -1,0 +1,8 @@
+<library path="lib/libpdp_state_controller">
+
+	<class name="pdp_state_controller/PDPStateController" type="pdp_state_controller::PDPStateController" base_class_type="controller_interface::ControllerBase">
+		<description>
+			Read info from the PDP
+    </description>
+</class>
+</library>

@@ -55,6 +55,10 @@ joint_state_controller:
    type:         joint_state_controller/JointStateController
    publish_rate: 100
 
+pdp_state_controller:
+   type:         pdp_state_controller/PDPStateController
+   publish_rate: 100
+
 # Create a controller called talon1_controller
 #  That name is used by spawner in the launch file to 
 #  actually start this controller

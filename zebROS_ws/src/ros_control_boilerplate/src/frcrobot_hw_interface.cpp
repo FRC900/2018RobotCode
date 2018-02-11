@@ -321,6 +321,10 @@ void FRCRobotHWInterface::init(void)
 
 		compressors_.push_back(std::make_shared<frc::Compressor>(compressor_pcm_ids_[i]));
 	}
+	
+	pdp_joint_.ClearStickyFaults();
+	pdp_joint_.ResetTotalEnergy();
+
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
@@ -523,7 +527,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//navXs_[i]->GetDisplacementZ();
 		//navXs_[i]->GetAngle(); //continous
 		//TODO: add setter functions
-		//
+		
 		navX_state_[i] = navX_command_[i];
 	}
 	for (size_t i = 0; i < num_compressors_; i++)
@@ -531,6 +535,21 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		compressor_state_[i] = compressors_[i]->GetCompressorCurrent();
 	}
 	//navX read here
+	
+	//read info from the PDP hardware
+	auto &ps = pdp_state_;
+	ps.setVoltage(pdp_joint_.GetVoltage());
+	ps.setTemperature(pdp_joint_.GetTemperature());
+	ps.setTotalCurrent(pdp_joint_.GetTotalCurrent());
+	ps.setTotalPower(pdp_joint_.GetTotalPower());
+	ps.setTotalEnergy(pdp_joint_.GetTotalEnergy());
+	for(int channel = 0; channel <= 15; channel++)
+	{
+		ps.setCurrent(pdp_joint_.GetCurrent(channel), channel);
+	}
+	
+	//read stuff from the actual PDP and put it in the object. then, the controller will put that stuff in a msg.
+	
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
@@ -592,31 +611,6 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
 		return 1.;
 	}
 }
-
-/*
-double FRCRobotHWInterface::getRadiansPerSecConversionFactor(hardware_interface::FeedbackDevice encoder_feedback, hardware_interface::TalonMode talon_mode, int joint_id)
-{
-	switch (encoder_feedback)
-	{
-		case hardware_interface::FeedbackDevice_QuadEncoder:
-		case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
-			return 2 * M_PI / 4096 / .1; //4096 = 4* encoder cycles per revolution
-		case hardware_interface::FeedbackDevice_Analog:
-			return 2 * M_PI / 1024 / .1;
-		case hardware_interface::FeedbackDevice_Tachometer:
-		case hardware_interface::FeedbackDevice_SensorSum:
-		case hardware_interface::FeedbackDevice_SensorDifference:
-		case hardware_interface::FeedbackDevice_RemoteSensor0:
-		case hardware_interface::FeedbackDevice_RemoteSensor1:
-		case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
-			ROS_WARN_STREAM("Unable to convert units.");
-			return 1.;
-		default:
-			ROS_WARN_STREAM("Invalid encoder feedback device. Unable to convert units.");
-			return 1.;
-	}
-}
-*/
 
 bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, const std::string &talon_method_name)
 {
