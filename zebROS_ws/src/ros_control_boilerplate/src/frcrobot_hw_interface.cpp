@@ -231,6 +231,8 @@ void FRCRobotHWInterface::init(void)
 		// This probably should be a fatal error
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "\tTalon SRX firmware version " << can_talons_[i]->GetFirmwareVersion());
+		// Clear sticky faults
+		// safeTalonCall(can_talons_[1]->ClearStickyFaults(timeoutMs), "Clear sticky faults.");
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
