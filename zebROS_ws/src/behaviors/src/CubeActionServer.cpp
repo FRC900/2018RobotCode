@@ -1,37 +1,83 @@
 #include <ros/ros.h>
-#include <actionlib/client/simple_action_client.h>
-#include <actionlib/client/terminal_state.h>
-#include <actionlib_tutorials/FibonacciAction.h>
+#include <actionlib/server/simple_action_server.h>
+#include <behaviors/CubeIntakeAction.h>
 
-int main (int argc, char **argv)
+class CubeIntakeAction
 {
-  ros::init(argc, argv, "test_fibonacci");
+protected:
 
-  // create the action client
-  // true causes the client to spin its own thread
-  actionlib::SimpleActionClient<actionlib_tutorials::FibonacciAction> ac("fibonacci", true);
+  ros::NodeHandle nh_;
+  actionlib::SimpleActionServer<behaviors::CubeIntakeAction> as_; // NodeHandle instance must be created before this line. Otherwise strange error occurs.
+  std::string action_name_;
+  // create messages that are used to published feedback/result
+  behaviors::CubeIntakeFeedback feedback_;
+  behaviors::CubeIntakeResult result_;
 
-  ROS_INFO("Waiting for action server to start.");
-  // wait for the action server to start
-  ac.waitForServer(); //will wait for infinite time
+public:
 
-  ROS_INFO("Action server started, sending goal.");
-  // send a goal to the action
-  actionlib_tutorials::FibonacciGoal goal;
-  goal.order = 20;
-  ac.sendGoal(goal);
-
-  //wait for the action to return
-  bool finished_before_timeout = ac.waitForResult(ros::Duration(30.0));
-
-  if (finished_before_timeout)
+  CubeIntakeAction(std::string name) :
+    as_(nh_, name, boost::bind(&CubeIntakeAction::executeCB, this, _1), false),
+    action_name_(name)
   {
-    actionlib::SimpleClientGoalState state = ac.getState();
-    ROS_INFO("Action finished: %s",state.toString().c_str());
+    as_.start();
   }
-  else
-    ROS_INFO("Action did not finish before the time out.");
 
-  //exit
+  ~CubeIntakeAction(void)
+  {
+  }
+
+  void executeCB(const behaviors::CubeIntakeGoalConstPtr &goal)
+  {
+    // helper variables
+    ros::Rate r(1);
+    bool success = true;
+
+    // push_back the seeds for the fibonacci sequence
+    feedback_.sequence.clear();
+    feedback_.sequence.push_back(0);
+    feedback_.sequence.push_back(1);
+
+    // publish info to the console for the user
+    ROS_INFO("%s: Executing, creating fibonacci sequence of order %i with seeds %i, %i", action_name_.c_str(), goal->order, feedback_.sequence[0], feedback_.sequence[1]);
+
+    // start executing the action
+    for(int i=1; i<=goal->order; i++)
+    {
+      // check that preempt has not been requested by the client
+      if (as_.isPreemptRequested() || !ros::ok())
+      {
+        ROS_INFO("%s: Preempted", action_name_.c_str());
+        // set the action state to preempted
+        as_.setPreempted();
+        success = false;
+        break;
+      }
+      feedback_.sequence.push_back(feedback_.sequence[i] + feedback_.sequence[i-1]);
+      // publish the feedback
+      as_.publishFeedback(feedback_);
+      // this sleep is not necessary, the sequence is computed at 1 Hz for demonstration purposes
+      r.sleep();
+    }
+
+    if(success)
+    {
+      result_.sequence = feedback_.sequence;
+      ROS_INFO("%s: Succeeded", action_name_.c_str());
+      // set the action state to succeeded
+      as_.setSucceeded(result_);
+    }
+  }
+
+
+};
+
+
+int main(int argc, char** argv)
+{
+  ros::init(argc, argv, "fibonacci");
+
+  CubeIntakeAction fibonacci("fibonacci");
+  ros::spin();
+
   return 0;
 }

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5.1)
 project(behaviors)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -9,6 +9,7 @@ project(behaviors)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   actionlib
+  actionlib_msgs
   nav_msgs
   roscpp
   rospy
@@ -107,20 +108,24 @@ find_package(catkin REQUIRED COMPONENTS
 
 # ACTIONLIB STUFF
 
-add_executable(CubeActionServer src/CubeActionServer.cpp)
-target_link_libraries(CubeActionServer ${catkin_LIBRARIES})
-#add_dependencies(actionlib)
-
-find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
-add_action_files(DIRECTORY action FILES CubeIntake.action)
-generate_messages(DEPENDENCIES actionlib_msgs)
+#find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
+add_action_files(FILES CubeIntake.action)
+generate_messages(DEPENDENCIES actionlib_msgs std_msgs)
 
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES behaviors
-#  CATKIN_DEPENDS actionlib nav_msgs roscpp rospy std_msgs
-#  DEPENDS system_lib
+   INCLUDE_DIRS include
+   LIBRARIES behaviors
+   CATKIN_DEPENDS actionlib nav_msgs roscpp rospy std_msgs
+   DEPENDS system_lib
 )
+include_directories(include ${catkin_INCLUDE_DIRS})
+add_executable(CubeActionServer src/CubeActionServer.cpp)
+target_link_libraries(CubeActionServer ${catkin_LIBRARIES})
+add_dependencies(
+    CubeActionServer
+    ${behaviors_EXPORTED_TARGETS}
+)
+
 
 ###########
 ## Build ##
