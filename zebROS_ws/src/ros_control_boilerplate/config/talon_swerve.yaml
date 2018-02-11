@@ -52,6 +52,10 @@ joint_state_controller:
    type:         joint_state_controller/JointStateController
    publish_rate: 50
 
+pdp_state_controller:
+   type:         pdp_state_controller/PDPStateController
+   publish_rate: 50
+
 swerve_drive_controller:
     type:       talon_swerve_drive_controller/TalonSwerveDriveController
     
