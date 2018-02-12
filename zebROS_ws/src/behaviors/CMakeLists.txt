@@ -126,7 +126,11 @@ add_dependencies(
     ${behaviors_EXPORTED_TARGETS}
 )
 
-
+add_executable(CubeActionClient src/CubeActionClient.cpp)
+target_link_libraries(
+    CubeActionClient
+    ${catkin_LIBRARIES}
+)
 ###########
 ## Build ##
 ###########
