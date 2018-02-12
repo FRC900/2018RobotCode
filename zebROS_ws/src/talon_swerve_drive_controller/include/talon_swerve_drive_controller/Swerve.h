@@ -52,7 +52,7 @@ class swerve
 	public:
 		swerve(std::array<Eigen::Vector2d, WHEELCOUNT> wheelCoordinates, std::vector<double> offsets, bool wheelAngleInvert, swerveVar::ratios ratio, swerveVar::encoderUnits units, swerveVar::driveModel drive);
 
-		std::array<Eigen::Vector2d, WHEELCOUNT> motorOutputs(Eigen::Vector2d velocityVector, double rotation, double angle, bool forceRead, std::array<bool, WHEELCOUNT> &reverses, bool park, std::array<double, WHEELCOUNT> positionsNew, int rotationCenterID = 0);
+		std::array<Eigen::Vector2d, WHEELCOUNT> motorOutputs(Eigen::Vector2d velocityVector, double rotation, double angle, bool forceRead, std::array<bool, WHEELCOUNT> &reverses, bool park, std::array<double, WHEELCOUNT> positionsNew, bool norm, int rotationCenterID = 0);
 		//for non field centric drive set angle = pi/2
 		//if rotationCenterID == 0 we will use the base center of rotation
 		void saveNewOffsets(bool useVals, std::array<double, WHEELCOUNT> newOffsets, std::array<double, WHEELCOUNT> newPosition); //should these be doubles?

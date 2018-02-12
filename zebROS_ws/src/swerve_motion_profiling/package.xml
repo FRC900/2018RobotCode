@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>teleop_joystick_control</name>
+  <name>swerve_motion_profiling</name>
   <version>0.0.1</version>
-  <description>Simple subscriber and publisher for interpreting joystick data into commands for the robot</description>
+  <description>Profile for auto</description>
 
   <maintainer email="programmers@team900.org">FRC Team 900 Programmers</maintainer>
   <author email="programmers@team900.org">FRC Team 900 Programmers</author>
@@ -34,9 +34,7 @@
   <depend>libgflags-dev</depend>
   <depend>sensor_msgs</depend>
   <depend>rosparam_shortcuts</depend>
-  <depend>talon_interface</depend>
   <depend>message_runtime</depend>
-  <depend>ros_control_boilerplate</depend>
   
 
 

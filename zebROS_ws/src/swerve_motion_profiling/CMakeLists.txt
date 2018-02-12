@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(teleop_joystick_control)
+project(swerve_motion_profiling)
 
 include ("../cmake_modules/CMakeOpt.cmake")
 
@@ -65,7 +65,10 @@ include_directories(
 )
 
 
-add_executable(path_generation src/path_generation.cpp)
+add_executable(path_generation 
+src/path_generation.cpp
+src/profiler.cpp
+)
 set_target_properties(path_generation PROPERTIES OUTPUT_NAME
 path_generation PREFIX "")
 target_link_libraries(path_generation
@@ -79,6 +82,8 @@ add_dependencies(path_generation
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
+
+
 
 
 ## TOOLS ------------------------------------------------------

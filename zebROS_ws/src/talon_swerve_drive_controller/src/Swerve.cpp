@@ -43,7 +43,7 @@ void swerve::setCenterOfRotation(int id, const Vector2d &centerOfRotation)
 
 // TODO : split into motorOutputsDrive and motorOutputsPark
 // Make positionsNew and all Vector2ds const & arguments
-array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool forceRead, array<bool, WHEELCOUNT> &reverses, bool park, array<double, WHEELCOUNT> positionsNew, int rotationCenterID, bool norm)
+array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool forceRead, array<bool, WHEELCOUNT> &reverses, bool park, array<double, WHEELCOUNT> positionsNew, bool norm, int rotationCenterID)
 {
 	if (rotationCenterID >= multiplierSets_.size())
 	{
