@@ -21,89 +21,34 @@ namespace swerve_profile
 		velocities.reserve(155 / dt_); //For full auto :) 
 		std::vector<double> positions;
 		positions.reserve(155 / dt_); //For full auto :) 
-		double v_general_max;
-		double v_curve_max; 
-		double eff_max_a;
-		double max_wheel_orientation_vel;
-		double max_wheel_orientation_accel;
-		//Forward pass
-		positions.push_back(0);
-		for(int i = 0; i < path.size();)
-		{
 
-			i += curr_v*dt_/index_dist_unit_;	
+		//Forward pass
+		for(double i = 0; i < path.size();)
+		{
 			velocities.push_back(curr_v);
 			positions.push_back(i);
-			max_wheel_orientation_accel = path[i].angular_accel * max_wheel_dist_;
 
-			if(i<=0 && i>=path.size() - 1)
+			i += curr_v*dt_/index_dist_unit_;	
+
+			if(!solve_for_next_V(i, path, curr_v))
 			{
-				solve_for_next_V(path[i].radius, curr_v, max_wheel_orientation_accel);
-			}
-			else
-			{	
-				curr_v += max_wheel_mid_accel_;
-			}
-			max_wheel_orientation_vel = path[i].angular_velocity * max_wheel_dist_;
-			if(!poly_solve(1, sqrt(2) *  max_wheel_orientation_vel, max_wheel_orientation_vel - pow(max_wheel_vel_, 2), v_general_max))
 				return false;
-			
-			//Note: assumption is that angular velocity doesn't change much over timestep
-			coerce(curr_v, -v_general_max, v_general_max); 
-			//consider using above coerce in a if statement for optimization
-			eff_max_a = max_wheel_mid_accel_ * 2 * (1 -  (max_wheel_vel_ - sqrt(pow(curr_v + 
-			max_wheel_orientation_vel * sqrt(2)/2, 2) + pow(max_wheel_orientation_vel, 2) / 2)) / max_wheel_vel_);
-			coerce(eff_max_a, 0, max_wheel_mid_accel_); //Consider disabling this coerce
-			if(!poly_solve(1/pow(path[i].radius, 2), sqrt(2) *  max_wheel_orientation_accel, max_wheel_orientation_accel - pow(eff_max_a, 2), v_curve_max))
-				return false;
-			coerce(curr_v, -v_curve_max, v_curve_max);
+			}			
 		}
 		//std::vector<> final_points; //TODO:Some type of struct or something to return
 		//final_points.reserve(155 / dt_); //For full auto :) 
 		curr_v = final_v;
 		double starting_point = positions.size();
 		double vel_cap;
-		for(int i = path.size(); i > 0;)
+		for(double i = path.size(); i > 0;)
 		{
 			i -= curr_v*dt_/index_dist_unit_;	
-			max_wheel_orientation_accel = path[i].angular_accel * max_wheel_dist_;
-			if(i<=0 && i>=path.size() - 1)
-			{
-				solve_for_next_V(path[i].radius, curr_v, max_wheel_orientation_accel);
-			}
-			else
-			{	
-				curr_v += max_wheel_mid_accel_;
-			}
-			max_wheel_orientation_vel = path[i].angular_velocity * max_wheel_dist_;
-			if(!poly_solve(1, sqrt(2) *  max_wheel_orientation_vel, max_wheel_orientation_vel - pow(max_wheel_vel_, 2), v_general_max))
-				return false;
 			
-			//Note: assumption is that angular velocity doesn't change much over timestep
-			coerce(curr_v, -v_general_max, v_general_max); 
-			//consider using above coerce in a if statement for optimization
-			eff_max_a = max_wheel_mid_accel_ * 2 * (1 -  (max_wheel_vel_ - sqrt(pow(curr_v + 
-			max_wheel_orientation_vel * sqrt(2)/2, 2) + pow(max_wheel_orientation_vel, 2) / 2)) / max_wheel_vel_);
-			coerce(eff_max_a, 0, max_wheel_mid_accel_); //Consider disabling this coerce
-			if(!poly_solve(1/pow(path[i].radius, 2), sqrt(2) *  max_wheel_orientation_accel, max_wheel_orientation_accel - pow(eff_max_a, 2), v_curve_max))
-				return false;
-			coerce(curr_v, -v_curve_max, v_curve_max);
-			
-			for(size_t k = 0; k < starting_point; k++)
+			if(!solve_for_next_V(i, path, curr_v))
 			{
-				if(positions[starting_point-k] < i)
-				{
-					starting_point -= k;
-					break;
-				}
-
-				//Find point
-			}
-			//Linear interpolation
-			vel_cap = i * (velocities[starting_point] - velocities[starting_point - 1]) / 
-			(positions[starting_point] - positions[starting_point - 1]) - positions[starting_point] *
-			(velocities[starting_point] - velocities[starting_point - 1]) / 
-			(positions[starting_point] - positions[starting_point - 1]) + velocities[starting_point];
+				return false;
+			}			
+			
 			//Keep below forward pass	
 			coerce(curr_v, -100000000000, vel_cap);
 		}
@@ -126,18 +71,37 @@ namespace swerve_profile
 			return false;
 		}	
 	}
-	bool swerve_profiler::solve_for_next_V(double &radius, double &current_v, double &angular_accel)
+	bool swerve_profiler::solve_for_next_V(double &i, std::vector<path_point> &path, double &current_v)
 	{
-		double accel;
-		if(poly_solve(1, sqrt(2) * angular_accel, angular_accel/2 + pow(pow(current_v, 
-		2)/radius + sqrt(2) * angular_accel / 2, 2), accel))
+		static double v_general_max;
+		static double v_curve_max; 
+		static double eff_max_a;
+		static double max_wheel_orientation_vel;
+		static double max_wheel_orientation_accel;
+		static double accel;
+		if(i<=0 && i>=path.size() - 1)
 		{
+			max_wheel_orientation_accel = path[i].angular_accel * max_wheel_dist_;
+			max_wheel_orientation_vel = path[i].angular_velocity * max_wheel_dist_;
+			poly_solve(1, sqrt(2) * max_wheel_orientation_accel, max_wheel_orientation_accel/2 + pow(pow(current_v, 2)/path[i].radius + sqrt(2) * max_wheel_orientation_accel / 2, 2), accel);
 			current_v += accel * dt_;
+			if(!poly_solve(1, sqrt(2) *  max_wheel_orientation_vel, max_wheel_orientation_vel - pow(max_wheel_vel_, 2), v_general_max))
+				return false;
+			//Note: assumption is that angular velocity doesn't change much over timestep
+			coerce(current_v, -v_general_max, v_general_max); 
+			//consider using above coerce in a if statement for optimization
+			eff_max_a = max_wheel_mid_accel_ * 2 * (1 -  (max_wheel_vel_ - sqrt(pow(current_v + 
+			max_wheel_orientation_vel * sqrt(2)/2, 2) + pow(max_wheel_orientation_vel, 2) / 2)) / max_wheel_vel_);
+			coerce(eff_max_a, 0, max_wheel_mid_accel_); //Consider disabling this coerce
+			if(!poly_solve(1/pow(path[i].radius, 2), sqrt(2) *  max_wheel_orientation_accel, max_wheel_orientation_accel - pow(eff_max_a, 2), v_curve_max))
+				return false;
+			coerce(current_v, -v_curve_max, v_curve_max);
 			return true;
 		}
 		else
-		{
-			return false;
+		{	
+			current_v += max_wheel_mid_accel_;
+			coerce(current_v, -max_wheel_vel_, max_wheel_vel_);	
 		}
 	}
 	bool swerve_profiler::poly_solve(double a, double b, double c, double &x)
