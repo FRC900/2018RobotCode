@@ -1,5 +1,4 @@
 #include<swerve_motion_profiling/profiler.h>
-//TODO: actual vector math around how wheels need higher/low accels in different robot orientations relative to velocity vector
 
 namespace swerve_profile
 {
@@ -96,26 +95,37 @@ namespace swerve_profile
 		static double max_wheel_orientation_vel;
 		static double max_wheel_orientation_accel;
 		static double accel;
+		static double theta;
+		static double cos_t;
+		static double sin_t;
+		static double path_induced_a;
 		if(i<=0 && i>=path.size() - 1)
 		{
 			max_wheel_orientation_accel = path[i].angular_accel * max_wheel_dist_;
 			max_wheel_orientation_vel = path[i].angular_velocity * max_wheel_dist_;
-
+			theta = fabs(fmod(path[i].path_angle - path[i].orientation, M_PI / 8));
+			cos_t = cos(theta);
+			sin_t = sin(theta);
+			path_induced_a = current_v*current_v/path[i].radius;
+			
+			eff_max_a = max_wheel_mid_accel_ * 2 * (1 -  (max_wheel_vel_ - sqrt((current_v + max_wheel_orientation_vel * sqrt(2)/2) * (current_v + max_wheel_orientation_vel * sqrt(2)/2) + max_wheel_orientation_vel * max_wheel_orientation_vel / 2)) / max_wheel_vel_);
+			coerce(eff_max_a, 0, max_wheel_mid_accel_); //Consider disabling this coerce
+			
 			// TODO : check return code here
 			// TODO : Use explicit multiply rather than pow() for squaring stuff
-			poly_solve(1, sqrt(2) * max_wheel_orientation_accel, max_wheel_orientation_accel/2 + pow(pow(current_v, 2)/path[i].radius + sqrt(2) * max_wheel_orientation_accel / 2, 2), accel);
+			poly_solve(1, 4*cos_t*sin_t*path_induced_a + sqrt(2)*cos_t*max_wheel_orientation_accel + sqrt(2)*sin_t*max_wheel_orientation_accel, path_induced_a*path_induced_a + sqrt(2)*sin_t*path_induced_a*max_wheel_orientation_accel + sqrt(2)*cos_t*path_induced_a*max_wheel_orientation_accel + max_wheel_orientation_accel*max_wheel_orientation_accel - max_wheel_mid_accel_ * max_wheel_mid_accel_, accel);
 
 			current_v += accel * dt_;
-			if(!poly_solve(1, sqrt(2) *  max_wheel_orientation_vel, max_wheel_orientation_vel - pow(max_wheel_vel_, 2), v_general_max))
+			if(!poly_solve(1, sqrt(2) *  max_wheel_orientation_vel * cos_t + sqrt(2) *  max_wheel_orientation_vel * sin_t, max_wheel_orientation_vel * max_wheel_orientation_vel- max_wheel_vel_ * max_wheel_vel_, v_general_max))
 				return false;
 			//Note: assumption is that angular velocity doesn't change much over timestep
 			coerce(current_v, -v_general_max, v_general_max); 
 			//consider using above coerce in a if statement for optimization
-			eff_max_a = max_wheel_mid_accel_ * 2 * (1 -  (max_wheel_vel_ - sqrt(pow(current_v + 
-			max_wheel_orientation_vel * sqrt(2)/2, 2) + pow(max_wheel_orientation_vel, 2) / 2)) / max_wheel_vel_);
-			coerce(eff_max_a, 0, max_wheel_mid_accel_); //Consider disabling this coerce
-			if(!poly_solve(1/pow(path[i].radius, 2), sqrt(2) *  max_wheel_orientation_accel, max_wheel_orientation_accel - pow(eff_max_a, 2), v_curve_max))
+
+			if(!poly_solve(1, sqrt(2) *  max_wheel_orientation_accel * cos_t + sqrt(2) *  max_wheel_orientation_accel * sin_t, max_wheel_orientation_accel * max_wheel_orientation_accel - eff_max_a * eff_max_a, v_curve_max))
 				return false;
+			v_curve_max = sqrt(v_curve_max);
+			v_curve_max *= path[i].radius;
 			coerce(current_v, -v_curve_max, v_curve_max);
 		}
 		else
@@ -127,7 +137,7 @@ namespace swerve_profile
 	}
 	bool swerve_profiler::poly_solve(const double &a, const double &b, const double &c, double &x)
 	{
-		const double det = pow(b, 2) - 4 * a * c;
+		const double det = b*b - 4 * a * c;
 		if(det < 0)
 		{
 			return false;
