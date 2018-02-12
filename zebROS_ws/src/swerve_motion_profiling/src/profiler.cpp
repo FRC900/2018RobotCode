@@ -14,6 +14,8 @@ namespace swerve_profile
                 dt_ = dt;
 		index_dist_unit_ = index_dist_unit;
 	}
+	//TODO :: path should be const vect & to avoid a redundant copy
+	// being nmae each time the function is called
 	bool swerve_profiler::generate_profile(std::vector<path_point> path, double initial_v, double final_v)
 	{
 		double curr_v = initial_v;
@@ -38,7 +40,7 @@ namespace swerve_profile
 		//std::vector<> final_points; //TODO:Some type of struct or something to return
 		//final_points.reserve(155 / dt_); //For full auto :) 
 		curr_v = final_v;
-		double starting_point = positions.size();
+		double starting_point = positions.size(); //TODO : not used
 		double vel_cap;
 		for(double i = path.size(); i > 0;)
 		{
@@ -54,6 +56,7 @@ namespace swerve_profile
 		}
 		return true;
 	}
+	// TODO :: is return code needed here?
 	bool swerve_profiler::coerce(double &val, double min, double max)
 	{
 		if(val > max)
@@ -73,6 +76,7 @@ namespace swerve_profile
 	}
 	bool swerve_profiler::solve_for_next_V(double &i, std::vector<path_point> &path, double &current_v)
 	{
+		// TODO - double-check that these need to be static
 		static double v_general_max;
 		static double v_curve_max; 
 		static double eff_max_a;
@@ -83,7 +87,11 @@ namespace swerve_profile
 		{
 			max_wheel_orientation_accel = path[i].angular_accel * max_wheel_dist_;
 			max_wheel_orientation_vel = path[i].angular_velocity * max_wheel_dist_;
+
+			// TODO : check return code here
+			// TODO : Use explicit multiply rather than pow() for squaring stuff
 			poly_solve(1, sqrt(2) * max_wheel_orientation_accel, max_wheel_orientation_accel/2 + pow(pow(current_v, 2)/path[i].radius + sqrt(2) * max_wheel_orientation_accel / 2, 2), accel);
+
 			current_v += accel * dt_;
 			if(!poly_solve(1, sqrt(2) *  max_wheel_orientation_vel, max_wheel_orientation_vel - pow(max_wheel_vel_, 2), v_general_max))
 				return false;
