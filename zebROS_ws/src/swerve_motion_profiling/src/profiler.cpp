@@ -96,12 +96,12 @@ namespace swerve_profile
 			if(!poly_solve(1/pow(path[i].radius, 2), sqrt(2) *  max_wheel_orientation_accel, max_wheel_orientation_accel - pow(eff_max_a, 2), v_curve_max))
 				return false;
 			coerce(current_v, -v_curve_max, v_curve_max);
-			return true;
 		}
 		else
 		{	
 			current_v += max_wheel_mid_accel_;
 			coerce(current_v, -max_wheel_vel_, max_wheel_vel_);	
+			return true;
 		}
 	}
 	bool swerve_profiler::poly_solve(double a, double b, double c, double &x)
