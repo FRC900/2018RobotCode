@@ -1,16 +1,33 @@
 #include <time.h>
+// Let's break C++
+// Need to access a private variable from quintic_spline_segment
+// by using a derived class. What could possibly go wrong?
+#define private protected
+#include <trajectory_interface/quintic_spline_segment.h>
+#undef private
 #include <joint_trajectory_controller/init_joint_trajectory.h>
 #include <joint_trajectory_controller/joint_trajectory_segment.h>
-#include <trajectory_interface/quintic_spline_segment.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
-typedef joint_trajectory_controller::JointTrajectorySegment<trajectory_interface::QuinticSplineSegment<double>> Segment;
+// Define a member function to read spline coefficents
+namespace trajectory_interface
+{
+template<class ScalarType>
+class MyQuinticSplineSegment: public QuinticSplineSegment<ScalarType>
+{
+	public: 
+		std::vector<typename QuinticSplineSegment<ScalarType>::SplineCoefficients> getCoefs(void) const
+		{
+			return this->coefs_;
+		}
+};
+}
+
+typedef joint_trajectory_controller::JointTrajectorySegment<trajectory_interface::MyQuinticSplineSegment<double>> Segment;
 
 typedef std::vector<Segment> TrajectoryPerJoint;
-typedef boost::shared_ptr<TrajectoryPerJoint> TrajectoryPerJointPtr;
-
 typedef std::vector<TrajectoryPerJoint> Trajectory;
-typedef boost::shared_ptr<Trajectory> TrajectoryPtr;
+
 typedef trajectory_msgs::JointTrajectory::ConstPtr JointTrajectoryConstPtr;
 
 ros::Duration period;
@@ -33,7 +50,7 @@ void callback(const JointTrajectoryConstPtr& msg)
 	std::vector<bool> angle_wraparound;
 
 	// Assume the path starts at time 0
-	ros::Time next_update_time = ros::Time(0) + period;
+	ros::Time next_update_time = ros::Time(0);
 	ros::Time next_update_uptime = next_update_time;
 
 	// Set this to false to prevent the code
@@ -68,7 +85,7 @@ void callback(const JointTrajectoryConstPtr& msg)
 		typename Segment::State hold_start_state = typename Segment::State(1);
 		typename Segment::State hold_end_state = typename Segment::State(1);
 
-		double stop_trajectory_duration = 0.5;
+		double stop_trajectory_duration = period.toSec() / 2.;
 		const typename Segment::Time start_time  = 0;
 		const typename Segment::Time end_time    = stop_trajectory_duration;
 		const typename Segment::Time end_time_2x = 2.0 * stop_trajectory_duration;
@@ -132,6 +149,25 @@ void callback(const JointTrajectoryConstPtr& msg)
 	{
 		ROS_ERROR("Unexpected exception caught when initializing trajectory from ROS message data.");
 		return;
+	}
+	for (size_t joint = 0; joint < joint_names.size(); joint++)
+	{
+		for (size_t seg = 0; seg < trajectory[joint].size(); seg++)
+		{
+			std::cout << "joint = " << joint_names[joint] << " seg = " << seg;
+			std::cout << " start_time = " << trajectory[joint][seg].startTime();
+			std::cout << " end_time = " << trajectory[joint][seg].endTime();
+			auto coefs = trajectory[joint][seg].getCoefs();
+			for (size_t i = 0; i < coefs.size(); i++)
+			{
+				std::cout << " coefs =";
+				for (size_t j = 0; j < coefs[i].size(); j++)
+				{
+					std::cout << " " << coefs[i][j];
+				}
+			}
+			std::cout << std::endl;
+		}
 	}
 
 	ros::Time gen = ros::Time::now();
