@@ -34,13 +34,13 @@ class swerve_profiler
 		swerve_profiler(double max_wheel_dist, double max_wheel_mid_accel, double max_wheel_vel, 
 		double max_steering_accel, double max_steering_vel, double dt, double index_dist_unit);
 
-		bool generate_profile(std::vector<path_point> path, double initial_v, double final_v);
+		bool generate_profile(const std::vector<path_point> &path, const double &initial_v, const double &final_v);
 		//TODO: maybe add options to above functions?
 	
 	private:
-		bool solve_for_next_V(double &i, std::vector<path_point> &path, double &current_v);//most pointers are just for efficiency
-		bool coerce(double &val, double min, double max); 
-		bool poly_solve(double a, double b, double c, double &x);
+		bool solve_for_next_V(const double &i, const std::vector<path_point> &path, double &current_v);//most pointers are just for efficiency
+		bool coerce(double &val, const double &min, const double &max); 
+		bool poly_solve(const double &a, const double &b, const double &c, double &x);
 		double max_wheel_dist_;
 		double max_wheel_mid_accel_;
 		double max_wheel_vel_;

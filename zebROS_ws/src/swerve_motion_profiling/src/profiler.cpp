@@ -15,8 +15,8 @@ namespace swerve_profile
 		index_dist_unit_ = index_dist_unit;
 	}
 	//TODO :: path should be const vect & to avoid a redundant copy
-	// being nmae each time the function is called
-	bool swerve_profiler::generate_profile(std::vector<path_point> path, double initial_v, double final_v)
+	// being made each time the function is called
+	bool swerve_profiler::generate_profile(const std::vector<path_point> &path, const double &initial_v, const double &final_v)
 	{
 		double curr_v = initial_v;
 		std::vector<double> velocities;
@@ -40,7 +40,7 @@ namespace swerve_profile
 		//std::vector<> final_points; //TODO:Some type of struct or something to return
 		//final_points.reserve(155 / dt_); //For full auto :) 
 		curr_v = final_v;
-		double starting_point = positions.size(); //TODO : not used
+		double starting_point = positions.size();
 		double vel_cap;
 		for(double i = path.size(); i > 0;)
 		{
@@ -50,14 +50,27 @@ namespace swerve_profile
 			{
 				return false;
 			}			
-			
+			for(size_t k = 0; k < starting_point; k++)
+			{
+				if(positions[starting_point-k] < i)
+				{
+					starting_point -= k;
+					break;
+				}
+				//Find point
+			}
+			//Linear interpolation
+			vel_cap = i * (velocities[starting_point] - velocities[starting_point - 1]) / 
+			(positions[starting_point] - positions[starting_point - 1]) - positions[starting_point] *
+			(velocities[starting_point] - velocities[starting_point - 1]) / 
+			(positions[starting_point] - positions[starting_point - 1]) + velocities[starting_point];	
 			//Keep below forward pass	
 			coerce(curr_v, -100000000000, vel_cap);
 		}
 		return true;
 	}
 	// TODO :: is return code needed here?
-	bool swerve_profiler::coerce(double &val, double min, double max)
+	bool swerve_profiler::coerce(double &val, const double &min, const double &max)
 	{
 		if(val > max)
 		{
@@ -74,7 +87,7 @@ namespace swerve_profile
 			return false;
 		}	
 	}
-	bool swerve_profiler::solve_for_next_V(double &i, std::vector<path_point> &path, double &current_v)
+	bool swerve_profiler::solve_for_next_V(const double &i, const std::vector<path_point> &path, double &current_v)
 	{
 		// TODO - double-check that these need to be static
 		static double v_general_max;
@@ -112,7 +125,7 @@ namespace swerve_profile
 			return true;
 		}
 	}
-	bool swerve_profiler::poly_solve(double a, double b, double c, double &x)
+	bool swerve_profiler::poly_solve(const double &a, const double &b, const double &c, double &x)
 	{
 		const double det = pow(b, 2) - 4 * a * c;
 		if(det < 0)
