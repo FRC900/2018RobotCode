@@ -201,7 +201,12 @@ void callback(const JointTrajectoryConstPtr& msg)
 	// TODO : this takes the majority of the runtime
 	//        it is also a prime target for multi-threading
 	//        since each point is generated independently of
-	//        the last.  
+	//        the last.
+
+	//TODO: we need to get radius and path angle out of the 
+	//x_y spline, which will make this no longer be generalized, 
+	//but that should be fine
+	//We also need to generate points by arc length rather than by "time"
 	point_count = 0;
 	for (ros::Duration now(0); now <= end_time; now += period, point_count += 1)
 	{
