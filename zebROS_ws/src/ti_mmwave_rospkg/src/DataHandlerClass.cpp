@@ -268,7 +268,7 @@ void *DataUARTHandler::sortIncomingData( void )
     uint32_t headerSize;
     unsigned int currentDatap = 0;
     SorterState sorterState = READ_HEADER;
-    int i = 0, tlvCount = 0, offset = 0;
+    int i = 0, tlvCount = 0;
     float maxElevationAngleRatioSquared;
     float maxAzimuthAngleRatio;
     
@@ -363,7 +363,6 @@ void *DataUARTHandler::sortIncomingData( void )
         case READ_OBJ_STRUCT:
             
             i = 0;
-            offset = 0;
             
             //get number of objects
             memcpy( &mmwData.numObjOut, &currentBufp->at(currentDatap), sizeof(mmwData.numObjOut));
