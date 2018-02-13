@@ -19,6 +19,7 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   )
   find_package(PCL REQUIRED COMPONENTS common segmentation visualization)
   find_package(ZED REQUIRED)
+  find_package(OpenCV REQUIRED)
   find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
   include_directories(${PCL_INCLUDE_DIRS})
   link_directories(${PCL_LIBRARY_DIRS})
@@ -87,6 +88,15 @@ target_link_libraries(planar_seg_node
    ${LibTinyXML2} 
    ${PCL_LIBRARIES}
  )
+
+ target_link_libraries(led_detection_node
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS} 
+    ${ZED_LIBRARIES} 
+    ${Boost_LIBRARIES} 
+    ${LibTinyXML2} 
+    ${PCL_LIBRARIES}
+  )
 
 
 #############

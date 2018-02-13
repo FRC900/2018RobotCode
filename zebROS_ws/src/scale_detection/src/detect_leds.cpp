@@ -47,7 +47,8 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	}
 
 	//convert to grayscale and threshold
-	cvtColor(frame, gray, CV_BGR2GRAY);
+
+	cvtColor(*framePtr, gray, cv::COLOR_BGR2GRAY);
  	threshold(gray, thresh, 50, 255, 0);
 
 	//apply erosion and dilation to filter our noise
@@ -70,6 +71,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	vector<vector<Point>> contours;
 	vector<Vec4i> hierarchy;
 	findContours(thresh, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+	Mat img = Mat::zeros(thresh.size(), CV_8UC3);
 
 	//check if there are contours
 	if(contours.size() == 0) {
@@ -77,12 +79,13 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	} else {
 		//iterate through vector and draw contours
 		vector<RotatedRect> minRect(contours.size());
-		Mat img = Mat::zeros( thresh.size(), CV_8UC3 );
 		for( int i = 0; i< contours.size(); i++){
 			drawContours(img, contours, i, (0,0,255), 2, 8, hierarchy);
 			minRect[i] = minAreaRect(Mat(contours[i]));
 		}
 	}
+	imshow("Final", img);
+	waitKey(5);
 }
 
 int main(int argc, char **argv)
