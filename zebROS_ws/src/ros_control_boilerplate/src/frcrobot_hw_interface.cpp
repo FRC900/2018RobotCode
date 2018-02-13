@@ -48,12 +48,15 @@
 #include "ros_control_boilerplate/MatchSpecificData.h"
 #include "ros_control_boilerplate/AutoMode.h"
 #include "math.h"
+#include <cmath>
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/String.h>
 #include <ctre/phoenix/MotorControl/SensorCollection.h>
 #include <tf2/LinearMath/Quaternion.h>
+#include "ros_control_boilerplate/PDPData.h"
+#include <PowerDistributionPanel.h>
 
 namespace frcrobot_control
 {
@@ -76,10 +79,12 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	run_hal_thread_ = true;
 	Joystick joystick(0);
+	PowerDistributionPanel pdp(0); //sets module to 0?
+	pdp.ClearStickyFaults();
+	pdp.ResetTotalEnergy();
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
-
-	//realtime_tools::RealtimePublisher<ros_control_boilerplate::PDPData> realtime_pub_pdp(nh_, "pdp_data", 4);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::PDPData> realtime_pub_pdp(nh_, "pdp_data", 4);
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -96,15 +101,20 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			// Network tables work!
 			//pubTable->PutString("String 9", "WORK");
 			//subTable->PutString("Auto Selector", "Select Auto");
-			const std::string autoNumber = driveTable->GetString("Auto Selector", "0");
+			if (driveTable)
+			{
+				// SmartDashboard works!
+				//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
-			// SmartDashboard works!
-			//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+				// TODO eventually add header to nt message so we can get timestamps
+				// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
+				//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
+			    realtime_pub_nt.msg_.mode = std::stoi(driveTable->GetString("Auto Selector", "0"));
+			}
 
 			// TODO eventually add header to nt message so we can get timestamps
 			// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
             realtime_pub_nt.msg_.header.stamp = ros::Time::now();
-			realtime_pub_nt.msg_.mode = std::stoi(autoNumber);
 			realtime_pub_nt.unlockAndPublish();
 		}
 
@@ -181,7 +191,25 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_match_data.unlockAndPublish();
 		}
-		//TODO: Add direction buttons?
+
+		//read data from the PDP
+		if(realtime_pub_pdp.trylock())
+		{
+			realtime_pub_pdp.msg_.header.stamp = ros::Time::now();
+
+			realtime_pub_pdp.msg_.voltage = pdp.GetVoltage();
+			realtime_pub_pdp.msg_.temperature = pdp.GetTemperature();
+			realtime_pub_pdp.msg_.totalCurrent = pdp.GetTotalCurrent();
+			realtime_pub_pdp.msg_.totalPower = pdp.GetTotalPower();
+			realtime_pub_pdp.msg_.totalEnergy = pdp.GetTotalEnergy();
+
+			for(int channel = 0; channel <= 15; channel++)
+			{
+				realtime_pub_pdp.msg_.current[channel] = pdp.GetCurrent(channel);
+			}
+
+			realtime_pub_pdp.unlockAndPublish();
+		}
 	}
 }
 
@@ -190,6 +218,7 @@ void FRCRobotHWInterface::init(void)
 	// Do base class init. This loads common interface info
 	// used by both the real and sim interfaces
 	FRCRobotInterface::init();
+	//ROS_INFO_STREAM("init is running");
 
 	// Make sure to initialize WPIlib code before creating
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
@@ -203,7 +232,7 @@ void FRCRobotHWInterface::init(void)
 							  "Loading joint " << i << "=" << can_talon_srx_names_[i] <<
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
 		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i]));
-		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 0); // Make sure motor is stopped
+		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 50); // Make sure motor is stopped, use a long timeout just in case
 		safeTalonCall(can_talons_[i]->GetLastError(), "Initial Set(Disabled, 0)");
 		// TODO : if the talon doesn't initialize - maybe known
 		// by -1 from firmware version read - somehow tag
@@ -276,7 +305,7 @@ void FRCRobotHWInterface::init(void)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 				"Loading joint " << i << "=" << navX_names_[i] <<
-				" as navX id" << navX_ids_[i]);
+				" as navX id " << navX_ids_[i]);
 		//TODO: fix how we use ids
 
 		navXs_.push_back(std::make_shared<AHRS>(SPI::Port::kMXP));
@@ -310,6 +339,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		auto &ts = talon_state_[joint_id];
 		auto &talon = can_talons_[joint_id];
+
+		if (!talon) // skip unintialized Talons
+			continue;
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
 
@@ -454,7 +486,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
-		analog_input_state_[i] = analog_inputs_[i]->GetValue();
+		ROS_INFO_STREAM("base: " << analog_inputs_[i]->GetValue() << " a: " << analog_input_a_[i] << " b:"
+		<< analog_input_b_[i]);
+		analog_input_state_[i] = (analog_inputs_[i]->GetValue())*analog_input_a_[i] + analog_input_b_[i];
 	}
  	//navX read here
 	for (size_t i = 0; i < num_navX_; i++)
@@ -710,7 +744,7 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 			break;
 
 	}
-	ROS_ERROR_STREAM("Error calling " << talon_method_name << " : " << error_name);
+	//ROS_ERROR_STREAM("Error calling " << talon_method_name << " : " << error_name);
 	return false;
 }
 
@@ -725,10 +759,13 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		//
 		// Save some typing by making references to commonly
 		// used variables
-		auto &ts = talon_state_[joint_id];
-		auto &tc = talon_command_[joint_id];
 		auto &talon = can_talons_[joint_id];
 
+		if (!talon) // skip unintialized Talons
+			continue;
+
+		auto &ts = talon_state_[joint_id];
+		auto &tc = talon_command_[joint_id];
 		hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
 		hardware_interface::TalonMode talon_mode = ts.getTalonMode();
 		int encoder_ticks_per_rotation = tc.getEncoderTicksPerRotation();
@@ -992,8 +1029,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			if (tc.clearMotionProfileHasUnderrunChanged())
 				safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
 
+			// TODO : check that Talon motion buffer is not full
+			// before writing, communicate how many have been written
+			// - and thus should be cleared - from the talon_command
+			// list of requests.
 			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
-
 			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
 			{
 				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)

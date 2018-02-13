@@ -27,6 +27,7 @@ add_message_files (
   MatchSpecificData.msg
   JoystickState.msg
   AutoMode.msg
+  PDPData.msg
 )
 generate_messages(
   DEPENDENCIES
@@ -207,5 +208,6 @@ install(DIRECTORY
 install(DIRECTORY
 	launch
 	config
+	urdf
 	DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

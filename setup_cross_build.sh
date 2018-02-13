@@ -57,7 +57,7 @@ sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installe
 
 # Get ros for RoboRIO libraries
 cd
-wget -O roscore_roborio_2018.tar.bz2 "https://drive.google.com/uc?export=download&id=1IggQt9DtTnZb6R1hxzKRPCUhEW44rQLj"
+wget -O roscore_roborio_2018.tar.bz2 "https://drive.google.com/uc?export=download&id=1tT988R2pq9oyZyLWl1eDzMSpxcV7-HZ-"
 cd /usr/arm-frc-linux-gnueabi
 sudo tar -xjf ~/roscore_roborio_2018.tar.bz2
 cd

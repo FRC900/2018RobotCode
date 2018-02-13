@@ -24,8 +24,9 @@ sudo apt update
 
 #removes regular vim and installs Vim with py2 support enabled, as well as other tools
 sudo apt remove -y *vim*
-sudo apt install -y vim-gtk-py2 neovim python3-dev python3-pip ros-kinetic-desktop-full python-rosinstall python-rosinstall-generator python-wstool aptitude docker clang colorgcc ranger
-sudo apt install -y ros-kinetic-hardware-interface ros-kinetic-realtime-tools ros-kinetic-controller-interface ros-kinetic-controller-manager ros-kinetic-joint-limits-interface ros-kinetic-transmission-interface ros-kinetic-control-toolbox ros-kinetic-rosparam-shortcuts
+sudo apt install -y vim-gtk-py2 neovim python3-dev python3-pip aptitude docker clang colorgcc ranger
+#call another script to install all of the needed ROS packages
+./install_ros_desktop_packages.sh
 #installs NeoVim Python bindings (for rosvim)
 sudo pip2 install --upgrade neovim
 sudo pip3 install --upgrade neovim

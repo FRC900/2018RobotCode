@@ -28,6 +28,7 @@ RUN cd && \
     mkdir ctre && \
     cd ctre && \
     unzip ../CTRE_Phoenix_FRCLibs_NON-WINDOWS_v5.2.1.1.zip && \
+    mkdir -p ~/wpilib/user && \
     cp -r cpp ~/wpilib/user && \
     cd .. && \
     rm -rf ctre CTRE_Phoenix_FRCLibs_NON-WINDOWS_v5.2.1.1.zip && \

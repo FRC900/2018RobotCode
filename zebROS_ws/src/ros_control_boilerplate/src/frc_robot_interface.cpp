@@ -312,7 +312,6 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 		}
 		else if (joint_type == "analog_input")
 		{
-			ROS_WARN("has analog");
 			if (!joint_params.hasMember("analog_channel"))
 				throw std::runtime_error("A Analog input analog_channel was not specified");
 			XmlRpc::XmlRpcValue &xml_analog_input_analog_channel = joint_params["analog_channel"];
@@ -322,7 +321,34 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 
 			const int analog_input_analog_channel = xml_analog_input_analog_channel;
 
+			double analog_input_a;
 
+			if (!joint_params.hasMember("analog_a"))
+				analog_input_a = 1;
+			else
+			{
+				XmlRpc::XmlRpcValue &xml_analog_input_a = joint_params["analog_a"];
+				if (!xml_analog_input_a.valid() ||
+					xml_analog_input_a.getType() != XmlRpc::XmlRpcValue::TypeDouble)
+					throw std::runtime_error("An invalid joint a term was specified (expecting an double).");
+				analog_input_a = xml_analog_input_a;
+			}
+
+
+			double analog_input_b;
+			if (!joint_params.hasMember("analog_b"))
+				analog_input_b = 0;
+			else
+			{
+				XmlRpc::XmlRpcValue &xml_analog_input_b = joint_params["analog_b"];
+				if (!xml_analog_input_b.valid() ||
+					xml_analog_input_b.getType() != XmlRpc::XmlRpcValue::TypeDouble)
+					throw std::runtime_error("An invalid joint b term was specified (expecting an double).");
+				analog_input_b = xml_analog_input_b;
+			}
+
+			analog_input_a_.push_back(analog_input_a);
+			analog_input_b_.push_back(analog_input_b);
 			analog_input_names_.push_back(joint_name);
 			analog_input_analog_channels_.push_back(analog_input_analog_channel);
 		}
@@ -335,12 +361,14 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 					xml_compressor_pcm_id.getType() != XmlRpc::XmlRpcValue::TypeInt)
 				throw std::runtime_error("An invalid compressor joint pcm id was specified (expecting an int).");
 
-
 			const int compressor_pcm_id = xml_compressor_pcm_id;
-
 
 			compressor_names_.push_back(joint_name);
 			compressor_pcm_ids_.push_back(compressor_pcm_id);
+		}
+		else if (joint_type == "dummy")
+		{
+			dummy_joint_names_.push_back(joint_name);
 		}
 		else
 		{
@@ -565,6 +593,16 @@ void FRCRobotInterface::init()
 		joint_position_interface_.registerHandle(cch);
 	}
 
+	num_dummy_joints_ = dummy_joint_names_.size();
+	for (size_t i = 0; i < num_dummy_joints_; i++)
+	{
+		hardware_interface::JointStateHandle dsh(dummy_joint_names_[i], &dummy_joint_val_, &dummy_joint_val_, &dummy_joint_val_);
+		//joint_state_interface_.registerHandle(dsh);
+
+		hardware_interface::JointHandle dch(dsh, &dummy_joint_val_);
+		joint_command_interface_.registerHandle(dch);
+	}
+
 	// Publish various FRC-specific data using generic joint state for now
 	// For simple things this might be OK, but for more complex state
 	// (e.g. joystick) it probably makes more sense to write a
@@ -573,6 +611,7 @@ void FRCRobotInterface::init()
 	registerInterface(&talon_state_interface_);
 	registerInterface(&joint_state_interface_);
 	registerInterface(&talon_command_interface_);
+	registerInterface(&joint_command_interface_);
 	registerInterface(&joint_position_interface_);
 	registerInterface(&joint_velocity_interface_);
 	registerInterface(&imu_interface_);

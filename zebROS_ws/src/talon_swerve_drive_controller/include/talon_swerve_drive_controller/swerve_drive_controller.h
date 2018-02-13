@@ -38,6 +38,7 @@
 
 #pragma once
 
+#include <std_msgs/Bool.h>
 #include <string>
 #include <controller_interface/controller.h>
 #include <talon_controllers/talon_controller_interface.h>
@@ -45,6 +46,7 @@
 
 #include <geometry_msgs/TwistStamped.h>
 #include <sensor_msgs/JointState.h>
+#include <talon_swerve_drive_controller/CompleteCmd.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/tfMessage.h>
 
@@ -135,8 +137,8 @@ class TalonSwerveDriveController
 
 		/// Hardware handles:
 		//TODO: IMPORTANT, make generalized, and check
-		std::vector<talon_controllers::TalonVelocityCloseLoopControllerInterface> speed_joints_;
-		std::vector<talon_controllers::TalonPositionCloseLoopControllerInterface> steering_joints_;
+		std::vector<talon_controllers::TalonControllerInterface> speed_joints_;
+		std::vector<talon_controllers::TalonControllerInterface> steering_joints_;
 		/// Velocity command related:
 
 		struct Commands
@@ -147,9 +149,33 @@ class TalonSwerveDriveController
 
 			Commands() : lin({0.0, 0.0}), ang(0.0), stamp(0.0) {}
 		};
+		struct cmd_points
+		{	
+			std::vector<Eigen::Vector2d> lin_points_pos;
+			std::vector<double> ang_pos;
+			std::vector<Eigen::Vector2d> lin_points_vel;
+			std::vector<double> ang_vel;
+			hardware_interface::TrajectoryDuration dt;
+		};
+		
+		realtime_tools::RealtimeBuffer<bool> mode_;
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
+		realtime_tools::RealtimeBuffer<cmd_points> command_points_;
+		cmd_points points_struct_;
 		ros::Subscriber sub_command_;
+	
+		ros::Subscriber sub_run_profile_;
+		
+		std::array<std::array<hardware_interface::TrajectoryPoint, 2>, WHEELCOUNT> holder_points_;
+	
+		realtime_tools::RealtimeBuffer<bool> run_;
+		bool first_call;
+
+		hardware_interface::TalonMode motion_profile = hardware_interface::TalonMode::TalonMode_MotionMagic;
+		hardware_interface::TalonMode velocity_mode = hardware_interface::TalonMode::TalonMode_Velocity;
+        	hardware_interface::TalonMode position_mode = hardware_interface::TalonMode::TalonMode_Position;
+
 		/// Publish executed commands
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::TwistStamped> > cmd_vel_pub_;
 
@@ -203,7 +229,8 @@ class TalonSwerveDriveController
 		 * \brief Velocity command callback
 		 * \param command Velocity command message (twist)
 		 */
-		void cmdVelCallback(const geometry_msgs::Twist &command);
+		void cmdCallback(const talon_swerve_drive_controller::CompleteCmd &command);
+		void runCallback(const std_msgs::Bool &run);
 
 		/**
 		 * \brief Get the wheel names from a wheel param

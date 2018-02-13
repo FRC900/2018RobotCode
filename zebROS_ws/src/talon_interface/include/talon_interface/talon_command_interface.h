@@ -312,7 +312,7 @@ class TalonHWCommand
 		{
 			if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
 			{
-				ROS_WARN("Invalid index passed to TalonHWCommand::setPIF()");
+				ROS_WARN("Invalid index passed to TalonHWCommand::setPIDF()");
 				return;
 			}
 			pidf_changed_[index] = true;

@@ -34,5 +34,5 @@ joint_state_controller:
 
 # Create a controller to test rumble
 rumble_controller:
-    type: velocity_controllers/JointVelocityController
+    type: position_controllers/JointPositionController
     joint: joystick_rumble
