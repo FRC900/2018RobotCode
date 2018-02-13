@@ -8,8 +8,13 @@
 #include <joint_trajectory_controller/init_joint_trajectory.h>
 #include <joint_trajectory_controller/joint_trajectory_segment.h>
 #include <trajectory_msgs/JointTrajectory.h>
-
+#include <base_trajectory/profiler.h>
+#include <boost/assign.hpp>
+#include <pluginlib/class_list_macros.h>
 // Define a member function to read spline coefficents
+#include <base_trajectory/GenerateSwerveProfile.h>
+
+
 namespace trajectory_interface
 {
 template<class ScalarType>
@@ -30,17 +35,26 @@ typedef std::vector<TrajectoryPerJoint> Trajectory;
 
 typedef trajectory_msgs::JointTrajectory::ConstPtr JointTrajectoryConstPtr;
 
-ros::Duration period;
-ros::Publisher pub;
+std::shared_ptr<swerve_profile::swerve_profiler> profile_gen;
 
-void callback(const JointTrajectoryConstPtr& msg)
+ros::Duration period;
+
+//ros::Duration period;
+//ros::Publisher pub;
+
+//const JointTrajectoryConstPtr& msg
+//trajectory_msgs::JointTrajectory out_msg;
+
+bool generate(base_trajectory::GenerateSwerveProfile::Request &msg,
+base_trajectory::GenerateSwerveProfile::Request &out_msg
+)
 {
 	ros::Time start = ros::Time::now();
 	// Hold current position if trajectory is empty
 	if (msg->points.empty())
 	{
 		ROS_DEBUG("Empty trajectory command, stopping.");
-		return;
+		return false;
 	}
 
 	// Hard code 3 dimensions for paths to
@@ -81,6 +95,9 @@ void callback(const JointTrajectoryConstPtr& msg)
 	// TODO : make the starting position and 
 	// velocity a variable passed in to the 
 	// path generation request.
+	
+
+	//TODO: WHAT BE THIS BRACKET
 	{
 		typename Segment::State hold_start_state = typename Segment::State(1);
 		typename Segment::State hold_end_state = typename Segment::State(1);
@@ -137,18 +154,18 @@ void callback(const JointTrajectoryConstPtr& msg)
 		if (trajectory.empty())
 		{
 			ROS_WARN("Not publishing empty trajectory");
-			return;
+			return false;
 		}
 	}
 	catch(const std::invalid_argument& ex)
 	{
 		ROS_ERROR_STREAM(ex.what());
-		return;
+		return false;
 	}
 	catch(...)
 	{
 		ROS_ERROR("Unexpected exception caught when initializing trajectory from ROS message data.");
-		return;
+		return false;
 	}
 	for (size_t joint = 0; joint < joint_names.size(); joint++)
 	{
@@ -176,24 +193,16 @@ void callback(const JointTrajectoryConstPtr& msg)
 	// Generate and publish output message
 	// TODO : make this the results of the 
 	// service
-	trajectory_msgs::JointTrajectory out_msg;
 	out_msg.header.stamp = ros::Time::now();
 
 	// Add names of the joints to the message
 	for (auto it = joint_names.cbegin(); it != joint_names.cend(); ++it)
 		out_msg.joint_names.push_back(*it);
-
+	//out_msg.joint_names.push_back("steering_vel");	
 	// Figure out how many points are going to be 
 	// calculated along the  path. 
 	// TODO :should be a simple divide, worry about
 	// boundary conditions
-	size_t point_count = 0;
-	const ros::Duration end_time = msg->points.back().time_from_start;
-	for (ros::Duration now(0); now <= end_time; now += period)
-		point_count += 1;
-
-	// Resize the message to hold that many points
-	out_msg.points.resize(point_count);
 
 	// Loop through and generate 1 point per timestep
 	// each point has a pos/vel/acc data for each of the
@@ -207,7 +216,34 @@ void callback(const JointTrajectoryConstPtr& msg)
 	//x_y spline, which will make this no longer be generalized, 
 	//but that should be fine
 	//We also need to generate points by arc length rather than by "time"
-	point_count = 0;
+	
+
+	//Radius = (x'^2 + y'^2)^(3/2) / (x' * y'' - y' * x'')
+	//If the equations for joints y and x are: a_y t^5 + b_y t^4 + c_y t^3 + d_y t^2 + e_y t + f_y and a_x t^5 + b_x t^4 + c_x t^3 + d_x t^2 + e_x t + f_x
+	
+	//radius = ((5a_xt^4 + 4b_xt^3 + 3c_xt^2 + 2d_xt + e_x)^2 + (5a_yt^4 + 4b_yt^3 + 3c_yt^2 + 2d_yt + e_y)^2)^(3/2)/((5a_xt^4 + 4b_xt^3 + 3c_xt^2 + 2d_xt + e_x)*(20a_yt^3 + 12b_yt^2 + 6c_yt + 2d_y)-(5a_yt^4 + 4b_yt^3 + 3c_yt^2 + 2d_yt + e_y)*(20a_xt^3 + 12b_xt^2 + 6c_xt + 2d_x))
+
+	//path_angle = atan2(-(5a_xt^4 + 4b_xt^3 + 3c_xt^2 + 2d_xt + e_x), 5a_yt^4 + 4b_yt^3 + 3c_yt^2 + 2d_yt + e_y)
+	//TODO Something with below?
+	//ros::Time pub_time = ros::Time::now();
+	//std::cout << "Pub time = " << (pub_time - gen).toSec() << std::endl;
+	
+	
+	
+	//TODO: Harvest splines
+
+	if(profile_gen->generate_profile(x_splines, y_splines, orient_splines, initial_v, final_v, out_msg, end_points))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+	//TODO parametrize by arc length in a better way:
+	
+	
+	/*
 	for (ros::Duration now(0); now <= end_time; now += period, point_count += 1)
 	{
 		out_msg.points[point_count].time_from_start = now;
@@ -226,25 +262,24 @@ void callback(const JointTrajectoryConstPtr& msg)
 			out_msg.points[point_count].accelerations.push_back(desired_state.acceleration[0]);
 		}
 	}
-	pub.publish(out_msg);
+	*/
 
-	ros::Time pub_time = ros::Time::now();
-	std::cout << "Pub time = " << (pub_time - gen).toSec() << std::endl;
+	
+
 }
 
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "base_trajectory");
 	ros::NodeHandle nh;
-	double loop_hz;
 
-	nh.param<double>("loop_hz", loop_hz, 50.);
 
-	period = ros::Duration(1./loop_hz);
 
-	ros::Subscriber trajectory_command_sub_ = nh.subscribe("command", 1, callback);
+	//TODO: make below read from config file or something
 
-	pub = nh.advertise<trajectory_msgs::JointTrajectory>("/frcrobot/swerve_drive_controller/trajectory_points", 10);
+	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(1, 9, 3, 6, 7, 1/loop_hz, .001);
+
+	ros::ServiceServer service = nh.subscribe("command", generate);
 
 	ros::spin();
 }
