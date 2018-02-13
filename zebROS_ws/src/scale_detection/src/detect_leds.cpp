@@ -90,7 +90,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "goal_detect");
+	ros::init(argc, argv, "scale_detect");
 
 	ros::NodeHandle nh("~");
 	int sub_rate = 5;
