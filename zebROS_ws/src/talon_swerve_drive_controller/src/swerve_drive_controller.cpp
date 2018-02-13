@@ -663,6 +663,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			speed_joints_[i].setMode(motion_profile);
 			steering_joints_[i].setMode(motion_profile);
 		}
+		// TODO : first_call could just be a static local
+		// var - using a RT queue for this is way overkill
 		if(*(first_call_.readFromRT()))
 		{
 			first_call_.writeFromNonRT(false);
@@ -849,7 +851,7 @@ void TalonSwerveDriveController::cmdCallback(const talon_swerve_drive_controller
 			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_100ms;
 			}
-			for(size_t i; i < command.joint_trajectory.points.size(); i++)
+			for(size_t i = 0; i < command.joint_trajectory.points.size(); i++)
 			{
 				points_struct_.lin_points_pos.push_back({command.joint_trajectory.points[i].positions[0], command.joint_trajectory.points[i].positions[1]});
 				points_struct_.lin_points_vel.push_back({command.joint_trajectory.points[i].velocities[0], command.joint_trajectory.points[i].velocities[1]});
