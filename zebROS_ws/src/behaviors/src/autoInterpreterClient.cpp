@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "Auto_state_subscriber");
     ros::NodeHandle n;
     
-    message_filters::Subscriber<ros_control_boilerplate::AutoMode> auto_mode_sub(n, "Autonomous_Modes", 5);
+    message_filters::Subscriber<ros_control_boilerplate::AutoMode> auto_mode_sub(n, "Autonomous_Mode", 5);
     message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> match_data_sub(n, "match_data", 5);
     typedef message_filters::sync_policies::ApproximateTime<ros_control_boilerplate::AutoMode, ros_control_boilerplate::MatchSpecificData> data_sync;
     message_filters::Synchronizer<data_sync> sync(data_sync(5), auto_mode_sub, match_data_sub);
