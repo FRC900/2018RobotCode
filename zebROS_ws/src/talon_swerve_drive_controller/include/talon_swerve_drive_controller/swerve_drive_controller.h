@@ -65,6 +65,9 @@
 
 namespace talon_swerve_drive_controller
 {
+const hardware_interface::TalonMode motion_profile = hardware_interface::TalonMode::TalonMode_MotionMagic;
+const hardware_interface::TalonMode velocity_mode = hardware_interface::TalonMode::TalonMode_Velocity;
+const hardware_interface::TalonMode position_mode = hardware_interface::TalonMode::TalonMode_Position;
 
 /**
  * This class makes some assumptions on the model of the robot:
@@ -121,7 +124,7 @@ class TalonSwerveDriveController
 		void compOdometry(const ros::Time& time, const double inv_delta_t);
 		Eigen::MatrixX2d new_wheel_pos_;	
 		std::array<Eigen::Vector2d, WHEELCOUNT> old_wheel_pos_; //	
-		std::array<double, WHEELCOUNT> last_wheel_rot;	//
+		std::array<double, WHEELCOUNT> last_wheel_rot_;	//
 
 		Eigen::Vector2d neg_wheel_centroid_;
 		bool comp_odom_;
@@ -133,7 +136,7 @@ class TalonSwerveDriveController
 		ros::Time last_state_publish_time_;
 		bool open_loop_;
 
-		std::shared_ptr<swerve> swerveC;
+		std::shared_ptr<swerve> swerveC_;
 
 		/// Hardware handles:
 		//TODO: IMPORTANT, make generalized, and check
@@ -171,11 +174,6 @@ class TalonSwerveDriveController
 		std::array<std::array<hardware_interface::TrajectoryPoint, 2>, WHEELCOUNT> holder_points_;
 	
 		realtime_tools::RealtimeBuffer<bool> run_;
-		bool first_call;
-
-		hardware_interface::TalonMode motion_profile = hardware_interface::TalonMode::TalonMode_MotionMagic;
-		hardware_interface::TalonMode velocity_mode = hardware_interface::TalonMode::TalonMode_Velocity;
-        	hardware_interface::TalonMode position_mode = hardware_interface::TalonMode::TalonMode_Position;
 
 		/// Publish executed commands
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::TwistStamped> > cmd_vel_pub_;
@@ -294,9 +292,9 @@ class TalonSwerveDriveController
 		static const double DEF_INIT_YAW;
 		static const double DEF_SD;
 
-		std::array<Eigen::Vector2d, WHEELCOUNT> wheel_coords;
+		std::array<Eigen::Vector2d, WHEELCOUNT> wheel_coords_;
 		
-		static const Eigen::Vector2d X_DIR;
+//		static const Eigen::Vector2d X_DIR;
 		
 		bool pub_odom_to_base_;       // Publish the odometry to base frame transform
 		ros::Duration odom_pub_period_;    // Odometry publishing period
@@ -306,8 +304,8 @@ class TalonSwerveDriveController
 		Eigen::Matrix2Xd wheel_pos_;
 
 		realtime_tools::RealtimePublisher<nav_msgs::Odometry> odom_pub_;
-          	realtime_tools::RealtimePublisher<tf::tfMessage> odom_tf_pub_;
-          	ros::Time last_odom_pub_time_, last_odom_tf_pub_time_;
+		realtime_tools::RealtimePublisher<tf::tfMessage> odom_tf_pub_;
+		ros::Time last_odom_pub_time_, last_odom_tf_pub_time_;
 };
 
 PLUGINLIB_EXPORT_CLASS(talon_swerve_drive_controller::TalonSwerveDriveController, controller_interface::ControllerBase);
