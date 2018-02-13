@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<launch>
+
+
+  <arg name="resolution" default="2" />
+  <arg name="frame_rate" default="60" />
+  <arg name="quality" default="3" />
+  <arg name="brightness" default="2" />
+  <arg name="contrast" default="5" />
+  <arg name="hue" default="6" />
+  <arg name="saturation" default="3" />
+  <arg name="gain" default="0" />
+  <arg name="exposure" default="45" />
+  <arg name="whitebalance" default="-1" />
+  <arg name="name" default="zed_goal" />
+
+  <arg name="record" default="False" />
+  <arg name="down_sample" default="False" />
+  <arg name="sub_rate" default="10" />
+  <arg name="pub_rate" default="1" />
+
+  <group ns="$(arg name)">
+    <include file="$(find zed_wrapper)/launch/zed_camera.launch">
+      <arg name="zed_name" value="$(arg name)" />
+      <arg name="resolution" value="$(arg resolution)" />
+      <arg name="frame_rate" value="$(arg frame_rate)" />
+      <arg name="quality" value="$(arg quality)" />
+      <arg name="brightness" value="$(arg brightness)" />
+      <arg name="contrast" value="$(arg contrast)" />
+      <arg name="hue" value="$(arg hue)" />
+      <arg name="saturation" value="$(arg saturation)" />
+      <arg name="gain" value="$(arg gain)" />
+      <arg name="exposure" value="$(arg exposure)" />
+      <arg name="whitebalance" value="$(arg whitebalance)" />
+    </include>
+</group>
+
+  <node name="cube_detection_node" pkg="cube_detection" type="cube_detection_node">
+  	<param name="down_sample" value="$(arg down_sample)" />
+  	<param name="sub_rate" value="$(arg sub_rate)" />
+  	<param name="pub_rate" value="$(arg pub_rate)" />
+  </node>
+</launch>

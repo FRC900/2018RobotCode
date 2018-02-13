@@ -53,6 +53,10 @@ joint_state_controller:
    type:         joint_state_controller/JointStateController
    publish_rate: 100
 
+pdp_state_controller:
+   type:         pdp_state_controller/PDPStateController
+   publish_rate: 50
+
 talon_linear_controller:
     type: talon_controllers/TalonLinearMotionMagicCloseLoopController
     joint: talon_linear

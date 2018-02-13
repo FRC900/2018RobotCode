@@ -49,6 +49,7 @@
 #include <hardware_interface/imu_sensor_interface.h>
 #include <hardware_interface/robot_hw.h>
 #include <talon_interface/talon_command_interface.h>
+#include "pdp_state_controller/pdp_state_interface.h"
 
 namespace ros_control_boilerplate
 {
@@ -120,6 +121,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		// Hardware interfaces
 		hardware_interface::JointStateInterface joint_state_interface_;
 		hardware_interface::TalonStateInterface talon_state_interface_;
+		hardware_interface::PDPStateInterface 	pdp_state_interface_;
 
 		hardware_interface::JointCommandInterface  joint_command_interface_;
 		hardware_interface::PositionJointInterface joint_position_interface_;
@@ -204,6 +206,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> rumble_state_; //No actual data
 		std::vector<double> navX_state_;	
 		std::vector<double> compressor_state_;
+		hardware_interface::PDPHWState pdp_state_;
 	
 		// Each entry in the vector is an array. That array holds
 		// the data returned from one particular imu

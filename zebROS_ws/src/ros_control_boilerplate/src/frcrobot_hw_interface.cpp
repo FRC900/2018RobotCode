@@ -79,12 +79,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	run_hal_thread_ = true;
 	Joystick joystick(0);
-	PowerDistributionPanel pdp(0); //sets module to 0?
-	pdp.ClearStickyFaults();
-	pdp.ResetTotalEnergy();
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::PDPData> realtime_pub_pdp(nh_, "pdp_data", 4);
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -192,24 +188,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.unlockAndPublish();
 		}
 
-		//read data from the PDP
-		if(realtime_pub_pdp.trylock())
-		{
-			realtime_pub_pdp.msg_.header.stamp = ros::Time::now();
-
-			realtime_pub_pdp.msg_.voltage = pdp.GetVoltage();
-			realtime_pub_pdp.msg_.temperature = pdp.GetTemperature();
-			realtime_pub_pdp.msg_.totalCurrent = pdp.GetTotalCurrent();
-			realtime_pub_pdp.msg_.totalPower = pdp.GetTotalPower();
-			realtime_pub_pdp.msg_.totalEnergy = pdp.GetTotalEnergy();
-
-			for(int channel = 0; channel <= 15; channel++)
-			{
-				realtime_pub_pdp.msg_.current[channel] = pdp.GetCurrent(channel);
-			}
-
-			realtime_pub_pdp.unlockAndPublish();
-		}
 	}
 }
 
@@ -240,6 +218,8 @@ void FRCRobotHWInterface::init(void)
 		// This probably should be a fatal error
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "\tTalon SRX firmware version " << can_talons_[i]->GetFirmwareVersion());
+		// Clear sticky faults
+		// safeTalonCall(can_talons_[1]->ClearStickyFaults(timeoutMs), "Clear sticky faults.");
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -330,6 +310,10 @@ void FRCRobotHWInterface::init(void)
 
 		compressors_.push_back(std::make_shared<frc::Compressor>(compressor_pcm_ids_[i]));
 	}
+	
+	pdp_joint_.ClearStickyFaults();
+	pdp_joint_.ResetTotalEnergy();
+
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
@@ -532,7 +516,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//navXs_[i]->GetDisplacementZ();
 		//navXs_[i]->GetAngle(); //continous
 		//TODO: add setter functions
-		//
+		
 		navX_state_[i] = navX_command_[i];
 	}
 	for (size_t i = 0; i < num_compressors_; i++)
@@ -540,6 +524,21 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		compressor_state_[i] = compressors_[i]->GetCompressorCurrent();
 	}
 	//navX read here
+	
+	//read info from the PDP hardware
+	auto &ps = pdp_state_;
+	ps.setVoltage(pdp_joint_.GetVoltage());
+	ps.setTemperature(pdp_joint_.GetTemperature());
+	ps.setTotalCurrent(pdp_joint_.GetTotalCurrent());
+	ps.setTotalPower(pdp_joint_.GetTotalPower());
+	ps.setTotalEnergy(pdp_joint_.GetTotalEnergy());
+	for(int channel = 0; channel <= 15; channel++)
+	{
+		ps.setCurrent(pdp_joint_.GetCurrent(channel), channel);
+	}
+	
+	//read stuff from the actual PDP and put it in the object. then, the controller will put that stuff in a msg.
+	
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
@@ -601,31 +600,6 @@ double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
 		return 1.;
 	}
 }
-
-/*
-double FRCRobotHWInterface::getRadiansPerSecConversionFactor(hardware_interface::FeedbackDevice encoder_feedback, hardware_interface::TalonMode talon_mode, int joint_id)
-{
-	switch (encoder_feedback)
-	{
-		case hardware_interface::FeedbackDevice_QuadEncoder:
-		case hardware_interface::FeedbackDevice_PulseWidthEncodedPosition:
-			return 2 * M_PI / 4096 / .1; //4096 = 4* encoder cycles per revolution
-		case hardware_interface::FeedbackDevice_Analog:
-			return 2 * M_PI / 1024 / .1;
-		case hardware_interface::FeedbackDevice_Tachometer:
-		case hardware_interface::FeedbackDevice_SensorSum:
-		case hardware_interface::FeedbackDevice_SensorDifference:
-		case hardware_interface::FeedbackDevice_RemoteSensor0:
-		case hardware_interface::FeedbackDevice_RemoteSensor1:
-		case hardware_interface::FeedbackDevice_SoftwareEmulatedSensor:
-			ROS_WARN_STREAM("Unable to convert units.");
-			return 1.;
-		default:
-			ROS_WARN_STREAM("Invalid encoder feedback device. Unable to convert units.");
-			return 1.;
-	}
-}
-*/
 
 bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, const std::string &talon_method_name)
 {

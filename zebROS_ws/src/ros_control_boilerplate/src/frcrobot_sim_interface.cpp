@@ -56,11 +56,9 @@ FRCRobotSimInterface::FRCRobotSimInterface(ros::NodeHandle &nh,
 	// set for that motor controller in config files.
 	// TODO : assert can_talon_srx_names_.size() == can_talon_srx_can_ids_.size()
 	for (size_t i = 0; i < can_talon_srx_names_.size(); i++)
-	{
 		ROS_INFO_STREAM_NAMED("frcrobot_sim_interface",
 							  "Loading joint " << i << "=" << can_talon_srx_names_[i] <<
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
-	}
 
 	// TODO : assert nidec_brushles_names_.size() == nidec_brushles_xxx_channels_.size()
 	for (size_t i = 0; i < nidec_brushless_names_.size(); i++)
@@ -309,13 +307,10 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			// Assume instant velocity
 			double position;
 
-			const bool position_changed = tc.commandChanged(position);
-			if (invert)
-				position = -position;
-			if (position_changed)
+			if (tc.commandChanged(position))
 				ts.setSetpoint(position);
 
-			ts.setPosition((sensor_phase ? -1 : 1 ) * position);
+			ts.setPosition(position);
 			ts.setSpeed(0);
 		}
 		else if (ts.getTalonMode() == hardware_interface::TalonMode_Velocity)
@@ -323,14 +318,11 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			// Assume instant acceleration for now
 			double speed;
 
-			const bool speed_changed = tc.commandChanged(speed);
-			if (invert)
-				speed = -speed;
-			if (speed_changed)
+			if (tc.commandChanged(speed))
 				ts.setSetpoint(speed);
 
-			ts.setPosition(ts.getPosition() + (sensor_phase ? -1 : 1 ) * speed * elapsed_time.toSec());
-			ts.setSpeed((sensor_phase ? -1 : 1 ) * speed);
+			ts.setPosition(ts.getPosition() + speed * elapsed_time.toSec());
+			ts.setSpeed(speed);
 		}
 		if (tc.clearStickyFaultsChanged())
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");

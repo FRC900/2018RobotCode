@@ -43,7 +43,7 @@ void swerve::setCenterOfRotation(int id, const Vector2d &centerOfRotation)
 
 // TODO : split into motorOutputsDrive and motorOutputsPark
 // Make positionsNew and all Vector2ds const & arguments
-array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool forceRead, array<bool, WHEELCOUNT> &reverses, bool park, array<double, WHEELCOUNT> positionsNew, int rotationCenterID)
+array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool forceRead, array<bool, WHEELCOUNT> &reverses, bool park, array<double, WHEELCOUNT> positionsNew, bool norm, int rotationCenterID)
 {
 	if (rotationCenterID >= multiplierSets_.size())
 	{
@@ -56,7 +56,7 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 	{
 		velocityVector /= drive_.maxSpeed;
 		rotation /= multiplierSets_[rotationCenterID].maxRotRate_;
-		speedsAndAngles = swerveMath_.wheelSpeedsAngles(multiplierSets_[rotationCenterID].multipliers_, velocityVector, rotation, angle);
+		speedsAndAngles = swerveMath_.wheelSpeedsAngles(multiplierSets_[rotationCenterID].multipliers_, velocityVector, rotation, angle, norm);
 		for (int i = 0; i < WHEELCOUNT; i++)
 		{
 			double nearestangle;

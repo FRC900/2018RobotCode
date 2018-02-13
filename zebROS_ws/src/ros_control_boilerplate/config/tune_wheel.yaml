@@ -12,7 +12,7 @@ hardware_interface:
    joints:
        #- {name: talon_1, type: can_talon_srx, can_id: 3}
        #- {name: talon_2, type: can_talon_srx, can_id: 9}
-       - {name: talon_steer, type: can_talon_srx, can_id: 4}  
+       - {name: talon_steer, type: can_talon_srx, can_id: 12}  
        #- {name: talon_3, type: can_talon_srx, can_id: 3}
        #- {name: talon_4, type: can_talon_srx, can_id: 4}
        #- {name: talon_5, type: can_talon_srx, can_id: 5}
@@ -44,7 +44,7 @@ hardware_interface:
 # to figure out what to map e.g. effort to in the Talon world
 talon_state_controller:
    type:         talon_state_controller/TalonStateController
-   publish_rate: 100
+   publish_rate: 50
 
 # Similar to above, but this one prints non-Talon state
 # (stuff that fits into the more standard ROS position/
@@ -58,14 +58,14 @@ talon_steer_controller:
     joint: talon_steer
     feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
-        - {p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
-        - {p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+        - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+        - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
     invert_output: False
-    sensor_phase: True
+    sensor_phase: False
     peak_output_forward: 1.0
     peak_output_reverse: -1.0
     nominal_output_forward: 0.0
     nominal_output_reverse: 0.0
-    motion_cruise_velocity: 24
-    motion_acceleration: 165
+    motion_cruise_velocity: 32
+    motion_acceleration: 150
     voltage_compensation_enable: true

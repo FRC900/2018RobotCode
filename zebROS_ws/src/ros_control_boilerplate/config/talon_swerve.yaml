@@ -18,9 +18,6 @@ hardware_interface:
        - {name: br_angle, type: can_talon_srx, can_id: 14}
        - {name: bl_drive, type: can_talon_srx, can_id: 23}
        - {name: bl_angle, type: can_talon_srx, can_id: 13}
-       - {name: x_linear_joint, type: dummy}
-       - {name: y_linear_joint, type: dummy}
-       - {name: z_rotation_joint, type: dummy}
    # Add more data for each joint here - intitial mode, encoder type
    #    PIDF settings, limit switch settings, etc
 
@@ -50,6 +47,10 @@ talon_state_controller:
 # speed/effort paradigm)
 joint_state_controller:
    type:         joint_state_controller/JointStateController
+   publish_rate: 50
+
+pdp_state_controller:
+   type:         pdp_state_controller/PDPStateController
    publish_rate: 50
 
 swerve_drive_controller:
@@ -148,19 +149,3 @@ swerve_drive_controller:
         invert_output: False
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
-
-base_trajectory_controller:
-    type: base_trajectory_controllers/JointTrajectoryController 
-    joints:
-      - x_linear_joint
-      - y_linear_joint
-      - z_rotation_joint
-
-    constraints:
-      goal_time: 0.6
-      stopped_velocity_tolerance: 0.02
-      x_linear_joint: {trajectory: 0.05, goal: 0.02}
-      y_linear_joint: {trajectory: 0.05, goal: 0.02}
-      z_rotation_joint: {trajectory: 0.05, goal: 0.02}
-    stop_trajectory_duration: 0.5
-    state_publish_rate:  20

@@ -159,6 +159,7 @@ class TalonSwerveDriveController
 		};
 		
 		realtime_tools::RealtimeBuffer<bool> mode_;
+		realtime_tools::RealtimeBuffer<bool> first_call_;
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		realtime_tools::RealtimeBuffer<cmd_points> command_points_;

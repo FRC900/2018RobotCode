@@ -141,7 +141,7 @@ link_directories( ${PCL_LIBRARY_DIRS} )
 add_definitions(${PCL_DEFINITIONS})
 
 ## Declare a C++ library
- add_library(mmwave
+add_library(mmwave STATIC
    src/mmWaveDataHdl.cpp
    src/mmWaveCommSrv.cpp
    src/DataHandlerClass.cpp

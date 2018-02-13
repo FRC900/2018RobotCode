@@ -44,8 +44,8 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(Eigen::Ve
 //Angle is the angle of the gyro for field centric driving
 //In radians, 0 is horizontal, increases counterclockwise
 //For non field centric set angle to pi/2
-// TOOD : pass array as const & argument
-array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eigen::Vector2d, WHEELCOUNT> wheelMultipliersXY, Eigen::Vector2d velocityVector, double rotation, double angle) const
+// TODO : pass array as const & argument
+array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eigen::Vector2d, WHEELCOUNT> wheelMultipliersXY, Eigen::Vector2d velocityVector, double rotation, double angle, bool norm) const
 {
 	/*if (rotation == 0 && velocityVector[0] == 0 && velocityVector[1] == 0)
 	{
@@ -73,7 +73,10 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eige
 		angles[i] = atan2(x, y);
 		speeds[i] = sqrt(x * x + y * y); // TODO : Use hypot func?
 	}
-	speeds = normalize(speeds);
+	if(norm)
+	{
+		speeds = normalize(speeds);
+	}
 	//Speed and angles are put into one array here because speeds needed to be normalized
 	array<Eigen::Vector2d, WHEELCOUNT> speedsAngles;
 	for (int i = 0; i < WHEELCOUNT; i++)

@@ -645,8 +645,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		for (int i = 0; i < WHEELCOUNT; i++)
 			curPos[i] = steering_joints_[i].getPosition();
 		std::array<bool, WHEELCOUNT> holder;
-		std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC->motorOutputs(curr_cmd.lin, curr_cmd.ang, M_PI/2, false, holder, false, curPos);
-
+		std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC->motorOutputs(curr_cmd.lin, curr_cmd.ang, M_PI/2, false, holder, false, curPos, true);
+		
 		// Set wheels velocities:
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
@@ -656,15 +656,18 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		}
 	}
 	else
-	{
+	{	
+		//TODO: optimize code?
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
 			speed_joints_[i].setMode(motion_profile);
 			steering_joints_[i].setMode(motion_profile);
 		}
-		if(first_call)
+		// TODO : first_call could just be a static local
+		// var - using a RT queue for this is way overkill
+		if(*(first_call_.readFromRT()))
 		{
-			first_call = false;
+			first_call_.writeFromNonRT(false);
 			cmd_points curr_cmd = *(command_points_.readFromRT());
 
 			array<double, WHEELCOUNT> curPos;
@@ -672,10 +675,10 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				curPos[i] = steering_joints_[i].getPosition();
 
 			std::array<bool, WHEELCOUNT> holder;
-
-			std::array<Vector2d, WHEELCOUNT> angles_positions  = swerveC->motorOutputs(curr_cmd.lin_points_pos[0], curr_cmd.ang_pos[0], M_PI/2, false, holder, false, curPos);
+			
+			std::array<Vector2d, WHEELCOUNT> angles_positions  = swerveC->motorOutputs(curr_cmd.lin_points_pos[0], curr_cmd.ang_pos[0], M_PI/2 + curr_cmd.ang_pos[0], false, holder, false, curPos, false);
 				//TODO: angles on the velocity array below are superfluous, could remove
-			std::array<Vector2d, WHEELCOUNT> angles_velocities  = swerveC->motorOutputs(curr_cmd.lin_points_vel[0], curr_cmd.ang_vel[0], M_PI/2, false, holder, false, curPos);
+			std::array<Vector2d, WHEELCOUNT> angles_velocities  = swerveC->motorOutputs(curr_cmd.lin_points_vel[0], curr_cmd.ang_vel[0], M_PI/2 + curr_cmd.ang_pos[0], false, holder, false, curPos, false);
 			for (size_t i = 0; i < WHEELCOUNT; i++)
 				curPos[i] = angles_positions[i][1];
 			//Do first point and initialize stuff
@@ -707,9 +710,9 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			const int point_count = curr_cmd.lin_points_pos.size();
 			for(size_t i = 0; i < point_count - 2; i++)
 			{
-				angles_positions  = swerveC->motorOutputs(curr_cmd.lin_points_pos[i+1] - curr_cmd.lin_points_pos[i], curr_cmd.ang_pos[i+1] - curr_cmd.ang_pos[i], M_PI/2, false, holder, false, curPos);
+				angles_positions  = swerveC->motorOutputs(curr_cmd.lin_points_pos[i+1] - curr_cmd.lin_points_pos[i], curr_cmd.ang_pos[i+1] - curr_cmd.ang_pos[i], M_PI/2 + curr_cmd.ang_pos[i+1], false, holder, false, curPos, false);
 				//TODO: angles on the velocity array below are superfluous, could remove
-				angles_velocities  = swerveC->motorOutputs(curr_cmd.lin_points_vel[i], curr_cmd.ang_vel[i], M_PI/2, false, holder, false, curPos);
+				angles_velocities  = swerveC->motorOutputs(curr_cmd.lin_points_vel[i], curr_cmd.ang_vel[i], M_PI/2 + curr_cmd.ang_pos[i+1], false, holder, false, curPos, false);
 				for (size_t k = 0; k < WHEELCOUNT; k++)
 					curPos[k] = angles_positions[k][1];
 
@@ -724,9 +727,9 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
                         	}
 			}
 			//Final Setter
-			angles_positions  = swerveC->motorOutputs(curr_cmd.lin_points_pos[point_count-1] - curr_cmd.lin_points_pos[point_count-2], curr_cmd.ang_pos[point_count-1] - curr_cmd.ang_pos[point_count-2], M_PI/2, false, holder, false, curPos);
+			angles_positions  = swerveC->motorOutputs(curr_cmd.lin_points_pos[point_count-1] - curr_cmd.lin_points_pos[point_count-2], curr_cmd.ang_pos[point_count-1] - curr_cmd.ang_pos[point_count-2], M_PI/2+ curr_cmd.ang_pos[point_count-1], false, holder, false, curPos, false);
 			//TODO: angles on the velocity array below are superfluous, could remove
-			angles_velocities  = swerveC->motorOutputs(curr_cmd.lin_points_vel[point_count - 1], curr_cmd.ang_vel[point_count - 1], M_PI/2, false, holder, false, curPos);
+			angles_velocities  = swerveC->motorOutputs(curr_cmd.lin_points_vel[point_count - 1], curr_cmd.ang_vel[point_count - 1], M_PI/2 + curr_cmd.ang_pos[point_count-1], false, holder, false, curPos, false);
 			for(size_t k = 0; k < WHEELCOUNT; k++)
 			{
 				holder_points_[k][0].position += angles_positions[k][0];
@@ -778,7 +781,7 @@ void TalonSwerveDriveController::brake()
 	{
 		curPos[i] = steering_joints_[i].getPosition();
 	}
-	std::array<Vector2d, WHEELCOUNT> park = swerveC->motorOutputs({0, 0}, 0, 0, false, hold, true, curPos);
+	std::array<Vector2d, WHEELCOUNT> park = swerveC->motorOutputs({0, 0}, 0, 0, false, hold, true, curPos, false);
 	for (size_t i = 0; i < wheel_joints_size_; ++i)
 	{
 		speed_joints_[i].setCommand(0.0);
@@ -848,7 +851,7 @@ void TalonSwerveDriveController::cmdCallback(const talon_swerve_drive_controller
 			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_100ms;
 			}
-			for(size_t i; i < command.joint_trajectory.points.size(); i++)
+			for(size_t i = 0; i < command.joint_trajectory.points.size(); i++)
 			{
 				points_struct_.lin_points_pos.push_back({command.joint_trajectory.points[i].positions[0], command.joint_trajectory.points[i].positions[1]});
 				points_struct_.lin_points_vel.push_back({command.joint_trajectory.points[i].velocities[0], command.joint_trajectory.points[i].velocities[1]});

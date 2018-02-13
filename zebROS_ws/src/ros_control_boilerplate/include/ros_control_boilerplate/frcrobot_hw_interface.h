@@ -53,6 +53,7 @@
 #include <DoubleSolenoid.h>
 #include <AHRS.h>
 #include <Compressor.h>
+#include <PowerDistributionPanel.h>
 
 namespace frcrobot_control
 {
@@ -136,6 +137,8 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;
 		bool        run_hal_thread_;
+
+		PowerDistributionPanel pdp_joint_;
 
 		ROSIterativeRobot robot_;
 };  // class
