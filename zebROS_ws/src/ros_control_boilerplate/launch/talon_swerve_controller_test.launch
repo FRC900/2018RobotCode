@@ -25,16 +25,18 @@
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller swerve_drive_controller base_trajectory_controller pdp_state_controller"/>
+			output="screen" args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller"/>
 
         <!-- launch joystick subscriber-->
-		<!--node name="joystickSubscriber" pkg="teleop_joystick_control" type="joystickSubscriber"
+		<node name="joystickSubscriber" pkg="teleop_joystick_control" type="joystickSubscriber"
 			output="screen" >
 		</node>
 		<node name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands"
 			output="screen" >
 			<remap from="/frcrobot/cmd_vel" to="/frcrobot/swerve_drive_controller/cmd_vel"/> 
-		</node-->
+		</node>
+        <node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="screen" >
+        </node>
 
 		<!-- Convert joint states to /tf tranforms -->
 		<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>

@@ -46,12 +46,13 @@
 #include "HAL/HAL.h"
 #include "Joystick.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
+#include "ros_control_boilerplate/AutoMode.h"
+#include "math.h"
 #include <cmath>
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/String.h>
-#include <std_msgs/Int32.h>
 #include <ctre/phoenix/MotorControl/SensorCollection.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include "ros_control_boilerplate/PDPData.h"
@@ -85,7 +86,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-	realtime_tools::RealtimePublisher<std_msgs::String> realtime_pub_nt(nh_, "autonomous_mode", 4);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
 
 	while (run_hal_thread_)
 	{
@@ -103,9 +104,13 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 				// TODO eventually add header to nt message so we can get timestamps
 				// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
-				realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
+				//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
+			    realtime_pub_nt.msg_.mode = std::stoi(driveTable->GetString("Auto Selector", "0"));
 			}
 
+			// TODO eventually add header to nt message so we can get timestamps
+			// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
+            realtime_pub_nt.msg_.header.stamp = ros::Time::now();
 			realtime_pub_nt.unlockAndPublish();
 		}
 
@@ -175,6 +180,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.driverStationLocation = DriverStation::GetInstance().GetLocation();
 			realtime_pub_match_data.msg_.matchNumber = DriverStation::GetInstance().GetMatchNumber();
 			realtime_pub_match_data.msg_.matchType = DriverStation::GetInstance().GetMatchType(); //returns int that corresponds to a DriverStation matchType enum
+
+			realtime_pub_match_data.msg_.isEnabled = DriverStation::GetInstance().IsEnabled();
+			realtime_pub_match_data.msg_.isDisabled = DriverStation::GetInstance().IsDisabled();
+			realtime_pub_match_data.msg_.isAutonomous = DriverStation::GetInstance().IsAutonomous();
 
 			realtime_pub_match_data.unlockAndPublish();
 		}

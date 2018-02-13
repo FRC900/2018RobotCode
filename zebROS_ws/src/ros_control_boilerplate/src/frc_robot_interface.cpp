@@ -467,7 +467,7 @@ void FRCRobotInterface::init()
 		// Do the same for a command interface for
 		// the digital output
 		hardware_interface::JointHandle doh(dosh, &digital_output_command_[i]);
-		joint_velocity_interface_.registerHandle(doh);
+		joint_position_interface_.registerHandle(doh);
 	}
 
 	num_pwm_ = pwm_names_.size();

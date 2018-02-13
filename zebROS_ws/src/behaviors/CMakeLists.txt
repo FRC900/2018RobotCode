@@ -1,28 +1,23 @@
-cmake_minimum_required(VERSION 2.8.3)
-project(ti_mmwave_rospkg)
+cmake_minimum_required(VERSION 3.5.1)
+project(behaviors)
 
-include ("../cmake_modules/CMakeOpt.cmake")
-
-if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+## Compile as C++11, supported in ROS Kinetic and newer
+# add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  nodelet
+  actionlib
+  actionlib_msgs
+  nav_msgs
   roscpp
-  serial
+  rospy
   std_msgs
-  sensor_msgs
   message_generation
-  pluginlib
+  message_filters
+  ros_control_boilerplate
 )
-
-find_package(Boost REQUIRED )
-
-find_package(Threads REQUIRED)
-
-find_package(PCL 1.7.2 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -60,14 +55,16 @@ find_package(PCL 1.7.2 REQUIRED)
 ## Generate messages in the 'msg' folder
 # add_message_files(
 #   FILES
-#   RadarScan.msg
-#)
+#   Message1.msg
+#   Message2.msg
+# )
 
 ## Generate services in the 'srv' folder
- add_service_files(
-   FILES
-   mmWaveCLI.srv
- )
+# add_service_files(
+#   FILES
+#   Service1.srv
+#   Service2.srv
+# )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -77,11 +74,10 @@ find_package(PCL 1.7.2 REQUIRED)
 # )
 
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   std_msgs
-   sensor_msgs
- )
+# generate_messages(
+#   DEPENDENCIES
+#   nav_msgs#   std_msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -108,54 +104,66 @@ find_package(PCL 1.7.2 REQUIRED)
 ###################################
 ## The catkin_package macro generates cmake config files for your package
 ## Declare things to be passed to dependent projects
-## INCLUDE_DIRS: uncomment this if you package contains header files
+## INCLUDE_DIRS: uncomment this if your package contains header files
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
+
+# ACTIONLIB STUFF
+
+#find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
+add_action_files(FILES CubeIntake.action)
+generate_messages(DEPENDENCIES actionlib_msgs std_msgs)
+
 catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES mmwave
-  #CATKIN_DEPENDS nodelet roscpp serial std_msgs
-  DEPENDS system_lib
+   INCLUDE_DIRS include
+   LIBRARIES behaviors
+   CATKIN_DEPENDS actionlib nav_msgs roscpp rospy std_msgs
+   DEPENDS system_lib
+)
+include_directories(include ${catkin_INCLUDE_DIRS})
+add_executable(CubeActionServer src/CubeActionServer.cpp)
+target_link_libraries(CubeActionServer ${catkin_LIBRARIES})
+add_dependencies(
+    CubeActionServer
+    ${behaviors_EXPORTED_TARGETS}
 )
 
+add_executable(CubeActionClient src/CubeActionClient.cpp)
+target_link_libraries(
+    CubeActionClient
+    ${catkin_LIBRARIES}
+)
+add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
+target_link_libraries(
+    autoInterpreterClient
+    ${catkin_LIBRARIES}
+)
 ###########
 ## Build ##
 ###########
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-# include_directories(include)
-include_directories( include
+include_directories(
+# include
   ${catkin_INCLUDE_DIRS}
-  ${ti_mmwave_rospkg_INCLUDE_DIRS}
-  ${PCL_INCLUDE_DIRS}
-  ${pthread_INCLUDE_DIRS}
-  ${rt_INCLUDE_DIRS}
 )
 
-link_directories( ${Boost_LIBRARIES_DIRS} )
-
-link_directories( ${PCL_LIBRARY_DIRS} )
-
-add_definitions(${PCL_DEFINITIONS})
-
 ## Declare a C++ library
-add_library(mmwave STATIC
-   src/mmWaveDataHdl.cpp
-   src/mmWaveCommSrv.cpp
-   src/DataHandlerClass.cpp
- )
+# add_library(${PROJECT_NAME}
+#   src/${PROJECT_NAME}/behaviors.cpp
+# )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-add_dependencies(mmwave ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/ti_mmwave_rospkg_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/behaviors_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -187,11 +195,11 @@ add_dependencies(mmwave ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TA
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+ install(TARGETS autoInterpreterClient 
+   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/
@@ -206,24 +214,13 @@ add_dependencies(mmwave ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TA
 #   # myfile2
 #   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 # )
-set (CMAKE_CXX_STANDARD 11)
 
-add_executable(${PROJECT_NAME} src/mmWaveLoader.cpp)
-target_link_libraries(mmwave ${serial_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} mmwave ${serial_LIBRARIES})
-add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS} mmwave ${serial_EXPORTED_TARGETS})
-
-add_executable(mmWaveQuickConfig src/mmWaveQuickConfig.cpp)
-target_link_libraries(mmWaveQuickConfig ${catkin_LIBRARIES} mmwave)
-add_dependencies(mmWaveQuickConfig ${catkin_EXPORTED_TARGETS} mmwave)
-
-endif()
 #############
 ## Testing ##
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_ti_mmwave_rospkg.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_behaviors.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

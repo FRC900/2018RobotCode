@@ -27,6 +27,7 @@ add_message_files (
   FILES
   MatchSpecificData.msg
   JoystickState.msg
+  AutoMode.msg
   PDPData.msg
 )
 generate_messages(

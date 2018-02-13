@@ -8,3 +8,6 @@ int8 matchType
 int8 driverStationLocation
 int8 matchNumber
 
+bool isEnabled
+bool isDisabled
+bool isAutonomous
