@@ -46,12 +46,12 @@
 #include "HAL/HAL.h"
 #include "Joystick.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
+#include "ros_control_boilerplate/AutoMode.h"
 #include "math.h"
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/String.h>
-#include <std_msgs/Int32.h>
 #include <ctre/phoenix/MotorControl/SensorCollection.h>
 #include <tf2/LinearMath/Quaternion.h>
 
@@ -85,7 +85,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-	realtime_tools::RealtimePublisher<std_msgs::Int32> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
 
 	while (run_hal_thread_)
 	{
@@ -103,7 +103,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			// TODO eventually add header to nt message so we can get timestamps
 			// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
-			realtime_pub_nt.msg_.data = std::stoi(autoNumber);
+            realtime_pub_nt.msg_.header.stamp = ros::Time::now();
+			realtime_pub_nt.msg_.mode = std::stoi(autoNumber);
 			realtime_pub_nt.unlockAndPublish();
 		}
 

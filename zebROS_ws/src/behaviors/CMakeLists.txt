@@ -14,6 +14,9 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  message_generation
+  message_filters
+  ros_control_boilerplate
 )
 
 ## System dependencies are found with CMake's conventions
@@ -129,6 +132,11 @@ add_dependencies(
 add_executable(CubeActionClient src/CubeActionClient.cpp)
 target_link_libraries(
     CubeActionClient
+    ${catkin_LIBRARIES}
+)
+add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
+target_link_libraries(
+    autoInterpreterClient
     ${catkin_LIBRARIES}
 )
 ###########
