@@ -1,0 +1,44 @@
+elevator_controller:
+    type:       elevator_controller/ElevatorController
+    lift: "lift_joint"
+    intake: "intake_joint"
+    pivot: "pivot_joint"
+    arm_length: 0.495 #FIX
+    max_extension: 3.0 #FIX
+    min_extension: 0.25 #FIX
+    
+    hook_depth: 0.1 #FIX
+    hook_min_height: 1 #FIX
+    hook_max_height: 1.1 #FIX
+   #Fix below remove poly points 
+    polygon_points: [-1.0, .127, 0.1, .127, 0.75, .127, 0.75, -1.0, -1.0, -1.0, -1.0, .127]    
+    lift_joint:
+        joint: lift
+        close_loop_values:
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+        invert_output: False
+        sensor_phase: False
+        feedback_type: CTRE_MagEncoder_Absolute
+        conversion_factor: 1 #FIX
+        motion_cruise_velocity: 2
+        motion_acceleration: 5
+    pivot_joint:
+        joint: pivot
+        close_loop_values:
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+        invert_output: False
+        sensor_phase: False
+        feedback_type: CTRE_MagEncoder_Absolute
+        conversion_factor: 1 #FIX
+        motion_cruise_velocity: 10
+        motion_acceleration: 20
+    intake_joint:
+        joint: intake
+        invert_output: False
+        sensor_phase: False
+
+
+#hypothetically might have inverts
+

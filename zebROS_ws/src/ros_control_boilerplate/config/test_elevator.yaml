@@ -1,3 +1,39 @@
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO       This yaml is depreciated.       #TODO
+#TODO      Please use the elevator.yaml     #TODO
+#TODO         and main_frcrobot.yaml        #TODO
+#TODO  unless you are explictly modifying   #TODO
+#TODO    and using this yaml for testing    #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+#TODO                                       #TODO
+
 # ros_control_boilerplate Settings -----------------------
 # Settings for ros_control control loop
 generic_hw_control_loop:
