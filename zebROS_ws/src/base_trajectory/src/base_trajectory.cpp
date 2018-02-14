@@ -46,12 +46,12 @@ ros::Duration period;
 //trajectory_msgs::JointTrajectory out_msg;
 
 bool generate(base_trajectory::GenerateSwerveProfile::Request &msg,
-base_trajectory::GenerateSwerveProfile::Request &out_msg
+base_trajectory::GenerateSwerveProfile::Response &out_msg
 )
 {
 	ros::Time start = ros::Time::now();
 	// Hold current position if trajectory is empty
-	if (msg->points.empty())
+	if (msg.joint_trajectory.points.empty())
 	{
 		ROS_DEBUG("Empty trajectory command, stopping.");
 		return false;
@@ -150,7 +150,7 @@ base_trajectory::GenerateSwerveProfile::Request &out_msg
 	Trajectory trajectory;
 	try
 	{
-		trajectory = joint_trajectory_controller::initJointTrajectory<Trajectory>(*msg, next_update_time, options);
+		trajectory = joint_trajectory_controller::initJointTrajectory<Trajectory>(msg.joint_trajectory, next_update_time, options);
 		if (trajectory.empty())
 		{
 			ROS_WARN("Not publishing empty trajectory");
@@ -167,24 +167,92 @@ base_trajectory::GenerateSwerveProfile::Request &out_msg
 		ROS_ERROR("Unexpected exception caught when initializing trajectory from ROS message data.");
 		return false;
 	}
-	for (size_t joint = 0; joint < joint_names.size(); joint++)
+	std::vector<swerve_profile::spline_coefs> x_splines, y_splines, orient_splines;
+
+	std::vector<double> end_points;
+
+	swerve_profile::spline_coefs temp_holder_s;	
+
+	for (size_t seg = 0; seg < trajectory[0].size(); seg++)
 	{
-		for (size_t seg = 0; seg < trajectory[joint].size(); seg++)
-		{
-			std::cout << "joint = " << joint_names[joint] << " seg = " << seg;
-			std::cout << " start_time = " << trajectory[joint][seg].startTime();
-			std::cout << " end_time = " << trajectory[joint][seg].endTime();
-			auto coefs = trajectory[joint][seg].getCoefs();
-			for (size_t i = 0; i < coefs.size(); i++)
-			{
-				std::cout << " coefs =";
-				for (size_t j = 0; j < coefs[i].size(); j++)
-				{
-					std::cout << " " << coefs[i][j];
-				}
-			}
-			std::cout << std::endl;
-		}
+		
+		std::cout << "joint = " << joint_names[0] << " seg = " << seg;
+		std::cout << " start_time = " << trajectory[0][seg].startTime();
+		std::cout << " end_time = " << trajectory[0][seg].endTime();
+		auto coefs = trajectory[0][seg].getCoefs();
+		
+		std::cout << " " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
+		
+		temp_holder_s.a = coefs[0][0]; 
+		temp_holder_s.b = coefs[0][1]; 
+		temp_holder_s.c = coefs[0][2]; 
+		temp_holder_s.d = coefs[0][3]; 
+		temp_holder_s.e = coefs[0][4]; 
+		temp_holder_s.f = coefs[0][5]; 
+
+		//a = coef[0][0]
+		//b = coef[0][1]
+		//c = coef[0][2]
+		//d = coef[0][3]
+		//e = coef[0][4]
+		//f = coef[0][5]
+		std::cout << std::endl;
+		x_splines.push_back(temp_holder_s);
+	
+		end_points.push_back(trajectory[0][seg].endTime());
+	}
+	for (size_t seg = 0; seg < trajectory[1].size(); seg++)
+	{
+		
+		std::cout << "joint = " << joint_names[1] << " seg = " << seg;
+		std::cout << " start_time = " << trajectory[1][seg].startTime();
+		std::cout << " end_time = " << trajectory[1][seg].endTime();
+		auto coefs = trajectory[1][seg].getCoefs();
+		
+		std::cout << " " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
+		
+
+		temp_holder_s.a = coefs[0][0]; 
+		temp_holder_s.b = coefs[0][1]; 
+		temp_holder_s.c = coefs[0][2]; 
+		temp_holder_s.d = coefs[0][3]; 
+		temp_holder_s.e = coefs[0][4]; 
+		temp_holder_s.f = coefs[0][5]; 
+
+		//a = coef[0][0]
+		//b = coef[0][1]
+		//c = coef[0][2]
+		//d = coef[0][3]
+		//e = coef[0][4]
+		//f = coef[0][5]
+		std::cout << std::endl;
+		y_splines.push_back(temp_holder_s);
+	}
+	for (size_t seg = 0; seg < trajectory[2].size(); seg++)
+	{
+		
+		std::cout << "joint = " << joint_names[2] << " seg = " << seg;
+		std::cout << " start_time = " << trajectory[2][seg].startTime();
+		std::cout << " end_time = " << trajectory[2][seg].endTime();
+		auto coefs = trajectory[2][seg].getCoefs();
+		
+		std::cout << " " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
+		
+		temp_holder_s.a = coefs[0][0]; 
+		temp_holder_s.b = coefs[0][1]; 
+		temp_holder_s.c = coefs[0][2]; 
+		temp_holder_s.d = coefs[0][3]; 
+		temp_holder_s.e = coefs[0][4]; 
+		temp_holder_s.f = coefs[0][5]; 
+
+		//a = coef[0][0]
+		//b = coef[0][1]
+		//c = coef[0][2]
+		//d = coef[0][3]
+		//e = coef[0][4]
+		//f = coef[0][5]
+		std::cout << std::endl;
+		orient_splines.push_back(temp_holder_s);
 	}
 
 	ros::Time gen = ros::Time::now();
@@ -231,8 +299,11 @@ base_trajectory::GenerateSwerveProfile::Request &out_msg
 	
 	
 	//TODO: Harvest splines
+	
 
-	if(profile_gen->generate_profile(x_splines, y_splines, orient_splines, initial_v, final_v, out_msg, end_points))
+
+
+	if(profile_gen->generate_profile(x_splines, y_splines, orient_splines, msg.initial_v, msg.final_v, out_msg, end_points))
 	{
 		return true;
 	}
@@ -274,12 +345,18 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh;
 
 
+	double loop_hz;
+
+	nh.param<double>("loop_hz", loop_hz, 50.);
+
 
 	//TODO: make below read from config file or something
 
-	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(1, 9, 3, 6, 7, 1/loop_hz, .001);
+	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(1.0, 9.0, 3.0, 6.0, 7.0, 1/loop_hz);
 
-	ros::ServiceServer service = nh.subscribe("command", generate);
+	ros::ServiceServer service = nh.advertiseService("command", generate);
+
+	//
 
 	ros::spin();
 }

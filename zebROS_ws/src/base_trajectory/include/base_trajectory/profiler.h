@@ -1,9 +1,10 @@
 #pragma once
 
+#include <base_trajectory/GenerateSwerveProfile.h>
 #include <cmath>
 #include <Eigen/Dense>
 #include <vector>
-#include <trajectory_msgs/JointTrajectory.h>
+#include <base_trajectory/spline.h>
 //#include <ros/ros.h>
 
 namespace swerve_profile
@@ -54,15 +55,15 @@ class swerve_profiler
 		swerve_profiler(double max_wheel_dist, double max_wheel_mid_accel, double max_wheel_vel, 
 		double max_steering_accel, double max_steering_vel, double dt);
 			
-		bool generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double &initial_v, const double &final_v, trajectory_msgs::JointTrajectory &out_msg, const std::vector<double> &end_points);
+		bool generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double &initial_v, const double &final_v, base_trajectory::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points);
 
 		//TODO: maybe add options to above functions?
 			
 	private:
 		void comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, double t, path_point holder_point, const std::vector<double> &end_points );
 
-		SmoothLinearSpline parametrize_spline(const spline_coefs &x_spline, const spline_coefs &y_spline, double &total_arc_length);
-		void calc_point(spline_coefs spline, double t, double returner);
+		tk::spline parametrize_spline(const std::vector<spline_coefs> &x_spline, const std::vector<spline_coefs> &y_spline, std::vector<double> end_points, double &total_arc_length);
+		void calc_point(const spline_coefs &spline, const double t, double &returner);
 		bool solve_for_next_V(const path_point &path, const double &path_length, double &current_v, const double &current_pos);  //most pointers are just for efficiency
 		bool coerce(double &val, const double &min, const double &max); 
 		bool poly_solve(const double &a, const double &b, const double &c, double &x);

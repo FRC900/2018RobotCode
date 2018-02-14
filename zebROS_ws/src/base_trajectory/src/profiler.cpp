@@ -1,6 +1,5 @@
 #include <base_trajectory/profiler.h>
 
-
 namespace swerve_profile
 {
 swerve_profiler::swerve_profiler(double max_wheel_dist, double max_wheel_mid_accel, double max_wheel_vel,
@@ -15,11 +14,11 @@ double max_steering_accel, double max_steering_vel, double dt)
 }
 //TODO :: path should be const vect & to avoid a redundant copy
 // being made each time the function is called
-bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double &initial_v, const double &final_v, trajectory_msgs::JointTrajectory &out_msg, const std::vector<double> &end_points)
+bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double &initial_v, const double &final_v, base_trajectory::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points)
 {
-	SmoothLinearSpline spline;
+	tk::spline spline;
 	double total_arc;
-	spline = parametrize_spline(x_splines, y_splines, total_arc);
+
 	
 
 	double curr_v = initial_v;
@@ -94,6 +93,8 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 	
 		orient_splines_second_deriv.push_back(holder_spline);
 	}
+	
+	spline = parametrize_spline(x_splines_first_deriv, y_splines_first_deriv, end_points, total_arc);
 	//back pass
 	for(double i = total_arc; i > 0;)
 	{
@@ -231,14 +232,58 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double &pat
 		return true;
 	}
 }
-SmoothLinearSpline swerve_profiler::parametrize_spline(const spline_coefs &x_spline, const spline_coefs &y_spline, double &total_arc_length)
+tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, std::vector<double> end_points, double &total_arc_length)
 {	
+	total_arc_length = 0;
+	double period_t;
+	double start = 0;
+	double a_val;
+	double b_val;
+	double x_at_a;
+	double x_at_b;
+	double y_at_a;
+	double y_at_b;
+	double x_at_avg;
+	double y_at_avg;
+	std::vector<double> t_vals;
+	std::vector<double> s_vals;
+	t_vals.reserve(x_splines_first_deriv.size() * 101);
+	s_vals.reserve(x_splines_first_deriv.size() * 101);
+	for(size_t i = 0; i < x_splines_first_deriv.size(); i++)
+	{
+		if(i != 0)
+		{
+			period_t = (end_points[i] - end_points[i-1])/100.0; //100 is super arbitrary
+			start = end_points[i-1];
+		}
+		for(size_t k = 0; k < 100; k++)
+		{
+			a_val = k*period_t + start;
+			b_val = (k+1)*period_t + start;
+			t_vals.push_back(a_val);
+			s_vals.push_back(total_arc_length);
+			calc_point(x_splines_first_deriv[i], a_val, x_at_a);
+			calc_point(x_splines_first_deriv[i], b_val, x_at_b);
+			calc_point(y_splines_first_deriv[i], a_val, y_at_a);
+			calc_point(y_splines_first_deriv[i], b_val, y_at_b);
+			calc_point(x_splines_first_deriv[i], (a_val+b_val)/2, x_at_avg);
+			calc_point(y_splines_first_deriv[i], (a_val+b_val)/2, y_at_avg);
+		
+			//f(t) = sqrt((dx/dt)^2 + (dy/dt)^2)
+
+			total_arc_length += period_t / 6 * (sqrt(x_at_a*x_at_a + y_at_a*y_at_a) + 4 * 
+			sqrt(x_at_avg* x_at_avg+ y_at_avg* y_at_avg) + sqrt(x_at_b*x_at_b + y_at_b*y_at_b));
+		} 
+	}
+	t_vals.push_back(b_val);
+	s_vals.push_back(total_arc_length);
 	//TODO: Loop to generate set of s vals for t vals iterating from 0 to end_time (simpsons rule here)
+
 	
 	//Spline fit of t interms of s (we input a t -> s)
-	double max_curvature = 5.0;
-	SmoothLinearSpline spline(t_vals, s_vals, max_curvature);
-	return spline;
+	tk::spline s;
+	s.set_points(s_vals, t_vals);
+	return s;
 }
 bool swerve_profiler::poly_solve(const double &a, const double &b, const double &c, double &x)
 {
@@ -254,11 +299,11 @@ bool swerve_profiler::poly_solve(const double &a, const double &b, const double 
 		return true;
 	}
 }
-void calc_point(spline_coefs spline, double t, double returner)
+void swerve_profiler::calc_point(const spline_coefs &spline, const double t, double &returner)
 {
 	returner = spline.a * t*t*t*t*t + spline.b * t*t*t*t + spline.c * t*t*t + spline.d * t*t + spline.e * t + spline.f; 
 }
-void comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, double t, path_point holder_point, const std::vector<double> &end_points )
+void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, double t, path_point holder_point, const std::vector<double> &end_points )
 {
 	static int which_spline;
 	which_spline = 0;

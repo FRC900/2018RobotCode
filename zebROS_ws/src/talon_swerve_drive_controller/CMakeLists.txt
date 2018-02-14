@@ -19,9 +19,9 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(Eigen REQUIRED)
 
-add_message_files (
+add_service_files (
   FILES
-  CompleteCmd.msg
+  MotionProfile.srv
 )
 generate_messages(
   DEPENDENCIES
