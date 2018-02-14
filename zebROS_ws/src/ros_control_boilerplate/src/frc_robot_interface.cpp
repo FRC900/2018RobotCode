@@ -594,13 +594,21 @@ void FRCRobotInterface::init()
 	}
 
 	num_dummy_joints_ = dummy_joint_names_.size();
+	dummy_joint_position_.resize(num_dummy_joints_);
+	dummy_joint_velocity_.resize(num_dummy_joints_);
+	dummy_joint_effort_.resize(num_dummy_joints_);
+	dummy_joint_command_.resize(num_dummy_joints_);
 	for (size_t i = 0; i < num_dummy_joints_; i++)
 	{
-		hardware_interface::JointStateHandle dsh(dummy_joint_names_[i], &dummy_joint_val_, &dummy_joint_val_, &dummy_joint_val_);
-		//joint_state_interface_.registerHandle(dsh);
+		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for dummy joint : " << dummy_joint_names_[i]);
 
-		hardware_interface::JointHandle dch(dsh, &dummy_joint_val_);
+		hardware_interface::JointStateHandle dsh(dummy_joint_names_[i], &dummy_joint_position_[i],&dummy_joint_velocity_[i], &dummy_joint_effort_[i]);
+		joint_state_interface_.registerHandle(dsh);
+
+		hardware_interface::JointHandle dch(dsh, &dummy_joint_command_[i]);
 		joint_command_interface_.registerHandle(dch);
+		joint_position_interface_.registerHandle(dch);
+		joint_velocity_interface_.registerHandle(dch);
 	}
 
 	hardware_interface::PDPStateHandle psh("pdp_name", &pdp_state_);
@@ -617,6 +625,7 @@ void FRCRobotInterface::init()
 	registerInterface(&joint_command_interface_);
 	registerInterface(&joint_position_interface_);
 	registerInterface(&joint_velocity_interface_);
+	registerInterface(&joint_effort_interface_); // empty for now
 	registerInterface(&imu_interface_);
 	registerInterface(&pdp_state_interface_);
 

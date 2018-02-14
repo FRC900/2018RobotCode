@@ -14,7 +14,7 @@
 				<geometry>
 					<box size="${swerve_box_size} ${swerve_box_size} ${swerve_box_size}"/>
 				</geometry>
-				<origin xyz="${x} ${y} -${base_height/2 + swerve_box_size/2}" rpy="0 0 0"/>
+				<origin xyz="0 0 0" rpy="0 0 0"/>
 				<material name="red">
 					<color rgba="1 0 0 1"/>
 				</material>
@@ -35,7 +35,7 @@
 		<joint name="base_to_${prefix}_angle" type="continuous">
 			<parent link="base_link"/>
 			<child link="${prefix}_angle"/>
-			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<origin xyz="${x} ${y} -${base_height/2 + swerve_box_size/2}" rpy="0 0 0"/>
 		</joint>
 		<joint name="${prefix}_angle_to_speed" type="continuous">
 			<parent link="${prefix}_angle"/>

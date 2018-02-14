@@ -126,7 +126,8 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		hardware_interface::JointCommandInterface  joint_command_interface_;
 		hardware_interface::PositionJointInterface joint_position_interface_;
 		hardware_interface::VelocityJointInterface joint_velocity_interface_;
-		hardware_interface::TalonCommandInterface talon_command_interface_;
+		hardware_interface::EffortJointInterface   joint_effort_interface_;
+		hardware_interface::TalonCommandInterface  talon_command_interface_;
 
 		hardware_interface::ImuSensorInterface imu_interface_;
 		//hardware_interface::ImuSensorInterface navX_interface_;
@@ -230,9 +231,10 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> navX_command_;
 		std::vector<double> compressor_command_;
 
-		// Hack for controllers which need a joint name but
-		// are never actually used as joints 
-		double dummy_joint_val_;
+		std::vector<double> dummy_joint_position_;
+		std::vector<double> dummy_joint_velocity_;
+		std::vector<double> dummy_joint_effort_;
+		std::vector<double> dummy_joint_command_;
 };  // class
 
 }  // namespace
