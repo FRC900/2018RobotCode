@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-	<include file="$(find ros_control_boilerplate)/launch/talon_swerve_controller_test.launch">
-		<arg name="hw_or_sim" value="sim"/>
-	</include>
-
-</launch>

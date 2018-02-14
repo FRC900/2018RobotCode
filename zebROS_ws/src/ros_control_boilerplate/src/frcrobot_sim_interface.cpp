@@ -46,6 +46,14 @@ FRCRobotSimInterface::FRCRobotSimInterface(ros::NodeHandle &nh,
 		urdf::Model *urdf_model)
 	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model)
 {
+}
+
+void FRCRobotSimInterface::init(void)
+{
+	// Do base class init. This loads common interface info
+	// used by both the real and sim interfaces
+	FRCRobotInterface::init();
+	
 	// Loop through the list of joint names
 	// specified as params for the hardware_interface.
 	// For each of them, create a Talon object. This
@@ -101,6 +109,19 @@ FRCRobotSimInterface::FRCRobotSimInterface(ros::NodeHandle &nh,
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << navX_names_[i] <<
 							  " as navX id" << navX_ids_[i]);
+	for (size_t i = 0; i < num_analog_inputs_; i++)
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << analog_input_names_[i] <<
+							  " as Analog Input " << analog_input_analog_channels_[i]);
+
+	for (size_t i = 0; i < num_compressors_; i++)
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << compressor_names_[i] <<
+							  " as Compressor with pcm " << compressor_pcm_ids_[i]);
+ 
+	for(size_t i = 0; i < num_dummy_joints_; i++)
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
 
 	ROS_INFO_NAMED("frcrobot_sim_interface", "FRCRobotSimInterface Ready.");
 }
@@ -375,7 +396,25 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				") right rumble = " << std::dec << right_rumble << "(" << std::hex << right_rumble <<  ")" << std::dec);
 #endif
 	}
-
+	std::stringstream s;
+	for (size_t i = 0; i < num_dummy_joints_; i++)
+	{
+		s << dummy_joint_command_[i] << " ";
+		dummy_joint_effort_[i] = 0;
+		//if (dummy_joint_names_[i].substr(2, std::string::npos) == "_angle")
+		{
+			// position mode
+			dummy_joint_velocity_[i] = (dummy_joint_command_[i] - dummy_joint_position_[i]) / elapsed_time.toSec();
+			dummy_joint_position_[i] = dummy_joint_command_[i];
+		}
+		//else if (dummy_joint_names_[i].substr(2, std::string::npos) == "_drive")
+		{
+			// position mode
+			//dummy_joint_position_[i] += dummy_joint_command_[i] * elapsed_time.toSec();
+			//dummy_joint_velocity_[i] = dummy_joint_command_[i];
+		}
+	}
+	ROS_INFO_STREAM_THROTTLE(1, s.str());
 }
 
 }  // namespace

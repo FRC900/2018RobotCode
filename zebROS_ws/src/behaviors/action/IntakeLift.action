@@ -1,0 +1,22 @@
+#goal definition
+float64 armPosX
+float64 armPosY
+bool up_or_down
+bool upConfig
+bool left_up
+bool left_down
+bool right_up
+bool right_down
+bool spring_left_hard_in
+bool spring_right_hard_out
+bool spring_left_hard_out
+bool spring_right_hard_in
+bool spring_left_soft_in
+bool spring_right_soft_in
+float64 power
+---
+#result definition
+float64 data
+---
+#feedback
+float64 data

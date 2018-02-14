@@ -4,11 +4,92 @@
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
+#include "actionlib/client/simple_action_client.h"
+#include "actionlib/client/terminal_state.h"
+#include "behaviors/IntakeLiftAction.h"
+
+static int startPos = -1;
+static int autoMode = -1;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
-   ROS_INFO("WASSEOP");
-   if(MatchData->isAutonomous) {
-        puts("bleargh");
-   }
+
+    if(MatchData->isAutonomous) {
+        actionlib::SimpleActionClient<behaviors::IntakeLiftAction> ac("AutoServer", true);
+        //Field config 1
+        if(AutoMode->mode==1) {
+            //3 cube switch-scale-scale
+                //0: Time 0: Go to switch config && drop and start intake
+                //1: Time 1: Release Clamp && go to default config
+                //2: Time 1.5: go to intake config
+                //3: Linebreak sensor: Clamp && release intake && stop running intake
+                //4: Success of command 3: go to mid scale config && soft-in intake
+                //5: Time 2: release Clamp
+                //6: Time 3: go to intake config && run intake
+                //7: Linebreak sensor: Clamp && release intake && stop running intake
+                //8: Success of command 6: go to mid scale config && soft-in intake
+                //9: Time 4: release Clamp
+                //10: Time 5: go to intake config
+        }
+        else if(AutoMode->mode==2) {
+            //2 cube longway scale-scale
+                    //0: Time 0: Go to mid-scale config && drop intake
+                    //1: Time 1: Release Clamp
+                    //2: Time 1.5: go to intake config && start intake
+                    //3: Linebreak sensor: Clamp && release intake && stop running intake
+                    //4: Success of command 3: go to mid scale config && soft-in intake
+                    //5: Time 2: release Clamp
+                    //6: Time 3: go to intake config && run intake
+                    //7: Linebreak sensor: Clamp && release intake && stop running intake
+
+        }
+        else if(AutoMode->mode==3) {
+            //2 cube longway scale-scale
+                    //0: Time 0: Go to mid-scale config && drop intake
+                    //1: Time 1: Release Clamp
+                    //2: Time 1.5: go to intake config && start intake
+                    //3: Linebreak sensor: Clamp && release intake && stop running intake
+                    //4: Success of command 3: go to switch config && soft-in intake
+                    //5: Time 2: release Clamp
+                    //6: Time 3: go to intake config && run intake
+                    //7: Linebreak sensor: Clamp && release intake && stop running intake
+        }
+        else if(AutoMode->mode==4) {
+
+        }
+        else if(AutoMode->mode==5) {
+
+        }
+        else if(AutoMode->mode==6) {
+
+        }
+        else if(AutoMode->mode==7) {
+
+        }
+        else if(AutoMode->mode==8) {
+
+        }
+        else if(AutoMode->mode==9) {
+
+        }
+        else if(AutoMode->mode==10) {
+
+        }
+        else if(AutoMode->mode==11) {
+
+        }
+        else if(AutoMode->mode==12) {
+
+        }
+        else{
+            
+        }
+
+    }
+    else {
+        if(autoMode == AutoMode->mode || startPos == AutoMode->position) {
+            autoMode = AutoMode->mode;
+            startPos = AutoMode->position;
+        }
+    }
 }
 
 

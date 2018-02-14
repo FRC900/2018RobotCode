@@ -17,10 +17,12 @@ hardware_interface:
        - {name: intake, type: can_talon_srx, can_id: 31}
        - {name: intake_follower1, type: can_talon_srx, can_id: 32}
        - {name: clamp, type: double_solenoid, pcm: 0, forward_id: 0, reverse_id: 1}
-       - {name: intake_left_up, type: double_solenoid, pcm: 0, forward_id: 2, reverse_id: 3}
-       - {name: intake_right_up, type: double_solenoid, pcm: 0, forward_id: 4, reverse_id: 5}
-       - {name: intake_left_spring, type: double_solenoid, pcm: 0, forward_id: 6, reverse_id: 7}
-       - {name: intake_right_spring, type: double_solenoid, pcm: 0, forward_id: 0, reverse_id: 1}
+       - {name: intake_spring, type: double_solenoid, pcm: 0, forward_id: 2, reverse_id: 3}
+       - {name: intake_hard_in, type: solenoid, pcm: 0, id: 4}
+       - {name: intake_up, type: double_solenoid, pcm: 0, forward_id: 5, reverse_id: 6}
+       - {name: end_game_deploy, type: solenoid, pcm: 0, id: 7}
+       - {name: clamp_line_break, type: digital_input, dio_channel: 0, invert: true}
+       - {name: intake_line_break, type: digital_input, dio_channel: 1, invert: true}
        - {name: fl_drive, type: can_talon_srx, can_id: 21}
        - {name: fl_angle, type: can_talon_srx, can_id: 11}
        - {name: fr_drive, type: can_talon_srx, can_id: 22}
@@ -29,6 +31,8 @@ hardware_interface:
        - {name: br_angle, type: can_talon_srx, can_id: 14}
        - {name: bl_drive, type: can_talon_srx, can_id: 23}
        - {name: bl_angle, type: can_talon_srx, can_id: 13}
+       - {name: navx_mxp, type: navX, frame_id: navx, id: 0}
+       - {name: analog_pressure_sensor, type: analog_input, analog_channel: 0, analog_a: .0633897, analog_b: -24.9}
 
 
 #TODO: fix ids for pneumatics   
@@ -84,22 +88,41 @@ intake_follower1_controller:
     follow_joint: intake
     invert_output: True #opposite of intake
 
-intake_left_up_controller:
+intake_up_controller:
     type: position_controllers/JointPositionController
-    joint: intake_left_up
-
-intake_right_up_controller:
-    type: position_controllers/JointPositionController
-    joint: intake_right_up
+    joint: intake_up
 
 clamp_controller:
     type: position_controllers/JointPositionController
     joint: clamp
 
-intake_right_spring_controller:
+intake_spring_controller:
     type: position_controllers/JointPositionController
-    joint: intake_right_spring
+    joint: intake_spring
 
-intake_left_spring_controller:
+intake_hard_in_controller:
     type: position_controllers/JointPositionController
-    joint: intake_left_spring
+    joint: intake_hard_in
+
+end_game_deploy_controller:
+    type: position_controllers/JointPositionController
+    joint: end_game_deploy
+
+imu_sensor_controller:
+   type:         imu_sensor_controller/ImuSensorController
+   publish_rate: 100
+
+navx_controller:
+   type: position_controllers/JointPositionController
+   joint: navx_mxp
+
+pdp_state_controller:
+   type:         pdp_state_controller/PDPStateController
+   publish_rate: 50
+
+
+
+
+
+
+

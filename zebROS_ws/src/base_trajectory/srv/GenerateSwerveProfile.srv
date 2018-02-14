@@ -1,0 +1,7 @@
+trajectory_msgs/JointTrajectory joint_trajectory
+float64 initial_v
+float64 final_v
+---
+Header header
+string[] joint_names
+trajectory_msgs/JointTrajectoryPoint[] points

@@ -105,7 +105,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				// TODO eventually add header to nt message so we can get timestamps
 				// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
 				//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
-			    realtime_pub_nt.msg_.mode = std::stoi(driveTable->GetString("Auto Selector", "0"));
+			    realtime_pub_nt.msg_.mode = driveTable->GetNumber("auto_mode", 0);
+			    realtime_pub_nt.msg_.position = driveTable->GetNumber("robot_start_position", 0);
 			}
 
 			// TODO eventually add header to nt message so we can get timestamps
@@ -310,7 +311,11 @@ void FRCRobotHWInterface::init(void)
 
 		compressors_.push_back(std::make_shared<frc::Compressor>(compressor_pcm_ids_[i]));
 	}
-	
+
+	for(size_t i = 0; i < num_dummy_joints_; i++)
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
+
 	pdp_joint_.ClearStickyFaults();
 	pdp_joint_.ResetTotalEnergy();
 
@@ -615,6 +620,7 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 		case ctre::phoenix::InvalidParamValue :
 			error_name = "InvalidParamValue/CAN_INVALID_PARAM";
 			break;
+
 		case ctre::phoenix::RxTimeout :
 			error_name = "RxTimeout/CAN_MSG_NOT_FOUND";
 			break;
@@ -1056,6 +1062,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					break;
 			}
 
+
 			talon->Set(out_mode, command);
 			safeTalonCall(talon->GetLastError(), "Set");
 		}
@@ -1085,6 +1092,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		digital_outputs_[i]->Set(converted_command);
 	}
 	for (size_t i = 0; i < num_pwm_; i++)
+
 	{
 		int inverter  = (pwm_inverts_[i]) ? -1 : 1;
 		PWMs_[i]->SetSpeed(pwm_command_[i]*inverter);
@@ -1103,6 +1111,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		else if (double_solenoid_command_[i] <= -1.0)
 			setpoint = DoubleSolenoid::Value::kReverse;
 
+
 		double_solenoids_[i]->Set(setpoint);
 	}
 	for (size_t i = 0; i < num_rumble_; i++)
@@ -1114,6 +1123,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 	}
 	for (size_t i = 0; i< num_compressors_; i++)
 	{
+
 		bool setpoint = compressor_command_[i] > 0;
 		compressors_[i]->SetClosedLoopControl(setpoint);
 	}
@@ -1279,4 +1289,4 @@ bool FRCRobotHWInterface::convertLimitSwitchNormal(
 
 }
 
-}  // namespace
+}

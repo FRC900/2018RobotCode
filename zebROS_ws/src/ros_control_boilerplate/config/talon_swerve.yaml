@@ -1,3 +1,42 @@
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO       For test swerve base use only           #TODO
+#TODO       For 2018 robot please use the           #TODO
+#TODO          2018_swerve_drive.yaml               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+#TODO                                               #TODO
+
+
+
+
+
+
+
 # ros_control_boilerplate Settings -----------------------
 # Settings for ros_control control loop
 generic_hw_control_loop:
@@ -18,8 +57,6 @@ hardware_interface:
        - {name: br_angle, type: can_talon_srx, can_id: 14}
        - {name: bl_drive, type: can_talon_srx, can_id: 23}
        - {name: bl_angle, type: can_talon_srx, can_id: 13}
-   # Add more data for each joint here - intitial mode, encoder type
-   #    PIDF settings, limit switch settings, etc
 
 # Create controllers for each joint
 #

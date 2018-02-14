@@ -19,9 +19,9 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(Eigen REQUIRED)
 
-add_message_files (
+add_service_files (
   FILES
-  CompleteCmd.msg
+  MotionProfile.srv
 )
 generate_messages(
   DEPENDENCIES
@@ -45,17 +45,6 @@ include_directories(
 
 
 
-add_executable(swerve_command_combiner src/swerve_command_combiner.cpp)
-set_target_properties(swerve_command_combiner PROPERTIES OUTPUT_NAME
-swerve_command_combiner PREFIX "")
-target_link_libraries(swerve_command_combiner
-  ${catkin_LIBRARIES}
-)
-
-add_dependencies(swerve_command_combiner
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
 
 add_library(${PROJECT_NAME} 
 src/swerve_drive_controller.cpp 
@@ -76,7 +65,7 @@ target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 install(DIRECTORY include/${PROJECT_NAME}/
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
-install(TARGETS ${PROJECT_NAME} swerve_command_combiner
+install(TARGETS ${PROJECT_NAME} 
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

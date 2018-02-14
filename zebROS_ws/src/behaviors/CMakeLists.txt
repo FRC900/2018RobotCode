@@ -112,7 +112,7 @@ find_package(catkin REQUIRED COMPONENTS
 # ACTIONLIB STUFF
 
 #find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
-add_action_files(FILES CubeIntake.action)
+add_action_files(FILES CubeIntake.action IntakeLift.action)
 generate_messages(DEPENDENCIES actionlib_msgs std_msgs)
 
 catkin_package(
@@ -125,7 +125,7 @@ include_directories(include ${catkin_INCLUDE_DIRS})
 add_executable(CubeActionServer src/CubeActionServer.cpp)
 target_link_libraries(CubeActionServer ${catkin_LIBRARIES})
 add_dependencies(
-    CubeActionServer
+    CubeActionServer 
     ${behaviors_EXPORTED_TARGETS}
 )
 
@@ -134,10 +134,18 @@ target_link_libraries(
     CubeActionClient
     ${catkin_LIBRARIES}
 )
+add_dependencies(
+	CubeActionClient
+    ${behaviors_EXPORTED_TARGETS}
+)
 add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
 target_link_libraries(
     autoInterpreterClient
     ${catkin_LIBRARIES}
+)
+add_dependencies(
+	autoInterpreterClient
+    ${behaviors_EXPORTED_TARGETS}
 )
 ###########
 ## Build ##
