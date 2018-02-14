@@ -29,7 +29,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 
 	path_point holder_point;
 	double t;
-
+	double dtds;
 	spline_coefs holder_spline;
 
 	std::vector<spline_coefs> x_splines_first_deriv, y_splines_first_deriv, orient_splines_first_deriv ;
@@ -96,6 +96,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 	
 	spline = parametrize_spline(x_splines_first_deriv, y_splines_first_deriv, end_points, total_arc);
 	//back pass
+	
 	for(double i = total_arc; i > 0;)
 	{
 		i -= curr_v*dt_;
@@ -105,7 +106,9 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		
 		t = spline(i);
 		
-		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, t, holder_point, end_points);
+		dtds = (spline(i+.001) - spline(i-.001)) / .002; //Maybe change spline and analytically deriv?
+	
+		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, t, holder_point, end_points, dtds);
 		
 
 		if(!solve_for_next_V(holder_point, total_arc, curr_v, i))
@@ -126,7 +129,9 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		
 		t = spline(i);
 
-		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, t, holder_point, end_points);
+		dtds = (spline(i+.001) - spline(i-.001)) / .002; //Maybe change spline and analytically deriv?
+		
+		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, t, holder_point, end_points, dtds);
 	
 		//TODO: CHECK CONVERSIONS
 
@@ -198,14 +203,13 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double &pat
 	static double path_induced_a;
 	if(current_pos<=0 && current_pos>=path_length - 1)
 	{
-		max_wheel_orientation_accel = path.angular_accel * max_wheel_dist_ * (current_v / (path_length))* (current_v / (path_length));
-		max_wheel_orientation_vel = path.angular_velocity * max_wheel_dist_* (current_v / (path_length));
+		max_wheel_orientation_accel = path.angular_accel * (current_v )* (current_v );
+		max_wheel_orientation_vel = path.angular_velocity * (current_v );
 		theta = fabs(fmod(path.path_angle - path.orientation, M_PI / 8));
 		cos_t = cos(theta);
 		sin_t = sin(theta);
 		path_induced_a = current_v*current_v/path.radius;
 		
-		eff_max_a = max_wheel_mid_accel_ * 2 * (1 -  (max_wheel_vel_ - sqrt((current_v + max_wheel_orientation_vel * sqrt(2)/2) * (current_v + max_wheel_orientation_vel * sqrt(2)/2) + max_wheel_orientation_vel * max_wheel_orientation_vel / 2)) / max_wheel_vel_);
 		coerce(eff_max_a, 0, max_wheel_mid_accel_); //Consider disabling this coerce
 		
 		// TODO : check return code here
@@ -218,11 +222,10 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double &pat
 		//Note: assumption is that angular velocity doesn't change much over timestep
 		coerce(current_v, -v_general_max, v_general_max); 
 		//consider using above coerce in a if statement for optimization
+		
+		eff_max_a = max_wheel_mid_accel_ * 2 * (1 -  (max_wheel_vel_ - sqrt((current_v + max_wheel_orientation_vel * sqrt(2)/2) * (current_v + max_wheel_orientation_vel * sqrt(2)/2) + max_wheel_orientation_vel * max_wheel_orientation_vel / 2)) / max_wheel_vel_);
 
-		if(!poly_solve(1, sqrt(2) *  max_wheel_orientation_accel * cos_t + sqrt(2) *  max_wheel_orientation_accel * sin_t, max_wheel_orientation_accel * max_wheel_orientation_accel - eff_max_a * eff_max_a, v_curve_max))
-			return false;
-		v_curve_max = sqrt(v_curve_max);
-		v_curve_max *= path.radius;
+		v_curve_max = sqrt(eff_max_a * eff_max_a/ (1/(path.radius * path.radius) + sqrt(2) * sin_t * path.angular_accel/path.radius + sqrt(2) * cos_t * path.angular_accel/path.radius + path.angular_accel * path.angular_accel));
 		coerce(current_v, -v_curve_max, v_curve_max);
 	}
 	else
@@ -303,7 +306,7 @@ void swerve_profiler::calc_point(const spline_coefs &spline, const double t, dou
 {
 	returner = spline.a * t*t*t*t*t + spline.b * t*t*t*t + spline.c * t*t*t + spline.d * t*t + spline.e * t + spline.f; 
 }
-void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, double t, path_point holder_point, const std::vector<double> &end_points )
+void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, double t, path_point holder_point, const std::vector<double> &end_points, const double &dtds )
 {
 	static int which_spline;
 	which_spline = 0;
@@ -345,8 +348,8 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 
 	holder_point.orientation = orient;	
 	
-	holder_point.angular_velocity = first_deriv_orient;	
+	holder_point.angular_velocity = first_deriv_orient * dtds * max_wheel_dist_;	
 
-	holder_point.angular_accel = second_deriv_orient;	
+	holder_point.angular_accel = second_deriv_orient * dtds * dtds * max_wheel_dist_;	
 }
 }
