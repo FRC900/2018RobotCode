@@ -18,8 +18,6 @@ hardware_interface:
        - {name: br_angle, type: can_talon_srx, can_id: 14}
        - {name: bl_drive, type: can_talon_srx, can_id: 23}
        - {name: bl_angle, type: can_talon_srx, can_id: 13}
-   # Add more data for each joint here - intitial mode, encoder type
-   #    PIDF settings, limit switch settings, etc
 
 # Create controllers for each joint
 #

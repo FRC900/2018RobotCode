@@ -311,7 +311,11 @@ void FRCRobotHWInterface::init(void)
 
 		compressors_.push_back(std::make_shared<frc::Compressor>(compressor_pcm_ids_[i]));
 	}
-	
+
+	for(size_t i = 0; i < num_dummy_joints_; i++)
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
+
 	pdp_joint_.ClearStickyFaults();
 	pdp_joint_.ResetTotalEnergy();
 
