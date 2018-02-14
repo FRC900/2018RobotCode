@@ -45,17 +45,6 @@ include_directories(
 
 
 
-add_executable(swerve_command_combiner src/swerve_command_combiner.cpp)
-set_target_properties(swerve_command_combiner PROPERTIES OUTPUT_NAME
-swerve_command_combiner PREFIX "")
-target_link_libraries(swerve_command_combiner
-  ${catkin_LIBRARIES}
-)
-
-add_dependencies(swerve_command_combiner
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
 
 add_library(${PROJECT_NAME} 
 src/swerve_drive_controller.cpp 
