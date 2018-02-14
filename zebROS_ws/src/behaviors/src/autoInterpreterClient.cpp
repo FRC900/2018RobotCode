@@ -7,7 +7,11 @@
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/IntakeLiftAction.h"
+
+static int startPos = -1;
+static int autoMode = -1;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
+
     if(MatchData->isAutonomous) {
         actionlib::SimpleActionClient<behaviors::IntakeLiftAction> ac("AutoServer", true);
         //Field config 1
@@ -79,6 +83,12 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             
         }
 
+    }
+    else {
+        if(autoMode == AutoMode->mode || startPos == AutoMode->position) {
+            autoMode = AutoMode->mode;
+            startPos = AutoMode->position;
+        }
     }
 }
 
