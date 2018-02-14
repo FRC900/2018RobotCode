@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   talon_interface
   message_generation
   ros_control_boilerplate
+  talon_swerve_drive_controller
 )
 
 
