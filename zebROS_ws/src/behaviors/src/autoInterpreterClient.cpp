@@ -4,10 +4,12 @@
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
+#include "actionlib/client/simple_action_client.h"
+#include "actionlib/client/terminal_state.h"
+#include "behaviors/IntakeLiftAction.h"
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
-    /*
     if(MatchData->isAutonomous) {
-        //actionlib::SimpleActionClient<behaviors::CubeIntakeAction> ac("AutoServer", true);
+        actionlib::SimpleActionClient<behaviors::IntakeLiftAction> ac("AutoServer", true);
         //Field config 1
         if(AutoMode->mode==1) {
             //3 cube switch-scale-scale
@@ -78,7 +80,6 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         }
 
     }
-    */
 }
 
 
