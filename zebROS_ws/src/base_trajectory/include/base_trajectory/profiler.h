@@ -60,7 +60,7 @@ class swerve_profiler
 		//TODO: maybe add options to above functions?
 			
 	private:
-		void comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, double t, path_point holder_point, const std::vector<double> &end_points, const double &dtds);
+		void comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, double t, path_point &holder_point, const std::vector<double> &end_points, const double &dtds);
 
 		tk::spline parametrize_spline(const std::vector<spline_coefs> &x_spline, const std::vector<spline_coefs> &y_spline, std::vector<double> end_points, double &total_arc_length);
 		void calc_point(const spline_coefs &spline, const double t, double &returner);
@@ -73,5 +73,6 @@ class swerve_profiler
 		double max_steering_accel_;
 		double max_steering_vel_;
 		double dt_;
+		bool fow;
 };
 }

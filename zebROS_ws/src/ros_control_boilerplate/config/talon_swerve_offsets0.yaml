@@ -1,9 +1,9 @@
 swerve_drive_controller:
     steering_joint_fl: 
-        offset: 0
+        offset: -8.331
     steering_joint_fr: 
-        offset: 0
+        offset: -11.571
     steering_joint_bl: 
-        offset: 0
+        offset: 3.2413
     steering_joint_br: 
-        offset: 0
+        offset: -5.108

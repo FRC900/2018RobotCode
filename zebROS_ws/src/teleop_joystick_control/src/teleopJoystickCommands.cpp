@@ -238,7 +238,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     vel.angular.x = 0;
     vel.angular.y = 0;
     
-    if(vel.linear.x != 0 || vel.linear.y != 0 || vel.angular.z != 0 || sendRobotZero) {
+    if(fabs(vel.linear.x) != 0 || fabs(vel.linear.y) != 0 || fabs(vel.angular.z) != 0 || sendRobotZero) {
         JoystickRobotVel.publish(vel);
     }
     else {

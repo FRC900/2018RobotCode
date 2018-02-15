@@ -13,7 +13,7 @@
 #include <pluginlib/class_list_macros.h>
 // Define a member function to read spline coefficents
 #include <base_trajectory/GenerateSwerveProfile.h>
-
+#include <talon_swerve_drive_controller/MotionProfile.h> //TODO remove
 
 namespace trajectory_interface
 {
@@ -38,6 +38,8 @@ typedef trajectory_msgs::JointTrajectory::ConstPtr JointTrajectoryConstPtr;
 std::shared_ptr<swerve_profile::swerve_profiler> profile_gen;
 
 ros::Duration period;
+
+ros::ServiceClient run_prof;
 
 //ros::Duration period;
 //ros::Publisher pub;
@@ -178,10 +180,10 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		
 		std::cout << "joint = " << joint_names[0] << " seg = " << seg;
 		std::cout << " start_time = " << trajectory[0][seg].startTime();
-		std::cout << " end_time = " << trajectory[0][seg].endTime();
+		std::cout << " end_time = " << trajectory[0][seg].endTime() << std::endl;
 		auto coefs = trajectory[0][seg].getCoefs();
 		
-		std::cout << " " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
+		std::cout << "coefs: " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
 		
 		temp_holder_s.a = coefs[0][0]; 
 		temp_holder_s.b = coefs[0][1]; 
@@ -206,10 +208,10 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		
 		std::cout << "joint = " << joint_names[1] << " seg = " << seg;
 		std::cout << " start_time = " << trajectory[1][seg].startTime();
-		std::cout << " end_time = " << trajectory[1][seg].endTime();
+		std::cout << " end_time = " << trajectory[1][seg].endTime()<< std::endl;
 		auto coefs = trajectory[1][seg].getCoefs();
 		
-		std::cout << " " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
+		std::cout << "coefs: " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
 		
 
 		temp_holder_s.a = coefs[0][0]; 
@@ -233,10 +235,10 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		
 		std::cout << "joint = " << joint_names[2] << " seg = " << seg;
 		std::cout << " start_time = " << trajectory[2][seg].startTime();
-		std::cout << " end_time = " << trajectory[2][seg].endTime();
+		std::cout << " end_time = " << trajectory[2][seg].endTime()<< std::endl;
 		auto coefs = trajectory[2][seg].getCoefs();
 		
-		std::cout << " " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
+		std::cout << "coefs: " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
 		
 		temp_holder_s.a = coefs[0][0]; 
 		temp_holder_s.b = coefs[0][1]; 
@@ -305,10 +307,22 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 
 	if(profile_gen->generate_profile(x_splines, y_splines, orient_splines, msg.initial_v, msg.final_v, out_msg, end_points))
 	{
+		ROS_WARN("SUCCESS - NICEEEE");
+		std::cout << "Worked" << std::endl;
+		//TODO: remove below code
+		talon_swerve_drive_controller::MotionProfile srv_msg;
+		srv_msg.request.joint_trajectory.header = out_msg.header;	
+		srv_msg.request.joint_trajectory.joint_names = out_msg.joint_names;	
+		srv_msg.request.joint_trajectory.points = out_msg.points;
+		srv_msg.request.buffer = true;	
+		srv_msg.request.mode = true;	
+		srv_msg.request.run = true;	
 		return true;
 	}
 	else
 	{
+		std::cout << "Failed" << std::endl;
+		ROS_WARN("FAILED - TRAGIC");
 		return false;
 	}
 	//TODO parametrize by arc length in a better way:
@@ -354,9 +368,9 @@ int main(int argc, char **argv)
 
 	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(1.0, 9.0, 3.0, 6.0, 7.0, 1/loop_hz);
 
-	ros::ServiceServer service = nh.advertiseService("command", generate);
+	ros::ServiceServer service = nh.advertiseService("/base_trajectory/command", generate);
 
 	//
-
+	run_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/frcrobot/swerve_drive_controller/run_profile");
 	ros::spin();
 }
