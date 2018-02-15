@@ -7,8 +7,8 @@
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/IntakeLiftAction.h"
-#include "elevator_controller/Intake.h"
 #include "elevator_controller/ElevatorControl.h"
+#include "elevator_controller/Intake.h"
 #include "std_msgs/Bool.h"
 
 static int startPos = -1;
@@ -21,43 +21,57 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
     //ROS_INFO("Mode: %d, Start Position: %d", AutoMode->mode, AutoMode->position);
     if(MatchData->isAutonomous) {
         actionlib::SimpleActionClient<behaviors::IntakeLiftAction> ac("AutoServer", true);
-        //Field config 1
+        elevator_controller::Intake IntakeMsg;
+        elevator_controller::ElevatorControl ElevatorMsg;
+        std_msgs::Bool ClampMsg;
+        behaviors::IntakeLiftGoal goal;
+
         if(AutoMode->mode==1) {
-            //3 cube switch-scale-scale
-                //0: Time 0: Go to switch config && drop and start intake
-                ros::Duration(.2).sleep();
+        //3 cube switch-scale-scale
+            //0: Time 0: Go to switch config
+            ros::Duration(0).sleep(); //TODO
+            ElevatorMsg.x = -1; //TODO
+            ElevatorMsg.y = -1; //TODO
+            ElevatorMsg.up_or_down = false;
+            ElevatorMsg.override_pos_limits = false;
+            ElevatorMsg.override_sensor_limits = false;
 
-                elevator_controller::Intake IntakeMsg;
-                elevator_controller::ElevatorControl ElevatorMsg;
-                std_msgs::Bool ClampMsg;
+            ElevatorPub.publish(ElevatorMsg);
 
-                //TODO get meaningful values 
-                ElevatorMsg.x = -1;
-                ElevatorMsg.y = -1;
-                ElevatorMsg.up_or_down = false;
-                ElevatorMsg.override_pos_limits = false;
-                ElevatorMsg.override_sensor_limits = false;
-                ClampMsg.data = false;
-                IntakeMsg.up = false;
-                IntakeMsg.soft_in = true;
-                IntakeMsg.power=.8;
+            //1: Time 1: Release Clamp
+            ros::Duration(1).sleep(); //TODO
+            ClampMsg.data = false;
+            ClampPub.publish(ClampMsg);
 
-                ElevatorPub.publish(ElevatorMsg);
-                ros::Duration(.2).sleep();
-                ClampPub.publish(ClampMsg);
-                IntakePub.publish(IntakeMsg);
-                //1: Time 1: Release Clamp && go to default config
-                ros::Duration(.2).sleep();
-                
-                //2: Time 1.5: go to intake config
-                //3: Linebreak sensor: Clamp && release intake && stop running intake
-                //4: Success of command 3: go to mid scale config && soft-in intake
-                //5: Time 2: release Clamp
-                //6: Time 3: go to intake config && run intake
-                //7: Linebreak sensor: Clamp && release intake && stop running intake
-                //8: Success of command 6: go to mid scale config && soft-in intake
-                //9: Time 4: release Clamp
-                //10: Time 5: go to intake config
+            //2: Time 1.5: drop and start intake && go to intake config
+            ros::Duration(1.5).sleep(); //TODO
+            goal.IntakeCube = true;
+
+            ElevatorMsg.x = -1; //TODO
+            ElevatorMsg.y = -1; //TODO
+            ElevatorMsg.up_or_down = true;
+            ElevatorMsg.override_pos_limits = false;
+            ElevatorMsg.override_sensor_limits = false;
+            ElevatorPub.publish(ElevatorMsg);
+
+            ac.sendGoal(goal);
+
+            //3: Linebreak sensor: Clamp && release intake && stop running intake
+            bool success = ac.waitForResult(ros::Duration(15)); //TODO
+
+            IntakeMsg.power = 0;
+            IntakePub.publish(IntakeMsg);
+            ros::Duration(.2).sleep();
+            IntakeMsg.spring_state = 1; //out
+
+
+            //4: Success of command 3: go to mid scale config && soft-in intake
+            //5: Time 2: release Clamp
+            //6: Time 3: go to intake config && run intake
+            //7: Linebreak sensor: Clamp && release intake && stop running intake
+            //8: Success of command 6: go to mid scale config && soft-in intake
+            //9: Time 4: release Clamp
+            //10: Time 5: go to intake config
         }
         else if(AutoMode->mode==2) {
             //2 cube longway scale-scale

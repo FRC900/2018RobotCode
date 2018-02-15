@@ -11,4 +11,5 @@ bool spring_left_in
 bool spring_right_out
 bool spring_left_out
 bool spring_right_in
+int32 spring_state
 float64 power

@@ -1,8 +1,5 @@
 #goal definition
 bool IntakeCube
-bool PlaceCube
-float64 y
-float64 x
 ---
 #result definition
 float64 data

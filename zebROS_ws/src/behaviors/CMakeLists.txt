@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   message_filters
   ros_control_boilerplate
+  elevator_controller
 )
 
 ## System dependencies are found with CMake's conventions
@@ -145,6 +146,15 @@ target_link_libraries(
 )
 add_dependencies(
 	autoInterpreterClient
+    ${behaviors_EXPORTED_TARGETS}
+)
+add_executable(autoInterpreterServer src/autoInterpreterServer.cpp)
+target_link_libraries(
+    autoInterpreterServer
+    ${catkin_LIBRARIES}
+)
+add_dependencies(
+	autoInterpreterServer
     ${behaviors_EXPORTED_TARGETS}
 )
 ###########
