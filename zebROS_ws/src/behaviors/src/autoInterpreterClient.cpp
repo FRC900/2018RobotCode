@@ -7,6 +7,8 @@
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/IntakeLiftAction.h"
+#include "elevator_controller/Intake.h"
+#include "elevator_controller/ElevatorControl.h"
 
 static int startPos = -1;
 static int autoMode = -1;
@@ -18,6 +20,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         if(AutoMode->mode==1) {
             //3 cube switch-scale-scale
                 //0: Time 0: Go to switch config && drop and start intake
+                
                 //1: Time 1: Release Clamp && go to default config
                 //2: Time 1.5: go to intake config
                 //3: Linebreak sensor: Clamp && release intake && stop running intake
