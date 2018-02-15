@@ -8,11 +8,11 @@ Type=simple
 WorkingDirectory=/mnt/900_2
 
 ExecStartPre=/bin/sh -ec 'sleep 5' ; \
-	     /bin/bash -ec "/home/ubuntu/2017VisionCode/set_freq_tx.sh || true" ; \
-	     /bin/bash -ec "/home/ubuntu/2017VisionCode/set_freq_tx.sh || true" ; \
+	     /bin/bash -ec "/home/ubuntu/2018RobotCode/set_freq_tx.sh || true" ; \
+	     /bin/bash -ec "/home/ubuntu/2018RobotCode/set_freq_tx.sh || true" ; \
 	     /bin/sh -ec 'ifup eth0 || true' ;
 
-ExecStart=/bin/bash -ec "/home/ubuntu/2017VisionCode/launch/slave.sh || true"
+ExecStart=/bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/slave.sh || true"
 
 Restart=on-failure
 

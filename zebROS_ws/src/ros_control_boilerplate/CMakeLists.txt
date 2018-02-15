@@ -20,12 +20,14 @@ find_package(catkin REQUIRED COMPONENTS
   rosparam_shortcuts
   talon_interface
   message_generation
+  pdp_state_controller
 )
 
 add_message_files (
   FILES
   MatchSpecificData.msg
   JoystickState.msg
+  AutoMode.msg
   PDPData.msg
 )
 generate_messages(

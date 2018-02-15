@@ -54,16 +54,15 @@ class FRCRobotSimInterface : public ros_control_boilerplate::FRCRobotInterface
 		 */
 		FRCRobotSimInterface(ros::NodeHandle &nh, urdf::Model *urdf_model = NULL);
 
+		virtual void init(void) override;
+
 		/** \brief Read the state from the robot hardware. */
-		virtual void read(ros::Duration &elapsed_time);
+		virtual void read(ros::Duration &elapsed_time) override;
 
 		/** \brief Write the command to the robot hardware. */
-		virtual void write(ros::Duration &elapsed_time);
+		virtual void write(ros::Duration &elapsed_time) override;
 
 	private:
-		// Desired kMode setting, or -1 if no need to change this
-		// time through the update loop
-		std::vector<int> joint_mode_command;
 
 };  // class
 

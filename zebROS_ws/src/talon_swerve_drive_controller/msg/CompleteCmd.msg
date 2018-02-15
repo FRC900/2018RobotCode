@@ -1,3 +1,0 @@
-geometry_msgs/Twist twist_
-trajectory_msgs/JointTrajectory joint_trajectory
-bool cmd_vel_or_points

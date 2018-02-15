@@ -53,6 +53,7 @@
 #include <DoubleSolenoid.h>
 #include <AHRS.h>
 #include <Compressor.h>
+#include <PowerDistributionPanel.h>
 
 namespace frcrobot_control
 {
@@ -93,21 +94,21 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		~FRCRobotHWInterface();
 
 		/** \brief Initialize the hardware interface */
-		virtual void init(void);
+		virtual void init(void) override;
 
 		/** \brief Read the state from the robot hardware. */
-		virtual void read(ros::Duration &elapsed_time);
-
-		/** Get conversion factor for position, velocity, and closed-loop stuff */
-		virtual double getConversionFactor(int encoder_cycle_per_revolution, hardware_interface::FeedbackDevice encoder_feedback, hardware_interface::TalonMode talon_mode, int joint_id);
+		virtual void read(ros::Duration &elapsed_time) override;
 
 		/** \brief Write the command to the robot hardware. */
-		virtual void write(ros::Duration &elapsed_time);
+		virtual void write(ros::Duration &elapsed_time) override;
 
 	protected:
 		void hal_keepalive_thread(void);
 
 	private:
+		/** Get conversion factor for position, velocity, and closed-loop stuff */
+		virtual double getConversionFactor(int encoder_cycle_per_revolution, hardware_interface::FeedbackDevice encoder_feedback, hardware_interface::TalonMode talon_mode, int joint_id);
+
 		bool convertControlMode(const hardware_interface::TalonMode input_mode,
 								ctre::phoenix::motorcontrol::ControlMode &output_mode);
 		bool convertNeutralMode(const hardware_interface::NeutralMode input_mode,
@@ -136,6 +137,8 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;
 		bool        run_hal_thread_;
+
+		//PowerDistributionPanel pdp_joint_;
 
 		ROSIterativeRobot robot_;
 };  // class

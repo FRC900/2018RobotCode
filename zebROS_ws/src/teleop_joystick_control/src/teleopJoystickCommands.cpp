@@ -10,6 +10,8 @@ static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickArmVel;
 static ros::Publisher JoystickRumble;
 
+bool sendRobotZero = false;
+bool sendArmZero = false;
 // TODO : initialize values to meaningful defaults
 bool ifCube = true;
 double elevatorHeight;
@@ -235,12 +237,16 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     vel.angular.z = JoystickState->leftTrigger - JoystickState->rightTrigger;
     vel.angular.x = 0;
     vel.angular.y = 0;
-
-
+    
+    if(fabs(vel.linear.x) != 0 || fabs(vel.linear.y) != 0 || fabs(vel.angular.z) != 0 || sendRobotZero) {
+        JoystickRobotVel.publish(vel);
+    }
+    else {
+        sendRobotZero = true;
+    }
     armPos += .1*rightStickY; //Access current elevator position to fix code allowing out of bounds travel
     arm.command = armPos;
 
-    JoystickRobotVel.publish(vel);
     JoystickArmVel.publish(arm);
 
         //TODO BUMPERS FOR SLOW MODE

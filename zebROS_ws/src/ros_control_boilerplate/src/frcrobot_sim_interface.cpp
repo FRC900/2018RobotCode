@@ -46,6 +46,14 @@ FRCRobotSimInterface::FRCRobotSimInterface(ros::NodeHandle &nh,
 		urdf::Model *urdf_model)
 	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model)
 {
+}
+
+void FRCRobotSimInterface::init(void)
+{
+	// Do base class init. This loads common interface info
+	// used by both the real and sim interfaces
+	FRCRobotInterface::init();
+	
 	// Loop through the list of joint names
 	// specified as params for the hardware_interface.
 	// For each of them, create a Talon object. This
@@ -56,11 +64,9 @@ FRCRobotSimInterface::FRCRobotSimInterface(ros::NodeHandle &nh,
 	// set for that motor controller in config files.
 	// TODO : assert can_talon_srx_names_.size() == can_talon_srx_can_ids_.size()
 	for (size_t i = 0; i < can_talon_srx_names_.size(); i++)
-	{
 		ROS_INFO_STREAM_NAMED("frcrobot_sim_interface",
 							  "Loading joint " << i << "=" << can_talon_srx_names_[i] <<
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
-	}
 
 	// TODO : assert nidec_brushles_names_.size() == nidec_brushles_xxx_channels_.size()
 	for (size_t i = 0; i < nidec_brushless_names_.size(); i++)
@@ -103,6 +109,19 @@ FRCRobotSimInterface::FRCRobotSimInterface(ros::NodeHandle &nh,
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << navX_names_[i] <<
 							  " as navX id" << navX_ids_[i]);
+	for (size_t i = 0; i < num_analog_inputs_; i++)
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << analog_input_names_[i] <<
+							  " as Analog Input " << analog_input_analog_channels_[i]);
+
+	for (size_t i = 0; i < num_compressors_; i++)
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading joint " << i << "=" << compressor_names_[i] <<
+							  " as Compressor with pcm " << compressor_pcm_ids_[i]);
+ 
+	for(size_t i = 0; i < num_dummy_joints_; i++)
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
 
 	ROS_INFO_NAMED("frcrobot_sim_interface", "FRCRobotSimInterface Ready.");
 }
@@ -309,13 +328,10 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			// Assume instant velocity
 			double position;
 
-			const bool position_changed = tc.commandChanged(position);
-			if (invert)
-				position = -position;
-			if (position_changed)
+			if (tc.commandChanged(position))
 				ts.setSetpoint(position);
 
-			ts.setPosition((sensor_phase ? -1 : 1 ) * position);
+			ts.setPosition(position);
 			ts.setSpeed(0);
 		}
 		else if (ts.getTalonMode() == hardware_interface::TalonMode_Velocity)
@@ -323,14 +339,11 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			// Assume instant acceleration for now
 			double speed;
 
-			const bool speed_changed = tc.commandChanged(speed);
-			if (invert)
-				speed = -speed;
-			if (speed_changed)
+			if (tc.commandChanged(speed))
 				ts.setSetpoint(speed);
 
-			ts.setPosition(ts.getPosition() + (sensor_phase ? -1 : 1 ) * speed * elapsed_time.toSec());
-			ts.setSpeed((sensor_phase ? -1 : 1 ) * speed);
+			ts.setPosition(ts.getPosition() + speed * elapsed_time.toSec());
+			ts.setSpeed(speed);
 		}
 		if (tc.clearStickyFaultsChanged())
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");
@@ -383,7 +396,25 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				") right rumble = " << std::dec << right_rumble << "(" << std::hex << right_rumble <<  ")" << std::dec);
 #endif
 	}
-
+	std::stringstream s;
+	for (size_t i = 0; i < num_dummy_joints_; i++)
+	{
+		s << dummy_joint_command_[i] << " ";
+		dummy_joint_effort_[i] = 0;
+		//if (dummy_joint_names_[i].substr(2, std::string::npos) == "_angle")
+		{
+			// position mode
+			dummy_joint_velocity_[i] = (dummy_joint_command_[i] - dummy_joint_position_[i]) / elapsed_time.toSec();
+			dummy_joint_position_[i] = dummy_joint_command_[i];
+		}
+		//else if (dummy_joint_names_[i].substr(2, std::string::npos) == "_drive")
+		{
+			// position mode
+			//dummy_joint_position_[i] += dummy_joint_command_[i] * elapsed_time.toSec();
+			//dummy_joint_velocity_[i] = dummy_joint_command_[i];
+		}
+	}
+	ROS_INFO_STREAM_THROTTLE(1, s.str());
 }
 
 }  // namespace

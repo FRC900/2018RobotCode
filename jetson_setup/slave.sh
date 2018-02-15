@@ -3,12 +3,11 @@
 # Reload IPv6 networking blocks
 sudo sysctl -p
 
-. /home/ubuntu/2017VisionCode/zebROS_ws/ROSJetsonSlave.sh
+. /home/ubuntu/2018RobotCode/zebROS_ws/ROSJetsonSlave.sh
 #echo 1100-1200,443,80,554,1735,5800-5810 > /proc/sys/net/ipv4/ip_local_reserved_ports
 #sudo chmod a+rw /dev/ttyACM0
 
 sudo umount /mnt/900_2
-sudo python /home/ubuntu/2017VisionCode/time_sync_server.py &
 
 export CUDA_CACHE_MAXSIZE=104857600
 export CUDA_CACHE_PATH=/home/ubuntu/.nv/ComputeCache
@@ -20,5 +19,5 @@ else
 	roslaunch controller_node controller_slave.launch
 fi
 
-/home/ubuntu/2017VisionCode/launch/clocks.sh &
+/home/ubuntu/2018RobotCode/jetson_setup/clocks.sh &
 
