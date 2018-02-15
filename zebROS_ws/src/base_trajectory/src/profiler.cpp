@@ -228,7 +228,6 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double &pat
 		sin_t = sin(theta);
 		path_induced_a = current_v*current_v/path.radius;
 		
-		coerce(eff_max_a, 0, max_wheel_mid_accel_); //Consider disabling this coerce
 		
 		// TODO : check return code here
 		// TODO : Use explicit multiply rather than pow() for squaring stuff
@@ -247,8 +246,10 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double &pat
 		ROS_INFO_STREAM("general max: " << current_v);
 		
 		//Check below with vector math
-		eff_max_a = max_wheel_mid_accel_ * 2 * (1 -  (max_wheel_vel_ - sqrt((current_v + max_wheel_orientation_vel * sqrt(2)/2) * (current_v + max_wheel_orientation_vel * sqrt(2)/2) + max_wheel_orientation_vel * max_wheel_orientation_vel / 2)) / max_wheel_vel_);
+		eff_max_a = max_wheel_mid_accel_ * 2 * (1 -  (max_wheel_vel_ - sqrt(current_v * current_v + sqrt(2) * max_wheel_orientation_vel * current_v *(sin_t + cos_t) + max_wheel_orientation_vel *max_wheel_orientation_vel)) / max_wheel_vel_);
 
+		
+		coerce(eff_max_a, 0, max_wheel_mid_accel_); //Consider disabling this coerce
 		v_curve_max = sqrt(eff_max_a * eff_max_a/ (1/(path.radius * path.radius) + sqrt(2) * sin_t * path.angular_accel/path.radius + sqrt(2) * cos_t * path.angular_accel/path.radius + path.angular_accel * path.angular_accel));
 		coerce(current_v, -v_curve_max, v_curve_max);
 		ROS_INFO_STREAM("curve max: " << current_v);
