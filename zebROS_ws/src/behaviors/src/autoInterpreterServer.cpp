@@ -3,6 +3,7 @@
 #include "behaviors/IntakeLiftAction.h"
 #include "elevator_controller/Intake.h"
 #include "elevator_controller/ElevatorControl.msg"
+#include "std_msgs/Bool.h"
 //elevator_controller/cmd_pos
 //elevator_controller/intake?
 bool linebreak = false;
@@ -26,7 +27,8 @@ class autoAction {
             as_.start()
         }
         ros::Publisher Elevator = nh_.advertise<elevator_controller::ElevatorControl>("elevator_controller/cmd_pos", 1);
-        ros::Publisher Intake = nh_.advertise<elevator_controller::Intake>("elevator_controller/Intake", 1);
+        ros::Publisher Intake = nh_.advertise<elevator_controller::Intake>("elevator_controller/intake", 1);
+        ros::Publisher Clamp = nh_.advertise<std_msgs::Bool>("elevator_controller/clamp". 1);
         
         //ros:Subscriber Linebreak = nh_.subscribe("linebreakYAY", 1, checkIntakeLinebreak);
     ~autoAction(void) 
@@ -47,6 +49,7 @@ class autoAction {
             }
             else if(PlaceCube) {
                 elevator_controller::ElevatorControl msg;
+                std_msgs::Bool ClampMsg;
                 msg->x = goal->x;
                 msg->y = goal->y;
                 msg->up_or_down = false;
@@ -55,7 +58,10 @@ class autoAction {
                 }
                 msg->override_pos_limits = false;
                 msg->override_sensor_limits = false;
+                ClampMsg->data = true;
                 Elevator.publish(msg);
+                ros::Duration(.3).sleep();
+                Clamp.publish(ClampMsg);
             }
             r.sleepOnce();
             ros::spin();

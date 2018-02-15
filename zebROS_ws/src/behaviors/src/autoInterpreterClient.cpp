@@ -25,7 +25,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         if(AutoMode->mode==1) {
             //3 cube switch-scale-scale
                 //0: Time 0: Go to switch config && drop and start intake
-                ros::Duration(.2);
+                ros::Duration(.2).sleep();
 
                 elevator_controller::Intake IntakeMsg;
                 elevator_controller::ElevatorControl ElevatorMsg;
@@ -43,12 +43,12 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                 IntakeMsg.power=.8;
 
                 ElevatorPub.publish(ElevatorMsg);
-                ros::Duration(.2);
+                ros::Duration(.2).sleep();
                 ClampPub.publish(ClampMsg);
-
+                IntakePub.publish(IntakeMsg);
                 //1: Time 1: Release Clamp && go to default config
-                ros::Duration(.2);
-
+                ros::Duration(.2).sleep();
+                
                 //2: Time 1.5: go to intake config
                 //3: Linebreak sensor: Clamp && release intake && stop running intake
                 //4: Success of command 3: go to mid scale config && soft-in intake
