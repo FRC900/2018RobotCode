@@ -540,24 +540,19 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	auto &ps = pdp_state_;
 	static int32_t status = 0;
 	ps.setVoltage(HAL_GetPDPVoltage(0, &status));
-	ROS_INFO_STREAM("status after voltage is" << status);
-	status = 0;
 	ps.setTemperature(HAL_GetPDPTemperature(0, &status));
 	ps.setTotalCurrent(HAL_GetPDPTotalCurrent(0, &status));
 	ps.setTotalPower(HAL_GetPDPTotalPower(0, &status));
-	ROS_INFO_STREAM("status after total power is" << status);
-	status = 0;
-	ROS_INFO_STREAM("status after setting to zero is" << status);
+	//ROS_INFO_STREAM("status after total power is" << status);
+	//ROS_INFO_STREAM("status after setting to zero is" << status);
 	ps.setTotalEnergy(HAL_GetPDPTotalEnergy(0, &status));
-	ROS_INFO_STREAM("status RIIIIIGHT before current is: " << status << ".........................");
-	status = 0;
+	//ROS_INFO_STREAM("status RIIIIIGHT before current is: " << status << ".........................");
 	for(int channel = 0; channel <= 15; channel++)
 	{
 		ps.setCurrent(HAL_GetPDPChannelCurrent(0, channel, &status), channel);
 	}
 
-	ROS_INFO_STREAM("status is: " << status << ".........................");
-	status = 0;
+	//ROS_INFO_STREAM("status is: " << status << ".........................");
 
 	/*ps.setVoltage(pdp_joint_.GetVoltage());
 	ps.setTemperature(pdp_joint_.GetTemperature());
