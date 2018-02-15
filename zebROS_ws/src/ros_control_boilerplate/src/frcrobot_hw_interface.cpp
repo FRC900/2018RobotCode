@@ -44,18 +44,23 @@
 #include <ros_control_boilerplate/JoystickState.h>
 #include "HAL/DriverStation.h"
 #include "HAL/HAL.h"
+#include "HAL/PDP.h"
+#include "HAL/Ports.h"
 #include "Joystick.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
+#include "ros_control_boilerplate/AutoMode.h"
+#include "math.h"
 #include <cmath>
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
+#include <SmartDashboard/SendableBuilder.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/String.h>
-#include <std_msgs/Int32.h>
 #include <ctre/phoenix/MotorControl/SensorCollection.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include "ros_control_boilerplate/PDPData.h"
 #include <PowerDistributionPanel.h>
+#include <stdint.h>
 
 namespace frcrobot_control
 {
@@ -78,18 +83,14 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	run_hal_thread_ = true;
 	Joystick joystick(0);
-	PowerDistributionPanel pdp(0); //sets module to 0?
-	pdp.ClearStickyFaults();
-	pdp.ResetTotalEnergy();
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::PDPData> realtime_pub_pdp(nh_, "pdp_data", 4);
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-	realtime_tools::RealtimePublisher<std_msgs::String> realtime_pub_nt(nh_, "autonomous_mode", 4);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
 
 	while (run_hal_thread_)
 	{
@@ -107,9 +108,14 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 				// TODO eventually add header to nt message so we can get timestamps
 				// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
-				realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
+				//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
+			    realtime_pub_nt.msg_.mode = driveTable->GetNumber("auto_mode", 0);
+			    realtime_pub_nt.msg_.position = driveTable->GetNumber("robot_start_position", 0);
 			}
 
+			// TODO eventually add header to nt message so we can get timestamps
+			// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
+            realtime_pub_nt.msg_.header.stamp = ros::Time::now();
 			realtime_pub_nt.unlockAndPublish();
 		}
 
@@ -180,27 +186,13 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.matchNumber = DriverStation::GetInstance().GetMatchNumber();
 			realtime_pub_match_data.msg_.matchType = DriverStation::GetInstance().GetMatchType(); //returns int that corresponds to a DriverStation matchType enum
 
+			realtime_pub_match_data.msg_.isEnabled = DriverStation::GetInstance().IsEnabled();
+			realtime_pub_match_data.msg_.isDisabled = DriverStation::GetInstance().IsDisabled();
+			realtime_pub_match_data.msg_.isAutonomous = DriverStation::GetInstance().IsAutonomous();
+
 			realtime_pub_match_data.unlockAndPublish();
 		}
 
-		//read data from the PDP
-		if(realtime_pub_pdp.trylock())
-		{
-			realtime_pub_pdp.msg_.header.stamp = ros::Time::now();
-
-			realtime_pub_pdp.msg_.voltage = pdp.GetVoltage();
-			realtime_pub_pdp.msg_.temperature = pdp.GetTemperature();
-			realtime_pub_pdp.msg_.totalCurrent = pdp.GetTotalCurrent();
-			realtime_pub_pdp.msg_.totalPower = pdp.GetTotalPower();
-			realtime_pub_pdp.msg_.totalEnergy = pdp.GetTotalEnergy();
-
-			for(int channel = 0; channel <= 15; channel++)
-			{
-				realtime_pub_pdp.msg_.current[channel] = pdp.GetCurrent(channel);
-			}
-
-			realtime_pub_pdp.unlockAndPublish();
-		}
 	}
 }
 
@@ -323,9 +315,15 @@ void FRCRobotHWInterface::init(void)
 
 		compressors_.push_back(std::make_shared<frc::Compressor>(compressor_pcm_ids_[i]));
 	}
-	
-	pdp_joint_.ClearStickyFaults();
-	pdp_joint_.ResetTotalEnergy();
+
+	for(size_t i = 0; i < num_dummy_joints_; i++)
+		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
+							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
+
+	//pdp_joint_.ClearStickyFaults();
+	//pdp_joint_.ResetTotalEnergy();
+
+	HAL_InitializePDP(0,0);
 
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
@@ -540,7 +538,23 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	
 	//read info from the PDP hardware
 	auto &ps = pdp_state_;
-	ps.setVoltage(pdp_joint_.GetVoltage());
+	static int32_t status = 0;
+	ps.setVoltage(HAL_GetPDPVoltage(0, &status));
+	ps.setTemperature(HAL_GetPDPTemperature(0, &status));
+	ps.setTotalCurrent(HAL_GetPDPTotalCurrent(0, &status));
+	ps.setTotalPower(HAL_GetPDPTotalPower(0, &status));
+	//ROS_INFO_STREAM("status after total power is" << status);
+	//ROS_INFO_STREAM("status after setting to zero is" << status);
+	ps.setTotalEnergy(HAL_GetPDPTotalEnergy(0, &status));
+	//ROS_INFO_STREAM("status RIIIIIGHT before current is: " << status << ".........................");
+	for(int channel = 0; channel <= 15; channel++)
+	{
+		ps.setCurrent(HAL_GetPDPChannelCurrent(0, channel, &status), channel);
+	}
+
+	//ROS_INFO_STREAM("status is: " << status << ".........................");
+
+	/*ps.setVoltage(pdp_joint_.GetVoltage());
 	ps.setTemperature(pdp_joint_.GetTemperature());
 	ps.setTotalCurrent(pdp_joint_.GetTotalCurrent());
 	ps.setTotalPower(pdp_joint_.GetTotalPower());
@@ -548,10 +562,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for(int channel = 0; channel <= 15; channel++)
 	{
 		ps.setCurrent(pdp_joint_.GetCurrent(channel), channel);
-	}
-	
-	//read stuff from the actual PDP and put it in the object. then, the controller will put that stuff in a msg.
-	
+	}*/
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
@@ -628,6 +639,7 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 		case ctre::phoenix::InvalidParamValue :
 			error_name = "InvalidParamValue/CAN_INVALID_PARAM";
 			break;
+
 		case ctre::phoenix::RxTimeout :
 			error_name = "RxTimeout/CAN_MSG_NOT_FOUND";
 			break;
@@ -1069,6 +1081,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					break;
 			}
 
+
 			talon->Set(out_mode, command);
 			safeTalonCall(talon->GetLastError(), "Set");
 		}
@@ -1098,6 +1111,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		digital_outputs_[i]->Set(converted_command);
 	}
 	for (size_t i = 0; i < num_pwm_; i++)
+
 	{
 		int inverter  = (pwm_inverts_[i]) ? -1 : 1;
 		PWMs_[i]->SetSpeed(pwm_command_[i]*inverter);
@@ -1116,6 +1130,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		else if (double_solenoid_command_[i] <= -1.0)
 			setpoint = DoubleSolenoid::Value::kReverse;
 
+
 		double_solenoids_[i]->Set(setpoint);
 	}
 	for (size_t i = 0; i < num_rumble_; i++)
@@ -1127,6 +1142,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 	}
 	for (size_t i = 0; i< num_compressors_; i++)
 	{
+
 		bool setpoint = compressor_command_[i] > 0;
 		compressors_[i]->SetClosedLoopControl(setpoint);
 	}
@@ -1292,4 +1308,4 @@ bool FRCRobotHWInterface::convertLimitSwitchNormal(
 
 }
 
-}  // namespace
+}

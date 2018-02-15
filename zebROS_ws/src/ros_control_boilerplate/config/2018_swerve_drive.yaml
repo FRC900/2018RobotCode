@@ -1,0 +1,97 @@
+#TODO: FIX ALL CONSTANTS
+swerve_drive_controller:
+    type:       talon_swerve_drive_controller/TalonSwerveDriveController
+    
+    speed: ['speed_joint_fl', 'speed_joint_fr', 'speed_joint_bl', 'speed_joint_br']
+    steering: ['steering_joint_fl', 'steering_joint_fr', 'steering_joint_bl', 'steering_joint_br']
+    publish_rate: 50
+    pose_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
+    twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
+    # fix me
+    wheel_radius: 0.041275 # m
+    max_speed: 3.3528
+    mass: 70
+    motor_free_speed: 5330
+    motor_stall_torque: 2.41
+    motor_quantity: 4
+    file_name: "offsets.txt"
+    invert_wheel_angle: False
+    ratio_encoder_to_rotations: 0.525
+    ratio_motor_to_rotations: .35  
+    ratio_motor_to_steering: 100 # that's what Bram said
+    encoder_drive_get_V_units: 1 #TODO: 12.0008839 - this is the value with the 1.9:1 gear ration factored in but it causes errors for some reason?
+    encoder_drive_set_V_units: 1 #12.0008839
+    encoder_drive_get_P_units: 1 
+    encoder_drive_set_P_units: 1
+    encoder_steering_get_units: 1
+    encoder_steering_set_units: 1
+    wheel_coords1x: -0.3048
+    wheel_coords1y: 0.3048   
+    wheel_coords2x: 0.3048
+    wheel_coords2y: 0.3048 
+    wheel_coords3x: -0.3048
+    wheel_coords3y: -0.3048   
+    wheel_coords4x: 0.3048
+    wheel_coords4y: -0.3048   
+ 
+    cmd_vel_timeout: 0.5 # we test this separately, give plenty for the other tests
+    speed_joint_fl:
+        joint: fl_drive #fix pid
+        close_loop_values:
+            - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
+            - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
+        sensor_phase: True
+        feedback_type: CTRE_MagEncoder_Relative
+    speed_joint_fr:
+        joint: fr_drive #fix pid
+        close_loop_values:
+            - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
+            - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
+        sensor_phase: True
+        feedback_type: CTRE_MagEncoder_Relative
+    speed_joint_bl:
+        joint: bl_drive #fix pid
+        close_loop_values:
+            - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
+            - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
+        sensor_phase: True
+        feedback_type: CTRE_MagEncoder_Relative
+    speed_joint_br:
+        joint: br_drive #fix pid
+        close_loop_values:
+            - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
+            - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
+        sensor_phase: True
+        feedback_type: CTRE_MagEncoder_Relative
+    steering_joint_fl:
+        joint: fl_angle
+        close_loop_values:
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+        invert_output: False
+        sensor_phase: True
+        feedback_type: CTRE_MagEncoder_Absolute
+    steering_joint_fr:
+        joint: fr_angle
+        close_loop_values:
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+        invert_output: False
+        sensor_phase: True
+        feedback_type: CTRE_MagEncoder_Absolute
+    steering_joint_br:
+        joint: br_angle
+        close_loop_values:
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+        invert_output: False
+        sensor_phase: True
+        feedback_type: CTRE_MagEncoder_Absolute
+    steering_joint_bl:
+        joint: bl_angle
+        close_loop_values:
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+            - {p: 6, i: 0.0006, d: 60, f: 0, i_zone: 700}
+        invert_output: False
+        sensor_phase: True
+        feedback_type: CTRE_MagEncoder_Absolute

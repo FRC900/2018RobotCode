@@ -3,13 +3,13 @@
 
   Simulate a differential drive robot with the teb_local_planner in stage:
   - stage
-  - map_server
   - move_base
-  - static map
-  - amcl
+  - (static map and map server and amcl) or gmapping
   - rviz view
  -->
 <launch>
+
+	<arg name="static_map" default="True"/>
 
 	<!--  ************** Global Parameters ***************  -->
 	<param name="/use_sim_time" value="true"/>
@@ -38,11 +38,11 @@
 
 
 	<!--  ****** Maps *****  -->
-	<node name="map_server" pkg="map_server" type="map_server" args="$(find controller_node)/maps/2018FRC_field_half_size.yaml" output="screen">
+	<node name="map_server" pkg="map_server" type="map_server" args="$(find controller_node)/maps/2018FRC_field_half_size.yaml" output="screen" if="$(arg static_map)">
 		<param name="frame_id" value="/map"/>
 	</node>
 
-	<node pkg="amcl" type="amcl" name="amcl" output="screen">
+	<node pkg="amcl" type="amcl" name="amcl" output="screen" if="$(arg static_map)">
 		<rosparam file="$(find controller_node)/config/amcl_params.yaml" command="load" />
 
  		<!-- We have a holonomic robot! Overwrite yaml config here! -->
@@ -52,6 +52,10 @@
 		<param name="initial_pose_y"            value="2"/>
 		<param name="initial_pose_a"            value="0"/>
 	</node>
+
+  <include file="$(find controller_node)/launch/gmapping.launch" unless="$(arg static_map)"/>
+
+
 	<node pkg="controller_node" name="set_global_planner_mode" type="set_global_planner_mode.py" output="screen"/>
 	
 

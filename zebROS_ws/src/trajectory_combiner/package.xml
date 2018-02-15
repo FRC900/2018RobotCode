@@ -37,6 +37,7 @@
   <depend>talon_interface</depend>
   <depend>message_runtime</depend>
   <depend>ros_control_boilerplate</depend>
+  <depend>talon_swerve_drive_controller</depend>
   
 
 
