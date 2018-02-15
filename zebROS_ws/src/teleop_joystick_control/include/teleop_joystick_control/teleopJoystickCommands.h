@@ -14,6 +14,7 @@
 #include "message_filters/sync_policies/approximate_time.h"
 #include <string>
 #include <cmath>
+#include <math.h>
 #include <Eigen/Dense>
 #include <sensor_msgs/Imu.h>
 #include <tf2/LinearMath/Quaternion.h>

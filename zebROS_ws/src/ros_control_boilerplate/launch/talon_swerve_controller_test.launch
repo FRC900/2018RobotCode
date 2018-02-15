@@ -40,9 +40,6 @@
 
 		<!-- Convert joint states to /tf tranforms -->
 		<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
-		<node name="trajectorySubscriber" pkg="trajectory_combiner" type="trajectorySubscriber"
-                        output="screen" >
-                </node>
 	</group>
 
 </launch>

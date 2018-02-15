@@ -1,6 +1,10 @@
 Header header
 bool left_up
 bool left_down
+bool up
+bool soft_in
+bool hard_in
+bool out
 bool right_up
 bool right_down
 bool spring_left_in
