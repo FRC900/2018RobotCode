@@ -11,7 +11,7 @@
 static int startPos = -1;
 static int autoMode = -1;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
-
+    //ROS_INFO("Mode: %d, Start Position: %d", AutoMode->mode, AutoMode->position);
     if(MatchData->isAutonomous) {
         actionlib::SimpleActionClient<behaviors::IntakeLiftAction> ac("AutoServer", true);
         //Field config 1
@@ -88,6 +88,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         if(autoMode == AutoMode->mode || startPos == AutoMode->position) {
             autoMode = AutoMode->mode;
             startPos = AutoMode->position;
+            //TODO generate 4 motion profiles
         }
     }
 }
