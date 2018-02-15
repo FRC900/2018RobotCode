@@ -48,7 +48,6 @@
 
 #include <geometry_msgs/TwistStamped.h>
 #include <sensor_msgs/JointState.h>
-#include <talon_swerve_drive_controller/CompleteCmd.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/tfMessage.h>
 

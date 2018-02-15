@@ -9,7 +9,6 @@
 #include "behaviors/IntakeLiftAction.h"
 #include "elevator_controller/Intake.h"
 #include "elevator_controller/ElevatorControl.h"
-#include "elevator_controller/Clamp.h"
 #include "std_msgs/Bool.h"
 
 static int startPos = -1;

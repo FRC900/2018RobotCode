@@ -612,6 +612,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	// MOVE ROBOT
 	// Retreive current velocity command and time step:
 
+	ROS_INFO_STREAM("mode: " << *(mode_.readFromRT())); 
+
 	if(*(mode_.readFromRT()))
 	{
 		Commands curr_cmd = *(command_.readFromRT());
@@ -663,7 +665,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			speed_joints_[i].setMode(motion_profile);
 			steering_joints_[i].setMode(motion_profile);
 		}
-
+		ROS_WARN("motion profile mode");
 		const int set_on  = *(run_.readFromRT()) ? 1 : 0;
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
@@ -1055,12 +1057,13 @@ bool TalonSwerveDriveController::getWheelNames(ros::NodeHandle &controller_nh,
 
 	return true;
 }
+}
 /*
   bool TalonSwerveDriveController::setOdomParamsFromUrdf(ros::NodeHandle& root_nh,
                              const std::string& steering_name,
                              const std::string& speed_name,
                              bool lookup_wheel_radius)
-  {
+  //{
     if (!(lookup_wheel_radius))
     {
       // Short-circuit in case we don't need to look up anything, so we don't have to parse the URDF
@@ -1132,5 +1135,5 @@ bool TalonSwerveDriveController::getWheelNames(ros::NodeHandle &controller_nh,
     tf_odom_pub_->msg_.transforms[0].header.frame_id = odom_frame_id_;
   }
 */
-}
+//}
 
