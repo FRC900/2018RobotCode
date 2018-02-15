@@ -88,15 +88,15 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
-//std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
-//std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
+	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
+	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
 
 	while (run_hal_thread_)
 	{
 		robot_.OneIteration();
 
-		/*if (realtime_pub_nt.trylock())
+		if (realtime_pub_nt.trylock())
 		{
 			// Network tables work!
 			//pubTable->PutString("String 9", "WORK");
@@ -117,7 +117,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
             realtime_pub_nt.msg_.header.stamp = ros::Time::now();
 			realtime_pub_nt.unlockAndPublish();
-		}*/
+		}
 
 		if (realtime_pub_joystick.trylock())
 		{
