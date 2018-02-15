@@ -44,6 +44,8 @@
 #include <ros_control_boilerplate/JoystickState.h>
 #include "HAL/DriverStation.h"
 #include "HAL/HAL.h"
+#include "HAL/PDP.h"
+#include "HAL/Ports.h"
 #include "Joystick.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
 #include "ros_control_boilerplate/AutoMode.h"
@@ -51,12 +53,14 @@
 #include <cmath>
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
+#include <SmartDashboard/SendableBuilder.h>
 #include <geometry_msgs/Twist.h>
 #include <std_msgs/String.h>
 #include <ctre/phoenix/MotorControl/SensorCollection.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include "ros_control_boilerplate/PDPData.h"
 #include <PowerDistributionPanel.h>
+#include <stdint.h>
 
 namespace frcrobot_control
 {
@@ -316,8 +320,10 @@ void FRCRobotHWInterface::init(void)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
 
-	pdp_joint_.ClearStickyFaults();
-	pdp_joint_.ResetTotalEnergy();
+	//pdp_joint_.ClearStickyFaults();
+	//pdp_joint_.ResetTotalEnergy();
+
+	HAL_InitializePDP(0,0);
 
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
@@ -532,7 +538,23 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	
 	//read info from the PDP hardware
 	auto &ps = pdp_state_;
-	ps.setVoltage(pdp_joint_.GetVoltage());
+	static int32_t status = 0;
+	ps.setVoltage(HAL_GetPDPVoltage(0, &status));
+	ps.setTemperature(HAL_GetPDPTemperature(0, &status));
+	ps.setTotalCurrent(HAL_GetPDPTotalCurrent(0, &status));
+	ps.setTotalPower(HAL_GetPDPTotalPower(0, &status));
+	//ROS_INFO_STREAM("status after total power is" << status);
+	//ROS_INFO_STREAM("status after setting to zero is" << status);
+	ps.setTotalEnergy(HAL_GetPDPTotalEnergy(0, &status));
+	//ROS_INFO_STREAM("status RIIIIIGHT before current is: " << status << ".........................");
+	for(int channel = 0; channel <= 15; channel++)
+	{
+		ps.setCurrent(HAL_GetPDPChannelCurrent(0, channel, &status), channel);
+	}
+
+	//ROS_INFO_STREAM("status is: " << status << ".........................");
+
+	/*ps.setVoltage(pdp_joint_.GetVoltage());
 	ps.setTemperature(pdp_joint_.GetTemperature());
 	ps.setTotalCurrent(pdp_joint_.GetTotalCurrent());
 	ps.setTotalPower(pdp_joint_.GetTotalPower());
@@ -540,10 +562,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for(int channel = 0; channel <= 15; channel++)
 	{
 		ps.setCurrent(pdp_joint_.GetCurrent(channel), channel);
-	}
-	
-	//read stuff from the actual PDP and put it in the object. then, the controller will put that stuff in a msg.
-	
+	}*/
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
