@@ -612,7 +612,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	// MOVE ROBOT
 	// Retreive current velocity command and time step:
 
-	ROS_INFO_STREAM("mode: " << *(mode_.readFromRT())); 
+	//ROS_INFO_STREAM("mode: " << *(mode_.readFromRT())); 
 
 	if(*(mode_.readFromRT()))
 	{
@@ -665,7 +665,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			speed_joints_[i].setMode(motion_profile);
 			steering_joints_[i].setMode(motion_profile);
 		}
-		ROS_WARN("motion profile mode");
+		//ROS_WARN("motion profile mode");
 		const int set_on  = *(run_.readFromRT()) ? 1 : 0;
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
