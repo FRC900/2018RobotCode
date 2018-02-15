@@ -131,8 +131,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 
 
 
-	Clamp      	  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);
-
+	Clamp      	      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);
 	IntakeLeftUp      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_left_up_controller/command", 1);
 	IntakeRightUp     = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_right_up_controller/command", 1);
 	IntakeRightSpring = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_right_spring_controller/command", 1);
