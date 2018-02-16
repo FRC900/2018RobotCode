@@ -18,6 +18,9 @@ class autoAction {
         std::string action_name_;
         behaviors::IntakeLiftFeedback feedback_;
         behaviors::IntakeLiftResult result_;
+        ros::Publisher Elevator;
+        ros::Publisher Intake;
+        ros::Publisher Clamp; 
 
     public:
         autoAction(std::string name) :
@@ -25,10 +28,11 @@ class autoAction {
             action_name_(name)
         {
             as_.start();
+            Elevator = nh_.advertise<elevator_controller::ElevatorControl>("elevator_controller/cmd_pos", 1);
+            Intake = nh_.advertise<elevator_controller::Intake>("elevator_controller/intake", 1);
+            Clamp = nh_.advertise<std_msgs::Bool>("elevator_controller/clamp", 1);
         }
-        ros::Publisher Elevator = nh_.advertise<elevator_controller::ElevatorControl>("elevator_controller/cmd_pos", 1);
-        ros::Publisher Intake = nh_.advertise<elevator_controller::Intake>("elevator_controller/intake", 1);
-        ros::Publisher Clamp = nh_.advertise<std_msgs::Bool>("elevator_controller/clamp", 1);
+
         
         //ros:Subscriber Linebreak = nh_.subscribe("linebreakYAY", 1, checkIntakeLinebreak);
     ~autoAction(void) 

@@ -10,7 +10,6 @@
 //#include <teleop_joystick_control/RobotState.h>
 #include <elevator_controller/ElevatorControl.h>
 #include <elevator_controller/Intake.h>
-#include <elevator_controller/Clamp.h>
 #include <elevator_controller/ReturnElevatorCmd.h>
 #include <elevator_controller/arm_limiting.h>
 
@@ -44,6 +43,7 @@ class ElevatorController
 		void starting(const ros::Time &time);
 
 	private:
+
 		double lift_position;
 		double pivot_angle;
 
@@ -56,6 +56,7 @@ class ElevatorController
 
 		double max_extension_;
 		double min_extension_;
+		double intake_down_time_;
 	
 		double hook_depth_;
 		double hook_min_height_;
@@ -64,12 +65,10 @@ class ElevatorController
 	
 		struct IntakeCommand //This struct is highly subject to change
 		{			
-			double left_command;
-			double right_command;
-			double spring_left;
-			double spring_right;
+			double up_command;
+			int32_t spring_command;
 			double power;
-			IntakeCommand() : left_command(0.0),right_command(0.0), spring_left(0.0), spring_right(0.0), power(0.0) {}
+			IntakeCommand() : up_command(0.0), spring_command(0.0), power(0.0) {}
 	
 		};
 		//ros::Publisher RobotStatePub;
@@ -99,10 +98,9 @@ class ElevatorController
 		
 		ros::Publisher Clamp; 
 		
-		ros::Publisher IntakeLeftUp; 
-		ros::Publisher IntakeRightUp; 
-		ros::Publisher IntakeRightSpring; 
-		ros::Publisher IntakeLeftSpring; 
+		ros::Publisher IntakeUp; 
+		ros::Publisher IntakeHardSpring; 
+		ros::Publisher IntakeSoftSpring; 
 
 		ros::Publisher ReturnCmd; 
 		
@@ -113,7 +111,7 @@ class ElevatorController
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
 		void intakeCallback(const elevator_controller::Intake& command);
-		void clampCallback(const elevator_controller::Clamp& command); 
+		void clampCallback(const std_msgs::Bool& command); 
 		//Add Callback for intake pneumatics, probably needs to be a custom msg
 	
 		std::shared_ptr<arm_limiting::arm_limits> arm_limiter;

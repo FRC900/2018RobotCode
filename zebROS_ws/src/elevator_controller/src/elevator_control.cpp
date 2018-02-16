@@ -9,7 +9,15 @@ namespace elevator_controller
 ElevatorController::ElevatorController():
 	if_cube_(false),
 	clamp_cmd_(false),
-	arm_length_(0.0)
+	arm_length_(0.0),
+	pivot_offset_(0.0),
+	lift_offset_(0.0),
+	max_extension_(0.0),
+	min_extension_(0.0),
+	hook_depth_(0.0),
+	hook_min_height_(0.0),
+	hook_max_height_(0.0),
+	intake_down_time_(0.0)
 {
 }
 
@@ -98,11 +106,11 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 
 	srv_req.config = confP;
 
-	ros::service::call("/frcrobot/pivot/updates", srv_req, srv_resp);
+	ros::service::call("/frcrobot/pivot_joint/parameter_updates", srv_req, srv_resp);
 
 	srv_req.config = confL;
 
-	ros::service::call("/frcrobot/lift/updates", srv_req, srv_resp);
+	ros::service::call("/frcrobot/lift_joint/parameter_updates", srv_req, srv_resp);
 
 	//Set soft limits using offsets here
 
@@ -131,11 +139,10 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 
 
 
-	Clamp      	      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);
-	IntakeLeftUp      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_left_up_controller/command", 1);
-	IntakeRightUp     = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_right_up_controller/command", 1);
-	IntakeRightSpring = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_right_spring_controller/command", 1);
-	IntakeLeftSpring  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_left_spring_controller/command", 1);
+	Clamp      	  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);
+	IntakeUp      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_up_controller/command", 1);
+	IntakeSoftSpring = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_soft_controller/command", 1);
+	IntakeHardSpring = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_hard_controller/command", 1);
 
 
 	ReturnCmd  = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);
@@ -159,25 +166,37 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 
 	intake_joint_.setCommand(intake_struct_.power);
 
-	std_msgs::Float64 holder_msg;
 
-	holder_msg.data = intake_struct_.left_command;
-	IntakeLeftUp.publish(holder_msg);
+	if(intake_struct_.up_command < 0)
+	{
+		IntakeUp.publish(-1.0);
+		intake_down_time_ = ros::Time::now().toSec();
+	}
+	else
+	{
+		if((ros::Time::now().toSec() - intake_down_time_) < .25)
+		{
+			IntakeUp.publish(1.0);
+		}
+		else
+		{
+			IntakeUp.publish(0.0);
+		}
+	}
+	//Delay stuff maybe?
 
-	holder_msg.data = intake_struct_.right_command;
-	IntakeRightUp.publish(holder_msg);
+	switch(intake_struct_.spring_command)
+	{
+		default: IntakeSoftSpring.publish(1.0);
+			 IntakeHardSpring.publish(0.0);
+		case 1:  IntakeSoftSpring.publish(0.0);
+			 IntakeHardSpring.publish(-1.0);
+		case 3:  IntakeSoftSpring.publish(0.0);
+			 IntakeHardSpring.publish(1.0);
+			  
+	}	
 
-	holder_msg.data = intake_struct_.spring_left;
-	IntakeLeftSpring.publish(holder_msg);
-
-	holder_msg.data = intake_struct_.spring_right;
-	IntakeRightSpring.publish(holder_msg);
-
-
-
-
-	holder_msg.data = clamp_cmd_;
-	Clamp.publish(holder_msg);
+	Clamp.publish(clamp_cmd_);
 
 
 	elevator_controller::ReturnElevatorCmd return_holder;
@@ -263,22 +282,18 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
 	}
 }
-void ElevatorController::clampCallback(const elevator_controller::Clamp &command)
+void ElevatorController::clampCallback(const std_msgs::Bool &command)
 {
 
 	if(isRunning())
 	{
-		if(command.in)
-		{
-			clamp_cmd_ = -1.0;
-		}
-		else if(command.out)
+		if(command.data)
 		{
 			clamp_cmd_ = 1.0;
 		}
 		else
 		{
-			clamp_cmd_ = 0.0;
+			clamp_cmd_ = -1.0;
 		}
 
 	}
@@ -294,60 +309,17 @@ void ElevatorController::intakeCallback(const elevator_controller::Intake &comma
 	{
 		intake_struct_.power = command.power;
 
-
-		if(command.left_up)
+		if(command.up)
 		{
-			intake_struct_.left_command = -1.0;
-		}
-		else if(command.left_down)
-		{
-			intake_struct_.left_command = 1.0;
+			intake_struct_.up_command = -1.0;
 		}
 		else
 		{
-			intake_struct_.left_command = 0.0;
+			intake_struct_.up_command = 1.0;
 		}
 
-		if(command.right_up)
-		{
-			intake_struct_.right_command = -1.0;
-		}
-		else if(command.right_down)
-		{
-			intake_struct_.right_command = 1.0;
-		}
-		else
-		{
-			intake_struct_.right_command = 0.0;
-		}
-
-
-		if(command.spring_left_out)
-		{
-			intake_struct_.spring_left = -1.0;
-		}
-		else if(command.spring_left_in)
-		{
-			intake_struct_.spring_left = 1.0;
-		}
-		else
-		{
-			intake_struct_.spring_left = 0.0;
-		}
-
-
-		if(command.spring_right_out)
-		{
-			intake_struct_.spring_right = -1.0;
-		}
-		else if(command.spring_right_in)
-		{
-			intake_struct_.spring_right = 1.0;
-		}
-		else
-		{
-			intake_struct_.spring_right = 0.0;
-		}
+		intake_struct_.spring_command = command.spring_state;	
+	
 	}
 	else
 	{

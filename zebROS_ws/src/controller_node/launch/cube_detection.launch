@@ -5,12 +5,12 @@
   <arg name="resolution" default="2" />
   <arg name="frame_rate" default="60" />
   <arg name="quality" default="3" />
-  <arg name="brightness" default="2" />
+  <arg name="brightness" default="-1" />
   <arg name="contrast" default="5" />
   <arg name="hue" default="6" />
-  <arg name="saturation" default="3" />
-  <arg name="gain" default="0" />
-  <arg name="exposure" default="45" />
+  <arg name="saturation" default="-1" />
+  <arg name="gain" default="-1" />
+  <arg name="exposure" default="-1" />
   <arg name="whitebalance" default="-1" />
   <arg name="name" default="zed_goal" />
 

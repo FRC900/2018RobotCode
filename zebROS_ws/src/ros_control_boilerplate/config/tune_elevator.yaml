@@ -1,0 +1,108 @@
+# ros_control_boilerplate Settings -----------------------
+# Settings for ros_control control loop
+generic_hw_control_loop:
+  loop_hz: 100
+  cycle_time_error_threshold: 0.01
+
+# Settings for ros_control hardware interface
+# Map a name for each valid joint to a CAN id
+# For future expansion, change hw_id to specify one
+# of several types of HW interface : CAN_id, PWM_id, DIO_id, AIO_id, etc.
+hardware_interface:
+   joints:
+       #- {name: talon_1, type: can_talon_srx, can_id: 3}
+       #- {name: talon_2, type: can_talon_srx, can_id: 9}
+       - {name: lift_joint, type: can_talon_srx, can_id: 41}  
+       - {name: pivot_joint, type: can_talon_srx, can_id: 51}  
+       - {name: lift_follower1, type: can_talon_srx, can_id: 42}
+       - {name: lift_follower2, type: can_talon_srx, can_id: 43}
+       #- {name: talon_3, type: can_talon_srx, can_id: 3}
+       #- {name: talon_4, type: can_talon_srx, can_id: 4}
+       #- {name: talon_5, type: can_talon_srx, can_id: 5}
+       #- {name: nidec_brushless_1, type: nidec_brushless, pwm_channel: 1, dio_channel: 1}
+
+   # Add more data for each joint here - intitial mode, encoder type
+   #    PIDF settings, limit switch settings, etc
+
+   # Not used for now, maybe not used at all if sim
+   # is aware of Talon mode switching
+   sim_control_mode: 1 # 0: position, 1: velocity
+
+# Create controllers for each joint
+#
+# Entry is the name of the controller. It can be anything.  
+# It will create a namespace with that name under the main
+# controller namespace. Subscribed topics for that controller
+# will be most often show up under 
+# <top level controller manager ns>/<controller ns>/topic
+# e.g.
+# /frcrobot/joint1_talon_controller/command
+# /frcrobot/joint2_talon_controller/command
+# /frcrobot/talon_states
+#
+# This one creates the /talon_states topic necessary in ROS
+# It doesn't actually control anything, just takes the internal
+# encoder state used by the hw manager and publishes it as
+# a ROS topic.  This is generic ROS stuff, so we'll have
+# to figure out what to map e.g. effort to in the Talon world
+talon_state_controller:
+   type:         talon_state_controller/TalonStateController
+   publish_rate: 50
+
+# Similar to above, but this one prints non-Talon state
+# (stuff that fits into the more standard ROS position/
+# speed/effort paradigm)
+joint_state_controller:
+   type:         joint_state_controller/JointStateController
+   publish_rate: 100
+
+pivot_joint_controller:
+    type: talon_controllers/TalonPercentOutputController
+    joint: pivot_joint
+    feedback_type: CTRE_MagEncoder_Absolute
+    close_loop_values:
+        - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+        - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
+    invert_output: False
+    sensor_phase: False
+    peak_output_forward: 1.0
+    peak_output_reverse: -1.0
+    nominal_output_forward: 0.0
+    nominal_output_reverse: 0.0
+    motion_cruise_velocity: 32
+    motion_acceleration: 150
+    voltage_compensation_enable: true
+    softlimit_forward_threshold: 0
+    softlimit_forward_threshold: 1
+lift_joint_controller:
+    type: talon_controllers/TalonPercentOutputController
+    joint: lift_joint
+    feedback_type: CTRE_MagEncoder_Absolute
+    close_loop_values:
+        - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+        - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
+    invert_output: False
+    sensor_phase: False
+    peak_output_forward: 1.0
+    peak_output_reverse: -1.0
+    nominal_output_forward: 0.0
+    nominal_output_reverse: 0.0
+    motion_cruise_velocity: 32
+    motion_acceleration: 150
+    voltage_compensation_enable: true
+    softlimit_forward_threshold: 0
+    softlimit_forward_threshold: 1
+
+
+lift_follower1_controller:
+    type: talon_controllers/TalonFollowerController
+    joint: lift_follower1
+    follow_joint: lift_joint
+
+#hypothetically might have inverts
+
+lift_follower2_controller:
+    type: talon_controllers/TalonFollowerController
+    joint: lift_follower2
+    follow_joint: lift_joint
+

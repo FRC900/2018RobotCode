@@ -5,26 +5,18 @@ import rospy
 from nav_msgs.msg import Odometry
 from px_comm.msg import OpticalFlow
 
-
-global prev_time,starting_time
-pose_position_x, pose_position_y = 0, 0
-
+x_pos, y_pos = 0, 0
 pub = rospy.Publisher("px4_odom", Odometry, queue_size=1)
-
 
 def listener():
 	rospy.Subscriber("/px4flow/opt_flow", OpticalFlow, callback)
 
 def callback(data):
-	global prev_time, pose_position_x, pose_position_y,starting_time
+	global cur_time, prev_time, x_pos, y_pos
+        # get current time
 	cur_time = rospy.get_rostime().to_sec()
-	dt = cur_time - prev_time
-	prev_time = cur_time
 
-        #debug
-        prev_time_debug = prev_time
-        
-
+        # get current velocities
 	odom = Odometry()
 	odom.header.stamp = data.header.stamp
 	odom.header.frame_id = "odom"
@@ -33,33 +25,29 @@ def callback(data):
 	odom.twist.twist.linear.x = data.velocity_x
 	odom.twist.twist.linear.y = data.velocity_y
 
-        # the first two variables here are necessary because the message attributes don't work with += for some reason
-        pose_position_x += data.velocity_x / dt
-        pose_position_y += data.velocity_y / dt
+        # compute dx and dy
+        dx = data.velocity_x * (cur_time - prev_time)
+        dy = data.velocity_y * (cur_time - prev_time)
 
-	odom.pose.pose.position.x = pose_position_x
-	odom.pose.pose.position.y = pose_position_y
+        # add dx and dy to current position
+	x_pos += dx
+        odom.pose.pose.position.x += x_pos
+        y_pos += dy
+	odom.pose.pose.position.y += y_pos
 	
-        pub.publish(odom)
-        if rospy.get_rostime().to_sec() > starting_time + 1:
-            rospy.loginfo("""
-                           cur_time : %f
-                           prev_time: %f
-                           dt       : %f
-                           v_y      : %f
-                           y        : %f
+        # update previous times
+        prev_time = cur_time
 
-                           """, 
-                           cur_time, prev_time_debug, dt, data.velocity_y, pose_position_y)
-            starting_time = rospy.get_rostime().to_sec()
+        pub.publish(odom)
 
 
 if __name__ == "__main__":
-	global prev_time,starting_time
+	global prev_time
 	rospy.init_node("to_odom")
-	prev_time,starting_time = 0,rospy.get_rostime().to_sec()
-	listener()
-	rate = rospy.Rate(10)
+	listener()        
+	rate = rospy.Rate(120)
+
+        prev_time = rospy.get_rostime().to_sec()
 
 	while not rospy.is_shutdown():
 		rate.sleep()
