@@ -16,7 +16,7 @@ bool sendArmZero = false;
 bool ifCube = true;
 double elevatorHeight;
 static double armPos;
-
+static int i = 0;
 double navX_angle_ = M_PI/2;
 int navX_index_ = -1;
 ros::Subscriber navX_heading_;
@@ -238,11 +238,16 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     vel.angular.x = 0;
     vel.angular.y = 0;
     
-    if(fabs(vel.linear.x) != 0 || fabs(vel.linear.y) != 0 || fabs(vel.angular.z) != 0 || sendRobotZero) {
+    if(fabs(vel.linear.x) != 0.0 || fabs(vel.linear.y) != 0.0 || fabs(vel.angular.z) != 0.0 || sendRobotZero) {
         JoystickRobotVel.publish(vel);
-    }
-    else {
         sendRobotZero = true;
+        if(fabs(vel.linear.x) == 0.0 || fabs(vel.linear.y) == 0.0 || fabs(vel.angular.z) == 0.0) {
+            i+=1;
+            if(i>10){
+                sendRobotZero = false;
+                i=0;
+            }
+        }
     }
     armPos += .1*rightStickY; //Access current elevator position to fix code allowing out of bounds travel
     arm.command = armPos;
