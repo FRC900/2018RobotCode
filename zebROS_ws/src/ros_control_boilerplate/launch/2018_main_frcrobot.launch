@@ -28,7 +28,7 @@
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller lift_follower1_controller lift_follower2_controller intake_follower1_controller intake_up_controller clamp_controller intake_spring_controller intake_hard_in_controller end_game_deploy_controller imu_sensor_controller navx_controller"/>
+			output="screen" args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller lift_follower1_controller lift_follower2_controller intake_follower1_controller intake_up_controller clamp_controller intake_spring_soft_controller intake_spring_hard_controller end_game_deploy_controller imu_sensor_controller navx_controller"/>
 
         <!-- launch joystick subscriber-->
 		<node name="joystickSubscriber" pkg="teleop_joystick_control" type="joystickSubscriber"
