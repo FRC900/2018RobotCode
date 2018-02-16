@@ -17,8 +17,8 @@ hardware_interface:
        - {name: intake, type: can_talon_srx, can_id: 31}
        - {name: intake_follower1, type: can_talon_srx, can_id: 32}
        - {name: clamp, type: double_solenoid, pcm: 0, forward_id: 0, reverse_id: 1}
-       - {name: intake_spring, type: double_solenoid, pcm: 0, forward_id: 2, reverse_id: 3}
-       - {name: intake_hard_in, type: solenoid, pcm: 0, id: 4}
+       - {name: intake_spring_soft, type: solenoid, pcm: 0, id: 2}
+       - {name: intake_spring_hard, type: double_solenoid, pcm: 0, forward_id: 4, reverse_id: 3}
        - {name: intake_up, type: double_solenoid, pcm: 0, forward_id: 5, reverse_id: 6}
        - {name: end_game_deploy, type: solenoid, pcm: 0, id: 7}
        - {name: clamp_line_break, type: digital_input, dio_channel: 0, invert: true}
@@ -96,13 +96,13 @@ clamp_controller:
     type: position_controllers/JointPositionController
     joint: clamp
 
-intake_spring_controller:
+intake_spring_soft_controller:
     type: position_controllers/JointPositionController
-    joint: intake_spring
+    joint: intake_spring_soft
 
-intake_hard_in_controller:
+intake_spring_hard_controller:
     type: position_controllers/JointPositionController
-    joint: intake_hard_in
+    joint: intake_spring_hard
 
 end_game_deploy_controller:
     type: position_controllers/JointPositionController
