@@ -106,11 +106,11 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 
 	srv_req.config = confP;
 
-	ros::service::call("/frcrobot/pivot/updates", srv_req, srv_resp);
+	ros::service::call("/frcrobot/pivot_joint/parameter_updates", srv_req, srv_resp);
 
 	srv_req.config = confL;
 
-	ros::service::call("/frcrobot/lift/updates", srv_req, srv_resp);
+	ros::service::call("/frcrobot/lift_joint/parameter_updates", srv_req, srv_resp);
 
 	//Set soft limits using offsets here
 
