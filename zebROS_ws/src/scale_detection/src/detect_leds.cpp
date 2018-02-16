@@ -47,7 +47,6 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	}
 
 	//convert to grayscale and threshold
-
 	cvtColor(*framePtr, gray, cv::COLOR_BGR2GRAY);
  	threshold(gray, thresh, 50, 255, 0);
 

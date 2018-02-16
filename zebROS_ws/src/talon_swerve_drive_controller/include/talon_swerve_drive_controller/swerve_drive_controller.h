@@ -38,6 +38,8 @@
 
 #pragma once
 
+
+#include <talon_swerve_drive_controller/MotionProfile.h>
 #include <std_msgs/Bool.h>
 #include <string>
 #include <controller_interface/controller.h>
@@ -46,7 +48,6 @@
 
 #include <geometry_msgs/TwistStamped.h>
 #include <sensor_msgs/JointState.h>
-#include <talon_swerve_drive_controller/CompleteCmd.h>
 #include <nav_msgs/Odometry.h>
 #include <tf/tfMessage.h>
 
@@ -162,18 +163,26 @@ class TalonSwerveDriveController
 		};
 		
 		realtime_tools::RealtimeBuffer<bool> mode_;
-		realtime_tools::RealtimeBuffer<bool> first_call_;
+		realtime_tools::RealtimeBuffer<bool> buffer_;
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		realtime_tools::RealtimeBuffer<cmd_points> command_points_;
 		cmd_points points_struct_;
+		
 		ros::Subscriber sub_command_;
+
+
+
+		ros::ServiceServer motion_profile_serv_;
 	
-		ros::Subscriber sub_run_profile_;
 		
 		std::array<std::array<hardware_interface::TrajectoryPoint, 2>, WHEELCOUNT> holder_points_;
 	
 		realtime_tools::RealtimeBuffer<bool> run_;
+
+		hardware_interface::TalonMode motion_profile = hardware_interface::TalonMode::TalonMode_MotionMagic;
+		hardware_interface::TalonMode velocity_mode = hardware_interface::TalonMode::TalonMode_Velocity;
+        	hardware_interface::TalonMode position_mode = hardware_interface::TalonMode::TalonMode_Position;
 
 		/// Publish executed commands
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::TwistStamped> > cmd_vel_pub_;
@@ -228,8 +237,8 @@ class TalonSwerveDriveController
 		 * \brief Velocity command callback
 		 * \param command Velocity command message (twist)
 		 */
-		void cmdCallback(const talon_swerve_drive_controller::CompleteCmd &command);
-		void runCallback(const std_msgs::Bool &run);
+		void cmdVelCallback(const geometry_msgs::Twist &command);
+		bool motionProfileService(talon_swerve_drive_controller::MotionProfile::Request &req, talon_swerve_drive_controller::MotionProfile::Response &res);
 
 		/**
 		 * \brief Get the wheel names from a wheel param

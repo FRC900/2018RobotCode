@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
     talon_interface
     talon_controllers   
     tf
+    tf2
     message_generation
     urdf
     std_msgs

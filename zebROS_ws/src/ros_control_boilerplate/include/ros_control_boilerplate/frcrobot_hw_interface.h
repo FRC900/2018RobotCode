@@ -138,7 +138,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::thread hal_thread_;
 		bool        run_hal_thread_;
 
-		PowerDistributionPanel pdp_joint_;
+		//PowerDistributionPanel pdp_joint_;
 
 		ROSIterativeRobot robot_;
 };  // class
