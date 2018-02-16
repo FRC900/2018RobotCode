@@ -169,30 +169,30 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 
 	if(intake_struct_.up_command < 0)
 	{
-		IntakeUp.publish(-1);
+		IntakeUp.publish(-1.0);
 		intake_down_time_ = ros::Time::now().toSec();
 	}
 	else
 	{
 		if((ros::Time::now().toSec() - intake_down_time_) < .25)
 		{
-			IntakeUp.publish(1);
+			IntakeUp.publish(1.0);
 		}
 		else
 		{
-			IntakeUp.publish(0);
+			IntakeUp.publish(0.0);
 		}
 	}
 	//Delay stuff maybe?
 
 	switch(intake_struct_.spring_command)
 	{
-		default: IntakeSoftSpring.publish(1);
-			 IntakeHardSpring.publish(0);
-		case 1:  IntakeSoftSpring.publish(0);
-			 IntakeHardSpring.publish(-1);
-		case 3:  IntakeSoftSpring.publish(0);
-			 IntakeHardSpring.publish(1);
+		default: IntakeSoftSpring.publish(1.0);
+			 IntakeHardSpring.publish(0.0);
+		case 1:  IntakeSoftSpring.publish(0.0);
+			 IntakeHardSpring.publish(-1.0);
+		case 3:  IntakeSoftSpring.publish(0.0);
+			 IntakeHardSpring.publish(1.0);
 			  
 	}	
 
