@@ -23,7 +23,7 @@ static bool down_sample = false;
 void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 {
 	cv_bridge::CvImageConstPtr cvFrame = cv_bridge::toCvShare(frameMsg, sensor_msgs::image_encodings::BGR8);
-	cv_bridge::CvImageConstPtr cvDepth = cv_bridge::toCvShare(depthMsg, sensor_msgs::image_encodings::TYPE_32FC1);
+	cv_bridge::CvImageConstPtr cvDepth = cv_bridge::toCvShare(depthMsg, sensor_msgs::image_encodings::TYPE_32FC1); 
 	
 	// Avoid copies by using pointers to RGB and depth info
 	// These pointers are either to the original data or to
@@ -52,6 +52,9 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	Mat threshold;
 	Mat contour;
 
+	ROS_INFO_STREAM(framePtr->size());
+
+	cvtColor(*framePtr,hsv,COLOR_BGR2HSV);
 	inRange(hsv, Scalar(20,89,70),Scalar(35,255,241),threshold);
 	/*Mat threshold_channels[3];
 	split(threshold,threshold_channels);
@@ -59,15 +62,16 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 
 	erode(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(4,4)));
 	dilate(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(4,4)));
+
 	dilate(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(4,4)));
 	erode(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(4,4)));
 
 	vector<vector<Point> > contours;
 	vector<Vec4i> rank;
 
-	findContours(threshold,contours, rank, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
+	findContours(threshold, contours, rank, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
 
-	vector<vector<Point> > contours_poly( contours.size() );
+	vector<vector<Point> > contours_poly(contours.size());
 	vector<Rect> boundRect(contours.size());
 
 	for(int i = 0; i < contours.size(); i++)
@@ -102,7 +106,7 @@ int main(int argc, char **argv)
 	// ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(xxx)
 	Synchronizer<MySyncPolicy2> sync2(MySyncPolicy2(50), frame_sub, depth_sub);
 	sync2.registerCallback(boost::bind(&callback, _1, _2));
-
+	ROS_INFO_STREAM("init");
 	ros::spin();
 
 	return 0;
