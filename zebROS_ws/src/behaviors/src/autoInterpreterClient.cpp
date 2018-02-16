@@ -7,9 +7,9 @@
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/IntakeLiftAction.h"
-#include "elevator_controller/ElevatorControl.h"
 #include "elevator_controller/Intake.h"
 #include "std_msgs/Bool.h"
+#include <elevator_controller/ElevatorControl.h>
 
 static int startPos = -1;
 static int autoMode = -1;
