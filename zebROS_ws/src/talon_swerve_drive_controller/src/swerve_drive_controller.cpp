@@ -662,10 +662,10 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	{	
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
-			speed_joints_[i].setMode(motion_profile);
-			steering_joints_[i].setMode(motion_profile);
+			speed_joints_[i].setMode(motion_profile_mode);
+			steering_joints_[i].setMode(motion_profile_mode);
 		}
-		//ROS_WARN("motion profile mode");
+
 		const int set_on  = *(run_.readFromRT()) ? 1 : 0;
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
@@ -676,8 +676,11 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	
 	if(*(buffer_.readFromRT()))
 	{
+		buffer_ = false;
+		
 		cmd_points curr_cmd = *(command_points_.readFromRT());
 
+		ROS_WARN("BUFFERING");
 		//TODO: optimize code?
 		array<double, WHEELCOUNT> curPos;
 		for (int i = 0; i < WHEELCOUNT; i++)
@@ -696,8 +699,11 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		{
 
 
-			steering_joints_[i].clearMotionProfileTrajectories();
-			speed_joints_[i].clearMotionProfileTrajectories();
+			//steering_joints_[i].clearMotionProfileTrajectories();
+			//speed_joints_[i].clearMotionProfileTrajectories();
+
+			steering_joints_[i].clearMotionProfileHasUnderrun();
+			speed_joints_[i].clearMotionProfileHasUnderrun();
 
 			holder_points_[i][0].position = angles_positions[i][0];
 			holder_points_[i][1].position = angles_positions[i][1];
@@ -731,6 +737,9 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				holder_points_[k][0].position += angles_positions[k][0];
 				holder_points_[k][1].position = angles_positions[k][1];
 				holder_points_[k][0].velocity = angles_velocities[k][0];
+				
+				ROS_INFO_STREAM("speed. Pos: " << holder_points_[k][0].position << " vel: " << holder_points_[k][0].velocity);
+				ROS_INFO_STREAM("steering. Pos: " << holder_points_[k][1].position << " vel: " << holder_points_[k][1].velocity);
 
 				speed_joints_[k].pushMotionProfileTrajectory(holder_points_[k][0]);
 				steering_joints_[k].pushMotionProfileTrajectory(holder_points_[k][1]);

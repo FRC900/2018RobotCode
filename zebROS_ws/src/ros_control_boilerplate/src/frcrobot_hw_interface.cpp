@@ -1037,6 +1037,9 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			{
 				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
 				{
+					//ROS_WARN("SENDING_POINT");
+
+					//This loop doesn't work for whatever reason
 					ctre::phoenix::motion::TrajectoryPoint pt;
 					pt.position = it->position;
 					pt.velocity = it->velocity;
@@ -1081,7 +1084,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					break;
 			}
 
-
+			//ROS_INFO_STREAM("in mode: " << in_mode);
 			talon->Set(out_mode, command);
 			safeTalonCall(talon->GetLastError(), "Set");
 		}
