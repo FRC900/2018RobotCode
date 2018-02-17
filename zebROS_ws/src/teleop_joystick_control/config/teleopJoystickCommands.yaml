@@ -13,3 +13,4 @@ teleop_params:
     intake_config_y: 0
     default_x: 0
     default_y: 0
+    timeout: 15
