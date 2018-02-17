@@ -46,6 +46,11 @@ class ElevatorController
 		void starting(const ros::Time &time);
 
 	private:
+		double after_shift_max_accel_;		
+		double after_shift_max_vel_;		
+
+		double before_shift_max_accel_;		
+		double before_shift_max_vel_;		
 
 		double lift_position;
 		double pivot_angle;

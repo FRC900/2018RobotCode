@@ -83,6 +83,10 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	controller_nh.getParam("max_extension", max_extension_);
 	controller_nh.getParam("min_extension", min_extension_);
 
+	
+	controller_nh.getParam("after_shift_max_accel", after_shift_max_accel_);
+	controller_nh.getParam("after_shift_max_vel", after_shift_max_vel_);
+
 	controller_nh.getParam("hook_depth", hook_depth_);
 	controller_nh.getParam("hook_min_height", hook_min_height_);
 	controller_nh.getParam("hook_max_height", hook_max_height_);
@@ -163,7 +167,8 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	ReturnCmd  = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);
 
 	Odom  = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("odom", 1);
-
+	before_shift_max_vel_ = lift_joint_.getMotionCruiseVelocity();
+	before_shift_max_accel_ = lift_joint_.getMotionAcceleration();
 
 
 	return true;
@@ -216,6 +221,8 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 		if(!shifted_)
 		{
 			shifted_ = true;
+			lift_joint_.setMotionAcceleration(after_shift_max_accel_);
+			lift_joint_.setMotionCruiseVelocity(after_shift_max_vel_);
 			lift_joint_.setPIDFSlot(1.0);
 		}
 	}
@@ -225,6 +232,8 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 		if(shifted_)
 		{
 			shifted_ = false;
+			lift_joint_.setMotionAcceleration(before_shift_max_accel_);
+			lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
 			lift_joint_.setPIDFSlot(0.0);
 		}
 	}

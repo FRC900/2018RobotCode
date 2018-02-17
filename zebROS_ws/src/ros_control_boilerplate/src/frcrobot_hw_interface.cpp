@@ -107,15 +107,14 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
                 // SmartDashboard works!
                 //frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
-                // TODO eventually add header to nt message so we can get timestamps
-                // realtime_pub_nt.msg_.header.stamp = ros::Time::now();
                 //realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
-                realtime_pub_nt.msg_.mode = driveTable->GetNumber("auto_mode", 0);
+                realtime_pub_nt.msg_.mode[0] = driveTable->GetNumber("auto_mode_0", 0);
+                realtime_pub_nt.msg_.mode[1] = driveTable->GetNumber("auto_mode_1", 0);
+                realtime_pub_nt.msg_.mode[2] = driveTable->GetNumber("auto_mode_2", 0);
+                realtime_pub_nt.msg_.mode[3] = driveTable->GetNumber("auto_mode_3", 0);
                 realtime_pub_nt.msg_.position = driveTable->GetNumber("robot_start_position", 0);
             }
 
-            // TODO eventually add header to nt message so we can get timestamps
-            // realtime_pub_nt.msg_.header.stamp = ros::Time::now();
             realtime_pub_nt.msg_.header.stamp = time_now_t;
             realtime_pub_nt.unlockAndPublish();
         }

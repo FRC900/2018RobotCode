@@ -7,23 +7,24 @@
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/IntakeLiftAction.h"
-#include "elevator_controller/Intake.h"
 #include "geometry_msgs/Twist.h"
 #include "std_msgs/Bool.h"
-#include <elevator_controller/ElevatorControl.h>
-
+#include "elevator_controller/ElevatorControl.h"
+#include "elevator_controller/Intake.h"
+#include "cstdlib"
 static int startPos = -1;
-static int autoMode = -1;
+static int auto_mode = -1;
 static double start_time;
 
-static ros::Publisher IntakePub;
+//static ros::Publisher IntakePub;
+static ros::ServiceClient IntakePub;
 static ros::Publisher ElevatorPub;
 static ros::Publisher ClampPub;
 static ros::Publisher VelPub;
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
-    ROS_INFO("Mode: %d, Start Position: %d", AutoMode->mode, AutoMode->position);
+    ROS_INFO("Mode: %d, Start Position: %d", AutoMode->mode[auto_mode-1], AutoMode->position);
     
     if(MatchData->isAutonomous && !MatchData->isDisabled) {
         if(!start_time) {
@@ -33,21 +34,35 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             return;
         }
         double time_start_auto = ros::Time::now().toSec();
-        elevator_controller::Intake IntakeMsg;
+        elevator_controller::Intake IntakeSrv;
         elevator_controller::ElevatorControl ElevatorMsg;
         std_msgs::Bool ClampMsg;
         behaviors::IntakeLiftGoal goal;
 
-        geometry_msgs::Twist vel;
-        vel.linear.x = 2;
-        vel.linear.y = 0;
-        vel.linear.z = 0;
-        vel.angular.x = 0;
-        vel.angular.y = 0;
-        vel.angular.z = 0;
-        VelPub.publish(vel);
-        /*
-        if(AutoMode->mode==1) {
+/////////////////TESTING/////////////////
+//        geometry_msgs::Twist vel;
+//        vel.linear.x = 2;
+//        vel.linear.y = 0;
+//        vel.linear.z = 0;
+//        vel.angular.x = 0;
+//        vel.angular.y = 0;
+//        vel.angular.z = 0;
+//        VelPub.publish(vel);
+/////////////////////////////////////////
+        if(MatchData->allianceData=="rlr") {
+            auto_mode = 1;
+        }
+        else if(MatchData->allianceData=="lrl") {
+            auto_mode = 2;
+        }
+        else if(MatchData->allianceData=="rrr") {
+            auto_mode = 3;
+        }
+        else if(MatchData->allianceData =="lll") {
+            auto_mode = 4;
+        }
+
+        if(AutoMode->mode[auto_mode-1]==1) {
         //3 cube switch-scale-scale
             //0: Time 0: Go to switch config
             ros::Duration(0).sleep(); //TODO
@@ -81,16 +96,16 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             if(!success) {
                 ROS_WARN("Failed to intake cube: TIME OUT");
             }
-            IntakeMsg.power = 0;
-            IntakePub.publish(IntakeMsg);
+            IntakeSrv.request.power = 0;
+            IntakePub.call(IntakeSrv);
 
             ros::Duration(.2).sleep();
 
             ClampMsg.data = true;
             ClampPub.publish(ClampMsg);
 
-            IntakeMsg.spring_state = 1; //out
-            IntakePub.publish(IntakeMsg);
+            IntakeSrv.request.spring_state = 1; //out
+            IntakePub.call(IntakeSrv);
             
             //4: Success of command 3: go to default config && soft-in intake
             ElevatorMsg.x = -1; //TODO
@@ -99,8 +114,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ElevatorPub.publish(ElevatorMsg);
             ros::Duration(.1).sleep(); //TODO
 
-            IntakeMsg.spring_state = 2;
-            IntakePub.publish(IntakeMsg);
+            IntakeSrv.request.spring_state = 2;
+            IntakePub.call(IntakeSrv);
 
             //5: Time 2: go to mid level scale
             ros::Duration(2).sleep();
@@ -130,14 +145,14 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             if(!success) {
                 ROS_ERROR("Failed to intake cube: TIME OUT");
             }
-            IntakeMsg.power=0;
-            IntakePub.publish(IntakeMsg);
+            IntakeSrv.request.power=0;
+            IntakePub.call(IntakeSrv);
 
             ClampMsg.data = true;
             ClampPub.publish(ClampMsg);
 
-            IntakeMsg.spring_state = 1;
-            IntakePub.publish(IntakeMsg);
+            IntakeSrv.request.spring_state = 1;
+            IntakePub.call(IntakeSrv);
 
             //9: Success of command 8: go to default config && soft-in intake
             ElevatorMsg.x = -1; //TODO
@@ -145,8 +160,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ElevatorMsg.up_or_down = true;
             ElevatorPub.publish(ElevatorMsg);
 
-            IntakeMsg.spring_state = 2;
-            IntakePub.publish(IntakeMsg);
+            IntakeSrv.request.spring_state = 2;
+            IntakePub.call(IntakeSrv);
 
             //10: Time 5: go to mid scale config
             ros::Duration(5).sleep(); //TODO
@@ -166,7 +181,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ElevatorMsg.up_or_down = true;
             ElevatorPub.publish(ElevatorMsg);
         }
-        else if(AutoMode->mode==2) {
+        else if(AutoMode->mode[auto_mode-1]==2) {
             //2 cube longway scale-scale
             //0: Time 0: Go to default config && drop intake
             ros::Duration(0).sleep(); //TODO
@@ -176,11 +191,11 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ElevatorMsg.override_sensor_limits = false;
             ElevatorMsg.override_pos_limits = false;
 
-            IntakeMsg.up = false;
-            IntakeMsg.spring_state = 2; //soft_in
+            IntakeSrv.request.up = false;
+            IntakeSrv.request.spring_state = 2; //soft_in
 
             ElevatorPub.publish(ElevatorMsg);
-            IntakePub.publish(IntakeMsg);
+            IntakePub.call(IntakeSrv);
                     
             //1: Time 1: Go to mid scale config && Release Clamp
             ros::Duration(1).sleep(); //TODO
@@ -206,9 +221,9 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ac->sendGoal(goal);
 
             //3: Linebreak sensor: Clamp && release intake && stop running intake
-            success == ac->waitForResult(ros::Duration(15)); //TODO
-            IntakeMSg.power = 0; 
-            IntakePub.publish(IntakeMsg);
+            bool success = ac->waitForResult(ros::Duration(15)); //TODO
+            IntakeSrv.request.power = 0; 
+            IntakePub.call(IntakeSrv);
 
             if(!success) {
                 ROS_ERROR("Failed to intake cube! TIME OUT");
@@ -217,8 +232,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ClampMsg.data = true;
             ClampPub.publish(ClampMsg);
 
-            IntakeMsg.spring_state = 1; //out;
-            IntakePub.publish(IntakeMsg);
+            IntakeSrv.request.spring_state = 1; //out;
+            IntakePub.call(IntakeSrv);
 
             //4: Success of command 3: go to default config && soft-in intake
             ElevatorMsg.x = -1; //TODO
@@ -227,8 +242,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ElevatorPub.publish(ElevatorMsg);
             
             ros::Duration(.2).sleep(); //TODO
-            IntakeMsg.spring_state = 2; //soft in
-            IntakePub.publish(IntakeMsg);
+            IntakeSrv.request.spring_state = 2; //soft in
+            IntakePub.call(IntakeSrv);
            
             //5: Time 2: go to mid level scale config
             ros::Duration(2).sleep(); //TODO
@@ -240,7 +255,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 
             //6: Time 2.5: release Clamp
             ros::Duration(2.5).sleep(); //TODO
-            ClampMsg = false;
+            ClampMsg.data = false;
             ClampPub.publish(ClampMsg);
             //7: Time 3: go to intake config && run intake
             ros::Duration(3).sleep(); //TODO
@@ -255,8 +270,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             success = ac->waitForResult(ros::Duration(15));
 
             //8: Linebreak sensor: Clamp && release intake && stop running intake
-            IntakeMsg.power = 0;
-            IntakePub.publish(IntakeMsg);
+            IntakeSrv.request.power = 0;
+            IntakePub.call(IntakeSrv);
 
             if(!success) {
                 ROS_WARN("Failed to intake cube: TIME OUT");
@@ -265,13 +280,13 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ClampMsg.data = true;
             ClampPub.publish(ClampMsg);
 
-            IntakeMsg.spring_state = 1; //out
-            IntakePub.publish(IntakeMsg);
+            IntakeSrv.request.spring_state = 1; //out
+            IntakePub.call(IntakeSrv);
 
 
 
         }
-        else if(AutoMode->mode==3) {
+        else if(AutoMode->mode[auto_mode-1]==3) {
             //2 cube longway scale-scale
                     //0: Time 0: Go to mid-scale config && drop intake
                     //1: Time 1: Release Clamp
@@ -282,41 +297,40 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                     //6: Time 3: go to intake config && run intake
                     //7: Linebreak sensor: Clamp && release intake && stop running intake
         }
-        else if(AutoMode->mode==4) {
+        else if(AutoMode->mode[auto_mode-1]==4) {
 
         }
-        else if(AutoMode->mode==5) {
+        else if(AutoMode->mode[auto_mode-1]==5) {
 
         }
-        else if(AutoMode->mode==6) {
+        else if(AutoMode->mode[auto_mode-1]==6) {
 
         }
-        else if(AutoMode->mode==7) {
+        else if(AutoMode->mode[auto_mode-1]==7) {
 
         }
-        else if(AutoMode->mode==8) {
+        else if(AutoMode->mode[auto_mode-1]==8) {
 
         }
-        else if(AutoMode->mode==9) {
+        else if(AutoMode->mode[auto_mode-1]==9) {
 
         }
-        else if(AutoMode->mode==10) {
+        else if(AutoMode->mode[auto_mode-1]==10) {
 
         }
-        else if(AutoMode->mode==11) {
+        else if(AutoMode->mode[auto_mode-1]==11) {
 
         }
-        else if(AutoMode->mode==12) {
+        else if(AutoMode->mode[auto_mode-1]==12) {
 
         }
         else{
             
         }
-        */
     }
     else {
-        if(autoMode == AutoMode->mode || startPos == AutoMode->position) {
-            autoMode = AutoMode->mode;
+        if(auto_mode == AutoMode->mode[auto_mode-1] || startPos == AutoMode->position) {
+            auto_mode = AutoMode->mode[auto_mode-1];
             startPos = AutoMode->position;
             //TODO generate 4 motion profiles
         }
@@ -336,7 +350,8 @@ int main(int argc, char** argv) {
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("AutoServer", true);
     ac->waitForServer(); 
 
-    IntakePub = n.advertise<elevator_controller::Intake>("elevator/Intake", 1);
+    //IntakePub = n.advertise<elevator_controller::Intake>("elevator/Intake", 1);
+    IntakePub = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
     ElevatorPub = n.advertise<elevator_controller::ElevatorControl>("elevator/cmd_pos", 1);
     ClampPub = n.advertise<std_msgs::Bool>("elevator/Clamp", 1);
     VelPub = n.advertise<geometry_msgs::Twist>("swerve_drive_controller/cmd_vel", 1);
