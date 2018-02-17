@@ -4,6 +4,7 @@
 #include "elevator_controller/ElevatorControl.h"
 #include "elevator_controller/Intake.h"
 #include "std_msgs/Bool.h"
+#include "cstdlib"
 //elevator_controller/cmd_pos
 //elevator_controller/intake?
 bool linebreak = false;
@@ -19,7 +20,7 @@ class autoAction {
         behaviors::IntakeLiftFeedback feedback_;
         behaviors::IntakeLiftResult result_;
         ros::Publisher Elevator;
-        ros::Publisher Intake;
+        ros::ServiceClient IntakeSrv;
         ros::Publisher Clamp; 
 
     public:
@@ -29,7 +30,8 @@ class autoAction {
         {
             as_.start();
             Elevator = nh_.advertise<elevator_controller::ElevatorControl>("elevator_controller/cmd_pos", 1);
-            Intake = nh_.advertise<elevator_controller::Intake>("elevator_controller/intake", 1);
+            //Intake = nh_.advertise<elevator_controller::Intake>("elevator_controller/intake", 1);
+            IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
             Clamp = nh_.advertise<std_msgs::Bool>("elevator_controller/clamp", 1);
         }
 
@@ -46,11 +48,11 @@ class autoAction {
         success = false;
         while(success != true && linebreak != true && ros::Time::now().toSec()-startTime < 15) {
             if(goal->IntakeCube) {
-                elevator_controller::Intake msg;
-                msg.up = false;
-                msg.spring_state = 2; //soft in
-                msg.power = .8; //TODO
-                Intake.publish(msg);
+                elevator_controller::Intake srv;
+                srv.request.up = false;
+                srv.request.spring_state = 2; //soft in
+                srv.request.power = .8; //TODO
+                IntakeSrv.call(srv);
             }
             /*
             else if(goal->PlaceCube) {
@@ -62,9 +64,9 @@ class autoAction {
             r.sleep();
             ros::spinOnce();
         }
-        elevator_controller::Intake msg;
-        msg.power = 0;
-        Intake.publish(msg);
+        elevator_controller::Intake srv;
+        srv.request.power = 0;
+        IntakeSrv.call(srv);
         result_.data = 1;
         ROS_INFO("%s: Succeeded", action_name_.c_str());
         as_.setSucceeded(result_);
