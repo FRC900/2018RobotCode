@@ -41,10 +41,11 @@ int main(int argc, char **argv) {
 	max_end_game_use_ *= 60/(tank_count_ * tank_volume_); //converting into tank pressure
 	max_match_non_end_use_ *= 60/(tank_count_ * tank_volume_); //converting into tank pressure
 
-	CompressorCommand = n.advertise<std_msgs::Float64>("/frcrobot/compressor_controller/commmand", 1);
+	CompressorCommand = n.advertise<std_msgs::Float64>("/frcrobot/compressor_controller/command", 1);
 
 	pressure_sub_ = n.subscribe("/frcrobot/joint_states", 1, &pressureCallback);
 	current_sub_ = n.subscribe("/frcrobot/total_current", 75, &currentCallback);
+	//HOOK UP ABOVE TO PDP
 	match_data_sub_ = n.subscribe("/frcrobot/match_data", 1, &matchDataCallback);
 	disable_sub_ = n.subscribe("disable", 5, &disableCallback);
 	//TODO FIX ABOVE topic names
@@ -63,8 +64,9 @@ int main(int argc, char **argv) {
 		{
 			if(game_mode_ != 0 && match_time_ > 30 && (pressure_ < 110 || (run_last_tick && pressure_ < 120)))
 			{
-				const double sensor_estimated = (match_time_-30) * (120 - pressure_) / (150 - match_time_);
-				//FIX ABOVE SO IT TAKES INTO ACCOUNT REFILLS
+				//const double sensor_estimated = (match_time_-30) * (120 - pressure_) / (150 - match_time_);
+				//FIX ABOVE SO IT TAKES INTO ACCOUNT REFILLS, and maybe use?
+				const double sensor_estimated = 0;
 				double max_estimated = max_match_non_end_use_ * (match_time_ - 30)/(120);
 				if(sensor_estimated > max_estimated)
 				{
@@ -102,11 +104,13 @@ int main(int argc, char **argv) {
 
 			}
 		}
+		/*
 		else if(pressure_ < 100 || run_last_tick && pressure_ < 120)
 		{
 			holder_msg.data = 1;
 			run_last_tick = true;
 		}
+		*/
 		else
 		{
 			holder_msg.data = 0;
@@ -143,7 +147,7 @@ void pressureCallback(const sensor_msgs::JointState &pressure)
 void matchDataCallback(const ros_control_boilerplate::MatchSpecificData &MatchData)
 {
 	match_time_ = MatchData.matchTimeRemaining;
-	fms_connected_ = MatchData.matchTimeRemaining < 0;
+	fms_connected_ = MatchData.matchTimeRemaining >= 0;
 }
 
 // consider a boost::circular_buffer

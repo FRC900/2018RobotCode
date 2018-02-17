@@ -1,8 +1,8 @@
 model_params:
-    current_multiplier: 1.0
-    pressure_exponent: 2.0
+    current_multiplier: 0.5
+    pressure_exponent: 1.5
     pressure_multiplier: 1.0 
-    inertial_multiplier: 1.0
+    inertial_multiplier: 20.0
     tank_count: 4
     tank_volume: 35.0
     max_end_game_use: 10.0

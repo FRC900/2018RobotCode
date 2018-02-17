@@ -317,6 +317,7 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		srv_msg.request.buffer = true;	
 		srv_msg.request.mode = true;	
 		srv_msg.request.run = true;	
+		run_prof.call(srv_msg);
 		return true;
 	}
 	else
