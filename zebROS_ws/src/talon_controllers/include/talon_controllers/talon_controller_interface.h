@@ -889,6 +889,15 @@ class TalonControllerInterface
 
 			talon_->setMotionAcceleration(params_.motion_acceleration_);
 		}
+		virtual double getMotionCruiseVelocity(void)
+		{
+			return params_.motion_cruise_velocity_;
+		}
+
+		virtual double getMotionAcceleration(void)
+		{
+			return params_.motion_acceleration_;
+		}
 		virtual void setMotionControlFramePeriod(int msec)
 		{
 			if (msec == params_.motion_control_frame_period_)
