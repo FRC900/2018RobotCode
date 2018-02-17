@@ -33,7 +33,7 @@ hardware_interface:
        - {name: bl_angle, type: can_talon_srx, can_id: 13}
        - {name: navx_mxp, type: navX, frame_id: navx, id: 0}
        - {name: analog_pressure_sensor, type: analog_input, analog_channel: 0, analog_a: .0633897, analog_b: -24.9}
-
+       #- {name: compressor1, type: compressor, pcm_id: 0}
 
 #TODO: fix ids for pneumatics   
 #TODO: add "spring" pneumatics and some sensors
