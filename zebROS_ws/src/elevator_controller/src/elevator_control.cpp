@@ -134,8 +134,9 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	arm_limiter = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, 15);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
-	sub_intake_ = controller_nh.subscribe("intake", 1, &ElevatorController::intakeCallback, this);
-	sub_clamp_ = controller_nh.subscribe("clamp", 1, &ElevatorController::clampCallback, this);
+	service_command_ = controller_nh.advertiseService("cmd_posS", &ElevatorController::cmdPosService, this);
+	service_intake_ = controller_nh.advertiseService("intake", &ElevatorController::intakeService, this);
+	service_clamp_ = controller_nh.advertiseService("clamp", &ElevatorController::clampService, this);
 
 
 
@@ -282,12 +283,32 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
 	}
 }
-void ElevatorController::clampCallback(const std_msgs::Bool &command)
+bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res)
+{
+	if(isRunning())
+	{
+		command_struct_.lin[0] = command.x;
+		command_struct_.lin[1] = command.y;
+		command_struct_.up_or_down = command.up_or_down;
+		command_struct_.override_pos_limits = command.override_pos_limits;
+		command_struct_.override_sensor_limits = command.override_sensor_limits;
+
+		command_struct_.stamp = ros::Time::now();
+		command_.writeFromNonRT(command_struct_);
+		return true;
+	}
+	else
+	{
+		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+		return false;
+	}
+}
+bool ElevatorController::clampService(elevator_controller::Clamp::Request &command, elevator_controller::Clamp::Response &res)
 {
 
 	if(isRunning())
 	{
-		if(command.data)
+		if(command.clamp)
 		{
 			clamp_cmd_ = 1.0;
 		}
@@ -295,14 +316,15 @@ void ElevatorController::clampCallback(const std_msgs::Bool &command)
 		{
 			clamp_cmd_ = -1.0;
 		}
-
+		return true;
 	}
 	else
 	{
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+		return false;
 	}
 }
-void ElevatorController::intakeCallback(const elevator_controller::Intake &command)
+bool ElevatorController::intakeService(elevator_controller::Intake::Request &command, elevator_controller::Intake::Response &res)
 {
 
 	if(isRunning())
@@ -319,11 +341,12 @@ void ElevatorController::intakeCallback(const elevator_controller::Intake &comma
 		}
 
 		intake_struct_.spring_command = command.spring_state;	
-	
+		return true;
 	}
 	else
 	{
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+		return false;
 	}
 }
 }//Namespace
