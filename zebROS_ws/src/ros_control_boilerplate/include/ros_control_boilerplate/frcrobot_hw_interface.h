@@ -104,6 +104,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 
 	protected:
 		void hal_keepalive_thread(void);
+		void process_motion_profile_buffer_thread(ros::Rate rate);
 
 	private:
 		/** Get conversion factor for position, velocity, and closed-loop stuff */
@@ -137,6 +138,8 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;
 		bool        run_hal_thread_;
+		std::thread motion_profile_thread_;
+		bool        run_motion_profile_thread_;
 
 		//PowerDistributionPanel pdp_joint_;
 
