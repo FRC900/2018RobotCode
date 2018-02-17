@@ -12,6 +12,7 @@
 #include "elevator_controller/ElevatorControl.h"
 #include "elevator_controller/Intake.h"
 #include "elevator_controller/ElevatorControlS.h"
+#include "elevator_controller/bool_srv.h"
 #include "cstdlib"
 static int startPos = -1;
 static int auto_mode = -1;
@@ -20,7 +21,7 @@ static double start_time;
 //static ros::Publisher IntakeService;
 static ros::ServiceClient IntakeService;
 static ros::ServiceClient ElevatorService;
-static ros::Publisher ClampPub;
+static ros::ServiceClient ClampService;
 static ros::Publisher VelPub;
 
 static double high_scale_config_x;
@@ -53,7 +54,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         double time_start_auto = ros::Time::now().toSec();
         elevator_controller::Intake IntakeSrv;
         elevator_controller::ElevatorControlS ElevatorSrv;
-        std_msgs::Bool ClampMsg;
+        elevator_controller::bool_srv ClampSrv;
         behaviors::IntakeLiftGoal goal;
 
 /////////////////TESTING/////////////////
@@ -93,8 +94,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 
             //1: Time 1: Release Clamp
             ros::Duration(1).sleep(); //TODO
-            ClampMsg.data = false;
-            ClampPub.publish(ClampMsg);
+            ClampSrv.request.data = false;
+            ClampService.call(ClampSrv);
 
             //2: Time 1.5: drop and start intake && go to intake config
             ros::Duration(1.5).sleep(); //TODO
@@ -118,8 +119,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 
             ros::Duration(.2).sleep();
 
-            ClampMsg.data = true;
-            ClampPub.publish(ClampMsg);
+            ClampSrv.request.data = true;
+            ClampService.call(ClampSrv);
 
             IntakeSrv.request.spring_state = 1; //out
             IntakeService.call(IntakeSrv);
@@ -143,8 +144,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 
             //6: Time 3: release Clamp
             ros::Duration(3).sleep(); //TODO
-            ClampMsg.data = false;
-            ClampPub.publish(ClampMsg);
+            ClampSrv.request.data = false;
+            ClampService.call(ClampSrv);
 
             //7: Time 4: go to intake config && run intake
             ros::Duration(4).sleep(); // TODO
@@ -165,8 +166,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             IntakeSrv.request.power=0;
             IntakeService.call(IntakeSrv);
 
-            ClampMsg.data = true;
-            ClampPub.publish(ClampMsg);
+            ClampSrv.request.data = true;
+            ClampService.call(ClampSrv);
 
             IntakeSrv.request.spring_state = 1;
             IntakeService.call(IntakeSrv);
@@ -189,8 +190,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 
             //11: Time 6: release Clamp
             ros::Duration(6).sleep(); //TODO
-            ClampMsg.data = false;
-            ClampPub.publish(ClampMsg);
+            ClampSrv.request.data = false;
+            ClampService.call(ClampSrv);
             //12: Time 7: go to intake config
             ros::Duration(7).sleep(); //TODO
             ElevatorSrv.request.x = intake_config_x;
@@ -222,8 +223,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ElevatorService.call(ElevatorSrv);
             ros::Duration(.3).sleep(); //TODO
 
-            ClampMsg.data = false;
-            ClampPub.publish(ClampMsg);
+            ClampSrv.request.data = false;
+            ClampService.call(ClampSrv);
 
 
             //2: Time 1.5: go to intake config && start intake
@@ -246,8 +247,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                 ROS_ERROR("Failed to intake cube! TIME OUT");
             }
 
-            ClampMsg.data = true;
-            ClampPub.publish(ClampMsg);
+            ClampSrv.request.data = true;
+            ClampService.call(ClampSrv);
 
             IntakeSrv.request.spring_state = 1; //out;
             IntakeService.call(IntakeSrv);
@@ -271,8 +272,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 
             //6: Time 2.5: release Clamp
             ros::Duration(2.5).sleep(); //TODO
-            ClampMsg.data = false;
-            ClampPub.publish(ClampMsg);
+            ClampSrv.request.data = false;
+            ClampService.call(ClampSrv);
             //7: Time 3: go to intake config && run intake
             ros::Duration(3).sleep(); //TODO
             ElevatorSrv.request.x = intake_config_x;
@@ -293,8 +294,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                 ROS_WARN("Failed to intake cube: TIME OUT");
             }
 
-            ClampMsg.data = true;
-            ClampPub.publish(ClampMsg);
+            ClampSrv.request.data = true;
+            ClampService.call(ClampSrv);
 
             IntakeSrv.request.spring_state = 1; //out
             IntakeService.call(IntakeSrv);
@@ -388,7 +389,8 @@ int main(int argc, char** argv) {
     IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
     //ElevatorService = n.advertise<elevator_controller::ElevatorControl>("elevator/cmd_pos", 1);
     ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
-    ClampPub = n.advertise<std_msgs::Bool>("elevator/Clamp", 1);
+    //ClampService = n.advertise<std_msgs::Bool>("elevator/Clamp", 1);
+    ClampService = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
     VelPub = n.advertise<geometry_msgs::Twist>("swerve_drive_controller/cmd_vel", 1);
 
     message_filters::Subscriber<ros_control_boilerplate::AutoMode> auto_mode_sub(n, "Autonomous_Mode", 20);
