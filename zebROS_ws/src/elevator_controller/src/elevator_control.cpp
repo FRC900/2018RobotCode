@@ -7,7 +7,10 @@
 namespace elevator_controller
 {
 ElevatorController::ElevatorController():
-	if_cube_(false),
+	line_break_intake_index_(-1),
+	line_break_clamp_index_(-1),
+	line_break_intake_(false),
+	line_break_clamp_(false),
 	shift_cmd_(false),
 	shifted_(false),
 	clamp_cmd_(0.0),
@@ -28,9 +31,6 @@ ElevatorController::ElevatorController():
 {
 }
 
-void ElevatorController::evaluateCubeState(){
-     //TODO : get state of linebreak and publish cube holding state
-}
 
 
 bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
@@ -142,6 +142,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	arm_limiter = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, 15);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
+	sub_joint_state_ = controller_nh.subscribe("/frcrobot/joint_states", 1, &ElevatorController::lineBreakCallback, this);
 	service_command_ = controller_nh.advertiseService("cmd_posS", &ElevatorController::cmdPosService, this);
 	service_intake_ = controller_nh.advertiseService("intake", &ElevatorController::intakeService, this);
 	service_clamp_ = controller_nh.advertiseService("clamp", &ElevatorController::clampService, this);
@@ -153,6 +154,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	Clamp      	  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);
 	Shift      	  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/shift_controller/command", 1);
 	EndGameDeploy     = controller_nh.advertise<std_msgs::Float64>("/frcrobot/end_game_deploy_controller/command", 1);
+	CubeState      	  = controller_nh.advertise<std_msgs::Bool>("cube_state", 1);
 	IntakeUp      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_up_controller/command", 1);
 	IntakeSoftSpring = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_soft_controller/command", 1);
 	IntakeHardSpring = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_hard_controller/command", 1);
@@ -266,6 +268,7 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	}	
 
 	Clamp.publish(clamp_cmd_);
+	CubeState.publish(line_break_intake_ || line_break_clamp_);
 
 
 	elevator_controller::ReturnElevatorCmd return_holder;
@@ -350,6 +353,42 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 	else
 	{
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+	}
+}
+void ElevatorController::lineBreakCallback(const sensor_msgs::JointState &msg)
+{
+	if(isRunning())
+	{
+		if(line_break_intake_index_ != -1)
+		{
+			line_break_intake_ = msg.position[line_break_intake_index_] > 0;
+		}
+		else
+		{
+			for(int i = 0; i < msg.name.size(); i++)
+			{
+				if(msg.name[i] == "intake_line_break")
+				{
+					line_break_intake_index_ = i;
+					break;
+				}
+			}
+		}
+		if(line_break_clamp_index_ != -1)
+		{
+			line_break_clamp_ = msg.position[line_break_clamp_index_] > 0;
+		}
+		else
+		{
+			for(int i = 0; i < msg.name.size(); i++)
+			{
+				if(msg.name[i] == "clamp_line_break")
+				{
+					line_break_clamp_index_ = i;
+					break;
+				}
+			}
+		}
 	}
 }
 bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res)
