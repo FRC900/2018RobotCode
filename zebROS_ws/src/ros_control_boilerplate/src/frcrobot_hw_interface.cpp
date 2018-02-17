@@ -91,37 +91,38 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
-
+    ros::Time time_now_t;
 	while (run_hal_thread_)
 	{
 		robot_.OneIteration();
 
-		if (realtime_pub_nt.trylock())
-		{
+        time_now_t = ros::Time::now();
+            ROS_INFO("%f", ros::Time::now().toSec());
 			// Network tables work!
 			//pubTable->PutString("String 9", "WORK");
 			//subTable->PutString("Auto Selector", "Select Auto");
-			if (driveTable)
-			{
-				// SmartDashboard works!
-				//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+            if(realtime_pub_nt.trylock()) {
+            if (driveTable)
+            {
+                // SmartDashboard works!
+                //frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
-				// TODO eventually add header to nt message so we can get timestamps
-				// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
-				//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
-			    realtime_pub_nt.msg_.mode = driveTable->GetNumber("auto_mode", 0);
-			    realtime_pub_nt.msg_.position = driveTable->GetNumber("robot_start_position", 0);
-			}
+                // TODO eventually add header to nt message so we can get timestamps
+                // realtime_pub_nt.msg_.header.stamp = ros::Time::now();
+                //realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
+                realtime_pub_nt.msg_.mode = driveTable->GetNumber("auto_mode", 0);
+                realtime_pub_nt.msg_.position = driveTable->GetNumber("robot_start_position", 0);
+            }
 
-			// TODO eventually add header to nt message so we can get timestamps
-			// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
-            realtime_pub_nt.msg_.header.stamp = ros::Time::now();
-			realtime_pub_nt.unlockAndPublish();
-		}
+            // TODO eventually add header to nt message so we can get timestamps
+            // realtime_pub_nt.msg_.header.stamp = ros::Time::now();
+            realtime_pub_nt.msg_.header.stamp = time_now_t;
+            realtime_pub_nt.unlockAndPublish();
+        }
 
 		if (realtime_pub_joystick.trylock())
 		{
-			realtime_pub_joystick.msg_.header.stamp = ros::Time::now();
+			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
 			realtime_pub_joystick.msg_.leftStickX = joystick.GetRawAxis(0);
 			realtime_pub_joystick.msg_.leftStickY = joystick.GetRawAxis(1);
@@ -176,7 +177,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 		if(realtime_pub_match_data.trylock())
 		{
-			realtime_pub_match_data.msg_.header.stamp = ros::Time::now();
+            
+            ROS_INFO("AA:%f", ros::Time::now().toSec());
 
 			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
 
@@ -190,6 +192,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.isDisabled = DriverStation::GetInstance().IsDisabled();
 			realtime_pub_match_data.msg_.isAutonomous = DriverStation::GetInstance().IsAutonomous();
 
+			realtime_pub_match_data.msg_.header.stamp = ros::Time::now();
 			realtime_pub_match_data.unlockAndPublish();
 		}
 
