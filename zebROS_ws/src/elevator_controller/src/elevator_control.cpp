@@ -7,8 +7,18 @@
 namespace elevator_controller
 {
 ElevatorController::ElevatorController():
-	if_cube_(false),
-	clamp_cmd_(false),
+	line_break_intake_index_(-1),
+	line_break_clamp_index_(-1),
+	line_break_intake_(false),
+	line_break_clamp_(false),
+	shift_cmd_(false),
+	shifted_(false),
+	clamp_cmd_(0.0),
+	end_game_deploy_cmd_(false),
+	end_game_deploy_t1_(false),
+	end_game_deploy_t2_(false),
+	climb_height_(0.0),
+	end_game_deploy_start_(0.0),
 	arm_length_(0.0),
 	pivot_offset_(0.0),
 	lift_offset_(0.0),
@@ -21,9 +31,6 @@ ElevatorController::ElevatorController():
 {
 }
 
-void ElevatorController::evaluateCubeState(){
-     //TODO : get state of linebreak and publish cube holding state
-}
 
 
 bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
@@ -45,6 +52,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	ROS_INFO_STREAM("names: " << lift_name << intake_name << pivot_name);
 
 	controller_nh.getParam("arm_length", arm_length_);
+	controller_nh.getParam("climb_height", climb_height_);
 
 	ros::NodeHandle lnh(controller_nh, lift_name);
 	lift_offset_ = 0;
@@ -134,13 +142,19 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	arm_limiter = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, 15);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
+	sub_joint_state_ = controller_nh.subscribe("/frcrobot/joint_states", 1, &ElevatorController::lineBreakCallback, this);
 	service_command_ = controller_nh.advertiseService("cmd_posS", &ElevatorController::cmdPosService, this);
 	service_intake_ = controller_nh.advertiseService("intake", &ElevatorController::intakeService, this);
 	service_clamp_ = controller_nh.advertiseService("clamp", &ElevatorController::clampService, this);
+	service_shift_ = controller_nh.advertiseService("shift", &ElevatorController::shiftService, this);
+	service_end_game_deploy_ = controller_nh.advertiseService("end_game_deploy", &ElevatorController::endGameDeployService, this);
 
 
 
 	Clamp      	  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);
+	Shift      	  = controller_nh.advertise<std_msgs::Float64>("/frcrobot/shift_controller/command", 1);
+	EndGameDeploy     = controller_nh.advertise<std_msgs::Float64>("/frcrobot/end_game_deploy_controller/command", 1);
+	CubeState      	  = controller_nh.advertise<std_msgs::Bool>("cube_state", 1);
 	IntakeUp      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_up_controller/command", 1);
 	IntakeSoftSpring = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_soft_controller/command", 1);
 	IntakeHardSpring = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_hard_controller/command", 1);
@@ -159,9 +173,65 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	//const double delta_t = period.toSec();
 	//const double inv_delta_t = 1 / delta_t;
 	//compOdometry(time, inv_delta_t);
+	if(end_game_deploy_cmd_ && !end_game_deploy_t1_)
+	{
+		
+		command_struct_.lin[0] = .1;
+                command_struct_.lin[1] = min_extension_ + cos(asin(.1 / arm_length_))*arm_length_;
+                command_struct_.up_or_down = true;
+                command_struct_.override_pos_limits = false;
+                command_struct_.override_sensor_limits = false;
+		
+		command_.writeFromNonRT(command_struct_);		
+
+		end_game_deploy_t1_ = true;	
+		end_game_deploy_start_ = ros::Time::now().toSec();
+	}
+	if(end_game_deploy_cmd_ && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .65)
+	{
+		command_struct_.lin[0] = .1;
+                command_struct_.lin[1] = (climb_height_ - min_extension_)*2 + cos(asin(.1 / arm_length_))*arm_length_;
+                command_struct_.up_or_down = true;
+                command_struct_.override_pos_limits = false;
+                command_struct_.override_sensor_limits = false;
+		
+		command_.writeFromNonRT(command_struct_);		
+		end_game_deploy_t2_ = true;	
+	}
+	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .5)
+	{	
+		EndGameDeploy.publish(1.0);
+	}
+	else
+	{
+		EndGameDeploy.publish(0.0);
+	}
+	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
+	{
+		shift_cmd_ = true;
+	} 
+	if(shift_cmd_)
+	{	
+		Shift.publish(1.0);
+		if(!shifted_)
+		{
+			shifted_ = true;
+			lift_joint_.setPIDFSlot(1.0);
+		}
+	}
+	else
+	{
+		Shift.publish(-1.0);
+		if(shifted_)
+		{
+			shifted_ = false;
+			lift_joint_.setPIDFSlot(0.0);
+		}
+	}
 	Commands curr_cmd = *(command_.readFromRT());
 	//Use known info to write to hardware etc.
 	//Put in intelligent bounds checking
+
 
 
 
@@ -198,6 +268,7 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	}	
 
 	Clamp.publish(clamp_cmd_);
+	CubeState.publish(line_break_intake_ || line_break_clamp_);
 
 
 	elevator_controller::ReturnElevatorCmd return_holder;
@@ -260,6 +331,7 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	double pivot_target = acos(curr_cmd.lin[0]/arm_length_) * ((curr_cmd.up_or_down) ? 1 : -1);
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
+
 }
 void ElevatorController::starting(const ros::Time &time)
 {
@@ -283,6 +355,42 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
 	}
 }
+void ElevatorController::lineBreakCallback(const sensor_msgs::JointState &msg)
+{
+	if(isRunning())
+	{
+		if(line_break_intake_index_ != -1)
+		{
+			line_break_intake_ = msg.position[line_break_intake_index_] > 0;
+		}
+		else
+		{
+			for(int i = 0; i < msg.name.size(); i++)
+			{
+				if(msg.name[i] == "intake_line_break")
+				{
+					line_break_intake_index_ = i;
+					break;
+				}
+			}
+		}
+		if(line_break_clamp_index_ != -1)
+		{
+			line_break_clamp_ = msg.position[line_break_clamp_index_] > 0;
+		}
+		else
+		{
+			for(int i = 0; i < msg.name.size(); i++)
+			{
+				if(msg.name[i] == "clamp_line_break")
+				{
+					line_break_clamp_index_ = i;
+					break;
+				}
+			}
+		}
+	}
+}
 bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res)
 {
 	if(isRunning())
@@ -303,12 +411,12 @@ bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Re
 		return false;
 	}
 }
-bool ElevatorController::clampService(elevator_controller::Clamp::Request &command, elevator_controller::Clamp::Response &res)
+bool ElevatorController::clampService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &res)
 {
 
 	if(isRunning())
 	{
-		if(command.clamp)
+		if(command.data)
 		{
 			clamp_cmd_ = 1.0;
 		}
@@ -316,6 +424,36 @@ bool ElevatorController::clampService(elevator_controller::Clamp::Request &comma
 		{
 			clamp_cmd_ = -1.0;
 		}
+		return true;
+	}
+	else
+	{
+		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+		return false;
+	}
+}
+bool ElevatorController::shiftService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &res)
+{
+
+	if(isRunning())
+	{
+		shift_cmd_ = command.data;
+		return true;
+	}
+	else
+	{
+		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+		return false;
+	}
+}
+bool ElevatorController::endGameDeployService(elevator_controller::Blank::Request &command, elevator_controller::Blank::Response &res)
+{
+
+
+
+	if(isRunning())
+	{
+		end_game_deploy_cmd_ = true;
 		return true;
 	}
 	else

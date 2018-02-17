@@ -11,7 +11,8 @@
 #include <elevator_controller/ElevatorControl.h>
 #include <elevator_controller/ElevatorControlS.h>
 #include <elevator_controller/Intake.h>
-#include <elevator_controller/Clamp.h>
+#include <elevator_controller/bool_srv.h>
+#include <elevator_controller/Blank.h>
 #include <elevator_controller/ReturnElevatorCmd.h>
 #include <elevator_controller/arm_limiting.h>
 
@@ -53,8 +54,18 @@ class ElevatorController
 		double pivot_anglular_velocity;
 		
 		std::string name_;
-		bool if_cube_;
+		bool line_break_intake_;
+		bool line_break_clamp_;
+		int line_break_intake_index_;
+		int line_break_clamp_index_;
+		bool shift_cmd_;
+		bool shifted_;
 		double clamp_cmd_;
+		double climb_height_;
+		bool end_game_deploy_cmd_;
+		bool end_game_deploy_t1_;
+		bool end_game_deploy_t2_;
+		double end_game_deploy_start_;
 
 		double max_extension_;
 		double min_extension_;
@@ -93,13 +104,20 @@ class ElevatorController
 		realtime_tools::RealtimeBuffer<Commands> command_;
                 Commands command_struct_;
 		ros::Subscriber sub_command_;
+		ros::Subscriber sub_joint_state_;
 		ros::ServiceServer service_command_;
 		IntakeCommand intake_struct_;
 		ros::ServiceServer service_intake_;
 		ros::ServiceServer service_clamp_;
+		ros::ServiceServer service_shift_;
+		ros::ServiceServer service_end_game_deploy_;
 		//TODO: considering adding x offset?
 		
 		ros::Publisher Clamp; 
+		ros::Publisher EndGameDeploy; 
+		ros::Publisher Shift; 
+		
+		ros::Publisher CubeState; 
 		
 		ros::Publisher IntakeUp; 
 		ros::Publisher IntakeHardSpring; 
@@ -113,16 +131,17 @@ class ElevatorController
 		double pivot_offset_;
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
+		void lineBreakCallback(const sensor_msgs::JointState&);
 		bool cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res);
 		bool intakeService(elevator_controller::Intake::Request &command, elevator_controller::Intake::Response &res);
-		bool clampService(elevator_controller::Clamp::Request &command, elevator_controller::Clamp::Response &res); 
-		//Add Callback for intake pneumatics, probably needs to be a custom msg
+		bool clampService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &res); 
+		bool shiftService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &res); 
+		bool endGameDeployService(elevator_controller::Blank::Request &command, elevator_controller::Blank::Response &res); 
 	
 		std::shared_ptr<arm_limiting::arm_limits> arm_limiter;
 	
 		//TODO: add odometry		
 		//void compOdometry(const ros::Time& time, const double inv_delta_t);
-		void evaluateCubeState();
 		//Something for getting the soft limit bounding boxes
 		//some function for making limits based on soft limit bounding box
 

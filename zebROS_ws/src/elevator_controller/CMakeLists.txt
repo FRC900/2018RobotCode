@@ -30,7 +30,8 @@ add_service_files (
   FILES
   ElevatorControlS.srv
   Intake.srv
-  Clamp.srv
+  bool_srv.srv
+  Blank.srv
 )
 generate_messages(
   DEPENDENCIES
