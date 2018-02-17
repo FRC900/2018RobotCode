@@ -7,7 +7,11 @@ elevator_controller:
     max_extension: 3.0 #FIX
     climb_height: 2.0 #FIX
     min_extension: 0.25 #FIX
-    
+   
+    after_shift_max_accel: 2 #fix
+    after_shift_max_vel: .5 #fix
+
+ 
     hook_depth: 0.1 #FIX
     hook_min_height: 1 #FIX
     hook_max_height: 1.1 #FIX

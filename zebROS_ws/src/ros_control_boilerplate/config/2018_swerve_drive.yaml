@@ -8,7 +8,7 @@ swerve_drive_controller:
     pose_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     # fix me
-    wheel_radius: 0.041275 # m
+    wheel_radius: 0.0381 # m
     max_speed: 3.3528
     mass: 70
     motor_free_speed: 5330
@@ -42,6 +42,7 @@ swerve_drive_controller:
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
+        voltage_compensation_enable: True
     speed_joint_fr:
         joint: fr_drive #fix pid
         close_loop_values:
@@ -49,6 +50,7 @@ swerve_drive_controller:
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
+        voltage_compensation_enable: True
     speed_joint_bl:
         joint: bl_drive #fix pid
         close_loop_values:
@@ -56,6 +58,7 @@ swerve_drive_controller:
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
+        voltage_compensation_enable: True
     speed_joint_br:
         joint: br_drive #fix pid
         close_loop_values:
@@ -63,6 +66,7 @@ swerve_drive_controller:
             - {p: 0.2, i: 0.0007, d: 3, f: 0.09, i_zone: 0}
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
+        voltage_compensation_enable: True
     steering_joint_fl:
         joint: fl_angle
         close_loop_values:
@@ -71,6 +75,7 @@ swerve_drive_controller:
         invert_output: False
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
+        voltage_compensation_enable: True
     steering_joint_fr:
         joint: fr_angle
         close_loop_values:
@@ -79,6 +84,7 @@ swerve_drive_controller:
         invert_output: False
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
+        voltage_compensation_enable: True
     steering_joint_br:
         joint: br_angle
         close_loop_values:
@@ -87,6 +93,7 @@ swerve_drive_controller:
         invert_output: False
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
+        voltage_compensation_enable: True
     steering_joint_bl:
         joint: bl_angle
         close_loop_values:
@@ -95,3 +102,4 @@ swerve_drive_controller:
         invert_output: False
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
+        voltage_compensation_enable: True
