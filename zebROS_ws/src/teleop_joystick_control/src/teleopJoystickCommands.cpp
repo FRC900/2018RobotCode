@@ -1,14 +1,40 @@
 #include "teleop_joystick_control/teleopJoystickCommands.h"
-
-
+/*TODO list:
+ *
+ *Make the arm code supply an X and a Y val. This applies to 
+ *the joystick as well as the button toggles
+ *
+ *CHECK THE TOGGLES WITH THE DOC. Additionally 
+ *make it so that when we have a cube, the toggles work 
+ *differently. Whether or not we have a cube will be
+ *published from the elevator controller. 
+ *
+ *Hook up arm publish correctly
+ *Hook up intake automated task - inherit pos 
+ *
+ *
+ *If place in exchange config -> deliver cube with intake as 
+ *well as letting go
+ *
+ *Iterate on arm odom
+ *
+ *Note: arm, end_game_deploy, and intake will become services
+ *
+ *Press down to climb (lift goes to position)
+ *
+ *
+ *
+ */
 //using namespace message_filters;
-static double timeSecs = 0, lastTimeSecs = 0, directionRightLast = 0, YLast = 0, BLast = 0;
+static double timeSecs = 0, lastTimeSecs = 0, directionUpLast = 0, YLast = 0, BLast = 0;
 static std::string currentToggle = " ";
 static std::string lastToggle = " ";
 static double elevatorHeightBefore;
 static ros::Publisher JoystickRobotVel;
-static ros::Publisher JoystickArmVel;
+static ros::Publisher JoystickArmPos;
 static ros::Publisher JoystickRumble;
+
+static ros::Publisher EndGameDeploy;
 
 bool sendRobotZero = false;
 bool sendArmZero = false;
@@ -65,6 +91,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     rumbleTypeConverterPublish(leftRumble, rightRumble);
 
     //Joystick Button Press parse
+    /*
     if(JoystickState->directionUpPress == true) {
         //TODO call auto climb file
         ROS_WARN("Auto climb");
@@ -73,14 +100,13 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         //TODO stop auto climb
         //publish a stop message?
     }
-    if(JoystickState->directionRightPress == true) {
-        directionRightLast = timeSecs;
-        timeSecs = ros::Time::now().toSec();
-        if(timeSecs - directionRightLast < 1.0) {
-            //TODO deploy ramp  or something
-            //publish true to RampDeploy
-            ROS_WARN("Deploy ramp");
+    */
+    if(JoystickState->directionUpPress == true) {
+        if(timeSecs - directionUpLast < 1.0) {
+	     EndGameDeploy.publish(1.0); //this will become a service
+	     ROS_WARN("Deploy ramp");
         }
+        directionUpLast = timeSecs;
     }
     /*
     if(JoystickState->buttonBButton == true && ifCube==true) {
@@ -252,7 +278,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     armPos += .1*rightStickY; //Access current elevator position to fix code allowing out of bounds travel
     arm.command = armPos;
 
-    JoystickArmVel.publish(arm);
+    JoystickArmPos.publish(arm);
+
 
         //TODO BUMPERS FOR SLOW MODE
         //ROS_WARN("leftStickX: %f", leftStickX);
@@ -298,8 +325,9 @@ int main(int argc, char **argv) {
 
     JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 
-    JoystickArmVel = n.advertise<talon_controllers::CloseLoopControllerMsg>("talon_linear_controller/command", 1);
+    JoystickArmPos = n.advertise<talon_controllers::CloseLoopControllerMsg>("talon_linear_controller/command", 1); //TODO fix
     JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
+    EndGameDeploy = n.advertise<std_msgs::Float64>("/frcrobot/end_game_deploy_controller/command", 1);
 
 	// TODO : combine these into 1 callback with joystick val and robot
 	// state synchronized by approximate message time.  See http://wiki.ros.org/message_filters#ApproximateTime_Policy
