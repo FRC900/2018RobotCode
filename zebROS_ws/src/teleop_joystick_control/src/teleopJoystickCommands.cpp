@@ -13,24 +13,9 @@
 /*TODO list:
  *
  *
- *CHECK THE TOGGLES WITH THE DOC. Additionally 
- *make it so that when we have a cube, the toggles work 
- *differently. Whether or not we have a cube will be
- *published from the elevator controller. 
- *
- *Hook up intake automated task - inherit pos 
- *
- *
- *If place in exchange config -> deliver cube with intake as 
- *well as letting go
- *
- *Iterate on arm odom
- *
  *Note: arm, end_game_deploy, and intake will become services
  *
  *Press down to climb (lift goes to position)
- *
- *
  *
  */
 //using namespace message_filters;
@@ -53,7 +38,21 @@ static ros::ServiceClient ElevatorSrv;
 static ros::ServiceClient ClampSrv;
 static ros::ServiceClient IntakeSrv;
 
-
+static double high_scale_config_x;
+static double high_scale_config_y;
+static double mid_scale_config_x;
+static double mid_scale_config_y;
+static double low_scale_config_x;
+static double low_scale_config_y;
+static double switch_config_x;
+static double switch_config_y;
+static double exchange_config_x;
+static double exchange_config_y;
+static double intake_config_x;
+static double intake_config_y;
+static double default_x;
+static double default_y;
+ 
 
 bool sendRobotZero = false;
 bool sendArmZero = false;
@@ -259,8 +258,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 unToggle();
             }
             else {
-                srvElevator.request.x = -1; //TODO
-                srvElevator.request.y = -1;//TODO
+                srvElevator.request.x = intake_config_x;
+                srvElevator.request.y = intake_config_y;
                 if(ElevatorSrv.call(srvElevator)) {
                     ROS_WARN("Toggled to intake config");
                 }
@@ -284,8 +283,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 unToggle();
             }
             else {
-                srvElevator.request.x = -1; //TODO
-                srvElevator.request.y = -1;//TODO
+                srvElevator.request.x = switch_config_x;
+                srvElevator.request.y = switch_config_y;
                 if(ElevatorSrv.call(srvElevator)) {
                     ROS_WARN("Toggled to switch height");
                 }
@@ -306,8 +305,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     unToggle();
                 }
                 else {
-                    srvElevator.request.x = -1; //TODO
-                    srvElevator.request.y = -1;//TODO
+                    srvElevator.request.x = exchange_config_x;
+                    srvElevator.request.y = exchange_config_y;
                     if(ElevatorSrv.call(srvElevator)) {
                         ROS_WARN("Toggled to exchange config");
                     }
@@ -330,8 +329,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 unToggle();
             }
             else {
-                srvElevator.request.x = -1; //TODO
-                srvElevator.request.y = -1;//TODO
+                srvElevator.request.x = low_scale_config_x;
+                srvElevator.request.y = low_scale_config_y;
                 if(ElevatorSrv.call(srvElevator)) {
                     ROS_WARN("Toggled to low level scale");
                 }
@@ -351,8 +350,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     unToggle();
                 }
                 else {
-                    srvElevator.request.x = -1; //TODO
-                    srvElevator.request.y = -1;//TODO
+                    srvElevator.request.x = high_scale_config_x;
+                    srvElevator.request.y = high_scale_config_y;
                     if(ElevatorSrv.call(srvElevator)) {
                         ROS_WARN("Toggled to high level scale");
                     }
@@ -462,6 +461,24 @@ void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &Ma
 int main(int argc, char **argv) {
     ros::init(argc, argv, "Joystick_controller");
     ros::NodeHandle n;
+
+    ros::NodeHandle n_params(n, "teleop_params");
+    
+    n_params.getParam("high_scale_config_x", high_scale_config_x);
+    n_params.getParam("high_scale_config_y", high_scale_config_y);
+    n_params.getParam("mid_scale_config_x", mid_scale_config_x);
+    n_params.getParam("mid_scale_config_y", mid_scale_config_y);
+    n_params.getParam("low_scale_config_x", low_scale_config_x);
+    n_params.getParam("low_scale_config_y", low_scale_config_y);
+    n_params.getParam("switch_config_x", switch_config_x);
+    n_params.getParam("switch_config_y", switch_config_y);
+    n_params.getParam("exchange_config_x", exchange_config_x);
+    n_params.getParam("exchange_config_y", exchange_config_y);
+    n_params.getParam("intake_config_x", intake_config_x);
+    n_params.getParam("intake_config_y", intake_config_y);
+    n_params.getParam("default_x", default_x);
+    n_params.getParam("default_y", default_y);
+
 
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("AutoServer", true);
 

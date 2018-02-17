@@ -26,6 +26,7 @@
 		<rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets0.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
 		<rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
+        <rosparam file="$(find teleop_joystick_control)/config/teleopJoystickCommands.yaml" command="load"/>
 		<rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
 
 		<!-- Load controller manager -->
