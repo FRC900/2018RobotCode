@@ -3,7 +3,7 @@
 #include "elevator_controller/ReturnElevatorCmd.h"
 #include "elevator_controller/ElevatorControlS.h"
 #include "elevator_controller/Intake.h"
-#include "elevator_controller/Clamp.h"
+#include "elevator_controller/bool_srv.h"
 #include "cstdlib"
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
@@ -167,7 +167,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         lastToggle = currentToggle;
 
         elevator_controller::ElevatorControlS srvElevator;
-        elevator_controller::Clamp srvClamp;
+        elevator_controller::bool_srv srvClamp;
         elevator_controller::Intake srvIntake;
 
         //**** MID LEVEL SCALE TOGGLE || Grab Cube ***//
@@ -196,7 +196,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             else {
                 currentToggle = "XNoCube";
                 if(lastToggle != currentToggle) {
-                    srvClamp.request.clamp = true;
+                    srvClamp.request.data = true;
                     if(ClampSrv.call(srvClamp)) {
                         ROS_WARN("Clamped");
                     }
@@ -206,7 +206,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 }
                 else {
                     currentToggle = " ";
-                    srvClamp.request.clamp = false;
+                    srvClamp.request.data = false;
                     if(ClampSrv.call(srvClamp)) {
                         ROS_WARN("UnClamped");
                     }
@@ -226,7 +226,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 if(lastToggle=="YDouble") {
                     srvIntake.request.spring_state = 2; //soft_in
                     if(IntakeSrv.call(srvIntake)) {
-                        srvClamp.request.clamp = false;
+                        srvClamp.request.data = false;
                         if(ClampSrv.call(srvClamp)) {
                             srvIntake.request.power = -.8;
                             if(IntakeSrv.call(srvIntake)) {
@@ -240,7 +240,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     }
                 }
                 else {
-                    srvClamp.request.clamp=false;
+                    srvClamp.request.data=false;
                     if(ClampSrv.call(srvClamp)) {
                         ROS_WARN("Placed cube");
                     }
@@ -471,7 +471,7 @@ int main(int argc, char **argv) {
     EndGameDeploy = n.advertise<std_msgs::Float64>("/frcrobot/end_game_deploy_controller/command", 1);
 
     ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/cmd_posS");
-    ClampSrv = n.serviceClient<elevator_controller::Clamp>("/frcrobot/clamp");
+    ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/clamp");
     IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/intake");
 
     message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "ScaledJoystickVals", 5);
