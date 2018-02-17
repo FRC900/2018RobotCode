@@ -160,6 +160,7 @@ class TalonSwerveDriveController
 			std::vector<Eigen::Vector2d> lin_points_vel;
 			std::vector<double> ang_vel;
 			hardware_interface::TrajectoryDuration dt;
+			int half_dt;
 		};
 		
 		realtime_tools::RealtimeBuffer<bool> mode_;
