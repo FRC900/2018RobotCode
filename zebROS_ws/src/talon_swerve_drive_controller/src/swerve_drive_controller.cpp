@@ -680,6 +680,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		
 		cmd_points curr_cmd = *(command_points_.readFromRT());
 
+
 		ROS_WARN("BUFFERING");
 		//TODO: optimize code?
 		array<double, WHEELCOUNT> curPos;
@@ -694,16 +695,32 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		for (size_t i = 0; i < WHEELCOUNT; i++)
 			curPos[i] = angles_positions[i][1];
 		//Do first point and initialize stuff
+		
+		/*
+		TODO: IMPLEMENT BELOW
+		if(motion_profile_mode == steering_joints_[0].getMode())
+		{
+			for(size_t i = 0; i < WHEELCOUNT; i++)
+			{
+				speed_joints_[i].setCommand(0);
+                        	steering_joints_[i].setCommand(0);
+			}
+		}
+		*/
 
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
 
-
-			//steering_joints_[i].clearMotionProfileTrajectories();
-			//speed_joints_[i].clearMotionProfileTrajectories();
+			steering_joints_[i].clearMotionProfileTrajectories();
+			speed_joints_[i].clearMotionProfileTrajectories();
 
 			steering_joints_[i].clearMotionProfileHasUnderrun();
 			speed_joints_[i].clearMotionProfileHasUnderrun();
+
+			steering_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
+                        speed_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
+
+			
 
 			holder_points_[i][0].position = angles_positions[i][0];
 			holder_points_[i][1].position = angles_positions[i][1];
@@ -878,36 +895,44 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 			double duration = req.joint_trajectory.points[1].time_from_start.toSec()
 			- req.joint_trajectory.points[0].time_from_start.toSec();
 
-			if(duration < .0025)
+			/*if(duration < .0025)
 			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_0ms;
+
 			}
-			else if(duration < .0075)
+			else*/ if(duration < .0075)
 			{
+			     points_struct_.half_dt = 5;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_5ms;
 			}
 			else if(duration < .015)
 			{
+			     points_struct_.half_dt = 10;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_10ms;
 			}
 			else if(duration < .025)
 			{
+			     points_struct_.half_dt = 20;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_20ms;
 			}
 			else if(duration < .035)
 			{
+			     points_struct_.half_dt = 30;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_30ms;
 			}
 			else if(duration < .045)
 			{
+			     points_struct_.half_dt = 40;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_40ms;
 			}
 			else if(duration < .075)
 			{
+			     points_struct_.half_dt = 50;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_50ms;
 			}
 			else
 			{
+			     points_struct_.half_dt = 100;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_100ms;
 			}
 			for(size_t i = 0; i < req.joint_trajectory.points.size(); i++)

@@ -9,7 +9,9 @@
 #include <std_msgs/Bool.h>
 //#include <teleop_joystick_control/RobotState.h>
 #include <elevator_controller/ElevatorControl.h>
+#include <elevator_controller/ElevatorControlS.h>
 #include <elevator_controller/Intake.h>
+#include <elevator_controller/Clamp.h>
 #include <elevator_controller/ReturnElevatorCmd.h>
 #include <elevator_controller/arm_limiting.h>
 
@@ -91,9 +93,10 @@ class ElevatorController
 		realtime_tools::RealtimeBuffer<Commands> command_;
                 Commands command_struct_;
 		ros::Subscriber sub_command_;
+		ros::ServiceServer service_command_;
 		IntakeCommand intake_struct_;
-		ros::Subscriber sub_intake_;
-		ros::Subscriber sub_clamp_;
+		ros::ServiceServer service_intake_;
+		ros::ServiceServer service_clamp_;
 		//TODO: considering adding x offset?
 		
 		ros::Publisher Clamp; 
@@ -110,8 +113,9 @@ class ElevatorController
 		double pivot_offset_;
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
-		void intakeCallback(const elevator_controller::Intake& command);
-		void clampCallback(const std_msgs::Bool& command); 
+		bool cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res);
+		bool intakeService(elevator_controller::Intake::Request &command, elevator_controller::Intake::Response &res);
+		bool clampService(elevator_controller::Clamp::Request &command, elevator_controller::Clamp::Response &res); 
 		//Add Callback for intake pneumatics, probably needs to be a custom msg
 	
 		std::shared_ptr<arm_limiting::arm_limits> arm_limiter;
