@@ -13,7 +13,7 @@
 #include <elevator_controller/ElevatorControl.h>
 
 static int startPos = -1;
-static int autoMode = -1;
+static int auto_mode = -1;
 static double start_time;
 
 static ros::Publisher IntakePub;
@@ -23,7 +23,7 @@ static ros::Publisher VelPub;
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
-    ROS_INFO("Mode: %d, Start Position: %d", AutoMode->mode, AutoMode->position);
+    ROS_INFO("Mode: %d, Start Position: %d", AutoMode->mode[auto_mode-1], AutoMode->position);
     
     if(MatchData->isAutonomous && !MatchData->isDisabled) {
         if(!start_time) {
@@ -38,16 +38,30 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         std_msgs::Bool ClampMsg;
         behaviors::IntakeLiftGoal goal;
 
-        geometry_msgs::Twist vel;
-        vel.linear.x = 2;
-        vel.linear.y = 0;
-        vel.linear.z = 0;
-        vel.angular.x = 0;
-        vel.angular.y = 0;
-        vel.angular.z = 0;
-        VelPub.publish(vel);
-        /*
-        if(AutoMode->mode==1) {
+/////////////////TESTING/////////////////
+//        geometry_msgs::Twist vel;
+//        vel.linear.x = 2;
+//        vel.linear.y = 0;
+//        vel.linear.z = 0;
+//        vel.angular.x = 0;
+//        vel.angular.y = 0;
+//        vel.angular.z = 0;
+//        VelPub.publish(vel);
+/////////////////////////////////////////
+        if(MatchData->allianceData=="rlr") {
+            auto_mode = 1;
+        }
+        else if(MatchData->allianceData=="lrl") {
+            auto_mode = 2;
+        }
+        else if(MatchData->allianceData=="rrr") {
+            auto_mode = 3;
+        }
+        else if(MatchData->allianceData =="lll") {
+            auto_mode = 4;
+        }
+
+        if(AutoMode->mode[auto_mode-1]==1) {
         //3 cube switch-scale-scale
             //0: Time 0: Go to switch config
             ros::Duration(0).sleep(); //TODO
@@ -166,7 +180,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ElevatorMsg.up_or_down = true;
             ElevatorPub.publish(ElevatorMsg);
         }
-        else if(AutoMode->mode==2) {
+        else if(AutoMode->mode[auto_mode-1]==2) {
             //2 cube longway scale-scale
             //0: Time 0: Go to default config && drop intake
             ros::Duration(0).sleep(); //TODO
@@ -206,8 +220,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ac->sendGoal(goal);
 
             //3: Linebreak sensor: Clamp && release intake && stop running intake
-            success == ac->waitForResult(ros::Duration(15)); //TODO
-            IntakeMSg.power = 0; 
+            bool success = ac->waitForResult(ros::Duration(15)); //TODO
+            IntakeMsg.power = 0; 
             IntakePub.publish(IntakeMsg);
 
             if(!success) {
@@ -240,7 +254,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 
             //6: Time 2.5: release Clamp
             ros::Duration(2.5).sleep(); //TODO
-            ClampMsg = false;
+            ClampMsg.data = false;
             ClampPub.publish(ClampMsg);
             //7: Time 3: go to intake config && run intake
             ros::Duration(3).sleep(); //TODO
@@ -271,7 +285,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 
 
         }
-        else if(AutoMode->mode==3) {
+        else if(AutoMode->mode[auto_mode-1]==3) {
             //2 cube longway scale-scale
                     //0: Time 0: Go to mid-scale config && drop intake
                     //1: Time 1: Release Clamp
@@ -282,41 +296,40 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                     //6: Time 3: go to intake config && run intake
                     //7: Linebreak sensor: Clamp && release intake && stop running intake
         }
-        else if(AutoMode->mode==4) {
+        else if(AutoMode->mode[auto_mode-1]==4) {
 
         }
-        else if(AutoMode->mode==5) {
+        else if(AutoMode->mode[auto_mode-1]==5) {
 
         }
-        else if(AutoMode->mode==6) {
+        else if(AutoMode->mode[auto_mode-1]==6) {
 
         }
-        else if(AutoMode->mode==7) {
+        else if(AutoMode->mode[auto_mode-1]==7) {
 
         }
-        else if(AutoMode->mode==8) {
+        else if(AutoMode->mode[auto_mode-1]==8) {
 
         }
-        else if(AutoMode->mode==9) {
+        else if(AutoMode->mode[auto_mode-1]==9) {
 
         }
-        else if(AutoMode->mode==10) {
+        else if(AutoMode->mode[auto_mode-1]==10) {
 
         }
-        else if(AutoMode->mode==11) {
+        else if(AutoMode->mode[auto_mode-1]==11) {
 
         }
-        else if(AutoMode->mode==12) {
+        else if(AutoMode->mode[auto_mode-1]==12) {
 
         }
         else{
             
         }
-        */
     }
     else {
-        if(autoMode == AutoMode->mode || startPos == AutoMode->position) {
-            autoMode = AutoMode->mode;
+        if(auto_mode == AutoMode->mode[auto_mode-1] || startPos == AutoMode->position) {
+            auto_mode = AutoMode->mode[auto_mode-1];
             startPos = AutoMode->position;
             //TODO generate 4 motion profiles
         }

@@ -42,8 +42,9 @@ class autoAction {
     void executeCB(const behaviors::IntakeLiftGoalConstPtr &goal) {
         bool success;
         ros::Rate r(10);
-        while(success != true && linebreak != true) {
-            success = false;
+        double startTime = ros::Time::now().toSec();
+        success = false;
+        while(success != true && linebreak != true && ros::Time::now().toSec()-startTime < 15) {
             if(goal->IntakeCube) {
                 elevator_controller::Intake msg;
                 msg.up = false;
@@ -61,6 +62,9 @@ class autoAction {
             r.sleep();
             ros::spinOnce();
         }
+        elevator_controller::Intake msg;
+        msg.power = 0;
+        Intake.publish(msg);
         result_.data = 1;
         ROS_INFO("%s: Succeeded", action_name_.c_str());
         as_.setSucceeded(result_);
