@@ -924,11 +924,6 @@ class TalonControllerInterface
 			talon_->PushMotionProfileTrajectory(traj_pt);
 		}
 
-		virtual void processMotionProfileBuffer(void)
-		{
-			talon_->setProcessMotionProfileBuffer();
-		}
-
 		double getPosition(void) const
 		{
 			return talon_.state()->getPosition();

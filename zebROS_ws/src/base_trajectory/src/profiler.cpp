@@ -99,15 +99,27 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 	
 	spline = parametrize_spline(x_splines_first_deriv, y_splines_first_deriv, end_points, total_arc);
 	//back pass
-	
 	for(double i = total_arc; i > 0;)
 	{
+
 		i -= curr_v*dt_;
 		
 		velocities.push_back(curr_v);
 		positions.push_back(i);
 		
 		t = spline(i);
+		//rescale t
+		for(size_t k = 0; k < end_points.size(); k++)
+		{
+			if(t > end_points[k])
+			{			
+				t -= end_points[k];
+			}
+			else
+			{
+				break;
+			}
+		}
 		
 		
 		dtds = (spline(i+.001) - spline(i-.001)) / .002; //Maybe change spline and analytically deriv?
@@ -117,7 +129,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, t, holder_point, end_points, dtds);
 		
 
-		ROS_INFO_STREAM("t: " << t << " pos: " << holder_point.pos << " curr_v: " << curr_v);
+		ROS_INFO_STREAM("t (soft): " << t << " pos: " << holder_point.pos << " curr_v: " << curr_v);
 		
 		if(!solve_for_next_V(holder_point, total_arc, curr_v, i))
 		{
@@ -139,6 +151,21 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		i += curr_v*dt_;	
 		
 		t = spline(i);
+		
+		
+		//rescale t
+		for(size_t k = 0; k < end_points.size(); k++)
+		{
+			if(t > end_points[k])
+			{			
+				t -= end_points[k];
+			}
+			else
+			{
+				break;
+			}
+		}
+		
 
 		dtds = (spline(i+.001) - spline(i-.001)) / .002; //Maybe change spline and analytically deriv?
 		
@@ -287,13 +314,13 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 		if(i != 0)
 		{
 			period_t = (end_points[i] - end_points[i-1])/100.0; //100 is super arbitrary
-			start = end_points[i-1];
+			start = 0; //end_points[i-1];
 		}
 		for(size_t k = 0; k < 100; k++)
 		{
 			a_val = k*period_t + start;
 			b_val = (k+1)*period_t + start;
-			t_vals.push_back(a_val);
+			t_vals.push_back(a_val + end_points[i]);
 			s_vals.push_back(total_arc_length);
 			calc_point(x_splines_first_deriv[i], a_val, x_at_a);
 			calc_point(x_splines_first_deriv[i], b_val, x_at_b);
@@ -309,7 +336,7 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 			ROS_INFO_STREAM("Spline: " << i << " t_val: " << a_val <<"  arc_length: " << total_arc_length);
 		} 
 	}
-	t_vals.push_back(b_val);
+	t_vals.push_back(b_val + end_points[end_points.size() - 1]);
 	s_vals.push_back(total_arc_length);
 	//TODO: Loop to generate set of s vals for t vals iterating from 0 to end_time (simpsons rule here)
 

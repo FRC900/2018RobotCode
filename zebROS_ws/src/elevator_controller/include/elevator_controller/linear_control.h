@@ -22,11 +22,9 @@
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 
-
 #include <array>
 #include <memory>
 #include <Eigen/Dense>
-
 
 namespace elevator_controller
 {
@@ -42,7 +40,6 @@ class ElevatorController
 
 		void update(const ros::Time &time, const ros::Duration &period);
 		
-
 		void starting(const ros::Time &time);
 
 	private:
@@ -52,12 +49,6 @@ class ElevatorController
 		double before_shift_max_accel_;		
 		double before_shift_max_vel_;		
 
-		double lift_position;
-		double pivot_angle;
-
-		double lift_velocity;
-		double pivot_anglular_velocity;
-		
 		std::string name_;
 		bool line_break_intake_;
 		bool line_break_clamp_;
@@ -97,17 +88,17 @@ class ElevatorController
 		talon_controllers::TalonPercentOutputControllerInterface intake_joint_;
 
 		struct Commands
-                {
-                        Eigen::Vector2d lin;
-                        bool up_or_down;
-                        bool override_pos_limits;
+		{
+			Eigen::Vector2d lin;
+			bool up_or_down;
+			bool override_pos_limits;
 			bool override_sensor_limits;			
 			ros::Time stamp;
 
-                        Commands() : lin({0.0, 0.0}), up_or_down(true), stamp(0.0) {}
-                };
+			Commands() : lin({0.0, 0.0}), up_or_down(true), stamp(0.0) {}
+		};
 		realtime_tools::RealtimeBuffer<Commands> command_;
-                Commands command_struct_;
+		Commands command_struct_;
 		ros::Subscriber sub_command_;
 		ros::Subscriber sub_joint_state_;
 		ros::ServiceServer service_command_;
@@ -118,19 +109,19 @@ class ElevatorController
 		ros::ServiceServer service_end_game_deploy_;
 		//TODO: considering adding x offset?
 		
-		ros::Publisher Clamp; 
-		ros::Publisher EndGameDeploy; 
-		ros::Publisher Shift; 
+		ros::Publisher Clamp_; 
+		ros::Publisher EndGameDeploy_; 
+		ros::Publisher Shift_; 
 		
-		ros::Publisher CubeState; 
+		ros::Publisher CubeState_; 
 		
-		ros::Publisher IntakeUp; 
-		ros::Publisher IntakeHardSpring; 
-		ros::Publisher IntakeSoftSpring; 
+		ros::Publisher IntakeUp_; 
+		ros::Publisher IntakeHardSpring_; 
+		ros::Publisher IntakeSoftSpring_; 
 
-		ros::Publisher ReturnCmd; 
+		ros::Publisher ReturnCmd_; 
 		
-		ros::Publisher Odom; 
+		ros::Publisher Odom_; 
 
 		double arm_length_;
 		double pivot_offset_;
@@ -143,7 +134,7 @@ class ElevatorController
 		bool shiftService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &res); 
 		bool endGameDeployService(elevator_controller::Blank::Request &command, elevator_controller::Blank::Response &res); 
 	
-		std::shared_ptr<arm_limiting::arm_limits> arm_limiter;
+		std::shared_ptr<arm_limiting::arm_limits> arm_limiter_;
 	
 		//TODO: add odometry		
 		//void compOdometry(const ros::Time& time, const double inv_delta_t);

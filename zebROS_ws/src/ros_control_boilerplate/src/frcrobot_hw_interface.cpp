@@ -362,8 +362,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		hardware_interface::TalonMode talon_mode = ts.getTalonMode();
 		int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
 
-		double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
-		double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
+		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
+		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
 		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
 
 		double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
@@ -788,9 +788,9 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		int encoder_ticks_per_rotation = tc.getEncoderTicksPerRotation();
 		ts.setEncoderTicksPerRotation(encoder_ticks_per_rotation);
 
-		double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
-		double radians_per_sec_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
-		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
+		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
+		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
+		const double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
 
 		bool close_loop_mode = false;
 		bool motion_profile_mode = false;
@@ -1025,8 +1025,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				ts.setMotionAcceleration(motion_acceleration);
 
 				//converted from rad/sec to native units
-				safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_sec_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
-				safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_sec_scale), timeoutMs),"ConfigMotionAcceleration(");
+				safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_second_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
+				safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_second_scale), timeoutMs),"ConfigMotionAcceleration(");
 			}
 			// Do this before rest of motion profile stuff
 			// so it takes effect before starting a buffer?
@@ -1059,8 +1059,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 					//This loop doesn't work for whatever reason
 					ctre::phoenix::motion::TrajectoryPoint pt;
-					pt.position = it->position;
-					pt.velocity = it->velocity;
+					pt.position = it->position / radians_scale;
+					pt.velocity = it->velocity / radians_per_second_scale;
 					pt.headingDeg = it->headingRad * 180. / M_PI;
 					pt.profileSlotSelect0 = it->profileSlotSelect0;
 					pt.profileSlotSelect1 = it->profileSlotSelect1;
@@ -1069,6 +1069,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
 					safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
 				}
+				// Copy the 1st profile trajectory point from
+				// the top level buffer to the talon
+				// Subsequent points will be copied by
+				// the process_motion_profile_buffer_thread code
+				talon->ProcessMotionProfileBuffer();
 			}
 		}
 
@@ -1092,7 +1097,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			switch (out_mode)
 			{
 				case ctre::phoenix::motorcontrol::ControlMode::Velocity:
-					command /= radians_per_sec_scale;
+					command /= radians_per_second_scale;
 					break;
 				case ctre::phoenix::motorcontrol::ControlMode::Position:
 					command /= radians_scale;
@@ -1105,16 +1110,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			//ROS_INFO_STREAM("in mode: " << in_mode);
 			talon->Set(out_mode, command);
 			safeTalonCall(talon->GetLastError(), "Set");
-		}
-
-		// Do this last so that previously loaded trajectories and settings
-		// have been sent to the talon before processing
-		// Also do it after setting mode to make sure switches to
-		// motion profile mode are done before processing
-		if (motion_profile_mode && tc.processMotionProfileBufferChanged())
-		{
-			talon->ProcessMotionProfileBuffer();
-			safeTalonCall(talon->GetLastError(), "ProcessMotionProfileBuffer");
 		}
 
 		if (tc.clearStickyFaultsChanged())
