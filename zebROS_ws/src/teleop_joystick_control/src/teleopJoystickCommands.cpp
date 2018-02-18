@@ -52,6 +52,7 @@ static double intake_config_x;
 static double intake_config_y;
 static double default_x;
 static double default_y;
+static double exchange_delay;
  
 
 bool sendRobotZero = false;
@@ -180,10 +181,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     unToggle();
                 }
                 else {
-                    //TODO publish exchange height to ElevatorTarget or something
-
-                    srvElevator.request.x = -1; //TODO
-                    srvElevator.request.y = -1;//TODO
+                    srvElevator.request.x = exchange_config_x;
+                    srvElevator.request.y = exchange_config_y;
                     if(ElevatorSrv.call(srvElevator)) {
                         ROS_WARN("Toggled to mid level scale height");
                     }
@@ -230,7 +229,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                             srvIntake.request.power = -.8;
                             if(IntakeSrv.call(srvIntake)) {
                                 ROS_WARN("Exchanged Cube");
-                                ros::Duration(.5).sleep(); //TODO
+                                ros::Duration(exchange_delay).sleep(); //TODO
                             }
                         }
                     }
@@ -478,6 +477,7 @@ int main(int argc, char **argv) {
     n_params.getParam("intake_config_y", intake_config_y);
     n_params.getParam("default_x", default_x);
     n_params.getParam("default_y", default_y);
+    n_params.getParam("exchange_delay", exchange_delay);
 
 
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("AutoServer", true);

@@ -94,13 +94,14 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
+    realtime_pub_nt.msg_.mode.resize(4);
     ros::Time time_now_t;
 	while (run_hal_thread_ && ros::ok())
 	{
 		robot_.OneIteration();
 
         time_now_t = ros::Time::now();
-		ROS_INFO("%f", ros::Time::now().toSec());
+		//ROS_INFO("%f", ros::Time::now().toSec());
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
 		//subTable->PutString("Auto Selector", "Select Auto");
@@ -112,11 +113,11 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
 				//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
-				realtime_pub_nt.msg_.mode[0] = driveTable->GetNumber("auto_mode_0", 0);
-				realtime_pub_nt.msg_.mode[1] = driveTable->GetNumber("auto_mode_1", 0);
-				realtime_pub_nt.msg_.mode[2] = driveTable->GetNumber("auto_mode_2", 0);
-				realtime_pub_nt.msg_.mode[3] = driveTable->GetNumber("auto_mode_3", 0);
-				realtime_pub_nt.msg_.position = driveTable->GetNumber("robot_start_position", 0);
+				realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
+				realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
+				realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
+				realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
+				realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
 			}
 
 			realtime_pub_nt.msg_.header.stamp = time_now_t;
@@ -181,7 +182,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		if(realtime_pub_match_data.trylock())
 		{
             
-            ROS_INFO("AA:%f", ros::Time::now().toSec());
+            //ROS_INFO("AA:%f", ros::Time::now().toSec());
 
 			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
 

@@ -1,0 +1,54 @@
+autoParams:
+  #switch-scale-scale-scale
+  mode_1_layout_1_2_pos_1_times:  
+  mode_1_layout_1_2_pos_2_times:  
+  mode_1_layout_3_4_pos_1_times:  
+  mode_1_layout_3_4_pos_2_times:  
+
+  #longway scale-switch-scale
+  #mode_2_layout_1_2_pos_1_times: DON'T EXIST
+  #mode_2_layout_1_2_pos_2_times: DON'T EXIST
+  mode_2_layout_3_4_pos_1_times:
+  mode_2_layout_3_4_pos_2_times:
+
+  #shortway scale-switch-scale
+  mode_3_layout_1_2_pos_1_times:  
+  mode_3_layout_1_2_pos_2_times:  
+  mode_3_layout_3_4_pos_1_times:  
+  mode_3_layout_3_4_pos_2_times:  
+
+  #longway scale-scale-scale
+  mode_4_layout_1_2_pos_1_times:  
+  mode_4_layout_1_2_pos_2_times:  
+  mode_4_layout_3_4_pos_1_times:  
+  mode_4_layout_3_4_pos_2_times:  
+
+  #basic switch
+  mode_5_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
+  mode_5_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
+  mode_5_layout_3_4_pos_1_times:  
+  mode_5_layout_3_4_pos_2_times:  
+
+  #longway switch
+  mode_5_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
+  mode_5_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
+  mode_5_layout_3_4_pos_1_times:  
+  mode_5_layout_3_4_pos_2_times:  
+
+  #basic scale
+  mode_4_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
+  mode_4_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
+  mode_4_layout_3_4_pos_1_times:  
+  mode_4_layout_3_4_pos_2_times:  
+
+  #longway scale
+  mode_4_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
+  mode_4_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
+  mode_4_layout_3_4_pos_1_times:  
+  mode_4_layout_3_4_pos_2_times:  
+
+  #cross baseline
+  mode_4_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
+  mode_4_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
+  mode_4_layout_3_4_pos_1_times:  
+  mode_4_layout_3_4_pos_2_times:  

@@ -43,7 +43,7 @@ class autoAction {
 
     void executeCB(const behaviors::IntakeLiftGoalConstPtr &goal) {
         bool success;
-        ros::Rate r(10);
+        ros::Rate r(20);
         double startTime = ros::Time::now().toSec();
         success = false;
         while(success != true && linebreak != true && ros::Time::now().toSec()-startTime < 15) {

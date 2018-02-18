@@ -42,7 +42,6 @@ static double timeout;
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
-    ROS_INFO("Mode: %d, Start Position: %d", AutoMode->mode[auto_mode-1], AutoMode->position);
     
     if(MatchData->isAutonomous && !MatchData->isDisabled) {
         if(!start_time) {
@@ -58,14 +57,15 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         behaviors::IntakeLiftGoal goal;
 
 /////////////////TESTING/////////////////
-//        geometry_msgs::Twist vel;
-//        vel.linear.x = 2;
-//        vel.linear.y = 0;
-//        vel.linear.z = 0;
-//        vel.angular.x = 0;
-//        vel.angular.y = 0;
-//        vel.angular.z = 0;
-//        VelPub.publish(vel);
+        geometry_msgs::Twist vel;
+        vel.linear.x = 2;
+        vel.linear.y = 0;
+        vel.linear.z = 0;
+        vel.angular.x = 0;
+        vel.angular.y = 0;
+        vel.angular.z = 0;
+        VelPub.publish(vel);
+        return;
 /////////////////////////////////////////
         if(MatchData->allianceData=="rlr") {
             auto_mode = 1;
@@ -200,7 +200,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ElevatorService.call(ElevatorSrv);
         }
         else if(AutoMode->mode[auto_mode-1]==2) {
-            //2 cube longway scale-scale
+            //2 cube longelevator_controller::bool_srve
             //0: Time 0: Go to default config && drop intake
             ros::Duration(0).sleep(); //TODO
             ElevatorSrv.request.x = default_x;
@@ -382,7 +382,7 @@ int main(int argc, char** argv) {
     n_params.getParam("default_y", default_y);
     n_params.getParam("timeout", timeout);
 
-    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("AutoServer", true);
+    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_Interpreter_Server", true);
     ac->waitForServer(); 
 
     //IntakeService = n.advertise<elevator_controller::Intake>("elevator/Intake", 1);
@@ -391,7 +391,7 @@ int main(int argc, char** argv) {
     ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
     //ClampService = n.advertise<std_msgs::Bool>("elevator/Clamp", 1);
     ClampService = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
-    VelPub = n.advertise<geometry_msgs::Twist>("swerve_drive_controller/cmd_vel", 1);
+    VelPub = n.advertise<geometry_msgs::Twist>("/frcrobot/swerve_drive_controller/cmd_vel", 1);
 
     message_filters::Subscriber<ros_control_boilerplate::AutoMode> auto_mode_sub(n, "Autonomous_Mode", 20);
     message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> match_data_sub(n, "match_data", 20);
