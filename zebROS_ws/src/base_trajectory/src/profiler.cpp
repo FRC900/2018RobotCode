@@ -181,7 +181,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		out_msg.points[point_count].positions.push_back(holder_point.orientation);
 		out_msg.points[point_count].velocities.push_back(cos(holder_point.path_angle) * curr_v );
 		out_msg.points[point_count].velocities.push_back(sin(holder_point.path_angle) * curr_v );
-		out_msg.points[point_count].velocities.push_back(holder_point.angular_velocity * (curr_V));
+		out_msg.points[point_count].velocities.push_back(holder_point.angular_velocity * (curr_v));
 		//out_msg.points[point_count].velocities.push_back(holder_point.path_angle_deriv * (current_v));
 		out_msg.points[point_count].time_from_start = now;
 		now += period;
