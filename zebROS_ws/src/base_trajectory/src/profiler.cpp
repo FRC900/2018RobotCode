@@ -210,7 +210,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		coerce(curr_v, -100000000000, vel_cap);
 		ROS_INFO_STREAM("post cut max: " << curr_v);
 	}
-	out_msg.points.erase(out_msg.points.begin() + point_count, out_msg.points.end());	
+	out_msg.points.erase(out_msg.points.begin() + point_count - 1, out_msg.points.end());	
 	return true;
 }
 // TODO :: is return code needed here?
