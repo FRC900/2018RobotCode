@@ -1068,6 +1068,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
 					safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
 				}
+				// Copy the 1st profile trajectory point from
+				// the top level buffer to the talon
+				// Subsequent points will be copied by
+				// the process_motion_profile_buffer_thread code
+				talon->ProcessMotionProfileBuffer();
 			}
 		}
 
@@ -1104,16 +1109,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			//ROS_INFO_STREAM("in mode: " << in_mode);
 			talon->Set(out_mode, command);
 			safeTalonCall(talon->GetLastError(), "Set");
-		}
-
-		// Do this last so that previously loaded trajectories and settings
-		// have been sent to the talon before processing
-		// Also do it after setting mode to make sure switches to
-		// motion profile mode are done before processing
-		if (motion_profile_mode && tc.processMotionProfileBufferChanged())
-		{
-			talon->ProcessMotionProfileBuffer();
-			safeTalonCall(talon->GetLastError(), "ProcessMotionProfileBuffer");
 		}
 
 		if (tc.clearStickyFaultsChanged())
