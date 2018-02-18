@@ -39,311 +39,324 @@ static double intake_config_y;
 static double default_x;
 static double default_y;
 static double timeout;
+static double autoStart;
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
-    ROS_INFO("Mode: %d, Start Position: %d", AutoMode->mode[auto_mode-1], AutoMode->position);
     
     if(MatchData->isAutonomous && !MatchData->isDisabled) {
-        if(!start_time) {
-            start_time = ros::Time::now().toSec();
-        }
-        if(ros::Time::now().toSec() >= start_time+2){
+        if(MatchData->allianceData != "") {
+            if(!start_time) {
+                start_time = ros::Time::now().toSec();
+            }
+            if(ros::Time::now().toSec() >= start_time+2){
+                return;
+            }
+            double time_start_auto = ros::Time::now().toSec();
+            elevator_controller::Intake IntakeSrv;
+            elevator_controller::ElevatorControlS ElevatorSrv;
+            elevator_controller::bool_srv ClampSrv;
+            behaviors::IntakeLiftGoal goal;
+
+    /////////////////TESTING/////////////////
+            geometry_msgs::Twist vel;
+            vel.linear.x = 2;
+            vel.linear.y = 0;
+            vel.linear.z = 0;
+            vel.angular.x = 0;
+            vel.angular.y = 0;
+            vel.angular.z = 0;
+            VelPub.publish(vel);
             return;
-        }
-        double time_start_auto = ros::Time::now().toSec();
-        elevator_controller::Intake IntakeSrv;
-        elevator_controller::ElevatorControlS ElevatorSrv;
-        elevator_controller::bool_srv ClampSrv;
-        behaviors::IntakeLiftGoal goal;
-
-/////////////////TESTING/////////////////
-//        geometry_msgs::Twist vel;
-//        vel.linear.x = 2;
-//        vel.linear.y = 0;
-//        vel.linear.z = 0;
-//        vel.angular.x = 0;
-//        vel.angular.y = 0;
-//        vel.angular.z = 0;
-//        VelPub.publish(vel);
-/////////////////////////////////////////
-        if(MatchData->allianceData=="rlr") {
-            auto_mode = 1;
-        }
-        else if(MatchData->allianceData=="lrl") {
-            auto_mode = 2;
-        }
-        else if(MatchData->allianceData=="rrr") {
-            auto_mode = 3;
-        }
-        else if(MatchData->allianceData =="lll") {
-            auto_mode = 4;
-        }
-
-        if(AutoMode->mode[auto_mode-1]==1) {
-        //3 cube switch-scale-scale
-            //0: Time 0: Go to switch config
-            ros::Duration(0).sleep(); //TODO
-            ElevatorSrv.request.x = switch_config_x;
-            ElevatorSrv.request.y = switch_config_y;
-            ElevatorSrv.request.up_or_down = false;
-            ElevatorSrv.request.override_sensor_limits = false;
-            ElevatorSrv.request.override_pos_limits = false;
-
-            ElevatorService.call(ElevatorSrv);
-
-            //1: Time 1: Release Clamp
-            ros::Duration(1).sleep(); //TODO
-            ClampSrv.request.data = false;
-            ClampService.call(ClampSrv);
-
-            //2: Time 1.5: drop and start intake && go to intake config
-            ros::Duration(1.5).sleep(); //TODO
-            goal.IntakeCube = true;
-
-            ElevatorSrv.request.x = intake_config_x;
-            ElevatorSrv.request.y = intake_config_y;
-            ElevatorSrv.request.up_or_down = true;
-            ElevatorService.call(ElevatorSrv);
-
-            ac->sendGoal(goal);
-
-            //3: Linebreak sensor: Clamp && release intake && stop running intake
-            bool success = ac->waitForResult(ros::Duration(timeout)); //TODO
-
-            if(!success) {
-                ROS_WARN("Failed to intake cube: TIME OUT");
+    /////////////////////////////////////////
+            if(MatchData->allianceData=="rlr") {
+                auto_mode = 1;
             }
-            IntakeSrv.request.power = 0;
-            IntakeService.call(IntakeSrv);
-
-            ros::Duration(.2).sleep();
-
-            ClampSrv.request.data = true;
-            ClampService.call(ClampSrv);
-
-            IntakeSrv.request.spring_state = 1; //out
-            IntakeService.call(IntakeSrv);
-            
-            //4: Success of command 3: go to default config && soft-in intake
-            ElevatorSrv.request.x = default_x;
-            ElevatorSrv.request.y = default_y;
-            ElevatorSrv.request.up_or_down = true;
-            ElevatorService.call(ElevatorSrv);
-            ros::Duration(.1).sleep(); //TODO
-
-            IntakeSrv.request.spring_state = 2;
-            IntakeService.call(IntakeSrv);
-
-            //5: Time 2: go to mid level scale
-            ros::Duration(2).sleep();
-            ElevatorSrv.request.x = mid_scale_config_x;
-            ElevatorSrv.request.y = mid_scale_config_y;
-            ElevatorSrv.request.up_or_down = true;
-            ElevatorService.call(ElevatorSrv);
-
-            //6: Time 3: release Clamp
-            ros::Duration(3).sleep(); //TODO
-            ClampSrv.request.data = false;
-            ClampService.call(ClampSrv);
-
-            //7: Time 4: go to intake config && run intake
-            ros::Duration(4).sleep(); // TODO
-            ElevatorSrv.request.x = intake_config_x;
-            ElevatorSrv.request.y = intake_config_y;
-            ElevatorSrv.request.up_or_down = true;
-            ElevatorService.call(ElevatorSrv);
-
-            goal.IntakeCube = true;
-            ac->sendGoal(goal);
-
-            //8: Linebreak sensor: Clamp && release intake && stop running intake
-            success = ac->waitForResult(ros::Duration(timeout));
-            
-            if(!success) {
-                ROS_ERROR("Failed to intake cube: TIME OUT");
+            else if(MatchData->allianceData=="lrl") {
+                auto_mode = 2;
             }
-            IntakeSrv.request.power=0;
-            IntakeService.call(IntakeSrv);
-
-            ClampSrv.request.data = true;
-            ClampService.call(ClampSrv);
-
-            IntakeSrv.request.spring_state = 1;
-            IntakeService.call(IntakeSrv);
-
-            //9: Success of command 8: go to default config && soft-in intake
-            ElevatorSrv.request.x = default_x;
-            ElevatorSrv.request.y = default_y;
-            ElevatorSrv.request.up_or_down = true;
-            ElevatorService.call(ElevatorSrv);
-
-            IntakeSrv.request.spring_state = 2;
-            IntakeService.call(IntakeSrv);
-
-            //10: Time 5: go to mid scale config
-            ros::Duration(5).sleep(); //TODO
-            ElevatorSrv.request.x = mid_scale_config_x;
-            ElevatorSrv.request.y = mid_scale_config_y;
-            ElevatorSrv.request.up_or_down = true;
-            ElevatorService.call(ElevatorSrv);
-
-            //11: Time 6: release Clamp
-            ros::Duration(6).sleep(); //TODO
-            ClampSrv.request.data = false;
-            ClampService.call(ClampSrv);
-            //12: Time 7: go to intake config
-            ros::Duration(7).sleep(); //TODO
-            ElevatorSrv.request.x = intake_config_x;
-            ElevatorSrv.request.y = intake_config_y;
-            ElevatorSrv.request.up_or_down = true;
-            ElevatorService.call(ElevatorSrv);
-        }
-        else if(AutoMode->mode[auto_mode-1]==2) {
-            //2 cube longway scale-scale
-            //0: Time 0: Go to default config && drop intake
-            ros::Duration(0).sleep(); //TODO
-            ElevatorSrv.request.x = default_x;
-            ElevatorSrv.request.y = default_y;
-            ElevatorSrv.request.up_or_down = false;
-            ElevatorSrv.request.override_sensor_limits = false;
-            ElevatorSrv.request.override_pos_limits = false;
-
-            IntakeSrv.request.up = false;
-            IntakeSrv.request.spring_state = 2; //soft_in
-
-            ElevatorService.call(ElevatorSrv);
-            IntakeService.call(IntakeSrv);
-                    
-            //1: Time 1: Go to mid scale config && Release Clamp
-            ros::Duration(1).sleep(); //TODO
-            ElevatorSrv.request.x = mid_scale_config_x;
-            ElevatorSrv.request.y = mid_scale_config_y;
-            ElevatorSrv.request.up_or_down = false;
-            ElevatorService.call(ElevatorSrv);
-            ros::Duration(.3).sleep(); //TODO
-
-            ClampSrv.request.data = false;
-            ClampService.call(ClampSrv);
-
-
-            //2: Time 1.5: go to intake config && start intake
-            ros::Duration(1).sleep(); //TODO
-            ElevatorSrv.request.x = intake_config_x;
-            ElevatorSrv.request.y = intake_config_y;
-            ElevatorSrv.request.up_or_down = false;
-
-            ElevatorService.call(ElevatorSrv);
-
-            goal.IntakeCube = true;
-            ac->sendGoal(goal);
-
-            //3: Linebreak sensor: Clamp && release intake && stop running intake
-            bool success = ac->waitForResult(ros::Duration(timeout)); //TODO
-            IntakeSrv.request.power = 0; 
-            IntakeService.call(IntakeSrv);
-
-            if(!success) {
-                ROS_ERROR("Failed to intake cube! TIME OUT");
+            else if(MatchData->allianceData=="rrr") {
+                auto_mode = 3;
+            }
+            else if(MatchData->allianceData =="lll") {
+                auto_mode = 4;
             }
 
-            ClampSrv.request.data = true;
-            ClampService.call(ClampSrv);
+            if(AutoMode->mode[auto_mode-1]==1) {
+            //3 cube switch-scale-scale
+                //0: Time 0: Go to switch config
+                ros::Duration(0).sleep(); //TODO
+                ElevatorSrv.request.x = switch_config_x;
+                ElevatorSrv.request.y = switch_config_y;
+                ElevatorSrv.request.up_or_down = false;
+                ElevatorSrv.request.override_sensor_limits = false;
+                ElevatorSrv.request.override_pos_limits = false;
 
-            IntakeSrv.request.spring_state = 1; //out;
-            IntakeService.call(IntakeSrv);
+                ElevatorService.call(ElevatorSrv);
 
-            //4: Success of command 3: go to default config && soft-in intake
-            ElevatorSrv.request.x = default_x;
-            ElevatorSrv.request.y = default_y;
-            ElevatorSrv.request.up_or_down = false;
-            ElevatorService.call(ElevatorSrv);
-            
-            ros::Duration(.2).sleep(); //TODO
-            IntakeSrv.request.spring_state = 2; //soft in
-            IntakeService.call(IntakeSrv);
-           
-            //5: Time 2: go to mid level scale config
-            ros::Duration(2).sleep(); //TODO
-            ElevatorSrv.request.x = mid_scale_config_x;
-            ElevatorSrv.request.y = mid_scale_config_y;
-            ElevatorSrv.request.up_or_down = false;
-            ElevatorService.call(ElevatorSrv);
+                //1: Time 1: Release Clamp
+                ros::Duration(1).sleep(); //TODO
+                ClampSrv.request.data = false;
+                ClampService.call(ClampSrv);
 
-            //6: Time 2.5: release Clamp
-            ros::Duration(2.5).sleep(); //TODO
-            ClampSrv.request.data = false;
-            ClampService.call(ClampSrv);
-            //7: Time 3: go to intake config && run intake
-            ros::Duration(3).sleep(); //TODO
-            ElevatorSrv.request.x = intake_config_x;
-            ElevatorSrv.request.y = intake_config_y;
-            ElevatorSrv.request.up_or_down = false;
-            ElevatorService.call(ElevatorSrv);
-            
-            goal.IntakeCube = true;
-            ac->sendGoal(goal);
-            
-            success = ac->waitForResult(ros::Duration(timeout));
+                //2: Time 1.5: drop and start intake && go to intake config
+                ros::Duration(1.5).sleep(); //TODO
+                goal.IntakeCube = true;
 
-            //8: Linebreak sensor: Clamp && release intake && stop running intake
-            IntakeSrv.request.power = 0;
-            IntakeService.call(IntakeSrv);
+                ElevatorSrv.request.x = intake_config_x;
+                ElevatorSrv.request.y = intake_config_y;
+                ElevatorSrv.request.up_or_down = true;
+                ElevatorService.call(ElevatorSrv);
 
-            if(!success) {
-                ROS_WARN("Failed to intake cube: TIME OUT");
+                ac->sendGoal(goal);
+
+                //3: Linebreak sensor: Clamp && release intake && stop running intake
+                bool success = ac->waitForResult(ros::Duration(timeout)); //TODO
+
+                if(!success) {
+                    ROS_WARN("Failed to intake cube: TIME OUT");
+                }
+                IntakeSrv.request.power = 0;
+                IntakeService.call(IntakeSrv);
+
+                ros::Duration(.2).sleep();
+
+                ClampSrv.request.data = true;
+                ClampService.call(ClampSrv);
+
+                IntakeSrv.request.spring_state = 1; //out
+                IntakeService.call(IntakeSrv);
+                
+                //4: Success of command 3: go to default config && soft-in intake
+                ElevatorSrv.request.x = default_x;
+                ElevatorSrv.request.y = default_y;
+                ElevatorSrv.request.up_or_down = true;
+                ElevatorService.call(ElevatorSrv);
+                ros::Duration(.1).sleep(); //TODO
+
+                IntakeSrv.request.spring_state = 2;
+                IntakeService.call(IntakeSrv);
+
+                //5: Time 2: go to mid level scale
+                ros::Duration(2).sleep();
+                ElevatorSrv.request.x = mid_scale_config_x;
+                ElevatorSrv.request.y = mid_scale_config_y;
+                ElevatorSrv.request.up_or_down = true;
+                ElevatorService.call(ElevatorSrv);
+
+                //6: Time 3: release Clamp
+                ros::Duration(3).sleep(); //TODO
+                ClampSrv.request.data = false;
+                ClampService.call(ClampSrv);
+
+                //7: Time 4: go to intake config && run intake
+                ros::Duration(4).sleep(); // TODO
+                ElevatorSrv.request.x = intake_config_x;
+                ElevatorSrv.request.y = intake_config_y;
+                ElevatorSrv.request.up_or_down = true;
+                ElevatorService.call(ElevatorSrv);
+
+                goal.IntakeCube = true;
+                ac->sendGoal(goal);
+
+                //8: Linebreak sensor: Clamp && release intake && stop running intake
+                success = ac->waitForResult(ros::Duration(timeout));
+                
+                if(!success) {
+                    ROS_ERROR("Failed to intake cube: TIME OUT");
+                }
+                IntakeSrv.request.power=0;
+                IntakeService.call(IntakeSrv);
+
+                ClampSrv.request.data = true;
+                ClampService.call(ClampSrv);
+
+                IntakeSrv.request.spring_state = 1;
+                IntakeService.call(IntakeSrv);
+
+                //9: Success of command 8: go to default config && soft-in intake
+                ElevatorSrv.request.x = default_x;
+                ElevatorSrv.request.y = default_y;
+                ElevatorSrv.request.up_or_down = true;
+                ElevatorService.call(ElevatorSrv);
+
+                IntakeSrv.request.spring_state = 2;
+                IntakeService.call(IntakeSrv);
+
+                //10: Time 5: go to mid scale config
+                ros::Duration(5).sleep(); //TODO
+                ElevatorSrv.request.x = mid_scale_config_x;
+                ElevatorSrv.request.y = mid_scale_config_y;
+                ElevatorSrv.request.up_or_down = true;
+                ElevatorService.call(ElevatorSrv);
+
+                //11: Time 6: release Clamp
+                ros::Duration(6).sleep(); //TODO
+                ClampSrv.request.data = false;
+                ClampService.call(ClampSrv);
+                //12: Time 7: go to intake config
+                ros::Duration(7).sleep(); //TODO
+                ElevatorSrv.request.x = intake_config_x;
+                ElevatorSrv.request.y = intake_config_y;
+                ElevatorSrv.request.up_or_down = true;
+                ElevatorService.call(ElevatorSrv);
             }
+            else if(AutoMode->mode[auto_mode-1]==2) {
+                //2 cube longelevator_controller::bool_srve
+                //0: Time 0: Go to default config && drop intake
+                ros::Duration(0).sleep(); //TODO
+                ElevatorSrv.request.x = default_x;
+                ElevatorSrv.request.y = default_y;
+                ElevatorSrv.request.up_or_down = false;
+                ElevatorSrv.request.override_sensor_limits = false;
+                ElevatorSrv.request.override_pos_limits = false;
 
-            ClampSrv.request.data = true;
-            ClampService.call(ClampSrv);
+                IntakeSrv.request.up = false;
+                IntakeSrv.request.spring_state = 2; //soft_in
 
-            IntakeSrv.request.spring_state = 1; //out
-            IntakeService.call(IntakeSrv);
+                ElevatorService.call(ElevatorSrv);
+                IntakeService.call(IntakeSrv);
+                        
+                //1: Time 1: Go to mid scale config && Release Clamp
+                ros::Duration(1).sleep(); //TODO
+                ElevatorSrv.request.x = mid_scale_config_x;
+                ElevatorSrv.request.y = mid_scale_config_y;
+                ElevatorSrv.request.up_or_down = false;
+                ElevatorService.call(ElevatorSrv);
+                ros::Duration(.3).sleep(); //TODO
+
+                ClampSrv.request.data = false;
+                ClampService.call(ClampSrv);
+
+
+                //2: Time 1.5: go to intake config && start intake
+                ros::Duration(1).sleep(); //TODO
+                ElevatorSrv.request.x = intake_config_x;
+                ElevatorSrv.request.y = intake_config_y;
+                ElevatorSrv.request.up_or_down = false;
+
+                ElevatorService.call(ElevatorSrv);
+
+                goal.IntakeCube = true;
+                ac->sendGoal(goal);
+
+                //3: Linebreak sensor: Clamp && release intake && stop running intake
+                bool success = ac->waitForResult(ros::Duration(timeout)); //TODO
+                IntakeSrv.request.power = 0; 
+                IntakeService.call(IntakeSrv);
+
+                if(!success) {
+                    ROS_ERROR("Failed to intake cube! TIME OUT");
+                }
+
+                ClampSrv.request.data = true;
+                ClampService.call(ClampSrv);
+
+                IntakeSrv.request.spring_state = 1; //out;
+                IntakeService.call(IntakeSrv);
+
+                //4: Success of command 3: go to default config && soft-in intake
+                ElevatorSrv.request.x = default_x;
+                ElevatorSrv.request.y = default_y;
+                ElevatorSrv.request.up_or_down = false;
+                ElevatorService.call(ElevatorSrv);
+                
+                ros::Duration(.2).sleep(); //TODO
+                IntakeSrv.request.spring_state = 2; //soft in
+                IntakeService.call(IntakeSrv);
+               
+                //5: Time 2: go to mid level scale config
+                ros::Duration(2).sleep(); //TODO
+                ElevatorSrv.request.x = mid_scale_config_x;
+                ElevatorSrv.request.y = mid_scale_config_y;
+                ElevatorSrv.request.up_or_down = false;
+                ElevatorService.call(ElevatorSrv);
+
+                //6: Time 2.5: release Clamp
+                ros::Duration(2.5).sleep(); //TODO
+                ClampSrv.request.data = false;
+                ClampService.call(ClampSrv);
+                //7: Time 3: go to intake config && run intake
+                ros::Duration(3).sleep(); //TODO
+                ElevatorSrv.request.x = intake_config_x;
+                ElevatorSrv.request.y = intake_config_y;
+                ElevatorSrv.request.up_or_down = false;
+                ElevatorService.call(ElevatorSrv);
+                
+                goal.IntakeCube = true;
+                ac->sendGoal(goal);
+                
+                success = ac->waitForResult(ros::Duration(timeout));
+
+                //8: Linebreak sensor: Clamp && release intake && stop running intake
+                IntakeSrv.request.power = 0;
+                IntakeService.call(IntakeSrv);
+
+                if(!success) {
+                    ROS_WARN("Failed to intake cube: TIME OUT");
+                }
+
+                ClampSrv.request.data = true;
+                ClampService.call(ClampSrv);
+
+                IntakeSrv.request.spring_state = 1; //out
+                IntakeService.call(IntakeSrv);
 
 
 
+            }
+            else if(AutoMode->mode[auto_mode-1]==3) {
+                //2 cube longway scale-scale
+                        //0: Time 0: Go to mid-scale config && drop intake
+                        //1: Time 1: Release Clamp
+                        //2: Time 1.5: go to intake config && start intake
+                        //3: Linebreak sensor: Clamp && release intake && stop running intake
+                        //4: Success of command 3: go to switch config && soft-in intake
+                        //5: Time 2: release Clamp
+                        //6: Time 3: go to intake config && run intake
+                        //7: Linebreak sensor: Clamp && release intake && stop running intake
+            }
+            else if(AutoMode->mode[auto_mode-1]==4) {
+
+            }
+            else if(AutoMode->mode[auto_mode-1]==5) {
+
+            }
+            else if(AutoMode->mode[auto_mode-1]==6) {
+
+            }
+            else if(AutoMode->mode[auto_mode-1]==7) {
+
+            }
+            else if(AutoMode->mode[auto_mode-1]==8) {
+
+            }
+            else if(AutoMode->mode[auto_mode-1]==9) {
+
+            }
+            else if(AutoMode->mode[auto_mode-1]==10) {
+
+            }
+            else if(AutoMode->mode[auto_mode-1]==11) {
+
+            }
+            else if(AutoMode->mode[auto_mode-1]==12) {
+
+            }
+            else{
+                
+            }
         }
-        else if(AutoMode->mode[auto_mode-1]==3) {
-            //2 cube longway scale-scale
-                    //0: Time 0: Go to mid-scale config && drop intake
-                    //1: Time 1: Release Clamp
-                    //2: Time 1.5: go to intake config && start intake
-                    //3: Linebreak sensor: Clamp && release intake && stop running intake
-                    //4: Success of command 3: go to switch config && soft-in intake
-                    //5: Time 2: release Clamp
-                    //6: Time 3: go to intake config && run intake
-                    //7: Linebreak sensor: Clamp && release intake && stop running intake
-        }
-        else if(AutoMode->mode[auto_mode-1]==4) {
-
-        }
-        else if(AutoMode->mode[auto_mode-1]==5) {
-
-        }
-        else if(AutoMode->mode[auto_mode-1]==6) {
-
-        }
-        else if(AutoMode->mode[auto_mode-1]==7) {
-
-        }
-        else if(AutoMode->mode[auto_mode-1]==8) {
-
-        }
-        else if(AutoMode->mode[auto_mode-1]==9) {
-
-        }
-        else if(AutoMode->mode[auto_mode-1]==10) {
-
-        }
-        else if(AutoMode->mode[auto_mode-1]==11) {
-
-        }
-        else if(AutoMode->mode[auto_mode-1]==12) {
-
-        }
-        else{
-            
-        }
+        else {
+            if(!autoStart) {
+                autoStart = ros::Time::now().toSec();
+            }
+            else {
+                if(ros::Time::now().toSec() > autoStart + 5) {
+                    //RUN CROSS LINE AUTO
+                }
+            }   
+        }   
     }
     else {
         if(auto_mode == AutoMode->mode[auto_mode-1] || startPos == AutoMode->position) {
@@ -382,7 +395,7 @@ int main(int argc, char** argv) {
     n_params.getParam("default_y", default_y);
     n_params.getParam("timeout", timeout);
 
-    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("AutoServer", true);
+    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_Interpreter_Server", true);
     ac->waitForServer(); 
 
     //IntakeService = n.advertise<elevator_controller::Intake>("elevator/Intake", 1);
@@ -391,7 +404,7 @@ int main(int argc, char** argv) {
     ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
     //ClampService = n.advertise<std_msgs::Bool>("elevator/Clamp", 1);
     ClampService = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
-    VelPub = n.advertise<geometry_msgs::Twist>("swerve_drive_controller/cmd_vel", 1);
+    VelPub = n.advertise<geometry_msgs::Twist>("/frcrobot/swerve_drive_controller/cmd_vel", 1);
 
     message_filters::Subscriber<ros_control_boilerplate::AutoMode> auto_mode_sub(n, "Autonomous_Mode", 20);
     message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> match_data_sub(n, "match_data", 20);

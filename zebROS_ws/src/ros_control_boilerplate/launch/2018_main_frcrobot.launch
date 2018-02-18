@@ -43,6 +43,8 @@
 		</node>
         	<node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="screen" >
         	</node>
+        	<node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="screen" >
+        	</node>
         	<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="screen" >
         	</node>
 

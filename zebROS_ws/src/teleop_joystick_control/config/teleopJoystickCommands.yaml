@@ -14,3 +14,4 @@ teleop_params:
     default_x: 0
     default_y: 0
     timeout: 15
+    exchange_delay: 0.5
