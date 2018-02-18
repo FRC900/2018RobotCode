@@ -69,14 +69,17 @@ const int timeoutMs = 0; //If nonzero, function will wait for config success and
 
 FRCRobotHWInterface::FRCRobotHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_model)
 	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model),
-	  run_hal_thread_(true)
+	  run_hal_thread_(true),
+	  run_motion_profile_thread_(true)
 {
 }
 
 FRCRobotHWInterface::~FRCRobotHWInterface()
 {
-	run_hal_thread_ = false;
+	run_hal_thread_            = false;
+	run_motion_profile_thread_ = false;
 	hal_thread_.join();
+	motion_profile_thread_.join();
 }
 
 void FRCRobotHWInterface::hal_keepalive_thread(void)
@@ -92,32 +95,33 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
     ros::Time time_now_t;
-	while (run_hal_thread_)
+	while (run_hal_thread_ && ros::ok())
 	{
 		robot_.OneIteration();
 
         time_now_t = ros::Time::now();
-            ROS_INFO("%f", ros::Time::now().toSec());
-			// Network tables work!
-			//pubTable->PutString("String 9", "WORK");
-			//subTable->PutString("Auto Selector", "Select Auto");
-            if(realtime_pub_nt.trylock()) {
-            if (driveTable)
-            {
-                // SmartDashboard works!
-                //frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+		ROS_INFO("%f", ros::Time::now().toSec());
+		// Network tables work!
+		//pubTable->PutString("String 9", "WORK");
+		//subTable->PutString("Auto Selector", "Select Auto");
+		if (realtime_pub_nt.trylock()) 
+		{
+			if (driveTable)
+			{
+				// SmartDashboard works!
+				//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
-                //realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
-                realtime_pub_nt.msg_.mode[0] = driveTable->GetNumber("auto_mode_0", 0);
-                realtime_pub_nt.msg_.mode[1] = driveTable->GetNumber("auto_mode_1", 0);
-                realtime_pub_nt.msg_.mode[2] = driveTable->GetNumber("auto_mode_2", 0);
-                realtime_pub_nt.msg_.mode[3] = driveTable->GetNumber("auto_mode_3", 0);
-                realtime_pub_nt.msg_.position = driveTable->GetNumber("robot_start_position", 0);
-            }
+				//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
+				realtime_pub_nt.msg_.mode[0] = driveTable->GetNumber("auto_mode_0", 0);
+				realtime_pub_nt.msg_.mode[1] = driveTable->GetNumber("auto_mode_1", 0);
+				realtime_pub_nt.msg_.mode[2] = driveTable->GetNumber("auto_mode_2", 0);
+				realtime_pub_nt.msg_.mode[3] = driveTable->GetNumber("auto_mode_3", 0);
+				realtime_pub_nt.msg_.position = driveTable->GetNumber("robot_start_position", 0);
+			}
 
-            realtime_pub_nt.msg_.header.stamp = time_now_t;
-            realtime_pub_nt.unlockAndPublish();
-        }
+			realtime_pub_nt.msg_.header.stamp = time_now_t;
+			realtime_pub_nt.unlockAndPublish();
+		}
 
 		if (realtime_pub_joystick.trylock())
 		{
@@ -194,7 +198,17 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.header.stamp = ros::Time::now();
 			realtime_pub_match_data.unlockAndPublish();
 		}
+	}
+}
 
+void FRCRobotHWInterface::process_motion_profile_buffer_thread(ros::Rate rate)
+{
+	while (run_motion_profile_thread_ && ros::ok())
+	{
+		for (size_t i = 0; i < num_can_talon_srxs_; i++)
+			can_talons_[i]->ProcessMotionProfileBuffer();
+
+		rate.sleep();
 	}
 }
 
@@ -327,6 +341,7 @@ void FRCRobotHWInterface::init(void)
 
 	HAL_InitializePDP(0,0);
 
+	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, ros::Rate(200));
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 

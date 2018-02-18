@@ -4,6 +4,7 @@ using namespace std;
 
 #ifdef ZED_SUPPORT
 #include <opencv2/imgproc/imgproc.hpp>
+#include <pcl/common/io.h>
 
 #include "cvMatSerialize.hpp"
 #include "ZvSettings.hpp"
@@ -284,7 +285,7 @@ bool ZedCameraIn::postLockUpdate(cv::Mat &frame, cv::Mat &depth, pcl::PointCloud
 {
 	localFrameRGB_.copyTo(frame);
 	localDepth_.copyTo(depth);
-	cloud = localCloud_;
+	pcl::copyPointCloud(localCloud_, cloud);
 
 	return true;
 }
