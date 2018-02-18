@@ -1,5 +1,8 @@
 #goal definition
 bool IntakeCube
+bool GoToHeight
+float64 x
+float64 y
 ---
 #result definition
 float64 data
