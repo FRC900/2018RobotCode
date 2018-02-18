@@ -40,6 +40,7 @@ std::shared_ptr<swerve_profile::swerve_profiler> profile_gen;
 ros::Duration period;
 
 ros::ServiceClient run_prof;
+ros::ServiceClient graph_prof;
 
 //ros::Duration period;
 //ros::Publisher pub;
@@ -318,6 +319,7 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		srv_msg.request.mode = false;	
 		srv_msg.request.run = false;	
 		run_prof.call(srv_msg);
+		graph_prof.call(srv_msg);
 		return true;
 	}
 	else
@@ -373,5 +375,6 @@ int main(int argc, char **argv)
 
 	//
 	run_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/frcrobot/swerve_drive_controller/run_profile");
+	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("visualize_profile");
 	ros::spin();
 }
