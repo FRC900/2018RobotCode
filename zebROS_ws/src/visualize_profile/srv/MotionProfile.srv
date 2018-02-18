@@ -1,0 +1,5 @@
+trajectory_msgs/JointTrajectory joint_trajectory
+bool buffer
+bool mode
+bool run
+---

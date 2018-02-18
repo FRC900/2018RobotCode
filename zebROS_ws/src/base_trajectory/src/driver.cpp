@@ -2,6 +2,8 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <base_trajectory/GenerateSwerveProfile.h>
 
+ros::ServiceClient pub;
+
 class RobotBase
 {
 	private:
@@ -64,8 +66,10 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			trajectory.points[ind].positions[1] =  0.0;
 			trajectory.points[ind].positions[2] =  0.0;
 			// Velocities
-			for (size_t j = 0; j < num_joints; ++j)
-				trajectory.points[ind].velocities.push_back(0);
+			trajectory.points[ind].velocities.resize(num_joints);
+			trajectory.points[ind].velocities[0] =  0.0;
+			trajectory.points[ind].velocities[1] =  1.0;
+			trajectory.points[ind].velocities[2] =  0.0;
 
 			// To be reached 1 second after starting along the trajectory
 			trajectory.points[ind].time_from_start = ros::Duration(4.0);
@@ -75,11 +79,13 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			ind += 1;
 			trajectory.points[ind].positions.resize(num_joints);
 			trajectory.points[ind].positions[0] = 3.0;
-			trajectory.points[ind].positions[1] = 0.0;
+			trajectory.points[ind].positions[1] = 5.0;
 			trajectory.points[ind].positions[2] = 0.0;
 			// Velocities
-			for (size_t j = 0; j < num_joints; ++j)
-				trajectory.points[ind].velocities.push_back(0);
+			trajectory.points[ind].velocities.resize(num_joints);
+			trajectory.points[ind].velocities[0] =  0.0;
+			trajectory.points[ind].velocities[1] =  0.0;
+			trajectory.points[ind].velocities[2] =  0.0;
 
 			// To be reached 2 seconds after starting along the trajectory
 			trajectory.points[ind].time_from_start = ros::Duration(8.0);
@@ -96,6 +102,20 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 		}
 #endif
 };
+RobotBase base;
+bool run(base_trajectory::GenerateSwerveProfile::Request &msg,
+base_trajectory::GenerateSwerveProfile::Response &out_msg)
+{
+
+	base_trajectory::GenerateSwerveProfile srv;
+	srv.request.joint_trajectory = base.genTrajectory();
+	srv.request.initial_v = 0.0;
+	srv.request.final_v = 0.0;
+	pub.call(srv);
+	out_msg.points = srv.response.points;
+	return true;
+
+}
 
 int main(int argc, char** argv)
 {
@@ -103,14 +123,13 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "robot_driver");
 	ros::NodeHandle nh;
 
-	RobotBase base;
 
-	ros::ServiceClient pub = nh.serviceClient<base_trajectory::GenerateSwerveProfile>("/base_trajectory/command");
+
+	pub = nh.serviceClient<base_trajectory::GenerateSwerveProfile>("/base_trajectory/command");
 	// Start the trajectory
 	//
-	base_trajectory::GenerateSwerveProfile srv;
-	srv.request.joint_trajectory = base.genTrajectory();
-	srv.request.initial_v = 0.0;
-	srv.request.final_v = 0.0;
-	pub.call(srv);
+        ros::ServiceServer service = nh.advertiseService("/base_trajectory/driver_run", run);
+
+	ros::spin();
+
 }
