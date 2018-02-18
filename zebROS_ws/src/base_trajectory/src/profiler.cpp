@@ -1,5 +1,6 @@
 #include <base_trajectory/profiler.h>
 #include <ros/console.h>
+#include <iostream>
 
 namespace swerve_profile
 {
@@ -108,7 +109,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		positions.push_back(i);
 		
 		t = spline(i);
-		ROS_INFO_STREAM("t immediate: " << t);
+		//ROS_INFO_STREAM("t immediate: " << t);
 		//rescale t
 		for(size_t k = 0; k < end_points.size(); k++)
 		{
@@ -122,19 +123,19 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 			}
 		}
 		
-		ROS_INFO_STREAM("t modified: " << t);
+		//ROS_INFO_STREAM("t modified: " << t);
 		
 
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, t, holder_point, end_points, dtds_for_spline);
 		
 
-		ROS_INFO_STREAM("t (soft): " << t << " pos: " << holder_point.pos << " curr_v: " << curr_v);
+		//ROS_INFO_STREAM("t (soft): " << t << " pos: " << holder_point.pos << " curr_v: " << curr_v);
 		
 		if(!solve_for_next_V(holder_point, total_arc, curr_v, i))
 		{
 			return false;
 		}			
-		ROS_INFO_STREAM("V: " << curr_v);
+		//ROS_INFO_STREAM("V: " << curr_v);
 	}
 	velocities.erase(velocities.end() - 1);
 	positions.erase(positions.end() - 1);
@@ -172,7 +173,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 	
 		//TODO: CHECK CONVERSIONS
 
-		ROS_INFO_STREAM("t: " << t << " pos: " << holder_point.pos << " curr_v: " << curr_v);
+		//ROS_INFO_STREAM("t: " << t << " pos: " << holder_point.pos << " curr_v: " << curr_v);
 		
 		//Check these conversions	
 		out_msg.points[point_count].positions.push_back(holder_point.pos[0]);
@@ -206,9 +207,9 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		(velocities[starting_point] - velocities[starting_point + 1]) / 
 		(positions[starting_point] - positions[starting_point + 1]) + velocities[starting_point];
 		//Keep below back pass	
-		ROS_INFO_STREAM("pre cut max: " << curr_v);
+		//ROS_INFO_STREAM("pre cut max: " << curr_v);
 		coerce(curr_v, -100000000000, vel_cap);
-		ROS_INFO_STREAM("post cut max: " << curr_v);
+		//ROS_INFO_STREAM("post cut max: " << curr_v);
 	}
 	out_msg.points.erase(out_msg.points.begin() + point_count - 1, out_msg.points.end());	
 	return true;
@@ -247,7 +248,6 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double &pat
 	static double path_induced_a;
 	if(current_pos>=0 && current_pos<=path_length)
 	{
-		ROS_INFO_STREAM("radius: " << path.radius << " pos: " << path.pos << " angle: " <<path.path_angle);
 		max_wheel_orientation_accel = path.angular_accel * (current_v )* (current_v );
 		max_wheel_orientation_vel = path.angular_velocity * (current_v );
 		theta = fabs(fmod(path.path_angle - path.orientation, M_PI / 8));
@@ -266,11 +266,11 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double &pat
 		
 		v_general_max =  sqrt(max_wheel_vel_* max_wheel_vel_ / (path.angular_velocity * path.angular_velocity / 2 + 1 + sqrt(2) * path.angular_velocity * cos_t + sqrt(2) * path.angular_velocity * sin_t));
 		
-		ROS_INFO_STREAM("+accel: " << current_v);
+		//ROS_INFO_STREAM("+accel: " << current_v);
 		//Note: assumption is that angular velocity doesn't change much over timestep
 		coerce(current_v, -v_general_max, v_general_max); 
 		//consider using above coerce in a if statement for optimization
-		ROS_INFO_STREAM("general max: " << current_v);
+		//ROS_INFO_STREAM("general max: " << current_v);
 		
 		//Check below with vector math
 		eff_max_a = max_wheel_mid_accel_ * 2 * (1 -  (max_wheel_vel_ - sqrt(current_v * current_v + sqrt(2) * max_wheel_orientation_vel * current_v *(sin_t + cos_t) + max_wheel_orientation_vel *max_wheel_orientation_vel)) / max_wheel_vel_);
@@ -279,21 +279,21 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double &pat
 		coerce(eff_max_a, 0, max_wheel_mid_accel_); //Consider disabling this coerce
 		v_curve_max = sqrt(eff_max_a * eff_max_a/ (1/(path.radius * path.radius) + sqrt(2) * sin_t * path.angular_accel/path.radius + sqrt(2) * cos_t * path.angular_accel/path.radius + path.angular_accel * path.angular_accel));
 		
-		ROS_INFO_STREAM("eff_max_a: " << eff_max_a << " under: " << (1/(path.radius * path.radius) + sqrt(2) * sin_t * path.angular_accel / path.radius + sqrt(2) * cos_t * path.angular_accel/path.radius + path.angular_accel * path.angular_accel)
-		<< " angular_accel: " << path.angular_accel
-		);
+		//ROS_INFO_STREAM("eff_max_a: " << eff_max_a << " under: " << (1/(path.radius * path.radius) + sqrt(2) * sin_t * path.angular_accel / path.radius + sqrt(2) * cos_t * path.angular_accel/path.radius + path.angular_accel * path.angular_accel)
+		//<< " angular_accel: " << path.angular_accel
+		//);
 
 		coerce(current_v, -v_curve_max, v_curve_max);
-		ROS_INFO_STREAM("curve max: " << current_v);
+		//ROS_INFO_STREAM("curve max: " << current_v);
 	}
 	else
 	{	
 		current_v += max_wheel_mid_accel_ * dt_;
-		ROS_INFO_STREAM("off path +" << current_v);
+		//ROS_INFO_STREAM("off path +" << current_v);
 		coerce(current_v, -max_wheel_vel_, max_wheel_vel_);	
-		ROS_INFO_STREAM("off path coerce" << current_v);
-		return true;
+		//ROS_INFO_STREAM("off path coerce" << current_v);
 	}
+	return true;
 }
 tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, std::vector<double> end_points, double &total_arc_length, std::vector<double> &dtds_by_spline)
 {	
@@ -313,7 +313,7 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 	std::vector<double> s_vals;
 	t_vals.reserve(x_splines_first_deriv.size() * 101);
 	s_vals.reserve(x_splines_first_deriv.size() * 101);
-	ROS_INFO_STREAM("Running parametrize");
+	//ROS_INFO_STREAM("Running parametrize");
 	//i starts at 1 for a reason
 	for(size_t i = 1; i < x_splines_first_deriv.size(); i++)
 	{
@@ -337,7 +337,7 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 
 			total_arc_length += period_t / 6 * (sqrt(x_at_a*x_at_a + y_at_a*y_at_a) + 4 * 
 			sqrt(x_at_avg* x_at_avg+ y_at_avg* y_at_avg) + sqrt(x_at_b*x_at_b + y_at_b*y_at_b));
-			ROS_INFO_STREAM("Spline: " << i << " t_val: " << a_val <<"  arc_length: " << total_arc_length << "plus val: " << end_points[i-1]);
+			//ROS_INFO_STREAM("Spline: " << i << " t_val: " << a_val <<"  arc_length: " << total_arc_length << "plus val: " << end_points[i-1]);
 		} 
 		dtds_by_spline.push_back((end_points[i] - end_points[i-1])/  (arc_before - total_arc_length));
 	}
@@ -404,7 +404,7 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 	calc_point(orient_splines_second_deriv[which_spline], t, second_deriv_orient);
 	
 	//if(fow)
-	ROS_INFO_STREAM("which spline: " << which_spline << " x: " << point_x << " y: " << point_y << " a: " << x_splines[which_spline].a <<" b: " << x_splines[which_spline].b <<" c: " << x_splines[which_spline].c <<" d: " << x_splines[which_spline].d <<" e: " << x_splines[which_spline].e <<" f: " << x_splines[which_spline].f);
+	//ROS_INFO_STREAM("which spline: " << which_spline << " x: " << point_x << " y: " << point_y << " a: " << x_splines[which_spline].a <<" b: " << x_splines[which_spline].b <<" c: " << x_splines[which_spline].c <<" d: " << x_splines[which_spline].d <<" e: " << x_splines[which_spline].e <<" f: " << x_splines[which_spline].f);
 	
 	//Radius = (x'^2 + y'^2)^(3/2) / (x' * y'' - y' * x'')
 
