@@ -23,6 +23,12 @@ int sLo = 65;
 int vLo = 240;
 int hUp = 40;
 
+//double minArea = 86500;
+//68860x^2-232300x+202600
+
+//double maxArea = 111560;
+//82320x^2-273400x+247600
+
 static bool down_sample = false;
 //This funtion along with the commented out slider code is useful when getting new HSV values for the threshold
 //To get the trackbars active, comment out the lines marked "mark1", uncomment the lines marked "mark2",
@@ -87,6 +93,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	{
 		approxPolyDP(Mat(contours[i]),contours_poly[i], 3, true);
 		boundRect[i] = boundingRect(Mat(contours_poly[i]));
+		
 	}
 
 	for(int i = 0; i < contours.size(); i++)
@@ -101,19 +108,20 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	Mat drawing = Mat::zeros(threshold.size(),CV_8UC3);
 	for(int i = 0; i< contours.size(); i++)
 	{
+		double minArea = 68860 * (pow(contourDepth[i], 2)) - (232300 * contourDepth[i]) + 202600;
+		double maxArea = 82320 * (pow(contourDepth[i], 2)) - (273400 * contourDepth[i]) + 247600;
 		double areaContour = boundRect[i].height * boundRect[i].width;
-		double minArea = 5000;
-		double maxArea = 1000000;
-		if (areaContour < minArea || areaContour > maxArea){
+		Scalar rect_color = Scalar(0,0,255);
+		Scalar color = Scalar(0,255,0);		
+		drawContours(drawing, contours,i,color,2,8,rank,0,Point());
+
+		if (false/*areaContour < minArea || areaContour > maxArea*/){
 			continue;
-		} else if (abs((boundRect[i].height/boundRect[i].width) - 1) > 1.2) {
+		} else if (false/*abs((boundRect[i].height/boundRect[i].width) - 1) > 2.0*/) {
 			continue;
-		} else if (abs((boundRect[i].width/boundRect[i].height) - 1) > 1.2) {
+		} else if (false/*abs((boundRect[i].width/boundRect[i].height) - 1) > 2.0*/) {
 			continue;
-		} else {
-			Scalar rect_color = Scalar(0,0,255);
-			Scalar color = Scalar(0,255,0);
-			drawContours(drawing, contours,i,color,2,8,rank,0,Point());
+		} else {	
 			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), rect_color, 2, 8, 0);
 		}
 	}
@@ -144,6 +152,8 @@ int main(int argc, char **argv)
 	createTrackbar( "Lower S", "drawing", &sLo, 255);  
 	createTrackbar( "Lower V", "drawing", &vLo, 255);
 	createTrackbar( "Higher H", "drawing", &hUp, 180);
+	//createTrackbar( "minArea", "drawing", &minArea, 5000);
+	//createTrackbar( "maxArea", "drawing", &maxArea, 1000000);
 
 	ros::spin();
 
