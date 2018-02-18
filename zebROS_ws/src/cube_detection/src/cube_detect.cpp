@@ -18,8 +18,17 @@ using namespace std;
 using namespace sensor_msgs;
 using namespace message_filters;
 
-static bool down_sample = false;
+int hLo = 23;
+int sLo = 65;
+int vLo = 240;
+int hUp = 40;
 
+static bool down_sample = false;
+//This funtion along with the commented out slider code is useful when getting new HSV values for the threshold
+//To get the trackbars active, comment out the lines marked "mark1", uncomment the lines marked "mark2",
+//multiline comment from "markS" to "markE"
+void on_trackbar(int, void*)
+{}
 void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 {
 	cv_bridge::CvImageConstPtr cvFrame = cv_bridge::toCvShare(frameMsg, sensor_msgs::image_encodings::BGR8);
@@ -47,24 +56,22 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 		framePtr = &frame;
 		depthPtr = &depth;
 	}
-
 	Mat hsv;
 	Mat threshold;
 	Mat contour;
 
-	ROS_INFO_STREAM(framePtr->size());
-
 	cvtColor(*framePtr,hsv,COLOR_BGR2HSV);
-	inRange(hsv, Scalar(20,89,70),Scalar(35,255,241),threshold);
+	inRange(hsv, Scalar(hLo,sLo,vLo),Scalar(hUp,255,255),threshold); //mark2
+	//inRange(hsv, Scalar(23,65,240),Scalar(40,255,255),threshold);
 	/*Mat threshold_channels[3];
 	split(threshold,threshold_channels);
 	mask = threshold_channels[0];*/
+	//markS
+	erode(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(7,7)));
+	dilate(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(7,7)));
 
-	erode(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(4,4)));
-	dilate(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(4,4)));
-
-	dilate(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(4,4)));
-	erode(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(4,4)));
+	dilate(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(6,6)));
+	erode(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(5,5)));
 
 	vector<vector<Point> > contours;
 	vector<Vec4i> rank;
@@ -73,23 +80,47 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 
 	vector<vector<Point> > contours_poly(contours.size());
 	vector<Rect> boundRect(contours.size());
+	vector<float> contourDepth;
+
 
 	for(int i = 0; i < contours.size(); i++)
 	{
 		approxPolyDP(Mat(contours[i]),contours_poly[i], 3, true);
 		boundRect[i] = boundingRect(Mat(contours_poly[i]));
 	}
-	Mat drawing = Mat::zeros(threshold.size(),CV_8UC3);
-	for(int i = 0; i<contours.size(); i++)
-	{
-		Scalar color = Scalar(0,255,0);
-		drawContours(drawing, contours,i,color,2,8,rank,0,Point());
-		rectangle( drawing, boundRect[i].tl(), boundRect[i].br(), color, 2, 8, 0 );
-	}
 
-	imshow("threshold",threshold);
+	for(int i = 0; i < contours.size(); i++)
+	{
+		const int x = boundRect[i].x;
+		const int y = boundRect[i].y;
+		float depth_value = depthPtr->at<float>(y,x);
+		contourDepth.push_back(depth_value);
+	}
+	
+
+	Mat drawing = Mat::zeros(threshold.size(),CV_8UC3);
+	for(int i = 0; i< contours.size(); i++)
+	{
+		double areaContour = boundRect[i].height * boundRect[i].width;
+		double minArea = 5000;
+		double maxArea = 1000000;
+		if (areaContour < minArea || areaContour > maxArea){
+			continue;
+		} else if (abs((boundRect[i].height/boundRect[i].width) - 1) > 1.2) {
+			continue;
+		} else if (abs((boundRect[i].width/boundRect[i].height) - 1) > 1.2) {
+			continue;
+		} else {
+			Scalar rect_color = Scalar(0,0,255);
+			Scalar color = Scalar(0,255,0);
+			drawContours(drawing, contours,i,color,2,8,rank,0,Point());
+			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), rect_color, 2, 8, 0);
+		}
+	}
+	//markE
+	imshow("threshold",threshold); //mark1
 	imshow("hsv",hsv);
-	imshow("drawing",drawing);
+	imshow("drawing",drawing); //mark1 
 	waitKey(5);
 }
 
@@ -106,7 +137,14 @@ int main(int argc, char **argv)
 	// ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(xxx)
 	Synchronizer<MySyncPolicy2> sync2(MySyncPolicy2(50), frame_sub, depth_sub);
 	sync2.registerCallback(boost::bind(&callback, _1, _2));
-	ROS_INFO_STREAM("init");
+
+	namedWindow("drawing",1);
+		
+	createTrackbar( "Lower H", "drawing", &hLo, 180);
+	createTrackbar( "Lower S", "drawing", &sLo, 255);  
+	createTrackbar( "Lower V", "drawing", &vLo, 255);
+	createTrackbar( "Higher H", "drawing", &hUp, 180);
+
 	ros::spin();
 
 	return 0;
