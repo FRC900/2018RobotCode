@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <trajectory_msgs/JointTrajectory.h>
-
+#include <base_trajectory/GenerateSwerveProfile.h>
 
 class RobotBase
 {
@@ -14,7 +14,7 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 
 	public:
 		//! Initialize the action client and wait for action server to come up
-		RobotBase()
+		/*RobotBase()
 		{
 #if 0
 			// tell the action client that we want to spin a thread by default
@@ -34,7 +34,7 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			delete traj_client_;
 #endif
 		}
-
+		*/
 		//! Generates a simple trajectory with two waypoints, used as an example
 		/*! Note that this trajectory contains two waypoints, joined together
 		  as a single trajectory. Alternatively, each of these waypoints could
@@ -61,8 +61,8 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			int ind = 0;
 			trajectory.points[ind].positions.resize(num_joints);
 			trajectory.points[ind].positions[0] =  2.0;
-			trajectory.points[ind].positions[1] =  1.0;
-			trajectory.points[ind].positions[2] = -1.0;
+			trajectory.points[ind].positions[1] =  0.0;
+			trajectory.points[ind].positions[2] =  0.0;
 			// Velocities
 			for (size_t j = 0; j < num_joints; ++j)
 				trajectory.points[ind].velocities.push_back(0);
@@ -74,9 +74,9 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			// Positions
 			ind += 1;
 			trajectory.points[ind].positions.resize(num_joints);
-			trajectory.points[ind].positions[0] = -3.;
-			trajectory.points[ind].positions[1] = 2;
-			trajectory.points[ind].positions[2] = -1.9;
+			trajectory.points[ind].positions[0] = 3.0;
+			trajectory.points[ind].positions[1] = 0.0;
+			trajectory.points[ind].positions[2] = 0.0;
 			// Velocities
 			for (size_t j = 0; j < num_joints; ++j)
 				trajectory.points[ind].velocities.push_back(0);
@@ -105,13 +105,12 @@ int main(int argc, char** argv)
 
 	RobotBase base;
 
-	ros::Publisher pub = nh.advertise<trajectory_msgs::JointTrajectory>("command",1, true);
+	ros::ServiceClient pub = nh.serviceClient<base_trajectory::GenerateSwerveProfile>("/base_trajectory/command");
 	// Start the trajectory
 	//
-	ros::Rate rate (20);
-	while (pub.getNumSubscribers() != 2)
-		rate.sleep();
-	
-	pub.publish(base.genTrajectory());
-		rate.sleep();
+	base_trajectory::GenerateSwerveProfile srv;
+	srv.request.joint_trajectory = base.genTrajectory();
+	srv.request.initial_v = 0.0;
+	srv.request.final_v = 0.0;
+	pub.call(srv);
 }

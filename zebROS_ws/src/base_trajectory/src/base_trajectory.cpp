@@ -185,12 +185,12 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		
 		std::cout << "coefs: " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
 		
-		temp_holder_s.a = coefs[0][0]; 
-		temp_holder_s.b = coefs[0][1]; 
-		temp_holder_s.c = coefs[0][2]; 
-		temp_holder_s.d = coefs[0][3]; 
-		temp_holder_s.e = coefs[0][4]; 
-		temp_holder_s.f = coefs[0][5]; 
+		temp_holder_s.a = coefs[0][5]; 
+		temp_holder_s.b = coefs[0][4]; 
+		temp_holder_s.c = coefs[0][3]; 
+		temp_holder_s.d = coefs[0][2]; 
+		temp_holder_s.e = coefs[0][1]; 
+		temp_holder_s.f = coefs[0][0]; 
 
 		//a = coef[0][0]
 		//b = coef[0][1]
@@ -214,12 +214,12 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		std::cout << "coefs: " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
 		
 
-		temp_holder_s.a = coefs[0][0]; 
-		temp_holder_s.b = coefs[0][1]; 
-		temp_holder_s.c = coefs[0][2]; 
-		temp_holder_s.d = coefs[0][3]; 
-		temp_holder_s.e = coefs[0][4]; 
-		temp_holder_s.f = coefs[0][5]; 
+		temp_holder_s.a = coefs[0][5]; 
+		temp_holder_s.b = coefs[0][4]; 
+		temp_holder_s.c = coefs[0][3]; 
+		temp_holder_s.d = coefs[0][2]; 
+		temp_holder_s.e = coefs[0][1]; 
+		temp_holder_s.f = coefs[0][0]; 
 
 		//a = coef[0][0]
 		//b = coef[0][1]
@@ -240,12 +240,12 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		
 		std::cout << "coefs: " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
 		
-		temp_holder_s.a = coefs[0][0]; 
-		temp_holder_s.b = coefs[0][1]; 
-		temp_holder_s.c = coefs[0][2]; 
-		temp_holder_s.d = coefs[0][3]; 
-		temp_holder_s.e = coefs[0][4]; 
-		temp_holder_s.f = coefs[0][5]; 
+		temp_holder_s.a = coefs[0][5]; 
+		temp_holder_s.b = coefs[0][4]; 
+		temp_holder_s.c = coefs[0][3]; 
+		temp_holder_s.d = coefs[0][2]; 
+		temp_holder_s.e = coefs[0][1]; 
+		temp_holder_s.f = coefs[0][0]; 
 
 		//a = coef[0][0]
 		//b = coef[0][1]
@@ -315,8 +315,8 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		srv_msg.request.joint_trajectory.joint_names = out_msg.joint_names;	
 		srv_msg.request.joint_trajectory.points = out_msg.points;
 		srv_msg.request.buffer = true;	
-		srv_msg.request.mode = true;	
-		srv_msg.request.run = true;	
+		srv_msg.request.mode = false;	
+		srv_msg.request.run = false;	
 		run_prof.call(srv_msg);
 		return true;
 	}
