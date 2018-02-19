@@ -26,9 +26,12 @@ bool full_gen(swerve_point_generator::FullGen::Request &req, swerve_point_genera
 	
 	prof_gen.call(srv_msg);
 
-	const int point_count = srv_msg.request.joint_trajectory.points.size();
+	const int point_count = srv_msg.response.points.size();
+
 	
-	res.dt = srv_msg.request.joint_trajectory.points[1].time_from_start.toSec() - srv_msg.request.joint_trajectory.points[0].time_from_start.toSec();
+	res.dt = srv_msg.response.points[1].time_from_start.toSec() - srv_msg.response.points[0].time_from_start.toSec();
+
+	//ROS_INFO_STREAM("dt: " << res.dt);	
 
 	ROS_WARN("BUFFERING");
 	//TODO: optimize code?
@@ -56,6 +59,8 @@ bool full_gen(swerve_point_generator::FullGen::Request &req, swerve_point_genera
 		}
 	}
 	*/
+	ROS_WARN("data");
+	//ROS_INFO_STREAM("pos_0:" << srv_msg.response.points[0].positions[0] << "pos_1:" << srv_msg.response.points[0].positions[1] <<"pos_2:" <<  srv_msg.response.points[0].positions[2]);
 
 	res.points.resize(point_count);
 
@@ -64,6 +69,7 @@ bool full_gen(swerve_point_generator::FullGen::Request &req, swerve_point_genera
 		res.points[0].drive_pos.push_back(angles_positions[i][0]);
 		res.points[0].drive_vel.push_back(angles_velocities[i][0]);
 		res.points[0].steer_pos.push_back(angles_positions[i][1]);
+		//ROS_INFO_STREAM("drive_pos: " << res.points[0].drive_pos[i] << "drive_vel: " << res.points[0].drive_vel[i] << "steer_pos: " << res.points[0].steer_pos[i] << " nan_test: " <<angles_positions[i][0]); 
 	}
 
 	for(size_t i = 0; i < point_count - 1; i++)
@@ -74,11 +80,13 @@ bool full_gen(swerve_point_generator::FullGen::Request &req, swerve_point_genera
 		for (size_t k = 0; k < WHEELCOUNT; k++)
 			curPos[k] = angles_positions[k][1];
 
+		//ROS_INFO_STREAM("pos_0:" << srv_msg.response.points[i+1].positions[0] << "pos_1:" << srv_msg.response.points[i+1].positions[1] <<"pos_2:" <<  srv_msg.response.points[i+1].positions[2]);
 		for(size_t k = 0; k < WHEELCOUNT; k++)
 		{
-			res.points[i+1].drive_pos.push_back(angles_positions[k][0]);
+			res.points[i+1].drive_pos.push_back(angles_positions[k][0] + res.points[i].drive_pos[k]);
 			res.points[i+1].drive_vel.push_back(angles_velocities[k][0]);
 			res.points[i+1].steer_pos.push_back(angles_positions[k][1]);
+			//ROS_INFO_STREAM("drive_pos: " << res.points[i+1].drive_pos[k] << "drive_vel: " << res.points[i+1].drive_vel[k] << "steer_pos: " << res.points[i+1].steer_pos[i]); 
 		}
 	}
 
@@ -101,7 +109,7 @@ int main(int argc, char **argv)
         swerveVar::encoderUnits units;
 	
 
-	bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", wheel_radius);
+	bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", model.wheelRadius);
         bool lookup_max_speed = !controller_nh.getParam("max_speed", model.maxSpeed);
         bool lookup_mass = !controller_nh.getParam("mass", model.mass);
         bool lookup_motor_free_speed = !controller_nh.getParam("motor_free_speed", model.motorFreeSpeed);
@@ -127,7 +135,9 @@ int main(int argc, char **argv)
         bool lookup_wheel2y = !controller_nh.getParam("wheel_coords2y", wheel_coords[1][1]);
         bool lookup_wheel3y = !controller_nh.getParam("wheel_coords3y", wheel_coords[2][1]);
         bool lookup_wheel4y = !controller_nh.getParam("wheel_coords4y", wheel_coords[3][1]);	
-
+	
+	//ROS_WARN("point_init");
+	//ROS_INFO_STREAM("model max speed: " << model.maxSpeed << " radius: " << model.wheelRadius);
 
 	XmlRpc::XmlRpcValue wheel_list;
 	controller_nh.getParam("steering", wheel_list);

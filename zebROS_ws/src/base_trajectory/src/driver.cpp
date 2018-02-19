@@ -67,7 +67,7 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			trajectory.points[ind].positions.resize(num_joints);
 			trajectory.points[ind].positions[0] =  2.0;
 			trajectory.points[ind].positions[1] =  0.0;
-			trajectory.points[ind].positions[2] =  0.0;
+			trajectory.points[ind].positions[2] =  1.0;
 			// Velocities
 			trajectory.points[ind].velocities.resize(num_joints);
 			trajectory.points[ind].velocities[0] =  0.0;
@@ -83,7 +83,7 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			trajectory.points[ind].positions.resize(num_joints);
 			trajectory.points[ind].positions[0] = 3.0;
 			trajectory.points[ind].positions[1] = 5.0;
-			trajectory.points[ind].positions[2] = 0.0;
+			trajectory.points[ind].positions[2] = 2.0;
 			// Velocities
 			trajectory.points[ind].velocities.resize(num_joints);
 			trajectory.points[ind].velocities[0] =  0.0;
