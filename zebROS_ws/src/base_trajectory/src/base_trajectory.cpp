@@ -308,9 +308,9 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 
 	if(profile_gen->generate_profile(x_splines, y_splines, orient_splines, msg.initial_v, msg.final_v, out_msg, end_points))
 	{
-		ROS_WARN("SUCCESS - NICEEEE");
-		std::cout << "Worked" << std::endl;
+		ROS_INFO("SUCCESS - NICEEEE");
 		//TODO: remove below code
+		/*
 		talon_swerve_drive_controller::MotionProfile srv_msg;
 		srv_msg.request.joint_trajectory.header = out_msg.header;	
 		srv_msg.request.joint_trajectory.joint_names = out_msg.joint_names;	
@@ -320,11 +320,11 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		srv_msg.request.run = false;	
 		run_prof.call(srv_msg);
 		graph_prof.call(srv_msg);
+		*/
 		return true;
 	}
 	else
 	{
-		std::cout << "Failed" << std::endl;
 		ROS_WARN("FAILED - TRAGIC");
 		return false;
 	}

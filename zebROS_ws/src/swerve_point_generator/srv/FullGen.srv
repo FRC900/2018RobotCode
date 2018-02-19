@@ -1,0 +1,6 @@
+trajectory_msgs/JointTrajectory joint_trajectory
+float64 initial_v
+float64 final_v
+---
+swerve_point_generator/SwervePoint[] points 
+float64 dt

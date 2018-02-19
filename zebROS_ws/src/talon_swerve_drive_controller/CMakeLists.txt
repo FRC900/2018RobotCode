@@ -22,12 +22,15 @@ find_package(Eigen REQUIRED)
 add_service_files (
   FILES
   MotionProfile.srv
+  MotionProfilePoints.srv
+
 )
 generate_messages(
   DEPENDENCIES
   std_msgs
   geometry_msgs
   trajectory_msgs
+  swerve_point_generator
 )
 
 catkin_package(
