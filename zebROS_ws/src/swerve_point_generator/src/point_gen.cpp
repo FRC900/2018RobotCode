@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <talon_swerve_drive_controller/Swerve.h>
-#include <swerve_point_generator/FullGen.h>
+#include <talon_swerve_drive_controller/FullGen.h>
 #include <base_trajectory/GenerateSwerveProfile.h>
 #include <Eigen/Dense>
 #include <vector>
@@ -14,7 +14,7 @@ std::shared_ptr<swerve> swerve_math;
 
 ros::ServiceClient prof_gen;
 
-bool full_gen(swerve_point_generator::FullGen::Request &req, swerve_point_generator::FullGen::Response &res)
+bool full_gen(talon_swerve_drive_controller::FullGen::Request &req, talon_swerve_drive_controller::FullGen::Response &res)
 {
 	ROS_WARN("run_point_gen 1");
 	base_trajectory::GenerateSwerveProfile srv_msg;

@@ -24,17 +24,8 @@ find_package(Eigen REQUIRED)
 
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-   FILES
-   SwervePoint.msg
-)
 
 ## Generate services in the 'srv' folder
-add_service_files(
-   FILES
-   FullGen.srv
-   MotionProfilePoints.srv
-)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -42,11 +33,6 @@ add_service_files(
 #   Action1.action
 #   Action2.action
 # )
-generate_messages(
-   DEPENDENCIES
-   std_msgs  # Or other packages containing msgs
-   trajectory_msgs
-)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -98,8 +84,6 @@ install(TARGETS point_gen
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(FILES ${PROJECT_NAME}_plugins.xml
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 #install(DIRECTORY
 #launch

@@ -54,10 +54,9 @@
   <build_depend>roscpp</build_depend>
   <depend>control_msgs</depend>
   <depend>trajectory_msgs</depend>
-  <depend>talon_swerve_drive_controller</depend>
   <depend>std_msgs</depend>
   <depend>cmake_modules</depend>
-
+  <depend>talon_swerve_drive_controller</depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

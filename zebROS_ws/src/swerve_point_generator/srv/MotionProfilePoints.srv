@@ -1,6 +1,0 @@
-swerve_point_generator/SwervePoint[] points
-float64 dt
-bool buffer
-bool mode
-bool run
----
