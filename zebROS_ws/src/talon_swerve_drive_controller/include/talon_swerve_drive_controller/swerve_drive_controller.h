@@ -62,7 +62,7 @@
 #include <array>
 #include <memory>
 #include <Eigen/Dense>
-
+#include <talon_swerve_drive_controller/MotionProfilePoints.h>
 
 namespace talon_swerve_drive_controller
 {
@@ -155,10 +155,9 @@ class TalonSwerveDriveController
 		};
 		struct cmd_points
 		{	
-			std::vector<Eigen::Vector2d> lin_points_pos;
-			std::vector<double> ang_pos;
-			std::vector<Eigen::Vector2d> lin_points_vel;
-			std::vector<double> ang_vel;
+			std::vector<std::vector<double>> drive_pos;
+			std::vector<std::vector<double>> drive_vel;
+			std::vector<std::vector<double>> steer_pos;
 			hardware_interface::TrajectoryDuration dt;
 			int half_dt;
 		};
@@ -239,7 +238,7 @@ class TalonSwerveDriveController
 		 * \param command Velocity command message (twist)
 		 */
 		void cmdVelCallback(const geometry_msgs::Twist &command);
-		bool motionProfileService(talon_swerve_drive_controller::MotionProfile::Request &req, talon_swerve_drive_controller::MotionProfile::Response &res);
+		bool motionProfileService(talon_swerve_drive_controller::MotionProfilePoints::Request &req, talon_swerve_drive_controller::MotionProfilePoints::Response &res);
 
 		/**
 		 * \brief Get the wheel names from a wheel param

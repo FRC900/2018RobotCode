@@ -1,6 +1,7 @@
 import rospy
 from talon_swerve_drive_controller.srv import *
 #from trajectory_msgs.msg import *
+import pylab as P
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -23,6 +24,23 @@ def create_plot(req):
 	ax.set_zlabel("Path Velocity")
 
 	plt.show()
+
+	im = plt.imread("/home/ryan/2018RobotCode/zebROS_ws/src/visualize_profile/field.jpg")
+	implot = plt.imshow(im)
+	orient = plt.axes()
+	k = 0
+	scale = 53.404782735
+	arrow_scale  =1
+	init_pos_x = 5
+	init_pos_y = .5
+	#init_orient = -1.5 This will rotate the entire path?
+	for i in req.joint_trajectory.points:
+		if(k%5 == 0):
+			orient.arrow(scale*(i.positions[0]+init_pos_x), scale*(i.positions[1]+init_pos_y), arrow_scale*scale*math.sin(i.positions[2])*.5, arrow_scale*scale*math.cos(i.positions[2])*.5, head_width=scale*arrow_scale*0.1, head_length=scale*arrow_scale*0.25, fc='k', ec='k');
+		k+=1
+	orient.axis([0, 490, 0, 960])
+	plt.show()
+
 
 	return MotionProfileResponse()
 
