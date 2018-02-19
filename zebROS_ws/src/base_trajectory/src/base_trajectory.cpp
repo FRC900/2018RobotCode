@@ -310,17 +310,13 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 	{
 		ROS_INFO("SUCCESS - NICEEEE");
 		//TODO: remove below code
-		/*
+		
 		talon_swerve_drive_controller::MotionProfile srv_msg;
 		srv_msg.request.joint_trajectory.header = out_msg.header;	
 		srv_msg.request.joint_trajectory.joint_names = out_msg.joint_names;	
 		srv_msg.request.joint_trajectory.points = out_msg.points;
-		srv_msg.request.buffer = true;	
-		srv_msg.request.mode = false;	
-		srv_msg.request.run = false;	
-		run_prof.call(srv_msg);
 		graph_prof.call(srv_msg);
-		*/
+		
 		return true;
 	}
 	else

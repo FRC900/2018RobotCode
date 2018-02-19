@@ -117,6 +117,8 @@ swerve_point_generator::FullGen::Response &out_msg)
 	point_gen.call(srv);
 	out_msg.points = srv.response.points;
 
+	 ROS_WARN("run_test_driver");
+
 	swerve_point_generator::MotionProfilePoints srv_msg_points;
 
 	srv_msg_points.request.dt = srv.response.dt;	

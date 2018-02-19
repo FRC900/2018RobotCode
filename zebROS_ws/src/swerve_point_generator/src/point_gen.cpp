@@ -16,12 +16,13 @@ ros::ServiceClient prof_gen;
 
 bool full_gen(swerve_point_generator::FullGen::Request &req, swerve_point_generator::FullGen::Response &res)
 {
+	ROS_WARN("run_point_gen 1");
 	base_trajectory::GenerateSwerveProfile srv_msg;
 	srv_msg.request.joint_trajectory  = req.joint_trajectory;
 	srv_msg.request.initial_v  = req.initial_v;
 	srv_msg.request.final_v  = req.final_v;
 
-
+	ROS_WARN("run_point_gen 2");
 	
 	prof_gen.call(srv_msg);
 
@@ -91,7 +92,7 @@ int main(int argc, char **argv)
 	ros::NodeHandle controller_nh(nh, "swerve_drive_controller");
 	
 
-	ros::ServiceServer service = nh.advertiseService("point_gen/command", full_gen);
+	ros::ServiceServer service = nh.advertiseService("/point_gen/command", full_gen);
 
 	double wheel_radius;
 	swerveVar::driveModel model;
