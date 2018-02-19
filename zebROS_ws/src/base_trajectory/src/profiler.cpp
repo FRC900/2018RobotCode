@@ -23,7 +23,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 
 	
 
-	double curr_v = initial_v;
+	double curr_v = final_v;
 	std::vector<double> velocities;
 	velocities.reserve(155 / dt_); //For full auto :) 
 	std::vector<double> positions;
@@ -142,7 +142,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 	velocities.erase(velocities.end() - 1);
 	positions.erase(positions.end() - 1);
 	out_msg.points.resize(155 / dt_); //For full auto :)  TODO: optimize
-	curr_v = final_v;
+	curr_v = initial_v;
 	double starting_point = positions.size() - 1;
 	double vel_cap;
 	int point_count = 0;
