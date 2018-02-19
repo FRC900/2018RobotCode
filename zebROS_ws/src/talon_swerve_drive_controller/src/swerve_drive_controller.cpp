@@ -835,7 +835,7 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 	}
 }
 
-bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_controller::MotionProfilePoints::Request &req, talon_swerve_drive_controller::MotionProfilePoints::Response &res)
+bool TalonSwerveDriveController::motionProfileService(swerve_point_generator::MotionProfilePoints::Request &req, swerve_point_generator::MotionProfilePoints::Response &res)
 {
 	if (isRunning())
 	{

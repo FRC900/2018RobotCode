@@ -62,7 +62,7 @@
 #include <array>
 #include <memory>
 #include <Eigen/Dense>
-#include <talon_swerve_drive_controller/MotionProfilePoints.h>
+#include <swerve_point_generator/MotionProfilePoints.h>
 
 namespace talon_swerve_drive_controller
 {
@@ -238,7 +238,7 @@ class TalonSwerveDriveController
 		 * \param command Velocity command message (twist)
 		 */
 		void cmdVelCallback(const geometry_msgs::Twist &command);
-		bool motionProfileService(talon_swerve_drive_controller::MotionProfilePoints::Request &req, talon_swerve_drive_controller::MotionProfilePoints::Response &res);
+		bool motionProfileService(swerve_point_generator::MotionProfilePoints::Request &req, swerve_point_generator::MotionProfilePoints::Response &res);
 
 		/**
 		 * \brief Get the wheel names from a wheel param

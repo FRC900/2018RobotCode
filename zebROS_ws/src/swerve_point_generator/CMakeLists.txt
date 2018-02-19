@@ -33,7 +33,7 @@ add_message_files(
 add_service_files(
    FILES
    FullGen.srv
-
+   MotionProfilePoints.srv
 )
 
 ## Generate actions in the 'action' folder

@@ -1,8 +1,11 @@
 #include <ros/ros.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <base_trajectory/GenerateSwerveProfile.h>
+#include <swerve_point_generator/MotionProfilePoints.h>
+#include <swerve_point_generator/FullGen.h>
 
-ros::ServiceClient pub;
+ros::ServiceClient point_gen;
+ros::ServiceClient swerve_control;
 
 class RobotBase
 {
@@ -103,16 +106,27 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 #endif
 };
 RobotBase base;
-bool run(base_trajectory::GenerateSwerveProfile::Request &msg,
-base_trajectory::GenerateSwerveProfile::Response &out_msg)
+bool run(swerve_point_generator::FullGen::Request &msg,
+swerve_point_generator::FullGen::Response &out_msg)
 {
 
-	base_trajectory::GenerateSwerveProfile srv;
+	swerve_point_generator::FullGen srv;
 	srv.request.joint_trajectory = base.genTrajectory();
 	srv.request.initial_v = 0.0;
 	srv.request.final_v = 0.0;
-	pub.call(srv);
+	point_gen.call(srv);
 	out_msg.points = srv.response.points;
+
+	swerve_point_generator::MotionProfilePoints srv_msg_points;
+
+	srv_msg_points.request.dt = srv.response.dt;	
+	srv_msg_points.request.points = srv.response.points;	
+	srv_msg_points.request.buffer = true;	
+	srv_msg_points.request.mode = false;
+	srv_msg_points.request.run = false;
+
+	swerve_control.call(srv_msg_points);
+		
 	return true;
 
 }
@@ -124,8 +138,10 @@ int main(int argc, char** argv)
 	ros::NodeHandle nh;
 
 
+	point_gen = nh.serviceClient<swerve_point_generator::FullGen>("/point_gen/command");
+	swerve_control = nh.serviceClient<swerve_point_generator::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile");
 
-	pub = nh.serviceClient<base_trajectory::GenerateSwerveProfile>("/base_trajectory/command");
+	//pub = nh.serviceClient<base_trajectory::GenerateSwerveProfile>("/base_trajectory/command");
 	// Start the trajectory
 	//
         ros::ServiceServer service = nh.advertiseService("/base_trajectory/driver_run", run);
