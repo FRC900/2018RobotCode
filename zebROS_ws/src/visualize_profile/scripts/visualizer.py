@@ -29,7 +29,7 @@ def create_plot(req):
 	implot = plt.imshow(im)
 	orient = plt.axes()
 	k = 0
-	scale = 50
+	scale = 53.404782735
 	arrow_scale  =1
 	init_pos_x = 5
 	init_pos_y = .5
