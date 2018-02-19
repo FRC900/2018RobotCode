@@ -19,15 +19,24 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(Eigen REQUIRED)
 
+add_message_files (
+  FILES
+  SwervePoint.msg
+
+)
+
 add_service_files (
   FILES
   MotionProfile.srv
+  MotionProfilePoints.srv
+  FullGen.srv
 )
 generate_messages(
   DEPENDENCIES
   std_msgs
   geometry_msgs
   trajectory_msgs
+  talon_swerve_drive_controller
 )
 
 catkin_package(
@@ -58,7 +67,9 @@ src/Swerve.cpp
 add_dependencies(${PROJECT_NAME}
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
+  talon_swerve_drive_controller_generate_messages_cpp
 )
+
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 

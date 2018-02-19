@@ -23,9 +23,15 @@ find_package(Eigen REQUIRED)
 add_message_files (
   FILES
   ElevatorControl.msg
-  Intake.msg
-  Clamp.msg
   ReturnElevatorCmd.msg
+)
+
+add_service_files (
+  FILES
+  ElevatorControlS.srv
+  Intake.srv
+  bool_srv.srv
+  Blank.srv
 )
 generate_messages(
   DEPENDENCIES

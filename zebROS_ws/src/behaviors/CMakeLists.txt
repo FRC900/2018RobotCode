@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.5.1)
 project(behaviors)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+include ("../cmake_modules/CMakeOpt.cmake")
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -213,7 +212,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
- install(TARGETS autoInterpreterClient 
+ install(TARGETS autoInterpreterClient autoInterpreterServer
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

@@ -69,14 +69,17 @@ const int timeoutMs = 0; //If nonzero, function will wait for config success and
 
 FRCRobotHWInterface::FRCRobotHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_model)
 	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model),
-	  run_hal_thread_(true)
+	  run_hal_thread_(true),
+	  run_motion_profile_thread_(true)
 {
 }
 
 FRCRobotHWInterface::~FRCRobotHWInterface()
 {
-	run_hal_thread_ = false;
+	run_hal_thread_            = false;
+	run_motion_profile_thread_ = false;
 	hal_thread_.join();
+	motion_profile_thread_.join();
 }
 
 void FRCRobotHWInterface::hal_keepalive_thread(void)
@@ -91,37 +94,39 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
-
-	while (run_hal_thread_)
+    realtime_pub_nt.msg_.mode.resize(4);
+    ros::Time time_now_t;
+	while (run_hal_thread_ && ros::ok())
 	{
 		robot_.OneIteration();
 
-		if (realtime_pub_nt.trylock())
+        time_now_t = ros::Time::now();
+		//ROS_INFO("%f", ros::Time::now().toSec());
+		// Network tables work!
+		//pubTable->PutString("String 9", "WORK");
+		//subTable->PutString("Auto Selector", "Select Auto");
+		if (realtime_pub_nt.trylock()) 
 		{
-			// Network tables work!
-			//pubTable->PutString("String 9", "WORK");
-			//subTable->PutString("Auto Selector", "Select Auto");
 			if (driveTable)
 			{
 				// SmartDashboard works!
 				//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
-				// TODO eventually add header to nt message so we can get timestamps
-				// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
 				//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
-			    realtime_pub_nt.msg_.mode = driveTable->GetNumber("auto_mode", 0);
-			    realtime_pub_nt.msg_.position = driveTable->GetNumber("robot_start_position", 0);
+				realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
+				realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
+				realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
+				realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
+				realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
 			}
 
-			// TODO eventually add header to nt message so we can get timestamps
-			// realtime_pub_nt.msg_.header.stamp = ros::Time::now();
-            realtime_pub_nt.msg_.header.stamp = ros::Time::now();
+			realtime_pub_nt.msg_.header.stamp = time_now_t;
 			realtime_pub_nt.unlockAndPublish();
 		}
 
 		if (realtime_pub_joystick.trylock())
 		{
-			realtime_pub_joystick.msg_.header.stamp = ros::Time::now();
+			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
 			realtime_pub_joystick.msg_.leftStickX = joystick.GetRawAxis(0);
 			realtime_pub_joystick.msg_.leftStickY = joystick.GetRawAxis(1);
@@ -176,7 +181,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 		if(realtime_pub_match_data.trylock())
 		{
-			realtime_pub_match_data.msg_.header.stamp = ros::Time::now();
+            
+            //ROS_INFO("AA:%f", ros::Time::now().toSec());
 
 			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
 
@@ -190,9 +196,20 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.isDisabled = DriverStation::GetInstance().IsDisabled();
 			realtime_pub_match_data.msg_.isAutonomous = DriverStation::GetInstance().IsAutonomous();
 
+			realtime_pub_match_data.msg_.header.stamp = ros::Time::now();
 			realtime_pub_match_data.unlockAndPublish();
 		}
+	}
+}
 
+void FRCRobotHWInterface::process_motion_profile_buffer_thread(ros::Rate rate)
+{
+	while (run_motion_profile_thread_ && ros::ok())
+	{
+		for (size_t i = 0; i < num_can_talon_srxs_; i++)
+			can_talons_[i]->ProcessMotionProfileBuffer();
+
+		rate.sleep();
 	}
 }
 
@@ -325,6 +342,7 @@ void FRCRobotHWInterface::init(void)
 
 	HAL_InitializePDP(0,0);
 
+	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, ros::Rate(200));
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
@@ -344,8 +362,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		hardware_interface::TalonMode talon_mode = ts.getTalonMode();
 		int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
 
-		double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
-		double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
+		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
+		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
 		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
 
 		double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
@@ -770,9 +788,9 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		int encoder_ticks_per_rotation = tc.getEncoderTicksPerRotation();
 		ts.setEncoderTicksPerRotation(encoder_ticks_per_rotation);
 
-		double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
-		double radians_per_sec_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
-		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
+		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
+		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
+		const double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
 
 		bool close_loop_mode = false;
 		bool motion_profile_mode = false;
@@ -1007,8 +1025,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				ts.setMotionAcceleration(motion_acceleration);
 
 				//converted from rad/sec to native units
-				safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_sec_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
-				safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_sec_scale), timeoutMs),"ConfigMotionAcceleration(");
+				safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_second_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
+				safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_second_scale), timeoutMs),"ConfigMotionAcceleration(");
 			}
 			// Do this before rest of motion profile stuff
 			// so it takes effect before starting a buffer?
@@ -1037,9 +1055,12 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			{
 				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
 				{
+					//ROS_WARN("SENDING_POINT");
+
+					//This loop doesn't work for whatever reason
 					ctre::phoenix::motion::TrajectoryPoint pt;
-					pt.position = it->position;
-					pt.velocity = it->velocity;
+					pt.position = it->position / radians_scale;
+					pt.velocity = it->velocity / radians_per_second_scale;
 					pt.headingDeg = it->headingRad * 180. / M_PI;
 					pt.profileSlotSelect0 = it->profileSlotSelect0;
 					pt.profileSlotSelect1 = it->profileSlotSelect1;
@@ -1048,6 +1069,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
 					safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
 				}
+				// Copy the 1st profile trajectory point from
+				// the top level buffer to the talon
+				// Subsequent points will be copied by
+				// the process_motion_profile_buffer_thread code
+				talon->ProcessMotionProfileBuffer();
 			}
 		}
 
@@ -1071,7 +1097,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			switch (out_mode)
 			{
 				case ctre::phoenix::motorcontrol::ControlMode::Velocity:
-					command /= radians_per_sec_scale;
+					command /= radians_per_second_scale;
 					break;
 				case ctre::phoenix::motorcontrol::ControlMode::Position:
 					command /= radians_scale;
@@ -1081,19 +1107,9 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					break;
 			}
 
-
+			//ROS_INFO_STREAM("in mode: " << in_mode);
 			talon->Set(out_mode, command);
 			safeTalonCall(talon->GetLastError(), "Set");
-		}
-
-		// Do this last so that previously loaded trajectories and settings
-		// have been sent to the talon before processing
-		// Also do it after setting mode to make sure switches to
-		// motion profile mode are done before processing
-		if (motion_profile_mode && tc.processMotionProfileBufferChanged())
-		{
-			talon->ProcessMotionProfileBuffer();
-			safeTalonCall(talon->GetLastError(), "ProcessMotionProfileBuffer");
 		}
 
 		if (tc.clearStickyFaultsChanged())

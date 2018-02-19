@@ -78,8 +78,8 @@ class TalonHWCommand
 			outputShapingChanged_(false),
 
 			// voltage compensation
-			voltage_compensation_saturation_(0),
-			voltage_measurement_filter_(32),
+			voltage_compensation_saturation_(0), //max voltage to apply to talons when command is 100%
+			voltage_measurement_filter_(32), //number of samples in the average of voltage measurements
 			voltage_compensation_enable_(false),
 			voltage_compensation_changed_(false),
 
@@ -118,7 +118,6 @@ class TalonHWCommand
 			motion_cruise_changed_(false),
 
 			motion_profile_clear_trajectories_(false),
-			motion_profile_process_buffer_(false),
 			motion_profile_clear_has_underrun_(false),
 			motion_profile_control_frame_period_(20),
 			motion_profile_control_frame_period_changed_(false),
@@ -977,25 +976,6 @@ class TalonHWCommand
 		// This is a one shot - when set, it needs to
 		// call the appropriate Talon function once
 		// then clear itself
-		void setProcessMotionProfileBuffer(void)
-		{
-			motion_profile_process_buffer_ = true;
-		}
-		bool getProcessMotionProfileBuffer(void) const
-		{
-			return motion_profile_process_buffer_;
-		}
-		bool processMotionProfileBufferChanged(void)
-		{
-			if (!motion_profile_process_buffer_)
-				return false;
-			motion_profile_process_buffer_ = false;
-			return true;
-		}
-
-		// This is a one shot - when set, it needs to
-		// call the appropriate Talon function once
-		// then clear itself
 		void setClearMotionProfileHasUnderrun(void)
 		{
 			motion_profile_clear_has_underrun_ = true;
@@ -1122,7 +1102,6 @@ class TalonHWCommand
 		bool motion_cruise_changed_;
 
 		bool motion_profile_clear_trajectories_;
-		bool motion_profile_process_buffer_;
 		bool motion_profile_clear_has_underrun_;
 		std::vector<TrajectoryPoint> motion_profile_trajectory_points_;
 		int motion_profile_control_frame_period_;

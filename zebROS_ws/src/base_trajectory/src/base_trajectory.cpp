@@ -40,6 +40,7 @@ std::shared_ptr<swerve_profile::swerve_profiler> profile_gen;
 ros::Duration period;
 
 ros::ServiceClient run_prof;
+ros::ServiceClient graph_prof;
 
 //ros::Duration period;
 //ros::Publisher pub;
@@ -185,12 +186,12 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		
 		std::cout << "coefs: " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
 		
-		temp_holder_s.a = coefs[0][0]; 
-		temp_holder_s.b = coefs[0][1]; 
-		temp_holder_s.c = coefs[0][2]; 
-		temp_holder_s.d = coefs[0][3]; 
-		temp_holder_s.e = coefs[0][4]; 
-		temp_holder_s.f = coefs[0][5]; 
+		temp_holder_s.a = coefs[0][5]; 
+		temp_holder_s.b = coefs[0][4]; 
+		temp_holder_s.c = coefs[0][3]; 
+		temp_holder_s.d = coefs[0][2]; 
+		temp_holder_s.e = coefs[0][1]; 
+		temp_holder_s.f = coefs[0][0]; 
 
 		//a = coef[0][0]
 		//b = coef[0][1]
@@ -214,12 +215,12 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		std::cout << "coefs: " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
 		
 
-		temp_holder_s.a = coefs[0][0]; 
-		temp_holder_s.b = coefs[0][1]; 
-		temp_holder_s.c = coefs[0][2]; 
-		temp_holder_s.d = coefs[0][3]; 
-		temp_holder_s.e = coefs[0][4]; 
-		temp_holder_s.f = coefs[0][5]; 
+		temp_holder_s.a = coefs[0][5]; 
+		temp_holder_s.b = coefs[0][4]; 
+		temp_holder_s.c = coefs[0][3]; 
+		temp_holder_s.d = coefs[0][2]; 
+		temp_holder_s.e = coefs[0][1]; 
+		temp_holder_s.f = coefs[0][0]; 
 
 		//a = coef[0][0]
 		//b = coef[0][1]
@@ -240,12 +241,12 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 		
 		std::cout << "coefs: " << coefs[0][0]<< " " << coefs[0][1]<< " " << coefs[0][2]<< " " << coefs[0][3]<< " " << coefs[0][4]<< " " << coefs[0][5];
 		
-		temp_holder_s.a = coefs[0][0]; 
-		temp_holder_s.b = coefs[0][1]; 
-		temp_holder_s.c = coefs[0][2]; 
-		temp_holder_s.d = coefs[0][3]; 
-		temp_holder_s.e = coefs[0][4]; 
-		temp_holder_s.f = coefs[0][5]; 
+		temp_holder_s.a = coefs[0][5]; 
+		temp_holder_s.b = coefs[0][4]; 
+		temp_holder_s.c = coefs[0][3]; 
+		temp_holder_s.d = coefs[0][2]; 
+		temp_holder_s.e = coefs[0][1]; 
+		temp_holder_s.f = coefs[0][0]; 
 
 		//a = coef[0][0]
 		//b = coef[0][1]
@@ -307,21 +308,19 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 
 	if(profile_gen->generate_profile(x_splines, y_splines, orient_splines, msg.initial_v, msg.final_v, out_msg, end_points))
 	{
-		ROS_WARN("SUCCESS - NICEEEE");
-		std::cout << "Worked" << std::endl;
+		ROS_INFO("SUCCESS - NICEEEE");
 		//TODO: remove below code
+		
 		talon_swerve_drive_controller::MotionProfile srv_msg;
 		srv_msg.request.joint_trajectory.header = out_msg.header;	
 		srv_msg.request.joint_trajectory.joint_names = out_msg.joint_names;	
 		srv_msg.request.joint_trajectory.points = out_msg.points;
-		srv_msg.request.buffer = true;	
-		srv_msg.request.mode = true;	
-		srv_msg.request.run = true;	
+		graph_prof.call(srv_msg);
+		
 		return true;
 	}
 	else
 	{
-		std::cout << "Failed" << std::endl;
 		ROS_WARN("FAILED - TRAGIC");
 		return false;
 	}
@@ -366,11 +365,12 @@ int main(int argc, char **argv)
 
 	//TODO: make below read from config file or something
 
-	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(1.0, 9.0, 3.0, 6.0, 7.0, 1/loop_hz);
+	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(.425, 9.0, 3.0, 6.0, 7.0, 1/loop_hz);
 
 	ros::ServiceServer service = nh.advertiseService("/base_trajectory/command", generate);
 
 	//
 	run_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/frcrobot/swerve_drive_controller/run_profile");
+	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("visualize_profile");
 	ros::spin();
 }

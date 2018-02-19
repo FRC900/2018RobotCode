@@ -662,10 +662,10 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	{	
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
-			speed_joints_[i].setMode(motion_profile);
-			steering_joints_[i].setMode(motion_profile);
+			speed_joints_[i].setMode(motion_profile_mode);
+			steering_joints_[i].setMode(motion_profile_mode);
 		}
-		//ROS_WARN("motion profile mode");
+
 		const int set_on  = *(run_.readFromRT()) ? 1 : 0;
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
@@ -676,32 +676,29 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	
 	if(*(buffer_.readFromRT()))
 	{
+		buffer_ = false;
+		
 		cmd_points curr_cmd = *(command_points_.readFromRT());
 
-		//TODO: optimize code?
-		array<double, WHEELCOUNT> curPos;
-		for (int i = 0; i < WHEELCOUNT; i++)
-			curPos[i] = steering_joints_[i].getPosition();
 
-		std::array<bool, WHEELCOUNT> holder;
-		
-		std::array<Vector2d, WHEELCOUNT> angles_positions  = swerveC_->motorOutputs(curr_cmd.lin_points_pos[0], curr_cmd.ang_pos[0], M_PI/2 + curr_cmd.ang_pos[0], false, holder, false, curPos, false);
-			//TODO: angles on the velocity array below are superfluous, could remove
-		std::array<Vector2d, WHEELCOUNT> angles_velocities  = swerveC_->motorOutputs(curr_cmd.lin_points_vel[0], curr_cmd.ang_vel[0], M_PI/2 + curr_cmd.ang_pos[0], false, holder, false, curPos, false);
-		for (size_t i = 0; i < WHEELCOUNT; i++)
-			curPos[i] = angles_positions[i][1];
-		//Do first point and initialize stuff
-
+		ROS_WARN("BUFFERING");
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
-
 
 			steering_joints_[i].clearMotionProfileTrajectories();
 			speed_joints_[i].clearMotionProfileTrajectories();
 
-			holder_points_[i][0].position = angles_positions[i][0];
-			holder_points_[i][1].position = angles_positions[i][1];
-			holder_points_[i][0].velocity = angles_velocities[i][0];
+			steering_joints_[i].clearMotionProfileHasUnderrun();
+			speed_joints_[i].clearMotionProfileHasUnderrun();
+
+			steering_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
+                        speed_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
+
+			
+
+			holder_points_[i][0].position = curr_cmd.drive_pos[0][i];
+			holder_points_[i][1].position = curr_cmd.steer_pos[0][i];
+			holder_points_[i][0].velocity = curr_cmd.drive_vel[0][i];
 			holder_points_[i][1].velocity = 0; //TODO: FIX
 			holder_points_[i][0].isLastPoint = false;
 			holder_points_[i][1].isLastPoint = false;
@@ -717,34 +714,27 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 
 
-		const int point_count = curr_cmd.lin_points_pos.size();
+		const int point_count = curr_cmd.drive_pos.size();
 		for(size_t i = 0; i < point_count - 2; i++)
 		{
-			angles_positions  = swerveC_->motorOutputs(curr_cmd.lin_points_pos[i+1] - curr_cmd.lin_points_pos[i], curr_cmd.ang_pos[i+1] - curr_cmd.ang_pos[i], M_PI/2 + curr_cmd.ang_pos[i+1], false, holder, false, curPos, false);
-			//TODO: angles on the velocity array below are superfluous, could remove
-			angles_velocities  = swerveC_->motorOutputs(curr_cmd.lin_points_vel[i], curr_cmd.ang_vel[i], M_PI/2 + curr_cmd.ang_pos[i+1], false, holder, false, curPos, false);
-			for (size_t k = 0; k < WHEELCOUNT; k++)
-				curPos[k] = angles_positions[k][1];
-
 			for(size_t k = 0; k < WHEELCOUNT; k++)
 			{
-				holder_points_[k][0].position += angles_positions[k][0];
-				holder_points_[k][1].position = angles_positions[k][1];
-				holder_points_[k][0].velocity = angles_velocities[k][0];
+				holder_points_[k][0].position = curr_cmd.drive_pos[i][k];
+				holder_points_[k][1].position = curr_cmd.steer_pos[i][k];
+				holder_points_[k][0].velocity = curr_cmd.drive_vel[i][k];
+				
+				ROS_INFO_STREAM("speed. Pos: " << holder_points_[k][0].position << " vel: " << holder_points_[k][0].velocity);
+				ROS_INFO_STREAM("steering. Pos: " << holder_points_[k][1].position << " vel: " << holder_points_[k][1].velocity);
 
 				speed_joints_[k].pushMotionProfileTrajectory(holder_points_[k][0]);
 				steering_joints_[k].pushMotionProfileTrajectory(holder_points_[k][1]);
 			}
 		}
-		//Final Setter
-		angles_positions  = swerveC_->motorOutputs(curr_cmd.lin_points_pos[point_count-1] - curr_cmd.lin_points_pos[point_count-2], curr_cmd.ang_pos[point_count-1] - curr_cmd.ang_pos[point_count-2], M_PI/2+ curr_cmd.ang_pos[point_count-1], false, holder, false, curPos, false);
-		//TODO: angles on the velocity array below are superfluous, could remove
-		angles_velocities  = swerveC_->motorOutputs(curr_cmd.lin_points_vel[point_count - 1], curr_cmd.ang_vel[point_count - 1], M_PI/2 + curr_cmd.ang_pos[point_count-1], false, holder, false, curPos, false);
 		for(size_t k = 0; k < WHEELCOUNT; k++)
 		{
-			holder_points_[k][0].position += angles_positions[k][0];
-			holder_points_[k][1].position = angles_positions[k][1];
-			holder_points_[k][0].velocity = angles_velocities[k][0];
+			holder_points_[k][0].position = curr_cmd.drive_pos[point_count - 1][k];
+			holder_points_[k][1].position = curr_cmd.steer_pos[point_count - 1][k];
+			holder_points_[k][0].velocity = curr_cmd.drive_vel[point_count - 1][k];
 
 			holder_points_[k][0].isLastPoint = true;
 			holder_points_[k][1].isLastPoint = true;
@@ -845,7 +835,7 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 	}
 }
 
-bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_controller::MotionProfile::Request &req, talon_swerve_drive_controller::MotionProfile::Response &res)
+bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_controller::MotionProfilePoints::Request &req, talon_swerve_drive_controller::MotionProfilePoints::Response &res)
 {
 	if (isRunning())
 	{
@@ -862,51 +852,59 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 
 		if(req.buffer)
 		{
-			points_struct_.lin_points_pos.clear();
-			points_struct_.lin_points_vel.clear();
-			points_struct_.ang_pos.clear();
-			points_struct_.ang_vel.clear();
-			double duration = req.joint_trajectory.points[1].time_from_start.toSec()
-			- req.joint_trajectory.points[0].time_from_start.toSec();
+			points_struct_.drive_pos.clear();
+			points_struct_.drive_vel.clear();
+			points_struct_.steer_pos.clear();
+			double duration = req.dt;
 
-			if(duration < .0025)
+			/*if(duration < .0025)
 			{
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_0ms;
+
 			}
-			else if(duration < .0075)
+			else*/ if(duration < .0075)
 			{
+			     points_struct_.half_dt = 5;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_5ms;
 			}
 			else if(duration < .015)
 			{
+			     points_struct_.half_dt = 10;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_10ms;
 			}
 			else if(duration < .025)
 			{
+			     points_struct_.half_dt = 20;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_20ms;
 			}
 			else if(duration < .035)
 			{
+			     points_struct_.half_dt = 30;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_30ms;
 			}
 			else if(duration < .045)
 			{
+			     points_struct_.half_dt = 40;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_40ms;
 			}
 			else if(duration < .075)
 			{
+			     points_struct_.half_dt = 50;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_50ms;
 			}
 			else
 			{
+			     points_struct_.half_dt = 100;
 			     points_struct_.dt = hardware_interface::TrajectoryDuration::TrajectoryDuration_100ms;
 			}
-			for(size_t i = 0; i < req.joint_trajectory.points.size(); i++)
+			points_struct_.drive_pos.resize(req.points.size());
+			points_struct_.drive_vel.resize(req.points.size());
+			points_struct_.steer_pos.resize(req.points.size());
+			for(size_t i = 0; i < req.points.size(); i++)
 			{
-				points_struct_.lin_points_pos.push_back({req.joint_trajectory.points[i].positions[0], req.joint_trajectory.points[i].positions[1]});
-				points_struct_.lin_points_vel.push_back({req.joint_trajectory.points[i].velocities[0], req.joint_trajectory.points[i].velocities[1]});
-				points_struct_.ang_pos.push_back(req.joint_trajectory.points[i].positions[2]);
-				points_struct_.ang_vel.push_back(req.joint_trajectory.points[i].velocities[2]);
+				points_struct_.drive_pos[i] = req.points[i].drive_pos;
+				points_struct_.drive_vel[i] = req.points[i].drive_vel;
+				points_struct_.steer_pos[i] = req.points[i].steer_pos;
 			}
 			command_points_.writeFromNonRT(points_struct_);
 

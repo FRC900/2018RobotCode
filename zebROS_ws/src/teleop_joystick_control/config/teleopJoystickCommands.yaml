@@ -1,0 +1,17 @@
+teleop_params:
+    high_scale_config_x: 0
+    high_scale_config_y: 0
+    mid_scale_config_x: 0
+    mid_scale_config_y: 0
+    low_scale_config_x: 0
+    low_scale_config_y: 0
+    switch_config_x: 0
+    switch_config_y: 0
+    exchange_config_x: 0
+    exchange_config_y: 0
+    intake_config_x: 0
+    intake_config_y: 0
+    default_x: 0
+    default_y: 0
+    timeout: 15
+    exchange_delay: 0.5

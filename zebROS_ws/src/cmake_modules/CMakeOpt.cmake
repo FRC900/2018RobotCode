@@ -4,7 +4,7 @@ if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE Release)
 endif()
 
-add_definitions(-std=c++11 -Wno-deprecated-declarations -Wno-switch -ftrack-macro-expansion=0)
+add_definitions(-std=c++11 -Wno-deprecated-declarations -Wno-switch -ftrack-macro-expansion=0 -DPCL_ONLY_CORE_POINT_TYPES=ON -DNO_EXPLICIT_INSTANTIATIONS)
 #add_definitions(-Wall -Wextra -Wno-switch)
 
 if (DEFINED CMAKE_TOOLCHAIN_FILE)  # Cross-build for Rio
