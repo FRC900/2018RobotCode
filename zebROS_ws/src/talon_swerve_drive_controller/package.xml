@@ -14,8 +14,9 @@
   <author email="bence.magyar@pal-robotics.com">Bence Magyar</author>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>cmake_modules</build_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>cmake_modules</build_depend>
+
   <depend>nav_msgs</depend>
   <depend>realtime_tools</depend>
   <depend>talon_controllers</depend>

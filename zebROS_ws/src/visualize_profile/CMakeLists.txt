@@ -1,22 +1,17 @@
-cmake_minimum_required(VERSION 3.5.1)
-project(behaviors)
+cmake_minimum_required(VERSION 2.8.3)
+project(visualize_profile)
 
-include ("../cmake_modules/CMakeOpt.cmake")
+## Compile as C++11, supported in ROS Kinetic and newer
+# add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  actionlib
-  actionlib_msgs
-  nav_msgs
-  roscpp
   rospy
+  roscpp
   std_msgs
-  message_generation
-  message_filters
-  ros_control_boilerplate
-  elevator_controller
+  trajectory_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -60,11 +55,6 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -74,10 +64,6 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   nav_msgs#   std_msgs
-# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -108,54 +94,13 @@ find_package(catkin REQUIRED COMPONENTS
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-
-# ACTIONLIB STUFF
-
-#find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
-add_action_files(FILES CubeIntake.action IntakeLift.action)
-generate_messages(DEPENDENCIES actionlib_msgs std_msgs)
-
 catkin_package(
-   INCLUDE_DIRS include
-   LIBRARIES behaviors
-   CATKIN_DEPENDS actionlib nav_msgs roscpp rospy std_msgs
-   DEPENDS system_lib
-)
-include_directories(include ${catkin_INCLUDE_DIRS})
-add_executable(CubeActionServer src/CubeActionServer.cpp)
-target_link_libraries(CubeActionServer ${catkin_LIBRARIES})
-add_dependencies(
-    CubeActionServer 
-    ${behaviors_EXPORTED_TARGETS}
+#  INCLUDE_DIRS include
+#  LIBRARIES visualize_profile
+#  CATKIN_DEPENDS matplotlib ros_py roscpp std_msgs trajectory_msgs
+#  DEPENDS system_lib
 )
 
-add_executable(CubeActionClient src/CubeActionClient.cpp)
-target_link_libraries(
-    CubeActionClient
-    ${catkin_LIBRARIES}
-)
-add_dependencies(
-	CubeActionClient
-    ${behaviors_EXPORTED_TARGETS}
-)
-add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
-target_link_libraries(
-    autoInterpreterClient
-    ${catkin_LIBRARIES}
-)
-add_dependencies(
-	autoInterpreterClient
-    ${behaviors_EXPORTED_TARGETS}
-)
-add_executable(autoInterpreterServer src/autoInterpreterServer.cpp)
-target_link_libraries(
-    autoInterpreterServer
-    ${catkin_LIBRARIES}
-)
-add_dependencies(
-	autoInterpreterServer
-    ${behaviors_EXPORTED_TARGETS}
-)
 ###########
 ## Build ##
 ###########
@@ -169,7 +114,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/behaviors.cpp
+#   src/${PROJECT_NAME}/visualize_profile.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -180,7 +125,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/behaviors_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/visualize_profile_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -212,15 +157,11 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
- install(TARGETS autoInterpreterClient autoInterpreterServer
-   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
- )
- install(DIRECTORY
-    config
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
+# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/
@@ -241,7 +182,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_behaviors.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_visualize_profile.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

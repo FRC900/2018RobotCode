@@ -22,10 +22,8 @@
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/io/dsv/write.hpp>
 
-using std::vector;
 namespace arm_limiting
 {
-
 	typedef boost::geometry::model::d2::point_xy<double> point_type;
 	typedef std::vector<point_type> polygon_edges;
 	typedef boost::geometry::model::polygon<point_type> polygon_type;
@@ -37,7 +35,7 @@ class arm_limits
 		arm_limits() {};
 
 		arm_limits(double min_extension, double max_extension, double x_back, double arm_length, 
-		polygon_type remove_zone_down, int circle_point_count)
+		const polygon_type &remove_zone_down, int circle_point_count)
 		{
 			saved_polygons_ =  arm_limitation_polygon(min_extension, max_extension, 
 			x_back, arm_length, remove_zone_down, circle_point_count);
@@ -65,7 +63,6 @@ class arm_limits
 		}
 		bool check_if_possible(point_type &cmd, bool &up_or_down, int check_type, double lift_height = 0)
 		{		
-			
 			if(check_type < 2)
 			{
 				if(up_or_down)
@@ -91,7 +88,6 @@ class arm_limits
 				}
 				else
 				{
-
 					if(boost::geometry::within(cmd, saved_polygons_[1]))
 					{
 						//ROS_WARN("success");	
@@ -160,16 +156,13 @@ class arm_limits
 
 			check_if_possible(cur_pos, cur_up_or_down, 0);
 			
-
-
-			
 			//ROS_INFO_STREAM("cur_pos check");
 
 			//ROS_INFO_STREAM(" Cmd: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
 			//cur_pos.x(.05);
 			//cur_pos.y(.5);
 			//cur_up_or_down = false;	
-			double cur_lift_height = cur_pos.y() - sin(acos(cur_pos.x()/arm_length_))*arm_length_
+			const double cur_lift_height = cur_pos.y() - sin(acos(cur_pos.x()/arm_length_))*arm_length_
 			*(cur_up_or_down ? 1 : -1); 
 			
 			double isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
@@ -179,8 +172,8 @@ class arm_limits
 	
 			double isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
 
-			double hook_current_height_delta = (cur_lift_height - min_extension_)/2;
-			double hook_cmd_height_delta = (isolated_lift_delta_y)/2 + hook_current_height_delta;
+			const double hook_current_height_delta = (cur_lift_height - min_extension_)/2;
+			const double hook_cmd_height_delta = (isolated_lift_delta_y)/2 + hook_current_height_delta;
 
 			double y_low_hook_corner =  2 * (hook_min_height) - min_extension_ - sin(acos((hook_depth + 0.05)/arm_length_))*arm_length_;
 			double y_high_hook_corner = 2 * (hook_max_height) - min_extension_ - sin(acos((hook_depth + 0.05)/arm_length_))*arm_length_;
@@ -223,8 +216,6 @@ class arm_limits
 							+ sin(acos((hook_depth+.05)/arm_length_))*arm_length_
 							*(up_or_down ? 1 : -1));
 						}	
-
-
 					}
 				}
 				else
@@ -241,8 +232,6 @@ class arm_limits
 
 				//Might need to take in account one more case, up to down
 
-
-
 					
 				//ROS_INFO_STREAM("cmd post check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 				
@@ -252,7 +241,6 @@ class arm_limits
 			*( up_or_down ? 1 : -1) + cur_lift_height;
 			//Could switch above to using circle func instead of trig func	
 			point_type test_pivot_cmd(cmd.x(), isolated_pivot_y);
-		
 	
 			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
 			
@@ -281,7 +269,6 @@ class arm_limits
 					return true;
 				}
 			} 
-			
 		}
 	private:
 		double min_extension_;
@@ -295,13 +282,13 @@ class arm_limits
 			//ROS_INFO_STREAM("finding nearest point for: " << boost::geometry::wkt(cmd) << " up/down: " << up_or_down << " check type: " << check_type);
 			if(check_type == 0)
 			{
-				double min_dist_up  = 1000000;
-				double min_dist_down  = 1000000;
+				double min_dist_up  = std::numeric_limits<double>::max();
+				double min_dist_down  = std::numeric_limits<double>::max();
 				double temp_dist;
 				int closest_point_up = 0;
 				int closest_point_down = 0;
 				bool closer_up_or_down = true;
-				for(int i = 0; i < poly_lines[0].size(); i++)
+				for(size_t i = 0; i < poly_lines[0].size(); i++)
 				{
 					temp_dist = boost::geometry::comparable_distance(cmd, poly_lines[0][i]);
 					if(temp_dist < min_dist_up)
@@ -312,7 +299,7 @@ class arm_limits
 					//ROS_INFO_STREAM("current line: " << boost::geometry::wkt(poly_lines[0][i]) << " dist: " << temp_dist <<" up");
 
 				}	
-				for(int i = 0; i < poly_lines[1].size(); i++)
+				for(size_t i = 0; i < poly_lines[1].size(); i++)
 				{
 					
 					temp_dist = boost::geometry::comparable_distance(cmd, poly_lines[1][i]);
@@ -350,16 +337,16 @@ class arm_limits
 				boost::geometry::strategy::transform::translate_transformer<double, 2, 2> translate(0, lift_height);
 				polygon_type new_pivot_circle;
 				boost::geometry::transform(pivot_circle, new_pivot_circle, translate);
-				vector<point_type> output_up;
+				std::vector<point_type> output_up;
 				boost::geometry::intersection(new_pivot_circle, saved_polygons_[0], output_up);
-				vector<point_type> output_down;
+				std::vector<point_type> output_down;
 				boost::geometry::intersection(new_pivot_circle, saved_polygons_[1], output_down);
 
 				//ROS_INFO_STREAM("circle: " << boost::geometry::wkt(new_pivot_circle));
 				
 			
-				double min_dist_up  = 1000000;
-				double min_dist_down  = 1000000;
+				double min_dist_up  = std::numeric_limits<double>::max();
+				double min_dist_down  = std::numeric_limits<double>::max();
 				double temp_dist;
 				int closest_point_up = 0;
 				int closest_point_down = 0;
@@ -432,15 +419,13 @@ class arm_limits
 				up_line.push_back(down_point);
 				up_line.push_back(up_point);
 				
-				vector<point_type> output;
+				std::vector<point_type> output;
 			
 				int id_up_down = up_or_down ? 0 : 1;
 	
 				boost::geometry::intersection(up_line, saved_polygons_[id_up_down], output);
 				
-
-					
-				double min_dist  = 1000000;
+				double min_dist  = std::numeric_limits<double>::max();
 				double temp_dist;
 				int closest_point = 0;
 				for(int i = 0; i < output.size(); i++)
@@ -451,11 +436,10 @@ class arm_limits
 						min_dist = temp_dist;
 						closest_point = i;
 					}
-
 				}	
 				if(output.size() != 0)
 				{
-				cmd =  output[closest_point];
+					cmd = output[closest_point];
 				}
 				else
 				{
@@ -470,9 +454,9 @@ class arm_limits
 		}	
 		point_type find_closest_point_to_line(point_type cmd, linestring_type line)
                 {
-                        double length_line = boost::geometry::length(line);
+                        const double length_line = boost::geometry::length(line);
 
-                        double project_dist = ((cmd.x() - line[1].x())*(line[0].x() - line[1].x()) + (cmd.y() - line[1].y())*(line[0].y() - line[1].y()))/length_line;
+                        const double project_dist = ((cmd.x() - line[1].x())*(line[0].x() - line[1].x()) + (cmd.y() - line[1].y())*(line[0].y() - line[1].y()))/length_line;
                         if(project_dist < 0)
                         {
                                 return line[1];

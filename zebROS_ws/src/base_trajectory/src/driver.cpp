@@ -1,6 +1,11 @@
 #include <ros/ros.h>
 #include <trajectory_msgs/JointTrajectory.h>
+#include <base_trajectory/GenerateSwerveProfile.h>
+#include <talon_swerve_drive_controller/MotionProfilePoints.h>
+#include <talon_swerve_drive_controller/FullGen.h>
 
+ros::ServiceClient point_gen;
+ros::ServiceClient swerve_control;
 
 class RobotBase
 {
@@ -14,7 +19,7 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 
 	public:
 		//! Initialize the action client and wait for action server to come up
-		RobotBase()
+		/*RobotBase()
 		{
 #if 0
 			// tell the action client that we want to spin a thread by default
@@ -34,7 +39,7 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			delete traj_client_;
 #endif
 		}
-
+		*/
 		//! Generates a simple trajectory with two waypoints, used as an example
 		/*! Note that this trajectory contains two waypoints, joined together
 		  as a single trajectory. Alternatively, each of these waypoints could
@@ -61,11 +66,13 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			int ind = 0;
 			trajectory.points[ind].positions.resize(num_joints);
 			trajectory.points[ind].positions[0] =  2.0;
-			trajectory.points[ind].positions[1] =  1.0;
-			trajectory.points[ind].positions[2] = -1.0;
+			trajectory.points[ind].positions[1] =  0.0;
+			trajectory.points[ind].positions[2] =  0.0;
 			// Velocities
-			for (size_t j = 0; j < num_joints; ++j)
-				trajectory.points[ind].velocities.push_back(0);
+			trajectory.points[ind].velocities.resize(num_joints);
+			trajectory.points[ind].velocities[0] =  0.0;
+			trajectory.points[ind].velocities[1] =  0.0;
+			trajectory.points[ind].velocities[2] =  0.0;
 
 			// To be reached 1 second after starting along the trajectory
 			trajectory.points[ind].time_from_start = ros::Duration(4.0);
@@ -74,12 +81,14 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			// Positions
 			ind += 1;
 			trajectory.points[ind].positions.resize(num_joints);
-			trajectory.points[ind].positions[0] = -3.;
-			trajectory.points[ind].positions[1] = 2;
-			trajectory.points[ind].positions[2] = -1.9;
+			trajectory.points[ind].positions[0] = 3.0;
+			trajectory.points[ind].positions[1] = 0.1;
+			trajectory.points[ind].positions[2] = 10.0;
 			// Velocities
-			for (size_t j = 0; j < num_joints; ++j)
-				trajectory.points[ind].velocities.push_back(0);
+			trajectory.points[ind].velocities.resize(num_joints);
+			trajectory.points[ind].velocities[0] =  0.0;
+			trajectory.points[ind].velocities[1] =  0.0;
+			trajectory.points[ind].velocities[2] =  0.0;
 
 			// To be reached 2 seconds after starting along the trajectory
 			trajectory.points[ind].time_from_start = ros::Duration(8.0);
@@ -96,6 +105,33 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 		}
 #endif
 };
+RobotBase base;
+bool run(talon_swerve_drive_controller::FullGen::Request &msg,
+talon_swerve_drive_controller::FullGen::Response &out_msg)
+{
+
+	talon_swerve_drive_controller::FullGen srv;
+	srv.request.joint_trajectory = base.genTrajectory();
+	srv.request.initial_v = 0.0;
+	srv.request.final_v = 0.0;
+	point_gen.call(srv);
+	out_msg.points = srv.response.points;
+
+	 ROS_WARN("run_test_driver");
+
+	talon_swerve_drive_controller::MotionProfilePoints srv_msg_points;
+
+	srv_msg_points.request.dt = srv.response.dt;	
+	srv_msg_points.request.points = srv.response.points;	
+	srv_msg_points.request.buffer = true;	
+	srv_msg_points.request.mode = false;
+	srv_msg_points.request.run = false;
+
+	swerve_control.call(srv_msg_points);
+		
+	return true;
+
+}
 
 int main(int argc, char** argv)
 {
@@ -103,15 +139,15 @@ int main(int argc, char** argv)
 	ros::init(argc, argv, "robot_driver");
 	ros::NodeHandle nh;
 
-	RobotBase base;
 
-	ros::Publisher pub = nh.advertise<trajectory_msgs::JointTrajectory>("command",1, true);
+	point_gen = nh.serviceClient<talon_swerve_drive_controller::FullGen>("/point_gen/command");
+	swerve_control = nh.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile");
+
+	//pub = nh.serviceClient<base_trajectory::GenerateSwerveProfile>("/base_trajectory/command");
 	// Start the trajectory
 	//
-	ros::Rate rate (20);
-	while (pub.getNumSubscribers() != 2)
-		rate.sleep();
-	
-	pub.publish(base.genTrajectory());
-		rate.sleep();
+        ros::ServiceServer service = nh.advertiseService("/base_trajectory/driver_run", run);
+
+	ros::spin();
+
 }
