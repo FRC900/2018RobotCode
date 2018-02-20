@@ -520,7 +520,7 @@ int main(int argc, char** argv) {
     n_params.getParam("default_y", default_y);
     n_params.getParam("timeout", timeout);
     n_params.getParam("modes", modes);
-    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_Interpreter_Server", true);
+    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
     ac->waitForServer(); 
 	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGen>("/point_gen/command");
 	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile");

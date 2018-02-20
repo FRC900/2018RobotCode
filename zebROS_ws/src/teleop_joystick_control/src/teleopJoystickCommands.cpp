@@ -491,7 +491,7 @@ int main(int argc, char **argv) {
     ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/clamp");
     IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/intake");
 
-    message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "ScaledJoystickVals", 5);
+    message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "scaled_joystick_vals", 5);
     message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
 
     navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
