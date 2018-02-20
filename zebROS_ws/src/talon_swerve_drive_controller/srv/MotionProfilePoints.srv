@@ -3,4 +3,5 @@ float64 dt
 bool buffer
 bool mode
 bool run
+bool clear
 ---
