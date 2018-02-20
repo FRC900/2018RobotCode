@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_filters
   ros_control_boilerplate
   elevator_controller
+  talon_swerve_drive_controller
 )
 
 ## System dependencies are found with CMake's conventions
