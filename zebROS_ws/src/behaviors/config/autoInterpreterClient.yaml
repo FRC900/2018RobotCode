@@ -1,13 +1,13 @@
 autoParams:
     modes:
-        - - - { times: [0, 0, 0], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 0, layout 0, pos 0
-            - { times: [0, 0, 1], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 0, layout 0, pos 1
-          - - { times: [0, 1, 0], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 0, layout 1, pos 0
-            - { times: [0, 1, 1], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 0, layout 1, pos 1
-        - - - { times: [1, 0, 0], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 1, layout 0, pos 0
-            - { times: [1, 0, 1], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 1, layout 0, pos 1
-          - - { times: [1, 1, 0], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 1, layout 1, pos 0
-            - { times: [1, 1, 1], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 1, layout 1, pos 1
+        - - - { times: [0, 0, 0], positionsX: [0, 0, 0], positionsY: [0, 0, 0], positionsZ: [0, 0, 0], velocitiesX: [0, 0, 0], velocitiesY: [0, 0, 0], velocitiesZ: [0, 0, 0], accelerationsX: [0, 0, 0], accelerationsY: [0, 0, 0], accelerationsZ: [0, 0, 0]} #mode 0, layout 0, pos 0
+            - { times: [0, 0, 1], positionsX: [0, 0, 1], positionsY: [0, 0, 1], positionsZ: [0, 0, 1], velocitiesX: [0, 0, 1], velocitiesY: [0, 0, 1], velocitiesZ: [0, 0, 1], accelerationsX: [0, 0, 1], accelerationsY: [0, 0, 1], accelerationsZ: [0, 0, 1]} #mode 0, layout 0, pos 1
+          - - { times: [0, 1, 0], positionsX: [0, 1, 0], positionsY: [0, 1, 0], positionsZ: [0, 1, 0], velocitiesX: [0, 1, 0], velocitiesY: [0, 1, 0], velocitiesZ: [0, 1, 0], accelerationsX: [0, 1, 0], accelerationsY: [0, 1, 0], accelerationsZ: [0, 1, 0]} #mode 0, layout 1, pos 0
+            - { times: [0, 1, 1], positionsX: [0, 1, 1], positionsY: [0, 1, 1], positionsZ: [0, 1, 1], velocitiesX: [0, 1, 1], velocitiesY: [0, 1, 1], velocitiesZ: [0, 1, 1], accelerationsX: [0, 1, 1], accelerationsY: [0, 1, 1], accelerationsZ: [0, 1, 1]} #mode 0, layout 1, pos 1
+        - - - { times: [1, 0, 0], positionsX: [1, 0, 0], positionsY: [1, 0, 0], positionsZ: [1, 0, 0], velocitiesX: [1, 0, 0], velocitiesY: [1, 0, 0], velocitiesZ: [1, 0, 0], accelerationsX: [1, 0, 0], accelerationsY: [1, 0, 0], accelerationsZ: [1, 0, 0]} #mode 1, layout 0, pos 0
+            - { times: [1, 0, 1], positionsX: [1, 0, 1], positionsY: [1, 0, 1], positionsZ: [1, 0, 1], velocitiesX: [1, 0, 1], velocitiesY: [1, 0, 1], velocitiesZ: [1, 0, 1], accelerationsX: [1, 0, 1], accelerationsY: [1, 0, 1], accelerationsZ: [1, 0, 1]} #mode 1, layout 0, pos 1
+          - - { times: [1, 1, 0], positionsX: [1, 1, 0], positionsY: [1, 1, 0], positionsZ: [1, 1, 0], velocitiesX: [1, 1, 0], velocitiesY: [1, 1, 0], velocitiesZ: [1, 1, 0], accelerationsX: [1, 1, 0], accelerationsY: [1, 1, 0], accelerationsZ: [1, 1, 0]} #mode 1, layout 1, pos 0
+            - { times: [1, 1, 1], positionsX: [1, 1, 1], positionsY: [1, 1, 1], positionsZ: [1, 1, 1], velocitiesX: [1, 1, 1], velocitiesY: [1, 1, 1], velocitiesZ: [1, 1, 1], accelerationsX: [1, 1, 1], accelerationsY: [1, 1, 1], accelerationsZ: [1, 1, 1]} #mode 1, layout 1, pos 1
         
   #switch-scale-scale-scale
   #mode_1_layout_1_2_pos_1_times: [1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -26,7 +26,10 @@ autoParams:
   #mode_3_layout_1_2_pos_2_times:  
   #mode_3_layout_3_4_pos_1_times:  
   #mode_3_layout_3_4_pos_2_times:  
-  #
+  #0 0 0
+  #1 0 0
+  #0 1 0
+  #1 1 0
   ##longway scale-scale-scale
   #mode_4_layout_1_2_pos_1_times:  
   #mode_4_layout_1_2_pos_2_times:  
