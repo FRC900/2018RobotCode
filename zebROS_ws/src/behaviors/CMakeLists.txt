@@ -118,7 +118,7 @@ generate_messages(DEPENDENCIES actionlib_msgs std_msgs)
 
 catkin_package(
    INCLUDE_DIRS include
-   LIBRARIES behaviors
+   #LIBRARIES behaviors
    CATKIN_DEPENDS actionlib nav_msgs roscpp rospy std_msgs
    DEPENDS system_lib
 )
