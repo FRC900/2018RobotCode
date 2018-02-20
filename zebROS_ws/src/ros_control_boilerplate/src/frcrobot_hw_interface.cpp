@@ -85,6 +85,17 @@ FRCRobotHWInterface::~FRCRobotHWInterface()
 void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	run_hal_thread_ = true;
+
+	// This will be written by the last controller to be
+	// spawned - waiting here prevents the robot from
+	// report robot code ready to the field until
+	// all controllers are started
+	ros::Rate rate(50);
+	while (robot_code_ready_ == 0)
+		rate.sleep();
+
+	robot_.StartCompetition();
+
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
@@ -223,7 +234,6 @@ void FRCRobotHWInterface::init(void)
 	// Make sure to initialize WPIlib code before creating
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
-	robot_.RobotInit();
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
 
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
