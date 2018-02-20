@@ -1,7 +1,8 @@
-# Zebravision 2017 
+# Zebravision 2018
+# Copy this to /etc/systemd/system/ 
 
 [Unit]
-Description=2017 ROS Slave Startup Script
+Description=2018 ROS Slave Startup Script
 
 [Service]
 Type=simple

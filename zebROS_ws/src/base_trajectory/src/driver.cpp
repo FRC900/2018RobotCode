@@ -67,11 +67,11 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			trajectory.points[ind].positions.resize(num_joints);
 			trajectory.points[ind].positions[0] =  2.0;
 			trajectory.points[ind].positions[1] =  0.0;
-			trajectory.points[ind].positions[2] =  1.0;
+			trajectory.points[ind].positions[2] =  0.0;
 			// Velocities
 			trajectory.points[ind].velocities.resize(num_joints);
 			trajectory.points[ind].velocities[0] =  0.0;
-			trajectory.points[ind].velocities[1] =  1.0;
+			trajectory.points[ind].velocities[1] =  0.0;
 			trajectory.points[ind].velocities[2] =  0.0;
 
 			// To be reached 1 second after starting along the trajectory
@@ -82,8 +82,8 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			ind += 1;
 			trajectory.points[ind].positions.resize(num_joints);
 			trajectory.points[ind].positions[0] = 3.0;
-			trajectory.points[ind].positions[1] = 5.0;
-			trajectory.points[ind].positions[2] = 2.0;
+			trajectory.points[ind].positions[1] = 0.1;
+			trajectory.points[ind].positions[2] = 10.0;
 			// Velocities
 			trajectory.points[ind].velocities.resize(num_joints);
 			trajectory.points[ind].velocities[0] =  0.0;

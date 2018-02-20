@@ -1,4 +1,5 @@
-# Zebravision 2017 
+# Zebravision 2018
+# Copy this to /etc/systemd/system/ 
 
 [Unit]
 Description=2018 ROS Master Startup Script
