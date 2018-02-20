@@ -142,13 +142,15 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         //publish a stop message?
     }
     */
-    if(JoystickState->directionUpPress == true) {
-        if(timeSecs - directionUpLast < 1.0) {
-	     EndGameDeploy.publish(1.0); //this will become a service
-	     ROS_WARN("SELF DESTURCT");
-        }
-        directionUpLast = timeSecs;
-    }
+	if(JoystickState->directionUpPress == true) {
+		if(timeSecs - directionUpLast < 1.0) {
+			std_msgs::Float64 msg;
+			msg.data = 1.0;
+			EndGameDeploy.publish(msg); //this will become a service
+			ROS_WARN("SELF DESTURCT");
+		}
+		directionUpLast = timeSecs;
+	}
     /*
     if(JoystickState->buttonBButton == true && ifCube==true) {
         //TODO auto scale

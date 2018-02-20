@@ -264,11 +264,15 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	}
 	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .5)
 	{	
-		EndGameDeploy_.publish(1.0);
+		std_msgs::Float64 msg;
+		msg.data = 1.0;
+		EndGameDeploy_.publish(msg);
 	}
 	else
 	{
-		EndGameDeploy_.publish(0.0);
+		std_msgs::Float64 msg;
+		msg.data = 0.0;
+		EndGameDeploy_.publish(msg);
 	}
 	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
 	{
@@ -276,18 +280,22 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	} 
 	if(shift_cmd_)
 	{	
-		Shift_.publish(1.0);
+		std_msgs::Float64 msg;
+		msg.data = 1.0;
+		Shift_.publish(msg);
 		if(!shifted_)
 		{
 			shifted_ = true;
 			lift_joint_.setMotionAcceleration(after_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(after_shift_max_vel_);
-			lift_joint_.setPIDFSlot(1.0);
+			lift_joint_.setPIDFSlot(1);
 		}
 	}
 	else
 	{
-		Shift_.publish(-1.0);
+		std_msgs::Float64 msg;
+		msg.data = -1.0;
+		Shift_.publish(msg);
 		if(shifted_)
 		{
 			shifted_ = false;
@@ -304,40 +312,55 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 
 	if(intake_struct_.up_command < 0)
 	{
-		IntakeUp_.publish(-1.0);
+		std_msgs::Float64 msg;
+		msg.data = -1.0;
+		IntakeUp_.publish(msg);
 		intake_down_time_ = ros::Time::now().toSec();
 	}
 	else
 	{
 		if((ros::Time::now().toSec() - intake_down_time_) < .25)
 		{
-			IntakeUp_.publish(1.0);
+			std_msgs::Float64 msg;
+			msg.data = 1.0;
+			IntakeUp_.publish(msg);
 		}
 		else
 		{
-			IntakeUp_.publish(0.0);
+			std_msgs::Float64 msg;
+			msg.data = 0;
+			IntakeUp_.publish(msg);
 		}
 	}
 	//Delay stuff maybe?
 
+	std_msgs::Float64 intake_soft_msg;
+	std_msgs::Float64 intake_hard_msg;
 	switch(intake_struct_.spring_command)
 	{
 		default:
-			IntakeSoftSpring_.publish(1.0);
-			IntakeHardSpring_.publish(0.0);
+			intake_soft_msg.data = 1.0;
+			intake_hard_msg.data = 0.0;
 			break;
 		case 1:
-			IntakeSoftSpring_.publish(0.0);
-			IntakeHardSpring_.publish(-1.0);
+			intake_soft_msg.data = 0.0;
+			intake_hard_msg.data = -1.0;
 			break;
 		case 3:
-			IntakeSoftSpring_.publish(0.0);
-			IntakeHardSpring_.publish(1.0);
+			intake_soft_msg.data = 0.0;
+			intake_hard_msg.data = 1.0;
 			break;
 	}	
+	IntakeSoftSpring_.publish(intake_soft_msg);
+	IntakeHardSpring_.publish(intake_hard_msg);
 
-	Clamp_.publish(clamp_cmd_);
-	CubeState_.publish(line_break_intake_ || line_break_clamp_);
+	std_msgs::Float64 clamp_msg;
+	clamp_msg.data = clamp_cmd_;
+	Clamp_.publish(std_msgs::Float64(clamp_msg));
+
+	std_msgs::Bool cube_msg;
+	cube_msg.data = line_break_intake_ || line_break_clamp_;
+	CubeState_.publish(cube_msg);
 
 	elevator_controller::ReturnElevatorCmd return_holder;
 	elevator_controller::ReturnElevatorCmd odom_holder;
