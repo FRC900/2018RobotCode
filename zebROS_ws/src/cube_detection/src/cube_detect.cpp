@@ -118,7 +118,6 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 		double areaContour = boundRect[i].height * boundRect[i].width;
 		Scalar rect_color = Scalar(0,0,255);
 		Scalar color = Scalar(0,255,0);		
-		drawContours(drawing, contours,i,color,2,8,rank,0,Point());
 
 		if (areaContour < minArea /*|| areaContour > maxArea*/) {
 			continue;
@@ -130,7 +129,12 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 			continue;
 		} else {	
 			putText(drawing, to_string(contourDepth[i]), Point(boundRect[i].x, boundRect[i].y - 15), FONT_HERSHEY_SIMPLEX, 0.45, (0,0,255), 1);
+			drawContours(drawing, contours,i,color,2,8,rank,0,Point());
 			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), rect_color, 2, 8, 0);
+			ROS_INFO_STREAM("x = " << boundRect[i].x + (boundRect[i].width/2));
+			ROS_INFO_STREAM("y = " << boundRect[i].y + (boundRect[i].height/2));
+			ROS_INFO_STREAM("z = " << contourDepth[i]);
+
 		}
 	}
 	//markE

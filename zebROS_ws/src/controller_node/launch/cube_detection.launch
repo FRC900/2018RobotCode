@@ -35,7 +35,7 @@
     </include>
 </group>
 
-  <node name="cube_detection_node" pkg="cube_detection" type="cube_detection_node">
+  <node name="cube_detection_node" pkg="cube_detection" type="cube_detection_node" output= "screen">
   	<param name="down_sample" value="$(arg down_sample)" />
   	<param name="sub_rate" value="$(arg sub_rate)" />
   	<param name="pub_rate" value="$(arg pub_rate)" />
