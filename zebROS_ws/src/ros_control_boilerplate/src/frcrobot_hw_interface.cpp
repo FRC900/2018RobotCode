@@ -223,7 +223,7 @@ void FRCRobotHWInterface::init(void)
 	// Make sure to initialize WPIlib code before creating
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
-	robot_.StartCompetition();
+	robot_.RobotInit();
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
 
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
@@ -342,6 +342,8 @@ void FRCRobotHWInterface::init(void)
 
 	HAL_InitializePDP(0,0);
 
+	//HAL_ObserveUserProgramStarting();
+
 	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, ros::Rate(200));
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
@@ -361,10 +363,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
 		hardware_interface::TalonMode talon_mode = ts.getTalonMode();
 		int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
+		conversion_factor = ts.getConversion();
 
-		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
-		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
-		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
+		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
+		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
+		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id)* conversion_factor;
 
 		double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
@@ -772,7 +775,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		//TODO : skip over most or all of this if the talon is in follower mode
 		//       Only do the Set() call and then
 		//       never do anything else?  Need to make sure things like inverts
-		//       and so on are copied from the talon it is following
+		//       and so on are copied from the talon it is following - RG inverts shouldn't
+		//       be copied, we may need to run a slave inverted relative to master
 		//
 		// Save some typing by making references to commonly
 		// used variables
@@ -788,9 +792,9 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		int encoder_ticks_per_rotation = tc.getEncoderTicksPerRotation();
 		ts.setEncoderTicksPerRotation(encoder_ticks_per_rotation);
 
-		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id);
-		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id);
-		const double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id);
+		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
+		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id) * conversion_factor;
+		const double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id)* conversion_factor;
 
 		bool close_loop_mode = false;
 		bool motion_profile_mode = false;
