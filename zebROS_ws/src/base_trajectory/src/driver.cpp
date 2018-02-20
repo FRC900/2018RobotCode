@@ -66,14 +66,19 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			int ind = 0;
 			trajectory.points[ind].positions.resize(num_joints);
 			trajectory.points[ind].positions[0] =  2.0;
-			trajectory.points[ind].positions[1] =  0.0;
-			trajectory.points[ind].positions[2] =  0.0;
+			trajectory.points[ind].positions[1] =  -2.0;
+			trajectory.points[ind].positions[2] =  1.0;
 			// Velocities
 			trajectory.points[ind].velocities.resize(num_joints);
 			trajectory.points[ind].velocities[0] =  0.0;
 			trajectory.points[ind].velocities[1] =  0.0;
 			trajectory.points[ind].velocities[2] =  0.0;
 
+
+			trajectory.points[ind].accelerations.resize(num_joints);
+			trajectory.points[ind].accelerations[0] =  0.0;
+			trajectory.points[ind].accelerations[1] =  0.0;
+			trajectory.points[ind].accelerations[2] =  0.0;
 			// To be reached 1 second after starting along the trajectory
 			trajectory.points[ind].time_from_start = ros::Duration(4.0);
 
@@ -81,15 +86,20 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			// Positions
 			ind += 1;
 			trajectory.points[ind].positions.resize(num_joints);
-			trajectory.points[ind].positions[0] = 3.0;
-			trajectory.points[ind].positions[1] = 0.1;
-			trajectory.points[ind].positions[2] = 10.0;
+			trajectory.points[ind].positions[0] = 4.0;
+			trajectory.points[ind].positions[1] = -3.0;
+			trajectory.points[ind].positions[2] = 1.50;
 			// Velocities
 			trajectory.points[ind].velocities.resize(num_joints);
 			trajectory.points[ind].velocities[0] =  0.0;
 			trajectory.points[ind].velocities[1] =  0.0;
 			trajectory.points[ind].velocities[2] =  0.0;
 
+			trajectory.points[ind].accelerations.resize(num_joints);
+			trajectory.points[ind].accelerations[0] =  0.0;
+			trajectory.points[ind].accelerations[1] =  0.0;
+			trajectory.points[ind].accelerations[2] =  0.0;
+			
 			// To be reached 2 seconds after starting along the trajectory
 			trajectory.points[ind].time_from_start = ros::Duration(8.0);
 
