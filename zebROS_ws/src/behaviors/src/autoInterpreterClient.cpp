@@ -23,6 +23,9 @@
 #include <talon_swerve_drive_controller/FullGen.h>
 #include <trajectory_msgs/JointTrajectory.h>
 
+ros::ServiceClient point_gen;
+ros::ServiceClient swerve_control;
+
 
 static int startPos = -1;
 static int auto_mode = -1;
@@ -189,6 +192,22 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
  
                 //ROS_INFO("%d", xml_times[i]);
             } 
+            talon_swerve_drive_controller::FullGen srv;
+	        srv.request.joint_trajectory = trajectory;
+            srv.request.initial_v = 0.0;
+            srv.request.final_v = 0.0;
+            point_gen.call(srv);
+            ROS_WARN("run_test_driver");
+            talon_swerve_drive_controller::MotionProfilePoints srv_msg_points;
+
+            srv_msg_points.request.dt = srv.response.dt;	
+            srv_msg_points.request.points = srv.response.points;	
+            srv_msg_points.request.buffer = true;	
+            srv_msg_points.request.mode = false;
+            srv_msg_points.request.run = false;
+
+            swerve_control.call(srv_msg_points);
+
             if(AutoMode->mode[auto_mode-1]==1) {
             //3 cube switch-scale-scale
                 //0: Time 1: Go to switch config
@@ -503,6 +522,8 @@ int main(int argc, char** argv) {
     n_params.getParam("modes", modes);
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_Interpreter_Server", true);
     ac->waitForServer(); 
+	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGen>("/point_gen/command");
+	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile");
 
     //IntakeService = n.advertise<elevator_controller::Intake>("elevator/Intake", 1);
     IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");

@@ -9,6 +9,10 @@ include ("../cmake_modules/CMakeOpt.cmake")
 find_package(catkin REQUIRED COMPONENTS
   actionlib
   actionlib_msgs
+  joint_trajectory_controller
+  controller_interface
+  talon_swerve_drive_controller
+  trajectory_msgs
   nav_msgs
   roscpp
   rospy

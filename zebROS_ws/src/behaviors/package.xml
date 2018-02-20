@@ -52,6 +52,10 @@
   <depend>ros_control_boilerplate</depend>
   <depend>elevator_controller</depend>
   <depend>message_filters</depend>
+  <depend>joint_trajectory_controller</depend>
+  <depend>trajectory_interface</depend>
+  <depend>controller_interface</depend>
+  <depend>talon_swerve_drive_controller</depend>
   <build_depend>message_generation</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>roscpp</build_depend>
