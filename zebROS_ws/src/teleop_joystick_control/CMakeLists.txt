@@ -22,6 +22,7 @@ find_package(catkin REQUIRED COMPONENTS
   talon_interface
   message_generation
   ros_control_boilerplate
+  behaviors
 )
 find_package(Eigen REQUIRED)
 

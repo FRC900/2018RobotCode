@@ -35,7 +35,6 @@ class TalonCIParams
 		// Initialize with relatively sane defaults
 		// for all parameters
 		TalonCIParams(void) :
-			follow_can_id_ (-1),
 			p_{0, 0},
 			i_{0, 0},
 			d_{0, 0},
@@ -56,9 +55,9 @@ class TalonCIParams
 			nominal_output_forward_(100.),
 			nominal_output_reverse_(100.),
 			neutral_deadband_(0.),
-			voltage_compensation_saturation_(12.5),
+			voltage_compensation_saturation_(0.0),
 			voltage_measurement_filter_(32),
-			voltage_compensation_enable_(true),
+			voltage_compensation_enable_(false),
 			limit_switch_local_forward_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
 			limit_switch_local_forward_normal_(hardware_interface::LimitSwitchNormal_NormallyOpen),
 			limit_switch_local_reverse_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
@@ -72,8 +71,8 @@ class TalonCIParams
 			current_limit_peak_msec_(0),
 			current_limit_continuous_amps_(0),
 			current_limit_enable_(false),
-			motion_cruise_velocity_(10), // No idea at a guess
-			motion_acceleration_(20),
+			motion_cruise_velocity_(0), // No idea at a guess
+			motion_acceleration_(0),
 			motion_control_frame_period_(20), // Guess at 50Hz default?
 			
 			conversion_factor_(1.0)
@@ -84,7 +83,7 @@ class TalonCIParams
 		// Also pass in current params for ones which aren't
 		// dynamically reconfigurable - pass them through
 		// to the new one 
-		void fromConfig(const TalonConfigConfig &config)
+		TalonCIParams(const TalonConfigConfig &config)
 		{
 			p_[0] = config.p0;
 			p_[1] = config.p1;
@@ -269,22 +268,7 @@ class TalonCIParams
 				ROS_ERROR("Invalid feedback device name given");
 				return false;
 			}
-			double dbl_val;
-			if (n.getParam("ticks_per_rotation", dbl_val))
-				ticks_per_rotation_ = dbl_val;
-			return true;
-		}
-
-		// Read the name of a joint (talon) to follow.  Figure
-		// out which CAN ID that Talon is configured as here
-		bool readFollowerID(ros::NodeHandle &n, hardware_interface::TalonStateInterface *tsi)
-		{
-			std::string follow_joint_name;
-			if (tsi && n.getParam("follow_joint", follow_joint_name))
-			{
-				hardware_interface::TalonStateHandle follow_handle = tsi->getHandle(follow_joint_name);
-				follow_can_id_ = follow_handle->getCANID();
-			}
+			n.getParam("ticks_per_rotation", ticks_per_rotation_);
 			return true;
 		}
 
@@ -326,45 +310,24 @@ class TalonCIParams
 
 		bool readOutputShaping(ros::NodeHandle &n)
 		{
-			double double_val;
-			if (n.getParam("closed_loop_ramp", double_val))
-				closed_loop_ramp_ = double_val;
-			if (n.getParam("open_loop_ramp", double_val))
-				open_loop_ramp_ = double_val;
-			if (n.getParam("peak_output_forward", double_val))
-				peak_output_forward_ = double_val;
-			if (n.getParam("peak_output_reverse", double_val))
-				peak_output_reverse_ = double_val;
-			if (n.getParam("nominal_output_forward", double_val))
-				nominal_output_forward_ = double_val;
-			if (n.getParam("nominal_output_reverse", double_val))
-				nominal_output_reverse_ = double_val;
-			if (n.getParam("neutral_deadband", double_val))
-				neutral_deadband_ = double_val;
-			return true;
+			n.getParam("closed_loop_ramp", closed_loop_ramp_);
+			n.getParam("open_loop_ramp", open_loop_ramp_);
+			n.getParam("peak_output_forward", peak_output_forward_);
+			n.getParam("peak_output_reverse", peak_output_reverse_);
+			n.getParam("nominal_output_forward", nominal_output_forward_);
+			n.getParam("nominal_output_reverse", nominal_output_reverse_);
+			n.getParam("neutral_deadband", neutral_deadband_);
 		}
 		bool readVoltageCompensation(ros::NodeHandle &n)
 		{
 			int params_read = 0;
-			double double_val;
-			if (n.getParam("voltage_compensation_saturation", double_val))
-			{
-				voltage_compensation_saturation_ = double_val;
+			if (n.getParam("voltage_compensation_saturation", voltage_compensation_saturation_))
 				params_read += 1;
-			}
-			int int_val;
-			if (n.getParam("voltage_measurement_filter", int_val))
-			{
-				voltage_measurement_filter_ = int_val;
+			if (n.getParam("voltage_measurement_filter", voltage_measurement_filter_))
 				params_read += 1;
-			}
-			bool bool_val;
-			if (n.getParam("voltage_compensation_enable", bool_val))
-			{
-				voltage_compensation_enable_ = bool_val;
-				if (bool_val && (params_read < 2))
-					ROS_WARN("Not all voltage compensation params set before enabling - using defaults of 0 might not work as expected");
-			}
+			if (n.getParam("voltage_compensation_enable", voltage_compensation_enable_) &&
+				voltage_compensation_enable_ && (params_read < 2))
+				ROS_WARN("Not all voltage compensation params set before enabling - using defaults might not work as expected");
 			return true;
 		}
 
@@ -402,61 +365,33 @@ class TalonCIParams
 
 		bool readSoftLimits(ros::NodeHandle &n)
 		{
-			double double_val;
-			bool bool_val;
 			int param_count = 0;
-			if (n.getParam("softlimit_forward_threshold", double_val))
-			{
-				softlimit_forward_threshold_ = double_val;
+			if (n.getParam("softlimit_forward_threshold", softlimit_forward_threshold_))
 				param_count = 1;
-			}
-			if (n.getParam("softlimit_forward_enable", bool_val))
-			{
-				softlimit_forward_enable_ = bool_val;
-				if (bool_val && (param_count == 0))
-					ROS_WARN("Enabling forward softlimits without setting threshold");
-			}
+			if (n.getParam("softlimit_forward_enable", softlimit_forward_enable_) &&
+					softlimit_forward_enable_ && (param_count == 0))
+				ROS_WARN("Enabling forward softlimits without setting threshold");
 			param_count = 0;
-			if (n.getParam("softlimit_reverse_threshold", double_val))
-			{
-				softlimit_reverse_threshold_ = double_val;
+			if (n.getParam("softlimit_reverse_threshold", softlimit_reverse_threshold_))
 				param_count = 1;
-			}
-			if (n.getParam("softlimit_reverse_enable", bool_val))
-			{
-				softlimit_reverse_enable_ = bool_val;
-				if (bool_val && (param_count == 0))
+			if (n.getParam("softlimit_reverse_enable", softlimit_reverse_enable_) &&
+				softlimit_reverse_enable_ && (param_count == 0))
 					ROS_WARN("Enabling forward softlimits without setting threshold");
-			}
 			return true;
 		}
 
 		bool readCurrentLimits(ros::NodeHandle &n)
 		{
 			int params_read = 0;
-			int int_val;
-			if (n.getParam("current_limit_peak_amps", int_val))
-			{
-				current_limit_peak_amps_ = int_val;
+			if (n.getParam("current_limit_peak_amps", current_limit_peak_amps_))
 				params_read += 1;
-			}
-			if (n.getParam("current_limit_peak_msec", int_val))
-			{
-				current_limit_peak_msec_ = int_val;
+			if (n.getParam("current_limit_peak_msec", current_limit_peak_msec_))
 				params_read += 1;
-			}
-			if (n.getParam("current_limit_continusous_amps", int_val))
-			{
-				current_limit_continuous_amps_ = int_val;
+			if (n.getParam("current_limit_continuous_amps", current_limit_continuous_amps_))
 				params_read += 1;
-			}
-			bool bool_val;
-			if (n.getParam("current_limit_enable", bool_val))
-			{
-				current_limit_enable_ = bool_val;
-				if (bool_val && (params_read < 3))
-					ROS_WARN("Not all current limits set before enabling - using defaults of 0 might not work as expected");
-			}
+			if (n.getParam("current_limit_enable", current_limit_enable_) &&
+				current_limit_enable_ && (params_read < 3))
+				ROS_WARN("Not all current limits set before enabling - using defaults might not work as expected");
 			return true;
 		}
 
@@ -470,7 +405,6 @@ class TalonCIParams
 
 		// TODO : Keep adding config items here
 		std::string joint_name_;
-		int    follow_can_id_;
 		double p_[2];
 		double i_[2];
 		double d_[2];
@@ -601,21 +535,20 @@ class TalonControllerInterface
 		}
 		// Standardize format for reading params for
 		// motor controller
-		virtual bool readParams(ros::NodeHandle &n, hardware_interface::TalonStateInterface *tsi)
+		virtual bool readParams(ros::NodeHandle &n, TalonCIParams &params)
 		{
-			return params_.readJointName(n) &&
-				   params_.readConversion(n) &&
-				   params_.readFollowerID(n, tsi) &&
-				   params_.readCloseLoopParams(n) &&
-				   params_.readNeutralMode(n) &&
-				   params_.readInverts(n) &&
-				   params_.readFeedbackType(n) &&
-				   params_.readOutputShaping(n) &&
-				   params_.readVoltageCompensation(n) &&
-				   params_.readLimitSwitches(n) &&
-				   params_.readSoftLimits(n) &&
-				   params_.readCurrentLimits(n) &&
-				   params_.readMotionControl(n);
+			return params.readJointName(n) &&
+				   params.readConversion(n) &&
+				   params.readCloseLoopParams(n) &&
+				   params.readNeutralMode(n) &&
+				   params.readInverts(n) &&
+				   params.readFeedbackType(n) &&
+				   params.readOutputShaping(n) &&
+				   params.readVoltageCompensation(n) &&
+				   params.readLimitSwitches(n) &&
+				   params.readSoftLimits(n) &&
+				   params.readCurrentLimits(n) &&
+				   params.readMotionControl(n);
 		}
 
 		// Allow users of the ControllerInterface to get
@@ -638,17 +571,12 @@ class TalonControllerInterface
 			return writeParamsToHW(params);
 		}
 
-		// Use data in params_ to actually set up Talon
+		// Use data in params to actually set up Talon
 		// hardware. Make this a separate method outside of
 		// init() so that dynamic reconfigure callback can write
 		// values using this method at any time
 		virtual bool writeParamsToHW(const TalonCIParams &params)
 		{
-			// Save copy of params written to HW
-			// so they can be queried later?
-			params_ = params;
-			
-			talon_->setEncoderFeedback(params_.feedback_type_);
 			// perform additional hardware init here
 			// but don't set mode - either force the caller to
 			// set it or use one of the derived, fixed-mode
@@ -703,6 +631,10 @@ class TalonControllerInterface
 			talon_->setMotionAcceleration(params_.motion_acceleration_);
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
 
+			// Save copy of params written to HW
+			// so they can be queried later?
+			params_ = params;
+
 			return true;
 		}
 
@@ -725,8 +657,7 @@ class TalonControllerInterface
 					 config.invert_output,
 					 config.sensor_phase);
 
-			params_.fromConfig(config);
-			writeParamsToHW(params_);
+			writeParamsToHW(TalonCIParams(config));
 		}
 
 		// Read params from config file and use them to
@@ -735,12 +666,13 @@ class TalonControllerInterface
 		// no need to modify the parameters after reading
 		// them
 		virtual bool initWithNode(hardware_interface::TalonCommandInterface *tci,
-								  hardware_interface::TalonStateInterface *tsi,
+								  hardware_interface::TalonStateInterface * /*tsi*/,
 								  ros::NodeHandle &n)
 		{
 			// Read params from startup and intialize
 			// Talon using them
-			bool result = readParams(n, tsi) && initWithParams(tci, params_);
+			TalonCIParams params;
+			bool result = readParams(n, params) && initWithParams(tci, params);
 
 			if (result)
 			{
@@ -984,14 +916,29 @@ class TalonPercentOutputControllerInterface : public TalonFixedModeControllerInt
 class TalonFollowerControllerInterface : public TalonFixedModeControllerInterface
 {
 	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
-							const TalonCIParams &params) override
+		bool initWithNode(hardware_interface::TalonCommandInterface *tci,
+						  hardware_interface::TalonStateInterface   *tsi,
+						  ros::NodeHandle &n)
 		{
-			// Call base-class init to load config params
-			if (!TalonControllerInterface::initWithParams(hw, params))
+			if (!tsi)
+			{
+				ROS_ERROR("NULL TalonStateInterface in TalonFollowerCommandInterface");
 				return false;
-			if (params.follow_can_id_ < 0 || params.follow_can_id_ > 99)
-				throw std::runtime_error("Invalid follower CAN ID");
+			}
+
+			// Call base-class init to load config params
+			if (!TalonControllerInterface::initWithNode(tci, tsi, n))
+				return false;
+
+			std::string follow_joint_name;
+			if (!n.getParam("follow_joint", follow_joint_name))
+			{
+				ROS_ERROR("No follow joint specified for TalonFollowerControllerInterface");
+				return false;
+			}
+
+			hardware_interface::TalonStateHandle follow_handle = tsi->getHandle(follow_joint_name);
+			const int follow_can_id = follow_handle->getCANID();
 
 			// Set the mode and CAN ID of talon to follow at init time -
 			// since this class is derived from the FixedMode class
@@ -999,9 +946,9 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			// where a follower mode Talon changes which other
 			// Talon it is following during a match?
 			talon_->setMode(hardware_interface::TalonMode_Follower);
-			talon_->set(params.follow_can_id_);
+			talon_->set(follow_can_id);
 
-			std::cout << "Launching follower Talon SRX " << params.joint_name_ << " to follow CAN ID " << params.follow_can_id_ << std::endl;
+			std::cout << "Launching follower Talon SRX " << params_.joint_name_ << " to follow CAN ID " << follow_can_id << std::endl;
 			return true;
 		}
 		// Maybe disable the setPIDFSlot call since that makes
