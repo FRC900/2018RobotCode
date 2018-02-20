@@ -10,13 +10,13 @@ include ("../cmake_modules/CMakeOpt.cmake")
 # if the ZED SDK is missing
 unset(BUILD_ME CACHE)
 if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-  find_package(ZED 2.3)
+  find_package(ZED)
   if (ZED_FOUND)
-    set (BUILD_ME True)
+	  set (BUILD_ME_CUBE_DETECTION True)
   endif()
 endif()
 
-if (BUILD_ME)
+if (BUILD_ME_CUBE_DETECTION)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -28,7 +28,6 @@ if (BUILD_ME)
      sensor_msgs
      cv_bridge
      )
-  find_package(ZED REQUIRED)
   find_package(OpenCV REQUIRED)
   find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
 

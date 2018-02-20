@@ -6,10 +6,20 @@ include ("../cmake_modules/CMakeOpt.cmake")
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
+# Don't cross build, also skip building
+# if the ZED SDK is missing
+unset(BUILD_ME CACHE)
 if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+  find_package(ZED)
+  if (ZED_FOUND)
+    set (BUILD_ME_SCALE_DETECTION True)
+  endif()
+endif()
+
+if (BUILD_ME_SCALE_DETECTION)
+  ## Find catkin macros and libraries
+  ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
+  ## is used, also find other catkin packages
   find_package(catkin REQUIRED COMPONENTS
     roscpp
     message_filters
@@ -18,7 +28,6 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     cv_bridge
   )
   find_package(PCL REQUIRED COMPONENTS common segmentation visualization)
-  find_package(ZED REQUIRED)
   find_package(OpenCV REQUIRED)
   find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
   include_directories(${PCL_INCLUDE_DIRS})
