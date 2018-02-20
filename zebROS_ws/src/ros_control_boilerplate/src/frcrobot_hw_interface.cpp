@@ -470,8 +470,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		ts.setFaults(faults.ToBitfield());
 
 		// Grab limit switch and softlimit here
-		ts.setForwardLimitSwitch(talon->GetSensorCollection().IsFwdLimitSwitchClosed());
-		ts.setReverseLimitSwitch(talon->GetSensorCollection().IsRevLimitSwitchClosed());
+		auto sensor_collection = talon->GetSensorCollection();
+		ts.setForwardLimitSwitch(sensor_collection.IsFwdLimitSwitchClosed());
+		ts.setReverseLimitSwitch(sensor_collection.IsRevLimitSwitchClosed());
 
 		ts.setForwardSoftlimitHit(faults.ForwardSoftLimit);
 		ts.setReverseSoftlimitHit(faults.ReverseSoftLimit);
