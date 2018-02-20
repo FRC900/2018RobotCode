@@ -78,9 +78,9 @@ class TalonHWCommand
 			outputShapingChanged_(false),
 
 			// voltage compensation
-			voltage_compensation_saturation_(0), //max voltage to apply to talons when command is 100%
+			voltage_compensation_saturation_(12.5), //max voltage to apply to talons when command is 100%
 			voltage_measurement_filter_(32), //number of samples in the average of voltage measurements
-			voltage_compensation_enable_(false),
+			voltage_compensation_enable_(true),
 			voltage_compensation_changed_(false),
 
 			sensor_position_value_(0.),
