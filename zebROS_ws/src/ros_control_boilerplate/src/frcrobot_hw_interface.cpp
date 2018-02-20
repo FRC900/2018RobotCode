@@ -91,7 +91,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	// report robot code ready to the field until
 	// all controllers are started
 	ros::Rate rate(50);
-	while (robot_code_ready_ == 0)
+	while (robot_code_ready_ == 0.0)
 		rate.sleep();
 
 	robot_.StartCompetition();
