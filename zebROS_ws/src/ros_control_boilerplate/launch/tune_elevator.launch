@@ -20,10 +20,11 @@
 
 		<!-- Load controller settings -->
 		<rosparam file="$(find ros_control_boilerplate)/config/tune_elevator.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller pivot_joint_controller lift_joint_controller lift_follower1_controller lift_follower2_controller" />
+			output="screen" args="spawn joint_state_controller talon_state_controller pivot_joint_controller lift_joint_controller lift_follower1_controller lift_follower2_controller robot_code_ready_controller" />
 		<!-- Convert joint states to /tf tranforms -->
 		<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 

@@ -235,6 +235,8 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> dummy_joint_velocity_;
 		std::vector<double> dummy_joint_effort_;
 		std::vector<double> dummy_joint_command_;
+
+		double robot_code_ready_;
 };  // class
 
 }  // namespace
