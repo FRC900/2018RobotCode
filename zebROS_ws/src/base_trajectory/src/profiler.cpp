@@ -30,7 +30,6 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 	positions.reserve(155 / dt_); //For full auto :) 
 
 	path_point holder_point;
-	double t;
 	double dtds;
 	spline_coefs holder_spline;
 
@@ -109,29 +108,14 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		velocities.push_back(curr_v);
 		positions.push_back(i);
 		
-		t = spline(i);
-		t_raw = t;
-		//ROS_INFO_STREAM("t immediate: " << t);
-		//rescale t
-		for(size_t k = 0; k < end_points.size(); k++)
-		{
-			if(t > end_points[k])
-			{			
-				t -= end_points[k];
-			}
-			else
-			{
-				break;
-			}
-		}
-		
-		//ROS_INFO_STREAM("t modified: " << t);
+		t_raw = spline(i);
 		
 
-		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, t, holder_point, end_points, dtds_for_spline, t_raw);
+		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, holder_point, end_points, dtds_for_spline, t_raw);
 		
 
-		//ROS_INFO_STREAM("t: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v);
+		//ROS_INFO_STREAM("t: " << t << " t_raw: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i);
+
 		
 		if(!solve_for_next_V(holder_point, total_arc, curr_v, i))
 		{
@@ -153,30 +137,17 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 	{
 		i += curr_v*dt_;	
 		
-		t = spline(i);
+		t_raw = spline(i);
 			
-		t_raw = t;		
 
-		//rescale t
-		for(size_t k = 0; k < end_points.size(); k++)
-		{
-			if(t > end_points[k])
-			{			
-				t -= end_points[k];
-			}
-			else
-			{
-				break;
-			}
-		}
 		
 
 		
-		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, t, holder_point, end_points, dtds_for_spline, t_raw);
+		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv,holder_point, end_points, dtds_for_spline, t_raw);
 	
 		//TODO: CHECK CONVERSIONS
 
-		//ROS_INFO_STREAM("t: " << t << " pos: " << holder_point.pos << " curr_v: " << curr_v);
+		//ROS_INFO_STREAM("t: " << t << " t_raw: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i);
 		
 		//Check these conversions	
 		out_msg.points[point_count].positions.push_back(holder_point.pos[0]);
@@ -187,7 +158,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		out_msg.points[point_count].velocities.push_back(holder_point.angular_velocity * (curr_v));
 		//out_msg.points[point_count].velocities.push_back(holder_point.path_angle_deriv * (current_v));
 		out_msg.points[point_count].time_from_start = now;
-		ROS_INFO_STREAM(now);
+		//ROS_INFO_STREAM(now);
 		now += period;
 		point_count++;
 		if(!solve_for_next_V(holder_point, total_arc, curr_v, i))
@@ -374,14 +345,17 @@ void swerve_profiler::calc_point(const spline_coefs &spline, const double t, dou
 {
 	returner = spline.a * t*t*t*t*t + spline.b * t*t*t*t + spline.c * t*t*t + spline.d * t*t + spline.e * t + spline.f; 
 }
-void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, double t, path_point &holder_point, const std::vector<double> &end_points, const std::vector<double> &dtds_by_spline, const double &t_raw)
+void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, path_point &holder_point, const std::vector<double> &end_points, const std::vector<double> &dtds_by_spline, const double &t_raw)
 {
-	static int which_spline;
-	which_spline = 0;
-	for(;which_spline < x_splines.size() - 1; which_spline++)
+	double t;
+	int which_spline;
+	which_spline = 1;
+	t = t_raw - end_points[x_splines.size() - 2];
+	for(;which_spline < x_splines.size()-1; which_spline++)
 	{
 		if(t_raw < end_points[which_spline])
 		{
+			t = t_raw - end_points[which_spline - 1];
 			break;
 		}
 		
@@ -408,7 +382,7 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 	calc_point(orient_splines_second_deriv[which_spline], t, second_deriv_orient);
 	
 	//if(fow)
-	//ROS_INFO_STREAM("which spline: " << which_spline << " x: " << point_x << " y: " << point_y << " a: " << x_splines[which_spline].a <<" b: " << x_splines[which_spline].b <<" c: " << x_splines[which_spline].c <<" d: " << x_splines[which_spline].d <<" e: " << x_splines[which_spline].e <<" f: " << x_splines[which_spline].f);
+	//ROS_INFO_STREAM("which spline: " << which_spline << " t_test: " << t_test << " t_raw: "<< t_raw << " x: " << point_x << " y: " << point_y << " a: " << x_splines[which_spline].a <<" b: " << x_splines[which_spline].b <<" c: " << x_splines[which_spline].c <<" d: " << x_splines[which_spline].d <<" e: " << x_splines[which_spline].e <<" f: " << x_splines[which_spline].f);
 	
 	//Radius = (x'^2 + y'^2)^(3/2) / (x' * y'' - y' * x'')
 
