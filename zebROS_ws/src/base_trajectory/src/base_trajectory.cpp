@@ -304,7 +304,7 @@ base_trajectory::GenerateSwerveProfile::Response &out_msg
 	//TODO: Harvest splines
 	
 
-
+	ROS_INFO("generation of profile based on splines");
 
 	if(profile_gen->generate_profile(x_splines, y_splines, orient_splines, msg.initial_v, msg.final_v, out_msg, end_points))
 	{
