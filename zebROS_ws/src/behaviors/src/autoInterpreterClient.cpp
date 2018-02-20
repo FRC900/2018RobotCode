@@ -18,6 +18,11 @@
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/imu_sensor_interface.h>
 #include <hardware_interface/robot_hw.h>
+#include <talon_swerve_drive_controller/GenerateTrajectory.h>
+#include <talon_swerve_drive_controller/MotionProfilePoints.h>
+#include <talon_swerve_drive_controller/FullGen.h>
+#include <trajectory_msgs/JointTrajectory.h>
+
 
 static int startPos = -1;
 static int auto_mode = -1;
@@ -155,17 +160,33 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             }
 			XmlRpc::XmlRpcValue xml_times = modes[auto_mode][layout][startPos];
             std::vector<double> times;
-            /*
             trajectory_msgs::JointTrajectory trajectory;
             trajectory.joint_names.push_back("x_linear_joint");
 			trajectory.joint_names.push_back("y_linear_joint");
 			trajectory.joint_names.push_back("z_rotation_joint");
             const size_t num_joints = trajectory.joint_names.size();
             trajectory.points.resize(2);
-            */
+
             for(int i = 0; i<xml_times.size(); i++) { 
                 times.push_back(xml_times["times"][i]);
-                
+
+                trajectory.points[i].positions.resize(num_joints);
+                trajectory.points[i].positions[0] =  xml_times["positionsX"][i];
+                trajectory.points[i].positions[1] =  xml_times["positionsY"][i];
+                trajectory.points[i].positions[2] =  xml_times["positionsZ"][i];
+
+                trajectory.points[i].velocities.resize(num_joints);
+                trajectory.points[i].velocities[0] =  xml_times["velocitiesX"][i];
+                trajectory.points[i].velocities[1] =  xml_times["velocitiesY"][i];
+                trajectory.points[i].velocities[2] =  xml_times["velocitiesZ"][i];
+
+                trajectory.points[i].accelerations.resize(num_joints);
+                trajectory.points[i].accelerations[0] =  xml_times["accelerationsX"][i];
+                trajectory.points[i].accelerations[1] =  xml_times["accelerationsY"][i];
+                trajectory.points[i].accelerations[2] =  xml_times["accelerationsZ"][i];
+
+			    trajectory.points[i].time_from_start = ros::Duration(2*i+1);
+ 
                 //ROS_INFO("%d", xml_times[i]);
             } 
             if(AutoMode->mode[auto_mode-1]==1) {
