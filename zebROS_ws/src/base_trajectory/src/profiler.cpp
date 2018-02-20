@@ -131,7 +131,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, t, holder_point, end_points, dtds_for_spline, t_raw);
 		
 
-		//ROS_INFO_STREAM("t (soft): " << t << " pos: " << holder_point.pos << " curr_v: " << curr_v);
+		//ROS_INFO_STREAM("t: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v);
 		
 		if(!solve_for_next_V(holder_point, total_arc, curr_v, i))
 		{
