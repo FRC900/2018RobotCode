@@ -176,9 +176,9 @@ class TalonHWState
 			close_loop_ramp_(0),
 			open_loop_ramp_(0),
 			peak_output_forward_(100.),
-			peak_output_reverse_(100.),
-			nominal_output_forward_(100.),
-			nominal_output_reverse_(100.),
+			peak_output_reverse_(-100.),
+			nominal_output_forward_(0.),
+			nominal_output_reverse_(0.),
 			neutral_deadband_(0.),
 
 			// voltage compensation

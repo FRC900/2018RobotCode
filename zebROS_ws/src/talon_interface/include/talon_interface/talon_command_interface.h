@@ -77,16 +77,16 @@ class TalonHWCommand
 			closed_loop_ramp_(0),
 			open_loop_ramp_(0),
 			peak_output_forward_(100.),
-			peak_output_reverse_(100.),
-			nominal_output_forward_(100.),
-			nominal_output_reverse_(100.),
+			peak_output_reverse_(-100.),
+			nominal_output_forward_(0.),
+			nominal_output_reverse_(0.),
 			neutral_deadband_(0.),
 			output_shaping_changed_(true),
 
 			// voltage compensation
 			voltage_compensation_saturation_(12.5), //max voltage to apply to talons when command is 100%
 			voltage_measurement_filter_(32), //number of samples in the average of voltage measurements
-			voltage_compensation_enable_(false),
+			voltage_compensation_enable_(true),
 			voltage_compensation_changed_(true),
 
 			sensor_position_value_(0.),
