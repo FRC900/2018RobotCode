@@ -317,6 +317,7 @@ class TalonCIParams
 			n.getParam("nominal_output_forward", nominal_output_forward_);
 			n.getParam("nominal_output_reverse", nominal_output_reverse_);
 			n.getParam("neutral_deadband", neutral_deadband_);
+			return true;
 		}
 		bool readVoltageCompensation(ros::NodeHandle &n)
 		{
