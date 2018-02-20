@@ -60,11 +60,13 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			const size_t num_joints = trajectory.joint_names.size();
 
 			// We will have two waypoints in this trajectory
-			trajectory.points.resize(2);
+			trajectory.points.resize(msg.points);
 
 			// First trajectory point
 			// Positions
             for(int ind = 0; ind<msg.points; ind++) {
+                                
+
                 trajectory.points[ind].positions.resize(num_joints);
                 trajectory.points[ind].positions[0] =  msg.positionX[ind];
                 trajectory.points[ind].positions[1] =  msg.positionY[ind];
@@ -80,7 +82,7 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
                 trajectory.points[ind].accelerations[1] =  msg.accelerationY[ind];
                 trajectory.points[ind].accelerations[2] =  msg.accelerationZ[ind];
 
-			    trajectory.points[ind].time_from_start = ros::Duration(ind+4);
+			    trajectory.points[ind].time_from_start = ros::Duration(2*ind+1);
             }
             /*
 			trajectory.points[ind].positions.resize(num_joints);
@@ -125,7 +127,7 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			//we are done; return the goal
 			return trajectory;
 		}
-
+		
 #if 0
 		//! Returns the current state of the action
 		actionlib::SimpleClientGoalState getState()
