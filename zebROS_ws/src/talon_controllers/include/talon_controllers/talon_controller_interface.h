@@ -268,9 +268,7 @@ class TalonCIParams
 				ROS_ERROR("Invalid feedback device name given");
 				return false;
 			}
-			double dbl_val;
-			if (n.getParam("ticks_per_rotation", dbl_val))
-				ticks_per_rotation_ = dbl_val;
+			n.getParam("ticks_per_rotation", ticks_per_rotation_);
 			return true;
 		}
 
@@ -312,45 +310,24 @@ class TalonCIParams
 
 		bool readOutputShaping(ros::NodeHandle &n)
 		{
-			double double_val;
-			if (n.getParam("closed_loop_ramp", double_val))
-				closed_loop_ramp_ = double_val;
-			if (n.getParam("open_loop_ramp", double_val))
-				open_loop_ramp_ = double_val;
-			if (n.getParam("peak_output_forward", double_val))
-				peak_output_forward_ = double_val;
-			if (n.getParam("peak_output_reverse", double_val))
-				peak_output_reverse_ = double_val;
-			if (n.getParam("nominal_output_forward", double_val))
-				nominal_output_forward_ = double_val;
-			if (n.getParam("nominal_output_reverse", double_val))
-				nominal_output_reverse_ = double_val;
-			if (n.getParam("neutral_deadband", double_val))
-				neutral_deadband_ = double_val;
-			return true;
+			n.getParam("closed_loop_ramp", closed_loop_ramp_);
+			n.getParam("open_loop_ramp", open_loop_ramp_);
+			n.getParam("peak_output_forward", peak_output_forward_);
+			n.getParam("peak_output_reverse", peak_output_reverse_);
+			n.getParam("nominal_output_forward", nominal_output_forward_);
+			n.getParam("nominal_output_reverse", nominal_output_reverse_);
+			n.getParam("neutral_deadband", neutral_deadband_);
 		}
 		bool readVoltageCompensation(ros::NodeHandle &n)
 		{
 			int params_read = 0;
-			double double_val;
-			if (n.getParam("voltage_compensation_saturation", double_val))
-			{
-				voltage_compensation_saturation_ = double_val;
+			if (n.getParam("voltage_compensation_saturation", voltage_compensation_saturation_))
 				params_read += 1;
-			}
-			int int_val;
-			if (n.getParam("voltage_measurement_filter", int_val))
-			{
-				voltage_measurement_filter_ = int_val;
+			if (n.getParam("voltage_measurement_filter", voltage_measurement_filter_))
 				params_read += 1;
-			}
-			bool bool_val;
-			if (n.getParam("voltage_compensation_enable", bool_val))
-			{
-				voltage_compensation_enable_ = bool_val;
-				if (bool_val && (params_read < 2))
-					ROS_WARN("Not all voltage compensation params set before enabling - using defaults of 0 might not work as expected");
-			}
+			if (n.getParam("voltage_compensation_enable", voltage_compensation_enable_) &&
+				voltage_compensation_enable_ && (params_read < 2))
+				ROS_WARN("Not all voltage compensation params set before enabling - using defaults might not work as expected");
 			return true;
 		}
 
@@ -388,61 +365,33 @@ class TalonCIParams
 
 		bool readSoftLimits(ros::NodeHandle &n)
 		{
-			double double_val;
-			bool bool_val;
 			int param_count = 0;
-			if (n.getParam("softlimit_forward_threshold", double_val))
-			{
-				softlimit_forward_threshold_ = double_val;
+			if (n.getParam("softlimit_forward_threshold", softlimit_forward_threshold_))
 				param_count = 1;
-			}
-			if (n.getParam("softlimit_forward_enable", bool_val))
-			{
-				softlimit_forward_enable_ = bool_val;
-				if (bool_val && (param_count == 0))
-					ROS_WARN("Enabling forward softlimits without setting threshold");
-			}
+			if (n.getParam("softlimit_forward_enable", softlimit_forward_enable_) &&
+					softlimit_forward_enable_ && (param_count == 0))
+				ROS_WARN("Enabling forward softlimits without setting threshold");
 			param_count = 0;
-			if (n.getParam("softlimit_reverse_threshold", double_val))
-			{
-				softlimit_reverse_threshold_ = double_val;
+			if (n.getParam("softlimit_reverse_threshold", softlimit_reverse_threshold_))
 				param_count = 1;
-			}
-			if (n.getParam("softlimit_reverse_enable", bool_val))
-			{
-				softlimit_reverse_enable_ = bool_val;
-				if (bool_val && (param_count == 0))
+			if (n.getParam("softlimit_reverse_enable", softlimit_reverse_enable_) &&
+				softlimit_reverse_enable_ && (param_count == 0))
 					ROS_WARN("Enabling forward softlimits without setting threshold");
-			}
 			return true;
 		}
 
 		bool readCurrentLimits(ros::NodeHandle &n)
 		{
 			int params_read = 0;
-			int int_val;
-			if (n.getParam("current_limit_peak_amps", int_val))
-			{
-				current_limit_peak_amps_ = int_val;
+			if (n.getParam("current_limit_peak_amps", current_limit_peak_amps_))
 				params_read += 1;
-			}
-			if (n.getParam("current_limit_peak_msec", int_val))
-			{
-				current_limit_peak_msec_ = int_val;
+			if (n.getParam("current_limit_peak_msec", current_limit_peak_msec_))
 				params_read += 1;
-			}
-			if (n.getParam("current_limit_continusous_amps", int_val))
-			{
-				current_limit_continuous_amps_ = int_val;
+			if (n.getParam("current_limit_continuous_amps", current_limit_continuous_amps_))
 				params_read += 1;
-			}
-			bool bool_val;
-			if (n.getParam("current_limit_enable", bool_val))
-			{
-				current_limit_enable_ = bool_val;
-				if (bool_val && (params_read < 3))
-					ROS_WARN("Not all current limits set before enabling - using defaults of 0 might not work as expected");
-			}
+			if (n.getParam("current_limit_enable", current_limit_enable_) &&
+				current_limit_enable_ && (params_read < 3))
+				ROS_WARN("Not all current limits set before enabling - using defaults might not work as expected");
 			return true;
 		}
 
