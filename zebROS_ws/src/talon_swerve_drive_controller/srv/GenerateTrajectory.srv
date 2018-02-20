@@ -1,7 +1,3 @@
-trajectory_msgs/JointTrajectory joint_trajectory
-float64 initial_v
-float64 final_v
-
 int32 points
 float64[] positionX
 float64[] positionY
@@ -17,6 +13,5 @@ float64[] accelerationZ
 
 
 ---
-Header header
-string[] joint_names
-trajectory_msgs/JointTrajectoryPoint[] points
+talon_swerve_drive_controller/SwervePoint[] points
+float64 dt

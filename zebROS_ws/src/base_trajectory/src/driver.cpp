@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <base_trajectory/GenerateSwerveProfile.h>
-#include <base_trajectory/GenerateTrajectory.h>
+#include <talon_swerve_drive_controller/GenerateTrajectory.h>
 #include <talon_swerve_drive_controller/MotionProfilePoints.h>
 #include <talon_swerve_drive_controller/FullGen.h>
 
@@ -47,7 +47,7 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 		  be in its own trajectory - a trajectory can have one or more waypoints
 		  depending on the desired application.
 		  */
-		trajectory_msgs::JointTrajectory genTrajectory(talon_swerve_drive_controller::FullGen::Request &msg) const
+		trajectory_msgs::JointTrajectory genTrajectory(talon_swerve_drive_controller::GenerateTrajectory::Request msg) const
 		{
 			//our goal variable
 			trajectory_msgs::JointTrajectory trajectory;
@@ -64,23 +64,23 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 
 			// First trajectory point
 			// Positions
-            for(int ind = 0; ind<msg->numPoints; ind++) {
+            for(int ind = 0; ind<msg.points; ind++) {
                 trajectory.points[ind].positions.resize(num_joints);
-                trajectory.points[ind].positions[0] =  msg->positionX[ind];
-                trajectory.points[ind].positions[1] =  msg->positionY[ind];
-                trajectory.points[ind].positions[2] =  msg->positionZ[ind];
+                trajectory.points[ind].positions[0] =  msg.positionX[ind];
+                trajectory.points[ind].positions[1] =  msg.positionY[ind];
+                trajectory.points[ind].positions[2] =  msg.positionZ[ind];
 
                 trajectory.points[ind].velocities.resize(num_joints);
-                trajectory.points[ind].velocities[0] =  msg->velocityX[ind];
-                trajectory.points[ind].velocities[1] =  msg->velocityY[ind];
-                trajectory.points[ind].velocities[2] =  msg->velocityZ[ind];
+                trajectory.points[ind].velocities[0] =  msg.velocityX[ind];
+                trajectory.points[ind].velocities[1] =  msg.velocityY[ind];
+                trajectory.points[ind].velocities[2] =  msg.velocityZ[ind];
 
                 trajectory.points[ind].accelerations.resize(num_joints);
-                trajectory.points[ind].accelerations[0] =  msg->accelerationX[ind];
-                trajectory.points[ind].accelerations[1] =  msg->accelerationY[ind];
-                trajectory.points[ind].accelerations[2] =  msg->accelerationZ[ind];
+                trajectory.points[ind].accelerations[0] =  msg.accelerationX[ind];
+                trajectory.points[ind].accelerations[1] =  msg.accelerationY[ind];
+                trajectory.points[ind].accelerations[2] =  msg.accelerationZ[ind];
 
-			    trajectory.points[ind].time_from_start = ros::Duration(ind+1);
+			    trajectory.points[ind].time_from_start = ros::Duration(ind+4);
             }
             /*
 			trajectory.points[ind].positions.resize(num_joints);
@@ -135,8 +135,8 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 #endif
 };
 RobotBase base;
-bool run(base_trajectory::GenerateTrajectory::Request &msg,
-base_trajectory::GenerateTrajectory::Response &out_msg)
+bool run(talon_swerve_drive_controller::GenerateTrajectory::Request &msg,
+talon_swerve_drive_controller::GenerateTrajectory::Response &out_msg)
 {
 
 	talon_swerve_drive_controller::FullGen srv;
@@ -146,7 +146,7 @@ base_trajectory::GenerateTrajectory::Response &out_msg)
 	point_gen.call(srv);
 	out_msg.points = srv.response.points;
 
-	 ROS_WARN("run_test_driver");
+	ROS_WARN("run_test_driver");
 
 	talon_swerve_drive_controller::MotionProfilePoints srv_msg_points;
 
