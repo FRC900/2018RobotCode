@@ -253,6 +253,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			ts.setPeakOutputReverse(peak_output_reverse);
 			ts.setNominalOutputForward(nominal_output_forward);
 			ts.setNominalOutputReverse(nominal_output_reverse);
+			ts.setNeutralDeadband(neutral_deadband);
 		}
 		double v_c_saturation;
 		int v_measurement_filter;
