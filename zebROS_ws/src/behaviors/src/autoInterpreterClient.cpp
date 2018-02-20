@@ -155,9 +155,16 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             }
 			XmlRpc::XmlRpcValue xml_times = modes[auto_mode][layout][startPos];
             std::vector<double> times;
+            trajectory_msgs::JointTrajectory trajectory;
+            trajectory.joint_names.push_back("x_linear_joint");
+			trajectory.joint_names.push_back("y_linear_joint");
+			trajectory.joint_names.push_back("z_rotation_joint");
+            const size_t num_joints = trajectory.joint_names.size();
+            trajectory.points.resize(2);
             for(int i = 0; i<xml_times.size(); i++) { 
-                times.push_back(xml_times[i]);
-                ROS_INFO("%d", xml_times[i]);
+                times.push_back(xml_times["times"][i]);
+                
+                //ROS_INFO("%d", xml_times[i]);
             } 
             if(AutoMode->mode[auto_mode-1]==1) {
             //3 cube switch-scale-scale

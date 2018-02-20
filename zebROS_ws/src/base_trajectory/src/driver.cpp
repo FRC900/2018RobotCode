@@ -46,7 +46,7 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 		  be in its own trajectory - a trajectory can have one or more waypoints
 		  depending on the desired application.
 		  */
-		trajectory_msgs::JointTrajectory genTrajectory(void) const
+		trajectory_msgs::JointTrajectory genTrajectory(talon_swerve_drive_controller::FullGen::Request &msg) const
 		{
 			//our goal variable
 			trajectory_msgs::JointTrajectory trajectory;
@@ -63,7 +63,25 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 
 			// First trajectory point
 			// Positions
-			int ind = 0;
+            for(int ind = 0; ind<msg->numPoints; ind++) {
+                trajectory.points[ind].positions.resize(num_joints);
+                trajectory.points[ind].positions[0] =  msg->positionX[ind];
+                trajectory.points[ind].positions[1] =  msg->positionY[ind];
+                trajectory.points[ind].positions[2] =  msg->positionZ[ind];
+
+                trajectory.points[ind].velocities.resize(num_joints);
+                trajectory.points[ind].velocities[0] =  msg->velocityX[ind];
+                trajectory.points[ind].velocities[1] =  msg->velocityY[ind];
+                trajectory.points[ind].velocities[2] =  msg->velocityZ[ind];
+
+                trajectory.points[ind].accelerations.resize(num_joints);
+                trajectory.points[ind].accelerations[0] =  msg->accelerationX[ind];
+                trajectory.points[ind].accelerations[1] =  msg->accelerationY[ind];
+                trajectory.points[ind].accelerations[2] =  msg->accelerationZ[ind];
+
+			    trajectory.points[ind].time_from_start = ros::Duration(ind+1);
+            }
+            /*
 			trajectory.points[ind].positions.resize(num_joints);
 			trajectory.points[ind].positions[0] =  2.0;
 			trajectory.points[ind].positions[1] =  -2.0;
@@ -99,9 +117,9 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 			trajectory.points[ind].accelerations[0] =  0.0;
 			trajectory.points[ind].accelerations[1] =  0.0;
 			trajectory.points[ind].accelerations[2] =  0.0;
-			
+			*/
 			// To be reached 2 seconds after starting along the trajectory
-			trajectory.points[ind].time_from_start = ros::Duration(8.0);
+			//trajectory.points[ind].time_from_start = ros::Duration(8.0);
 
 			//we are done; return the goal
 			return trajectory;
@@ -121,7 +139,7 @@ talon_swerve_drive_controller::FullGen::Response &out_msg)
 {
 
 	talon_swerve_drive_controller::FullGen srv;
-	srv.request.joint_trajectory = base.genTrajectory();
+	srv.request.joint_trajectory = base.genTrajectory(msg);
 	srv.request.initial_v = 0.0;
 	srv.request.final_v = 0.0;
 	point_gen.call(srv);
