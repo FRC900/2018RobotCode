@@ -1,21 +1,6 @@
 trajectory_msgs/JointTrajectory joint_trajectory
 float64 initial_v
 float64 final_v
-
-int points
-float64[] positionX
-float64[] positionY
-float64[] positionZ
-
-float64[] velocityX
-float64[] velocityY
-float64[] velocityZ
-
-float64[] accelerationX
-float64[] accelerationY
-float64[] accelerationZ
-
-
 ---
 Header header
 string[] joint_names

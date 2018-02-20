@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <base_trajectory/GenerateSwerveProfile.h>
+#include <base_trajectory/GenerateTrajectory.h>
 #include <talon_swerve_drive_controller/MotionProfilePoints.h>
 #include <talon_swerve_drive_controller/FullGen.h>
 
@@ -134,8 +135,8 @@ typedef actionlib::SimpleActionClient< ::JointTrajectoryAction > TrajClient;
 #endif
 };
 RobotBase base;
-bool run(talon_swerve_drive_controller::FullGen::Request &msg,
-talon_swerve_drive_controller::FullGen::Response &out_msg)
+bool run(base_trajectory::GenerateTrajectory::Request &msg,
+base_trajectory::GenerateTrajectory::Response &out_msg)
 {
 
 	talon_swerve_drive_controller::FullGen srv;
