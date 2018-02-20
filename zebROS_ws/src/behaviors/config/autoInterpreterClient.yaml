@@ -1,13 +1,13 @@
 autoParams:
     modes:
-        - - - [0, 0, 0] #mode 0, layout 0, pos 0
-            - [0, 0, 1] #mode 0, layout 0, pos 1
-          - - [0, 1, 0] #mode 0, layout 1, pos 0
-            - [0, 1, 1] #mode 0, layout 1, pos 1
-        - - - [1, 0, 0] #mode 1, layout 0, pos 0
-            - [1, 0, 1] #mode 1, layout 0, pos 1
-          - - [1, 1, 0] #mode 1, layout 1, pos 0
-            - [1, 1, 1] #mode 1, layout 1, pos 1
+        - - - { times: [0, 0, 0], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 0, layout 0, pos 0
+            - { times: [0, 0, 1], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 0, layout 0, pos 1
+          - - { times: [0, 1, 0], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 0, layout 1, pos 0
+            - { times: [0, 1, 1], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 0, layout 1, pos 1
+        - - - { times: [1, 0, 0], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 1, layout 0, pos 0
+            - { times: [1, 0, 1], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 1, layout 0, pos 1
+          - - { times: [1, 1, 0], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 1, layout 1, pos 0
+            - { times: [1, 1, 1], positionsX: [], positionsY: [], positionsZ: [], velocitiesX: [], velocitiesY: [], velocitiesZ: [], accelerationsX: [], accelerationsY: [], accelerationsZ: []} #mode 1, layout 1, pos 1
         
   #switch-scale-scale-scale
   #mode_1_layout_1_2_pos_1_times: [1, 2, 3, 4, 5, 6, 7, 8, 9]

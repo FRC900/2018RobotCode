@@ -1,0 +1,17 @@
+int32 points
+float64[] positionX
+float64[] positionY
+float64[] positionZ
+
+float64[] velocityX
+float64[] velocityY
+float64[] velocityZ
+
+float64[] accelerationX
+float64[] accelerationY
+float64[] accelerationZ
+
+
+---
+talon_swerve_drive_controller/SwervePoint[] points
+float64 dt
