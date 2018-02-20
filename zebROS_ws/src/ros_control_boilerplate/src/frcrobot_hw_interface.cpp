@@ -244,6 +244,7 @@ void FRCRobotHWInterface::init(void)
 		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i]));
 		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 50); // Make sure motor is stopped, use a long timeout just in case
 		safeTalonCall(can_talons_[i]->GetLastError(), "Initial Set(Disabled, 0)");
+		safeTalonCall(can_talons_[i]->ClearStickyFaults(timeoutMs), "ClearStickyFaults()");
 		// TODO : if the talon doesn't initialize - maybe known
 		// by -1 from firmware version read - somehow tag
 		// the entry in can_talons_[] as uninitialized.
