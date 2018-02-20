@@ -1,4 +1,6 @@
 import rospy
+from os.path import expanduser
+import os
 from talon_swerve_drive_controller.srv import *
 #from trajectory_msgs.msg import *
 import pylab as P
@@ -7,6 +9,10 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import math
 
+home = os.path.expanduser("~");
+print(home)
+filename = home + '/2018RobotCode/zebROS_ws/src/visualize_profile/field.jpg'
+print(filename)
 def create_plot(req):
 	fig = plt.figure()
 	ax = fig.gca(projection='3d')
@@ -25,7 +31,7 @@ def create_plot(req):
 
 	plt.show()
 
-	im = plt.imread("/home/ryan/2018RobotCode/zebROS_ws/src/visualize_profile/field.jpg")
+	im = plt.imread(filename)
 	implot = plt.imshow(im)
 	orient = plt.axes()
 	k = 0

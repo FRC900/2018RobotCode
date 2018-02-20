@@ -14,6 +14,11 @@
 #include "elevator_controller/ElevatorControlS.h"
 #include "elevator_controller/bool_srv.h"
 #include "cstdlib"
+#include <controller_manager/controller_manager.h>
+#include <hardware_interface/joint_command_interface.h>
+#include <hardware_interface/imu_sensor_interface.h>
+#include <hardware_interface/robot_hw.h>
+
 static int startPos = -1;
 static int auto_mode = -1;
 static double start_time;
@@ -40,6 +45,9 @@ static double default_x;
 static double default_y;
 static double timeout;
 static double autoStart;
+static int layout;
+static XmlRpc::XmlRpcValue modes;
+
 
 bool defaultConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.x = default_x;
@@ -118,29 +126,39 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             behaviors::IntakeLiftGoal goal;
 
     /////////////////TESTING/////////////////
-            geometry_msgs::Twist vel;
-            vel.linear.x = 2;
-            vel.linear.y = 0;
-            vel.linear.z = 0;
-            vel.angular.x = 0;
-            vel.angular.y = 0;
-            vel.angular.z = 0;
-            VelPub.publish(vel);
-            return;
+    //        geometry_msgs::Twist vel;
+    //        vel.linear.x = 2;
+    //        vel.linear.y = 0;
+    //        vel.linear.z = 0;
+    //        vel.angular.x = 0;
+    //        vel.angular.y = 0;
+    //        vel.angular.z = 0;
+    //        VelPub.publish(vel);
+    //        return;
     /////////////////////////////////////////
+            startPos = AutoMode->position;
             if(MatchData->allianceData=="rlr") {
                 auto_mode = 1;
+                layout = 1;
             }
             else if(MatchData->allianceData=="lrl") {
                 auto_mode = 2;
+                layout = 1;
             }
             else if(MatchData->allianceData=="rrr") {
                 auto_mode = 3;
+                layout = 2;
             }
             else if(MatchData->allianceData =="lll") {
                 auto_mode = 4;
+                layout = 2;
             }
-
+			XmlRpc::XmlRpcValue xml_times = modes[auto_mode][layout][startPos];
+            std::vector<double> times;
+            for(int i = 0; i<xml_times.size(); i++) { 
+                times.push_back(xml_times[i]);
+            }
+            
             if(AutoMode->mode[auto_mode-1]==1) {
             //3 cube switch-scale-scale
                 //0: Time 1: Go to switch config
@@ -379,7 +397,7 @@ int main(int argc, char** argv) {
     n_params.getParam("default_x", default_x);
     n_params.getParam("default_y", default_y);
     n_params.getParam("timeout", timeout);
-
+    n_params.getParam("modes", modes);
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_Interpreter_Server", true);
     ac->waitForServer(); 
 
