@@ -18,16 +18,21 @@ using namespace std;
 using namespace sensor_msgs;
 using namespace message_filters;
 
-int hLo = 23;
+int hLo = 15;
 int sLo = 65;
 int vLo = 240;
-int hUp = 40;
+int hUp = 55;
 
-//double minArea = 86500;
-//68860x^2-232300x+202600
+int maxTrans = 15900;
+int minTrans = 4470;
 
-//double maxArea = 111560;
-//82320x^2-273400x+247600
+int pixelError = .001;
+
+//orig: 193695.3745 * .2226^x
+
+//min: 193695.3745 * .2226^x - 9000
+
+//max: 193695.3745 * .2226^x + 9000
 
 static bool down_sample = false;
 //This funtion along with the commented out slider code is useful when getting new HSV values for the threshold
@@ -98,8 +103,8 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 
 	for(int i = 0; i < contours.size(); i++)
 	{
-		const int x = boundRect[i].x;
-		const int y = boundRect[i].y;
+		const int x = boundRect[i].x + (boundRect[i].width/2);
+		const int y = boundRect[i].y + (boundRect[i].height/2);
 		float depth_value = depthPtr->at<float>(y,x);
 		contourDepth.push_back(depth_value);
 	}
@@ -108,27 +113,35 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	Mat drawing = Mat::zeros(threshold.size(),CV_8UC3);
 	for(int i = 0; i< contours.size(); i++)
 	{
-		double minArea = 68860 * (pow(contourDepth[i], 2)) - (232300 * contourDepth[i]) + 202600;
-		double maxArea = 82320 * (pow(contourDepth[i], 2)) - (273400 * contourDepth[i]) + 247600;
+		double minArea = sqrt(193695.3745 * (pow(0.2226,contourDepth[i])) - minTrans); 
+		double maxArea = sqrt(193695.3745 * (pow(0.2226,contourDepth[i])) + maxTrans); 
 		double areaContour = boundRect[i].height * boundRect[i].width;
 		Scalar rect_color = Scalar(0,0,255);
 		Scalar color = Scalar(0,255,0);		
-		drawContours(drawing, contours,i,color,2,8,rank,0,Point());
 
-		if (false/*areaContour < minArea || areaContour > maxArea*/){
+		if (areaContour < minArea /*|| areaContour > maxArea*/) {
 			continue;
-		} else if (false/*abs((boundRect[i].height/boundRect[i].width) - 1) > 2.0*/) {
+		} else if (areaContour <= (drawing.rows * drawing.cols * pixelError)) {
 			continue;
-		} else if (false/*abs((boundRect[i].width/boundRect[i].height) - 1) > 2.0*/) {
+		} else if (abs((boundRect[i].height/boundRect[i].width) - 1) > 1.6) {
+			continue;
+		} else if (abs((boundRect[i].width/boundRect[i].height) - 1) > 1.6) {
 			continue;
 		} else {	
+			putText(drawing, to_string(contourDepth[i]), Point(boundRect[i].x, boundRect[i].y - 15), FONT_HERSHEY_SIMPLEX, 0.45, (0,0,255), 1);
+			drawContours(drawing, contours,i,color,2,8,rank,0,Point());
 			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), rect_color, 2, 8, 0);
+			ROS_INFO_STREAM("x = " << boundRect[i].x + (boundRect[i].width/2));
+			ROS_INFO_STREAM("y = " << boundRect[i].y + (boundRect[i].height/2));
+			ROS_INFO_STREAM("z = " << contourDepth[i]);
+
 		}
 	}
 	//markE
 	imshow("threshold",threshold); //mark1
 	imshow("hsv",hsv);
 	imshow("drawing",drawing); //mark1 
+	imshow("depth", *depthPtr);
 	waitKey(5);
 }
 
@@ -152,6 +165,8 @@ int main(int argc, char **argv)
 	createTrackbar( "Lower S", "drawing", &sLo, 255);  
 	createTrackbar( "Lower V", "drawing", &vLo, 255);
 	createTrackbar( "Higher H", "drawing", &hUp, 180);
+	createTrackbar( "minTrans", "drawing", &minTrans, 30000);
+	createTrackbar( "maxTrans", "drawing", &maxTrans, 30000);	
 	//createTrackbar( "minArea", "drawing", &minArea, 5000);
 	//createTrackbar( "maxArea", "drawing", &maxArea, 1000000);
 
