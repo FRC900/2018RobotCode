@@ -9,15 +9,16 @@ swerve_drive_controller:
     twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     # fix me
     wheel_radius: 0.0381 # m
-    max_speed: 3.3528
+    max_speed: 3.819
+    max_accel: 2.612
     mass: 70
     motor_free_speed: 5840
     motor_stall_torque: 1.4
     motor_quantity: 4
     file_name: "offsets.txt"
     invert_wheel_angle: False
-    ratio_encoder_to_rotations: 0.525
-    ratio_motor_to_rotations: .35  
+    ratio_encoder_to_rotations: 0.380952381
+    ratio_motor_to_rotations: 0.202380952364087  
     ratio_motor_to_steering: 49
     encoder_drive_get_V_units: 1 #TODO: 12.0008839 - this is the value with the 1.9:1 gear ration factored in but it causes errors for some reason?
     encoder_drive_set_V_units: 1 #12.0008839
