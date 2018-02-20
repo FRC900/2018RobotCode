@@ -182,9 +182,9 @@ class TalonHWState
 			neutral_deadband_(0.),
 
 			// voltage compensation
-			voltage_compensation_saturation_(0),
+			voltage_compensation_saturation_(12.5),
 			voltage_measurement_filter_(32),
-			voltage_compensation_enable_(false),
+			voltage_compensation_enable_(true),
 
 			limit_switch_local_forward_source_(LimitSwitchSource_FeedbackConnector),
 			limit_switch_local_forward_normal_(LimitSwitchNormal_NormallyOpen),
