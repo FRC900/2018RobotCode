@@ -51,13 +51,13 @@ class TalonCIParams
 			closed_loop_ramp_(0.),
 			open_loop_ramp_(0.),
 			peak_output_forward_(100.),
-			peak_output_reverse_(100.),
-			nominal_output_forward_(100.),
-			nominal_output_reverse_(100.),
+			peak_output_reverse_(-100.),
+			nominal_output_forward_(0.),
+			nominal_output_reverse_(0.),
 			neutral_deadband_(0.),
-			voltage_compensation_saturation_(0.0),
+			voltage_compensation_saturation_(12.5),
 			voltage_measurement_filter_(32),
-			voltage_compensation_enable_(false),
+			voltage_compensation_enable_(true),
 			limit_switch_local_forward_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
 			limit_switch_local_forward_normal_(hardware_interface::LimitSwitchNormal_NormallyOpen),
 			limit_switch_local_reverse_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
@@ -317,6 +317,7 @@ class TalonCIParams
 			n.getParam("nominal_output_forward", nominal_output_forward_);
 			n.getParam("nominal_output_reverse", nominal_output_reverse_);
 			n.getParam("neutral_deadband", neutral_deadband_);
+			return true;
 		}
 		bool readVoltageCompensation(ros::NodeHandle &n)
 		{
