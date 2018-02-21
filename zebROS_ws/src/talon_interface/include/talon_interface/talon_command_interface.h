@@ -1028,7 +1028,7 @@ class TalonHWCommand
 				motion_profile_control_frame_period_changed_ = true;
 			}
 		}
-		int getMotionControlFramePeriod(int msec) const
+		int getMotionControlFramePeriod(void) const
 		{
 			return motion_profile_control_frame_period_;
 		}
@@ -1161,9 +1161,9 @@ class TalonHWCommand
 		// 2 entries in the Talon HW for each of these settings
 		double p_[2];
 		double i_[2];
-		int    i_zone_[2];
 		double d_[2];
 		double f_[2];
+		int    i_zone_[2];
 		int    allowable_closed_loop_error_[2];
 		double max_integral_accumulator_[2];
 		bool   pidf_changed_[2];

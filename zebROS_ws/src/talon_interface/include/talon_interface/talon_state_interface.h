@@ -851,7 +851,6 @@ class TalonHWState
 		}
 
 	private:
-		double conversion_factor_;
 		double setpoint_;
 		double position_;
 		double speed_;
@@ -942,6 +941,8 @@ class TalonHWState
 
 		unsigned int faults_;
 		unsigned int sticky_faults_;
+
+		double conversion_factor_;
 };
 
 // Handle - used by each controller to get, by name of the
