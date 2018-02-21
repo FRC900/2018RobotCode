@@ -419,11 +419,11 @@ class TalonHWState
 		{
 			return sticky_faults_;
 		}
-		double getConversion(void) const
+		double getConversionFactor(void) const
 		{
 			return conversion_factor_;
 		}
-		void setConversion(double conversion_factor)
+		void setConversionFactor(double conversion_factor)
 		{
 			conversion_factor_ = conversion_factor;
 		}		

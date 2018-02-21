@@ -1169,7 +1169,7 @@ class TalonHWCommand
 		bool   pidf_changed_[2];
 
 		double conversion_factor_;
-		double conversion_factor_changed_;
+		bool   conversion_factor_changed_;
 };
 
 // Handle - used by each controller to get, by name of the
