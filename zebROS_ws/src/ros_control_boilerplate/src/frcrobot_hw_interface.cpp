@@ -371,39 +371,40 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
 
-		hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
-		hardware_interface::TalonMode talon_mode = ts.getTalonMode();
-		int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
-		conversion_factor = ts.getConversion();
+		const hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
+		const hardware_interface::TalonMode talon_mode = ts.getTalonMode();
+		const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
+		const double conversion_factor = ts.getConversionFactor();
 
 		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
 		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
 		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id)* conversion_factor;
 
-		double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
+		const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
 		ts.setPosition(position);
 
-		double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
+		const double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 		ts.setSpeed(speed);
 
-		double bus_voltage = talon->GetBusVoltage();
+		const double bus_voltage = talon->GetBusVoltage();
 		safeTalonCall(talon->GetLastError(), "GetBusVoltage");
 		ts.setBusVoltage(bus_voltage);
 
-		double motor_output_percent = talon->GetMotorOutputPercent();
+		const double motor_output_percent = talon->GetMotorOutputPercent();
 		safeTalonCall(talon->GetLastError(), "GetMotorOutputPercent");
 		ts.setMotorOutputPercent(motor_output_percent);
 
-		double output_voltage = talon->GetMotorOutputVoltage();
+		const double output_voltage = talon->GetMotorOutputVoltage();
 		safeTalonCall(talon->GetLastError(), "GetMotorOutputVoltage");
 		ts.setOutputVoltage(output_voltage);
-		double output_current = talon->GetOutputCurrent();
+
+		const double output_current = talon->GetOutputCurrent();
 		safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
 		ts.setOutputCurrent(output_current);
 
-		double temperature = talon->GetTemperature(); //returns in Celsius
+		const double temperature = talon->GetTemperature(); //returns in Celsius
 		safeTalonCall(talon->GetLastError(), "GetTemperature");
 		ts.setTemperature(temperature);
 
@@ -414,19 +415,19 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			(talon_mode == hardware_interface::TalonMode_MotionProfile) ||
 			(talon_mode == hardware_interface::TalonMode_MotionMagic))
 		{
-			double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
+			const double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
 			safeTalonCall(talon->GetLastError(), "GetClosedLoopError");
 			ts.setClosedLoopError(closed_loop_error);
 
-			double integral_accumulator = talon->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
+			const double integral_accumulator = talon->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
 			safeTalonCall(talon->GetLastError(), "GetIntegralAccumulator");
 			ts.setIntegralAccumulator(integral_accumulator);
 
-			double error_derivative = talon->GetErrorDerivative(pidIdx) * closed_loop_scale;
+			const double error_derivative = talon->GetErrorDerivative(pidIdx) * closed_loop_scale;
 			safeTalonCall(talon->GetLastError(), "GetErrorDerivative");
 			ts.setErrorDerivative(error_derivative);
 
-			double closed_loop_target = talon->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
+			const double closed_loop_target = talon->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
 			safeTalonCall(talon->GetLastError(), "GetClosedLoopTarget");
 			ts.setClosedLoopTarget(closed_loop_target);
 		}
@@ -434,13 +435,13 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		if ((talon_mode == hardware_interface::TalonMode_MotionProfile) ||
 			(talon_mode == hardware_interface::TalonMode_MotionMagic))
 		{
-			double active_trajectory_position = talon->GetActiveTrajectoryPosition() * radians_scale;
+			const double active_trajectory_position = talon->GetActiveTrajectoryPosition() * radians_scale;
 			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryPosition");
 			ts.setActiveTrajectoryPosition(active_trajectory_position);
-			double active_trajectory_velocity = talon->GetActiveTrajectoryVelocity() * radians_per_second_scale;
+			const double active_trajectory_velocity = talon->GetActiveTrajectoryVelocity() * radians_per_second_scale;
 			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryVelocity");
 			ts.setActiveTrajectoryVelocity(active_trajectory_velocity);
-			double active_trajectory_heading = talon->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
+			const double active_trajectory_heading = talon->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
 			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
 			ts.setActiveTrajectoryHeading(active_trajectory_heading);
 			ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
@@ -812,6 +813,10 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		const hardware_interface::TalonMode talon_mode = ts.getTalonMode();
 		const int encoder_ticks_per_rotation = tc.getEncoderTicksPerRotation();
 		ts.setEncoderTicksPerRotation(encoder_ticks_per_rotation);
+
+		double conversion_factor;
+		if (tc.conversionFactorChanged(conversion_factor))
+			ts.setConversionFactor(conversion_factor);
 
 		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, internal_feedback_device, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
 		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, internal_feedback_device, hardware_interface::TalonMode_Velocity, joint_id) * conversion_factor;

@@ -136,7 +136,10 @@ class TalonHWCommand
 			i_zone_{0, 0},
 			allowable_closed_loop_error_{0, 0}, // need better defaults
 			max_integral_accumulator_{0, 0},
-			pidf_changed_{true, true}
+			pidf_changed_{true, true},
+
+			conversion_factor_(1.0),
+			conversion_factor_changed_(true)
 		{
 		}
 		// This gets the requested setpoint, not the
@@ -1054,6 +1057,27 @@ class TalonHWCommand
 			return true;
 		}
 
+		void setConversionFactor(double conversion_factor)
+		{
+			if (conversion_factor != conversion_factor_)
+			{
+				conversion_factor_ = conversion_factor;
+				conversion_factor_changed_ = true;
+			}
+		}
+		double getConversionFactor(void) const
+		{
+			return conversion_factor_;
+		}
+		bool conversionFactorChanged(double &conversion_factor)
+		{
+			conversion_factor = conversion_factor_;
+			if (!conversion_factor_changed_)
+				return false;
+			conversion_factor_changed_ = false;
+			return true;
+		}
+
 	private:
 		double    command_; // motor setpoint - % vbus, velocity, position, etc
 		bool      command_changed_;
@@ -1143,6 +1167,9 @@ class TalonHWCommand
 		int    allowable_closed_loop_error_[2];
 		double max_integral_accumulator_[2];
 		bool   pidf_changed_[2];
+
+		double conversion_factor_;
+		double conversion_factor_changed_;
 };
 
 // Handle - used by each controller to get, by name of the
