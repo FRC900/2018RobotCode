@@ -94,14 +94,14 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	vector<float> contourDepth;
 
 
-	for(int i = 0; i < contours.size(); i++)
+	for(size_t i = 0; i < contours.size(); i++)
 	{
 		approxPolyDP(Mat(contours[i]),contours_poly[i], 3, true);
 		boundRect[i] = boundingRect(Mat(contours_poly[i]));
 		
 	}
 
-	for(int i = 0; i < contours.size(); i++)
+	for(size_t i = 0; i < contours.size(); i++)
 	{
 		const int x = boundRect[i].x + (boundRect[i].width/2);
 		const int y = boundRect[i].y + (boundRect[i].height/2);
@@ -111,10 +111,10 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	
 
 	Mat drawing = Mat::zeros(threshold.size(),CV_8UC3);
-	for(int i = 0; i< contours.size(); i++)
+	for(size_t i = 0; i< contours.size(); i++)
 	{
 		double minArea = sqrt(193695.3745 * (pow(0.2226,contourDepth[i])) - minTrans); 
-		double maxArea = sqrt(193695.3745 * (pow(0.2226,contourDepth[i])) + maxTrans); 
+		//double maxArea = sqrt(193695.3745 * (pow(0.2226,contourDepth[i])) + maxTrans); 
 		double areaContour = boundRect[i].height * boundRect[i].width;
 		Scalar rect_color = Scalar(0,0,255);
 		Scalar color = Scalar(0,255,0);		
@@ -128,7 +128,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 		} else if (abs((boundRect[i].width/boundRect[i].height) - 1) > 1.6) {
 			continue;
 		} else {	
-			putText(drawing, to_string(contourDepth[i]), Point(boundRect[i].x, boundRect[i].y - 15), FONT_HERSHEY_SIMPLEX, 0.45, (0,0,255), 1);
+			putText(drawing, to_string(contourDepth[i]), Point(boundRect[i].x, boundRect[i].y - 15), FONT_HERSHEY_SIMPLEX, 0.45, Scalar(0,0,255), 1);
 			drawContours(drawing, contours,i,color,2,8,rank,0,Point());
 			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), rect_color, 2, 8, 0);
 			ROS_INFO_STREAM("x = " << boundRect[i].x + (boundRect[i].width/2));
