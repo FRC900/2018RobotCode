@@ -103,7 +103,7 @@ static bool hasCollisionGeometry(const urdf::LinkConstSharedPtr &link)
 	}
 	return true;
 }
-
+#if 0
 /*
  * \brief Check if the link is modeled as a cylinder
  * \param link Link
@@ -122,16 +122,6 @@ static bool isCylinder(const urdf::LinkConstSharedPtr &link)
 		return false;
 	}
 
-	return true;
-}
-
-/*
- * \brief Check if the link is modeled as a sphere
-	return true;
-}
-
-/*
- * \brief Check if the link is modeled as a sphere
 	return true;
 }
 
@@ -158,6 +148,7 @@ static bool isSphere(const urdf::LinkConstSharedPtr &link)
 
 	return true;
 }
+#endif
 
 /*
  * \brief Get the wheel radius
@@ -165,6 +156,7 @@ static bool isSphere(const urdf::LinkConstSharedPtr &link)
  * \param [out] wheel_radius Wheel radius [m]
  * \return true if the wheel radius was found; false otherwise
  */
+#if 0
 static bool getWheelRadius(const urdf::LinkConstSharedPtr &wheel_link, double &wheel_radius)
 {
 	if (isCylinder(wheel_link))
@@ -181,6 +173,7 @@ static bool getWheelRadius(const urdf::LinkConstSharedPtr &wheel_link, double &w
 	ROS_ERROR_STREAM("Wheel link " << wheel_link->name << " is NOT modeled as a cylinder or sphere!");
 	return false;
 }
+#endif
 
 namespace talon_swerve_drive_controller
 {
@@ -206,7 +199,7 @@ TalonSwerveDriveController::TalonSwerveDriveController() :
 }
 
 bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface *hw,
-									  ros::NodeHandle &root_nh,
+									  ros::NodeHandle &/*root_nh*/,
 									  ros::NodeHandle &controller_nh)
 {
 	const std::string complete_ns = controller_nh.getNamespace();
@@ -333,8 +326,6 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	*/
 	model_.wheelRadius =  wheel_radius_;
 
-
-
 	/*
 	invertWheelAngle(false);
 	swerveVar::ratios driveRatios({20, 7, 7});
@@ -342,7 +333,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	*/
 
 	swerveC_ = std::make_shared<swerve>(wheel_coords_, offsets, invertWheelAngle_, driveRatios_, units_, model_);
-	for (int i = 0; i < wheel_joints_size_; ++i)
+	for (size_t i = 0; i < wheel_joints_size_; ++i)
 	{
 		ROS_INFO_STREAM_NAMED(name_,
 							  "Adding speed motors with joint name: " << speed_names[i]
@@ -353,8 +344,6 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 		ros::NodeHandle r_nh(controller_nh, steering_names[i]);
 		steering_joints_[i].initWithNode(hw, nullptr, r_nh);
 	}
-
-
 
 	sub_command_ = controller_nh.subscribe("cmd_vel", 1, &TalonSwerveDriveController::cmdVelCallback, this);
 	motion_profile_serv_ = controller_nh.advertiseService("run_profile", &TalonSwerveDriveController::motionProfileService, this);
@@ -675,7 +664,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 		const int point_count = curr_cmd.drive_pos.size();
 		ROS_INFO_STREAM("points: " << point_count);
-		for(size_t i = 0; i < point_count - 2; i++)
+		for(int i = 0; i < point_count - 2; i++)
 		{
 			for(size_t k = 0; k < WHEELCOUNT; k++)
 			{
@@ -685,8 +674,6 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				
 				//ROS_INFO_STREAM("speed. Pos: " << holder_points_[k][0].position << " vel: " << holder_points_[k][0].velocity);
 				//ROS_INFO_STREAM("steering. Pos: " << holder_points_[k][1].position << " vel: " << holder_points_[k][1].velocity);
-
-				
 
 				speed_joints_[k].pushMotionProfileTrajectory(holder_points_[k][0]);
 				steering_joints_[k].pushMotionProfileTrajectory(holder_points_[k][1]);
@@ -732,7 +719,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		}
 
 		// Limit velocities and accelerations:
-		const double cmd_dt(period.toSec());
+		//const double cmd_dt(period.toSec());
 
 		// Compute wheels velocities:
 		//Parse curr_cmd to get velocity vector and rotation (z axis)
@@ -828,11 +815,11 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 		{
 			ROS_WARN("Rotors not up to speed!");
 		}
-		if(command.angular.x != 0 | command.angular.y != 0)
+		if((command.angular.x != 0) || (command.angular.y != 0))
 		{
 			ROS_WARN("Reaction wheels need alignment. Please reverse polarity on neutron flux capacitor");
 		}
-		if(command.linear.x > 3.0*pow(10, 8) | command.linear.y > 3.0*pow(10, 8) | command.linear.z > 3.0*pow(10, 8))
+		if((command.linear.x > 3.0*pow(10, 8)) || (command.linear.y > 3.0*pow(10, 8)) || (command.linear.z > 3.0*pow(10, 8)))
 		{
 			ROS_WARN("PHYSICS VIOLATION DETECTED. DISABLE TELEPORTATION UNIT!");
 		}
@@ -862,7 +849,7 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 	}
 }
 
-bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_controller::MotionProfilePoints::Request &req, talon_swerve_drive_controller::MotionProfilePoints::Response &res)
+bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_controller::MotionProfilePoints::Request &req, talon_swerve_drive_controller::MotionProfilePoints::Response &/*res*/)
 {
 	if (isRunning())
 	{

@@ -30,7 +30,7 @@ swerve::swerve(array<Vector2d, WHEELCOUNT> wheelCoordinates, std::vector<double>
 	setCenterOfRotation(0, {0,0});
 }
 
-void swerve::setCenterOfRotation(int id, const Vector2d &centerOfRotation)
+void swerve::setCenterOfRotation(size_t id, const Vector2d &centerOfRotation)
 {
 	if (id < multiplierSets_.size())
 	{
@@ -43,7 +43,7 @@ void swerve::setCenterOfRotation(int id, const Vector2d &centerOfRotation)
 
 // TODO : split into motorOutputsDrive and motorOutputsPark
 // Make positionsNew and all Vector2ds const & arguments
-array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool forceRead, array<bool, WHEELCOUNT> &reverses, bool park, array<double, WHEELCOUNT> positionsNew, bool norm, int rotationCenterID)
+array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool /*forceRead*/, array<bool, WHEELCOUNT> &reverses, bool park, array<double, WHEELCOUNT> positionsNew, bool norm, size_t rotationCenterID)
 {
 	if (rotationCenterID >= multiplierSets_.size())
 	{
@@ -95,7 +95,7 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 	}
 	return speedsAndAngles;
 }
-void swerve::saveNewOffsets(bool useVals, array<double, WHEELCOUNT> newOffsets, array<double, WHEELCOUNT> newPosition)
+void swerve::saveNewOffsets(bool /*useVals*/, array<double, WHEELCOUNT> /*newOffsets*/, array<double, WHEELCOUNT> /*newPosition*/)
 {
 #if 0
 	encoderPosition_ = newPosition;

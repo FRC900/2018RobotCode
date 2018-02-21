@@ -419,11 +419,11 @@ class TalonHWState
 		{
 			return sticky_faults_;
 		}
-		double getConversion(void) const
+		double getConversionFactor(void) const
 		{
 			return conversion_factor_;
 		}
-		void setConversion(double conversion_factor)
+		void setConversionFactor(double conversion_factor)
 		{
 			conversion_factor_ = conversion_factor;
 		}		
@@ -851,7 +851,6 @@ class TalonHWState
 		}
 
 	private:
-		double conversion_factor_;
 		double setpoint_;
 		double position_;
 		double speed_;
@@ -942,6 +941,8 @@ class TalonHWState
 
 		unsigned int faults_;
 		unsigned int sticky_faults_;
+
+		double conversion_factor_;
 };
 
 // Handle - used by each controller to get, by name of the

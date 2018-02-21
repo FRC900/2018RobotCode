@@ -136,7 +136,10 @@ class TalonHWCommand
 			i_zone_{0, 0},
 			allowable_closed_loop_error_{0, 0}, // need better defaults
 			max_integral_accumulator_{0, 0},
-			pidf_changed_{true, true}
+			pidf_changed_{true, true},
+
+			conversion_factor_(1.0),
+			conversion_factor_changed_(true)
 		{
 		}
 		// This gets the requested setpoint, not the
@@ -1025,7 +1028,7 @@ class TalonHWCommand
 				motion_profile_control_frame_period_changed_ = true;
 			}
 		}
-		int getMotionControlFramePeriod(int msec) const
+		int getMotionControlFramePeriod(void) const
 		{
 			return motion_profile_control_frame_period_;
 		}
@@ -1051,6 +1054,27 @@ class TalonHWCommand
 			if (!clear_sticky_faults_)
 				return false;
 			clear_sticky_faults_ = false;
+			return true;
+		}
+
+		void setConversionFactor(double conversion_factor)
+		{
+			if (conversion_factor != conversion_factor_)
+			{
+				conversion_factor_ = conversion_factor;
+				conversion_factor_changed_ = true;
+			}
+		}
+		double getConversionFactor(void) const
+		{
+			return conversion_factor_;
+		}
+		bool conversionFactorChanged(double &conversion_factor)
+		{
+			conversion_factor = conversion_factor_;
+			if (!conversion_factor_changed_)
+				return false;
+			conversion_factor_changed_ = false;
 			return true;
 		}
 
@@ -1137,12 +1161,15 @@ class TalonHWCommand
 		// 2 entries in the Talon HW for each of these settings
 		double p_[2];
 		double i_[2];
-		int    i_zone_[2];
 		double d_[2];
 		double f_[2];
+		int    i_zone_[2];
 		int    allowable_closed_loop_error_[2];
 		double max_integral_accumulator_[2];
 		bool   pidf_changed_[2];
+
+		double conversion_factor_;
+		bool   conversion_factor_changed_;
 };
 
 // Handle - used by each controller to get, by name of the

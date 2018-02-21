@@ -78,8 +78,8 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	} else {
 		//iterate through vector and draw contours
 		vector<RotatedRect> minRect(contours.size());
-		for( int i = 0; i< contours.size(); i++){
-			drawContours(img, contours, i, (0,0,255), 2, 8, hierarchy);
+		for(size_t i = 0; i< contours.size(); i++){
+			drawContours(img, contours, i, Scalar(0,0,255), 2, 8, hierarchy);
 			minRect[i] = minAreaRect(Mat(contours[i]));
 		}
 	}

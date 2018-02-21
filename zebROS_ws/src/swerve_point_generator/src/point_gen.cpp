@@ -72,7 +72,7 @@ bool full_gen(talon_swerve_drive_controller::FullGen::Request &req, talon_swerve
 		//ROS_INFO_STREAM("drive_pos: " << res.points[0].drive_pos[i] << "drive_vel: " << res.points[0].drive_vel[i] << "steer_pos: " << res.points[0].steer_pos[i] << " nan_test: " <<angles_positions[i][0]); 
 	}
 
-	for(size_t i = 0; i < point_count - 1; i++)
+	for(int i = 0; i < point_count - 1; i++)
 	{
 	std::array<Eigen::Vector2d, WHEELCOUNT> angles_positions  = swerve_math->motorOutputs({srv_msg.response.points[i+1].positions[0] - srv_msg.response.points[i].positions[0], srv_msg.response.points[i+1].positions[1] - srv_msg.response.points[i].positions[1]}, srv_msg.response.points[i+1].positions[2] - srv_msg.response.points[i].positions[2], M_PI/2 + srv_msg.response.points[i+1].positions[2], false, holder, false, curPos, false);
 		//TODO: angles on the velocity array below are superfluous, could remove
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 
 	ros::ServiceServer service = nh.advertiseService("/point_gen/command", full_gen);
 
-	double wheel_radius;
+	//double wheel_radius;
 	swerveVar::driveModel model;
 	bool invert_wheel_angle;
         swerveVar::ratios drive_ratios;

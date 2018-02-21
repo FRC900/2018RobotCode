@@ -8,7 +8,7 @@ namespace pdp_state_controller
 
 bool PDPStateController::init(hardware_interface::PDPStateInterface *hw,
 								ros::NodeHandle 					&root_nh,
-								ros::NodeHandle 					&controller_nh)
+								ros::NodeHandle 					&/*controller_nh*/)
 {
 	ROS_INFO_STREAM_NAMED("pdp_state_controller", "init is running");
 

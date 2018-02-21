@@ -351,9 +351,8 @@ class arm_limits
 				int closest_point_up = 0;
 				int closest_point_down = 0;
 				bool closer_up_or_down = true;
-				for(int i = 0; i < output_up.size(); i++)
+				for(size_t i = 0; i < output_up.size(); i++)
 				{
-					
 					temp_dist = boost::geometry::comparable_distance(cmd, output_up[i]);
 					if(temp_dist < min_dist_up)
 					{
@@ -363,7 +362,7 @@ class arm_limits
 					//ROS_INFO_STREAM("circle point: " << boost::geometry::wkt(output_up[i]) << " up. dist : " << temp_dist);
 
 				}	
-				for(int i = 0; i < output_down.size(); i++)
+				for(size_t i = 0; i < output_down.size(); i++)
 				{
 					temp_dist = boost::geometry::comparable_distance(cmd, output_down[i]);
 					if(temp_dist < min_dist_down)
@@ -428,7 +427,7 @@ class arm_limits
 				double min_dist  = std::numeric_limits<double>::max();
 				double temp_dist;
 				int closest_point = 0;
-				for(int i = 0; i < output.size(); i++)
+				for(size_t i = 0; i < output.size(); i++)
 				{
 					temp_dist = boost::geometry::comparable_distance(cmd, output[i]);
 					if(temp_dist < min_dist)
@@ -599,14 +598,14 @@ class arm_limits
 				temp_point.y(boost::geometry::get<1>(*it));
 				down_edges.push_back(temp_point);
 			}
-			for(int i = 0; i < up_edges.size() - 1; i++)
+			for(size_t i = 0; i < up_edges.size() - 1; i++)
 			{
 				linestring_type temp_line;
 				temp_line.push_back(up_edges[i]);
 				temp_line.push_back(up_edges[i+1]);
 				poly_lines[0].push_back(temp_line);
 			} 
-			for(int i = 0; i < down_edges.size() - 1; i++)
+			for(size_t i = 0; i < down_edges.size() - 1; i++)
 			{
 				linestring_type temp_line;
 				temp_line.push_back(down_edges[i]);

@@ -267,6 +267,7 @@ class TalonLinearMotionMagicCloseLoopController :
 			n.getParam("radius", radius_);
 			//Ratio to convert to correct angle
 			n.getParam("gear_ratio_from_encoder", gear_ratio_from_encoder_);
+			return true;
 		}
 
 		// Same as TalonClosedLoopController but setCommand
@@ -298,6 +299,7 @@ class TalonAnglePositionCloseLoopController :
 
 			//Ratio to convert to correct angle
 			n.getParam("gear_ratio_from_encoder", gear_ratio_from_encoder_);
+			return true;
 		}
 
 		// Same as TalonClosedLoopController but setCommand
@@ -328,6 +330,7 @@ class TalonAngleMotionMagicCloseLoopController :
 
 			//ratio to convert to correct angle
 			n.getParam("gear_ratio_from_encoder", gear_ratio_from_encoder_);
+			return true;
 		}
 
 		// Same as TalonClosedLoopController but setCommand
