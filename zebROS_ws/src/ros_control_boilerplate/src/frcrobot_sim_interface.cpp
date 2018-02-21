@@ -132,6 +132,12 @@ void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 	// display it here for debugging
 
 	//printState();
+	static bool printed_robot_code_ready;
+	if (!printed_robot_code_ready && (robot_code_ready_ != 0.0))
+	{
+		ROS_WARN("ROBOT CODE READY!");
+		printed_robot_code_ready = true;
+	}
 }
 
 void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
@@ -144,38 +150,57 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 	{
 		auto &ts = talon_state_[joint_id];
 		auto &tc = talon_command_[joint_id];
+
 		// If commanded mode changes, copy it over
 		// to current state
 		hardware_interface::TalonMode new_mode;
 		if (tc.newMode(new_mode))
 			ts.setTalonMode(new_mode);
-		int slot;
-		if (tc.slotChanged(slot))
+
+		bool close_loop_mode = false;
+		bool motion_profile_mode = false;
+
+		if ((new_mode == hardware_interface::TalonMode_Position) ||
+		    (new_mode == hardware_interface::TalonMode_Velocity) ||
+		    (new_mode == hardware_interface::TalonMode_Current ))
 		{
-			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" PIDF slot to " << slot);
-			ts.setSlot(slot);
+			close_loop_mode = true;
+		}
+		else if ((new_mode == hardware_interface::TalonMode_MotionProfile) ||
+			     (new_mode == hardware_interface::TalonMode_MotionMagic))
+		{
+			close_loop_mode = true;
+			motion_profile_mode = true;
 		}
 
-		double p;
-		double i;
-		double d;
-		double f;
-		int   iz;
-		int   allowable_closed_loop_error;
-		double max_integral_accumulator;
-		for (int j = 0; j < 2; j++)
+		if (close_loop_mode)
 		{
-			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, j))
-			{
-				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" PIDF slot " << j << " config values");
-				ts.setPidfP(p, j);
-				ts.setPidfI(i, j);
-				ts.setPidfD(d, j);
-				ts.setPidfF(f, j);
-				ts.setPidfIzone(iz, j);
-				ts.setAllowableClosedLoopError(allowable_closed_loop_error, j);
-				ts.setMaxIntegralAccumulator(max_integral_accumulator, j);
+			int slot;
+			const bool slot_changed = tc.slotChanged(slot);
 
+			double p;
+			double i;
+			double d;
+			double f;
+			int   iz;
+			int   allowable_closed_loop_error;
+			double max_integral_accumulator;
+			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, slot))
+			{
+				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" PIDF slot " << slot << " config values");
+				ts.setPidfP(p, slot);
+				ts.setPidfI(i, slot);
+				ts.setPidfD(d, slot);
+				ts.setPidfF(f, slot);
+				ts.setPidfIzone(iz, slot);
+				ts.setAllowableClosedLoopError(allowable_closed_loop_error, slot);
+				ts.setMaxIntegralAccumulator(max_integral_accumulator, slot);
+			}
+
+			if (slot_changed)
+			{
+				ts.setSlot(slot);
+				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" PIDF slot to " << slot);
 			}
 		}
 		bool invert;
@@ -201,7 +226,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 		}
 
 		double iaccum;
-		if (tc.integralAccumulatorChanged(iaccum))
+		if (close_loop_mode && tc.integralAccumulatorChanged(iaccum))
 		{
 			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" integral accumulator");
 		}
@@ -228,6 +253,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			ts.setPeakOutputReverse(peak_output_reverse);
 			ts.setNominalOutputForward(nominal_output_forward);
 			ts.setNominalOutputReverse(nominal_output_reverse);
+			ts.setNeutralDeadband(neutral_deadband);
 		}
 		double v_c_saturation;
 		int v_measurement_filter;
@@ -295,33 +321,36 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			ts.setCurrentLimitEnable(enable);
 		}
 
-		double motion_cruise_velocity;
-		double motion_acceleration;
-		if (tc.motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
+		if (motion_profile_mode)
 		{
-			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" cruise velocity / acceleration");
-			ts.setMotionCruiseVelocity(motion_cruise_velocity);
-			ts.setMotionAcceleration(motion_acceleration);
+			double motion_cruise_velocity;
+			double motion_acceleration;
+			if (tc.motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
+			{
+				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" cruise velocity / acceleration");
+				ts.setMotionCruiseVelocity(motion_cruise_velocity);
+				ts.setMotionAcceleration(motion_acceleration);
+			}
+			// Do this before rest of motion profile stuff
+			// so it takes effect before starting a buffer?
+			int motion_control_frame_period;
+			if (tc.motionControlFramePeriodChanged(motion_control_frame_period))
+			{
+				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion control frame period");
+				ts.setMotionControlFramePeriod(motion_control_frame_period);
+			}
+
+			if (tc.clearMotionProfileTrajectoriesChanged())
+				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
+
+			if (tc.clearMotionProfileHasUnderrunChanged())
+				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile underrun changed");
+
+			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
+
+			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
+				ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 		}
-		// Do this before rest of motion profile stuff
-		// so it takes effect before starting a buffer?
-		int motion_control_frame_period;
-		if (tc.motionControlFramePeriodChanged(motion_control_frame_period))
-		{
-			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion control frame period");
-			ts.setMotionControlFramePeriod(motion_control_frame_period);
-		}
-
-		if (tc.clearMotionProfileTrajectoriesChanged())
-			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
-
-		if (tc.clearMotionProfileHasUnderrunChanged())
-			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile underrun changed");
-
-		std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
-
-		if (tc.motionProfileTrajectoriesChanged(trajectory_points))
-			ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 
 		if (ts.getTalonMode() == hardware_interface::TalonMode_Position)
 		{

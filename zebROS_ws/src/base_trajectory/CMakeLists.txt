@@ -161,6 +161,9 @@ add_executable(driver_node src/driver.cpp)
 target_link_libraries(driver_node
 	${catkin_LIBRARIES}
 )
+## Add cmake target dependencies of the executable
+## same as for the library above
+add_dependencies(driver_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 #############
 ## Install ##

@@ -48,18 +48,24 @@ struct TrajectoryPoint
 class TalonHWCommand
 {
 	public:
+		// Set up default values
+		// Set most of the changed_ vars to true
+		// to force a write of these values to the Talon
+		// That should put the talon in a known state
+		// rather than relying on them being setup to
+		// a certain state previously
 		TalonHWCommand(void) :
 			command_(0.),
 			command_changed_(false),
 			mode_(TalonMode_Uninitialized),
 			mode_changed_(false),
 			pidf_slot_(0),
-			pidf_slot_changed_(false),
+			pidf_slot_changed_(true),
 			iaccum_(0.0),
 			iaccum_changed_(false),
 			invert_(false),
 			sensor_phase_(false),
-			invert_changed_(false),
+			invert_changed_(true),
 			neutral_mode_(NeutralMode_Uninitialized),
 			neutral_mode_changed_(false),
 			neutral_output_(false),
@@ -71,17 +77,17 @@ class TalonHWCommand
 			closed_loop_ramp_(0),
 			open_loop_ramp_(0),
 			peak_output_forward_(100.),
-			peak_output_reverse_(100.),
-			nominal_output_forward_(100.),
-			nominal_output_reverse_(100.),
+			peak_output_reverse_(-100.),
+			nominal_output_forward_(0.),
+			nominal_output_reverse_(0.),
 			neutral_deadband_(0.),
-			outputShapingChanged_(false),
+			output_shaping_changed_(true),
 
 			// voltage compensation
 			voltage_compensation_saturation_(12.5), //max voltage to apply to talons when command is 100%
 			voltage_measurement_filter_(32), //number of samples in the average of voltage measurements
 			voltage_compensation_enable_(true),
-			voltage_compensation_changed_(false),
+			voltage_compensation_changed_(true),
 
 			sensor_position_value_(0.),
 			sensor_position_changed_(false),
@@ -91,12 +97,12 @@ class TalonHWCommand
 			limit_switch_local_forward_normal_(LimitSwitchNormal_NormallyOpen),
 			limit_switch_local_reverse_source_(LimitSwitchSource_FeedbackConnector),
 			limit_switch_local_reverse_normal_(LimitSwitchNormal_NormallyOpen),
-			limit_switch_local_changed_(false),
+			limit_switch_local_changed_(true),
 			limit_switch_remote_forward_source_(RemoteLimitSwitchSource_Deactivated),
 			limit_switch_remote_forward_normal_(LimitSwitchNormal_NormallyOpen),
 			limit_switch_remote_reverse_source_(RemoteLimitSwitchSource_Deactivated),
 			limit_switch_remote_reverse_normal_(LimitSwitchNormal_NormallyOpen),
-			limit_switch_remote_changed_(false),
+			limit_switch_remote_changed_(true),
 
 			// soft limits
 			softlimit_forward_threshold_(0.0),
@@ -104,23 +110,23 @@ class TalonHWCommand
 			softlimit_reverse_threshold_(0.0),
 			softlimit_reverse_enable_(false),
 			softlimits_override_enable_(true),
-			softlimit_changed_(false),
+			softlimit_changed_(true),
 
 			// current limiting
 			current_limit_peak_amps_(0),
 			current_limit_peak_msec_(0),
 			current_limit_continuous_amps_(0),
 			current_limit_enable_(false),
-			current_limit_changed_(false),
+			current_limit_changed_(true),
 
 			motion_cruise_velocity_(0),
 			motion_acceleration_(0),
-			motion_cruise_changed_(false),
+			motion_cruise_changed_(true),
 
 			motion_profile_clear_trajectories_(false),
 			motion_profile_clear_has_underrun_(false),
 			motion_profile_control_frame_period_(20),
-			motion_profile_control_frame_period_changed_(false),
+			motion_profile_control_frame_period_changed_(true),
 
 			clear_sticky_faults_(false),
 			p_{0, 0},
@@ -130,7 +136,7 @@ class TalonHWCommand
 			i_zone_{0, 0},
 			allowable_closed_loop_error_{0, 0}, // need better defaults
 			max_integral_accumulator_{0, 0},
-			pidf_changed_{false, false}
+			pidf_changed_{true, true}
 		{
 		}
 		// This gets the requested setpoint, not the
@@ -149,7 +155,6 @@ class TalonHWCommand
 		{
 			return command_;
 		}
-		
 
 		TalonMode getMode(void) const
 		{
@@ -163,8 +168,11 @@ class TalonHWCommand
 				ROS_WARN("Invalid index passed to TalonHWCommand::setP()");
 				return;
 			}
-			pidf_changed_[index] = true;
-			p_[index] = oldP;
+			if (oldP != p_[index])
+			{
+				pidf_changed_[index] = true;
+				p_[index] = oldP;
+			}
 		}
 		double getP(int index) const
 		{
@@ -183,8 +191,11 @@ class TalonHWCommand
 				ROS_WARN("Invalid index passed to TalonHWCommand::setI()");
 				return;
 			}
-			pidf_changed_[index] = true;
-			i_[index] = ii;
+			if (ii != i_[index])
+			{
+				pidf_changed_[index] = true;
+				i_[index] = ii;
+			}
 		}
 		double getI(int index) const
 		{
@@ -203,8 +214,11 @@ class TalonHWCommand
 				ROS_WARN("Invalid index passed to TalonHWCommand::setD()");
 				return;
 			}
-			pidf_changed_[index] = true;
-			d_[index] = dd;
+			if (dd != d_[index])
+			{
+				pidf_changed_[index] = true;
+				d_[index] = dd;
+			}
 		}
 		double getD(int index) const
 		{
@@ -223,8 +237,11 @@ class TalonHWCommand
 				ROS_WARN("Invalid index passed to TalonHWCommand::setF()");
 				return;
 			}
-			pidf_changed_[index] = true;
-			f_[index] = ff;
+			if (ff != f_[index])
+			{
+				pidf_changed_[index] = true;
+				f_[index] = ff;
+			}
 		}
 		double getF(int index)
 		{
@@ -236,15 +253,18 @@ class TalonHWCommand
 			return f_[index];
 		}
 
-		void setIZ(int oldIZ, int index)
+		void setIZ(int i_zone, int index)
 		{
 			if ((index < 0) || ((size_t)index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setIZ()");
 				return;
 			}
-			pidf_changed_[index] = true;
-			i_zone_[index] = oldIZ;
+			if (i_zone != i_zone_[index])
+			{
+				pidf_changed_[index] = true;
+				i_zone_[index] = i_zone;
+			}
 		}
 		int getIZ(int index) const
 		{
@@ -263,8 +283,11 @@ class TalonHWCommand
 				ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
 				return;
 			}
-			pidf_changed_[index] = true;
-			allowable_closed_loop_error_[index] = allowable_closed_loop_error;
+			if (allowable_closed_loop_error != allowable_closed_loop_error_[index])
+			{
+				pidf_changed_[index] = true;
+				allowable_closed_loop_error_[index] = allowable_closed_loop_error;
+			}
 		}
 		int getAllowableClosedloopError(int index) const
 		{
@@ -282,8 +305,11 @@ class TalonHWCommand
 				ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
 				return;
 			}
-			pidf_changed_[index] = true;
-			max_integral_accumulator_[index] = max_integral_accumulator;
+			if (max_integral_accumulator != max_integral_accumulator_[index])
+			{
+				pidf_changed_[index] = true;
+				max_integral_accumulator_[index] = max_integral_accumulator;
+			}
 		}
 		int getMaxIntegralAccumulator(int index) const
 		{
@@ -293,32 +319,6 @@ class TalonHWCommand
 				return 0.0;
 			}
 			return max_integral_accumulator_[index];
-		}
-
-		void setPID(double oldP, double oldI, double oldD, int index)
-		{
-			if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
-			{
-				ROS_WARN("Invalid index passed to TalonHWCommand::setPID()");
-				return;
-			}
-			pidf_changed_[index] = true;
-			p_[index] = oldP;
-			i_[index] = oldI;
-			d_[index] = oldD;
-		}
-		void setPID(double oldP, double oldI, double oldD, double oldF, int index)
-		{
-			if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
-			{
-				ROS_WARN("Invalid index passed to TalonHWCommand::setPIDF()");
-				return;
-			}
-			pidf_changed_[index] = true;
-			p_[index] = oldP;
-			i_[index] = oldI;
-			d_[index] = oldD;
-			f_[index] = oldF;
 		}
 
 		void setIntegralAccumulator(double iaccum)
@@ -335,7 +335,7 @@ class TalonHWCommand
 			iaccum = iaccum_;
 			if (!iaccum_changed_)
 				return false;
-			iaccum_changed_ = true;
+			iaccum_changed_ = false;
 			return true;
 		}
 
@@ -351,9 +351,11 @@ class TalonHWCommand
 				ROS_WARN("Invalid mode passed to TalonHWCommand::setMode()");
 				return;
 			}
-			mode_         = mode;
-			mode_changed_ = true;
-			this->set(0); // ??? Clear out setpoint for old mode
+			if (mode != mode_)
+			{
+				mode_         = mode;
+				mode_changed_ = true;
+			}
 		}
 
 		void setNeutralMode(NeutralMode neutral_mode)
@@ -366,8 +368,11 @@ class TalonHWCommand
 				ROS_WARN("Invalid neutral_mode passed to TalonHWCommand::setNeutralMode()");
 				return;
 			}
-			neutral_mode_         = neutral_mode;
-			neutral_mode_changed_ = true;
+			if (neutral_mode != neutral_mode_)
+			{
+				neutral_mode_         = neutral_mode;
+				neutral_mode_changed_ = true;
+			}
 		}
 		bool getNeutralMode(void)
 		{
@@ -424,10 +429,13 @@ class TalonHWCommand
 			return true;
 		}
 
-		void setPidfSlot(int npidf_slot)
+		void setPidfSlot(int pidf_slot)
 		{
-			pidf_slot_ = npidf_slot;
-			pidf_slot_changed_ = true;
+			if (pidf_slot != pidf_slot_)
+			{
+				pidf_slot_ = pidf_slot;
+				pidf_slot_changed_ = true;
+			}
 		}
 		int getPidfSlot(void)const
 		{
@@ -436,13 +444,19 @@ class TalonHWCommand
 
 		void setInvert(bool invert)
 		{
-			invert_ = invert;
-			invert_changed_ = true;
+			if (invert != invert_)
+			{
+				invert_ = invert;
+				invert_changed_ = true;
+			}
 		}
 		void setSensorPhase(bool invert)
 		{
-			sensor_phase_ = invert;
-			invert_changed_ = true;
+			if (invert != sensor_phase_)
+			{
+				sensor_phase_ = invert;
+				invert_changed_ = true;
+			}
 		}
 		bool invertChanged(bool &invert, bool &sensor_phase)
 		{
@@ -479,9 +493,9 @@ class TalonHWCommand
 			nominal_output_forward = nominal_output_forward_;
 			nominal_output_reverse = nominal_output_reverse_;
 			neutral_deadband = neutral_deadband_;
-			if (!outputShapingChanged_)
+			if (!output_shaping_changed_)
 				return false;
-			outputShapingChanged_ = false;
+			output_shaping_changed_ = false;
 			return true;
 		}
 
@@ -503,10 +517,13 @@ class TalonHWCommand
 		void setEncoderFeedback(FeedbackDevice encoder_feedback)
 		{
 			if ((encoder_feedback >= FeedbackDevice_Uninitialized) &&
-					(encoder_feedback <  FeedbackDevice_Last) )
+				(encoder_feedback <  FeedbackDevice_Last) )
 			{
-				encoder_feedback_ = encoder_feedback;
-				encoder_feedback_changed_ = true;
+				if (encoder_feedback != encoder_feedback_)
+				{
+					encoder_feedback_ = encoder_feedback;
+					encoder_feedback_changed_ = true;
+				}
 			}
 			else
 				ROS_WARN_STREAM("Invalid feedback device requested");
@@ -536,7 +553,7 @@ class TalonHWCommand
 			if (closed_loop_ramp_ != closed_loop_ramp)
 			{
 				closed_loop_ramp_ = closed_loop_ramp;
-				outputShapingChanged_ = true;
+				output_shaping_changed_ = true;
 			}
 		}
 		double getClosedloopRamp(void) const
@@ -548,7 +565,7 @@ class TalonHWCommand
 			if (open_loop_ramp_ != open_loop_ramp)
 			{
 				open_loop_ramp_ = open_loop_ramp;
-				outputShapingChanged_ = true;
+				output_shaping_changed_ = true;
 			}
 		}
 		double getOpenloopRamp(void) const
@@ -561,7 +578,7 @@ class TalonHWCommand
 			if (peak_output_forward != peak_output_forward_)
 			{
 				peak_output_forward_ = peak_output_forward;
-				outputShapingChanged_ = true;
+				output_shaping_changed_ = true;
 			}
 		}
 		double getPeakOutputForward(void) const
@@ -574,7 +591,7 @@ class TalonHWCommand
 			if (peak_output_reverse != peak_output_reverse_)
 			{
 				peak_output_reverse_ = peak_output_reverse;
-				outputShapingChanged_ = true;
+				output_shaping_changed_ = true;
 			}
 		}
 		double getPeakOutputReverse(void) const
@@ -587,7 +604,7 @@ class TalonHWCommand
 			if (nominal_output_forward != nominal_output_forward_)
 			{
 				nominal_output_forward_ = nominal_output_forward;
-				outputShapingChanged_ = true;
+				output_shaping_changed_ = true;
 			}
 		}
 		double getNominalOutputForward(void) const
@@ -600,7 +617,7 @@ class TalonHWCommand
 			if (nominal_output_reverse != nominal_output_reverse_)
 			{
 				nominal_output_reverse_ = nominal_output_reverse;
-				outputShapingChanged_ = true;
+				output_shaping_changed_ = true;
 			}
 		}
 		double getNominalOutputReverse(void) const
@@ -613,7 +630,7 @@ class TalonHWCommand
 			if (neutral_deadband != neutral_deadband_)
 			{
 				neutral_deadband_ = neutral_deadband;
-				outputShapingChanged_ = true;
+				output_shaping_changed_ = true;
 			}
 		}
 		double getNeutralDeadband(void) const
@@ -712,9 +729,13 @@ class TalonHWCommand
 					ROS_WARN("Invalid normal in setForwardLimitSwitchSource");
 					return;
 				}
-				limit_switch_local_forward_source_ = source;
-				limit_switch_local_forward_normal_ = normal;
-				limit_switch_local_changed_ = true;
+				if ((limit_switch_local_forward_source_ != source) ||
+				    (limit_switch_local_forward_normal_ != normal) )
+				{
+					limit_switch_local_forward_source_ = source;
+					limit_switch_local_forward_normal_ = normal;
+					limit_switch_local_changed_ = true;
+				}
 			}
 		}
 
@@ -740,9 +761,13 @@ class TalonHWCommand
 					ROS_WARN("Invalid normal in setReverseLimitSwitchSource");
 					return;
 				}
-				limit_switch_local_reverse_source_ = source;
-				limit_switch_local_reverse_normal_ = normal;
-				limit_switch_local_changed_ = true;
+				if ((limit_switch_local_reverse_source_ != source) ||
+				    (limit_switch_local_reverse_normal_ != normal) )
+				{
+					limit_switch_local_reverse_source_ = source;
+					limit_switch_local_reverse_normal_ = normal;
+					limit_switch_local_changed_ = true;
+				}
 			}
 		}
 
@@ -901,7 +926,7 @@ class TalonHWCommand
 			enable = current_limit_enable_;
 			if (!current_limit_changed_)
 				return false;
-			current_limit_changed_ = true;
+			current_limit_changed_ = false;
 			return true;
 		}
 
@@ -1037,7 +1062,7 @@ class TalonHWCommand
 		//RG: shouldn't there be a variable for the peak voltage limits?
 		int       pidf_slot_; // index 0 or 1 of the active PIDF slot
 		bool      pidf_slot_changed_; // set to true to trigger a write to PIDF select on Talon
-		double     iaccum_;
+		double    iaccum_;
 		bool      iaccum_changed_;
 
 		bool      invert_;
@@ -1060,7 +1085,7 @@ class TalonHWCommand
 		double nominal_output_forward_;
 		double nominal_output_reverse_;
 		double neutral_deadband_;
-		bool outputShapingChanged_;
+		bool   output_shaping_changed_;
 
 		double voltage_compensation_saturation_;
 		int   voltage_measurement_filter_;

@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.5.1)
-project(behaviors)
+cmake_minimum_required(VERSION 2.8.3)
+project(static_controller)
 
 include ("../cmake_modules/CMakeOpt.cmake")
 
@@ -7,21 +7,8 @@ include ("../cmake_modules/CMakeOpt.cmake")
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  actionlib
-  actionlib_msgs
-  joint_trajectory_controller
   controller_interface
-  talon_swerve_drive_controller
-  trajectory_msgs
-  nav_msgs
   roscpp
-  rospy
-  std_msgs
-  message_generation
-  message_filters
-  ros_control_boilerplate
-  elevator_controller
-  talon_swerve_drive_controller
 )
 
 ## System dependencies are found with CMake's conventions
@@ -81,7 +68,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   nav_msgs#   std_msgs
+#   std_msgs  # Or other packages containing msgs
 # )
 
 ################################################
@@ -113,54 +100,13 @@ find_package(catkin REQUIRED COMPONENTS
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-
-# ACTIONLIB STUFF
-
-#find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
-add_action_files(FILES CubeIntake.action IntakeLift.action)
-generate_messages(DEPENDENCIES actionlib_msgs std_msgs)
-
 catkin_package(
-   INCLUDE_DIRS include
-   #LIBRARIES behaviors
-   CATKIN_DEPENDS actionlib nav_msgs roscpp rospy std_msgs
-   DEPENDS system_lib
-)
-include_directories(include ${catkin_INCLUDE_DIRS})
-add_executable(CubeActionServer src/CubeActionServer.cpp)
-target_link_libraries(CubeActionServer ${catkin_LIBRARIES})
-add_dependencies(
-    CubeActionServer 
-    ${behaviors_EXPORTED_TARGETS}
+#  INCLUDE_DIRS include
+#  LIBRARIES static_controller
+#  CATKIN_DEPENDS controller_interface roscpp
+#  DEPENDS system_lib
 )
 
-add_executable(CubeActionClient src/CubeActionClient.cpp)
-target_link_libraries(
-    CubeActionClient
-    ${catkin_LIBRARIES}
-)
-add_dependencies(
-	CubeActionClient
-    ${behaviors_EXPORTED_TARGETS}
-)
-add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
-target_link_libraries(
-    autoInterpreterClient
-    ${catkin_LIBRARIES}
-)
-add_dependencies(
-	autoInterpreterClient
-    ${behaviors_EXPORTED_TARGETS}
-)
-add_executable(autoInterpreterServer src/autoInterpreterServer.cpp)
-target_link_libraries(
-    autoInterpreterServer
-    ${catkin_LIBRARIES}
-)
-add_dependencies(
-	autoInterpreterServer
-    ${behaviors_EXPORTED_TARGETS}
-)
 ###########
 ## Build ##
 ###########
@@ -168,14 +114,14 @@ add_dependencies(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+ include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/behaviors.cpp
-# )
+add_library(${PROJECT_NAME}
+  src/static_controller.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -185,7 +131,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/behaviors_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/static_controller_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -195,7 +141,7 @@ include_directories(
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -216,16 +162,12 @@ include_directories(
 #   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 # )
 
-## Mark executables and/or libraries for installation
- install(TARGETS autoInterpreterClient autoInterpreterServer
+# Mark executables and/or libraries for installation
+ install(TARGETS ${PROJECT_NAME}
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
- install(DIRECTORY
-    config
-    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/
@@ -234,19 +176,18 @@ include_directories(
 #   PATTERN ".svn" EXCLUDE
 # )
 
-## Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+# Mark other files for installation (e.g. launch and bag files, etc.)
+ install(FILES
+   static_controller_plugin.xml
+   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+ )
 
 #############
 ## Testing ##
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_behaviors.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_static_controller.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

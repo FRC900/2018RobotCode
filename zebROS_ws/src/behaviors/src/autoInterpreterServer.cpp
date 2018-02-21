@@ -97,8 +97,8 @@ class autoAction {
 };
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "auto_Interpreter_Server");
-    autoAction auto_action("auto_Interpreter_Server");
+    ros::init(argc, argv, "auto_interpreter_server");
+    autoAction auto_action("auto_interpreter_server");
 
 
     ros::spin();
