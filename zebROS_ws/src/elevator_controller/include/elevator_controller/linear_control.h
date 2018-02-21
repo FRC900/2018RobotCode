@@ -32,14 +32,14 @@ namespace elevator_controller
 class ElevatorController
         : public controller_interface::Controller<hardware_interface::TalonCommandInterface>
 {
-        public:
-                ElevatorController();
+	public:
+		ElevatorController();
 		bool init(hardware_interface::TalonCommandInterface *hw,
-			  ros::NodeHandle &root_nh,
-			  ros::NodeHandle &controller_nh);
+				ros::NodeHandle &root_nh,
+				ros::NodeHandle &controller_nh);
 
 		void update(const ros::Time &time, const ros::Duration &period);
-		
+
 		void starting(const ros::Time &time);
 
 	private:
@@ -66,19 +66,18 @@ class ElevatorController
 		double max_extension_;
 		double min_extension_;
 		double intake_down_time_;
-	
+
 		double hook_depth_;
 		double hook_min_height_;
 		double hook_max_height_;
-		
-	
+
 		struct IntakeCommand //This struct is highly subject to change
 		{			
 			double up_command;
 			int32_t spring_command;
 			double power;
 			IntakeCommand() : up_command(0.0), spring_command(0.0), power(0.0) {}
-	
+
 		};
 		//ros::Publisher RobotStatePub;
 		//elevator_controller::RobotState RobotStateMsg;
@@ -108,19 +107,19 @@ class ElevatorController
 		ros::ServiceServer service_shift_;
 		ros::ServiceServer service_end_game_deploy_;
 		//TODO: considering adding x offset?
-		
+
 		ros::Publisher Clamp_; 
 		ros::Publisher EndGameDeploy_; 
 		ros::Publisher Shift_; 
-		
+
 		ros::Publisher CubeState_; 
-		
+
 		ros::Publisher IntakeUp_; 
 		ros::Publisher IntakeHardSpring_; 
 		ros::Publisher IntakeSoftSpring_; 
 
 		ros::Publisher ReturnCmd_; 
-		
+
 		ros::Publisher Odom_; 
 
 		double arm_length_;
@@ -133,15 +132,13 @@ class ElevatorController
 		bool clampService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &res); 
 		bool shiftService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &res); 
 		bool endGameDeployService(elevator_controller::Blank::Request &command, elevator_controller::Blank::Response &res); 
-	
+
 		std::shared_ptr<arm_limiting::arm_limits> arm_limiter_;
-	
+
 		//TODO: add odometry		
 		//void compOdometry(const ros::Time& time, const double inv_delta_t);
 		//Something for getting the soft limit bounding boxes
 		//some function for making limits based on soft limit bounding box
-
-
 };//Class
 PLUGINLIB_EXPORT_CLASS(elevator_controller::ElevatorController, controller_interface::ControllerBase);
 

@@ -91,7 +91,7 @@ array<double, WHEELCOUNT> swerveDriveMath::parkingAngles(void) const
 {
 	//only must be run once to determine the angles of the wheels in parking config
 	array<double, WHEELCOUNT> angles;
-	for (int i = 0; i < wheelCoordinate_.size(); i++)
+	for (size_t i = 0; i < wheelCoordinate_.size(); i++)
 	{
 		angles[i] = atan2(wheelCoordinate_[i][0], wheelCoordinate_[i][1]);
 	}
@@ -119,7 +119,7 @@ array<double, WHEELCOUNT> swerveDriveMath::normalize( array<double, WHEELCOUNT> 
 	if (absoluteMax > 1)
 	{
 		array<double, WHEELCOUNT> normalized;
-		for (int i = 0; i < input.size(); i++)
+		for (size_t i = 0; i < input.size(); i++)
 		{
 			normalized[i] = (input[i] / absoluteMax);
 		}

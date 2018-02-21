@@ -641,7 +641,7 @@ class TalonControllerInterface
 			return true;
 		}
 
-		void callback(talon_controllers::TalonConfigConfig &config, uint32_t level)
+		void callback(talon_controllers::TalonConfigConfig &config, uint32_t /*level*/)
 		{
 			// TODO : this list is rapidly getting out of date.
 			// Update it or remove the printout?

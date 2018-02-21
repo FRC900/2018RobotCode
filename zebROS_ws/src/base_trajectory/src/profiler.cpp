@@ -30,7 +30,6 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 	positions.reserve(155 / dt_); //For full auto :) 
 
 	path_point holder_point;
-	double dtds;
 	spline_coefs holder_spline;
 
 	fow = true;
@@ -348,7 +347,7 @@ void swerve_profiler::calc_point(const spline_coefs &spline, const double t, dou
 void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, path_point &holder_point, const std::vector<double> &end_points, const std::vector<double> &dtds_by_spline, const double &t_raw)
 {
 	double t;
-	int which_spline;
+	size_t which_spline;
 	which_spline = 1;
 	t = t_raw - end_points[x_splines.size() - 2];
 	for(;which_spline < x_splines.size()-1; which_spline++)

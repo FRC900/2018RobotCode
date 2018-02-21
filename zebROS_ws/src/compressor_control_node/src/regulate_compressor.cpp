@@ -130,7 +130,7 @@ void pressureCallback(const sensor_msgs::JointState &pressure)
 	static int pressure_sensor_index_ = -1;
 	if(pressure_sensor_index_ < 0)
 	{
-		for(int i = 0; i < pressure.name.size(); i++)
+		for(size_t i = 0; i < pressure.name.size(); i++)
 		{
 			if(pressure.name[i] == "analog_pressure")
 			{
@@ -162,7 +162,7 @@ void currentCallback(const std_msgs::Float64 &current)
 
 	double temp_weighted_average_current_ = 0;
 	int divider = currents.size() * (1 + currents.size())/2;
-	for(int i = 0; i < currents.size(); i++) // TODO : size_t rather than int
+	for(size_t i = 0; i < currents.size(); i++)
 	{
 		temp_weighted_average_current_ += currents[i] * (i+1.0)/divider;
 	}
