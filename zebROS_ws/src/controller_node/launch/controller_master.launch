@@ -48,11 +48,10 @@
   	<param name="pub_rate" value="$(arg pub_rate)" />
   </node>
 	<!--
-  <node name="navx_publisher_node" pkg="navx_publisher" type="navx_publisher_node" respawn="true" />
+  <node name="navx_publisher_node" pkg="navx_publisher" type="navx_publisher_node" respawn="true" /> -->
   <include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)">
     <arg name="down_sample" value="$(arg down_sample)" />
 </include>
-	-->
 	
     
 </launch>
