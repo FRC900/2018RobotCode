@@ -20,10 +20,11 @@
 
 		<!-- Load controller settings -->
 		<rosparam file="$(find ros_control_boilerplate)/config/linear_talon_control.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller talon_linear_controller " />
+			output="screen" args="spawn joint_state_controller talon_state_controller talon_linear_controller robot_code_ready_controller" />
 		<!-- Convert joint states to /tf tranforms -->
 		<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
 

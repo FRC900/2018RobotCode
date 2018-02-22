@@ -1,0 +1,13 @@
+# Spawn this controller last
+# It will set the fake robot_code_ready joint = 900
+# The FRC robot HW interface waits for this joint
+# value to be non-zero before reporting that robot
+# code is running to the field
+# That way we'll be sure the Rio controllers are
+# all running before telling the field we're good 
+# to start a match
+robot_code_ready_controller:
+    type: static_controller/StaticController
+    joint: robot_code_ready
+    value: 900.0
+

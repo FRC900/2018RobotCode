@@ -30,6 +30,7 @@ add_service_files (
   MotionProfile.srv
   MotionProfilePoints.srv
   FullGen.srv
+  GenerateTrajectory.srv
 )
 generate_messages(
   DEPENDENCIES

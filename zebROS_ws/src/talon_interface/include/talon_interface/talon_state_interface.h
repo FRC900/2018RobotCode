@@ -176,15 +176,15 @@ class TalonHWState
 			close_loop_ramp_(0),
 			open_loop_ramp_(0),
 			peak_output_forward_(100.),
-			peak_output_reverse_(100.),
-			nominal_output_forward_(100.),
-			nominal_output_reverse_(100.),
+			peak_output_reverse_(-100.),
+			nominal_output_forward_(0.),
+			nominal_output_reverse_(0.),
 			neutral_deadband_(0.),
 
 			// voltage compensation
-			voltage_compensation_saturation_(0),
+			voltage_compensation_saturation_(12.5),
 			voltage_measurement_filter_(32),
-			voltage_compensation_enable_(false),
+			voltage_compensation_enable_(true),
 
 			limit_switch_local_forward_source_(LimitSwitchSource_FeedbackConnector),
 			limit_switch_local_forward_normal_(LimitSwitchNormal_NormallyOpen),
@@ -419,11 +419,11 @@ class TalonHWState
 		{
 			return sticky_faults_;
 		}
-		double getConversion(void) const
+		double getConversionFactor(void) const
 		{
 			return conversion_factor_;
 		}
-		void setConversion(double conversion_factor)
+		void setConversionFactor(double conversion_factor)
 		{
 			conversion_factor_ = conversion_factor;
 		}		
@@ -851,7 +851,6 @@ class TalonHWState
 		}
 
 	private:
-		double conversion_factor_;
 		double setpoint_;
 		double position_;
 		double speed_;
@@ -942,6 +941,8 @@ class TalonHWState
 
 		unsigned int faults_;
 		unsigned int sticky_faults_;
+
+		double conversion_factor_;
 };
 
 // Handle - used by each controller to get, by name of the

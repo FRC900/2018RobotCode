@@ -184,7 +184,7 @@ int main(int argc, char **argv) {
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("joystick_states", 1, joystick);
 
-    ScaledValPub = n.advertise<ros_control_boilerplate::JoystickState>("ScaledJoystickVals", 1);
+    ScaledValPub = n.advertise<ros_control_boilerplate::JoystickState>("scaled_joystick_vals", 1);
 
     ros::spin();
 

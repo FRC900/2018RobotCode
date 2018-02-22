@@ -142,13 +142,15 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         //publish a stop message?
     }
     */
-    if(JoystickState->directionUpPress == true) {
-        if(timeSecs - directionUpLast < 1.0) {
-	     EndGameDeploy.publish(1.0); //this will become a service
-	     ROS_WARN("SELF DESTURCT");
-        }
-        directionUpLast = timeSecs;
-    }
+	if(JoystickState->directionUpPress == true) {
+		if(timeSecs - directionUpLast < 1.0) {
+			std_msgs::Float64 msg;
+			msg.data = 1.0;
+			EndGameDeploy.publish(msg); //this will become a service
+			ROS_WARN("SELF DESTURCT");
+		}
+		directionUpLast = timeSecs;
+	}
     /*
     if(JoystickState->buttonBButton == true && ifCube==true) {
         //TODO auto scale
@@ -491,7 +493,7 @@ int main(int argc, char **argv) {
     ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/clamp");
     IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/intake");
 
-    message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "ScaledJoystickVals", 5);
+    message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "scaled_joystick_vals", 5);
     message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
 
     navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);

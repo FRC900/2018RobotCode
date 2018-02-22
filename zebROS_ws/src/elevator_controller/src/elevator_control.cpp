@@ -7,35 +7,37 @@
 namespace elevator_controller
 {
 ElevatorController::ElevatorController():
-	line_break_intake_index_(-1),
-	line_break_clamp_index_(-1),
+	after_shift_max_accel_(0),
+	after_shift_max_vel_(0),
+	before_shift_max_accel_(0),
+	before_shift_max_vel_(0),
 	line_break_intake_(false),
 	line_break_clamp_(false),
+	line_break_intake_index_(-1),
+	line_break_clamp_index_(-1),
 	shift_cmd_(false),
 	shifted_(false),
 	clamp_cmd_(0.0),
+	climb_height_(0.0),
 	end_game_deploy_cmd_(false),
 	end_game_deploy_t1_(false),
 	end_game_deploy_t2_(false),
-	climb_height_(0.0),
 	end_game_deploy_start_(0.0),
-	arm_length_(0.0),
-	pivot_offset_(0.0),
-	lift_offset_(0.0),
 	max_extension_(0.0),
 	min_extension_(0.0),
+	intake_down_time_(0.0),
 	hook_depth_(0.0),
 	hook_min_height_(0.0),
 	hook_max_height_(0.0),
-	intake_down_time_(0.0)
+	arm_length_(0.0),
+	pivot_offset_(0.0),
+	lift_offset_(0.0)
 {
 }
 
-
-
 bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
-                			             ros::NodeHandle &root_nh,
-             	                        	     ros::NodeHandle &controller_nh)
+                			  ros::NodeHandle &/*root_nh*/,
+             	              ros::NodeHandle &controller_nh)
 {
 	const std::string complete_ns = controller_nh.getNamespace();
 	std::size_t id = complete_ns.find_last_of("/");
@@ -199,7 +201,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	point_vector.resize(poly_points.size()/2);
 	//ROS_ERROR_NAMED(name_, "hypothetical errors");
 	ROS_INFO_STREAM("Poly_points " << std::endl << poly_points.size());
-	for (size_t i = 0; i < poly_points.size()/2; ++i)
+	for (int i = 0; i < poly_points.size()/2; ++i)
 	{
 		point_vector[i].x(static_cast<double>(poly_points[2*i]));
 		point_vector[i].y(static_cast<double>(poly_points[2*i + 1]));
@@ -232,7 +234,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	return true;
 }
 
-void ElevatorController::update(const ros::Time &time, const ros::Duration &period)
+void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &/*period*/)
 {
 	//const double delta_t = period.toSec();
 	//const double inv_delta_t = 1 / delta_t;
@@ -264,11 +266,15 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	}
 	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .5)
 	{	
-		EndGameDeploy_.publish(1.0);
+		std_msgs::Float64 msg;
+		msg.data = 1.0;
+		EndGameDeploy_.publish(msg);
 	}
 	else
 	{
-		EndGameDeploy_.publish(0.0);
+		std_msgs::Float64 msg;
+		msg.data = 0.0;
+		EndGameDeploy_.publish(msg);
 	}
 	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
 	{
@@ -276,18 +282,22 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	} 
 	if(shift_cmd_)
 	{	
-		Shift_.publish(1.0);
+		std_msgs::Float64 msg;
+		msg.data = 1.0;
+		Shift_.publish(msg);
 		if(!shifted_)
 		{
 			shifted_ = true;
 			lift_joint_.setMotionAcceleration(after_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(after_shift_max_vel_);
-			lift_joint_.setPIDFSlot(1.0);
+			lift_joint_.setPIDFSlot(1);
 		}
 	}
 	else
 	{
-		Shift_.publish(-1.0);
+		std_msgs::Float64 msg;
+		msg.data = -1.0;
+		Shift_.publish(msg);
 		if(shifted_)
 		{
 			shifted_ = false;
@@ -304,40 +314,55 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 
 	if(intake_struct_.up_command < 0)
 	{
-		IntakeUp_.publish(-1.0);
+		std_msgs::Float64 msg;
+		msg.data = -1.0;
+		IntakeUp_.publish(msg);
 		intake_down_time_ = ros::Time::now().toSec();
 	}
 	else
 	{
 		if((ros::Time::now().toSec() - intake_down_time_) < .25)
 		{
-			IntakeUp_.publish(1.0);
+			std_msgs::Float64 msg;
+			msg.data = 1.0;
+			IntakeUp_.publish(msg);
 		}
 		else
 		{
-			IntakeUp_.publish(0.0);
+			std_msgs::Float64 msg;
+			msg.data = 0;
+			IntakeUp_.publish(msg);
 		}
 	}
 	//Delay stuff maybe?
 
+	std_msgs::Float64 intake_soft_msg;
+	std_msgs::Float64 intake_hard_msg;
 	switch(intake_struct_.spring_command)
 	{
 		default:
-			IntakeSoftSpring_.publish(1.0);
-			IntakeHardSpring_.publish(0.0);
+			intake_soft_msg.data = 1.0;
+			intake_hard_msg.data = 0.0;
 			break;
 		case 1:
-			IntakeSoftSpring_.publish(0.0);
-			IntakeHardSpring_.publish(-1.0);
+			intake_soft_msg.data = 0.0;
+			intake_hard_msg.data = -1.0;
 			break;
 		case 3:
-			IntakeSoftSpring_.publish(0.0);
-			IntakeHardSpring_.publish(1.0);
+			intake_soft_msg.data = 0.0;
+			intake_hard_msg.data = 1.0;
 			break;
 	}	
+	IntakeSoftSpring_.publish(intake_soft_msg);
+	IntakeHardSpring_.publish(intake_hard_msg);
 
-	Clamp_.publish(clamp_cmd_);
-	CubeState_.publish(line_break_intake_ || line_break_clamp_);
+	std_msgs::Float64 clamp_msg;
+	clamp_msg.data = clamp_cmd_;
+	Clamp_.publish(std_msgs::Float64(clamp_msg));
+
+	std_msgs::Bool cube_msg;
+	cube_msg.data = line_break_intake_ || line_break_clamp_;
+	CubeState_.publish(cube_msg);
 
 	elevator_controller::ReturnElevatorCmd return_holder;
 	elevator_controller::ReturnElevatorCmd odom_holder;
@@ -396,7 +421,7 @@ void ElevatorController::update(const ros::Time &time, const ros::Duration &peri
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
 
 }
-void ElevatorController::starting(const ros::Time &time)
+void ElevatorController::starting(const ros::Time &/*time*/)
 {
 	//maybe initialize the target to something if not otherwise set?
 }
@@ -457,7 +482,7 @@ void ElevatorController::lineBreakCallback(const sensor_msgs::JointState &msg)
 	}
 }
 
-bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res)
+bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &/*res*/)
 {
 	if(isRunning())
 	{
@@ -478,7 +503,7 @@ bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Re
 	}
 }
 
-bool ElevatorController::clampService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &res)
+bool ElevatorController::clampService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &/*res*/)
 {
 	if(isRunning())
 	{
@@ -499,7 +524,7 @@ bool ElevatorController::clampService(elevator_controller::bool_srv::Request &co
 	}
 }
 
-bool ElevatorController::shiftService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &res)
+bool ElevatorController::shiftService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &/*res*/)
 {
 	if(isRunning())
 	{
@@ -513,7 +538,7 @@ bool ElevatorController::shiftService(elevator_controller::bool_srv::Request &co
 	}
 }
 
-bool ElevatorController::endGameDeployService(elevator_controller::Blank::Request &command, elevator_controller::Blank::Response &res)
+bool ElevatorController::endGameDeployService(elevator_controller::Blank::Request &/*command*/, elevator_controller::Blank::Response &/*res*/)
 {
 	if(isRunning())
 	{
@@ -527,7 +552,7 @@ bool ElevatorController::endGameDeployService(elevator_controller::Blank::Reques
 	}
 }
 
-bool ElevatorController::intakeService(elevator_controller::Intake::Request &command, elevator_controller::Intake::Response &res)
+bool ElevatorController::intakeService(elevator_controller::Intake::Request &command, elevator_controller::Intake::Response &/*res*/)
 {
 	if(isRunning())
 	{

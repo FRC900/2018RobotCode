@@ -3,20 +3,20 @@ elevator_controller:
     lift: "lift_joint"
     intake: "intake_joint"
     pivot: "pivot_joint"
-    arm_length: 0.495 #FIX
-    max_extension: 3.0 #FIX
-    climb_height: 2.0 #FIX
-    min_extension: 0.25 #FIX
+    arm_length: 0.4689729 
+    max_extension: 2.426716 
+    climb_height: 2.0 
+    min_extension: 0.34163 
    
     after_shift_max_accel: 2 #fix
     after_shift_max_vel: .5 #fix
 
  
-    hook_depth: 0.1 #FIX
+    hook_depth: 0.314706  #FIX
     hook_min_height: 1 #FIX
     hook_max_height: 1.1 #FIX
    #Fix below remove poly points 
-    polygon_points: [-1.0, .127, 0.1, .127, 0.75, .127, 0.75, -1.0, -1.0, -1.0, -1.0, .127]    
+    polygon_points: [-1.0, .325, 0.1, 325, 0.75, .127, 0.75, -1.0, -1.0, -1.0, -1.0, .325]    
     lift_joint:
         joint: lift
         close_loop_values:
@@ -25,7 +25,7 @@ elevator_controller:
         invert_output: False
         sensor_phase: False
         feedback_type: CTRE_MagEncoder_Absolute
-        conversion_factor: 1 #FIX
+        conversion_factor: 0.022733
         motion_cruise_velocity: 2
         motion_acceleration: 5
     pivot_joint:

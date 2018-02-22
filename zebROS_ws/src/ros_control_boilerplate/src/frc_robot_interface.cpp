@@ -50,11 +50,12 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 	, num_digital_outputs_(0)
 	, num_pwm_(0)
 	, num_solenoids_(0)
-	, num_compressors_(0)
 	, num_double_solenoids_(0)
+	, num_compressors_(0)
 	, num_rumble_(0)
 	, num_navX_(0)
 	, num_analog_inputs_(0)
+    , robot_code_ready_(0.0)
 {
 	// Check if the URDF model needs to be loaded
 	if (urdf_model == NULL)
@@ -613,6 +614,17 @@ void FRCRobotInterface::init()
 
 	hardware_interface::PDPStateHandle psh("pdp_name", &pdp_state_);
 	pdp_state_interface_.registerHandle(psh);
+
+	// Add a flag which indicates we should signal
+	// the driver station that robot code is initialized
+	hardware_interface::JointStateHandle sh("robot_code_ready", &robot_code_ready_, &robot_code_ready_, &robot_code_ready_);
+	joint_state_interface_.registerHandle(sh);
+
+	hardware_interface::JointHandle ch(sh, &robot_code_ready_);
+	joint_command_interface_.registerHandle(ch);
+	joint_position_interface_.registerHandle(ch);
+	joint_velocity_interface_.registerHandle(ch);
+	joint_effort_interface_.registerHandle(ch);
 
 	// Publish various FRC-specific data using generic joint state for now
 	// For simple things this might be OK, but for more complex state
