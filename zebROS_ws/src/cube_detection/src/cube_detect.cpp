@@ -20,7 +20,7 @@ using namespace message_filters;
 
 int hLo = 15;
 int sLo = 65;
-int vLo = 240;
+int vLo = 180;
 int hUp = 55;
 
 int maxTrans = 15900;
@@ -38,8 +38,8 @@ static bool down_sample = false;
 //This funtion along with the commented out slider code is useful when getting new HSV values for the threshold
 //To get the trackbars active, comment out the lines marked "mark1", uncomment the lines marked "mark2",
 //multiline comment from "markS" to "markE"
-void on_trackbar(int, void*)
-{}
+void on_trackbar(int, void*){}
+
 void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 {
 	cv_bridge::CvImageConstPtr cvFrame = cv_bridge::toCvShare(frameMsg, sensor_msgs::image_encodings::BGR8);
@@ -67,17 +67,15 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 		framePtr = &frame;
 		depthPtr = &depth;
 	}
+
 	Mat hsv;
 	Mat threshold;
 	Mat contour;
 
 	cvtColor(*framePtr,hsv,COLOR_BGR2HSV);
+	cvtColor(*framePtr, gray, COLOR_BGR2GRAY);
 	inRange(hsv, Scalar(hLo,sLo,vLo),Scalar(hUp,255,255),threshold); //mark2
-	//inRange(hsv, Scalar(23,65,240),Scalar(40,255,255),threshold);
-	/*Mat threshold_channels[3];
-	split(threshold,threshold_channels);
-	mask = threshold_channels[0];*/
-	//markS
+
 	erode(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(7,7)));
 	dilate(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(7,7)));
 
@@ -89,9 +87,10 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 
 	findContours(threshold, contours, rank, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
 
-	vector<vector<Point> > contours_poly(contours.size());
+	vector<vector<Point>> contours_poly(contours.size());
 	vector<Rect> boundRect(contours.size());
 	vector<float> contourDepth;
+	vector<int> approxPoly;
 
 
 	for(int i = 0; i < contours.size(); i++)
@@ -109,7 +108,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 		contourDepth.push_back(depth_value);
 	}
 	
-
+	
 	Mat drawing = Mat::zeros(threshold.size(),CV_8UC3);
 	for(int i = 0; i< contours.size(); i++)
 	{
@@ -119,7 +118,8 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 		Scalar rect_color = Scalar(0,0,255);
 		Scalar color = Scalar(0,255,0);		
 
-		if (areaContour < minArea /*|| areaContour > maxArea*/) {
+		//filter contours by area based on depth and side ratio
+		if (areaContour < minArea) {
 			continue;
 		} else if (areaContour <= (drawing.rows * drawing.cols * pixelError)) {
 			continue;
@@ -127,20 +127,20 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 			continue;
 		} else if (abs((boundRect[i].width/boundRect[i].height) - 1) > 1.6) {
 			continue;
-		} else {	
-			putText(drawing, to_string(contourDepth[i]), Point(boundRect[i].x, boundRect[i].y - 15), FONT_HERSHEY_SIMPLEX, 0.45, (0,0,255), 1);
+		} else if (contours_poly[i].size() < 6 || contours_poly[i].size() > 3) {	
+			putText(drawing, to_string(contourDepth[i]), Point(boundRect[i].x, boundRect[i].y 		- 15), FONT_HERSHEY_SIMPLEX, 0.45, (0,0,255), 1);
 			drawContours(drawing, contours,i,color,2,8,rank,0,Point());
 			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), rect_color, 2, 8, 0);
-			ROS_INFO_STREAM("x = " << boundRect[i].x + (boundRect[i].width/2));
+			ROS_INFO_STREAM(contours_poly[i].size());
+			/*ROS_INFO_STREAM("x = " << boundRect[i].x + (boundRect[i].width/2));
 			ROS_INFO_STREAM("y = " << boundRect[i].y + (boundRect[i].height/2));
-			ROS_INFO_STREAM("z = " << contourDepth[i]);
-
+			ROS_INFO_STREAM("z = " << contourDepth[i]);*/
 		}
 	}
-	//markE
-	imshow("threshold",threshold); //mark1
+
+	imshow("threshold",threshold); 
 	imshow("hsv",hsv);
-	imshow("drawing",drawing); //mark1 
+	imshow("drawing",drawing); 
 	imshow("depth", *depthPtr);
 	waitKey(5);
 }
@@ -161,6 +161,7 @@ int main(int argc, char **argv)
 
 	namedWindow("drawing",1);
 		
+	//trackbars for testing hsv and range values
 	createTrackbar( "Lower H", "drawing", &hLo, 180);
 	createTrackbar( "Lower S", "drawing", &sLo, 255);  
 	createTrackbar( "Lower V", "drawing", &vLo, 255);
