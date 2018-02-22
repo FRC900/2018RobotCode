@@ -53,7 +53,7 @@ class swerve_profiler
 {
 	public:
 		swerve_profiler(double max_wheel_dist, double max_wheel_mid_accel, double max_wheel_vel, 
-		double max_steering_accel, double max_steering_vel, double dt);
+		double max_steering_accel, double max_steering_vel, double dt, double ang_accel_conv);
 			
 		bool generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double &initial_v, const double &final_v, base_trajectory::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points);
 

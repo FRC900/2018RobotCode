@@ -5,7 +5,7 @@
 namespace swerve_profile
 {
 swerve_profiler::swerve_profiler(double max_wheel_dist, double max_wheel_mid_accel, double max_wheel_vel,
-double max_steering_accel, double max_steering_vel, double dt)
+double max_steering_accel, double max_steering_vel, double dt, double ang_accel_conv)
 {
 	max_wheel_dist_ = max_wheel_dist;
 	max_wheel_mid_accel_ = max_wheel_mid_accel;
@@ -13,6 +13,7 @@ double max_steering_accel, double max_steering_vel, double dt)
 	max_steering_accel_ = max_steering_accel;
 	max_steering_vel_ = max_steering_vel;
 	dt_ = dt;
+	ang_accel_conv_ = ang_accel_conv;
 }
 //TODO :: path should be const vect & to avoid a redundant copy
 // being made each time the function is called
@@ -406,6 +407,6 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 	
 	holder_point.angular_velocity = fabs(first_deriv_orient * dtds_by_spline[which_spline - 1] * max_wheel_dist_);	
 
-	holder_point.angular_accel = fabs(second_deriv_orient *dtds_by_spline[which_spline - 1] * dtds_by_spline[which_spline - 1] * max_wheel_dist_);	
+	holder_point.angular_accel = fabs(second_deriv_orient *dtds_by_spline[which_spline - 1] * dtds_by_spline[which_spline - 1] * max_wheel_dist_ * ang_accel_conv_);	
 }
 }
