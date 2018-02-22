@@ -73,6 +73,7 @@ class swerve_profiler
 		double max_steering_accel_;
 		double max_steering_vel_;
 		double dt_;
+		double ang_accel_conv_;
 		bool fow;
 };
 }
