@@ -482,7 +482,7 @@ int main(int argc, char **argv) {
     n_params.getParam("exchange_delay", exchange_delay);
 
 
-    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("AutoServer", true);
+    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
 
     JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
     JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/cmd_pos", 1);
