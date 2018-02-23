@@ -202,6 +202,7 @@ class TalonCIParams
 			}
 			return true;
 		}
+
 		bool readConversion(ros::NodeHandle &n)
 		{
 			n.getParam("conversion_factor", conversion_factor_);
@@ -531,9 +532,10 @@ class TalonControllerInterface
 	public:
 		TalonControllerInterface(void) :
 			srv_(nullptr), 
-			srv_mutex_(std::make_shared<boost::recursive_mutex>())
+			srv_mutex_(nullptr)
 		{
 		}
+
 		// Standardize format for reading params for
 		// motor controller
 		virtual bool readParams(ros::NodeHandle &n, TalonCIParams &params)
@@ -552,6 +554,49 @@ class TalonControllerInterface
 				   params.readMotionControl(n);
 		}
 
+		// Read params from config file and use them to
+		// initialize the Talon hardware
+		// Useful for the hopefully common case where there's
+		// no need to modify the parameters after reading
+		// them
+		virtual bool initWithNode(hardware_interface::TalonCommandInterface *tci,
+								  hardware_interface::TalonStateInterface * /*tsi*/,
+								  ros::NodeHandle &n,
+								  bool dynamic_reconfigure = false)
+		{
+			return init(tci, n, talon_, srv_mutex_, srv_, true, dynamic_reconfigure) && 
+				   setInitialMode();
+		}
+
+		// Same as above, except pass in an array
+		// of node handles. First entry is set up as the master
+		// talon and the rest are set in follower mode to follow
+		// the leader
+		virtual bool initWithNode(hardware_interface::TalonCommandInterface *tci,
+								  std::vector<ros::NodeHandle> &n,
+								  bool dynamic_reconfigure = false)
+		{
+			if (!initWithNode(tci, nullptr, n[0], dynamic_reconfigure))
+				return false;
+
+			const int follow_can_id = talon_.state()->getCANID();
+
+			follower_talons_.resize(n.size() - 1);
+			for (size_t i = 1; i < n.size(); i++)
+			{
+				follower_srv_mutexes_.push_back(nullptr);
+				follower_srvs_.push_back(nullptr);
+				if (init(tci, n[i], follower_talons_[i-1], follower_srv_mutexes_[i-1], follower_srvs_[i-1], false, dynamic_reconfigure))
+					return false;
+				follower_talons_[i-1]->setMode(hardware_interface::TalonMode_Follower);
+				follower_talons_[i-1]->set(follow_can_id);
+			}
+
+			return true;
+		}
+
+
+#if 0
 		// Allow users of the ControllerInterface to get
 		// a copy of the parameters currently set for the
 		// Talon.  They can then modify them at will and
@@ -571,14 +616,14 @@ class TalonControllerInterface
 			talon_ = tci->getHandle(params.joint_name_);
 			return writeParamsToHW(params);
 		}
+#endif
 
 		// Use data in params to actually set up Talon
 		// hardware. Make this a separate method outside of
 		// init() so that dynamic reconfigure callback can write
 		// values using this method at any time
-		virtual bool writeParamsToHW(const TalonCIParams &params)
+		virtual bool writeParamsToHW(const TalonCIParams &params, bool update_params = true)
 		{
-			ROS_INFO("writeParamsToHW start");
 			// perform additional hardware init here
 			// but don't set mode - either force the caller to
 			// set it or use one of the derived, fixed-mode
@@ -637,9 +682,9 @@ class TalonControllerInterface
 
 			// Save copy of params written to HW
 			// so they can be queried later?
-			params_ = params;
+			if (update_params)
+				params_ = params;
 
-			ROS_INFO("writeParamsToHW end");
 			return true;
 		}
 
@@ -663,48 +708,6 @@ class TalonControllerInterface
 					 config.sensor_phase);
 
 			writeParamsToHW(TalonCIParams(config));
-		}
-
-		// Read params from config file and use them to
-		// initialize the Talon hardware
-		// Useful for the hopefully common case where there's
-		// no need to modify the parameters after reading
-		// them
-		virtual bool initWithNode(hardware_interface::TalonCommandInterface *tci,
-								  hardware_interface::TalonStateInterface * /*tsi*/,
-								  ros::NodeHandle &n,
-								  bool dynamic_reconfigure = false)
-		{
-			ROS_WARN("initWithNode start");
-			// Read params from startup and intialize Talon using them
-			TalonCIParams params;
-			bool result = readParams(n, params) && initWithParams(tci, params);
-
-			ROS_WARN("initWithNode past initWithParams");
-			if (result && dynamic_reconfigure)
-			{
-				// Create dynamic_reconfigure Server. Pass in n
-				// so that all the vars for the class are grouped
-				// under the node's name.  Doing so allows multiple
-				// copies of the class to be started, each getting
-				// their own namespace.
-				srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(*srv_mutex_, n);
-
-				ROS_WARN("initWithNode updateConfig");
-				// Without this, the first call to callback()
-				// will overwrite anything passed in from the
-				// launch file
-				srv_->updateConfig(params_.toConfig());
-
-				ROS_WARN("initWithNode setCallback");
-				// Register a callback function which is run each
-				// time parameters are changed using
-				// rqt_reconfigure or the like
-				srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));
-			}
-			ROS_WARN("initWithNode returning");
-
-			return result;
 		}
 
 		// Set the setpoint for the motor controller
@@ -912,12 +915,73 @@ class TalonControllerInterface
 		}
 
 	protected:
-		hardware_interface::TalonCommandHandle talon_;
-		TalonCIParams                          params_;
+		hardware_interface::TalonCommandHandle                          talon_;
+		TalonCIParams                                                   params_;
 		std::shared_ptr<dynamic_reconfigure::Server<TalonConfigConfig>> srv_;
-		std::shared_ptr<boost::recursive_mutex> srv_mutex_;
+		std::shared_ptr<boost::recursive_mutex>                         srv_mutex_;
+
+#if 1
+		std::vector<hardware_interface::TalonCommandHandle>                          follower_talons_;
+		std::vector<std::shared_ptr<dynamic_reconfigure::Server<TalonConfigConfig>>> follower_srvs_;
+		std::vector<std::shared_ptr<boost::recursive_mutex>>                         follower_srv_mutexes_;
+#endif
+
+		// Used to set initial (and only) talon
+		// mode for FixedMode derived classes
+		virtual bool setInitialMode(void)
+		{
+			ROS_WARN("Base class setInitialMode");
+			return true;
+		}
+
 
 	private :
+		virtual bool init(hardware_interface::TalonCommandInterface *tci,
+							ros::NodeHandle &n,
+							hardware_interface::TalonCommandHandle &talon,
+							std::shared_ptr<boost::recursive_mutex> srv_mutex,
+							std::shared_ptr<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>> &srv,
+							bool update_params,
+							bool dynamic_reconfigure = false)
+		{
+			ROS_WARN("init start");
+			// Read params from startup and intialize Talon using them
+			TalonCIParams params;
+			if (!readParams(n, params))
+			   return false;
+			ROS_WARN("init past readParams");
+
+			talon = tci->getHandle(params.joint_name_);
+			if (!writeParamsToHW(params, update_params))
+				return false;
+
+			ROS_WARN("init past writeParamsToHW");
+			if (dynamic_reconfigure)
+			{
+				// Create dynamic_reconfigure Server. Pass in n
+				// so that all the vars for the class are grouped
+				// under the node's name.  Doing so allows multiple
+				// copies of the class to be started, each getting
+				// their own namespace.
+				srv_mutex = std::make_shared<boost::recursive_mutex>();
+				srv = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(*srv_mutex_, n);
+
+				ROS_WARN("init updateConfig");
+				// Without this, the first call to callback()
+				// will overwrite anything passed in from the
+				// launch file
+				srv->updateConfig(params_.toConfig());
+
+				ROS_WARN("init setCallback");
+				// Register a callback function which is run each
+				// time parameters are changed using
+				// rqt_reconfigure or the like
+				srv->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));
+			}
+			ROS_WARN("init returning");
+
+			return true;
+		}
 		// If dynamic reconfigure is running then update
 		// the reported config there with the new internal
 		// state
@@ -926,7 +990,7 @@ class TalonControllerInterface
 			if (srv_)
 			{
 				TalonConfigConfig config(params_.toConfig());
-				boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
+				//boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
 				srv_->updateConfig(config);
 			}
 		}
@@ -936,7 +1000,7 @@ class TalonControllerInterface
 // single-mode CI class should derive from this class
 class TalonFixedModeControllerInterface : public TalonControllerInterface
 {
-	public:
+	protected:
 		// Disable changing mode for controllers derived
 		// from this class
 		void setMode(hardware_interface::TalonMode /*mode*/) override
@@ -946,17 +1010,14 @@ class TalonFixedModeControllerInterface : public TalonControllerInterface
 };
 class TalonPercentOutputControllerInterface : public TalonFixedModeControllerInterface
 {
-	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
-							const TalonCIParams &params) override
+	protected:
+		bool setInitialMode(void) override
 		{
-			// Call base-class init to load config params
-			if (!TalonControllerInterface::initWithParams(hw, params))
-				return false;
 			// Set the mode at init time - since this
 			// class is derived from the FixedMode class
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_PercentOutput);
+			ROS_INFO("Set up talon in Percent Output mode");
 			return true;
 		}
 		// Maybe disable the setPIDFSlot call since that makes
@@ -968,7 +1029,8 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 	public:
 		bool initWithNode(hardware_interface::TalonCommandInterface *tci,
 						  hardware_interface::TalonStateInterface   *tsi,
-						  ros::NodeHandle &n)
+						  ros::NodeHandle &n,
+						  bool dynamic_reconfigure = false) override
 		{
 			if (!tsi)
 			{
@@ -977,8 +1039,11 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			}
 
 			// Call base-class init to load config params
-			if (!TalonControllerInterface::initWithNode(tci, tsi, n))
+			if (!TalonControllerInterface::initWithNode(tci, tsi, n, dynamic_reconfigure))
+			{
+				ROS_ERROR("TalonFollowerController base initWithNode failed");
 				return false;
+			}
 
 			std::string follow_joint_name;
 			if (!n.getParam("follow_joint", follow_joint_name))
@@ -1018,14 +1083,9 @@ class TalonCloseLoopControllerInterface : public TalonFixedModeControllerInterfa
 
 class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
 {
-	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
-							const TalonCIParams &params) override
+	protected:
+		bool setInitialMode(void) override
 		{
-			// Call base class init for common setup code
-			if (!TalonControllerInterface::initWithParams(hw, params))
-				return false;
-
 			// Set to position close loop mode
 			talon_->setMode(hardware_interface::TalonMode_Position);
 
@@ -1037,6 +1097,7 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 			//      at that point my hope is to have named PID configs rather than numbers
 			//      and then add initial PID mode as one of the yaml params
 			setPIDFSlot(1); // pick a default?
+			ROS_INFO("Set up talon in Close Loop Position mode");
 
 			return true;
 		}
@@ -1044,17 +1105,13 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 
 class TalonVelocityCloseLoopControllerInterface : public TalonCloseLoopControllerInterface
 {
-	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
-							const TalonCIParams &params) override
+	protected:
+		bool setInitialMode(void) override
 		{
-			// Call base class init for common setup code
-			if (!TalonControllerInterface::initWithParams(hw, params))
-				return false;
-
 			// Set to speed close loop mode
 			talon_->setMode(hardware_interface::TalonMode_Velocity);
 			setPIDFSlot(0); // pick a default?
+			ROS_INFO("Set up talon in Close Loop Velocity mode");
 
 			return true;
 		}
@@ -1062,35 +1119,27 @@ class TalonVelocityCloseLoopControllerInterface : public TalonCloseLoopControlle
 
 class TalonCurrentControllerCloseLoopInterface : public TalonCloseLoopControllerInterface
 {
-	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
-							const TalonCIParams &params) override
+	protected:
+		bool setInitialMode(void) override
 		{
-			// Call base class init for common setup code
-			if (!TalonControllerInterface::initWithParams(hw, params))
-				return false;
-
 			// Set to current close loop mode
 			talon_->setMode(hardware_interface::TalonMode_Current);
 			setPIDFSlot(0); // pick a default?
-
+			ROS_INFO("Set up talon in Close Loop Current mode");
 			return true;
 		}
 };
 
 class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
 {
-	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
-							const TalonCIParams &params) override
+	protected:
+		bool setInitialMode(void) override
 		{
-			// Call base-class init to load config params
-			if (!TalonControllerInterface::initWithParams(hw, params))
-				return false;
 			// Set the mode at init time - since this
 			// class is derived from the FixedMode class
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_MotionProfile);
+			ROS_INFO("Set up talon in MotionProfile mode");
 			return true;
 		}
 };
@@ -1102,17 +1151,14 @@ class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInt
 // we need it at some point?
 class TalonMotionMagicCloseLoopControllerInterface : public TalonCloseLoopControllerInterface // double check that this works
 {
-	public:
-		bool initWithParams(hardware_interface::TalonCommandInterface *hw,
-							const TalonCIParams &params) override
+	protected:
+		bool setInitialMode(void) override
 		{
-			// Call base-class init to load config params
-			if (!TalonControllerInterface::initWithParams(hw, params))
-				return false;
 			// Set the mode at init time - since this
 			// class is derived from the FixedMode class
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_MotionMagic);
+			ROS_INFO("Set up talon in MotionMagic mode");
 			return true;
 		}
 };
