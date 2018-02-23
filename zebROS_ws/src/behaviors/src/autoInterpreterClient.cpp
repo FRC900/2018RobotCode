@@ -142,7 +142,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ROS_WARN("8.5");
             for(int i = 0; i<3; i++) { 
                 ROS_WARN("9");
-                const double time_i = splines["times"][i];
+                const double time_i = timesVect[i];
+                ROS_WARN("9.5");
                 vectTimes[auto_mode].push_back(time_i);
                 ROS_WARN("10");
                 ROS_INFO("time[%d,%d]: %d", auto_mode, i, splines["times"][i]);

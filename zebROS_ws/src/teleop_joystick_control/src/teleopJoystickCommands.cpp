@@ -243,6 +243,25 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     srvClamp.request.data=false;
                     if(ClampSrv.call(srvClamp)) {
                         ROS_WARN("Placed cube");
+                        goal.IntakeCube = false;
+                        goal.GoToHeight = true;
+                        goal.x = elevatorPosX - 1; //TODO
+                        goal.y = elevatorPosY + 1; //TODO
+                        ac->sendGoal(goal);
+                        
+                        if(ac->waitForResult(ros::Duration(1)) {
+                            ROS_WARN("Moved arm out of the way");
+                            srvElevator.request.x = intake_config_x;
+                            srvElevator.request.y = intake_config_y;
+                            if(ElevatorSrv.call(srvElevator)) {
+                                ROS_WARN("Toggled to intake config");
+                            }
+                        }
+                        else {
+                            ROS_ERROR("Failed to move arm out of the way...");
+                            ROS_ERROR("Manual correction required!");
+                            ROS_ERROR("Manual correction required!");
+                        }
                     }
                     else {
                         ROS_ERROR("Failed to place cube");
