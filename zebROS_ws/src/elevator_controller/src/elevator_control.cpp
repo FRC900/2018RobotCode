@@ -514,11 +514,11 @@ bool ElevatorController::clampService(elevator_controller::bool_srv::Request &co
 	{
 		if(command.data)
 		{
-			clamp_cmd_ = 1.0;
+			clamp_cmd_ = -1.0;
 		}
 		else
 		{
-			clamp_cmd_ = -1.0;
+			clamp_cmd_ = 1.0;
 		}
 		return true;
 	}

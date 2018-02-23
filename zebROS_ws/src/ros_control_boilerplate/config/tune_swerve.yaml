@@ -115,22 +115,22 @@ bl_angle_controller:
     voltage_compensation_enable: true
 
 bl_drive_controller:
-    type: talon_controllers/TalonPercentOutputController
+    type: talon_controllers/TalonPositionCloseLoopController
     joint: bl_drive
     feedback_type: CTRE_MagEncoder_Relative
-
+    sensor_phase: True
 br_drive_controller:
-    type: talon_controllers/TalonPercentOutputController
+    type: talon_controllers/TalonPositionCloseLoopController
     joint: br_drive
     feedback_type: CTRE_MagEncoder_Relative
-
+    sensor_phase: True
 fl_drive_controller:
-    type: talon_controllers/TalonPercentOutputController
+    type: talon_controllers/TalonPositionCloseLoopController
     joint: fl_drive
     feedback_type: CTRE_MagEncoder_Relative
-
+    sensor_phase: True
 fr_drive_controller:
-    type: talon_controllers/TalonPercentOutputController
+    type: talon_controllers/TalonPositionCloseLoopController
     joint: fr_drive
     feedback_type: CTRE_MagEncoder_Relative
-
+    sensor_phase: True

@@ -14,6 +14,7 @@ print(home)
 filename = home + '/2018RobotCode/zebROS_ws/src/visualize_profile/field.jpg'
 print(filename)
 def create_plot(req):
+	print("called")
 	fig = plt.figure()
 	ax = fig.gca(projection='3d')
 	xs = []

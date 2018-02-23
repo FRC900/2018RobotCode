@@ -113,8 +113,8 @@ int main(int argc, char **argv) {
 		*/
 		else
 		{
-			holder_msg.data = 0;
-			run_last_tick = false;
+			holder_msg.data = 1;
+			run_last_tick = true;
 		}
 
 		CompressorCommand.publish(holder_msg);

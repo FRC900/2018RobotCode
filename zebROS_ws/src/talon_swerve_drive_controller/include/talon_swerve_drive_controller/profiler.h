@@ -4,7 +4,7 @@
 #include <cmath>
 #include <Eigen/Dense>
 #include <vector>
-#include <base_trajectory/spline.h>
+#include <talon_swerve_drive_controller/spline.h>
 //#include <ros/ros.h>
 
 namespace swerve_profile
