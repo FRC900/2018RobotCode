@@ -249,7 +249,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         goal.y = elevatorPosY + 1; //TODO
                         ac->sendGoal(goal);
                         
-                        if(ac->waitForResult(ros::Duration(1)) {
+                        if(ac->waitForResult(ros::Duration(1))) {
                             ROS_WARN("Moved arm out of the way");
                             srvElevator.request.x = intake_config_x;
                             srvElevator.request.y = intake_config_y;
