@@ -140,9 +140,10 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             ROS_WARN("8");
             XmlRpc::XmlRpcValue &timesVect = splines["times"];
             ROS_WARN("8.5");
-            for(int i = 0; i<timesVect.size(); i++) { 
+            for(int i = 0; i<3; i++) { 
                 ROS_WARN("9");
-                vectTimes[auto_mode].push_back(splines["times"][i]);
+                const double time_i = splines["times"][i];
+                vectTimes[auto_mode].push_back(time_i);
                 ROS_WARN("10");
                 ROS_INFO("time[%d,%d]: %d", auto_mode, i, splines["times"][i]);
 
@@ -553,8 +554,15 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "Auto_state_subscriber");
     ros::NodeHandle n;
     ros::NodeHandle n_params(n, "teleop_params");
+
+    ros::NodeHandle n_params_behaviors(n, "auto_params");
    
-    n_params.getParam("high_scale_config_x", high_scale_config_x);
+    if(n_params.getParam("high_scale_config_x", high_scale_config_x)) {
+        ROS_ERROR("Not a problem teleop_params");
+    }
+    else {
+        ROS_ERROR("Problem with teleop_params");
+    }
     n_params.getParam("high_scale_config_y", high_scale_config_y);
     n_params.getParam("mid_scale_config_x", mid_scale_config_x);
     n_params.getParam("mid_scale_config_y", mid_scale_config_y);
@@ -569,7 +577,13 @@ int main(int argc, char** argv) {
     n_params.getParam("default_x", default_x);
     n_params.getParam("default_y", default_y);
     n_params.getParam("timeout", timeout);
-    n_params.getParam("modes", modes);
+    if(n_params_behaviors.getParam("modes", modes)) {
+        ROS_ERROR("not the problem");
+    }
+    else {
+        ROS_ERROR("Problem");
+    }
+
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
     ac->waitForServer(); 
 	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGen>("/point_gen/command");

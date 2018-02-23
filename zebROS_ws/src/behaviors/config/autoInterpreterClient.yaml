@@ -1,4 +1,4 @@
-autoParams:
+auto_params:
     modes:
         - - - { times: [0, 0, 0], positionsX: [0, 0, 0], positionsY: [0, 0, 0], positionsZ: [0, 0, 0], velocitiesX: [0, 0, 0], velocitiesY: [0, 0, 0], velocitiesZ: [0, 0, 0], accelerationsX: [0, 0, 0], accelerationsY: [0, 0, 0], accelerationsZ: [0, 0, 0]} #mode 0, layout 0, pos 0
             - { times: [0, 0, 1], positionsX: [0, 0, 1], positionsY: [0, 0, 1], positionsZ: [0, 0, 1], velocitiesX: [0, 0, 1], velocitiesY: [0, 0, 1], velocitiesZ: [0, 0, 1], accelerationsX: [0, 0, 1], accelerationsY: [0, 0, 1], accelerationsZ: [0, 0, 1]} #mode 0, layout 0, pos 1

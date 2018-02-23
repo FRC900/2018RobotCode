@@ -545,7 +545,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//navXs_[i]->IsMagnetometerCalibrated();
 		//
 		tf2::Quaternion tempQ;
-		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - navX_command_[i] + M_PI);
+        if(navX_command_[i] != -10000)
+        {
+            offset_navX_[i] = navX_command_[i] + navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI;
+        }
+		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - offset_navX_[i]  );
 
 		imu_orientations_[i][3] = tempQ.w();
 		imu_orientations_[i][0] = tempQ.x();
@@ -562,7 +566,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//navXs_[i]->GetAngle(); //continous
 		//TODO: add setter functions
 		
-		navX_state_[i] = navX_command_[i];
+		navX_state_[i] = offset_navX_[i];
 	}
 	for (size_t i = 0; i < num_compressors_; i++)
 	{
