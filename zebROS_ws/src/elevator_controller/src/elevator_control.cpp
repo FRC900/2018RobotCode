@@ -421,6 +421,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		//if target is beyond dist, will bring arm all the way up or down to go around
 		//this is relatively low priority
 	}
+	//ROS_INFO_STREAM("cmd: " << curr_cmd.lin << " up/down: " << curr_cmd.up_or_down);
 	const double pivot_target = acos(curr_cmd.lin[0]/arm_length_) * ((curr_cmd.up_or_down) ? 1 : -1);
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
