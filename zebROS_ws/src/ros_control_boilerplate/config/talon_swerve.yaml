@@ -101,6 +101,7 @@ swerve_drive_controller:
     # fix me
     wheel_radius: 0.041275 # m
     max_speed: 3.3528
+    max_accel: 1.75
     mass: 70
     motor_free_speed: 5330
     motor_stall_torque: 2.41

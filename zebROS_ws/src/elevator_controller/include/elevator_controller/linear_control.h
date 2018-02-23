@@ -135,6 +135,8 @@ class ElevatorController
 
 		std::shared_ptr<arm_limiting::arm_limits> arm_limiter_;
 
+		bool getFirstString(XmlRpc::XmlRpcValue value, std::string &str);
+
 		//TODO: add odometry		
 		//void compOdometry(const ros::Time& time, const double inv_delta_t);
 		//Something for getting the soft limit bounding boxes

@@ -33,7 +33,7 @@
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller lift_follower1_controller lift_follower2_controller intake_follower1_controller intake_up_controller shift_controller clamp_controller intake_spring_soft_controller intake_spring_hard_controller end_game_deploy_controller imu_sensor_controller navx_controller robot_code_ready_controller"/>
+			output="screen" args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller intake_up_controller shift_controller clamp_controller intake_spring_soft_controller intake_spring_hard_controller end_game_deploy_controller imu_sensor_controller navx_controller robot_code_ready_controller compressor_controller"/>
 
         <!-- launch joystick subscriber-->
 		<node name="joystickSubscriber" pkg="teleop_joystick_control" type="joystickSubscriber"
@@ -45,10 +45,11 @@
 		</node>
         	<node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="screen" >
         	</node>
-        	<node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="screen" >
-        	</node>
         	<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="screen" >
         	</node>
+        	<node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="screen" >
+        	</node>
+
 
 		<!-- Convert joint states to /tf tranforms -->
 		<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>

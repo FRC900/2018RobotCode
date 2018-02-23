@@ -105,8 +105,8 @@ namespace talon_diff_drive_controller{
     bool open_loop_;
 
     /// Hardware handles:
-    std::vector<talon_controllers::TalonVelocityCloseLoopControllerInterface> left_wheel_joints_;
-    std::vector<talon_controllers::TalonVelocityCloseLoopControllerInterface> right_wheel_joints_;
+    talon_controllers::TalonVelocityCloseLoopControllerInterface left_wheel_joints_;
+    talon_controllers::TalonVelocityCloseLoopControllerInterface right_wheel_joints_;
 
     /// Velocity command related:
     struct Commands
@@ -153,9 +153,6 @@ namespace talon_diff_drive_controller{
 
     /// Whether to publish odometry to tf or not:
     bool enable_odom_tf_;
-
-    /// Number of wheel joints:
-    size_t wheel_joints_size_;
 
     /// Speed limiters:
     Commands last1_cmd_;

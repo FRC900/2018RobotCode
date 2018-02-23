@@ -28,8 +28,9 @@
     </include>
   </group>
 	-->
+	<!-- everything in record_slave is now in record_master, so this doesn't matter
   <include file="$(find controller_node)/launch/record_slave.launch" if="$(arg record)"/>
-  
+  -->
 	<!-- 
 		Transform: x y z yaw pitch roll
 		Need 1 transform for each sensor source mapping

@@ -1,0 +1,9 @@
+talon_swerve_drive_controller/Coefs[] orient_coefs
+talon_swerve_drive_controller/Coefs[] x_coefs
+talon_swerve_drive_controller/Coefs[] y_coefs
+float64[] end_points
+float64 initial_v
+float64 final_v
+---
+talon_swerve_drive_controller/SwervePoint[] points 
+float64 dt

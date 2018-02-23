@@ -181,9 +181,9 @@ class TalonSwerveDriveController
 	
 		realtime_tools::RealtimeBuffer<bool> run_;
 
-		hardware_interface::TalonMode motion_profile = hardware_interface::TalonMode::TalonMode_MotionMagic;
+		hardware_interface::TalonMode motion_profile = hardware_interface::TalonMode::TalonMode_MotionProfile;
 		hardware_interface::TalonMode velocity_mode = hardware_interface::TalonMode::TalonMode_Velocity;
-        	hardware_interface::TalonMode position_mode = hardware_interface::TalonMode::TalonMode_Position;
+        	hardware_interface::TalonMode position_mode = hardware_interface::TalonMode::TalonMode_MotionMagic;
 
 		/// Publish executed commands
 		//boost::shared_ptr<realtime_tools::RealtimePublisher<geometry_msgs::TwistStamped> > cmd_vel_pub_;

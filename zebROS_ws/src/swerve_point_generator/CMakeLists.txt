@@ -19,6 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   trajectory_msgs
   talon_swerve_drive_controller
+  base_trajectory
+
 )
 find_package(Eigen REQUIRED)
 
@@ -62,11 +64,7 @@ ${EIGEN3_INCLUDE_DIRS}
 
 
 
-
-
-
-
-add_executable(point_gen src/point_gen.cpp)
+add_executable(point_gen src/point_gen.cpp src/profiler.cpp)
 set_target_properties(point_gen PROPERTIES OUTPUT_NAME 
 point_gen PREFIX "")
 target_link_libraries(point_gen

@@ -21,5 +21,79 @@
   <node name="zms_writer_node" pkg="zms_writer" type="zms_writer_node" respawn="true">
   	<param name="down_sample" value="$(arg down_sample)" />
   </node>
+
+  <node name="rosbag_record_node" pkg="rosbag" type="record"
+	  args="record -o /mnt/900_2 --lz4 --buffsize=0
+			/frcrobot/AutoServer/cancel
+			/frcrobot/AutoServer/feedback
+			/frcrobot/AutoServer/goal
+			/frcrobot/AutoServer/result
+			/frcrobot/AutoServer/status
+			/frcrobot/Autonomous_Mode
+			/frcrobot/auto_interpreter_server/cancel
+			/frcrobot/auto_interpreter_server/feedback
+			/frcrobot/auto_interpreter_server/goal
+			/frcrobot/auto_interpreter_server/result
+			/frcrobot/auto_interpreter_server/status
+			/frcrobot/clamp_controller/command
+			/frcrobot/cmd_pos
+			/frcrobot/compressor_controller/command
+			/frcrobot/disable
+			/frcrobot/elevator_controller/clamp
+			/frcrobot/elevator_controller/cmd_pos
+			/frcrobot/elevator_controller/cube_state
+			/frcrobot/elevator_controller/intake_joint/parameter_descriptions
+			/frcrobot/elevator_controller/intake_joint/parameter_updates
+			/frcrobot/elevator_controller/lift_joint/parameter_descriptions
+			/frcrobot/elevator_controller/lift_joint/parameter_updates
+			/frcrobot/elevator_controller/odom
+			/frcrobot/elevator_controller/pivot_joint/parameter_descriptions
+/frcrobot/elevator_controller/pivot_joint/parameter_updates
+/frcrobot/elevator_controller/return_cmd_pos
+/frcrobot/end_game_deploy_controller/command
+/frcrobot/intake_follower1_controller/parameter_descriptions
+/frcrobot/intake_follower1_controller/parameter_updates
+/frcrobot/intake_spring_hard_controller/command
+/frcrobot/intake_spring_soft_controller/command
+/frcrobot/intake_up_controller/command
+/frcrobot/joint_states
+/frcrobot/joystick_states
+/frcrobot/lift_follower1_controller/parameter_descriptions
+/frcrobot/lift_follower1_controller/parameter_updates
+/frcrobot/lift_follower2_controller/parameter_descriptions
+/frcrobot/lift_follower2_controller/parameter_updates
+/frcrobot/match_data
+/frcrobot/navx_controller/command
+/frcrobot/navx_mxp
+/frcrobot/odom
+/frcrobot/pdp_states
+/frcrobot/rumble_controller/command
+/frcrobot/scaled_joystick_vals
+/frcrobot/shift_controller/command
+/frcrobot/swerve_drive_controller/cmd_vel
+/frcrobot/swerve_drive_controller/odom
+/frcrobot/swerve_drive_controller/speed_joint_bl/parameter_descriptions
+/frcrobot/swerve_drive_controller/speed_joint_bl/parameter_updates
+/frcrobot/swerve_drive_controller/speed_joint_br/parameter_descriptions
+/frcrobot/swerve_drive_controller/speed_joint_br/parameter_updates
+/frcrobot/swerve_drive_controller/speed_joint_fl/parameter_descriptions
+/frcrobot/swerve_drive_controller/speed_joint_fl/parameter_updates
+/frcrobot/swerve_drive_controller/speed_joint_fr/parameter_descriptions
+/frcrobot/swerve_drive_controller/speed_joint_fr/parameter_updates
+/frcrobot/swerve_drive_controller/steering_joint_bl/parameter_descriptions
+/frcrobot/swerve_drive_controller/steering_joint_bl/parameter_updates
+/frcrobot/swerve_drive_controller/steering_joint_br/parameter_descriptions
+/frcrobot/swerve_drive_controller/steering_joint_br/parameter_updates
+/frcrobot/swerve_drive_controller/steering_joint_fl/parameter_descriptions
+/frcrobot/swerve_drive_controller/steering_joint_fl/parameter_updates
+/frcrobot/swerve_drive_controller/steering_joint_fr/parameter_descriptions
+/frcrobot/swerve_drive_controller/steering_joint_fr/parameter_updates
+/frcrobot/talon_states
+/frcrobot/total_current
+/rosout
+/rosout_agg
+/tf
+/tf_static
+"/>
 	
 </launch>

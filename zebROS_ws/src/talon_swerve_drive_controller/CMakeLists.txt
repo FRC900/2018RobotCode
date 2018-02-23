@@ -22,7 +22,7 @@ find_package(Eigen REQUIRED)
 add_message_files (
   FILES
   SwervePoint.msg
-
+  Coefs.msg
 )
 
 add_service_files (
@@ -30,7 +30,10 @@ add_service_files (
   MotionProfile.srv
   MotionProfilePoints.srv
   FullGen.srv
+  FullGenCoefs.srv
   GenerateTrajectory.srv
+  GenerateSwerveProfile.srv
+
 )
 generate_messages(
   DEPENDENCIES
