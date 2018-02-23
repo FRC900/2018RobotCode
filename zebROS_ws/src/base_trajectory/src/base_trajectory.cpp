@@ -365,7 +365,7 @@ int main(int argc, char **argv)
 
 	//TODO: make below read from config file or something
 
-	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(.425, 2.6, 3.8, 6.0, 7.0, 1/loop_hz);
+	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(.425, 2.6, 3.8, 6.0, 7.0, 1/loop_hz, .5);
 
 	ros::ServiceServer service = nh.advertiseService("/base_trajectory/command", generate);
 

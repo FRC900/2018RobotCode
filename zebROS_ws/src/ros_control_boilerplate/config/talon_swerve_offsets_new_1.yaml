@@ -1,10 +1,10 @@
-#For 2018 comp bot
+#For 2018 prac bot
 swerve_drive_controller:
     steering_joint_fl: 
-        offset: 1.507903
+        offset: 2.034056807
     steering_joint_fr: 
-        offset: 8.887884685
+        offset: 8.762090859
     steering_joint_bl: 
-        offset: -4.703185095657
+        offset: -6.412034277
     steering_joint_br: 
-        offset: -8.6869332
+        offset: -3.828812812

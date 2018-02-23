@@ -38,7 +38,7 @@ hardware_interface:
 # to figure out what to map e.g. effort to in the Talon world
 talon_state_controller:
    type:         talon_state_controller/TalonStateController
-   publish_rate: 50
+   publish_rate: 25
 
 # Similar to above, but this one prints non-Talon state
 # (stuff that fits into the more standard ROS position/
@@ -117,16 +117,20 @@ bl_angle_controller:
 bl_drive_controller:
     type: talon_controllers/TalonPercentOutputController
     joint: bl_drive
+    feedback_type: CTRE_MagEncoder_Relative
 
 br_drive_controller:
     type: talon_controllers/TalonPercentOutputController
     joint: br_drive
+    feedback_type: CTRE_MagEncoder_Relative
 
 fl_drive_controller:
     type: talon_controllers/TalonPercentOutputController
     joint: fl_drive
+    feedback_type: CTRE_MagEncoder_Relative
 
 fr_drive_controller:
     type: talon_controllers/TalonPercentOutputController
     joint: fr_drive
+    feedback_type: CTRE_MagEncoder_Relative
 
