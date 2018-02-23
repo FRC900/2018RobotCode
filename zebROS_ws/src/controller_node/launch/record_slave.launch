@@ -10,7 +10,7 @@
   * Actually everything, right now. TODO: Fix that
   -->
   <node name="rosbag_record_node" pkg="rosbag" type="record"
-  	args="record -o /home/ubuntu/rosbag_stuff/ --lz4 --buffsize=0
+	  args="record -o /mnt/900_2 --lz4 --buffsize=0
 			/frcrobot/AutoServer/cancel
 			/frcrobot/AutoServer/feedback
 			/frcrobot/AutoServer/goal

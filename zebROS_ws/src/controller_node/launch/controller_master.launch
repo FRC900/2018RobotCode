@@ -47,6 +47,24 @@
   	<param name="sub_rate" value="$(arg sub_rate)" />
   	<param name="pub_rate" value="$(arg pub_rate)" />
   </node>
+
+	<!--stuff added from record_slave-->
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_zed_fuel_center" args="0.297688 0.0079375 0.1749425 0 0 0 base_link $zed_fuel_center" />
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_navx" args="-0.2914015 -0.072263 0.0244348 0 0 0 base_link navx" />
+
+  <include file="$(find controller_node)/launch/fuse_odom.launch"/>
+
+  <include file="$(find rplidar_ros)/launch/rplidar.launch" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4175125 -0.3184779 0.22178 3.14159265 0 0 base_link laser" />
+
+  <include file="$(find controller_node)/launch/gmapping.launch"/>
+
+  <remap from="/cmd_vel" to="frcrobot/swerve_drive_controller/cmd_vel"/>
+  <include file="$(find controller_node)/launch/move_base.launch"/>
+
+	<!-- end stuff added from record_slave -->
 	<!--
   <node name="navx_publisher_node" pkg="navx_publisher" type="navx_publisher_node" respawn="true" /> -->
   <include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)">
