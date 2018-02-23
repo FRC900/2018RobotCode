@@ -176,6 +176,7 @@ int main(int argc, char **argv)
         bool lookup_wheel2y = !controller_nh.getParam("wheel_coords2y", wheel_coords[1][1]);
         bool lookup_wheel3y = !controller_nh.getParam("wheel_coords3y", wheel_coords[2][1]);
         bool lookup_wheel4y = !controller_nh.getParam("wheel_coords4y", wheel_coords[3][1]);	
+
 	
 	//ROS_WARN("point_init");
 	//ROS_INFO_STREAM("model max speed: " << model.maxSpeed << " radius: " << model.wheelRadius);
@@ -202,7 +203,7 @@ int main(int argc, char **argv)
 
 	swerve_math = std::make_shared<swerve>(wheel_coords, offsets, invert_wheel_angle, drive_ratios, units, model);
 	defined_dt = .02;
-	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(sqrt(wheel_coords[0][0]*wheel_coords[0][0] + wheel_coords[0][1]*wheel_coords[0][1]), max_accel, model.maxSpeed, 1, 1, defined_dt, .78); //Fix last val
+	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(sqrt(wheel_coords[0][0]*wheel_coords[0][0] + wheel_coords[0][1]*wheel_coords[0][1]), max_accel, model.maxSpeed, 1, 1, defined_dt, ang_accel_conv); //Fix last val
 	//Something to get intial wheel position
 	
 	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/visualize_profile");
