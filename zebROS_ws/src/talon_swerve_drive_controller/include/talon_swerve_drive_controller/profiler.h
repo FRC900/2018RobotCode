@@ -1,6 +1,6 @@
 #pragma once
 
-#include <base_trajectory/GenerateSwerveProfile.h>
+#include <talon_swerve_drive_controller/GenerateSwerveProfile.h>
 #include <cmath>
 #include <Eigen/Dense>
 #include <vector>

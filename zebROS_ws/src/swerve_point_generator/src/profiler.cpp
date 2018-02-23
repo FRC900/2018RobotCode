@@ -17,7 +17,7 @@ double max_steering_accel, double max_steering_vel, double dt, double ang_accel_
 }
 //TODO :: path should be const vect & to avoid a redundant copy
 // being made each time the function is called
-bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double &initial_v, const double &final_v, base_trajectory::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points)
+bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double &initial_v, const double &final_v, talon_swerve_drive_controller::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points)
 {
 	tk::spline spline;
 	double total_arc;
