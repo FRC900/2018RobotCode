@@ -530,7 +530,7 @@ class TalonControllerInterface
 {
 	public:
 		TalonControllerInterface(void) :
-			srv_(nullptr),
+			srv_(nullptr), 
 			srv_mutex_(std::make_shared<boost::recursive_mutex>())
 		{
 		}
@@ -578,6 +578,7 @@ class TalonControllerInterface
 		// values using this method at any time
 		virtual bool writeParamsToHW(const TalonCIParams &params)
 		{
+			ROS_INFO("writeParamsToHW start");
 			// perform additional hardware init here
 			// but don't set mode - either force the caller to
 			// set it or use one of the derived, fixed-mode
@@ -638,6 +639,7 @@ class TalonControllerInterface
 			// so they can be queried later?
 			params_ = params;
 
+			ROS_INFO("writeParamsToHW end");
 			return true;
 		}
 
@@ -670,14 +672,16 @@ class TalonControllerInterface
 		// them
 		virtual bool initWithNode(hardware_interface::TalonCommandInterface *tci,
 								  hardware_interface::TalonStateInterface * /*tsi*/,
-								  ros::NodeHandle &n)
+								  ros::NodeHandle &n,
+								  bool dynamic_reconfigure = false)
 		{
-			// Read params from startup and intialize
-			// Talon using them
+			ROS_WARN("initWithNode start");
+			// Read params from startup and intialize Talon using them
 			TalonCIParams params;
 			bool result = readParams(n, params) && initWithParams(tci, params);
 
-			if (result)
+			ROS_WARN("initWithNode past initWithParams");
+			if (result && dynamic_reconfigure)
 			{
 				// Create dynamic_reconfigure Server. Pass in n
 				// so that all the vars for the class are grouped
@@ -686,16 +690,19 @@ class TalonControllerInterface
 				// their own namespace.
 				srv_ = std::make_shared<dynamic_reconfigure::Server<talon_controllers::TalonConfigConfig>>(*srv_mutex_, n);
 
+				ROS_WARN("initWithNode updateConfig");
 				// Without this, the first call to callback()
 				// will overwrite anything passed in from the
 				// launch file
 				srv_->updateConfig(params_.toConfig());
 
+				ROS_WARN("initWithNode setCallback");
 				// Register a callback function which is run each
 				// time parameters are changed using
 				// rqt_reconfigure or the like
 				srv_->setCallback(boost::bind(&TalonControllerInterface::callback, this, _1, _2));
 			}
+			ROS_WARN("initWithNode returning");
 
 			return result;
 		}
@@ -792,6 +799,46 @@ class TalonControllerInterface
 			syncDynamicReconfigure();
 
 			talon_->setCurrentLimitEnable(params_.current_limit_enable_);
+		}
+
+		virtual void setForwardSoftLimitThreshold(double threshold)
+		{
+			if (threshold == params_.softlimit_forward_threshold_)
+				return;
+			params_.softlimit_forward_threshold_= threshold;
+
+			syncDynamicReconfigure();
+			talon_->setForwardSoftLimitThreshold(threshold);
+		}
+
+		virtual void setForwardSoftLimitEnable(bool enable)
+		{
+			if (enable == params_.softlimit_forward_enable_)
+				return;
+			params_.softlimit_forward_enable_= enable;
+
+			syncDynamicReconfigure();
+			talon_->setForwardSoftLimitEnable(enable);
+		}
+
+		virtual void setReverseSoftLimitThreshold(double threshold)
+		{
+			if (threshold == params_.softlimit_forward_threshold_)
+				return;
+			params_.softlimit_forward_threshold_= threshold;
+
+			syncDynamicReconfigure();
+			talon_->setReverseSoftLimitThreshold(threshold);
+		}
+
+		virtual void setReverseSoftLimitEnable(bool enable)
+		{
+			if (enable== params_.softlimit_forward_enable_)
+				return;
+			params_.softlimit_forward_enable_= enable;
+
+			syncDynamicReconfigure();
+			talon_->setReverseSoftLimitEnable(enable);
 		}
 		virtual void setSelectedSensorPosition(double position)
 		{
@@ -951,7 +998,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			talon_->setMode(hardware_interface::TalonMode_Follower);
 			talon_->set(follow_can_id);
 
-			std::cout << "Launching follower Talon SRX " << params_.joint_name_ << " to follow CAN ID " << follow_can_id << std::endl;
+			ROS_INFO_STREAM("Launching follower Talon SRX " << params_.joint_name_ << " to follow CAN ID " << follow_can_id);
 			return true;
 		}
 		// Maybe disable the setPIDFSlot call since that makes

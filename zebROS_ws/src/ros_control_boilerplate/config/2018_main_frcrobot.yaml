@@ -125,12 +125,7 @@ pdp_state_controller:
    type:         pdp_state_controller/PDPStateController
    publish_rate: 50
 
-
 compressor_controller:
    type: position_controllers/JointPositionController
    joint: compressor1
-
-
-
-
 
