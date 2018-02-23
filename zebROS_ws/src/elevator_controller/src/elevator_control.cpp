@@ -35,6 +35,39 @@ ElevatorController::ElevatorController():
 {
 }
 
+bool ElevatorController::getFirstString(XmlRpc::XmlRpcValue value, std::string &str)
+{
+	if (value.getType() == XmlRpc::XmlRpcValue::TypeArray)
+	{
+		if (value.size() == 0)
+		{
+			ROS_ERROR_STREAM_NAMED(name_,
+					"Joint param is an empty list");
+			return false;
+		}
+
+		if (value[0].getType() != XmlRpc::XmlRpcValue::TypeString)
+		{
+			ROS_ERROR_STREAM_NAMED(name_,
+					"Joint param #0 isn't a string.");
+			return false;
+		}
+		str = static_cast<std::string>(value[0]);
+	}
+	else if (value.getType() == XmlRpc::XmlRpcValue::TypeString)
+	{
+		str = static_cast<std::string>(value);
+	}
+	else
+	{
+		ROS_ERROR_STREAM_NAMED(name_,
+				"Joint param is neither a list of strings nor a string.");
+		return false;
+	}
+
+	return true;
+}
+
 bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
                 			  ros::NodeHandle &/*root_nh*/,
              	              ros::NodeHandle &controller_nh)
@@ -43,28 +76,24 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	std::size_t id = complete_ns.find_last_of("/");
 	name_ = complete_ns.substr(id + 1);
 
-	std::string lift_name;
-	std::string pivot_name;
-	std::string intake_name;
-	if (!controller_nh.getParam("lift", lift_name))
+	XmlRpc::XmlRpcValue lift_params;
+	if (!controller_nh.getParam("lift", lift_params))
 	{
-		ROS_ERROR_NAMED(name_, "Can not read lift name");
+		ROS_ERROR_NAMED(name_, "Can not read lift name(s)");
 		return false;
 	}
-	if (!controller_nh.getParam("intake", intake_name))
+	XmlRpc::XmlRpcValue intake_params;
+	if (!controller_nh.getParam("intake", intake_params))
 	{
-		ROS_ERROR_NAMED(name_, "Can not read intake name");
+		ROS_ERROR_NAMED(name_, "Can not read intake name(s)");
 		return false;
 	}
-	if (!controller_nh.getParam("pivot", pivot_name))
+	XmlRpc::XmlRpcValue pivot_params;
+	if (!controller_nh.getParam("pivot", pivot_params))
 	{
-		ROS_ERROR_NAMED(name_, "Can not read pivot name");
+		ROS_ERROR_NAMED(name_, "Can not read pivot name(s)");
 		return false;
 	}
-	ROS_INFO_STREAM_NAMED(name_,
-			"Adding pivot with joint name: "   << pivot_name
-			<< " and lift with joint name: "   << lift_name
-			<< " and intake with joint name: " << intake_name);
 
 	if (!controller_nh.getParam("arm_length", arm_length_))
 	{
@@ -77,42 +106,40 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		return false;
 	}
 
-	ros::NodeHandle lnh(controller_nh, lift_name);
+	std::string node_name;
+	//Offset for lift should be lift sensor pos when all the way down + height of carriage pivot point
+	//when all the way down
 	lift_offset_ = 0;
-	if (!lnh.getParam("offset", lift_offset_))
+	if (getFirstString(lift_params, node_name) &&
+	   !ros::NodeHandle(controller_nh, node_name).getParam("offset", lift_offset_))
 	{
-		ROS_ERROR_STREAM("Can not read offset for " << lift_name);
-		return false;
-	}
-
-	ros::NodeHandle pnh(controller_nh, pivot_name);
-	pivot_offset_ = 0;
-	if (!pnh.getParam("offset", pivot_offset_))
-	{
-		ROS_ERROR_STREAM("Can not read offset for " << pivot_name);
+		ROS_ERROR_STREAM("Can not read offset for lift " << node_name);
 		return false;
 	}
 
 	//Offset for arm should be the angle at arm all the way up, faces flush, - pi / 2
-	//Offset for lift should be lift sensor pos when all the way down + height of carriage pivot point
-	//when all the way down
+	pivot_offset_ = 0;
+	if (getFirstString(pivot_params, node_name) &&
+	   !ros::NodeHandle(controller_nh, node_name).getParam("offset", pivot_offset_))
+	{
+		ROS_ERROR_STREAM("Can not read offset for pivot " << node_name);
+		return false;
+	}
 
-	ros::NodeHandle l_nh(controller_nh, pivot_name);
-	if (!pivot_joint_.initWithNode(hw, nullptr, l_nh))
+	if (!pivot_joint_.initWithNode(hw, nullptr, controller_nh, pivot_params))
 	{
-		ROS_ERROR_STREAM("Can not initialize pivot joint " << pivot_name);
+		ROS_ERROR("Can not initialize pivot joint(s)");
 		return false;
 	}
-	ros::NodeHandle p_nh(controller_nh, lift_name);
-	if (!lift_joint_.initWithNode(hw, nullptr, p_nh))
+
+	if (!lift_joint_.initWithNode(hw, nullptr, controller_nh, lift_params))
 	{
-		ROS_ERROR_STREAM("Can not initialize lift joint " << lift_name);
+		ROS_ERROR("Can not initialize lift joint(s)");
 		return false;
 	}
-	ros::NodeHandle i_nh(controller_nh, intake_name);
-	if (!intake_joint_.initWithNode(hw, nullptr, i_nh))
+	if (!intake_joint_.initWithNode(hw, nullptr, controller_nh, intake_params))
 	{
-		ROS_ERROR_STREAM("Can not initialize intake joint " << intake_name);
+		ROS_ERROR("Can not initialize intake joint(s)");
 		return false;
 	}
 

@@ -1,7 +1,7 @@
 elevator_controller:
-    type:       elevator_controller/ElevatorController
-    lift: "lift_joint"
-    intake: "intake_joint"
+    type:  elevator_controller/ElevatorController
+    lift: ["lift_joint", "lift_follower1_joint", "lift_follower2_joint"]
+    intake: ["intake_joint", "intake_follower_joint"]
     pivot: "pivot_joint"
     arm_length: 0.4689729 
     max_extension: 2.375 #3.628571429 #29619 
@@ -10,7 +10,6 @@ elevator_controller:
    
     after_shift_max_accel: 2 #fix
     after_shift_max_vel: .5 #fix
-
  
     hook_depth: 0.314706  #FIX
     hook_min_height: 1.41 #FIX
@@ -28,6 +27,11 @@ elevator_controller:
         conversion_factor: 0.022733
         motion_cruise_velocity: 2
         motion_acceleration: 5
+    lift_follower1_joint:
+        joint: lift_follower1
+    lift_follower2_joint:
+        joint: lift_follower2
+
     pivot_joint:
         joint: pivot
         close_loop_values:
@@ -39,14 +43,14 @@ elevator_controller:
         conversion_factor: 1 #FIX
         motion_cruise_velocity: 10
         motion_acceleration: 20
+
     intake_joint:
         joint: intake
         invert_output: False
         sensor_phase: False
-
-
+    intake_follower_joint:
+        joint: intake_follower1
+        invert_output: True
 
 #hypothetically might have inverts
-
-
 

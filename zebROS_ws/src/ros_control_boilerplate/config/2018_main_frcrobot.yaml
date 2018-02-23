@@ -69,26 +69,6 @@ joint_state_controller:
    type:         joint_state_controller/JointStateController
    publish_rate: 50
 
-lift_follower1_controller:
-    type: talon_controllers/TalonFollowerController
-    joint: lift_follower1
-    follow_joint: lift
-
-#hypothetically might have inverts
-
-lift_follower2_controller:
-    type: talon_controllers/TalonFollowerController
-    joint: lift_follower2
-    follow_joint: lift
-
-#hypothetically might have inverts
-
-intake_follower1_controller:
-    type: talon_controllers/TalonFollowerController
-    joint: intake_follower1
-    follow_joint: intake
-    invert_output: True #opposite of intake
-
 intake_up_controller:
     type: position_controllers/JointPositionController
     joint: intake_up

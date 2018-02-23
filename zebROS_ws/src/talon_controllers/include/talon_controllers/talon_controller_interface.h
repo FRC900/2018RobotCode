@@ -2,6 +2,7 @@
 #include <dynamic_reconfigure/server.h>
 #include <talon_interface/talon_command_interface.h>
 #include <talon_controllers/TalonConfigConfig.h>
+#include <XmlRpcValue.h>
 
 namespace talon_controllers
 {
@@ -573,10 +574,11 @@ class TalonControllerInterface
 		// talon and the rest are set in follower mode to follow
 		// the leader
 		virtual bool initWithNode(hardware_interface::TalonCommandInterface *tci,
+								  hardware_interface::TalonStateInterface *tsi,
 								  std::vector<ros::NodeHandle> &n,
 								  bool dynamic_reconfigure = false)
 		{
-			if (!initWithNode(tci, nullptr, n[0], dynamic_reconfigure))
+			if (!initWithNode(tci, tsi, n[0], dynamic_reconfigure))
 				return false;
 
 			const int follow_can_id = talon_.state()->getCANID();
@@ -586,15 +588,61 @@ class TalonControllerInterface
 			{
 				follower_srv_mutexes_.push_back(nullptr);
 				follower_srvs_.push_back(nullptr);
-				if (init(tci, n[i], follower_talons_[i-1], follower_srv_mutexes_[i-1], follower_srvs_[i-1], false, dynamic_reconfigure))
+				if (!init(tci, n[i], follower_talons_[i-1], follower_srv_mutexes_[i-1], follower_srvs_[i-1], false, dynamic_reconfigure))
 					return false;
 				follower_talons_[i-1]->setMode(hardware_interface::TalonMode_Follower);
 				follower_talons_[i-1]->set(follow_can_id);
+				ROS_INFO_STREAM("Set up talon " << follower_talons_[i-1].getName() << " to follow CAN ID " << follow_can_id << " (" << talon_.getName() << ")");
 			}
 
 			return true;
 		}
 
+		// Init with XmlRpcValue instead of NodeHandle - XmlRpcValue
+		// will be either a string or an array of strings of joints
+		// to load
+		virtual bool initWithNode(hardware_interface::TalonCommandInterface *tci,
+								  hardware_interface::TalonStateInterface *tsi,
+								  ros::NodeHandle &controller_nh,
+								  XmlRpc::XmlRpcValue param,
+								  bool dynamic_reconfigure = false)
+		{
+			std::vector<ros::NodeHandle> joint_nodes;
+
+			if (param.getType() == XmlRpc::XmlRpcValue::TypeArray)
+			{
+				if (param.size() == 0)
+				{
+					ROS_ERROR_STREAM("Joint param is an empty list");
+					return false;
+				}
+
+				for (int i = 0; i < param.size(); ++i)
+				{
+					if (param[i].getType() != XmlRpc::XmlRpcValue::TypeString)
+					{
+						ROS_ERROR_STREAM("Joint param #" << i << " isn't a string.");
+						return false;
+					}
+				}
+
+				for (int i = 0; i < param.size(); ++i)
+					joint_nodes.push_back(ros::NodeHandle(controller_nh,
+								static_cast<std::string>(param[i])));
+			}
+			else if (param.getType() == XmlRpc::XmlRpcValue::TypeString)
+			{
+				joint_nodes.push_back(ros::NodeHandle(controller_nh,
+							static_cast<std::string>(param)));
+			}
+			else
+			{
+				ROS_ERROR_STREAM("Joint param is neither a list of strings nor a string.");
+				return false;
+			}
+
+			return initWithNode(tci, tsi, joint_nodes, dynamic_reconfigure);
+		}
 
 #if 0
 		// Allow users of the ControllerInterface to get
@@ -930,7 +978,7 @@ class TalonControllerInterface
 		// mode for FixedMode derived classes
 		virtual bool setInitialMode(void)
 		{
-			ROS_WARN("Base class setInitialMode");
+			ROS_INFO_STREAM("Talon " << talon_.getName() << " Base class setInitialMode");
 			return true;
 		}
 
@@ -1017,7 +1065,7 @@ class TalonPercentOutputControllerInterface : public TalonFixedModeControllerInt
 			// class is derived from the FixedMode class
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_PercentOutput);
-			ROS_INFO("Set up talon in Percent Output mode");
+			ROS_INFO_STREAM("Set up talon " << talon_.getName() << " in Percent Output mode");
 			return true;
 		}
 		// Maybe disable the setPIDFSlot call since that makes
@@ -1063,7 +1111,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			talon_->setMode(hardware_interface::TalonMode_Follower);
 			talon_->set(follow_can_id);
 
-			ROS_INFO_STREAM("Launching follower Talon SRX " << params_.joint_name_ << " to follow CAN ID " << follow_can_id);
+			ROS_INFO_STREAM("Launching follower " << params_.joint_name_ << " to follow CAN ID " << follow_can_id << " (" << follow_handle.getName() << ")");
 			return true;
 		}
 		// Maybe disable the setPIDFSlot call since that makes
@@ -1097,7 +1145,7 @@ class TalonPositionCloseLoopControllerInterface : public TalonCloseLoopControlle
 			//      at that point my hope is to have named PID configs rather than numbers
 			//      and then add initial PID mode as one of the yaml params
 			setPIDFSlot(1); // pick a default?
-			ROS_INFO("Set up talon in Close Loop Position mode");
+			ROS_INFO_STREAM("Set up talon " << talon_.getName() << " in Close Loop Position mode");
 
 			return true;
 		}
@@ -1111,7 +1159,7 @@ class TalonVelocityCloseLoopControllerInterface : public TalonCloseLoopControlle
 			// Set to speed close loop mode
 			talon_->setMode(hardware_interface::TalonMode_Velocity);
 			setPIDFSlot(0); // pick a default?
-			ROS_INFO("Set up talon in Close Loop Velocity mode");
+			ROS_INFO_STREAM("Set up talon " << talon_.getName() << " in Close Loop Velocity mode");
 
 			return true;
 		}
@@ -1125,7 +1173,7 @@ class TalonCurrentControllerCloseLoopInterface : public TalonCloseLoopController
 			// Set to current close loop mode
 			talon_->setMode(hardware_interface::TalonMode_Current);
 			setPIDFSlot(0); // pick a default?
-			ROS_INFO("Set up talon in Close Loop Current mode");
+			ROS_INFO_STREAM("Set up talon " << talon_.getName() << " in Close Loop Current mode");
 			return true;
 		}
 };
@@ -1139,7 +1187,7 @@ class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInt
 			// class is derived from the FixedMode class
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_MotionProfile);
-			ROS_INFO("Set up talon in MotionProfile mode");
+			ROS_INFO_STREAM("Set up talon " << talon_.getName() << " in MotionProfile mode");
 			return true;
 		}
 };
@@ -1158,7 +1206,7 @@ class TalonMotionMagicCloseLoopControllerInterface : public TalonCloseLoopContro
 			// class is derived from the FixedMode class
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_MotionMagic);
-			ROS_INFO("Set up talon in MotionMagic mode");
+			ROS_INFO_STREAM("Set up talon " << talon_.getName() << " in MotionMagic mode");
 			return true;
 		}
 };

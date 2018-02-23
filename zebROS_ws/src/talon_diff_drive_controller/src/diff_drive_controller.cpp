@@ -161,7 +161,6 @@ namespace talon_diff_drive_controller{
     , base_frame_id_("base_link")
     , odom_frame_id_("odom")
     , enable_odom_tf_(true)
-    , wheel_joints_size_(0)
     , publish_cmd_(false)
   {
   }
@@ -182,6 +181,7 @@ namespace talon_diff_drive_controller{
       return false;
     }
 
+	size_t wheel_joints_size;
     if (left_wheel_names.size() != right_wheel_names.size())
     {
       ROS_ERROR_STREAM_NAMED(name_,
@@ -191,10 +191,7 @@ namespace talon_diff_drive_controller{
     }
     else
     {
-      wheel_joints_size_ = left_wheel_names.size();
-
-      left_wheel_joints_.resize(wheel_joints_size_);
-      right_wheel_joints_.resize(wheel_joints_size_);
+      wheel_joints_size = left_wheel_names.size();
     }
 
     // Odometry related:
@@ -293,17 +290,19 @@ namespace talon_diff_drive_controller{
     }
 
     // Get the joint object to use in the realtime loop
-    for (size_t i = 0; i < wheel_joints_size_; ++i)
+	std::vector<ros::NodeHandle> l_nhs;
+	std::vector<ros::NodeHandle> r_nhs;
+    for (size_t i = 0; i < wheel_joints_size; ++i)
     {
       ROS_INFO_STREAM_NAMED(name_,
                             "Adding left wheel with joint name: " << left_wheel_names[i]
                             << " and right wheel with joint name: " << right_wheel_names[i]);
 
-	  ros::NodeHandle l_nh(controller_nh,left_wheel_names[i]);
-      left_wheel_joints_[i].initWithNode(hw, nullptr, l_nh);
-	  ros::NodeHandle r_nh(controller_nh,right_wheel_names[i]);
-      right_wheel_joints_[i].initWithNode(hw, nullptr, r_nh);
+	  l_nhs.push_back(ros::NodeHandle(controller_nh,left_wheel_names[i]));
+	  r_nhs.push_back(ros::NodeHandle(controller_nh,right_wheel_names[i]));
     }
+      left_wheel_joints_.initWithNode(hw, nullptr, l_nhs);
+      right_wheel_joints_.initWithNode(hw, nullptr, r_nhs);
 
     sub_command_ = controller_nh.subscribe("cmd_vel", 1, &TalonDiffDriveController::cmdVelCallback, this);
 
@@ -319,20 +318,10 @@ namespace talon_diff_drive_controller{
     }
     else
     {
-      double left_pos  = 0.0;
-      double right_pos = 0.0;
-      for (size_t i = 0; i < wheel_joints_size_; ++i)
-      {
-        const double lp = left_wheel_joints_[i].getPosition();
-        const double rp = right_wheel_joints_[i].getPosition();
-        if (std::isnan(lp) || std::isnan(rp))
-          return;
-
-        left_pos  += lp;
-        right_pos += rp;
-      }
-      left_pos  /= wheel_joints_size_;
-      right_pos /= wheel_joints_size_;
+		const double left_pos = left_wheel_joints_.getPosition();
+		const double right_pos = right_wheel_joints_.getPosition();
+		if (std::isnan(left_pos) || std::isnan(right_pos))
+			return;
 
       // Estimate linear and angular velocity using joint information
       odometry_.update(left_pos, right_pos, time);
@@ -408,12 +397,9 @@ namespace talon_diff_drive_controller{
     const double vel_left  = (curr_cmd.lin - curr_cmd.ang * ws / 2.0)/wr;
     const double vel_right = (curr_cmd.lin + curr_cmd.ang * ws / 2.0)/wr;
 
-    // Set wheels velocities:
-    for (size_t i = 0; i < wheel_joints_size_; ++i)
-    {
-      left_wheel_joints_[i].setCommand(vel_left);
-      right_wheel_joints_[i].setCommand(vel_right);
-    }
+	// Set wheels velocities:
+	left_wheel_joints_.setCommand(vel_left);
+	right_wheel_joints_.setCommand(vel_right);
   }
 
   void TalonDiffDriveController::starting(const ros::Time& time)
@@ -434,11 +420,8 @@ namespace talon_diff_drive_controller{
   void TalonDiffDriveController::brake()
   {
     const double vel = 0.0;
-    for (size_t i = 0; i < wheel_joints_size_; ++i)
-    {
-      left_wheel_joints_[i].setCommand(vel);
-      right_wheel_joints_[i].setCommand(vel);
-    }
+      left_wheel_joints_.setCommand(vel);
+      right_wheel_joints_.setCommand(vel);
   }
 
   void TalonDiffDriveController::cmdVelCallback(const geometry_msgs::Twist& command)
