@@ -29,12 +29,12 @@ using namespace message_filters;
 int hLo = 18;
 int sLo = 65;
 int vLo = 180;
-int hUp = 55;
+int hUp = 47;
 
 int maxTrans = 15900;
-int minTrans = 4470;
+int minTrans = 6500;
 
-int pixelError = .01;
+int pixelError = .06;
 
 //orig: 193695.3745 * .2226^x
 
@@ -135,9 +135,9 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 			continue;
 		} else if (areaContour <= (drawing.rows * drawing.cols * pixelError)) {
 			continue;
-		} else if (abs((boundRect[i].height/boundRect[i].width) - 1) > 1.6) {
+		} else if (abs((boundRect[i].height/boundRect[i].width)) > 2) {
 			continue;
-		} else if (abs((boundRect[i].width/boundRect[i].height) - 1) > 1.6) {
+		} else if (abs((boundRect[i].width/boundRect[i].height)) > 2) {
 			continue;
 		} else if (contours_poly[i].size() < 6 || contours_poly[i].size() > 3) {	
 			putText(drawing, to_string(contourDepth[i]), Point(boundRect[i].x, boundRect[i].y 		- 15), FONT_HERSHEY_SIMPLEX, 0.45, (0,0,255), 1);
