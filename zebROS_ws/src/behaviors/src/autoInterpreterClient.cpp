@@ -630,7 +630,7 @@ int main(int argc, char** argv) {
             trajectory.joint_names.push_back("y_linear_joint");
             trajectory.joint_names.push_back("z_rotation_joint");
             const size_t num_joints = trajectory.joint_names.size();
-            trajectory.points.resize(2);
+            trajectory.points.resize(3);
             ROS_WARN("8");
             XmlRpc::XmlRpcValue &timesVect = splines["times"];
             ROS_WARN("8.5");
@@ -656,10 +656,10 @@ int main(int argc, char** argv) {
                     ROS_WARN("Not Double");
                 }   
                 ROS_WARN("9.5");
-                //vectTimes[auto_mode+layout].push_back(static_cast<double>(time_i));
-                vectTimes[auto_mode+layout].push_back(0.0);
+                vectTimes[auto_mode+layout].push_back(static_cast <double> (time_i));
+                //vectTimes[auto_mode+layout].push_back(0.0);
                 ROS_WARN("10");
-                ROS_INFO("time[%d,%d]: %d", auto_mode, i, splines["times"][i]);
+                ROS_INFO("[mode: %d][layout: %d][pos: %d][i: %d]: %lf", auto_mode, layout, startPos, i, vectTimes[auto_mode+layout][i]);
 
                 trajectory.points[i].positions.resize(num_joints);
                 trajectory.points[i].positions[0] =  splines["positionsX"][i];

@@ -418,7 +418,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         sendRobotZero = true;
         if(fabs(vel.linear.x) == 0.0 || fabs(vel.linear.y) == 0.0 || fabs(vel.angular.z) == 0.0) {
             i+=1;
-            if(i>10){
+            if(i>20){
                 sendRobotZero = false;
                 i=0;
             }
