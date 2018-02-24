@@ -539,6 +539,7 @@ void FRCRobotInterface::init()
 	imu_linear_acceleration_covariances_.resize(num_navX_);
 	navX_command_.resize(num_navX_);
 	navX_state_.resize(num_navX_);
+	offset_navX_.resize(num_navX_);
 
 	for (size_t i = 0; i < num_navX_; i++)
 	{

@@ -308,7 +308,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 			shifted_ = false;
 			lift_joint_.setMotionAcceleration(before_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
-			lift_joint_.setPIDFSlot(0.0);
+			lift_joint_.setPIDFSlot(0);
 		}
 	}
 	Commands curr_cmd = *(command_.readFromRT());
@@ -347,10 +347,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	{
 		default:
 			intake_soft_msg.data = 1.0;
-			intake_hard_msg.data = 0.0;
+			intake_hard_msg.data = 1.0;
 			break;
 		case 1:
-			intake_soft_msg.data = 0.0;
+			intake_soft_msg.data = 1.0;
 			intake_hard_msg.data = -1.0;
 			break;
 		case 3:

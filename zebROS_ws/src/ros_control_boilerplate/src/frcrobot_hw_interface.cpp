@@ -361,6 +361,8 @@ void FRCRobotHWInterface::init(void)
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
+	static int loop_counter;
+	static int loop_counter2;
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		auto &ts = talon_state_[joint_id];
@@ -368,9 +370,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 		if (!talon) // skip unintialized Talons
 			continue;
+
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
-
 		const hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
 		const hardware_interface::TalonMode talon_mode = ts.getTalonMode();
 		const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
@@ -388,100 +390,108 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 		ts.setSpeed(speed);
 
-		const double bus_voltage = talon->GetBusVoltage();
-		safeTalonCall(talon->GetLastError(), "GetBusVoltage");
-		ts.setBusVoltage(bus_voltage);
-
-		const double motor_output_percent = talon->GetMotorOutputPercent();
-		safeTalonCall(talon->GetLastError(), "GetMotorOutputPercent");
-		ts.setMotorOutputPercent(motor_output_percent);
-
-		const double output_voltage = talon->GetMotorOutputVoltage();
-		safeTalonCall(talon->GetLastError(), "GetMotorOutputVoltage");
-		ts.setOutputVoltage(output_voltage);
-
 		const double output_current = talon->GetOutputCurrent();
 		safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
 		ts.setOutputCurrent(output_current);
 
-		const double temperature = talon->GetTemperature(); //returns in Celsius
-		safeTalonCall(talon->GetLastError(), "GetTemperature");
-		ts.setTemperature(temperature);
-
-		//closed-loop
-		if ((talon_mode == hardware_interface::TalonMode_Position) ||
-		    (talon_mode == hardware_interface::TalonMode_Velocity) ||
-		    (talon_mode == hardware_interface::TalonMode_Current ) ||
-			(talon_mode == hardware_interface::TalonMode_MotionProfile) ||
-			(talon_mode == hardware_interface::TalonMode_MotionMagic))
+		if (++loop_counter2 == 50)
 		{
-			const double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
-			safeTalonCall(talon->GetLastError(), "GetClosedLoopError");
-			ts.setClosedLoopError(closed_loop_error);
+			loop_counter2 = 0;
 
-			const double integral_accumulator = talon->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
-			safeTalonCall(talon->GetLastError(), "GetIntegralAccumulator");
-			ts.setIntegralAccumulator(integral_accumulator);
+			const double bus_voltage = talon->GetBusVoltage();
+			safeTalonCall(talon->GetLastError(), "GetBusVoltage");
+			ts.setBusVoltage(bus_voltage);
 
-			const double error_derivative = talon->GetErrorDerivative(pidIdx) * closed_loop_scale;
-			safeTalonCall(talon->GetLastError(), "GetErrorDerivative");
-			ts.setErrorDerivative(error_derivative);
+			const double motor_output_percent = talon->GetMotorOutputPercent();
+			safeTalonCall(talon->GetLastError(), "GetMotorOutputPercent");
+			ts.setMotorOutputPercent(motor_output_percent);
 
-			const double closed_loop_target = talon->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
-			safeTalonCall(talon->GetLastError(), "GetClosedLoopTarget");
-			ts.setClosedLoopTarget(closed_loop_target);
+			const double output_voltage = talon->GetMotorOutputVoltage();
+			safeTalonCall(talon->GetLastError(), "GetMotorOutputVoltage");
+			ts.setOutputVoltage(output_voltage);
+
+			const double temperature = talon->GetTemperature(); //returns in Celsius
+			safeTalonCall(talon->GetLastError(), "GetTemperature");
+			ts.setTemperature(temperature);
+
+			//closed-loop
+			if ((talon_mode == hardware_interface::TalonMode_Position) ||
+					(talon_mode == hardware_interface::TalonMode_Velocity) ||
+					(talon_mode == hardware_interface::TalonMode_Current ) ||
+					(talon_mode == hardware_interface::TalonMode_MotionProfile) ||
+					(talon_mode == hardware_interface::TalonMode_MotionMagic))
+			{
+				const double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
+				safeTalonCall(talon->GetLastError(), "GetClosedLoopError");
+				ts.setClosedLoopError(closed_loop_error);
+				const double integral_accumulator = talon->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
+				safeTalonCall(talon->GetLastError(), "GetIntegralAccumulator");
+				ts.setIntegralAccumulator(integral_accumulator);
+
+				const double error_derivative = talon->GetErrorDerivative(pidIdx) * closed_loop_scale;
+				safeTalonCall(talon->GetLastError(), "GetErrorDerivative");
+				ts.setErrorDerivative(error_derivative);
+
+				const double closed_loop_target = talon->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
+				safeTalonCall(talon->GetLastError(), "GetClosedLoopTarget");
+				ts.setClosedLoopTarget(closed_loop_target);
+			}
+
+			if ((talon_mode == hardware_interface::TalonMode_MotionProfile) ||
+					(talon_mode == hardware_interface::TalonMode_MotionMagic))
+			{
+				const double active_trajectory_position = talon->GetActiveTrajectoryPosition() * radians_scale;
+				safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryPosition");
+				ts.setActiveTrajectoryPosition(active_trajectory_position);
+				const double active_trajectory_velocity = talon->GetActiveTrajectoryVelocity() * radians_per_second_scale;
+				safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryVelocity");
+				ts.setActiveTrajectoryVelocity(active_trajectory_velocity);
+				const double active_trajectory_heading = talon->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
+				safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
+				ts.setActiveTrajectoryHeading(active_trajectory_heading);
+				ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
+				safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
+				ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
+				safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
+				ctre::phoenix::motion::MotionProfileStatus talon_status;
+				safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+
+				hardware_interface::MotionProfileStatus internal_status;
+				internal_status.topBufferRem = talon_status.topBufferRem;
+				internal_status.topBufferCnt = talon_status.topBufferCnt;
+				internal_status.btmBufferCnt = talon_status.btmBufferCnt;
+				internal_status.hasUnderrun = talon_status.hasUnderrun;
+				internal_status.isUnderrun = talon_status.isUnderrun;
+				internal_status.activePointValid = talon_status.activePointValid;
+				internal_status.isLast = talon_status.isLast;
+				internal_status.profileSlotSelect0 = talon_status.profileSlotSelect0;
+				internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
+				internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
+				internal_status.timeDurMs = talon_status.timeDurMs;
+
+				ts.setMotionProfileStatus(internal_status);
+			}
+
 		}
-
-		if ((talon_mode == hardware_interface::TalonMode_MotionProfile) ||
-			(talon_mode == hardware_interface::TalonMode_MotionMagic))
+		if (++loop_counter == 50)
 		{
-			const double active_trajectory_position = talon->GetActiveTrajectoryPosition() * radians_scale;
-			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryPosition");
-			ts.setActiveTrajectoryPosition(active_trajectory_position);
-			const double active_trajectory_velocity = talon->GetActiveTrajectoryVelocity() * radians_per_second_scale;
-			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryVelocity");
-			ts.setActiveTrajectoryVelocity(active_trajectory_velocity);
-			const double active_trajectory_heading = talon->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
-			safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
-			ts.setActiveTrajectoryHeading(active_trajectory_heading);
-			ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
-			safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
-			ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
-			safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
-			ctre::phoenix::motion::MotionProfileStatus talon_status;
-			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+			loop_counter = 0;
+			ctre::phoenix::motorcontrol::Faults faults;
+			safeTalonCall(talon->GetFaults(faults), "GetFaults");
+			ts.setFaults(faults.ToBitfield());
 
-			hardware_interface::MotionProfileStatus internal_status;
-			internal_status.topBufferRem = talon_status.topBufferRem;
-			internal_status.topBufferCnt = talon_status.topBufferCnt;
-			internal_status.btmBufferCnt = talon_status.btmBufferCnt;
-			internal_status.hasUnderrun = talon_status.hasUnderrun;
-			internal_status.isUnderrun = talon_status.isUnderrun;
-			internal_status.activePointValid = talon_status.activePointValid;
-			internal_status.isLast = talon_status.isLast;
-			internal_status.profileSlotSelect0 = talon_status.profileSlotSelect0;
-			internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
-			internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
-			internal_status.timeDurMs = talon_status.timeDurMs;
+			// Grab limit switch and softlimit here
+			auto sensor_collection = talon->GetSensorCollection();
+			ts.setForwardLimitSwitch(sensor_collection.IsFwdLimitSwitchClosed());
+			ts.setReverseLimitSwitch(sensor_collection.IsRevLimitSwitchClosed());
 
-			ts.setMotionProfileStatus(internal_status);
+			ts.setForwardSoftlimitHit(faults.ForwardSoftLimit);
+			ts.setReverseSoftlimitHit(faults.ReverseSoftLimit);
+
+			ctre::phoenix::motorcontrol::StickyFaults sticky_faults;
+			safeTalonCall(talon->GetStickyFaults(sticky_faults), "GetStickyFaults");
+			ts.setStickyFaults(sticky_faults.ToBitfield());
 		}
-
-		ctre::phoenix::motorcontrol::Faults faults;
-		safeTalonCall(talon->GetFaults(faults), "GetFaults");
-		ts.setFaults(faults.ToBitfield());
-
-		// Grab limit switch and softlimit here
-		auto sensor_collection = talon->GetSensorCollection();
-		ts.setForwardLimitSwitch(sensor_collection.IsFwdLimitSwitchClosed());
-		ts.setReverseLimitSwitch(sensor_collection.IsRevLimitSwitchClosed());
-
-		ts.setForwardSoftlimitHit(faults.ForwardSoftLimit);
-		ts.setReverseSoftlimitHit(faults.ReverseSoftLimit);
-
-		ctre::phoenix::motorcontrol::StickyFaults sticky_faults;
-		safeTalonCall(talon->GetStickyFaults(sticky_faults), "GetStickyFaults");
-		ts.setStickyFaults(sticky_faults.ToBitfield());
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{

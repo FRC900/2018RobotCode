@@ -94,7 +94,7 @@ class ElevatorController
 			bool override_sensor_limits;			
 			ros::Time stamp;
 
-			Commands() : lin({0.0, 0.0}), up_or_down(true), stamp(0.0) {}
+			Commands() : lin({0.0, 0.0}), up_or_down(true), stamp(0.0), override_pos_limits(false), override_sensor_limits(false) {}
 		};
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
