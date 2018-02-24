@@ -347,10 +347,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	{
 		default:
 			intake_soft_msg.data = 1.0;
-			intake_hard_msg.data = 0.0;
+			intake_hard_msg.data = 1.0;
 			break;
 		case 1:
-			intake_soft_msg.data = 0.0;
+			intake_soft_msg.data = 1.0;
 			intake_hard_msg.data = -1.0;
 			break;
 		case 3:

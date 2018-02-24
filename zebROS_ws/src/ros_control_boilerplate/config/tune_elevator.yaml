@@ -16,6 +16,8 @@ hardware_interface:
        - {name: pivot_joint, type: can_talon_srx, can_id: 51}  
        - {name: lift_follower1, type: can_talon_srx, can_id: 42}
        - {name: lift_follower2, type: can_talon_srx, can_id: 43}
+       - {name: intake, type: can_talon_srx, can_id: 31}
+       - {name: intake_follower1, type: can_talon_srx, can_id: 32}
        #- {name: talon_3, type: can_talon_srx, can_id: 3}
        #- {name: talon_4, type: can_talon_srx, can_id: 4}
        #- {name: talon_5, type: can_talon_srx, can_id: 5}
@@ -63,8 +65,8 @@ pivot_joint_controller:
     close_loop_values:
         - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
         - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
-    invert_output: False
-    sensor_phase: False
+    invert_output: True
+    sensor_phase: True
     peak_output_forward: 1.0
     peak_output_reverse: -1.0
     nominal_output_forward: 0.0
@@ -74,35 +76,45 @@ pivot_joint_controller:
     voltage_compensation_enable: true
     softlimit_forward_threshold: 0
     softlimit_forward_threshold: 1
-lift_joint_controller:
+intake_joint_controller:
     type: talon_controllers/TalonPercentOutputController
+    joint: intake
+lift_joint_controller:
+    type: talon_controllers/TalonMotionMagicCloseLoopController
     joint: lift_joint
     feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
-        - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
-        - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
-    invert_output: False
-    sensor_phase: False
+        - {p: .15, i: 0.0005, d: 0.5, f: 0.0235389351901052, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+    invert_output: true #TODO transfer
+    sensor_phase: true
     peak_output_forward: 1.0
     peak_output_reverse: -1.0
     nominal_output_forward: 0.0
     nominal_output_reverse: 0.0
-    motion_cruise_velocity: 32
-    motion_acceleration: 150
+    motion_cruise_velocity: 40
+    motion_acceleration: 70
     voltage_compensation_enable: true
-    softlimit_forward_threshold: 0
-    softlimit_forward_threshold: 1
+    softlimit_reverse_threshold: -5.0
+    softlimit_forward_threshold: 20.0
 
 
 lift_follower1_controller:
     type: talon_controllers/TalonFollowerController
     joint: lift_follower1
     follow_joint: lift_joint
+    invert_output: true
 
+
+intake_follower1_controller:
+    type: talon_controllers/TalonFollowerController
+    joint: intake_follower1
+    follow_joint: intake
+    invert_output: true
 #hypothetically might have inverts
 
 lift_follower2_controller:
     type: talon_controllers/TalonFollowerController
     joint: lift_follower2
     follow_joint: lift_joint
+    invert_output: true
 
