@@ -76,7 +76,7 @@ class ElevatorController
 			double up_command;
 			int32_t spring_command;
 			double power;
-			IntakeCommand() : up_command(0.0), spring_command(0.0), power(0.0) {}
+			IntakeCommand() : up_command(-1.0), spring_command(0.0), power(0.0) {}
 
 		};
 		//ros::Publisher RobotStatePub;

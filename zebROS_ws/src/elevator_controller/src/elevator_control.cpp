@@ -326,7 +326,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	else
 	{
-		if((ros::Time::now().toSec() - intake_down_time_) < .25)
+		if((ros::Time::now().toSec() - intake_down_time_) < 2)
 		{
 			std_msgs::Float64 msg;
 			msg.data = 1.0;
