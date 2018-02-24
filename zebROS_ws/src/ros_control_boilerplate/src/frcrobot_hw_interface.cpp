@@ -90,7 +90,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	// spawned - waiting here prevents the robot from
 	// report robot code ready to the field until
 	// all controllers are started
-	ros::Rate rate(50);
+	ros::Rate rate(20);
 	while (robot_code_ready_ == 0.0)
 		rate.sleep();
 
@@ -210,6 +210,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.header.stamp = ros::Time::now();
 			realtime_pub_match_data.unlockAndPublish();
 		}
+        rate.sleep();
 	}
 }
 

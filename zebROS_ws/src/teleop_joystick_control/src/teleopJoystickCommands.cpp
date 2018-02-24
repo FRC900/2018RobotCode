@@ -26,8 +26,8 @@ std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 static double timeSecs = 0, lastTimeSecs = 0, directionUpLast = 0, YLast = 0, BLast = 0;
 static std::string currentToggle = " ";
 static std::string lastToggle = " ";
-static double elevatorHeightBeforeX;
-static double elevatorHeightBeforeY;
+static double elevatorPosBeforeX;
+static double elevatorPosBeforeY;
 static bool hasCube;
 
 static ros::Publisher JoystickRobotVel;
@@ -73,16 +73,15 @@ ros::Subscriber elevator_odom;
 
 void unToggle(void) {
     currentToggle = " "; 
+    elevator_controller::ElevatorControlS srvElevator;
 
-    elevator_controller::ElevatorControl elevatorMsg;
-
-    elevatorMsg.x = elevatorPosX;
-    elevatorMsg.y = elevatorPosY;
-    JoystickElevatorPos.publish(elevatorMsg);
+    srvElevator.request.x = elevatorPosBeforeX;
+    srvElevator.request.y = elevatorPosBeforeY;
+    ElevatorSrv.call(srvElevator);
 }
 void setHeight(void) {
-    elevatorHeightBeforeX = elevatorPosX;
-    elevatorHeightBeforeY = elevatorPosY;
+    elevatorPosBeforeX = elevatorPosX;
+    elevatorPosBeforeY = elevatorPosY;
 }
 
 
@@ -145,8 +144,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     */
 	if(JoystickState->directionUpPress == true) {
 		if(timeSecs - directionUpLast < 1.0) {
-			elevator_controller::Blank msg;
-			EndGameDeploy.call(msg); //this will become a service
+			elevator_controller::Blank msg; //TODO
+			EndGameDeploy.call(msg);
 			ROS_WARN("SELF DESTURCT");
 		}
 		directionUpLast = timeSecs;
@@ -183,8 +182,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     unToggle();
                 }
                 else {
-                    srvElevator.request.x = exchange_config_x;
-                    srvElevator.request.y = exchange_config_y;
+                    srvElevator.request.x = mid_scale_config_x;
+                    srvElevator.request.y = mid_scale_config_y;
                     if(ElevatorSrv.call(srvElevator)) {
                         ROS_WARN("Toggled to mid level scale height");
                     }
