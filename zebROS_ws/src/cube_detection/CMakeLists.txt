@@ -27,6 +27,7 @@ if (BUILD_ME_CUBE_DETECTION)
      std_msgs
      sensor_msgs
      cv_bridge
+     message_generation
      )
   find_package(OpenCV REQUIRED)
   find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
@@ -67,11 +68,10 @@ if (BUILD_ME_CUBE_DETECTION)
   ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
   ## Generate messages in the 'msg' folder
-  # add_message_files(
-  #   FILES
-  #   Message1.msg
-  #   Message2.msg
-  # )
+add_message_files(
+  FILES
+  CubeDetection.msg
+)
 
   ## Generate services in the 'srv' folder
   # add_service_files(
@@ -88,10 +88,11 @@ if (BUILD_ME_CUBE_DETECTION)
   # )
 
   ## Generate added messages and services with any dependencies listed here
-  # generate_messages(
-  #   DEPENDENCIES
-  #   std_msgs  # Or other packages containing msgs
-  # )
+generate_messages(
+   DEPENDENCIES
+   geometry_msgs
+   std_msgs
+)
 
   ################################################
   ## Declare ROS dynamic reconfigure parameters ##
@@ -125,7 +126,7 @@ if (BUILD_ME_CUBE_DETECTION)
   catkin_package(
   #  INCLUDE_DIRS include
   #  LIBRARIES cube_detection
-  #  CATKIN_DEPENDS other_catkin_pkg
+    CATKIN_DEPENDS roscpp message_runtime geometry_msgs std_msgs sensor_msgs
   #  DEPENDS system_lib
   )
 
@@ -136,7 +137,7 @@ if (BUILD_ME_CUBE_DETECTION)
   ## Specify additional locations of header files
   ## Your package locations should be listed before other locations
   include_directories(
-    # include
+      include
       ${catkin_INCLUDE_DIRS}
       ${OpenCV_INCLUDE_DIRS}
       #${PCL_INCLUDE_DIRS}
@@ -166,7 +167,10 @@ if (BUILD_ME_CUBE_DETECTION)
 
   ## Add cmake target dependencies of the executable
   ## same as for the library above
-  # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+  add_dependencies(cube_detection_node 
+    ${${PROJECT_NAME}_EXPORTED_TARGETS} 
+    ${catkin_EXPORTED_TARGETS}
+  )
 
   ## Specify libraries to link a library or executable target against
   # target_link_libraries(${PROJECT_NAME}_node
