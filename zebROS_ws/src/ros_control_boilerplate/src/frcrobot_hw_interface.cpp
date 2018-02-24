@@ -107,6 +107,15 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
     realtime_pub_nt.msg_.mode.resize(4);
     ros::Time time_now_t;
+	ros::Time last_nt_publish_time;
+	ros::Time last_joystick_publish_time;
+	ros::Time last_match_data_publish_time;
+
+	double nt_publish_rate = 5;
+	double joystick_publish_rate = 50;
+	double match_data_publish_rate = 2;
+	bool game_specific_message_seen = false;
+
 	while (run_hal_thread_ && ros::ok())
 	{
 		robot_.OneIteration();
@@ -116,26 +125,27 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
 		//subTable->PutString("Auto Selector", "Select Auto");
-		if (realtime_pub_nt.trylock()) 
+		if (driveTable && 
+			((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t) && 
+			 realtime_pub_nt.trylock()) 
 		{
-			if (driveTable)
-			{
-				// SmartDashboard works!
-				//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+			// SmartDashboard works!
+			//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
-				//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
-				realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
-				realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
-				realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
-				realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
-				realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
-			}
+			//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
+			realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
+			realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
+			realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
+			realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
+			realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
 
 			realtime_pub_nt.msg_.header.stamp = time_now_t;
 			realtime_pub_nt.unlockAndPublish();
+			last_nt_publish_time = time_now_t;
 		}
 
-		if (realtime_pub_joystick.trylock())
+		if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
+			realtime_pub_joystick.trylock())
 		{
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
@@ -188,16 +198,24 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_joystick.msg_.stickRightRelease = joystick.GetRawButtonReleased(10);
 
 			realtime_pub_joystick.unlockAndPublish();
+			last_joystick_publish_time = time_now_t;
 		}
 
-		if(realtime_pub_match_data.trylock())
+		// Run at full speed until we see the game specific message.
+		// This guaratees we react as quickly as possible to it.
+		// After that is seen, slow down processing since there's nothing 
+		// that changes that quickly in the data.
+		if ((!game_specific_message_seen || (last_match_data_publish_time + ros::Duration(1.0 / match_data_publish_rate) < time_now_t)) && 
+			realtime_pub_match_data.trylock())
 		{
-            
             //ROS_INFO("AA:%f", ros::Time::now().toSec());
 
 			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
 
-			realtime_pub_match_data.msg_.allianceData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+			const std::string game_specific_message = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+			if (game_specific_message.length() > 0)
+				game_specific_message_seen = true;
+			realtime_pub_match_data.msg_.allianceData = game_specific_message;
 			realtime_pub_match_data.msg_.allianceColor = DriverStation::GetInstance().GetAlliance(); //returns int that corresponds to a DriverStation Alliance enum
 			realtime_pub_match_data.msg_.driverStationLocation = DriverStation::GetInstance().GetLocation();
 			realtime_pub_match_data.msg_.matchNumber = DriverStation::GetInstance().GetMatchNumber();
@@ -207,10 +225,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.isDisabled = DriverStation::GetInstance().IsDisabled();
 			realtime_pub_match_data.msg_.isAutonomous = DriverStation::GetInstance().IsAutonomous();
 
-			realtime_pub_match_data.msg_.header.stamp = ros::Time::now();
+			realtime_pub_match_data.msg_.header.stamp = time_now_t;
 			realtime_pub_match_data.unlockAndPublish();
+			last_match_data_publish_time = time_now_t;
 		}
-        rate.sleep();
 	}
 }
 
