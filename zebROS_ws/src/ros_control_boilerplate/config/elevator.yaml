@@ -26,12 +26,18 @@ elevator_controller:
         conversion_factor: 0.0454676
         motion_cruise_velocity: 2
         motion_acceleration: 4
+        current_limit_continuous_amps: 60
+        current_limit_enable: True
     lift_follower1_joint:
         joint: lift_follower1 
         invert_output: True
+        current_limit_continuous_amps: 60
+        current_limit_enable: True
     lift_follower2_joint:
         joint: lift_follower2
         invert_output: True
+        current_limit_continuous_amps: 60
+        current_limit_enable: True
     pivot_joint:
         joint: pivot
         close_loop_values:
@@ -43,14 +49,20 @@ elevator_controller:
         conversion_factor: 1 #FIX
         motion_cruise_velocity: 10
         motion_acceleration: 20
+        current_limit_continuous_amps: 60
+        current_limit_enable: True
 
     intake_joint:
         joint: intake
         invert_output: False
         sensor_phase: False
+        current_limit_continuous_amps: 60
+        current_limit_enable: True
     intake_follower_joint:
         joint: intake_follower1
         invert_output: True
+        current_limit_continuous_amps: 60
+        current_limit_enable: True
 
 #hypothetically might have inverts
 
