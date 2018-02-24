@@ -62,8 +62,8 @@ GenericHWControlLoop::GenericHWControlLoop(
 	clock_gettime(CLOCK_MONOTONIC, &last_time_);
 
 	// Start timer
-	desired_update_freq_ = ros::Duration(1.0 / loop_hz_);
-	non_realtime_loop_ = nh_.createTimer(desired_update_freq_, &GenericHWControlLoop::update, this);
+	desired_update_period_ = ros::Duration(1.0 / loop_hz_);
+	non_realtime_loop_ = nh_.createTimer(desired_update_period_, &GenericHWControlLoop::update, this);
 }
 
 void GenericHWControlLoop::update(const ros::TimerEvent & /*e*/)
@@ -71,13 +71,13 @@ void GenericHWControlLoop::update(const ros::TimerEvent & /*e*/)
 	// Get change in time
 	clock_gettime(CLOCK_MONOTONIC, &current_time_);
 	elapsed_time_ =
-		ros::Duration(current_time_.tv_sec - last_time_.tv_sec + (current_time_.tv_nsec - last_time_.tv_nsec) / BILLION);
+		ros::Duration((double)current_time_.tv_sec - (double)last_time_.tv_sec + ((double)current_time_.tv_nsec - (double)last_time_.tv_nsec) / BILLION);
 	last_time_ = current_time_;
 	// ROS_DEBUG_STREAM_THROTTLE_NAMED(1, "generic_hw_main","Sampled update loop with elapsed
 	// time " << elapsed_time_.toSec());
 
 	// Error check cycle time
-	const double cycle_time_error = (elapsed_time_ - desired_update_freq_).toSec();
+	const double cycle_time_error = (elapsed_time_ - desired_update_period_).toSec();
 	if (cycle_time_error > cycle_time_error_threshold_)
 	{
 		ROS_WARN_STREAM_THROTTLE_NAMED(1, name_, "Cycle time exceeded error threshold by: "
