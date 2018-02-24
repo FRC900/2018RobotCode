@@ -38,7 +38,7 @@ hardware_interface:
 # to figure out what to map e.g. effort to in the Talon world
 talon_state_controller:
    type:         talon_state_controller/TalonStateController
-   publish_rate: 20
+   publish_rate: 30
 
 # Similar to above, but this one prints non-Talon state
 # (stuff that fits into the more standard ROS position/

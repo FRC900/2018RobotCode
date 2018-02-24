@@ -607,7 +607,7 @@ int main(int argc, char** argv) {
     sync.registerCallback(boost::bind(&auto_modes, _1, _2));
     ROS_WARN("Auto Client loaded");
 
-    ros::spin();
+    //ros::spin();
     return 0;
 
 }
