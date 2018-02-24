@@ -1,7 +1,7 @@
 # ros_control_boilerplate Settings -----------------------
 # Settings for ros_control control loop
 generic_hw_control_loop:
-  loop_hz: 100
+  loop_hz: 50
   cycle_time_error_threshold: 0.01
 
 # Settings for ros_control hardware interface
@@ -19,13 +19,6 @@ hardware_interface:
        - {name: x_linear_joint, type: dummy}
        - {name: y_linear_joint, type: dummy}
        - {name: z_rotation_joint, type: dummy}
-
-   # Add more data for each joint here - intitial mode, encoder type
-   #    PIDF settings, limit switch settings, etc
-
-   # Not used for now, maybe not used at all if sim
-   # is aware of Talon mode switching
-   sim_control_mode: 1 # 0: position, 1: velocity
 
 # Create controllers for each joint
 #
@@ -46,18 +39,18 @@ hardware_interface:
 # to figure out what to map e.g. effort to in the Talon world
 talon_state_controller:
    type:         talon_state_controller/TalonStateController
-   publish_rate: 100
+   publish_rate: 20
 
 # Similar to above, but this one prints non-Talon state
 # (stuff that fits into the more standard ROS position/
 # speed/effort paradigm)
 joint_state_controller:
    type:         joint_state_controller/JointStateController
-   publish_rate: 100
+   publish_rate: 20
 
 pdp_state_controller:
    type:         pdp_state_controller/PDPStateController
-   publish_rate: 100
+   publish_rate: 20
 
 # Create a controller called talon1_controller
 #  That name is used by spawner in the launch file to 

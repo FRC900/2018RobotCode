@@ -56,7 +56,7 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 		
 		y_splines.push_back(temp_holder_s);
 	}	
-	base_trajectory::GenerateSwerveProfile::Response srv_msg; //TODO FIX THIS, HACK
+	talon_swerve_drive_controller::GenerateSwerveProfile::Response srv_msg; //TODO FIX THIS, HACK
 	ROS_WARN("TEST1");
 	profile_gen->generate_profile(x_splines, y_splines, orient_splines, req.initial_v, req.final_v, srv_msg, req.end_points);
 	const int point_count = srv_msg.points.size();

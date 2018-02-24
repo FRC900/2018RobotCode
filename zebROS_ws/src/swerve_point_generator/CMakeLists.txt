@@ -19,8 +19,6 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   trajectory_msgs
   talon_swerve_drive_controller
-  base_trajectory
-
 )
 find_package(Eigen REQUIRED)
 

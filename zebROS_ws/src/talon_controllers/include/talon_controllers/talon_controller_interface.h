@@ -1038,7 +1038,9 @@ class TalonControllerInterface
 			if (srv_)
 			{
 				TalonConfigConfig config(params_.toConfig());
-				//boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
+				// first call in updateConfig is another lock, this is probably 
+				// redundant
+				// boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
 				srv_->updateConfig(config);
 			}
 		}

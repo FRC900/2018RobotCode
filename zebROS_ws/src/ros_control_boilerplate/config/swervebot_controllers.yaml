@@ -1,7 +1,7 @@
 # ros_control_boilerplate Settings -----------------------
 # Settings for ros_control control loop
 generic_hw_control_loop:
-  loop_hz: 300
+  loop_hz: 50
   cycle_time_error_threshold: 0.01
 
 # Settings for ros_control hardware interface
@@ -20,11 +20,11 @@ hardware_interface:
 # Creates the /joint_states topic necessary in ROS
 joint_state_controller:
    type:         joint_state_controller/JointStateController
-   publish_rate: 50
+   publish_rate: 20
 
 pdp_state_controller:
    type:         pdp_state_controller/PDPStateController
-   publish_rate: 50
+   publish_rate: 20
 
 swerve_base_controller:
     type: "SWBC/SteeredWheelBaseController"

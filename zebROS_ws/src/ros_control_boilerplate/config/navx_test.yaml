@@ -17,13 +17,6 @@ hardware_interface:
          #- {name: talon_5, type: can_talon_srx, can_id: 5}
        - {name: navx_mxp, type: navX, frame_id: navx, id: 0}
 
-   # Add more data for each joint here - intitial mode, encoder type
-   #    PIDF settings, limit switch settings, etc
-
-   # Not used for now, maybe not used at all if sim
-   # is aware of Talon mode switching
-   sim_control_mode: 1 # 0: position, 1: velocity
-
 # Create controllers for each joint
 #
 # Entry is the name of the controller. It can be anything.  

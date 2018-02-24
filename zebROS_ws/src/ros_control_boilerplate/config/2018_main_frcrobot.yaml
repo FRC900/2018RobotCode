@@ -17,9 +17,9 @@ hardware_interface:
        - {name: intake, type: can_talon_srx, can_id: 31}
        - {name: intake_follower1, type: can_talon_srx, can_id: 32}
        - {name: clamp, type: solenoid, pcm: 0, id: 1} #correct
-       - {name: intake_spring_soft, type: solenoid, pcm: 0, id: 3} #does nothing
-       - {name: intake_spring_hard, type: double_solenoid, pcm: 0, forward_id: 3, reverse_id: 6} #correct now
-       - {name: intake_up, type: double_solenoid, pcm: 0, forward_id: 4, reverse_id: 0} # needed to be flipped, now correct
+       - {name: intake_spring_soft, type: solenoid, pcm: 0, id: 6} #3+6 soft
+       - {name: intake_spring_hard, type: double_solenoid, pcm: 0, forward_id: 3, reverse_id: 7} 
+       - {name: intake_up, type: double_solenoid, pcm: 0, forward_id: 4, reverse_id: 0} 
        - {name: shift, type: double_solenoid, pcm: 0, forward_id: 5, reverse_id: 2} #doesn't work as far as I can tell
        - {name: end_game_deploy, type: solenoid, pcm: 1, id: 7}
        - {name: clamp_line_break, type: digital_input, dio_channel: 0, invert: true}
@@ -38,8 +38,6 @@ hardware_interface:
 
 #TODO: fix ids for pneumatics   
 #TODO: add "spring" pneumatics and some sensors
-# Add more data for each joint here - intitial mode, encoder type
-   #    PIDF settings, limit switch settings, etc
 
 # Create controllers for each joint
 #
@@ -60,14 +58,14 @@ hardware_interface:
 # to figure out what to map e.g. effort to in the Talon world
 talon_state_controller:
    type:         talon_state_controller/TalonStateController
-   publish_rate: 50
+   publish_rate: 30
 
 # Similar to above, but this one prints non-Talon state
 # (stuff that fits into the more standard ROS position/
 # speed/effort paradigm)
 joint_state_controller:
    type:         joint_state_controller/JointStateController
-   publish_rate: 50
+   publish_rate: 10
 
 intake_up_controller:
     type: position_controllers/JointPositionController
