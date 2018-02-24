@@ -38,8 +38,6 @@ hardware_interface:
 
 #TODO: fix ids for pneumatics   
 #TODO: add "spring" pneumatics and some sensors
-# Add more data for each joint here - intitial mode, encoder type
-   #    PIDF settings, limit switch settings, etc
 
 # Create controllers for each joint
 #

@@ -8,17 +8,25 @@
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
+#include <geometry_msgs/Point32.h>
+#include <std_msgs/Header.h>
+#include "cube_detection/CubeDetection.h"
+
+#include <sstream>
+
 #include <cv_bridge/cv_bridge.h>
 
 int erosion_size = 1;
 const int sliderMax = 255;
+
+static ros::Publisher pub;
 
 using namespace cv;
 using namespace std;
 using namespace sensor_msgs;
 using namespace message_filters;
 
-int hLo = 15;
+int hLo = 18;
 int sLo = 65;
 int vLo = 180;
 int hUp = 55;
@@ -26,7 +34,7 @@ int hUp = 55;
 int maxTrans = 15900;
 int minTrans = 4470;
 
-int pixelError = .001;
+int pixelError = .01;
 
 //orig: 193695.3745 * .2226^x
 
@@ -91,6 +99,10 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	vector<Rect> boundRect(contours.size());
 	vector<float> contourDepth;
 	vector<int> approxPoly;
+	
+	cube_detection::CubeDetection cd_msg;
+
+	
 
 
 	for(size_t i = 0; i < contours.size(); i++)
@@ -131,10 +143,17 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 			putText(drawing, to_string(contourDepth[i]), Point(boundRect[i].x, boundRect[i].y 		- 15), FONT_HERSHEY_SIMPLEX, 0.45, (0,0,255), 1);
 			drawContours(drawing, contours,i,color,2,8,rank,0,Point());
 			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), rect_color, 2, 8, 0);
-			ROS_INFO_STREAM(contours_poly[i].size());
+			//ROS_INFO_STREAM(contours_poly[i].size());
 			/*ROS_INFO_STREAM("x = " << boundRect[i].x + (boundRect[i].width/2));
 			ROS_INFO_STREAM("y = " << boundRect[i].y + (boundRect[i].height/2));
 			ROS_INFO_STREAM("z = " << contourDepth[i]);*/
+			cd_msg.header.seq = frameMsg->header.seq;
+			cd_msg.header.stamp = frameMsg->header.stamp;
+			cd_msg.header.frame_id = frameMsg->header.frame_id;
+			cd_msg.location.x = boundRect[i].x + boundRect[i].width/2;
+			cd_msg.location.y = boundRect[i].y + boundRect[i].height/2;
+			cd_msg.location.z = contourDepth[i];
+			pub.publish(cd_msg);
 		}
 	}
 
@@ -151,6 +170,10 @@ int main(int argc, char **argv)
 
 	ros::NodeHandle nh("~");
 	int sub_rate = 5;
+	int pub_rate = 1;
+
+	
+	
 	message_filters::Subscriber<Image> frame_sub(nh, "/zed_goal/left/image_rect_color", sub_rate);
 	message_filters::Subscriber<Image> depth_sub(nh, "/zed_goal/depth/depth_registered", sub_rate);
 
@@ -158,6 +181,8 @@ int main(int argc, char **argv)
 	// ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(xxx)
 	Synchronizer<MySyncPolicy2> sync2(MySyncPolicy2(50), frame_sub, depth_sub);
 	sync2.registerCallback(boost::bind(&callback, _1, _2));
+
+	pub = nh.advertise<cube_detection::CubeDetection>("cube_detect_msg", pub_rate);
 
 	namedWindow("drawing",1);
 		
