@@ -48,17 +48,17 @@ talon_state_controller:
 # speed/effort paradigm)
 joint_state_controller:
    type:         joint_state_controller/JointStateController
-   publish_rate: 50
+   publish_rate: 20
 
 pdp_state_controller:
    type:         pdp_state_controller/PDPStateController
-   publish_rate: 50
+   publish_rate: 20
 
 diff_drive_controller:
     type:       talon_diff_drive_controller/TalonDiffDriveController
     left_wheel: ['left_drive_joint', 'left_follow_joint']
     right_wheel: ['right_drive_joint', 'right_follow_joint']
-    publish_rate: 50
+    publish_rate: 20
     pose_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     # fix me

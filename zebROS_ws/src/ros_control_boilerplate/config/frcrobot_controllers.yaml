@@ -14,11 +14,11 @@ hardware_interface:
 # Creates the /joint_states topic necessary in ROS
 joint_state_controller:
    type:         joint_state_controller/JointStateController
-   publish_rate: 50
+   publish_rate: 20
 
 pdp_state_controller:
    type:         pdp_state_controller/PDPStateController
-   publish_rate: 50
+   publish_rate: 20
 
 # Joint Trajectory Controller -------------------------------
 # For detailed explanations of parameter see http://wiki.ros.org/joint_trajectory_controller

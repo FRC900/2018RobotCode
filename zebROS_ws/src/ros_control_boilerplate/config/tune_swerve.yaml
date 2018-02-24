@@ -38,14 +38,14 @@ hardware_interface:
 # to figure out what to map e.g. effort to in the Talon world
 talon_state_controller:
    type:         talon_state_controller/TalonStateController
-   publish_rate: 25
+   publish_rate: 20
 
 # Similar to above, but this one prints non-Talon state
 # (stuff that fits into the more standard ROS position/
 # speed/effort paradigm)
 joint_state_controller:
    type:         joint_state_controller/JointStateController
-   publish_rate: 50
+   publish_rate: 20
 
 
 fl_angle_controller:
