@@ -26,7 +26,7 @@ using namespace std;
 using namespace sensor_msgs;
 using namespace message_filters;
 
-int hLo = 15;
+int hLo = 18;
 int sLo = 65;
 int vLo = 180;
 int hUp = 55;
@@ -34,7 +34,7 @@ int hUp = 55;
 int maxTrans = 15900;
 int minTrans = 4470;
 
-int pixelError = .008;
+int pixelError = .01;
 
 //orig: 193695.3745 * .2226^x
 
