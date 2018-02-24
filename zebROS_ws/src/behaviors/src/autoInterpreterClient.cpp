@@ -190,7 +190,9 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 
 
                 //ROS_INFO("%d", xml_times[i]);
+		ros::Duration(.05).sleep();
             } 
+	ros::Duration(.05).sleep();
         }
         /*
         talon_swerve_drive_controller::FullGen srv;
