@@ -619,22 +619,7 @@ int main(int argc, char** argv) {
     startPos = 0;
     vectTimes.resize(4);
     for(int layout = 0; layout<2; layout++) { 
-        for(int auto_mode = 0; auto_mode<2; auto_mode++) {
-            //std::map<std::string, XmlRpc::XmlRpcValue> spline = modes[auto_mode][layout][startPos];
-            //std::map<std::string, XmlRpc::XmlRpcValue> spline = modes["0"]["0"]["0"];
-            XmlRpc::XmlRpcValue &splines = modes[auto_mode][layout][startPos];
-            //std::map<std::string, XmlRpc::XmlRpcValue> spline = xml_times;
-            ROS_WARN("7");
-            trajectory_msgs::JointTrajectory trajectory;
-            trajectory.joint_names.push_back("x_linear_joint");
-            trajectory.joint_names.push_back("y_linear_joint");
-            trajectory.joint_names.push_back("z_rotation_joint");
-            const size_t num_joints = trajectory.joint_names.size();
-            trajectory.points.resize(2);
-            ROS_WARN("8");
-            XmlRpc::XmlRpcValue &timesVect = splines["times"];
-            ROS_WARN("8.5");
-            if(timesVect.getType() == XmlRpc::XmlRpcValue::TypeArray) {
+        !!?<Mouse>C!!=<Mouse>C!!<<Mouse>C!!:
                 ROS_WARN("Correct type");
             }
             else {
@@ -645,7 +630,9 @@ int main(int argc, char** argv) {
             for(int i = 0; i<timesVect.size(); i++) { 
                 ROS_WARN("i: %d", i);
                 ROS_WARN("9");
-                XmlRpc::XmlRpcValue time_i = timesVect[i];
+                //XmlRpc::XmlRpcValue time_i = timesVect[i];
+                const double time_i = timesVect[i];
+                /*
                 if(time_i.getType() == XmlRpc::XmlRpcValue::TypeDouble) {
                     ROS_WARN("Type Double");
                 }
@@ -654,36 +641,37 @@ int main(int argc, char** argv) {
                 }
                 else {
                     ROS_WARN("Not Double");
-                }   
+                } 
+                */
                 ROS_WARN("9.5");
-                //vectTimes[auto_mode+layout].push_back(static_cast<double>(time_i));
-                vectTimes[auto_mode+layout].push_back(0.0);
+                vectTimes[auto_mode+layout].push_back(time_i);
+                //vectTimes[auto_mode+layout].push_back(0.0);
                 ROS_WARN("10");
-                ROS_INFO("time[%d,%d]: %d", auto_mode, i, splines["times"][i]);
+                ROS_INFO("time[%d,%d]: %lf", auto_mode, i, vectTimes[auto_mode+layout][i]);
 
                 trajectory.points[i].positions.resize(num_joints);
                 trajectory.points[i].positions[0] =  splines["positionsX"][i];
                 trajectory.points[i].positions[1] =  splines["positionsY"][i];
                 trajectory.points[i].positions[2] =  splines["positionsZ"][i];
-                ROS_INFO("positionsX[%d,%d]: %d", auto_mode, i, splines["positionsX"][i]);
-                ROS_INFO("positionsY[%d,%d]: %d", auto_mode, i, splines["positionsY"][i]);
-                ROS_INFO("positionsZ[%d,%d]: %d", auto_mode, i, splines["positionsZ"][i]);
+                ROS_INFO("positionsX[%d,%d]: %lf", auto_mode, i, splines["positionsX"][i]);
+                ROS_INFO("positionsY[%d,%d]: %lf", auto_mode, i, splines["positionsY"][i]);
+                ROS_INFO("positionsZ[%d,%d]: %lf", auto_mode, i, splines["positionsZ"][i]);
 
                 trajectory.points[i].velocities.resize(num_joints);
                 trajectory.points[i].velocities[0] =  splines["velocitiesX"][i];
                 trajectory.points[i].velocities[1] =  splines["velocitiesY"][i];
                 trajectory.points[i].velocities[2] =  splines["velocitiesZ"][i];
-                ROS_INFO("velocitiesX[%d,%d]: %d", auto_mode, i, splines["velocitiesX"][i]);
-                ROS_INFO("velocitiesY[%d,%d]: %d", auto_mode, i, splines["velocitiesY"][i]);
-                ROS_INFO("velocitiesZ[%d,%d]: %d", auto_mode, i, splines["velocitiesZ"][i]);
+                ROS_INFO("velocitiesX[%d,%d]: %lf", auto_mode, i, splines["velocitiesX"][i]);
+                ROS_INFO("velocitiesY[%d,%d]: %lf", auto_mode, i, splines["velocitiesY"][i]);
+                ROS_INFO("velocitiesZ[%d,%d]: %lf", auto_mode, i, splines["velocitiesZ"][i]);
 
                 trajectory.points[i].accelerations.resize(num_joints);
                 trajectory.points[i].accelerations[0] =  splines["accelerationsX"][i];
                 trajectory.points[i].accelerations[1] =  splines["accelerationsY"][i];
                 trajectory.points[i].accelerations[2] =  splines["accelerationsZ"][i];
-                ROS_INFO("accelerationsX[%d,%d]: %d", auto_mode, i, splines["accelerationsX"][i]);
-                ROS_INFO("accelerationsY[%d,%d]: %d", auto_mode, i, splines["accelerationsY"][i]);
-                ROS_INFO("accelerationsZ[%d,%d]: %d", auto_mode, i, splines["accelerationsZ"][i]);
+                ROS_INFO("accelerationsX[%d,%d]: %lf", auto_mode, i, splines["accelerationsX"][i]);
+                ROS_INFO("accelerationsY[%d,%d]: %lf", auto_mode, i, splines["accelerationsY"][i]);
+                ROS_INFO("accelerationsZ[%d,%d]: %lf", auto_mode, i, splines["accelerationsZ"][i]);
 
                 trajectory.points[i].time_from_start = ros::Duration(2*i+1);
 
