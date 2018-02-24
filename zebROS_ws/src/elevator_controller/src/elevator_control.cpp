@@ -308,7 +308,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 			shifted_ = false;
 			lift_joint_.setMotionAcceleration(before_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
-			lift_joint_.setPIDFSlot(0.0);
+			lift_joint_.setPIDFSlot(0);
 		}
 	}
 	Commands curr_cmd = *(command_.readFromRT());
