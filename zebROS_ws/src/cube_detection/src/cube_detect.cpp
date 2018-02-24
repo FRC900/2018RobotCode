@@ -100,6 +100,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	erode(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(5,5)));
 
 	vector<vector<Point> > contours;
+	vector<vector<Point> > contoursOfIntrigue;
 	vector<Vec4i> rank;
 
 	findContours(threshold, contours, rank, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
@@ -140,26 +141,26 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 		cd_msg.header.frame_id = frameMsg->header.frame_id;
 	for(size_t i = 0; i< contours.size(); i++)
 	{
-		double minArea = sqrt(193695.3745 * (pow(0.2226,contourDepth[i])) - minTrans); 
+		double minArea = sqrt(193695.3745 * (pow(0.2226,contourDepth[i]))) + minTrans; 
 		//double maxArea = sqrt(193695.3745 * (pow(0.2226,contourDepth[i])) + maxTrans); 
 		double areaContour = boundRect[i].height * boundRect[i].width;
 		Scalar rect_color = Scalar(0,0,255);
-		Scalar color = Scalar(0,255,0);		
+		Scalar color = Scalar(0,255,0);	
 
 		//filter contours by area based on depth and side ratio
 		if (areaContour < minArea) {
 			continue;
 		} else if (areaContour <= (drawing.rows * drawing.cols * pixelError)) {
 			continue;
-		} else if (abs((boundRect[i].height/boundRect[i].width)) > 2) {
+		} else if (abs((boundRect[i].height/boundRect[i].width)) > 2.5) {
 			continue;
-		} else if (abs((boundRect[i].width/boundRect[i].height)) > 2) {
+		} else if (abs((boundRect[i].width/boundRect[i].height)) > 2.5) {
 			continue;
-		} else if (contours_poly[i].size() < 6 || contours_poly[i].size() > 3) {	
+		} else {
+			contoursOfIntrigue.push_back(contours[i]);
 			putText(drawing, to_string(contourDepth[i]), Point(boundRect[i].x, boundRect[i].y 		- 15), FONT_HERSHEY_SIMPLEX, 0.45, (0,0,255), 1);
 			drawContours(drawing, contours,i,color,2,8,rank,0,Point());
 			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), rect_color, 2, 8, 0);
-			//ROS_INFO_STREAM(contours_poly[i].size());
 			/*ROS_INFO_STREAM("x = " << boundRect[i].x + (boundRect[i].width/2));
 			ROS_INFO_STREAM("y = " << boundRect[i].y + (boundRect[i].height/2));
 			ROS_INFO_STREAM("z = " << contourDepth[i]);*/

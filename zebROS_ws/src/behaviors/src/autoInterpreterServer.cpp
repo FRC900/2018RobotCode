@@ -48,10 +48,16 @@ class autoAction {
     }
 
     void executeCB(const behaviors::IntakeLiftGoalConstPtr &goal) {
-        ros::Rate r(20);
+        ros::Rate r(10);
         double startTime = ros::Time::now().toSec();
         success = false;
         while(success != true && (ros::Time::now().toSec()-startTime) < 15) {
+            if(as_.isPreemptRequested() || !ros::ok()) {
+                ROS_WARN("%s: Preempted", action_name_.c_str());
+                as_.setPreempted();
+                success = false;
+                break;
+            }
             if(goal->IntakeCube) {
                 elevator_controller::Intake srv;
                 srv.request.up = false;
