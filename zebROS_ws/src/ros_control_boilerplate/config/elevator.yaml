@@ -56,12 +56,12 @@ elevator_controller:
         joint: intake
         invert_output: False
         sensor_phase: False
-        current_limit_continuous_amps: 60
+        current_limit_continuous_amps: 5
         current_limit_enable: True
     intake_follower_joint:
         joint: intake_follower1
         invert_output: True
-        current_limit_continuous_amps: 60
+        current_limit_continuous_amps: 5
         current_limit_enable: True
 
 #hypothetically might have inverts
