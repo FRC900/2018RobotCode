@@ -40,32 +40,32 @@ swerve_drive_controller:
     speed_joint_fl:
         joint: fl_drive #fix pid
         close_loop_values:
-            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.06145, i_zone: 500}
-            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.06145, i_zone: 500}
+            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.006145, i_zone: 500}
+            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.006145, i_zone: 500}
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
     speed_joint_fr:
         joint: fr_drive #fix pid
         close_loop_values:
-            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.06145, i_zone: 500}
-            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.06145, i_zone: 500}
+            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.006145, i_zone: 500}
+            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.006145, i_zone: 500}
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
     speed_joint_bl:
         joint: bl_drive #fix pid
         close_loop_values:
-            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.06145, i_zone: 500}
-            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.06145, i_zone: 500}
+            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.006145, i_zone: 500}
+            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.006145, i_zone: 500}
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
     speed_joint_br:
         joint: br_drive #fix pid
         close_loop_values:
-            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.06145, i_zone: 500}
-            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.06145, i_zone: 500}
+            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.006145, i_zone: 500}
+            - {p: 0.16, i: 0.0008, d: 7.5, f: 0.006145, i_zone: 500}
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
