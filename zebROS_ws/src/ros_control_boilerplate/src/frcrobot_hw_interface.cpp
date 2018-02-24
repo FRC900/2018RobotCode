@@ -306,7 +306,7 @@ void FRCRobotHWInterface::init(void)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading joint " << i << "=" << double_solenoid_names_[i] <<
-							  " as Double Solenoid  forward " << double_solenoid_forward_ids_[i] <<
+							  " as Double Solenoid forward " << double_solenoid_forward_ids_[i] <<
 							  " reverse " << double_solenoid_reverse_ids_[i]
 							  << " with pcm " << double_solenoid_pcms_[i]);
 
@@ -494,25 +494,33 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//ROS control code which thinks everything to and from
 		//hardware are doubles
 	}
+#if 0
 	for (size_t i = 0; i < num_digital_outputs_; i++)
 	{
 		digital_output_state_[i] = (digital_outputs_[i]->Get()^digital_output_inverts_[i]) ? 1 : 0;
 		//State should really be a bool
 		//This isn't strictly neccesary, it just reads what the DIO is currently set to
 	}
+#endif
+#if 0
 	for (size_t i = 0; i < num_pwm_; i++)
 	{
 		// Just reflect state of output in status
 		//pwm_state_[i] = PWMs_[i]->GetSpeed();
 	}
+#endif
+#if 0
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
 		solenoid_state_[i] = solenoids_[i]->Get();
 	}
+#endif
+#if 0
 	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
 		double_solenoid_state_[i] = double_solenoids_[i]->Get();
 	}
+#endif
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
 		analog_input_state_[i] = (analog_inputs_[i]->GetValue())*analog_input_a_[i] + analog_input_b_[i];
@@ -1177,6 +1185,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 	{
 		const bool converted_command = (digital_output_command_[i] > 0) ^ digital_output_inverts_[i];
 		digital_outputs_[i]->Set(converted_command);
+		digital_output_state_[i] = converted_command;
 	}
 	for (size_t i = 0; i < num_pwm_; i++)
 
@@ -1188,6 +1197,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 	{
 		const bool setpoint = solenoid_command_[i] > 0;
 		solenoids_[i]->Set(setpoint);
+		solenoid_state_[i] = setpoint;
 	}
 
 	for (size_t i = 0; i< num_double_solenoids_; i++)
@@ -1199,6 +1209,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			setpoint = DoubleSolenoid::Value::kReverse;
 
 		double_solenoids_[i]->Set(setpoint);
+		double_solenoid_state_[i] = setpoint;
 	}
 	for (size_t i = 0; i < num_rumble_; i++)
 	{
