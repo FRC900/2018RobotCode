@@ -380,8 +380,9 @@ void FRCRobotHWInterface::init(void)
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
-	static int loop_counter;
-	static int loop_counter2;
+	const int talon_updates_to_skip = 10;
+	static int loop_counter = 1;
+	loop_counter += 1;
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		auto &ts = talon_state_[joint_id];
@@ -394,6 +395,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		// convert to whatever units make sense
 		const hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
 		const hardware_interface::TalonMode talon_mode = ts.getTalonMode();
+		if (talon_mode == hardware_interface::TalonMode_Follower)
+			continue;
 		const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
 		const double conversion_factor = ts.getConversionFactor();
 
@@ -413,10 +416,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
 		ts.setOutputCurrent(output_current);
 
-		if (++loop_counter2 == 50)
+		if (loop_counter == talon_updates_to_skip)
 		{
-			loop_counter2 = 0;
-
 			const double bus_voltage = talon->GetBusVoltage();
 			safeTalonCall(talon->GetLastError(), "GetBusVoltage");
 			ts.setBusVoltage(bus_voltage);
@@ -491,10 +492,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 				ts.setMotionProfileStatus(internal_status);
 			}
 
-		}
-		if (++loop_counter == 50)
-		{
-			loop_counter = 0;
 			ctre::phoenix::motorcontrol::Faults faults;
 			safeTalonCall(talon->GetFaults(faults), "GetFaults");
 			ts.setFaults(faults.ToBitfield());
@@ -512,6 +509,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			ts.setStickyFaults(sticky_faults.ToBitfield());
 		}
 	}
+	if (loop_counter == talon_updates_to_skip)
+		loop_counter = 1;
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
 		brushless_vel_[i] = nidec_brushlesses_[i]->Get();
@@ -1206,27 +1205,36 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");
 		}
 	}
+
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
 		nidec_brushlesses_[i]->Set(brushless_command_[i]);
 	}
+
 	for (size_t i = 0; i < num_digital_outputs_; i++)
 	{
 		const bool converted_command = (digital_output_command_[i] > 0) ^ digital_output_inverts_[i];
-		digital_outputs_[i]->Set(converted_command);
-		digital_output_state_[i] = converted_command;
+		if (converted_command != digital_output_state_[i])
+		{
+			digital_outputs_[i]->Set(converted_command);
+			digital_output_state_[i] = converted_command;
+		}
 	}
-	for (size_t i = 0; i < num_pwm_; i++)
 
+	for (size_t i = 0; i < num_pwm_; i++)
 	{
 		const int inverter = (pwm_inverts_[i]) ? -1 : 1;
 		PWMs_[i]->SetSpeed(pwm_command_[i]*inverter);
 	}
+
 	for (size_t i = 0; i< num_solenoids_; i++)
 	{
 		const bool setpoint = solenoid_command_[i] > 0;
-		solenoids_[i]->Set(setpoint);
-		solenoid_state_[i] = setpoint;
+		if (solenoid_state_[i] != setpoint)
+		{
+			solenoids_[i]->Set(setpoint);
+			solenoid_state_[i] = setpoint;
+		}
 	}
 
 	for (size_t i = 0; i< num_double_solenoids_; i++)
@@ -1237,9 +1245,13 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		else if (double_solenoid_command_[i] <= -1.0)
 			setpoint = DoubleSolenoid::Value::kReverse;
 
-		double_solenoids_[i]->Set(setpoint);
-		double_solenoid_state_[i] = setpoint;
+		if (double_solenoid_state_[i] != setpoint)
+		{
+			double_solenoids_[i]->Set(setpoint);
+			double_solenoid_state_[i] = setpoint;
+		}
 	}
+
 	for (size_t i = 0; i < num_rumble_; i++)
 	{
 		const unsigned int rumbles = *((unsigned int*)(&rumble_command_[i]));

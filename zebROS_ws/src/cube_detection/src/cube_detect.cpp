@@ -14,6 +14,11 @@
 
 #include <sstream>
 
+#include "track3d.hpp"
+#include "objtype.hpp"
+#include "kalman.hpp"
+#include "hungarian.hpp"
+
 #include <cv_bridge/cv_bridge.h>
 
 int erosion_size = 1;
@@ -35,6 +40,10 @@ int maxTrans = 15900;
 int minTrans = 6500;
 
 int pixelError = .06;
+
+
+
+
 
 //orig: 193695.3745 * .2226^x
 
@@ -100,10 +109,15 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	vector<Rect> boundRect(contours.size());
 	vector<float> contourDepth;
 	vector<int> approxPoly;
-	
+	Mat drawing = Mat::zeros(threshold.size(),CV_8UC3);
+
 	cube_detection::CubeDetection cd_msg;
 
-	
+	//const ObjectType obj_type_in = 7;
+	const ObjectType objType = 7;
+	const float hFov = 105.;
+	const Point2f fov(hFov * (M_PI / 180.), hFov * (M_PI / 180.) * ((float)framePtr->rows / framePtr->cols));
+	float camera_elevation = 0.0;
 
 
 	for(size_t i = 0; i < contours.size(); i++)
@@ -122,7 +136,9 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	}
 	
 	
-	Mat drawing = Mat::zeros(threshold.size(),CV_8UC3);
+		cd_msg.header.seq = frameMsg->header.seq;
+		cd_msg.header.stamp = frameMsg->header.stamp;
+		cd_msg.header.frame_id = frameMsg->header.frame_id;
 	for(size_t i = 0; i< contours.size(); i++)
 	{
 		double minArea = sqrt(193695.3745 * (pow(0.2226,contourDepth[i]))) + minTrans; 
@@ -148,20 +164,24 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 			/*ROS_INFO_STREAM("x = " << boundRect[i].x + (boundRect[i].width/2));
 			ROS_INFO_STREAM("y = " << boundRect[i].y + (boundRect[i].height/2));
 			ROS_INFO_STREAM("z = " << contourDepth[i]);*/
-			cd_msg.header.seq = frameMsg->header.seq;
-			cd_msg.header.stamp = frameMsg->header.stamp;
-			cd_msg.header.frame_id = frameMsg->header.frame_id;
-			cd_msg.location.x = boundRect[i].x + boundRect[i].width/2;
-			cd_msg.location.y = boundRect[i].y + boundRect[i].height/2;
-			cd_msg.location.z = contourDepth[i];
-			pub.publish(cd_msg);
+			const Point3f world_location = objType.screenToWorldCoords(/*incorrect*/boundRect[i], contourDepth[i], fov, cv::Size(drawing.rows, drawing.cols), camera_elevation);
+			geometry_msgs::Point32 world_location_in; 
+			world_location_in.x = world_location.x;
+			world_location_in.y = world_location.y;
+			world_location_in.z = world_location.z;
+			cd_msg.location.push_back(world_location_in);
+			//objType(obj_type_in);
+
 		}
 	}
 
 	imshow("threshold",threshold); 
 	//imshow("hsv",hsv);
 	imshow("drawing",drawing); 
+	//imshow("depth", *depthPtr);
+	pub.publish(cd_msg);
 	waitKey(5);
+
 }
 
 int main(int argc, char **argv)

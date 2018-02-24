@@ -456,10 +456,10 @@ void FRCRobotInterface::init()
 	}
 
 	num_digital_outputs_ = digital_output_names_.size();
-	digital_output_state_.resize(num_digital_outputs_);
 	digital_output_command_.resize(num_digital_outputs_);
 	for (size_t i = 0; i < num_digital_outputs_; i++)
 	{
+		digital_output_state_.push_back(std::numeric_limits<double>::min());
 		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << digital_output_names_[i] << " at DIO channel " << digital_output_dio_channels_[i] << " / invert " << digital_output_inverts_[i]);
 
 		hardware_interface::JointStateHandle dosh(digital_output_names_[i], &digital_output_state_[i], &digital_output_state_[i], &digital_output_state_[i]);
@@ -485,11 +485,12 @@ void FRCRobotInterface::init()
 		joint_velocity_interface_.registerHandle(ph);
 	}
 	num_solenoids_ = solenoid_names_.size();
-	solenoid_state_.resize(num_solenoids_);
 	solenoid_command_.resize(num_solenoids_);
 	for (size_t i = 0; i < num_solenoids_; i++)
 	{
 		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << solenoid_names_[i] << " at id " << solenoid_ids_[i]<< " at pcm " << solenoid_pcms_[i]);
+
+		solenoid_state_.push_back(std::numeric_limits<double>::min());
 
 		hardware_interface::JointStateHandle ssh(solenoid_names_[i], &solenoid_state_[i], &solenoid_state_[i], &solenoid_state_[i]);
 		joint_state_interface_.registerHandle(ssh);
@@ -499,11 +500,12 @@ void FRCRobotInterface::init()
 	}
 
 	num_double_solenoids_ = double_solenoid_names_.size();
-	double_solenoid_state_.resize(num_double_solenoids_);
 	double_solenoid_command_.resize(num_double_solenoids_);
 	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
 		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for : " << double_solenoid_names_[i] << " at forward id " << double_solenoid_forward_ids_[i] << " at reverse id " << double_solenoid_reverse_ids_[i] << " at pcm " << double_solenoid_pcms_[i]);
+
+		double_solenoid_state_.push_back(std::numeric_limits<double>::min());
 
 		hardware_interface::JointStateHandle dssh(double_solenoid_names_[i], &double_solenoid_state_[i], &double_solenoid_state_[i], &double_solenoid_state_[i]);
 		joint_state_interface_.registerHandle(dssh);
