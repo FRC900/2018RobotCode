@@ -4,6 +4,7 @@
 #include "elevator_controller/ElevatorControlS.h"
 #include "elevator_controller/Intake.h"
 #include "elevator_controller/bool_srv.h"
+#include "elevator_controller/Blank.h"
 #include "cstdlib"
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
@@ -32,7 +33,7 @@ static bool hasCube;
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickElevatorPos;
 static ros::Publisher JoystickRumble;
-static ros::Publisher EndGameDeploy;
+static ros::ServiceClient EndGameDeploy;
 
 static ros::ServiceClient ElevatorSrv;
 static ros::ServiceClient ClampSrv;
@@ -144,9 +145,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     */
 	if(JoystickState->directionUpPress == true) {
 		if(timeSecs - directionUpLast < 1.0) {
-			std_msgs::Float64 msg;
-			msg.data = 1.0;
-			EndGameDeploy.publish(msg); //this will become a service
+			elevator_controller::Blank msg;
+			EndGameDeploy.call(msg); //this will become a service
 			ROS_WARN("SELF DESTURCT");
 		}
 		directionUpLast = timeSecs;
@@ -504,13 +504,13 @@ int main(int argc, char **argv) {
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
 
     JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-    JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/cmd_pos", 1);
+    JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
     JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
-    EndGameDeploy = n.advertise<std_msgs::Float64>("/frcrobot/end_game_deploy_controller/command", 1);
 
-    ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/cmd_posS");
-    ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/clamp");
-    IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/intake");
+    EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/command", 1);
+    ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
+    ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
+    IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
 
     message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "scaled_joystick_vals", 5);
     message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
