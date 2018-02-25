@@ -523,7 +523,7 @@ int main(int argc, char **argv) {
     message_filters::Synchronizer<JoystickSync> sync(JoystickSync(5), joystickSub, matchDataSub);
     sync.registerCallback(boost::bind(&evaluateCommands, _1, _2));
 
-    ac->waitForServer(); //Will wait for infinite time for server to start
+    //ac->waitForServer(); //Will wait for infinite time for server to start
 
     ros::spin();
     return 0;
