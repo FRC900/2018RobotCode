@@ -187,8 +187,11 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	lift_joint_.setForwardSoftLimitEnable(true);
 	lift_joint_.setReverseSoftLimitEnable(true);
 
-	pivot_joint_.setForwardSoftLimitThreshold(max_extension_ - lift_offset_);
-	pivot_joint_.setReverseSoftLimitThreshold(min_extension_ - lift_offset_);
+	pivot_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_);
+	pivot_joint_.setReverseSoftLimitThreshold(min_extension_ + lift_offset_);
+	
+	//TODO: something is broke with these soft limits
+
 	pivot_joint_.setForwardSoftLimitEnable(true);
 	pivot_joint_.setReverseSoftLimitEnable(true);
 
@@ -372,8 +375,8 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	elevator_controller::ReturnElevatorCmd return_holder;
 	elevator_controller::ReturnElevatorCmd odom_holder;
 
-	const double lift_position = lift_joint_.getPosition()  - lift_offset_;
-	const double pivot_angle   = pivot_joint_.getPosition() - pivot_offset_;
+	const double lift_position = last_tar_l /*lift_joint_.getPosition()*/  - lift_offset_;
+	const double pivot_angle   = last_tar_p /*pivot_joint_.getPosition()*/ - pivot_offset_;
 
 	ROS_INFO_STREAM("lift_pos: " << lift_position);
 
@@ -428,10 +431,14 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	
 	ROS_INFO_STREAM("up_or_down: " << curr_cmd.up_or_down << "lin pos target" << curr_cmd.lin << " lift pos tar: " << curr_cmd.lin[1] - arm_length_ * sin(pivot_target));	
 
+	
+
+
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
 
-
+	last_tar_p = pivot_target + pivot_offset_;
+	last_tar_l = curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_;
 
 }
 void ElevatorController::starting(const ros::Time &/*time*/)
