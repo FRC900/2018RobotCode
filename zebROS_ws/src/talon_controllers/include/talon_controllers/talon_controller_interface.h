@@ -666,75 +666,6 @@ class TalonControllerInterface
 		}
 #endif
 
-		// Use data in params to actually set up Talon
-		// hardware. Make this a separate method outside of
-		// init() so that dynamic reconfigure callback can write
-		// values using this method at any time
-		virtual bool writeParamsToHW(const TalonCIParams &params, bool update_params = true)
-		{
-			// perform additional hardware init here
-			// but don't set mode - either force the caller to
-			// set it or use one of the derived, fixed-mode
-			// classes instead
-			for (int i = 0; i < 2; i++)
-			{
-				talon_->setP(params.p_[i], i);
-				talon_->setI(params.i_[i], i);
-				talon_->setD(params.d_[i], i);
-				talon_->setF(params.f_[i], i);
-				talon_->setIZ(params.izone_[i], i);
-				// TODO : I'm worried about these. We need
-				// better default values than 0.0
-				talon_->setAllowableClosedloopError(params.allowable_closed_loop_error_[i], i);
-				talon_->setMaxIntegralAccumulator(params.max_integral_accumulator_[i], i);
-			}
-			talon_->setPidfSlot(params.pidf_slot_);
-			talon_->setNeutralMode(params.neutral_mode_);
-
-			talon_->setEncoderFeedback(params.feedback_type_);
-			talon_->setEncoderTicksPerRotation(params.ticks_per_rotation_);
-
-			talon_->setInvert(params.invert_output_);
-			talon_->setSensorPhase(params.sensor_phase_);
-
-			talon_->setClosedloopRamp(params.closed_loop_ramp_);
-			talon_->setOpenloopRamp(params.open_loop_ramp_);
-			talon_->setPeakOutputForward(params.peak_output_forward_);
-			talon_->setPeakOutputReverse(params.peak_output_reverse_);
-			talon_->setNominalOutputForward(params.nominal_output_forward_);
-			talon_->setNominalOutputReverse(params.nominal_output_reverse_);
-			talon_->setNeutralDeadband(params.neutral_deadband_);
-
-			talon_->setVoltageCompensationSaturation(params.voltage_compensation_saturation_);
-			talon_->setVoltageMeasurementFilter(params.voltage_measurement_filter_);
-			talon_->setVoltageCompensationEnable(params.voltage_compensation_enable_);
-
-			talon_->setForwardLimitSwitchSource(params.limit_switch_local_forward_source_, params.limit_switch_local_forward_normal_);
-			talon_->setReverseLimitSwitchSource(params.limit_switch_local_reverse_source_, params.limit_switch_local_reverse_normal_);
-			talon_->setOverrideSoftLimitsEnable(params.softlimits_override_enable_);
-			talon_->setForwardSoftLimitThreshold(params.softlimit_forward_threshold_);
-			talon_->setForwardSoftLimitEnable(params.softlimit_forward_enable_);
-			talon_->setReverseSoftLimitThreshold(params.softlimit_reverse_threshold_);
-			talon_->setReverseSoftLimitEnable(params.softlimit_reverse_enable_);
-
-			talon_->setPeakCurrentLimit(params.current_limit_peak_amps_);
-			talon_->setPeakCurrentDuration(params.current_limit_peak_msec_);
-			talon_->setContinuousCurrentLimit(params.current_limit_continuous_amps_);
-			talon_->setCurrentLimitEnable(params.current_limit_enable_);
-
-			talon_->setMotionCruiseVelocity(params.motion_cruise_velocity_);
-			talon_->setMotionAcceleration(params.motion_acceleration_);
-			talon_->setMotionControlFramePeriod(params.motion_control_frame_period_);
-
-			talon_->setConversionFactor(params.conversion_factor_);
-
-			// Save copy of params written to HW
-			// so they can be queried later?
-			if (update_params)
-				params_ = params;
-
-			return true;
-		}
 
 		void callback(talon_controllers::TalonConfigConfig &config, uint32_t /*level*/)
 		{
@@ -755,7 +686,7 @@ class TalonControllerInterface
 					 config.invert_output,
 					 config.sensor_phase);
 
-			writeParamsToHW(TalonCIParams(config));
+			writeParamsToHW(TalonCIParams(config), talon_);
 		}
 
 		// Set the setpoint for the motor controller
@@ -1000,7 +931,7 @@ class TalonControllerInterface
 			ROS_WARN("init past readParams");
 
 			talon = tci->getHandle(params.joint_name_);
-			if (!writeParamsToHW(params, update_params))
+			if (!writeParamsToHW(params, talon, update_params))
 				return false;
 
 			ROS_WARN("init past writeParamsToHW");
@@ -1043,6 +974,78 @@ class TalonControllerInterface
 				// boost::recursive_mutex::scoped_lock lock(*srv_mutex_);
 				srv_->updateConfig(config);
 			}
+		}
+
+		// Use data in params to actually set up Talon
+		// hardware. Make this a separate method outside of
+		// init() so that dynamic reconfigure callback can write
+		// values using this method at any time
+		virtual bool writeParamsToHW(const TalonCIParams &params,
+				hardware_interface::TalonCommandHandle talon,
+				bool update_params = true)
+		{
+			// perform additional hardware init here
+			// but don't set mode - either force the caller to
+			// set it or use one of the derived, fixed-mode
+			// classes instead
+			for (int i = 0; i < 2; i++)
+			{
+				talon->setP(params.p_[i], i);
+				talon->setI(params.i_[i], i);
+				talon->setD(params.d_[i], i);
+				talon->setF(params.f_[i], i);
+				talon->setIZ(params.izone_[i], i);
+				// TODO : I'm worried about these. We need
+				// better default values than 0.0
+				talon->setAllowableClosedloopError(params.allowable_closed_loop_error_[i], i);
+				talon->setMaxIntegralAccumulator(params.max_integral_accumulator_[i], i);
+			}
+			talon->setPidfSlot(params.pidf_slot_);
+			talon->setNeutralMode(params.neutral_mode_);
+
+			talon->setEncoderFeedback(params.feedback_type_);
+			talon->setEncoderTicksPerRotation(params.ticks_per_rotation_);
+
+			talon->setInvert(params.invert_output_);
+			talon->setSensorPhase(params.sensor_phase_);
+
+			talon->setClosedloopRamp(params.closed_loop_ramp_);
+			talon->setOpenloopRamp(params.open_loop_ramp_);
+			talon->setPeakOutputForward(params.peak_output_forward_);
+			talon->setPeakOutputReverse(params.peak_output_reverse_);
+			talon->setNominalOutputForward(params.nominal_output_forward_);
+			talon->setNominalOutputReverse(params.nominal_output_reverse_);
+			talon->setNeutralDeadband(params.neutral_deadband_);
+
+			talon->setVoltageCompensationSaturation(params.voltage_compensation_saturation_);
+			talon->setVoltageMeasurementFilter(params.voltage_measurement_filter_);
+			talon->setVoltageCompensationEnable(params.voltage_compensation_enable_);
+
+			talon->setForwardLimitSwitchSource(params.limit_switch_local_forward_source_, params.limit_switch_local_forward_normal_);
+			talon->setReverseLimitSwitchSource(params.limit_switch_local_reverse_source_, params.limit_switch_local_reverse_normal_);
+			talon->setOverrideSoftLimitsEnable(params.softlimits_override_enable_);
+			talon->setForwardSoftLimitThreshold(params.softlimit_forward_threshold_);
+			talon->setForwardSoftLimitEnable(params.softlimit_forward_enable_);
+			talon->setReverseSoftLimitThreshold(params.softlimit_reverse_threshold_);
+			talon->setReverseSoftLimitEnable(params.softlimit_reverse_enable_);
+
+			talon->setPeakCurrentLimit(params.current_limit_peak_amps_);
+			talon->setPeakCurrentDuration(params.current_limit_peak_msec_);
+			talon->setContinuousCurrentLimit(params.current_limit_continuous_amps_);
+			talon->setCurrentLimitEnable(params.current_limit_enable_);
+
+			talon->setMotionCruiseVelocity(params.motion_cruise_velocity_);
+			talon->setMotionAcceleration(params.motion_acceleration_);
+			talon->setMotionControlFramePeriod(params.motion_control_frame_period_);
+
+			talon->setConversionFactor(params.conversion_factor_);
+
+			// Save copy of params written to HW
+			// so they can be queried later?
+			if (update_params)
+				params_ = params;
+
+			return true;
 		}
 };
 
