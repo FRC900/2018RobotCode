@@ -137,8 +137,10 @@ class ElevatorController
 
 		bool getFirstString(XmlRpc::XmlRpcValue value, std::string &str);
 
-		//TODO: add odometry		
-		//void compOdometry(const ros::Time& time, const double inv_delta_t);
+		double last_tar_l;
+		double last_tar_p;
+		
+
 		//Something for getting the soft limit bounding boxes
 		//some function for making limits based on soft limit bounding box
 };//Class

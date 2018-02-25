@@ -44,8 +44,8 @@ class arm_limits
 			min_extension_ = min_extension;
 				
 			arm_length_ = arm_length;
-			point_type top(-.01, arm_length_);
-			point_type bottom(-.01, -arm_length_);
+			point_type top(-.01, arm_length_ + .01);
+			point_type bottom(-.01, -arm_length_ + .01);
 			//the -.01 is for some edge case
 			polygon_edges top_pivot_circle;
 			quarter_circle_gen(arm_length_, 0, 0, 30, top_pivot_circle, true);
@@ -187,7 +187,7 @@ class arm_limits
 			&& cur_pos.y() < hook_current_height_delta +  hook_max_height)))
 			{
 				//ROS_INFO_STREAM("cmd precheck. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
-				//ROS_WARN("HOOK LIMITED");
+				ROS_WARN("HOOK LIMITED");
 				if(cmd.x() < hook_depth)
 				{
 					cmd.x(hook_depth + .05); //adjust this arbitrary constant?
@@ -507,11 +507,14 @@ class arm_limits
 			back_line_down.push_back(point_type(x_back, min_extension - arm_length));
 			back_line_up.push_back(point_type(x_back, max_extension + arm_length));
 			back_line_up.push_back(point_type(x_back, min_extension + arm_length));
-			front_line_down.push_back(point_type(x_back + arm_length, min_extension));
-			front_line_down.push_back(point_type(x_back + arm_length, max_extension)); 	
-			front_line_up.push_back(point_type(x_back + arm_length, min_extension));
-			front_line_up.push_back(point_type(x_back + arm_length, max_extension)); 	
-			
+			front_line_down.push_back(point_type(x_back + arm_length -.01, min_extension));
+			front_line_down.push_back(point_type(x_back + arm_length - .01, max_extension)); 	
+			front_line_up.push_back(point_type(x_back + arm_length - .01, min_extension));
+			front_line_up.push_back(point_type(x_back + arm_length - .01, max_extension)); 	
+		
+			//These -.01s are a hack
+
+	
 			ROS_INFO_STREAM("poly up: " << boost::geometry::wkt(back_line_up[0])<< boost::geometry::wkt(back_line_up[1])<< boost::geometry::wkt(front_line_up[0])<< boost::geometry::wkt(front_line_up[1]));
 			
 			quarter_circle_gen(arm_length, max_extension, x_back, circle_point_count, top_circle_up, false);
