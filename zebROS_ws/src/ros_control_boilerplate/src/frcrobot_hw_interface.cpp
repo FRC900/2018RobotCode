@@ -107,6 +107,15 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
     realtime_pub_nt.msg_.mode.resize(4);
     ros::Time time_now_t;
+	ros::Time last_nt_publish_time;
+	ros::Time last_joystick_publish_time;
+	ros::Time last_match_data_publish_time;
+
+	double nt_publish_rate = 5;
+	double joystick_publish_rate = 50;
+	double match_data_publish_rate = 2;
+	bool game_specific_message_seen = false;
+
 	while (run_hal_thread_ && ros::ok())
 	{
 		robot_.OneIteration();
@@ -116,26 +125,27 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
 		//subTable->PutString("Auto Selector", "Select Auto");
-		if (realtime_pub_nt.trylock()) 
+		if (driveTable && 
+			((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t) && 
+			 realtime_pub_nt.trylock()) 
 		{
-			if (driveTable)
-			{
-				// SmartDashboard works!
-				//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+			// SmartDashboard works!
+			//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
-				//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
-				realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
-				realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
-				realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
-				realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
-				realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
-			}
+			//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
+			realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
+			realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
+			realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
+			realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
+			realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
 
 			realtime_pub_nt.msg_.header.stamp = time_now_t;
 			realtime_pub_nt.unlockAndPublish();
+			last_nt_publish_time = time_now_t;
 		}
 
-		if (realtime_pub_joystick.trylock())
+		if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
+			realtime_pub_joystick.trylock())
 		{
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
@@ -188,16 +198,24 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_joystick.msg_.stickRightRelease = joystick.GetRawButtonReleased(10);
 
 			realtime_pub_joystick.unlockAndPublish();
+			last_joystick_publish_time = time_now_t;
 		}
 
-		if(realtime_pub_match_data.trylock())
+		// Run at full speed until we see the game specific message.
+		// This guaratees we react as quickly as possible to it.
+		// After that is seen, slow down processing since there's nothing 
+		// that changes that quickly in the data.
+		if ((!game_specific_message_seen || (last_match_data_publish_time + ros::Duration(1.0 / match_data_publish_rate) < time_now_t)) && 
+			realtime_pub_match_data.trylock())
 		{
-            
             //ROS_INFO("AA:%f", ros::Time::now().toSec());
 
 			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
 
-			realtime_pub_match_data.msg_.allianceData = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+			const std::string game_specific_message = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+			if (game_specific_message.length() > 0)
+				game_specific_message_seen = true;
+			realtime_pub_match_data.msg_.allianceData = game_specific_message;
 			realtime_pub_match_data.msg_.allianceColor = DriverStation::GetInstance().GetAlliance(); //returns int that corresponds to a DriverStation Alliance enum
 			realtime_pub_match_data.msg_.driverStationLocation = DriverStation::GetInstance().GetLocation();
 			realtime_pub_match_data.msg_.matchNumber = DriverStation::GetInstance().GetMatchNumber();
@@ -207,10 +225,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.isDisabled = DriverStation::GetInstance().IsDisabled();
 			realtime_pub_match_data.msg_.isAutonomous = DriverStation::GetInstance().IsAutonomous();
 
-			realtime_pub_match_data.msg_.header.stamp = ros::Time::now();
+			realtime_pub_match_data.msg_.header.stamp = time_now_t;
 			realtime_pub_match_data.unlockAndPublish();
+			last_match_data_publish_time = time_now_t;
 		}
-        rate.sleep();
 	}
 }
 
@@ -362,8 +380,9 @@ void FRCRobotHWInterface::init(void)
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
-	static int loop_counter;
-	static int loop_counter2;
+	const int talon_updates_to_skip = 10;
+	static int loop_counter = 1;
+	loop_counter += 1;
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		auto &ts = talon_state_[joint_id];
@@ -376,6 +395,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		// convert to whatever units make sense
 		const hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
 		const hardware_interface::TalonMode talon_mode = ts.getTalonMode();
+		if (talon_mode == hardware_interface::TalonMode_Follower)
+			continue;
 		const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
 		const double conversion_factor = ts.getConversionFactor();
 
@@ -395,10 +416,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
 		ts.setOutputCurrent(output_current);
 
-		if (++loop_counter2 == 50)
+		if (loop_counter == talon_updates_to_skip)
 		{
-			loop_counter2 = 0;
-
 			const double bus_voltage = talon->GetBusVoltage();
 			safeTalonCall(talon->GetLastError(), "GetBusVoltage");
 			ts.setBusVoltage(bus_voltage);
@@ -473,10 +492,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 				ts.setMotionProfileStatus(internal_status);
 			}
 
-		}
-		if (++loop_counter == 50)
-		{
-			loop_counter = 0;
 			ctre::phoenix::motorcontrol::Faults faults;
 			safeTalonCall(talon->GetFaults(faults), "GetFaults");
 			ts.setFaults(faults.ToBitfield());
@@ -494,6 +509,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			ts.setStickyFaults(sticky_faults.ToBitfield());
 		}
 	}
+	if (loop_counter == talon_updates_to_skip)
+		loop_counter = 1;
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
 		brushless_vel_[i] = nidec_brushlesses_[i]->Get();
@@ -1188,27 +1205,36 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");
 		}
 	}
+
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
 		nidec_brushlesses_[i]->Set(brushless_command_[i]);
 	}
+
 	for (size_t i = 0; i < num_digital_outputs_; i++)
 	{
 		const bool converted_command = (digital_output_command_[i] > 0) ^ digital_output_inverts_[i];
-		digital_outputs_[i]->Set(converted_command);
-		digital_output_state_[i] = converted_command;
+		if (converted_command != digital_output_state_[i])
+		{
+			digital_outputs_[i]->Set(converted_command);
+			digital_output_state_[i] = converted_command;
+		}
 	}
-	for (size_t i = 0; i < num_pwm_; i++)
 
+	for (size_t i = 0; i < num_pwm_; i++)
 	{
 		const int inverter = (pwm_inverts_[i]) ? -1 : 1;
 		PWMs_[i]->SetSpeed(pwm_command_[i]*inverter);
 	}
+
 	for (size_t i = 0; i< num_solenoids_; i++)
 	{
 		const bool setpoint = solenoid_command_[i] > 0;
-		solenoids_[i]->Set(setpoint);
-		solenoid_state_[i] = setpoint;
+		if (solenoid_state_[i] != setpoint)
+		{
+			solenoids_[i]->Set(setpoint);
+			solenoid_state_[i] = setpoint;
+		}
 	}
 
 	for (size_t i = 0; i< num_double_solenoids_; i++)
@@ -1219,9 +1245,13 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		else if (double_solenoid_command_[i] <= -1.0)
 			setpoint = DoubleSolenoid::Value::kReverse;
 
-		double_solenoids_[i]->Set(setpoint);
-		double_solenoid_state_[i] = setpoint;
+		if (double_solenoid_state_[i] != setpoint)
+		{
+			double_solenoids_[i]->Set(setpoint);
+			double_solenoid_state_[i] = setpoint;
+		}
 	}
+
 	for (size_t i = 0; i < num_rumble_; i++)
 	{
 		const unsigned int rumbles = *((unsigned int*)(&rumble_command_[i]));

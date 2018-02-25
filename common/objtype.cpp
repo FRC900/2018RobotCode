@@ -188,6 +188,15 @@ ObjectType::ObjectType(int contour_type_id=1) {
 			contour_.push_back(Point2f(0.0508,0.41));
 			contour_.push_back(Point2f(0.0508,0));
 			name_ = "plate_location_tape";
+			break;
+		case 7: //Cube (2018)
+			depth_ = 12;
+			contour_.push_back(Point2f(0,0));
+			contour_.push_back(Point2f(0,0.2794));
+			contour_.push_back(Point2f(0.3302,0.2794));
+			contour_.push_back(Point2f(0.2794,0));
+			name_ = "cube";
+			break;
 		default:
 			cerr << "error initializing object!" << endl;
 	}

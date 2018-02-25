@@ -140,6 +140,7 @@ generate_messages(
       include
       ${catkin_INCLUDE_DIRS}
       ${OpenCV_INCLUDE_DIRS}
+      ../../../common
       #${PCL_INCLUDE_DIRS}
     )
 
@@ -157,7 +158,13 @@ generate_messages(
   ## With catkin_make all packages are built within a single CMake context
   ## The recommended prefix ensures that target names across packages don't collide
   # add_executable(${PROJECT_NAME}_node src/cube_detection_node.cpp)
-  add_executable (cube_detection_node src/cube_detect.cpp)
+  add_executable (cube_detection_node 
+		src/cube_detect.cpp
+		../../../common/track3d.cpp
+		../../../common/objtype.cpp
+		../../../common/kalman.cpp
+		../../../common/hungarian.cpp
+  )
 
   ## Rename C++ executable without prefix
   ## The above recommended prefix causes long target names, the following renames the
