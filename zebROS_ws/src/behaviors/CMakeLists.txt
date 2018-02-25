@@ -161,6 +161,15 @@ add_dependencies(
 	autoInterpreterServer
     ${behaviors_EXPORTED_TARGETS}
 )
+add_executable(dummy src/dummy.cpp)
+target_link_libraries(
+    dummy
+    ${catkin_LIBRARIES}
+)
+add_dependencies(
+	dummy
+    ${behaviors_EXPORTED_TARGETS}
+)
 ###########
 ## Build ##
 ###########
