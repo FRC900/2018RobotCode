@@ -375,10 +375,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	elevator_controller::ReturnElevatorCmd return_holder;
 	elevator_controller::ReturnElevatorCmd odom_holder;
 
-	const double lift_position = last_tar_l /*lift_joint_.getPosition()*/  - lift_offset_;
-	const double pivot_angle   = last_tar_p /*pivot_joint_.getPosition()*/ - pivot_offset_;
+	const double lift_position = lift_joint_.getPosition()  - lift_offset_;
+	const double pivot_angle   = pivot_joint_.getPosition() - pivot_offset_;
 
-	ROS_INFO_STREAM("lift_pos: " << lift_position);
+	//ROS_INFO_STREAM("lift_pos: " << lift_position);
 
 	bool cur_up_or_down = pivot_angle > 0;
 
@@ -429,7 +429,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//ROS_INFO_STREAM("cmd: " << curr_cmd.lin << " up/down: " << curr_cmd.up_or_down);
 	const double pivot_target = acos(curr_cmd.lin[0]/arm_length_) * ((curr_cmd.up_or_down) ? 1 : -1);
 	
-	ROS_INFO_STREAM("up_or_down: " << curr_cmd.up_or_down << "lin pos target" << curr_cmd.lin << " lift pos tar: " << curr_cmd.lin[1] - arm_length_ * sin(pivot_target));	
+	//ROS_INFO_STREAM("up_or_down: " << curr_cmd.up_or_down << "lin pos target" << curr_cmd.lin << " lift pos tar: " << curr_cmd.lin[1] - arm_length_ * sin(pivot_target));	
 
 	
 
@@ -437,8 +437,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
 
-	last_tar_p = pivot_target + pivot_offset_;
-	last_tar_l = curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_;
 
 }
 void ElevatorController::starting(const ros::Time &/*time*/)
