@@ -81,6 +81,7 @@ int main(int argc, char** argv) {
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
     ac->waitForServer(); 
     */
+    /*
 	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGen>("/point_gen/command");
     talon_swerve_drive_controller::FullGenCoefs srv;
     std::vector<double> v = {0, 0, 0, 0, 0, 0}; 

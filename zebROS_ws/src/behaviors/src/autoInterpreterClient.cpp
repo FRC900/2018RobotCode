@@ -21,14 +21,21 @@
 #include <talon_swerve_drive_controller/GenerateTrajectory.h>
 #include <talon_swerve_drive_controller/MotionProfilePoints.h>
 #include <talon_swerve_drive_controller/FullGen.h>
+#include <talon_swerve_drive_controller/FullGenCoefs.h>
+#include <talon_swerve_drive_controller/Coefs.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <XmlRpcValue.h>
+#include <vector>
 
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
 
 
 static int startPos = -1;
+static int auto_mode_1 = -1;
+static int auto_mode_2 = -1;
+static int auto_mode_3 = -1;
+static int auto_mode_4 = -1;
 static int auto_mode = -1;
 static double start_time;
 
@@ -59,8 +66,8 @@ static std::vector<std::vector<double>> vectTimes;
 static XmlRpc::XmlRpcValue modes;
 static std::vector<trajectory_msgs::JointTrajectory> trajectories;
 
-//static std::vector<
-
+std::vector<talon_swerve_drive_controller::FullGenCoefs> coefsVect;
+//coefsVect.resize(4);
 
 
 bool defaultConfig(elevator_controller::ElevatorControlS srv) {
@@ -120,6 +127,35 @@ bool clamp(elevator_controller::bool_srv srv) {
 bool releaseIntake(elevator_controller::Intake srv) {
     srv.request.spring_state = 1;
     IntakeService.call(srv);
+}
+
+void generateTrajectory(int layout, int auto_mode, int start_pos) {
+    XmlRpc::XmlRpcValue &path = modes[auto_mode][layout][start_pos];
+    const size_t num_splines = path["aX"].size();
+    for(int num = 0; num<num_splines; num++) {
+        XmlRpc::XmlRpcValue &x = path["x"];
+        XmlRpc::XmlRpcValue &x_num = x[num];
+        XmlRpc::XmlRpcValue &y = path["y"];
+        XmlRpc::XmlRpcValue &y_num = y[num];
+        XmlRpc::XmlRpcValue &orient = path["orient"];
+        XmlRpc::XmlRpcValue &orient_num = orient[num];
+
+        talon_swerve_drive_controller::Coefs x_coefs;
+        talon_swerve_drive_controller::Coefs y_coefs;
+        talon_swerve_drive_controller::Coefs orient_coefs;
+        for(int i = 0; i<x_num.size(); i++) {
+            const double x_coef = x[i];
+            const double y_coef = y[i];
+            const double orient_coef = orient[i];
+
+            x_coefs.spline.push_back(x_coef);
+            y_coefs.spline.push_back(y_coef);
+            orient_coefs.spline.push_back(orient_coef);
+        }
+        coefsVect[num].request.x_coefs.push_back(x_coefs);
+        coefsVect[num].request.y_coefs.push_back(y_coefs);
+        coefsVect[num].request.orient_coefs.push_back(orient_coefs);
+    }
 }
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
