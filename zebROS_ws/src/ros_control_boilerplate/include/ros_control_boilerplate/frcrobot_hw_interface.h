@@ -76,7 +76,6 @@ class ROSIterativeRobot : public frc::IterativeRobotBase
 			HAL_ObserveUserProgramStarting();
 		}
 
-
 		void OneIteration(void)
 		{
 			// wait for driver station data so the loop doesn't hog the CPU
@@ -205,8 +204,6 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		bool        run_motion_profile_thread_;
 
 		//PowerDistributionPanel pdp_joint_;
-
-		ROSIterativeRobot robot_;
 };  // class
 
 }  // namespace

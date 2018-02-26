@@ -94,7 +94,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	while (robot_code_ready_ == 0.0)
 		rate.sleep();
 
-	robot_.StartCompetition();
+	ROSIterativeRobot robot;
+	robot.StartCompetition();
 
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
@@ -111,14 +112,14 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	ros::Time last_joystick_publish_time;
 	ros::Time last_match_data_publish_time;
 
-	double nt_publish_rate = 2;
-	double joystick_publish_rate = 20;
-	double match_data_publish_rate = 1.1;
+	const double nt_publish_rate = 2;
+	const double joystick_publish_rate = 20;
+	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
 
 	while (run_hal_thread_ && ros::ok())
 	{
-		robot_.OneIteration();
+		robot.OneIteration();
 
         time_now_t = ros::Time::now();
 		//ROS_INFO("%f", ros::Time::now().toSec());
