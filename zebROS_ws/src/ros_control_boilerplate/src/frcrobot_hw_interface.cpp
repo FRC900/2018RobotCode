@@ -94,9 +94,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	while (robot_code_ready_ == 0.0)
 		rate.sleep();
 
-	ROSIterativeRobot robot;
-	robot.StartCompetition();
-
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
@@ -119,7 +116,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 	while (run_hal_thread_ && ros::ok())
 	{
-		robot.OneIteration();
+		robot_.OneIteration();
 
         time_now_t = ros::Time::now();
 		//ROS_INFO("%f", ros::Time::now().toSec());
@@ -250,6 +247,8 @@ void FRCRobotHWInterface::init(void)
 	// used by both the real and sim interfaces
 	FRCRobotInterface::init();
 	//ROS_INFO_STREAM("init is running");
+
+	robot_.StartCompetition();
 
 	// Make sure to initialize WPIlib code before creating
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized

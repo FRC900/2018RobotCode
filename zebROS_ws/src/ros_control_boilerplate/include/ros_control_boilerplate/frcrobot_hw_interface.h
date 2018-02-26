@@ -204,6 +204,8 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		bool        run_motion_profile_thread_;
 
 		//PowerDistributionPanel pdp_joint_;
+		//
+		ROSIterativeRobot robot_;
 };  // class
 
 }  // namespace
