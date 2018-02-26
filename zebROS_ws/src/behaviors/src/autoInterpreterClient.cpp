@@ -31,11 +31,8 @@ ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
 
 
-static int startPos = -1;
-static int auto_mode_1 = -1;
-static int auto_mode_2 = -1;
-static int auto_mode_3 = -1;
-static int auto_mode_4 = -1;
+static int start_pos = -1;
+std::vector<int> auto_mode_vect = {-1, -1, -1, -1};
 static int auto_mode = -1;
 static double start_time;
 
@@ -66,8 +63,8 @@ static std::vector<std::vector<double>> vectTimes;
 static XmlRpc::XmlRpcValue modes;
 static std::vector<trajectory_msgs::JointTrajectory> trajectories;
 
-std::vector<talon_swerve_drive_controller::FullGenCoefs> coefsVect;
-//coefsVect.resize(4);
+std::vector<talon_swerve_drive_controller::FullGenCoefs> coefs_vect;
+//coefs_vect.reserve(4);
 
 
 bool defaultConfig(elevator_controller::ElevatorControlS srv) {
@@ -130,9 +127,13 @@ bool releaseIntake(elevator_controller::Intake srv) {
 }
 
 void generateTrajectory(int layout, int auto_mode, int start_pos) {
+
+    ROS_ERROR("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     XmlRpc::XmlRpcValue &path = modes[auto_mode][layout][start_pos];
-    const size_t num_splines = path["aX"].size();
-    for(int num = 0; num<num_splines; num++) {
+    XmlRpc::XmlRpcValue &xml_x = path["x"];
+    //const int num_splines = xml_x.size();
+    talon_swerve_drive_controller::FullGenCoefs srv;
+    for(int num = 0; num<xml_x.size(); num++) {
         XmlRpc::XmlRpcValue &x = path["x"];
         XmlRpc::XmlRpcValue &x_num = x[num];
         XmlRpc::XmlRpcValue &y = path["y"];
@@ -144,23 +145,49 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
         talon_swerve_drive_controller::Coefs y_coefs;
         talon_swerve_drive_controller::Coefs orient_coefs;
         for(int i = 0; i<x_num.size(); i++) {
-            const double x_coef = x[i];
-            const double y_coef = y[i];
-            const double orient_coef = orient[i];
+            const double x_coef = x_num[i];
+            const double y_coef = y_num[i];
+            const double orient_coef = orient_num[i];
 
             x_coefs.spline.push_back(x_coef);
             y_coefs.spline.push_back(y_coef);
             orient_coefs.spline.push_back(orient_coef);
         }
-        coefsVect[num].request.x_coefs.push_back(x_coefs);
-        coefsVect[num].request.y_coefs.push_back(y_coefs);
-        coefsVect[num].request.orient_coefs.push_back(orient_coefs);
+        /*
+        if(coefs_vect[layout].request.x_coefs.size()!=0) {
+            coefs_vect[layout].request.x_coefs.clear();
+            coefs_vect[layout].request.y_coefs.clear();
+            coefs_vect[layout].request.orient_coefs.clear();
+            coefs_vect[layout].request.end_points.clear();
+        }*/
+        srv.request.x_coefs.push_back(x_coefs);
+        srv.request.y_coefs.push_back(y_coefs);
+        srv.request.orient_coefs.push_back(orient_coefs);
+        srv.request.end_points.push_back(layout+1);
     }
+    srv.request.initial_v = 0;
+    srv.request.final_v = 0;
+    coefs_vect.push_back(srv);
+    point_gen.call(coefs_vect[layout]);
 }
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
-    ROS_WARN("5");
+    if(AutoMode->position != start_pos) {
+        for(int i = 0; i<4; i++) {
+            generateTrajectory(i, AutoMode->mode[i], AutoMode->position);
+        }
+    }
+    else {
+        for(int i = 0; i<4; i++) {
+            if(AutoMode->mode[i] != auto_mode_vect[i]) {
+                generateTrajectory(i, AutoMode->mode[i], AutoMode->position);
+            }
+            auto_mode_vect[i] = AutoMode->mode[i];
+        }
+    }
+    start_pos = AutoMode->position;
+    /*
     startPos = AutoMode->position;
 
     vectTimes.resize(4);
@@ -244,6 +271,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             //ROS_INFO("%d", xml_times[i]);
         } 
     }
+    */
        // }
     //}
                 /*
@@ -288,7 +316,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             vel.angular.z = 0;
             VelPub.publish(vel);
             return;
-            startPos = AutoMode->position;
+            start_pos = AutoMode->position;
             std::vector<double> times;
             if(MatchData->allianceData=="rlr") {
                 auto_mode = 1;
@@ -627,6 +655,7 @@ int main(int argc, char** argv) {
     n_params.getParam("default_y", default_y);
     n_params.getParam("timeout", timeout);
 
+    n_params_behaviors.getParam("modes", modes);
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
     ac->waitForServer(); 
 	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGen>("/point_gen/command");
@@ -646,6 +675,28 @@ int main(int argc, char** argv) {
     message_filters::Synchronizer<data_sync> sync(data_sync(10), auto_mode_sub, match_data_sub);
     sync.registerCallback(boost::bind(&auto_modes, _1, _2));
     ROS_WARN("Auto Client loaded");
+    ////////////////////////////
+    std::vector<int> modess = {0, 0, 0, 0};
+    ///////////////////////////
+    /*
+    ROS_WARN("1");
+    if(1 != start_pos) {
+        ROS_WARN("2");
+        for(int i = 0; i<4; i++) {
+            ROS_WARN("3");
+            generateTrajectory(i, modess[i], 0);
+        }
+    }
+    /*else {
+        for(int i = 0; i<4; i++) {
+            if(AutoMode->mode[i] != auto_mode_vect[i]) {
+                generateTrajectory(i, AutoMode->mode[i], AutoMode->position);
+            }
+            auto_mode_vect[i] = AutoMode->mode[i];
+        }
+    }
+    start_pos = AutoMode->position;
+    */
     /*
     startPos = 0;
     vectTimes.resize(4);
@@ -730,6 +781,7 @@ int main(int argc, char** argv) {
         }
     }
     */
+    ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::spin();
     return 0;
 
