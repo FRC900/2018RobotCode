@@ -133,10 +133,12 @@ int main(int argc, char **argv)
         swerveVar::ratios drive_ratios;
         swerveVar::encoderUnits units;
 	double max_accel;	
+	double max_brake_accel;	
 	double ang_accel_conv;	
 
 	bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", model.wheelRadius);
 	bool lookup_max_accel = !controller_nh.getParam("max_accel", max_accel);
+	bool lookup_max_brake_accel = !controller_nh.getParam("max_brake_accel", max_brake_accel);
 	bool lookup_ang_accel_conv = !controller_nh.getParam("ang_accel_conv", ang_accel_conv);
         bool lookup_max_speed = !controller_nh.getParam("max_speed", model.maxSpeed);
         bool lookup_mass = !controller_nh.getParam("mass", model.mass);
@@ -190,7 +192,7 @@ int main(int argc, char **argv)
 
 	swerve_math = std::make_shared<swerve>(wheel_coords, offsets, invert_wheel_angle, drive_ratios, units, model);
 	defined_dt = .02;
-	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(sqrt(wheel_coords[0][0]*wheel_coords[0][0] + wheel_coords[0][1]*wheel_coords[0][1]), max_accel, model.maxSpeed, 1, 1, defined_dt, ang_accel_conv); //Fix last val
+	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(sqrt(wheel_coords[0][0]*wheel_coords[0][0] + wheel_coords[0][1]*wheel_coords[0][1]), max_accel, model.maxSpeed, 1, 1, defined_dt, ang_accel_conv, max_brake_accel); //Fix last val
 	//Something to get intial wheel position
 	
 	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/visualize_profile");

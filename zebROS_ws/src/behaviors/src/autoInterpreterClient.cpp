@@ -148,7 +148,7 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
             const double y_coef = y_num[i];
             const double orient_coef = orient_num[i];
 
-            ROS_WARN("%f", orient_coef);
+            //ROS_WARN("%f", orient_coef);
             x_coefs.spline.push_back(x_coef);
             y_coefs.spline.push_back(y_coef);
             orient_coefs.spline.push_back(orient_coef);
@@ -163,7 +163,7 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
         srv.request.x_coefs.push_back(x_coefs);
         srv.request.y_coefs.push_back(y_coefs);
         srv.request.orient_coefs.push_back(orient_coefs);
-        srv.request.end_points.push_back(layout+1);
+        srv.request.end_points.push_back(num+1);
     }
     srv.request.initial_v = 0;
     srv.request.final_v = 0;

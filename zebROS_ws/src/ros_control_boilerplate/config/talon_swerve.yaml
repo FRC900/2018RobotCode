@@ -100,8 +100,9 @@ swerve_drive_controller:
     twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     # fix me
     wheel_radius: 0.041275 # m
-    max_speed: 3.3528
-    max_accel: 1.75
+    max_speed: 3.6528
+    max_accel: 2
+    max_brake_accel: 4
     mass: 70
     motor_free_speed: 5330
     motor_stall_torque: 2.41
