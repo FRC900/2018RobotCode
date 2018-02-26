@@ -128,7 +128,6 @@ bool releaseIntake(elevator_controller::Intake srv) {
 
 void generateTrajectory(int layout, int auto_mode, int start_pos) {
 
-    ROS_ERROR("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
     XmlRpc::XmlRpcValue &path = modes[auto_mode][layout][start_pos];
     XmlRpc::XmlRpcValue &xml_x = path["x"];
     //const int num_splines = xml_x.size();
@@ -149,6 +148,7 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
             const double y_coef = y_num[i];
             const double orient_coef = orient_num[i];
 
+            ROS_WARN("%f", orient_coef);
             x_coefs.spline.push_back(x_coef);
             y_coefs.spline.push_back(y_coef);
             orient_coefs.spline.push_back(orient_coef);
@@ -658,7 +658,7 @@ int main(int argc, char** argv) {
     n_params_behaviors.getParam("modes", modes);
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
     ac->waitForServer(); 
-	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGen>("/point_gen/command");
+	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGenCoefs>("/point_gen/command");
 	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile");
 
     //IntakeService = n.advertise<elevator_controller::Intake>("elevator/Intake", 1);
@@ -675,6 +675,8 @@ int main(int argc, char** argv) {
     message_filters::Synchronizer<data_sync> sync(data_sync(10), auto_mode_sub, match_data_sub);
     sync.registerCallback(boost::bind(&auto_modes, _1, _2));
     ROS_WARN("Auto Client loaded");
+    ros::Duration(2).sleep();
+    generateTrajectory(0, 0, 0);
     ////////////////////////////
     std::vector<int> modess = {0, 0, 0, 0};
     ///////////////////////////
