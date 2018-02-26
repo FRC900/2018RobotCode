@@ -65,14 +65,15 @@ class GenericHWControlLoop
 			ros::NodeHandle &nh,
 			boost::shared_ptr<ros_control_boilerplate::FRCRobotInterface> hardware_interface);
 
-		/** \brief Timer event
-		 *         Note: we do not use the TimerEvent time difference because it does NOT guarantee that
-		 * the time source is
-		 *         strictly linearly increasing
-		 */
-		void update(const ros::TimerEvent &e);
+
+		// Run the control loop (blocking)
+		void run();
 
 	protected:
+
+		// Update funcion called with loop_hz_ rate
+		void update();
+
 		// Startup and shutdown of the internal node inside a roscpp program
 		ros::NodeHandle nh_;
 
@@ -84,7 +85,6 @@ class GenericHWControlLoop
 		double cycle_time_error_threshold_;
 
 		// Timing
-		ros::Timer non_realtime_loop_;
 		ros::Duration elapsed_time_;
 		double loop_hz_;
 		struct timespec last_time_;

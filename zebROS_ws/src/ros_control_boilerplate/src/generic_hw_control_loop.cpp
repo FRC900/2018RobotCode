@@ -61,12 +61,20 @@ GenericHWControlLoop::GenericHWControlLoop(
 	// Get current time for use with first update
 	clock_gettime(CLOCK_MONOTONIC, &last_time_);
 
-	// Start timer
 	desired_update_period_ = ros::Duration(1.0 / loop_hz_);
-	non_realtime_loop_ = nh_.createTimer(desired_update_period_, &GenericHWControlLoop::update, this);
 }
 
-void GenericHWControlLoop::update(const ros::TimerEvent & /*e*/)
+void GenericHWControlLoop::run(void)
+{
+	ros::Rate rate(loop_hz_);
+	while(ros::ok()) 
+	{
+		update();
+		rate.sleep();
+	}
+}
+
+void GenericHWControlLoop::update(void)
 {
 	// Get change in time
 	clock_gettime(CLOCK_MONOTONIC, &current_time_);
