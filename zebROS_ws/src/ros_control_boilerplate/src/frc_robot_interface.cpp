@@ -689,6 +689,7 @@ std::string FRCRobotInterface::printCommandHelper()
 
 void FRCRobotInterface::loadURDF(ros::NodeHandle &nh, std::string param_name)
 {
+	return;
 	std::string urdf_string;
 	urdf_model_ = new urdf::Model();
 

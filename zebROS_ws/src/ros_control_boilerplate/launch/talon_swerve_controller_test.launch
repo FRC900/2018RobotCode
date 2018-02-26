@@ -9,9 +9,9 @@
 	<arg name="hw_or_sim" default="hw" />
 	<arg name="bot id" default="0" />
 
-	<!-- Load example URDF -->
-	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find ros_control_boilerplate)/urdf/base_trajectory.xacro'" />
-
+	<!-- Load example URDF 
+	<param name="robot_description" command="$(find xacro)/xacro - -inorder '$(find ros_control_boilerplate)/urdf/base_trajectory.xacro'" />
+	-->
 	<group ns="frcrobot">
 
 		<!-- Load hardware interface -->
