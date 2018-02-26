@@ -158,6 +158,8 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 		m.motion_profile_time_dur_ms.push_back(0);
 		m.faults.push_back("");
 		m.sticky_faults.push_back("");
+		m.conversion_factor.push_back(0.0);
+		m.water_game.push_back(true);
 
 		talon_state_.push_back(hw->getHandle(joint_names[i]));
 	}
@@ -476,6 +478,7 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 					}
 					m.sticky_faults[i] = str;
 				}
+				m.conversion_factor[i] = ts->getConversionFactor();
 			}
 			realtime_pub_->unlockAndPublish();
 		}
