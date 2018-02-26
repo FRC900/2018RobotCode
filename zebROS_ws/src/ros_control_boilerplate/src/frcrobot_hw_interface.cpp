@@ -81,6 +81,231 @@ FRCRobotHWInterface::~FRCRobotHWInterface()
 	hal_thread_.join();
 	motion_profile_thread_.join();
 }
+// Very simple code to communicate with the HAL. This recieves
+// packets from the driver station and lets the field management
+// know our robot is alive.  
+class ROSRobot : public frc::TimedRobot
+{
+	public:
+		ROSRobot(ros::NodeHandle &nh) :
+			TimedRobot(),
+			joystick_(0),
+			realtime_pub_joystick_(nh, "joystick_states", 4),
+			realtime_pub_match_data_(nh, "match_data", 4),
+			subTable_(NetworkTable::GetTable("Custom")),
+			driveTable_(NetworkTable::GetTable("SmartDashboard")),  //Access Smart Dashboard Variables
+			realtime_pub_nt_(nh, "Autonomous_Mode", 4),
+			game_specific_message_seen_(false)
+		{
+			HAL_Report(HALUsageReporting::kResourceType_Framework, 900, 0, "https://www.ros.org");
+
+			realtime_pub_nt_.msg_.mode.resize(4);
+		}
+
+		void StartCompetition(void) override
+		{
+			RobotInit();
+			HAL_ObserveUserProgramStarting();
+		}
+
+		void OneIteration(void)
+		{
+			// wait for driver station data so the loop doesn't hog the CPU
+			DriverStation::GetInstance().WaitForData();
+			LoopFunc();
+		}
+
+		void RobotPeriodic(void) override
+		{
+			const double nt_publish_rate = 2;
+			const double joystick_publish_rate = 20;
+			const double match_data_publish_rate = 1.1;
+
+			const ros::Time time_now_t = ros::Time::now();
+			//ROS_INFO("%f", ros::Time::now().toSec());
+			// Network tables work!
+			//pubTable->PutString("String 9", "WORK");
+			//subTable_->PutString("Auto Selector", "Select Auto");
+			if (driveTable_ && 
+				((last_nt_publish_time_ + ros::Duration(1.0 / nt_publish_rate)) < time_now_t) && 
+				realtime_pub_nt_.trylock()) 
+			{
+				// SmartDashboard works!
+				//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+
+				//realtime_pub_nt_.msg_.data = driveTable_->GetString("Auto Selector", "0");
+				realtime_pub_nt_.msg_.mode[0] = (int)driveTable_->GetNumber("auto_mode_0", 0);
+				realtime_pub_nt_.msg_.mode[1] = (int)driveTable_->GetNumber("auto_mode_1", 0);
+				realtime_pub_nt_.msg_.mode[2] = (int)driveTable_->GetNumber("auto_mode_2", 0);
+				realtime_pub_nt_.msg_.mode[3] = (int)driveTable_->GetNumber("auto_mode_3", 0);
+				realtime_pub_nt_.msg_.position = (int)driveTable_->GetNumber("robot_start_position", 0);
+
+				realtime_pub_nt_.msg_.header.stamp = time_now_t;
+				realtime_pub_nt_.unlockAndPublish();
+				last_nt_publish_time_ += ros::Duration(1.0 / nt_publish_rate);
+			}
+
+			if (((last_joystick_publish_time_ + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
+				realtime_pub_joystick_.trylock())
+			{
+				realtime_pub_joystick_.msg_.header.stamp = time_now_t;
+
+				realtime_pub_joystick_.msg_.leftStickX = joystick_.GetRawAxis(0);
+				realtime_pub_joystick_.msg_.leftStickY = joystick_.GetRawAxis(1);
+				realtime_pub_joystick_.msg_.rightStickX = joystick_.GetRawAxis(4);
+				realtime_pub_joystick_.msg_.rightStickY = joystick_.GetRawAxis(5);
+
+				realtime_pub_joystick_.msg_.leftTrigger = joystick_.GetRawAxis(2);
+				realtime_pub_joystick_.msg_.rightTrigger = joystick_.GetRawAxis(3);
+
+				realtime_pub_joystick_.msg_.buttonAButton = joystick_.GetRawButton(1);
+				realtime_pub_joystick_.msg_.buttonAPress = joystick_.GetRawButtonPressed(1);
+				realtime_pub_joystick_.msg_.buttonARelease = joystick_.GetRawButtonReleased(1);
+
+				realtime_pub_joystick_.msg_.buttonBButton = joystick_.GetRawButton(2);
+				realtime_pub_joystick_.msg_.buttonBPress = joystick_.GetRawButtonPressed(2);
+				realtime_pub_joystick_.msg_.buttonBRelease = joystick_.GetRawButtonReleased(2);
+
+				realtime_pub_joystick_.msg_.buttonXButton = joystick_.GetRawButton(3);
+				realtime_pub_joystick_.msg_.buttonXPress = joystick_.GetRawButtonPressed(3);
+				realtime_pub_joystick_.msg_.buttonXRelease = joystick_.GetRawButtonReleased(3);
+
+				realtime_pub_joystick_.msg_.buttonYButton = joystick_.GetRawButton(4);
+				realtime_pub_joystick_.msg_.buttonYPress = joystick_.GetRawButtonPressed(4);
+				realtime_pub_joystick_.msg_.buttonYRelease = joystick_.GetRawButtonReleased(4);
+
+				realtime_pub_joystick_.msg_.bumperLeftButton = joystick_.GetRawButton(5);
+				realtime_pub_joystick_.msg_.bumperLeftPress = joystick_.GetRawButtonPressed(5);
+				realtime_pub_joystick_.msg_.bumperLeftRelease = joystick_.GetRawButtonReleased(5);
+
+				realtime_pub_joystick_.msg_.bumperRightButton = joystick_.GetRawButton(6);
+				realtime_pub_joystick_.msg_.bumperRightPress = joystick_.GetRawButtonPressed(6);
+				realtime_pub_joystick_.msg_.bumperRightRelease = joystick_.GetRawButtonReleased(6);
+
+				realtime_pub_joystick_.msg_.buttonBackButton = joystick_.GetRawButton(7);
+				realtime_pub_joystick_.msg_.buttonBackPress = joystick_.GetRawButtonPressed(7);
+				realtime_pub_joystick_.msg_.buttonBackRelease = joystick_.GetRawButtonReleased(7);
+
+				realtime_pub_joystick_.msg_.buttonStartButton = joystick_.GetRawButton(8);
+				realtime_pub_joystick_.msg_.buttonStartPress = joystick_.GetRawButtonPressed(8);
+				realtime_pub_joystick_.msg_.buttonStartRelease = joystick_.GetRawButtonReleased(8);
+
+				realtime_pub_joystick_.msg_.stickLeftButton = joystick_.GetRawButton(9);
+				realtime_pub_joystick_.msg_.stickLeftPress = joystick_.GetRawButtonPressed(9);
+				realtime_pub_joystick_.msg_.stickLeftRelease = joystick_.GetRawButtonReleased(9);
+
+				realtime_pub_joystick_.msg_.stickRightButton = joystick_.GetRawButton(10);
+				realtime_pub_joystick_.msg_.stickRightPress = joystick_.GetRawButtonPressed(10);
+				realtime_pub_joystick_.msg_.stickRightRelease = joystick_.GetRawButtonReleased(10);
+
+				realtime_pub_joystick_.unlockAndPublish();
+				last_joystick_publish_time_ += ros::Duration(1.0 / joystick_publish_rate);
+			}
+
+			// Run at full speed until we see the game specific message.
+			// This guaratees we react as quickly as possible to it.
+			// After that is seen, slow down processing since there's nothing 
+			// that changes that quickly in the data.
+			if ((!game_specific_message_seen_ || (last_match_data_publish_time_ + ros::Duration(1.0 / match_data_publish_rate) < time_now_t)) && 
+				realtime_pub_match_data_.trylock())
+			{
+				//ROS_INFO("AA:%f", ros::Time::now().toSec());
+
+				realtime_pub_match_data_.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
+
+				const std::string game_specific_message = DriverStation::GetInstance().GetGameSpecificMessage();
+				if (game_specific_message.length() > 0)
+					game_specific_message_seen_ = true;
+				realtime_pub_match_data_.msg_.allianceData = game_specific_message;
+				realtime_pub_match_data_.msg_.allianceColor = DriverStation::GetInstance().GetAlliance(); //returns int that corresponds to a DriverStation Alliance enum
+				realtime_pub_match_data_.msg_.driverStationLocation = DriverStation::GetInstance().GetLocation();
+				realtime_pub_match_data_.msg_.matchNumber = DriverStation::GetInstance().GetMatchNumber();
+				realtime_pub_match_data_.msg_.matchType = DriverStation::GetInstance().GetMatchType(); //returns int that corresponds to a DriverStation matchType enum
+
+				realtime_pub_match_data_.msg_.isEnabled = DriverStation::GetInstance().IsEnabled();
+				realtime_pub_match_data_.msg_.isDisabled = DriverStation::GetInstance().IsDisabled();
+				realtime_pub_match_data_.msg_.isAutonomous = DriverStation::GetInstance().IsAutonomous();
+
+				realtime_pub_match_data_.msg_.header.stamp = time_now_t;
+				realtime_pub_match_data_.unlockAndPublish();
+				last_match_data_publish_time_ += ros::Duration(1.0 / match_data_publish_rate);
+			}
+		}
+
+	private:
+		void LoopFunc(bool use_livewindow = false)
+		{
+			// Call the appropriate function depending upon the current robot mode
+			if (IsDisabled()) {
+				// Call DisabledInit() if we are now just entering disabled mode from
+				// either a different mode or from power-on.
+				if (m_lastMode != Mode::kDisabled) {
+					if (use_livewindow)
+						LiveWindow::GetInstance()->SetEnabled(false);
+					DisabledInit();
+					m_lastMode = Mode::kDisabled;
+				}
+				HAL_ObserveUserProgramDisabled();
+				DisabledPeriodic();
+			} else if (IsAutonomous()) {
+				// Call AutonomousInit() if we are now just entering autonomous mode from
+				// either a different mode or from power-on.
+				if (m_lastMode != Mode::kAutonomous) {
+					if (use_livewindow)
+						LiveWindow::GetInstance()->SetEnabled(false);
+					AutonomousInit();
+					m_lastMode = Mode::kAutonomous;
+				}
+				HAL_ObserveUserProgramAutonomous();
+				AutonomousPeriodic();
+			} else if (IsOperatorControl()) {
+				// Call TeleopInit() if we are now just entering teleop mode from
+				// either a different mode or from power-on.
+				if (m_lastMode != Mode::kTeleop) {
+					if (use_livewindow)
+						LiveWindow::GetInstance()->SetEnabled(false);
+					TeleopInit();
+					m_lastMode = Mode::kTeleop;
+					Scheduler::GetInstance()->SetEnabled(true);
+				}
+				HAL_ObserveUserProgramTeleop();
+				TeleopPeriodic();
+			} else {
+				// Call TestInit() if we are now just entering test mode from
+				// either a different mode or from power-on.
+				if (m_lastMode != Mode::kTest) {
+					if (use_livewindow)
+						LiveWindow::GetInstance()->SetEnabled(true);
+					TestInit();
+					m_lastMode = Mode::kTest;
+				}
+				HAL_ObserveUserProgramTest();
+				TestPeriodic();
+			}
+			RobotPeriodic();
+			SmartDashboard::UpdateValues();
+			if (use_livewindow)
+				LiveWindow::GetInstance()->UpdateValues();
+		}
+
+		enum class Mode { kNone, kDisabled, kAutonomous, kTeleop, kTest };
+
+		Mode m_lastMode = Mode::kNone;
+
+		Joystick joystick_;
+		realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick_;
+		realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data_;
+
+		// Setup writing to a network table that already exists on the dashboard
+		//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
+		std::shared_ptr<nt::NetworkTable> subTable_;
+		std::shared_ptr<nt::NetworkTable> driveTable_;
+		realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt_;
+		ros::Time last_nt_publish_time_;
+		ros::Time last_joystick_publish_time_;
+		ros::Time last_match_data_publish_time_;
+		bool game_specific_message_seen_;
+};
 
 void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
@@ -90,147 +315,18 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	// spawned - waiting here prevents the robot from
 	// report robot code ready to the field until
 	// all controllers are started
-	ros::Rate rate(20);
-	while (robot_code_ready_ == 0.0)
-		rate.sleep();
+	{
+		ros::Rate rate(20);
+		while (robot_code_ready_ == 0.0)
+			rate.sleep();
+	}
 
-	ROSIterativeRobot robot;
+	ROSRobot robot(nh_);
 	robot.StartCompetition();
 
-	Joystick joystick(0);
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
-
-	// Setup writing to a network table that already exists on the dashboard
-	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
-	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
-	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
-    realtime_pub_nt.msg_.mode.resize(4);
-    ros::Time time_now_t;
-	ros::Time last_nt_publish_time;
-	ros::Time last_joystick_publish_time;
-	ros::Time last_match_data_publish_time;
-
-	const double nt_publish_rate = 2;
-	const double joystick_publish_rate = 20;
-	const double match_data_publish_rate = 1.1;
-	bool game_specific_message_seen = false;
-
+	ros::Rate rate(1);
 	while (run_hal_thread_ && ros::ok())
-	{
-		robot.OneIteration();
-
-        time_now_t = ros::Time::now();
-		//ROS_INFO("%f", ros::Time::now().toSec());
-		// Network tables work!
-		//pubTable->PutString("String 9", "WORK");
-		//subTable->PutString("Auto Selector", "Select Auto");
-		if (driveTable && 
-			((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t) && 
-			 realtime_pub_nt.trylock()) 
-		{
-			// SmartDashboard works!
-			//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
-
-			//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
-			realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
-			realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
-			realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
-			realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
-			realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
-
-			realtime_pub_nt.msg_.header.stamp = time_now_t;
-			realtime_pub_nt.unlockAndPublish();
-			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
-		}
-
-		if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
-			realtime_pub_joystick.trylock())
-		{
-			realtime_pub_joystick.msg_.header.stamp = time_now_t;
-
-			realtime_pub_joystick.msg_.leftStickX = joystick.GetRawAxis(0);
-			realtime_pub_joystick.msg_.leftStickY = joystick.GetRawAxis(1);
-			realtime_pub_joystick.msg_.rightStickX = joystick.GetRawAxis(4);
-			realtime_pub_joystick.msg_.rightStickY = joystick.GetRawAxis(5);
-
-			realtime_pub_joystick.msg_.leftTrigger = joystick.GetRawAxis(2);
-			realtime_pub_joystick.msg_.rightTrigger = joystick.GetRawAxis(3);
-
-			realtime_pub_joystick.msg_.buttonAButton = joystick.GetRawButton(1);
-			realtime_pub_joystick.msg_.buttonAPress = joystick.GetRawButtonPressed(1);
-			realtime_pub_joystick.msg_.buttonARelease = joystick.GetRawButtonReleased(1);
-
-			realtime_pub_joystick.msg_.buttonBButton = joystick.GetRawButton(2);
-			realtime_pub_joystick.msg_.buttonBPress = joystick.GetRawButtonPressed(2);
-			realtime_pub_joystick.msg_.buttonBRelease = joystick.GetRawButtonReleased(2);
-
-			realtime_pub_joystick.msg_.buttonXButton = joystick.GetRawButton(3);
-			realtime_pub_joystick.msg_.buttonXPress = joystick.GetRawButtonPressed(3);
-			realtime_pub_joystick.msg_.buttonXRelease = joystick.GetRawButtonReleased(3);
-
-			realtime_pub_joystick.msg_.buttonYButton = joystick.GetRawButton(4);
-			realtime_pub_joystick.msg_.buttonYPress = joystick.GetRawButtonPressed(4);
-			realtime_pub_joystick.msg_.buttonYRelease = joystick.GetRawButtonReleased(4);
-
-			realtime_pub_joystick.msg_.bumperLeftButton = joystick.GetRawButton(5);
-			realtime_pub_joystick.msg_.bumperLeftPress = joystick.GetRawButtonPressed(5);
-			realtime_pub_joystick.msg_.bumperLeftRelease = joystick.GetRawButtonReleased(5);
-
-			realtime_pub_joystick.msg_.bumperRightButton = joystick.GetRawButton(6);
-			realtime_pub_joystick.msg_.bumperRightPress = joystick.GetRawButtonPressed(6);
-			realtime_pub_joystick.msg_.bumperRightRelease = joystick.GetRawButtonReleased(6);
-
-			realtime_pub_joystick.msg_.buttonBackButton = joystick.GetRawButton(7);
-			realtime_pub_joystick.msg_.buttonBackPress = joystick.GetRawButtonPressed(7);
-			realtime_pub_joystick.msg_.buttonBackRelease = joystick.GetRawButtonReleased(7);
-
-			realtime_pub_joystick.msg_.buttonStartButton = joystick.GetRawButton(8);
-			realtime_pub_joystick.msg_.buttonStartPress = joystick.GetRawButtonPressed(8);
-			realtime_pub_joystick.msg_.buttonStartRelease = joystick.GetRawButtonReleased(8);
-
-			realtime_pub_joystick.msg_.stickLeftButton = joystick.GetRawButton(9);
-			realtime_pub_joystick.msg_.stickLeftPress = joystick.GetRawButtonPressed(9);
-			realtime_pub_joystick.msg_.stickLeftRelease = joystick.GetRawButtonReleased(9);
-
-			realtime_pub_joystick.msg_.stickRightButton = joystick.GetRawButton(10);
-			realtime_pub_joystick.msg_.stickRightPress = joystick.GetRawButtonPressed(10);
-			realtime_pub_joystick.msg_.stickRightRelease = joystick.GetRawButtonReleased(10);
-
-			realtime_pub_joystick.unlockAndPublish();
-			last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
-		}
-
-		// Run at full speed until we see the game specific message.
-		// This guaratees we react as quickly as possible to it.
-		// After that is seen, slow down processing since there's nothing 
-		// that changes that quickly in the data.
-		if ((!game_specific_message_seen || (last_match_data_publish_time + ros::Duration(1.0 / match_data_publish_rate) < time_now_t)) && 
-			realtime_pub_match_data.trylock())
-		{
-            //ROS_INFO("AA:%f", ros::Time::now().toSec());
-
-			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
-
-			const std::string game_specific_message = DriverStation::GetInstance().GetGameSpecificMessage();
-			if (game_specific_message.length() > 0)
-				game_specific_message_seen = true;
-			realtime_pub_match_data.msg_.allianceData = game_specific_message;
-			realtime_pub_match_data.msg_.allianceColor = DriverStation::GetInstance().GetAlliance(); //returns int that corresponds to a DriverStation Alliance enum
-			realtime_pub_match_data.msg_.driverStationLocation = DriverStation::GetInstance().GetLocation();
-			realtime_pub_match_data.msg_.matchNumber = DriverStation::GetInstance().GetMatchNumber();
-			realtime_pub_match_data.msg_.matchType = DriverStation::GetInstance().GetMatchType(); //returns int that corresponds to a DriverStation matchType enum
-
-			realtime_pub_match_data.msg_.isEnabled = DriverStation::GetInstance().IsEnabled();
-			realtime_pub_match_data.msg_.isDisabled = DriverStation::GetInstance().IsDisabled();
-			realtime_pub_match_data.msg_.isAutonomous = DriverStation::GetInstance().IsAutonomous();
-
-			realtime_pub_match_data.msg_.header.stamp = time_now_t;
-			realtime_pub_match_data.unlockAndPublish();
-			last_match_data_publish_time += ros::Duration(1.0 / match_data_publish_rate);
-		}
-	}
+		rate.sleep();
 }
 
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(ros::Rate rate)
