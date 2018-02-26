@@ -54,6 +54,8 @@
 #include <AHRS.h>
 #include <Compressor.h>
 #include <PowerDistributionPanel.h>
+#include "LiveWindow/LiveWindow.h"
+#include "SmartDashboard/SmartDashboard.h"
 
 namespace frcrobot_control
 {
@@ -74,12 +76,73 @@ class ROSIterativeRobot : public frc::IterativeRobotBase
 			HAL_ObserveUserProgramStarting();
 		}
 
+
 		void OneIteration(void)
 		{
 			// wait for driver station data so the loop doesn't hog the CPU
 			DriverStation::GetInstance().WaitForData();
 			LoopFunc();
 		}
+
+	private:
+		void LoopFunc(bool use_livewindow = false)
+		{
+			// Call the appropriate function depending upon the current robot mode
+			if (IsDisabled()) {
+				// Call DisabledInit() if we are now just entering disabled mode from
+				// either a different mode or from power-on.
+				if (m_lastMode != Mode::kDisabled) {
+					if (use_livewindow)
+						LiveWindow::GetInstance()->SetEnabled(false);
+					DisabledInit();
+					m_lastMode = Mode::kDisabled;
+				}
+				HAL_ObserveUserProgramDisabled();
+				DisabledPeriodic();
+			} else if (IsAutonomous()) {
+				// Call AutonomousInit() if we are now just entering autonomous mode from
+				// either a different mode or from power-on.
+				if (m_lastMode != Mode::kAutonomous) {
+					if (use_livewindow)
+						LiveWindow::GetInstance()->SetEnabled(false);
+					AutonomousInit();
+					m_lastMode = Mode::kAutonomous;
+				}
+				HAL_ObserveUserProgramAutonomous();
+				AutonomousPeriodic();
+			} else if (IsOperatorControl()) {
+				// Call TeleopInit() if we are now just entering teleop mode from
+				// either a different mode or from power-on.
+				if (m_lastMode != Mode::kTeleop) {
+					if (use_livewindow)
+						LiveWindow::GetInstance()->SetEnabled(false);
+					TeleopInit();
+					m_lastMode = Mode::kTeleop;
+					Scheduler::GetInstance()->SetEnabled(true);
+				}
+				HAL_ObserveUserProgramTeleop();
+				TeleopPeriodic();
+			} else {
+				// Call TestInit() if we are now just entering test mode from
+				// either a different mode or from power-on.
+				if (m_lastMode != Mode::kTest) {
+					if (use_livewindow)
+						LiveWindow::GetInstance()->SetEnabled(true);
+					TestInit();
+					m_lastMode = Mode::kTest;
+				}
+				HAL_ObserveUserProgramTest();
+				TestPeriodic();
+			}
+			RobotPeriodic();
+			SmartDashboard::UpdateValues();
+			if (use_livewindow)
+				LiveWindow::GetInstance()->UpdateValues();
+		}
+
+		enum class Mode { kNone, kDisabled, kAutonomous, kTeleop, kTest };
+
+		Mode m_lastMode = Mode::kNone;
 };
 
 /// \brief Hardware interface for a robot
