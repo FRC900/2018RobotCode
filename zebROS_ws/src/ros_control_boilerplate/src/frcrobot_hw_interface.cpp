@@ -102,19 +102,6 @@ class ROSRobot : public frc::TimedRobot
 			realtime_pub_nt_.msg_.mode.resize(4);
 		}
 
-		void StartCompetition(void) override
-		{
-			RobotInit();
-			HAL_ObserveUserProgramStarting();
-		}
-
-		void OneIteration(void)
-		{
-			// wait for driver station data so the loop doesn't hog the CPU
-			DriverStation::GetInstance().WaitForData();
-			LoopFunc();
-		}
-
 		void RobotPeriodic(void) override
 		{
 			const double nt_publish_rate = 2;
@@ -307,6 +294,7 @@ class ROSRobot : public frc::TimedRobot
 		bool game_specific_message_seen_;
 };
 
+// If this works move it into read() instead
 void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	run_hal_thread_ = true;
@@ -321,8 +309,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			rate.sleep();
 	}
 
-	ROSRobot robot(nh_);
-	robot.StartCompetition();
+	robot_->StartCompetition();
 
 	ros::Rate rate(1);
 	while (run_hal_thread_ && ros::ok())
@@ -350,6 +337,7 @@ void FRCRobotHWInterface::init(void)
 	// Make sure to initialize WPIlib code before creating
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
+	robot_ = std::make_shared<ROSRobot>(nh_);
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
 
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)

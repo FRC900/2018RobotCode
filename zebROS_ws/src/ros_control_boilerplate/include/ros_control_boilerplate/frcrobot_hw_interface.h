@@ -59,6 +59,7 @@
 
 namespace frcrobot_control
 {
+	class ROSRobot;
 /// \brief Hardware interface for a robot
 class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 {
@@ -119,6 +120,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		bool        run_motion_profile_thread_;
 
 		//PowerDistributionPanel pdp_joint_;
+		std::shared_ptr<ROSRobot> robot_;
 };  // class
 
 }  // namespace
