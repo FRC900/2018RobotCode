@@ -380,9 +380,22 @@ void FRCRobotHWInterface::init(void)
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
-	const int talon_updates_to_skip = 10;
-	static int loop_counter = 1;
-	loop_counter += 1;
+	const int talon_updates_to_skip = 2;
+	static int talon_skip_counter = 0;
+	static int next_talon_to_read = 0;
+	size_t read_this_talon = std::numeric_limits<size_t>::max();
+
+	// Try to load-balance reading from talons
+	// Loop through and read non-critical data from only one
+	// joint per read() pass.  Only do that read every
+	// talon_updates_to_skip times through the loop.
+	if (++talon_skip_counter == talon_updates_to_skip)
+	{
+		talon_skip_counter = 0;
+		read_this_talon = next_talon_to_read;
+		next_talon_to_read = (next_talon_to_read + 1) % num_can_talon_srxs_;
+	}
+
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		auto &ts = talon_state_[joint_id];
@@ -416,7 +429,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
 		ts.setOutputCurrent(output_current);
 
-		if (loop_counter == talon_updates_to_skip)
+		if (read_this_talon == joint_id)
 		{
 			const double bus_voltage = talon->GetBusVoltage();
 			safeTalonCall(talon->GetLastError(), "GetBusVoltage");
@@ -509,18 +522,16 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			ts.setStickyFaults(sticky_faults.ToBitfield());
 		}
 	}
-	if (loop_counter == talon_updates_to_skip)
-		loop_counter = 1;
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
 		brushless_vel_[i] = nidec_brushlesses_[i]->Get();
 	}
 	for (size_t i = 0; i < num_digital_inputs_; i++)
 	{
-		digital_input_state_[i] = (digital_inputs_[i]->Get()^digital_input_inverts_[i]) ? 1 : 0;
 		//State should really be a bool - but we're stuck using
 		//ROS control code which thinks everything to and from
 		//hardware are doubles
+		digital_input_state_[i] = (digital_inputs_[i]->Get()^digital_input_inverts_[i]) ? 1 : 0;
 	}
 #if 0
 	for (size_t i = 0; i < num_digital_outputs_; i++)
