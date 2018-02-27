@@ -177,6 +177,7 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
+    /*
     if(AutoMode->position != start_pos) {
         for(int i = 0; i<4; i++) {
             generateTrajectory(i, AutoMode->mode[i], AutoMode->position);
@@ -190,6 +191,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             auto_mode_vect[i] = AutoMode->mode[i];
         }
     }
+    */
     start_pos = AutoMode->position;
     /*
     startPos = AutoMode->position;
