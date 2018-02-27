@@ -169,6 +169,10 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
     srv.request.final_v = 0;
     coefs_vect.push_back(srv);
     point_gen.call(coefs_vect[layout]);
+    talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
+    swerve_control_srv.request.points = srv.response.points;
+    swerve_control_srv.request.dt = srv.response.dt;
+    swerve_control.call(swerve_control_srv);
 }
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;

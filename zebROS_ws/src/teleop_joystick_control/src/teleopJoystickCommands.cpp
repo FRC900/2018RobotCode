@@ -240,8 +240,15 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 }
                 else {
                     srvClamp.request.data=false;
+                    behaviors::IntakeLiftGoal goal;
                     if(ClampSrv.call(srvClamp)) {
                         ROS_WARN("Placed cube");
+                        goal.IntakeCube = false;
+                        goal.GoToHeight = false;
+                        goal.MoveArmAway = true;
+                        goal.x = intake_config_x;
+                        goal.y = intake_config_y;
+                        /*
                         goal.IntakeCube = false;
                         goal.GoToHeight = true;
                         goal.x = elevatorPosX - 1; //TODO
@@ -261,6 +268,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                             ROS_ERROR("Manual correction required!");
                             ROS_ERROR("Manual correction required!");
                         }
+                        */
                     }
                     else {
                         ROS_ERROR("Failed to place cube");
@@ -273,7 +281,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 unToggle();
             }
             if(currentToggle == lastToggle) {
-                ac->cancelGoal();
+                //ac->cancelGoal();
                 unToggle();
             }
             else {
@@ -337,6 +345,25 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             }
             else {
                 YLast = timeSecs;
+            }
+        }
+        if(JoystickState->bumperRightPress==true) {
+            currentToggle = "bumperRight";
+            if(lastToggle==" ") {
+                setHeight();
+            }
+            if(currentToggle == lastToggle) {
+                unToggle();
+            }
+            else {
+                srvElevator.request.x = default_x;
+                srvElevator.request.y = default_y;
+                if(ElevatorSrv.call(srvElevator)) {
+                    ROS_WARN("Toggled to default config");
+                }
+                else{
+                    ROS_ERROR("Failed to toggle to default config");
+                }
             }
         }
         if(timeSecs - BLast > .21 && timeSecs - BLast < .45) {
