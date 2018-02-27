@@ -805,9 +805,9 @@ class TalonControllerInterface
 
 		virtual void setReverseSoftLimitThreshold(double threshold)
 		{
-			if (threshold == params_.softlimit_forward_threshold_)
+			if (threshold == params_.softlimit_reverse_threshold_)
 				return;
-			params_.softlimit_forward_threshold_= threshold;
+			params_.softlimit_reverse_threshold_= threshold;
 
 			syncDynamicReconfigure();
 			talon_->setReverseSoftLimitThreshold(threshold);
@@ -815,9 +815,9 @@ class TalonControllerInterface
 
 		virtual void setReverseSoftLimitEnable(bool enable)
 		{
-			if (enable== params_.softlimit_forward_enable_)
+			if (enable == params_.softlimit_reverse_enable_)
 				return;
-			params_.softlimit_forward_enable_= enable;
+			params_.softlimit_reverse_enable_= enable;
 
 			syncDynamicReconfigure();
 			talon_->setReverseSoftLimitEnable(enable);
