@@ -676,7 +676,7 @@ int main(int argc, char** argv) {
     sync.registerCallback(boost::bind(&auto_modes, _1, _2));
     ROS_WARN("Auto Client loaded");
     ros::Duration(2).sleep();
-    generateTrajectory(0, 0, 0);
+    //generateTrajectory(0, 0, 0);
     ////////////////////////////
     std::vector<int> modess = {0, 0, 0, 0};
     ///////////////////////////
