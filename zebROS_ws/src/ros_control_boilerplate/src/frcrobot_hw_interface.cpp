@@ -247,8 +247,6 @@ void FRCRobotHWInterface::init(void)
 	// Do base class init. This loads common interface info
 	// used by both the real and sim interfaces
 	FRCRobotInterface::init();
-	//ROS_INFO_STREAM("init is running");
-
 
 	// Make sure to initialize WPIlib code before creating
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
@@ -371,8 +369,6 @@ void FRCRobotHWInterface::init(void)
 	//pdp_joint_.ResetTotalEnergy();
 
 	HAL_InitializePDP(0,0);
-
-	//HAL_ObserveUserProgramStarting();
 
 	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, ros::Rate(200));
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
