@@ -148,7 +148,7 @@ class arm_limits
 			
 			//Note: uses heuristics only applicable to our robot
 
-			ROS_INFO_STREAM("cmd base check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+			//ROS_INFO_STREAM("cmd base check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 			cmd_works = check_if_possible(cmd, up_or_down, 0);
 			if(cmd.x() - arm_length_ > -.002)
 			{	
@@ -158,7 +158,7 @@ class arm_limits
 			{	
 				cmd.x(.002);
 			}
-			ROS_INFO_STREAM("cmd base check fixed. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+			//ROS_INFO_STREAM("cmd base check fixed. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 			
 			cmd_return = cmd;
 			up_or_down_return = up_or_down;
@@ -173,9 +173,9 @@ class arm_limits
 				cur_pos.x(.002);
 			}
 			
-			ROS_INFO_STREAM("cur_pos check");
+			//ROS_INFO_STREAM("cur_pos check");
 
-			ROS_INFO_STREAM(" Cmd: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
+			//ROS_INFO_STREAM(" Cmd: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
 			//cur_pos.x(.05);
 			//cur_pos.y(.5);
 			//cur_up_or_down = false;	
@@ -203,7 +203,7 @@ class arm_limits
 			(cmd.y() > hook_min_height + hook_cmd_height_delta 
 			&& cur_pos.y() < hook_current_height_delta +  hook_max_height)))
 			{
-				ROS_WARN("HOOK LIMITED");
+				//ROS_WARN("HOOK LIMITED");
 				if(cmd.x() < hook_depth)
 				{
 					cmd.x(hook_depth + .05); //adjust this arbitrary constant?
@@ -213,7 +213,7 @@ class arm_limits
 						{
 							cmd.y(y_low_hook_corner);
 						}
-						else
+						else if(!(cmd.y() > hook_min_height + hook_cmd_height_delta))
 						{
 							cmd.y(cur_lift_height + isolated_lift_delta_y 
 							+ sin(acos((hook_depth+.05)/arm_length_))*arm_length_
@@ -226,7 +226,7 @@ class arm_limits
 						{
 							cmd.y(y_high_hook_corner);
 						}
-						else
+						else if(!(cmd.y() < hook_max_height + hook_cmd_height_delta))
 						{
 							cmd.y(cur_lift_height + isolated_lift_delta_y 
 							+ sin(acos((hook_depth+.05)/arm_length_))*arm_length_
@@ -249,7 +249,7 @@ class arm_limits
 				//Might need to take in account one more case, up to down
 
 					
-				ROS_INFO_STREAM("hook post check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+				//ROS_INFO_STREAM("hook post check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 				
 			}	
 			
@@ -260,28 +260,28 @@ class arm_limits
 	
 			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
 			
-			ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
+			//ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
 			
 			if(!check_if_possible(test_pivot_cmd, up_or_down, 1, cur_lift_height))
 			{
 				cmd.x(test_pivot_cmd.x());
 				cmd.y(isolated_lift_delta_y + test_pivot_cmd.y());
-				ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+				//ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 				return false;				
 			}
 			else
 			{
 				point_type test_lift_cmd(cur_pos.x(), cur_pos.y() + isolated_lift_delta_y);
-				ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
+				//ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
 				if(!check_if_possible(test_lift_cmd, cur_up_or_down, 2))
 				{
 					cmd.y(test_lift_cmd.y() - cur_pos.y() + isolated_pivot_y);
-					ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+					//ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 					return false;
 				}
 				else
 				{
-					ROS_INFO_STREAM("cmd final check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+					//ROS_INFO_STREAM("cmd final check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 					return true;
 				}
 			} 
