@@ -145,6 +145,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	if(JoystickState->directionUpPress == true) {
 		if(timeSecs - directionUpLast < 1.0) {
 			elevator_controller::Blank msg; //TODO
+			msg.request.nothing_here = true;
 			EndGameDeploy.call(msg);
 			ROS_WARN("SELF DESTURCT");
 		}
