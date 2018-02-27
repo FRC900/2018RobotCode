@@ -33,7 +33,7 @@ add_service_files (
   FullGenCoefs.srv
   GenerateTrajectory.srv
   GenerateSwerveProfile.srv
-
+  Blank.srv
 )
 generate_messages(
   DEPENDENCIES

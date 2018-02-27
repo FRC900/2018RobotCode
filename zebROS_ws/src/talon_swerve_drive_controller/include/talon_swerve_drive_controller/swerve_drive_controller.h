@@ -59,6 +59,7 @@
 
 #include <functional>
 #include <talon_swerve_drive_controller/Swerve.h>
+#include <talon_swerve_drive_controller/Blank.h>
 #include <array>
 #include <memory>
 #include <Eigen/Dense>
@@ -167,6 +168,7 @@ class TalonSwerveDriveController
 		realtime_tools::RealtimeBuffer<bool> clear_;
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
+		Commands brake_struct_;
 		realtime_tools::RealtimeBuffer<cmd_points> command_points_;
 		cmd_points points_struct_;
 		
@@ -175,6 +177,7 @@ class TalonSwerveDriveController
 
 
 		ros::ServiceServer motion_profile_serv_;
+		ros::ServiceServer brake_serv_;
 	
 		
 		std::array<std::array<hardware_interface::TrajectoryPoint, 2>, WHEELCOUNT> holder_points_;
@@ -240,6 +243,7 @@ class TalonSwerveDriveController
 		 */
 		void cmdVelCallback(const geometry_msgs::Twist &command);
 		bool motionProfileService(talon_swerve_drive_controller::MotionProfilePoints::Request &req, talon_swerve_drive_controller::MotionProfilePoints::Response &res);
+		bool brakeService(talon_swerve_drive_controller::Blank::Request &req, talon_swerve_drive_controller::Blank::Response &res);
 
 		/**
 		 * \brief Get the wheel names from a wheel param
