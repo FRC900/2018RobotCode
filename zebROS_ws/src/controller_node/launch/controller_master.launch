@@ -8,6 +8,9 @@
   * NavX Publisher Node
   * Rosbag recording (Optional)
 	-->
+
+  <!-- Code for starting slave code on rio -->
+
   
   <arg name="resolution" default="2" />
   <arg name="frame_rate" default="60" />
@@ -54,15 +57,15 @@
 
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_navx" args="-0.2914015 -0.072263 0.0244348 0 0 0 base_link navx" />
 
-  <include file="$(find controller_node)/launch/fuse_odom.launch"/>
+  <!--<include file="$(find controller_node)/launch/fuse_odom.launch"/>-->
 
   <include file="$(find rplidar_ros)/launch/rplidar.launch" />
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4175125 -0.3184779 0.22178 3.14159265 0 0 base_link laser" />
 
-  <include file="$(find controller_node)/launch/gmapping.launch"/>
+  <!--<include file="$(find controller_node)/launch/gmapping.launch"/>-->
 
-  <remap from="/cmd_vel" to="frcrobot/swerve_drive_controller/cmd_vel"/>
-  <include file="$(find controller_node)/launch/move_base.launch"/>
+  <!--<remap from="/cmd_vel" to="frcrobot/swerve_drive_controller/cmd_vel"/>
+  <include file="$(find controller_node)/launch/move_base.launch"/>-->
 
 	<!-- end stuff added from record_slave -->
 	<!--
@@ -70,6 +73,36 @@
   <include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)">
     <arg name="down_sample" value="$(arg down_sample)" />
 </include>
-	
+
+  <machine name="roboRIO" address="10.9.0.29" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
+
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+  <arg name="hw_or_sim" default="hw" />
+  <arg name="bot id" default="0" />
+
+
+<!-- Load hardware interface -->
+  <node machine="roboRIO" name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
+			output="screen" launch-prefix="$(arg launch_prefix)"> </node>
+
+  <!-- Load controller settings -->
+  <rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
+  <rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
+  <rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
+  <rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets1.yaml" command="load"/>
+  <rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
+  <rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
+  <rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
+  <rosparam file="$(find teleop_joystick_control)/config/teleopJoystickCommands.yaml" command="load"/>
+  <rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
+  <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
+
+  <!-- Load controller manager -->
+  <node machine="roboRIO" name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
+			output="screen" args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller rumble_controller intake_up_controller shift_controller clamp_controller intake_spring_soft_controller intake_spring_hard_controller end_game_deploy_controller imu_sensor_controller navx_controller compressor_controller robot_code_ready_controller"/>
+
+
     
 </launch>
