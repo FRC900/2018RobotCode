@@ -74,7 +74,7 @@
     <arg name="down_sample" value="$(arg down_sample)" />
 </include>
 
-  <machine name="roboRIO" address="10.9.0.29" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
+  <machine name="roboRIO" address="10.9.0.2" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
 
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
