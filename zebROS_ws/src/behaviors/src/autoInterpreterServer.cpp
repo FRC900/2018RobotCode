@@ -10,10 +10,15 @@
 //elevator_controller/cmd_pos
 //elevator_controller/intake?
 bool linebreak = false;
+static double intake_config_x;
+static double intake_config_y;
 
 class autoAction {
     protected:
+        //ros::NodeHandle nh_;
+        //ros::NodeHandle nh_params(nh_, "teleop_params");
         ros::NodeHandle nh_;
+
         actionlib::SimpleActionServer<behaviors::IntakeLiftAction> as_;
         std::string action_name_;
         behaviors::IntakeLiftFeedback feedback_;
@@ -59,6 +64,12 @@ class autoAction {
                 break;
             }
             if(goal->IntakeCube) {
+                elevator_controller::ElevatorControlS srv_elevator;
+                srv_elevator.request.x = intake_config_x;
+                srv_elevator.request.y = intake_config_y;
+                srv_elevator.request.up_or_down = false;
+                srv_elevator.request.override_pos_limits = false;
+                ElevatorSrv.call(srv_elevator);
                 elevator_controller::Intake srv;
                 srv.request.up = false;
                 srv.request.spring_state = 2; //soft in
@@ -71,7 +82,22 @@ class autoAction {
                 targetPosY = goal->y;
                 srv.request.x = targetPosX;
                 srv.request.y = targetPosY;
+                srv.request.override_pos_limits = true;
                 ElevatorSrv.call(srv);
+            }
+            else if(goal->MoveArmAway) {
+                elevator_controller::ElevatorControlS srv;
+                srv.request.x = goal->x - .1; //TODO
+                srv.request.y = goal->y +.2; //TODO
+                srv.request.override_pos_limits = true;
+                srv.request.up_or_down = true;
+                ElevatorSrv.call(srv);
+                ros::Duration(.4).sleep();
+                srv.request.x = intake_config_x;
+                srv.request.y = intake_config_y;
+                srv.request.up_or_down = false;
+                ElevatorSrv.call(srv);
+                success = true;
             }
             /*
             else if(goal->PlaceCube) {
@@ -105,6 +131,12 @@ class autoAction {
 int main(int argc, char** argv) {
     ros::init(argc, argv, "auto_interpreter_server");
     autoAction auto_action("auto_interpreter_server");
+    ros::NodeHandle n;
+    ros::NodeHandle n_params(n, "teleop_params");
+
+    n_params.getParam("intake_config_x", intake_config_x);
+    n_params.getParam("intake_config_y", intake_config_y);
+    
 
 
     ros::spin();
