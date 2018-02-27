@@ -19,13 +19,14 @@ elevator_controller:
     lift_joint:
         joint: lift
         close_loop_values:
-            - {p: .15, i: 0.00075, d: 0.5, f: 0.0235389351901052, izone: 0} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+            - {p: .4, i: 0.0005, d: 0.2, f: 0.1669, i_zone: 750} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+            - {p: .5, i: 0.0005, d: 7.5, f: 0.0235389351901052, i_zone: 750} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500} 
         invert_output: True
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
         conversion_factor: 0.0454676
-        motion_cruise_velocity: 2
-        motion_acceleration: 4
+        motion_cruise_velocity: 5 
+        motion_acceleration: 10
         current_limit_continuous_amps: 60
         current_limit_enable: True
     lift_follower1_joint:
