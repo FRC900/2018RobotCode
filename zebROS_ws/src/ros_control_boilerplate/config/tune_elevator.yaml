@@ -18,6 +18,7 @@ hardware_interface:
        - {name: lift_follower2, type: can_talon_srx, can_id: 43}
        - {name: intake, type: can_talon_srx, can_id: 31}
        - {name: intake_follower1, type: can_talon_srx, can_id: 32}
+       - {name: shift, type: double_solenoid, pcm: 0, forward_id: 5, reverse_id: 2} #doesn't work as far as I can tell
        #- {name: talon_3, type: can_talon_srx, can_id: 3}
        #- {name: talon_4, type: can_talon_srx, can_id: 4}
        #- {name: talon_5, type: can_talon_srx, can_id: 5}
@@ -51,6 +52,10 @@ joint_state_controller:
    type:         joint_state_controller/JointStateController
    publish_rate: 20
 
+shift_controller:
+    type: position_controllers/JointPositionController
+    joint: shift
+
 pivot_joint_controller:
     type: talon_controllers/TalonPercentOutputController
     joint: pivot_joint
@@ -73,11 +78,11 @@ intake_joint_controller:
     type: talon_controllers/TalonPercentOutputController
     joint: intake
 lift_joint_controller:
-    type: talon_controllers/TalonMotionMagicCloseLoopController
+    type: talon_controllers/TalonPercentOutputController
     joint: lift_joint
     feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
-        - {p: .15, i: 0.0005, d: 0.5, f: 0.0235389351901052, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+        - {p: .15, i: 0.0005, d: 0.5, f: 0.1669, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
     invert_output: true #TODO transfer
     sensor_phase: true
     peak_output_forward: 1.0

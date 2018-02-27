@@ -346,6 +346,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	}
 
 	sub_command_ = controller_nh.subscribe("cmd_vel", 1, &TalonSwerveDriveController::cmdVelCallback, this);
+	brake_serv_ = controller_nh.advertiseService("brake", &TalonSwerveDriveController::brakeService, this);
 	motion_profile_serv_ = controller_nh.advertiseService("run_profile", &TalonSwerveDriveController::motionProfileService, this);
 	//sub_run_profile_ = controller_nh.subscribe("run_profile", 1, &TalonSwerveDriveController::runCallback, this);
 
@@ -939,7 +940,15 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 	}
 }
 
+bool TalonSwerveDriveController::brakeService(talon_swerve_drive_controller::Blank::Request &/*req*/, talon_swerve_drive_controller::Blank::Response &/*res*/)
+{
+	brake_struct_.lin[0] = 0;
+	brake_struct_.lin[1] = 0;
+	brake_struct_.ang = 0;
+	command_.writeFromNonRT(brake_struct_);
 
+
+}
 /*
 void TalonSwerveDriveController::cmdCallback(const talon_swerve_drive_controller::CompleteCmd &command)
 {
