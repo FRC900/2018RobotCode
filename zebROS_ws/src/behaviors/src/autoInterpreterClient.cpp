@@ -805,9 +805,7 @@ int main(int argc, char** argv) {
     ROS_WARN("Auto Client loaded");
     ros::Duration(2).sleep();
 
-    //?*?*?*?*?*?*?*?*?*?*?*?*?*?\\
-    //generateTrajectory(0, 0, 0);
-    //?*?*?*?*?*?*?*?*?*?*?*?*?*?\\
+    generateTrajectory(0, 0, 0);
 
     /*
     ROS_WARN("1");
