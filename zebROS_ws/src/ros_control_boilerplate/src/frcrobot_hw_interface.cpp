@@ -1261,15 +1261,24 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 	for (size_t i = 0; i < num_rumble_; i++)
 	{
-		const unsigned int rumbles = *((unsigned int*)(&rumble_command_[i]));
-		const unsigned int left_rumble  = (rumbles >> 16) & 0xFFFF;
-		const unsigned int right_rumble = (rumbles      ) & 0xFFFF;
-		HAL_SetJoystickOutputs(rumble_ports_[i], 0, left_rumble, right_rumble);
+		if (rumble_state_[i] != rumble_command_[i])
+		{
+			const unsigned int rumbles = *((unsigned int*)(&rumble_command_[i]));
+			const unsigned int left_rumble  = (rumbles >> 16) & 0xFFFF;
+			const unsigned int right_rumble = (rumbles      ) & 0xFFFF;
+			HAL_SetJoystickOutputs(rumble_ports_[i], 0, left_rumble, right_rumble);
+			rumble_state_[i] = rumble_command_[i];
+		}
 	}
+
 	for (size_t i = 0; i< num_compressors_; i++)
 	{
-		const bool setpoint = compressor_command_[i] > 0;
-		compressors_[i]->SetClosedLoopControl(setpoint);
+		if (last_compressor_command_[i] != compressor_command_[i])
+		{
+			const bool setpoint = compressor_command_[i] > 0;
+			compressors_[i]->SetClosedLoopControl(setpoint);
+			last_compressor_command_[i] = compressor_command_[i];
+		}
 	}
 }
 

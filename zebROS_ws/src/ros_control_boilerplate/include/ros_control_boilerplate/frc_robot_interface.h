@@ -231,6 +231,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		std::vector<double> navX_command_;
         std::vector<double> offset_navX_;
 		std::vector<double> compressor_command_;
+		std::vector<double> last_compressor_command_;
 
 		std::vector<double> dummy_joint_position_;
 		std::vector<double> dummy_joint_velocity_;
