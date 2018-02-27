@@ -114,8 +114,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<AHRS>> navXs_;
 		std::vector<std::shared_ptr<frc::AnalogInput>> analog_inputs_;
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
-		std::thread hal_thread_;
-		bool        run_hal_thread_;
+
 		std::thread motion_profile_thread_;
 		bool        run_motion_profile_thread_;
 

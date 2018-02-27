@@ -69,16 +69,13 @@ const int timeoutMs = 0; //If nonzero, function will wait for config success and
 
 FRCRobotHWInterface::FRCRobotHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_model)
 	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model),
-	  run_hal_thread_(true),
 	  run_motion_profile_thread_(true)
 {
 }
 
 FRCRobotHWInterface::~FRCRobotHWInterface()
 {
-	run_hal_thread_            = false;
 	run_motion_profile_thread_ = false;
-	hal_thread_.join();
 	motion_profile_thread_.join();
 }
 // Very simple code to communicate with the HAL. This recieves
@@ -294,28 +291,6 @@ class ROSRobot : public frc::TimedRobot
 		bool game_specific_message_seen_;
 };
 
-// If this works move it into read() instead
-void FRCRobotHWInterface::hal_keepalive_thread(void)
-{
-	run_hal_thread_ = true;
-
-	// This will be written by the last controller to be
-	// spawned - waiting here prevents the robot from
-	// report robot code ready to the field until
-	// all controllers are started
-	{
-		ros::Rate rate(20);
-		while (robot_code_ready_ == 0.0)
-			rate.sleep();
-	}
-
-	robot_->StartCompetition();
-
-	ros::Rate rate(1);
-	while (run_hal_thread_ && ros::ok())
-		rate.sleep();
-}
-
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(ros::Rate rate)
 {
 	while (run_motion_profile_thread_ && ros::ok())
@@ -338,7 +313,6 @@ void FRCRobotHWInterface::init(void)
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
 	robot_ = std::make_shared<ROSRobot>(nh_);
-	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
 
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
@@ -355,8 +329,6 @@ void FRCRobotHWInterface::init(void)
 		// This probably should be a fatal error
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "\tTalon SRX firmware version " << can_talons_[i]->GetFirmwareVersion());
-		// Clear sticky faults
-		// safeTalonCall(can_talons_[1]->ClearStickyFaults(timeoutMs), "Clear sticky faults.");
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -457,9 +429,6 @@ void FRCRobotHWInterface::init(void)
 
 	HAL_InitializePDP(0,0);
 
-	//HAL_ObserveUserProgramStarting();
-
-	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, ros::Rate(200));
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
@@ -906,6 +875,15 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
+	static bool started_competition = false;
+	if (!started_competition && (robot_code_ready_ != 0.0))
+	{
+		//robot_->SetPeriod(0.05);
+		robot_->StartCompetition();
+		motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, ros::Rate(200));
+
+		started_competition = true;
+	}
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		//TODO : skip over most or all of this if the talon is in follower mode
