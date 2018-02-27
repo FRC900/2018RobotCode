@@ -190,7 +190,7 @@ ObjectType::ObjectType(int contour_type_id=1) {
 			name_ = "plate_location_tape";
 			break;
 		case 7: //Cube (2018)
-			depth_ = 12;
+			depth_ = 0.3048;
 			contour_.push_back(Point2f(0,0));
 			contour_.push_back(Point2f(0,0.2794));
 			contour_.push_back(Point2f(0.3302,0.2794));
