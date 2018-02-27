@@ -139,6 +139,9 @@ if [ "$jetson" = true ] ; then
 		sudo depmod -a
 	fi
 
+	cd ~/.ssh
+	tar -xjf ~/2018RobotCode/jetson_setup/jetson_dot_ssh.tar.bz2 
+
 	# Kernel module build steps for TX2 : https://gist.github.com/sauhaardac/9d7a82c23e4b283a1e79009903095655
 	# Not needed unless Jetpack is updated and modules
 	# for a given kernel version aren't already built
@@ -181,6 +184,7 @@ sudo cp ~/2018RobotCode/kjaget.vim /usr/share/vim/vim74/colors
 git config --global user.email "progammers@team900.org"
 git config --global user.name "Team900 Jetson TX2"
 
+# Set up Gold linker - speed up libPCL links
 sudo update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 20
 sudo update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.bfd" 10
 
