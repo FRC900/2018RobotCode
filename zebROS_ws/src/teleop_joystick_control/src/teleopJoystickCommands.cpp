@@ -9,6 +9,7 @@
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/IntakeLiftAction.h"
+#include "swerve_drive_controller/blank.h"
 
 
 /*TODO list:
@@ -38,6 +39,8 @@ static ros::ServiceClient EndGameDeploy;
 static ros::ServiceClient ElevatorSrv;
 static ros::ServiceClient ClampSrv;
 static ros::ServiceClient IntakeSrv;
+ros::ServiceClient brake_service;
+
 
 static double high_scale_config_x;
 static double high_scale_config_y;
@@ -444,11 +447,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         JoystickRobotVel.publish(vel);
         sendRobotZero = true;
         if(fabs(vel.linear.x) == 0.0 || fabs(vel.linear.y) == 0.0 || fabs(vel.angular.z) == 0.0) {
-            i+=1;
-            if(i>20){
-                sendRobotZero = false;
-                i=0;
-            }
+            talon_swerve_drive_controller::Blank blank;
+            blank.request.nothing = true;
+            brake_service.call(blank);
         }
     }
     if(rightStickX != 0 && rightStickY != 0) {
@@ -537,6 +538,7 @@ int main(int argc, char **argv) {
     ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
     ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
     IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
+    brake_srv = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake");
 
     message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "scaled_joystick_vals", 5);
     message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);

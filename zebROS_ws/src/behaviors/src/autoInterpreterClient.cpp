@@ -29,6 +29,7 @@
 
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
+ros::ServiceClient brake_service;
 
 
 static int start_pos = -1;
@@ -788,6 +789,7 @@ int main(int argc, char** argv) {
     ac->waitForServer(); 
 	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGenCoefs>("/point_gen/command");
 	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile");
+    brake_service = n.serviceClient<talon_swerve_drive_controller::>("/frcrobot/swerve_drive_controller/brake");
 
     //IntakeService = n.advertise<elevator_controller::Intake>("elevator/Intake", 1);
     IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
@@ -804,10 +806,11 @@ int main(int argc, char** argv) {
     sync.registerCallback(boost::bind(&auto_modes, _1, _2));
     ROS_WARN("Auto Client loaded");
     ros::Duration(2).sleep();
+
+    //?*?*?*?*?*?*?*?*?*?*?*?*?*?\\
     //generateTrajectory(0, 0, 0);
-    ////////////////////////////
-    std::vector<int> modess = {0, 0, 0, 0};
-    ///////////////////////////
+    //?*?*?*?*?*?*?*?*?*?*?*?*?*?\\
+
     /*
     ROS_WARN("1");
     if(1 != start_pos) {
