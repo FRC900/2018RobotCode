@@ -9,8 +9,7 @@
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/IntakeLiftAction.h"
-#include "swerve_drive_controller/blank.h"
-
+#include "talon_swerve_drive_controller/Blank.h"
 
 /*TODO list:
  *
@@ -39,7 +38,7 @@ static ros::ServiceClient EndGameDeploy;
 static ros::ServiceClient ElevatorSrv;
 static ros::ServiceClient ClampSrv;
 static ros::ServiceClient IntakeSrv;
-ros::ServiceClient brake_service;
+ros::ServiceClient brake_srv;
 
 
 static double high_scale_config_x;
@@ -450,7 +449,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         if(fabs(vel.linear.x) == 0.0 || fabs(vel.linear.y) == 0.0 || fabs(vel.angular.z) == 0.0) {
             talon_swerve_drive_controller::Blank blank;
             blank.request.nothing = true;
-            brake_service.call(blank);
+            brake_srv.call(blank);
         }
     }
     if(rightStickX != 0 && rightStickY != 0) {
