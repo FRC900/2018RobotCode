@@ -1,7 +1,7 @@
 # ros_control_boilerplate Settings -----------------------
 # Settings for ros_control control loop
 generic_hw_control_loop:
-  loop_hz: 50
+  loop_hz: 30
   cycle_time_error_threshold: 0.01
 
 # Settings for ros_control hardware interface
@@ -93,7 +93,7 @@ end_game_deploy_controller:
 
 imu_sensor_controller:
    type:         imu_sensor_controller/ImuSensorController
-   publish_rate: 100
+   publish_rate: 20
 
 navx_controller:
    type: position_controllers/JointPositionController
@@ -101,7 +101,7 @@ navx_controller:
 
 pdp_state_controller:
    type:         pdp_state_controller/PDPStateController
-   publish_rate: 50
+   publish_rate: 20
 
 compressor_controller:
    type: position_controllers/JointPositionController
