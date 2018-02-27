@@ -182,13 +182,13 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	}
 
 	//Set soft limits using offsets here
-	lift_joint_.setForwardSoftLimitThreshold(M_PI / 2.0 - lift_offset_);
-	lift_joint_.setReverseSoftLimitThreshold(M_PI / 2.0 - lift_offset_);
+	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_);
+	lift_joint_.setReverseSoftLimitThreshold(min_extension_ + lift_offset_);
 	lift_joint_.setForwardSoftLimitEnable(true);
 	lift_joint_.setReverseSoftLimitEnable(true);
 
-	pivot_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_);
-	pivot_joint_.setReverseSoftLimitThreshold(min_extension_ + lift_offset_);
+	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 + pivot_offset_);
+	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + pivot_offset_);
 	
 	//TODO: something is broke with these soft limits
 
@@ -250,6 +250,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	if(end_game_deploy_cmd_ && !end_game_deploy_t1_)
 	{
 		
+		ROS_INFO("part 1");
 		command_struct_.lin[0] = .1;
                 command_struct_.lin[1] = min_extension_ + cos(asin(.1 / arm_length_))*arm_length_;
                 command_struct_.up_or_down = true;
@@ -263,6 +264,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	if(end_game_deploy_cmd_ && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .65)
 	{
+		ROS_INFO("part 2");
 		command_struct_.lin[0] = .1;
 		command_struct_.lin[1] = (climb_height_ - min_extension_)*2 + cos(asin(.1 / arm_length_))*arm_length_;
 		command_struct_.up_or_down = true;
@@ -274,6 +276,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .5)
 	{	
+		ROS_INFO("dropping");
 		std_msgs::Float64 msg;
 		msg.data = 1.0;
 		EndGameDeploy_.publish(msg);
@@ -287,6 +290,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
 	{
 		shift_cmd_ = true;
+		ROS_INFO("shifting");
 	} 
 	if(shift_cmd_)
 	{	
@@ -375,9 +379,17 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	elevator_controller::ReturnElevatorCmd return_holder;
 	elevator_controller::ReturnElevatorCmd odom_holder;
 
-	const double lift_position = lift_joint_.getPosition()  - lift_offset_;
-	const double pivot_angle   = pivot_joint_.getPosition() - pivot_offset_;
+	const double lift_position = last_tar_l - lift_offset_; // lift_joint_.getPosition()  - lift_offset_;
+	double pivot_angle   =  last_tar_p - pivot_offset_; //pivot_joint_.getPosition() - pivot_offset_;
 
+		
+
+	//BELOW IS TOTAL HACK
+	//if(fabs(pivot_angle) < .0025)
+	//{
+	//	pivot_angle +=.005;
+	//
+	//}
 	//ROS_INFO_STREAM("lift_pos: " << lift_position);
 
 	bool cur_up_or_down = pivot_angle > 0;
@@ -429,15 +441,15 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//ROS_INFO_STREAM("cmd: " << curr_cmd.lin << " up/down: " << curr_cmd.up_or_down);
 	const double pivot_target = acos(curr_cmd.lin[0]/arm_length_) * ((curr_cmd.up_or_down) ? 1 : -1);
 	
-	//ROS_INFO_STREAM("up_or_down: " << curr_cmd.up_or_down << "lin pos target" << curr_cmd.lin << " lift pos tar: " << curr_cmd.lin[1] - arm_length_ * sin(pivot_target));	
+	ROS_INFO_STREAM("up_or_down: " << curr_cmd.up_or_down << "lin pos target" << curr_cmd.lin << " lift pos tar: " << curr_cmd.lin[1] - arm_length_ * sin(pivot_target));	
 
 	
 
 
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
-
-
+	last_tar_l = curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_;
+	last_tar_p = (pivot_target + pivot_offset_);
 }
 void ElevatorController::starting(const ros::Time &/*time*/)
 {
@@ -560,6 +572,7 @@ bool ElevatorController::endGameDeployService(elevator_controller::Blank::Reques
 {
 	if(isRunning())
 	{
+		ROS_WARN("called deploy");
 		end_game_deploy_cmd_ = true;
 		return true;
 	}
