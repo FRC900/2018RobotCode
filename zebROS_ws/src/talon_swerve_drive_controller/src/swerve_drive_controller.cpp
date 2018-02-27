@@ -701,6 +701,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		Commands curr_cmd = *(command_.readFromRT());
 		const double dt = (time - curr_cmd.stamp).toSec();
 
+		//ROS_INFO_STREAM("ang_vel_tar: " << curr_cmd.ang << " lin_vel_tar: " << curr_cmd.lin);
+
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
 			speed_joints_[i].setMode(velocity_mode);
@@ -947,7 +949,7 @@ bool TalonSwerveDriveController::brakeService(talon_swerve_drive_controller::Bla
 	brake_struct_.ang = 0;
 	command_.writeFromNonRT(brake_struct_);
 
-
+	return true;
 }
 /*
 void TalonSwerveDriveController::cmdCallback(const talon_swerve_drive_controller::CompleteCmd &command)
