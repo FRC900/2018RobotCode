@@ -131,8 +131,17 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	{
 		const int x = boundRect[i].x + (boundRect[i].width/2);
 		const int y = boundRect[i].y + (boundRect[i].height/2);
-		float depth_value = depthPtr->at<float>(y,x);
-		contourDepth.push_back(depth_value);
+		vector<float> depth_sample;
+		for(size_t idx = boundRect[i].width/3; idx < (boundRect[i].width/3)*2; idx++){
+			for(size_t idy = boundRect[i].height/3; idy < (boundRect[i].height/3)*2; idy++){
+				depth_sample.push_back(depthPtr->at<float>(boundRect[i].y + idy, boundRect[i].x + idx));			
+			}
+		}
+		float depth_sum;
+		for(size_t id = 0; id < depth_sample.size(); id++){
+			depth_sum = depth_sum + depth_sample[id];
+		}
+		contourDepth.push_back(depth_sum/depth_sample.size());
 	}
 	
 	
