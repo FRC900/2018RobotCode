@@ -105,3 +105,5 @@ string[]  motion_profile_status_output_enable
 int32[]   motion_profile_time_dur_ms
 string[]  faults
 string[]  sticky_faults
+float64[] conversion_factor
+bool[]    water_game

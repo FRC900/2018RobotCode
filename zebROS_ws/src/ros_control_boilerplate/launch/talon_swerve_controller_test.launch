@@ -9,9 +9,9 @@
 	<arg name="hw_or_sim" default="hw" />
 	<arg name="bot id" default="0" />
 
-	<!-- Load example URDF -->
-	<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find ros_control_boilerplate)/urdf/base_trajectory.xacro'" />
-
+	<!-- Load example URDF 
+	<param name="robot_description" command="$(find xacro)/xacro - -inorder '$(find ros_control_boilerplate)/urdf/base_trajectory.xacro'" />
+	-->
 	<group ns="frcrobot">
 
 		<!-- Load hardware interface -->
@@ -39,13 +39,14 @@
 			output="screen" >
 			<remap from="/frcrobot/cmd_vel" to="/frcrobot/swerve_drive_controller/cmd_vel"/> 
 		</node>
+		<!--
         <node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="screen" >
         </node>
         <node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="screen" >
         </node>
--->
         <node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="screen" >
         </node>
+-->
 
 		<!-- Convert joint states to /tf tranforms 
 		<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>

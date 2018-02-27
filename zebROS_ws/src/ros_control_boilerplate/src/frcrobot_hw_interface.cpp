@@ -95,7 +95,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		rate.sleep();
 
 	robot_.StartCompetition();
-
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
@@ -111,9 +110,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	ros::Time last_joystick_publish_time;
 	ros::Time last_match_data_publish_time;
 
-	double nt_publish_rate = 5;
-	double joystick_publish_rate = 50;
-	double match_data_publish_rate = 2;
+	const double nt_publish_rate = 2;
+	const double joystick_publish_rate = 20;
+	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
 
 	while (run_hal_thread_ && ros::ok())
@@ -141,7 +140,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_nt.msg_.header.stamp = time_now_t;
 			realtime_pub_nt.unlockAndPublish();
-			last_nt_publish_time = time_now_t;
+			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
 		}
 
 		if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
@@ -198,7 +197,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_joystick.msg_.stickRightRelease = joystick.GetRawButtonReleased(10);
 
 			realtime_pub_joystick.unlockAndPublish();
-			last_joystick_publish_time = time_now_t;
+			last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
 		}
 
 		// Run at full speed until we see the game specific message.
@@ -212,7 +211,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
 
-			const std::string game_specific_message = frc::DriverStation::GetInstance().GetGameSpecificMessage();
+			const std::string game_specific_message = DriverStation::GetInstance().GetGameSpecificMessage();
 			if (game_specific_message.length() > 0)
 				game_specific_message_seen = true;
 			realtime_pub_match_data.msg_.allianceData = game_specific_message;
@@ -227,7 +226,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_match_data.msg_.header.stamp = time_now_t;
 			realtime_pub_match_data.unlockAndPublish();
-			last_match_data_publish_time = time_now_t;
+			last_match_data_publish_time += ros::Duration(1.0 / match_data_publish_rate);
 		}
 	}
 }
@@ -249,6 +248,7 @@ void FRCRobotHWInterface::init(void)
 	// used by both the real and sim interfaces
 	FRCRobotInterface::init();
 	//ROS_INFO_STREAM("init is running");
+
 
 	// Make sure to initialize WPIlib code before creating
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
