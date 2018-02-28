@@ -59,7 +59,7 @@
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 #include <std_msgs/Bool.h>
-
+#include <atomic>
 
 namespace frcrobot_control
 {
@@ -206,7 +206,8 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Solenoid>> solenoids_;
 		std::vector<std::shared_ptr<frc::DoubleSolenoid>> double_solenoids_;
 		std::vector<std::shared_ptr<AHRS>> navXs_;
-		realtime_tools::RealtimeBuffer<double> navX_angle_raw_;
+		std::atomic<double> navX_angle_;
+		std::atomic<double> pressure_;
 		std::vector<std::shared_ptr<frc::AnalogInput>> analog_inputs_;
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;

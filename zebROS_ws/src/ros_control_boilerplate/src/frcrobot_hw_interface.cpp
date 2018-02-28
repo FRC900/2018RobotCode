@@ -136,9 +136,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
 			
-			double navX_angle = *(navX_angle_raw_.readFromRT());
 
-			frc::SmartDashboard::PutNumber("navX_angle", navX_angle);
+			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_);
+			frc::SmartDashboard::PutNumber("Pressure", pressure_);
 
 			frc::SmartDashboard::PutBoolean("cube_state", cube_state);
 			//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
@@ -678,6 +678,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
 		analog_input_state_[i] = (analog_inputs_[i]->GetValue())*analog_input_a_[i] + analog_input_b_[i];
+		if(analog_input_names_[i] == "analog_pressure_sensor")
+		{
+			pressure_ = analog_input_state_[i];
+
+		}
 	}
  	//navX read here
 	for (size_t i = 0; i < num_navX_; i++)
@@ -711,7 +716,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
         }
 		if(i == 0)
 		{
-			navX_angle_raw_.writeFromNonRT(navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - offset_navX_[i]);
+			navX_angle_ = navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - offset_navX_[i];
 		}
 		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - offset_navX_[i]  );
 

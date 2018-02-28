@@ -10,29 +10,29 @@ generic_hw_control_loop:
 # of several types of HW interface : CAN_id, PWM_id, DIO_id, AIO_id, etc.
 hardware_interface:
    joints:
-       #- {name: lift, type: can_talon_srx, can_id: 41}
-       #- {name: lift_follower1, type: can_talon_srx, can_id: 42}
-       #- {name: lift_follower2, type: can_talon_srx, can_id: 43}
-       #- {name: pivot, type: can_talon_srx, can_id: 51}
-       #- {name: intake, type: can_talon_srx, can_id: 31}
-       #- {name: intake_follower1, type: can_talon_srx, can_id: 32}
-       #- {name: clamp, type: solenoid, pcm: 0, id: 1} #correct
-       #- {name: intake_spring_soft, type: solenoid, pcm: 0, id: 6} #3+6 soft
-       #- {name: intake_spring_hard, type: double_solenoid, pcm: 0, forward_id: 3, reverse_id: 7} 
-       #- {name: intake_up, type: double_solenoid, pcm: 0, forward_id: 4, reverse_id: 0} 
-       #- {name: shift, type: double_solenoid, pcm: 0, forward_id: 5, reverse_id: 2} #doesn't work as far as I can tell
-       #- {name: end_game_deploy, type: solenoid, pcm: 1, id: 7}
+       - {name: lift, type: can_talon_srx, can_id: 41}
+       - {name: lift_follower1, type: can_talon_srx, can_id: 42}
+       - {name: lift_follower2, type: can_talon_srx, can_id: 43}
+       - {name: pivot, type: can_talon_srx, can_id: 51}
+       - {name: intake, type: can_talon_srx, can_id: 31}
+       - {name: intake_follower1, type: can_talon_srx, can_id: 32}
+       - {name: clamp, type: solenoid, pcm: 0, id: 1} #correct
+       - {name: intake_spring_soft, type: solenoid, pcm: 0, id: 6} #3+6 soft
+       - {name: intake_spring_hard, type: double_solenoid, pcm: 0, forward_id: 3, reverse_id: 7} 
+       - {name: intake_up, type: double_solenoid, pcm: 0, forward_id: 4, reverse_id: 0} 
+       - {name: shift, type: double_solenoid, pcm: 0, forward_id: 5, reverse_id: 2} #doesn't work as far as I can tell
+       - {name: end_game_deploy, type: solenoid, pcm: 1, id: 7}
        - {name: clamp_line_break, type: digital_input, dio_channel: 0, invert: true}
        - {name: intake_line_break, type: digital_input, dio_channel: 1, invert: true}
-       #- {name: fl_drive, type: can_talon_srx, can_id: 21}
-       #- {name: fl_angle, type: can_talon_srx, can_id: 11}
-       #- {name: fr_drive, type: can_talon_srx, can_id: 22}
-       #- {name: fr_angle, type: can_talon_srx, can_id: 12}
-       #- {name: br_drive, type: can_talon_srx, can_id: 24}
-       #- {name: br_angle, type: can_talon_srx, can_id: 14}
-       #- {name: bl_drive, type: can_talon_srx, can_id: 23}
-       #- {name: bl_angle, type: can_talon_srx, can_id: 13}
-       #- {name: navx_mxp, type: navX, frame_id: navx, id: 0}
+       - {name: fl_drive, type: can_talon_srx, can_id: 21}
+       - {name: fl_angle, type: can_talon_srx, can_id: 11}
+       - {name: fr_drive, type: can_talon_srx, can_id: 22}
+       - {name: fr_angle, type: can_talon_srx, can_id: 12}
+       - {name: br_drive, type: can_talon_srx, can_id: 24}
+       - {name: br_angle, type: can_talon_srx, can_id: 14}
+       - {name: bl_drive, type: can_talon_srx, can_id: 23}
+       - {name: bl_angle, type: can_talon_srx, can_id: 13}
+       - {name: navx_mxp, type: navX, frame_id: navx, id: 0}
        - {name: analog_pressure_sensor, type: analog_input, analog_channel: 0, analog_a: .0633897, analog_b: -24.9}
        #- {name: compressor1, type: compressor, pcm_id: 0}
        - {name: joystick_rumble, type: rumble, rumble_port: 0}
