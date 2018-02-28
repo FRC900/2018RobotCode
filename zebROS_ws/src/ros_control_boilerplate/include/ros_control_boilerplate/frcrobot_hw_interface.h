@@ -58,7 +58,7 @@
 #include "SmartDashboard/SmartDashboard.h"
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
-
+#include <std_msgs/Bool.h>
 
 
 namespace frcrobot_control
@@ -192,6 +192,12 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		bool safeTalonCall(ctre::phoenix::ErrorCode error_code, 
 				const std::string &talon_method_name);
 
+		bool cube_state;
+		void cubeCallback(const std_msgs::Bool &cube)
+		{
+			cube_state = cube.data;
+		}
+		ros::Subscriber cube_state_sub;	
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;
 		std::vector<std::shared_ptr<frc::NidecBrushless>> nidec_brushlesses_;
 		std::vector<std::shared_ptr<frc::DigitalInput>> digital_inputs_;

@@ -118,11 +118,12 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
 
+
+
 	while (run_hal_thread_ && ros::ok())
 	{
 		robot_.OneIteration();
-
-        time_now_t = ros::Time::now();
+        	time_now_t = ros::Time::now();
 		//ROS_INFO("%f", ros::Time::now().toSec());
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
@@ -138,6 +139,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			double navX_angle = *(navX_angle_raw_.readFromRT());
 
 			frc::SmartDashboard::PutNumber("navX_angle", navX_angle);
+
+			frc::SmartDashboard::PutBoolean("cube_state", cube_state);
 			//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
 			realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
 			realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
@@ -362,7 +365,9 @@ void FRCRobotHWInterface::init(void)
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
-
+	
+	cube_state_sub = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
+	
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
