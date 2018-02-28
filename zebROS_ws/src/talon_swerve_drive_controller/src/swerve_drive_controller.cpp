@@ -339,10 +339,10 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 							  "Adding speed motors with joint name: " << speed_names[i]
 							  << " and steering motors with joint name: " << steering_names[i]);
 
-		//ros::NodeHandle l_nh(controller_nh, speed_names[i]);
-		//speed_joints_[i].initWithNode(hw, nullptr, l_nh);
-		//ros::NodeHandle r_nh(controller_nh, steering_names[i]);
-		//steering_joints_[i].initWithNode(hw, nullptr, r_nh);
+		ros::NodeHandle l_nh(controller_nh, speed_names[i]);
+		speed_joints_[i].initWithNode(hw, nullptr, l_nh);
+		ros::NodeHandle r_nh(controller_nh, steering_names[i]);
+		steering_joints_[i].initWithNode(hw, nullptr, r_nh);
 	}
 
 	sub_command_ = controller_nh.subscribe("cmd_vel", 1, &TalonSwerveDriveController::cmdVelCallback, this);
@@ -435,7 +435,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 		for (size_t row = 0; row < WHEELCOUNT; row++)
 		{
 			old_wheel_pos_[row] = {0, 0};
-			last_wheel_rot_[row] = 0;//speed_joints_[row].getPosition();
+			last_wheel_rot_[row] = speed_joints_[row].getPosition();
 		}
 	}
 
@@ -449,13 +449,13 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 
 	for (size_t k = 0; k < WHEELCOUNT; k++)
 	{
-		const double new_wheel_rot = 3;//speed_joints_[k].getPosition();
+		const double new_wheel_rot = speed_joints_[k].getPosition();
 		const double delta_rot = new_wheel_rot - last_wheel_rot_[k];
 		//int inverterD = (k%2==0) ? -1 : 1;
 		const double dist = -delta_rot * wheel_radius_ * driveRatios_.encodertoRotations; //* inverterD;
 		//NOTE: below is a hack, TODO: REMOVE
 
-		const double steer_angle = swerveC_->getWheelAngle(k, /*steering_joints_[k].getPosition()*/ 2);
+		const double steer_angle = swerveC_->getWheelAngle(k, steering_joints_[k].getPosition());
 		const Eigen::Vector2d delta_pos = {-dist*sin(steer_angle), dist*cos(steer_angle)};
 		new_wheel_pos_(k, 0) = wheel_coords_[k][0] + delta_pos[0];
 		new_wheel_pos_(k, 1) = wheel_coords_[k][1] + delta_pos[1];
@@ -707,8 +707,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
-			//speed_joints_[i].setMode(velocity_mode);
-			//steering_joints_[i].setMode(position_mode);
+			speed_joints_[i].setMode(velocity_mode);
+			steering_joints_[i].setMode(position_mode);
 		}
 		// Brake if cmd_vel has timeout:
 		if (dt > cmd_vel_timeout_)
@@ -732,7 +732,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 		array<double, WHEELCOUNT> curPos;
 		for (int i = 0; i < WHEELCOUNT; i++)
-			curPos[i] = 1.2;//steering_joints_[i].getPosition();
+			curPos[i] = steering_joints_[i].getPosition();
 		std::array<bool, WHEELCOUNT> holder;
 		std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC_->motorOutputs(curr_cmd.lin, curr_cmd.ang, M_PI/2, false, holder, false, curPos, true);
 		
@@ -740,23 +740,23 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
 			//ROS_INFO_STREAM("id:" << i << " speed: " <<speeds_angles[i][0]);
-			//speed_joints_[i].setCommand(speeds_angles[i][0]);
-			//steering_joints_[i].setCommand(speeds_angles[i][1]);
+			speed_joints_[i].setCommand(speeds_angles[i][0]);
+			steering_joints_[i].setCommand(speeds_angles[i][1]);
 		}
 	}
 	else
 	{	
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
-			//speed_joints_[i].setMode(motion_profile_mode);
-			//steering_joints_[i].setMode(motion_profile_mode);
+			speed_joints_[i].setMode(motion_profile_mode);
+			steering_joints_[i].setMode(motion_profile_mode);
 		}
 
 		const int set_on  = ((*(run_.readFromRT())) && set_check_) ? 1 : 0;
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
-			//speed_joints_[i].setCommand(set_on);
-			//steering_joints_[i].setCommand(set_on);
+			speed_joints_[i].setCommand(set_on);
+			steering_joints_[i].setCommand(set_on);
 		}
 		set_check_ = true;
 	}
@@ -791,13 +791,13 @@ void TalonSwerveDriveController::brake()
 	array<double, WHEELCOUNT> curPos;
 	for (int i = 0; i < WHEELCOUNT; i++)
 	{
-		curPos[i] = 2.3;//steering_joints_[i].getPosition();
+		curPos[i] = steering_joints_[i].getPosition();
 	}
 	std::array<Vector2d, WHEELCOUNT> park = swerveC_->motorOutputs({0, 0}, 0, 0, false, hold, true, curPos, false);
 	for (size_t i = 0; i < wheel_joints_size_; ++i)
 	{
-		//speed_joints_[i].setCommand(0.0);
-		//steering_joints_[i].setCommand(park[i][1]);
+		speed_joints_[i].setCommand(0.0);
+		steering_joints_[i].setCommand(park[i][1]);
 	}
 }
 
@@ -824,7 +824,7 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 		{
 			ROS_WARN("Reaction wheels need alignment. Please reverse polarity on neutron flux capacitor");
 		}
-		if((command.linear.x > 3.0*pow(10, 8)) || (command.linear.y > 3.0*pow(10, 8)) || (command.linear.z > 3.0*pow(10, 8)))
+		if((command.linear.x > 300000000) || (command.linear.y > 300000000) || (command.linear.z > 300000000))
 		{
 			ROS_WARN("PHYSICS VIOLATION DETECTED. DISABLE TELEPORTATION UNIT!");
 		}
