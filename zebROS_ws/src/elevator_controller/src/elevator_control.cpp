@@ -125,7 +125,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_STREAM("Can not read offset for pivot " << node_name);
 		return false;
 	}
-
+	/*
 	if (!pivot_joint_.initWithNode(hw, nullptr, controller_nh, pivot_params))
 	{
 		ROS_ERROR("Can not initialize pivot joint(s)");
@@ -142,7 +142,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR("Can not initialize intake joint(s)");
 		return false;
 	}
-
+	*/
 	if (!controller_nh.getParam("max_extension", max_extension_))
 	{
 		ROS_ERROR_NAMED(name_, "Can not read max_extension");
@@ -180,7 +180,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read hook_max_height");
 		return false;
 	}
-
+	/*
 	//Set soft limits using offsets here
 	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_);
 	lift_joint_.setReverseSoftLimitThreshold(min_extension_ + lift_offset_);
@@ -194,7 +194,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 
 	pivot_joint_.setForwardSoftLimitEnable(true);
 	pivot_joint_.setReverseSoftLimitEnable(true);
-
+	*/
 	//unit conversion will work using conversion_factor
 
 	//TODO: something here to get bounding boxes etc for limits near bottom of drive train
@@ -236,8 +236,8 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	ReturnCmd_        = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);
 
 	Odom_             = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("odom", 1);
-	before_shift_max_vel_ = lift_joint_.getMotionCruiseVelocity();
-	before_shift_max_accel_ = lift_joint_.getMotionAcceleration();
+	//before_shift_max_vel_ = lift_joint_.getMotionCruiseVelocity();
+	//before_shift_max_accel_ = lift_joint_.getMotionAcceleration();
 
 	return true;
 }
@@ -300,9 +300,9 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		if(!shifted_)
 		{
 			shifted_ = true;
-			lift_joint_.setMotionAcceleration(after_shift_max_accel_);
-			lift_joint_.setMotionCruiseVelocity(after_shift_max_vel_);
-			lift_joint_.setPIDFSlot(1);
+			//lift_joint_.setMotionAcceleration(after_shift_max_accel_);
+			//lift_joint_.setMotionCruiseVelocity(after_shift_max_vel_);
+			//lift_joint_.setPIDFSlot(1);
 		}
 	}
 	else
@@ -313,16 +313,16 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		if(shifted_)
 		{
 			shifted_ = false;
-			lift_joint_.setMotionAcceleration(before_shift_max_accel_);
-			lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
-			lift_joint_.setPIDFSlot(0);
+			//lift_joint_.setMotionAcceleration(before_shift_max_accel_);
+			//lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
+			//lift_joint_.setPIDFSlot(0);
 		}
 	}
 	Commands curr_cmd = *(command_.readFromRT());
 	//Use known info to write to hardware etc.
 	//Put in intelligent bounds checking
 
-	intake_joint_.setCommand(intake_struct_.power);
+	//intake_joint_.setCommand(intake_struct_.power);
 
 	if(intake_struct_.up_command < 0)
 	{
@@ -379,8 +379,8 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	elevator_controller::ReturnElevatorCmd return_holder;
 	elevator_controller::ReturnElevatorCmd odom_holder;
 
-	const double lift_position = /*last_tar_l - lift_offset_;*/ lift_joint_.getPosition()  - lift_offset_;
-	double pivot_angle   =  /*last_tar_p - pivot_offset_;*/ pivot_joint_.getPosition() - pivot_offset_;
+	const double lift_position = 0; /*last_tar_l - lift_offset_;*/ //lift_joint_.getPosition()  - lift_offset_;
+	double pivot_angle   = 0; /*last_tar_p - pivot_offset_;*/ //pivot_joint_.getPosition() - pivot_offset_;
 
 		
 
@@ -446,8 +446,8 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	
 
 
-	pivot_joint_.setCommand(pivot_target + pivot_offset_);
-	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
+	//pivot_joint_.setCommand(pivot_target + pivot_offset_);
+	//lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
 	//last_tar_l = curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_;
 	//last_tar_p = (pivot_target + pivot_offset_);
 }
