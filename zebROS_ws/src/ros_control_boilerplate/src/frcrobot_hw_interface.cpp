@@ -132,7 +132,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			 realtime_pub_nt.trylock()) 
 		{
 			// SmartDashboard works!
-			frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
 			
 			double navX_angle = *(navX_angle_raw_.readFromRT());
