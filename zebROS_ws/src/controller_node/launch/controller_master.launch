@@ -74,7 +74,7 @@
     <arg name="down_sample" value="$(arg down_sample)" />
 </include>
 
-  <machine name="roboRIO" address="10.9.0.29" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
+  <machine name="roboRIO" address="10.9.0.2" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
 
   <arg name="debug" default="false" />
   <arg unless="$(arg debug)" name="launch_prefix" value="" />
@@ -82,6 +82,7 @@
   <arg name="hw_or_sim" default="hw" />
   <arg name="bot id" default="0" />
 
+  <group ns="frcrobot">
 
 <!-- Load hardware interface -->
   <node machine="roboRIO" name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
@@ -103,6 +104,6 @@
   <node machine="roboRIO" name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
 			output="screen" args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller rumble_controller intake_up_controller shift_controller clamp_controller intake_spring_soft_controller intake_spring_hard_controller end_game_deploy_controller imu_sensor_controller navx_controller compressor_controller robot_code_ready_controller"/>
 
-
+	</group>
     
 </launch>
