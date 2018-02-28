@@ -7,6 +7,16 @@ generic_hw_control_loop:
 hardware_interface:
    joints:
        - {name: joystick_rumble, type: rumble, rumble_port: 0}
+       - {name: digital1, type: digital_output, dio_channel: 0}
+       - {name: digital2, type: digital_output, dio_channel: 1}
+       - {name: digital3, type: digital_output, dio_channel: 2}
+       - {name: digital4, type: digital_output, dio_channel: 3}
+       - {name: digital5, type: digital_output, dio_channel: 4}
+       - {name: digital6, type: digital_output, dio_channel: 5}
+       - {name: digital7, type: digital_output, dio_channel: 6}
+       - {name: digital8, type: digital_output, dio_channel: 7}
+       - {name: digital9, type: digital_output, dio_channel: 8}
+       - {name: digital10, type: digital_output, dio_channel: 9}
 
 joint_state_controller:
    type:         joint_state_controller/JointStateController
@@ -49,3 +59,43 @@ joint_state_controller:
 rumble_controller:
     type: position_controllers/JointPositionController
     joint: joystick_rumble
+
+digital1_controller:
+    type: position_controllers/JointPositionController
+    joint: digital1
+
+digital2_controller:
+    type: position_controllers/JointPositionController
+    joint: digital2
+
+digital3_controller:
+    type: position_controllers/JointPositionController
+    joint: digital3
+
+digital4_controller:
+    type: position_controllers/JointPositionController
+    joint: digital4
+
+digital5_controller:
+    type: position_controllers/JointPositionController
+    joint: digital5
+
+digital6_controller:
+    type: position_controllers/JointPositionController
+    joint: digital6
+
+digital7_controller:
+    type: position_controllers/JointPositionController
+    joint: digital7
+
+digital8_controller:
+    type: position_controllers/JointPositionController
+    joint: digital8
+
+digital9_controller:
+    type: position_controllers/JointPositionController
+    joint: digital9
+
+digital10_controller:
+    type: position_controllers/JointPositionController
+    joint: digital10
