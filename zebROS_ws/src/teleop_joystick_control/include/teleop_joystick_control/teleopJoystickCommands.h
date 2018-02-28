@@ -7,6 +7,7 @@
 #include "talon_controllers/CloseLoopControllerMsg.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
 #include "std_msgs/Float64.h"
+#include "std_msgs/Bool.h"
 #include "geometry_msgs/Twist.h"
 #include "ros/time.h"
 #include "message_filters/subscriber.h"
@@ -24,7 +25,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &ms
 void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble);
 void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &msg);
 void navXCallback(const sensor_msgs::Imu &navXState);
+void cubeCallback(const std_msgs::Bool &cube);
 
 extern double navX_angle_;
 extern int navX_index_;
 extern ros::Subscriber navX_heading_;
+extern ros::Subscriber cube_state_;
