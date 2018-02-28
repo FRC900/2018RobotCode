@@ -629,6 +629,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		
 
 		ROS_WARN("buffer in controller");
+		const int point_count2 = curr_cmd.drive_pos.size();
+		ROS_INFO_STREAM("points: " << point_count2);
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
 

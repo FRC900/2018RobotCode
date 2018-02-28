@@ -99,22 +99,33 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 
 	for(int i = 0; i < point_count - 1; i++)
 	{
-	std::array<Eigen::Vector2d, WHEELCOUNT> angles_positions  = swerve_math->motorOutputs({srv_msg.points[i+1].positions[0] - srv_msg.points[i].positions[0], srv_msg.points[i+1].positions[1] - srv_msg.points[i].positions[1]}, srv_msg.points[i+1].positions[2] - srv_msg.points[i].positions[2], M_PI/2 + srv_msg.points[i+1].positions[2], false, holder, false, curPos, false);
+	std::array<Eigen::Vector2d, WHEELCOUNT> angles_positions  = swerve_math->motorOutputs({srv_msg.points[i+1].positions[0] - srv_msg.points[i].positions[0], srv_msg.points[i+1].positions[1] - srv_msg.points[i].positions[1]}, srv_msg.points[i+1].positions[2] - srv_msg.points[i].positions[2], srv_msg.points[i+1].positions[2], false, holder, false, curPos, false);
 		//TODO: angles on the velocity array below are superfluous, could remove
-	std::array<Eigen::Vector2d, WHEELCOUNT> angles_velocities  = swerve_math->motorOutputs({srv_msg.points[i+1].velocities[0], srv_msg.points[i+1].velocities[1]}, srv_msg.points[i+1].velocities[2], M_PI/2 + srv_msg.points[i+1].positions[2], false, holder, false, curPos, false);
+	std::array<Eigen::Vector2d, WHEELCOUNT> angles_velocities  = swerve_math->motorOutputs({srv_msg.points[i+1].velocities[0], srv_msg.points[i+1].velocities[1]}, srv_msg.points[i+1].velocities[2], srv_msg.points[i+1].positions[2], false, holder, false, curPos, false);
 		for (size_t k = 0; k < WHEELCOUNT; k++)
 			curPos[k] = angles_positions[k][1];
 
-		//ROS_INFO_STREAM("pos_0:" << srv_msg.points[i+1].positions[0] << "pos_1:" << srv_msg.points[i+1].positions[1] <<"pos_2:" <<  srv_msg.points[i+1].positions[2]);
+		//ROS_INFO_STREAM("pos_0:" << srv_msg.points[i+1].positions[0] << "pos_1:" << srv_msg.points[i+1].positions[1] <<"pos_2:" <<  srv_msg.points[i+1].positions[2] << " counts: " << point_count << " i: "<< i << " wheels: " << WHEELCOUNT);
 		for(size_t k = 0; k < WHEELCOUNT; k++)
 		{
-			res.points[i].drive_pos.push_back(angles_positions[k][0] + res.points[i].drive_pos[k]);
+			//ROS_WARN("hhhhere");
+			if(i != 0)
+			{
+				res.points[i].drive_pos.push_back(angles_positions[k][0] + res.points[i-1].drive_pos[k]);
+			}
+			else
+			{
+				res.points[i].drive_pos.push_back(angles_positions[k][0]);
+			}
+			//ROS_WARN("re");
+			
 			res.points[i].drive_vel.push_back(angles_velocities[k][0]);
+			
 			res.points[i].steer_pos.push_back(angles_positions[k][1]);
-			//ROS_INFO_STREAM("drive_pos: " << res.points[i+1].drive_pos[k] << "drive_vel: " << res.points[i+1].drive_vel[k] << "steer_pos: " << res.points[i+1].steer_pos[i]); 
+			//ROS_INFO_STREAM(" hhhh" << "drive_pos: " << res.points[i+1].drive_pos[k] << "drive_vel: " << res.points[i+1].drive_vel[k] << "steer_pos: " << res.points[i+1].steer_pos[i]); 
 		}
 	}
-
+	ROS_WARN("FIN");
 	return true;	
 }
 int main(int argc, char **argv)

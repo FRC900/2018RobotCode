@@ -61,6 +61,8 @@
 #include "ros_control_boilerplate/PDPData.h"
 #include <PowerDistributionPanel.h>
 #include <stdint.h>
+#include <std_msgs/Float64.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 
 namespace frcrobot_control
 {
@@ -85,8 +87,8 @@ FRCRobotHWInterface::~FRCRobotHWInterface()
 void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	run_hal_thread_ = true;
-
-	// This will be written by the last controller to be
+	ros::Publisher zero_navX = nh_.advertise<std_msgs::Float64>("/frcrobot/navX_controller/command", 1); //Kinda dirty
+        // This will be written by the last controller to be
 	// spawned - waiting here prevents the robot from
 	// report robot code ready to the field until
 	// all controllers are started
@@ -98,6 +100,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
+
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -129,14 +132,29 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			 realtime_pub_nt.trylock()) 
 		{
 			// SmartDashboard works!
-			//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
+			frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
+			
+			double navX_angle = *(navX_angle_raw_.readFromRT());
+
+			frc::SmartDashboard::PutNumber("navX_angle", navX_angle);
 			//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
 			realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
 			realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
 			realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
 			realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
 			realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
+			
+			
+			
+			if((bool)driveTable->GetBoolean("zero_navX", 0))
+			{
+				zero_navX.publish((double)driveTable->GetNumber("zero_angle", 0));	
+			}
+			else
+			{
+				zero_navX.publish(-10000);	
+			}
 
 			realtime_pub_nt.msg_.header.stamp = time_now_t;
 			realtime_pub_nt.unlockAndPublish();
@@ -148,10 +166,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		{
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
-			realtime_pub_joystick.msg_.leftStickX = joystick.GetRawAxis(0);
-			realtime_pub_joystick.msg_.leftStickY = joystick.GetRawAxis(1);
-			realtime_pub_joystick.msg_.rightStickX = joystick.GetRawAxis(4);
 			realtime_pub_joystick.msg_.rightStickY = joystick.GetRawAxis(5);
+			realtime_pub_joystick.msg_.rightStickX = joystick.GetRawAxis(4);
+			realtime_pub_joystick.msg_.leftStickY = joystick.GetRawAxis(1);
+			realtime_pub_joystick.msg_.leftStickX = joystick.GetRawAxis(0);
 
 			realtime_pub_joystick.msg_.leftTrigger = joystick.GetRawAxis(2);
 			realtime_pub_joystick.msg_.rightTrigger = joystick.GetRawAxis(3);
@@ -195,6 +213,98 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_joystick.msg_.stickRightButton = joystick.GetRawButton(10);
 			realtime_pub_joystick.msg_.stickRightPress = joystick.GetRawButtonPressed(10);
 			realtime_pub_joystick.msg_.stickRightRelease = joystick.GetRawButtonReleased(10);
+
+		
+			switch (joystick.GetPOV(0))
+			{
+				default:{
+						joystick_up_ = false;
+						joystick_down_ = false;
+						joystick_left_ = false;
+						joystick_right_ = false;
+						break;
+					}
+				case 0 :{
+						joystick_up_ = true;
+						joystick_down_ = false;
+						joystick_left_ = false;
+						joystick_right_ = false;
+						break;
+					} 
+				case 45:{
+						joystick_up_ = true;
+						joystick_down_ = false;
+						joystick_left_ = false;
+						joystick_right_ = true;
+						break;
+					} 
+				case 90:{
+						joystick_up_ = false;
+						joystick_down_ = false;
+						joystick_left_ = false;
+						joystick_right_ = true;
+						break;
+					} 
+				case 135:{
+						joystick_up_ = false;
+						joystick_down_ = true;
+						joystick_left_ = false;
+						joystick_right_ = true;
+						break;
+					} 
+				case 180:{
+						joystick_up_ = false;
+						joystick_down_ = true;
+						joystick_left_ = false;
+						joystick_right_ = false;
+						break;
+					} 
+				case 225:{
+						joystick_up_ = false;
+						joystick_down_ = true;
+						joystick_left_ = true;
+						joystick_right_ = false;
+						break;
+					} 
+				case 270:{
+						joystick_up_ = false;
+						joystick_down_ = false;
+						joystick_left_ = true;
+						joystick_right_ = false;
+						break;
+					} 
+				case 315:{
+						joystick_up_ = true;
+						joystick_down_ = false;
+						joystick_left_ = true;
+						joystick_right_ = false;
+						break;
+					} 
+			}
+			
+			realtime_pub_joystick.msg_.directionUpButton = joystick_up_;
+			realtime_pub_joystick.msg_.directionUpPress = joystick_up_ > joystick_up_last_;
+			realtime_pub_joystick.msg_.directionUpRelease = joystick_up_ > joystick_up_last_;
+			
+			realtime_pub_joystick.msg_.directionDownButton = joystick_down_;
+			realtime_pub_joystick.msg_.directionDownPress = joystick_down_ > joystick_down_last_;
+			realtime_pub_joystick.msg_.directionDownRelease = joystick_down_ > joystick_down_last_;
+			
+
+			realtime_pub_joystick.msg_.directionLeftButton = joystick_left_;
+			realtime_pub_joystick.msg_.directionLeftPress = joystick_left_ > joystick_left_last_;
+			realtime_pub_joystick.msg_.directionLeftRelease = joystick_left_ > joystick_left_last_;
+			
+
+			realtime_pub_joystick.msg_.directionRightButton = joystick_right_;
+			realtime_pub_joystick.msg_.directionRightPress = joystick_right_ > joystick_up_last_;
+			realtime_pub_joystick.msg_.directionRightRelease = joystick_right_ > joystick_up_last_;
+
+			joystick_up_last_ = joystick_up_;
+			joystick_down_last_ = joystick_down_;
+			joystick_left_last_ = joystick_left_;
+			joystick_right_last_ = joystick_right_;
+
 
 			realtime_pub_joystick.unlockAndPublish();
 			last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
@@ -389,7 +499,10 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		talon_skip_counter = 0;
 		read_this_talon = next_talon_to_read;
-		next_talon_to_read = (next_talon_to_read + 1) % num_can_talon_srxs_;
+		if(num_can_talon_srxs_!= 0)
+		{
+			next_talon_to_read = (next_talon_to_read + 1) % num_can_talon_srxs_;
+		}
 	}
 
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
@@ -590,6 +703,10 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
         {
             offset_navX_[i] = navX_command_[i] + navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI;
         }
+		if(i == 0)
+		{
+			navX_angle_raw_.writeFromNonRT(navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - offset_navX_[i]);
+		}
 		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - offset_navX_[i]  );
 
 		imu_orientations_[i][3] = tempQ.w();
