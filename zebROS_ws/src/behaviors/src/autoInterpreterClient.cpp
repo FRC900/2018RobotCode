@@ -130,6 +130,7 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
 
     XmlRpc::XmlRpcValue &path = modes[auto_mode][layout][start_pos];
     XmlRpc::XmlRpcValue &xml_x = path["x"];
+    XmlRpc::XmlRpcValue &xml_t = path["times"];
     //const int num_splines = xml_x.size();
     talon_swerve_drive_controller::FullGenCoefs srv;
     for(int num = 0; num<xml_x.size(); num++) {
@@ -165,6 +166,11 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
         srv.request.orient_coefs.push_back(orient_coefs);
         srv.request.end_points.push_back(num+1);
     }
+     
+    for(int i = 0; i<xml_t.size(); i++) {
+        const double t_val = xml_t[i];
+        vectTimes[auto_mode].push_back(t_val);
+    }
     srv.request.initial_v = 0;
     srv.request.final_v = 0;
     coefs_vect.push_back(srv);
@@ -177,7 +183,6 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
-    /*
     if(AutoMode->position != start_pos) {
         for(int i = 0; i<4; i++) {
             generateTrajectory(i, AutoMode->mode[i], AutoMode->position);
@@ -191,7 +196,6 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             auto_mode_vect[i] = AutoMode->mode[i];
         }
     }
-    */
     start_pos = AutoMode->position;
     /*
     startPos = AutoMode->position;
@@ -313,6 +317,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             behaviors::IntakeLiftGoal goal;
 
     ///////////////TESTING/////////////////
+    /*
             geometry_msgs::Twist vel;
             vel.linear.x = 2;
             vel.linear.y = 0;
@@ -322,7 +327,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             vel.angular.z = 0;
             VelPub.publish(vel);
             return;
-            start_pos = AutoMode->position;
+                                         */
+    ///////////////////////////////////////
             std::vector<double> times;
             if(MatchData->allianceData=="rlr") {
                 auto_mode = 1;
