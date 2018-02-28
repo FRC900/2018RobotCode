@@ -18,7 +18,7 @@
 
 #include <nav_msgs/Odometry.h>
 #include <tf/tfMessage.h>
-
+#include <atomic>
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 
@@ -103,7 +103,7 @@ class ElevatorController
 		ros::ServiceServer service_command_;
 		IntakeCommand intake_struct_;
 		IntakeCommand cur_intake_cmd_;
-		realtime_tools::RealtimeBuffer<IntakeCommands> intake_command_;
+		realtime_tools::RealtimeBuffer<IntakeCommand> intake_command_;
 		ros::ServiceServer service_intake_;
 		ros::ServiceServer service_clamp_;
 		ros::ServiceServer service_shift_;

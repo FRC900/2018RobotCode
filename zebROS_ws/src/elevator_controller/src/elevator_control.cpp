@@ -334,7 +334,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	else
 	{
-		if((ros::Time::now().toSec() - intake_down_time_) < 2)
+		if((ros::Time::now().toSec() - intake_down_time_) < 1.5) //1.5 is super arbitary
 		{
 			std_msgs::Float64 msg;
 			msg.data = 1.0;
@@ -603,6 +603,7 @@ bool ElevatorController::intakeService(elevator_controller::Intake::Request &com
 
 		intake_struct_.spring_command = command.spring_state;	
 		intake_command_.writeFromNonRT(intake_struct_);
+		intake_down_time_ = ros::Time::now().toSec();
 		return true;
 	}
 	else
