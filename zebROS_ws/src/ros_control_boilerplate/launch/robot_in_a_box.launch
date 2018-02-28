@@ -18,13 +18,15 @@
 		<!-- Load controller settings -->
 		<rosparam file="$(find ros_control_boilerplate)/config/robot_in_a_box.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets1.yaml" command="load"/>
 		<rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller rumble_controller robot_code_ready_controller" />
+			output="screen" args="spawn joint_state_controller rumble_controller digital1_controller digital2_controller digital3_controller digital4_controller digital5_controller digital6_controller digital7_controller digital8_controller digital9_controller digital10_controller swerve_drive_controller elevator_controller robot_code_ready_controller" />
 
 		<node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="screen" >
         	</node>
@@ -36,6 +38,8 @@
         	</node>
 		<node name="joystickSubscriber" pkg="teleop_joystick_control" type="joystickSubscriber"
                         output="screen" >
+                </node>
+		<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="screen" >
                 </node>
                 <node name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands"
                         output="screen" >
