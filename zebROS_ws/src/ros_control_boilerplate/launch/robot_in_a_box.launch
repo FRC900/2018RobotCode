@@ -26,7 +26,7 @@
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller rumble_controller digital1_controller digital2_controller digital3_controller digital4_controller digital5_controller digital6_controller digital7_controller digital8_controller digital9_controller digital10_controller swerve_drive_controller elevator_controller robot_code_ready_controller" />
+			output="screen" args="spawn joint_state_controller rumble_controller digital1_controller digital2_controller digital3_controller digital4_controller digital5_controller digital6_controller digital7_controller digital8_controller digital9_controller digital10_controller robot_code_ready_controller" />
 
 		<node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="screen" >
         	</node>
