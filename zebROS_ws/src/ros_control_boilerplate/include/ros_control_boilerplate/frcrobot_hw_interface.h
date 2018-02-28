@@ -56,6 +56,10 @@
 #include <PowerDistributionPanel.h>
 #include "LiveWindow/LiveWindow.h"
 #include "SmartDashboard/SmartDashboard.h"
+#include <realtime_tools/realtime_buffer.h>
+#include <realtime_tools/realtime_publisher.h>
+
+
 
 namespace frcrobot_control
 {
@@ -196,12 +200,21 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Solenoid>> solenoids_;
 		std::vector<std::shared_ptr<frc::DoubleSolenoid>> double_solenoids_;
 		std::vector<std::shared_ptr<AHRS>> navXs_;
+		realtime_tools::RealtimeBuffer<double> navX_angle_raw_;
 		std::vector<std::shared_ptr<frc::AnalogInput>> analog_inputs_;
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;
 		bool        run_hal_thread_;
 		std::thread motion_profile_thread_;
 		bool        run_motion_profile_thread_;
+		bool joystick_up_;
+		bool joystick_down_;
+		bool joystick_left_;
+		bool joystick_right_;
+		bool joystick_up_last_;
+		bool joystick_down_last_;
+		bool joystick_left_last_;
+		bool joystick_right_last_;
 
 		//PowerDistributionPanel pdp_joint_;
 		//

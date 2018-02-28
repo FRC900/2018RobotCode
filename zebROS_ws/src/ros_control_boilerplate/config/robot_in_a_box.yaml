@@ -4,21 +4,17 @@ generic_hw_control_loop:
   loop_hz: 50
   cycle_time_error_threshold: 0.01
 
+hardware_interface:
+   joints:
+       - {name: joystick_rumble, type: rumble, rumble_port: 0}
+
+joint_state_controller:
+   type:         joint_state_controller/JointStateController
+   publish_rate: 10
 # Settings for ros_control hardware interface
 # Map a name for each valid joint to a CAN id
 # For future expansion, change hw_id to specify one
 # of several types of HW interface : CAN_id, PWM_id, DIO_id, AIO_id, etc.
-hardware_interface:
-   joints:
-       - {name: talon_1, type: can_talon_srx, can_id: 3}
-       - {name: talon_2, type: can_talon_srx, can_id: 9}
-         #- {name: talon_3, type: can_talon_srx, can_id: 3}
-         #- {name: talon_4, type: can_talon_srx, can_id: 4}
-         #- {name: talon_5, type: can_talon_srx, can_id: 5}
-       - {name: digital_output_1, type: digital_output, dio_channel: 0}
-       - {name: x_linear_joint, type: dummy}
-       - {name: y_linear_joint, type: dummy}
-       - {name: z_rotation_joint, type: dummy}
 
 # Create controllers for each joint
 #
@@ -37,20 +33,10 @@ hardware_interface:
 # encoder state used by the hw manager and publishes it as
 # a ROS topic.  This is generic ROS stuff, so we'll have
 # to figure out what to map e.g. effort to in the Talon world
-talon_state_controller:
-   type:         talon_state_controller/TalonStateController
-   publish_rate: 20
 
 # Similar to above, but this one prints non-Talon state
 # (stuff that fits into the more standard ROS position/
-# speed/effort paradigm)
-joint_state_controller:
-   type:         joint_state_controller/JointStateController
-   publish_rate: 20
 
-pdp_state_controller:
-   type:         pdp_state_controller/PDPStateController
-   publish_rate: 20
 
 # Create a controller called talon1_controller
 #  That name is used by spawner in the launch file to 
@@ -59,61 +45,7 @@ pdp_state_controller:
 # up with one of the names in the top-level joints list
 # above.  
 # The type is a talon_controllers/TalonController
-talon1_controller:
-    type: talon_controllers/TalonPercentOutputController
-    joint: talon_1
-    neutral_mode : Brake
-    sensor_phase: True
-    close_loop_values:
-        - {p: 2.0, i: .001, d: 2.0, f: 20.0, i_zone: 50}
-        - {p: 5.0, i: 5.0, d: 5.0, f: 10.0, i_zone: 100}
 
-# Do the same for a second joint. The name is different
-# but the type is the same as the previous controller
-talon2_controller:
-    type: talon_controllers/TalonPositionCloseLoopController
-    joint: talon_2
-    feedback: CTRE_MagEncoder_Absolute
-    neutral_mode: Coast
-    invert_output: True
-    close_loop_values:
-        - {p: 2.0, i: .001, d: 2.0, f: 0.0, i_zone: 0}
-        - {p: 5.0, i: 5.0, d: 5.0, f: 0.0, i_zone: 0}
-
-#talon3_controller:
-#type: talon_controllers/TalonPercentOutputController
-#joint: talon_3
-#
-#talon4_controller:
-#type: talon_controllers/TalonPercentOutputController
-#joint: talon_4
-#
-#talon5_controller:
-#type: talon_controllers/TalonFollowerController
-#joint: talon_5
-#follow_joint: talon_1
-
-#nidec_brushless1_controller:
-#    type: velocity_controllers/JointVelocityController
-#    joint: nidec_brushless_1
-
-digital_output1_controller:
+rumble_controller:
     type: position_controllers/JointPositionController
-    joint: digital_output_1
-
-base_trajectory_controller:
-    type: base_trajectory_controllers/JointTrajectoryController 
-    joints:
-      - x_linear_joint
-      - y_linear_joint
-      - z_rotation_joint
-
-    constraints:
-      goal_time: 0.6
-      stopped_velocity_tolerance: 0.02
-      x_linear_joint: {trajectory: 0.05, goal: 0.02}
-      y_linear_joint: {trajectory: 0.05, goal: 0.02}
-      z_rotation_joint: {trajectory: 0.05, goal: 0.02}
-    stop_trajectory_duration: 0.5
-    state_publish_rate:  20
-        
+    joint: joystick_rumble
