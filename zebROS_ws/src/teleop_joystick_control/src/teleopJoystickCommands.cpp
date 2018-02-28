@@ -444,14 +444,16 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     vel.angular.x = 0;
     vel.angular.y = 0;
     
-    if(fabs(vel.linear.x) != 0.0 || fabs(vel.linear.y) != 0.0 || fabs(vel.angular.z) != 0.0 || sendRobotZero) {
-        JoystickRobotVel.publish(vel);
+    if((fabs(vel.linear.x) == 0.0 && fabs(vel.linear.y) == 0.0 && fabs(vel.angular.z) == 0.0) && !sendRobotZero) {
+        ROS_INFO("zeroing");
+	talon_swerve_drive_controller::Blank blank;
+        blank.request.nothing = true;
+        brake_srv.call(blank);
         sendRobotZero = true;
-        if(fabs(vel.linear.x) == 0.0 || fabs(vel.linear.y) == 0.0 || fabs(vel.angular.z) == 0.0) {
-            talon_swerve_drive_controller::Blank blank;
-            blank.request.nothing = true;
-            brake_srv.call(blank);
-        }
+    }
+    if(fabs(vel.linear.x) != 0.0 || fabs(vel.linear.y) != 0.0 || fabs(vel.angular.z) != 0.0) {
+        JoystickRobotVel.publish(vel);
+	sendRobotZero = false;
     }
     if(rightStickX != 0 && rightStickY != 0) {
         elevatorPosX += (timeSecs-lastTimeSecs)*rightStickX; //Access current elevator position to fix code allowing out of bounds travel
