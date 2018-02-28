@@ -546,7 +546,7 @@ int main(int argc, char **argv) {
     message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
 
     navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
-    elevator_odom = n.subscribe("/frcrobot/odom", 1, &OdomCallback);
+    elevator_odom = n.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
     cube_state_   = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
 
     ROS_WARN("joy_init");
