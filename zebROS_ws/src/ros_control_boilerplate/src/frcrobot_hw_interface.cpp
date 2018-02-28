@@ -61,6 +61,8 @@
 #include "ros_control_boilerplate/PDPData.h"
 #include <PowerDistributionPanel.h>
 #include <stdint.h>
+#include <std_msgs/Float64.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 
 namespace frcrobot_control
 {
@@ -86,7 +88,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	run_hal_thread_ = true;
 
-	// This will be written by the last controller to be
+	ros::Publisher zero_navX = nh_.advertise<std_msgs::Float64>("/frcrobot/navX_controller/command", 1); //Kinda dirty
+        // This will be written by the last controller to be
 	// spawned - waiting here prevents the robot from
 	// report robot code ready to the field until
 	// all controllers are started
@@ -98,6 +101,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
+
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -131,12 +135,28 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			// SmartDashboard works!
 			//frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
+			tf2::Quaternion navQuat(imu_orientations_[0][0], imu_orientations_[0][1], imu_orientations_[0][2], imu_orientations_[0][3]);
+        		double roll;
+			double navX_angle_;
+        		tf2::Matrix3x3(navQuat).getRPY(roll, roll, navX_angle_);
+
+			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_);
 			//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
 			realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
 			realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
 			realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
 			realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
 			realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
+			
+			
+			if((bool)driveTable->GetBoolean("zero_navX", 0))
+			{
+				zero_navX.publish((double)driveTable->GetNumber("zero_angle", 0));	
+			}
+			else
+			{
+				zero_navX.publish(-10000);	
+			}
 
 			realtime_pub_nt.msg_.header.stamp = time_now_t;
 			realtime_pub_nt.unlockAndPublish();
