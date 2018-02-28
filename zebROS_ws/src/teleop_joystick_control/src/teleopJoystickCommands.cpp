@@ -28,7 +28,7 @@ static std::string currentToggle = " ";
 static std::string lastToggle = " ";
 static double elevatorPosBeforeX;
 static double elevatorPosBeforeY;
-static bool hasCube;
+bool hasCube;
 
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickElevatorPos;
@@ -71,6 +71,7 @@ double navX_angle_ = M_PI/2;
 int navX_index_ = -1;
 
 ros::Subscriber navX_heading_;
+ros::Subscriber cube_state_;
 ros::Subscriber elevator_odom;
 
 void unToggle(void) {
@@ -545,6 +546,7 @@ int main(int argc, char **argv) {
 
     navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
     elevator_odom = n.subscribe("/frcrobot/odom", 1, &OdomCallback);
+    cube_state_   = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
 
     ROS_WARN("joy_init");
 
@@ -594,4 +596,7 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 	double roll;
 	tf2::Matrix3x3(navQuat).getRPY(roll, roll, navX_angle_);
 }
-
+void cubeCallback(const std_msgs::Bool &cube)
+{
+	hasCube = cube.data;
+}
