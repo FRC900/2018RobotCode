@@ -445,7 +445,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     vel.angular.y = 0;
     
     if((fabs(vel.linear.x) == 0.0 && fabs(vel.linear.y) == 0.0 && fabs(vel.angular.z) == 0.0) && !sendRobotZero) {
-        ROS_INFO("zeroing");
 	talon_swerve_drive_controller::Blank blank;
         blank.request.nothing = true;
         brake_srv.call(blank);
