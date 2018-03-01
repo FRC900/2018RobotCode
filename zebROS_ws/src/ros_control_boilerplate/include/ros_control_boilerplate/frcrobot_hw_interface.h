@@ -138,9 +138,9 @@ class ROSIterativeRobot : public frc::IterativeRobotBase
 				TestPeriodic();
 			}
 			RobotPeriodic();
-			//SmartDashboard::UpdateValues();
-			//if (use_livewindow)
-			//	LiveWindow::GetInstance()->UpdateValues();
+			SmartDashboard::UpdateValues();
+			if (use_livewindow)
+				LiveWindow::GetInstance()->UpdateValues();
 		}
 
 		enum class Mode { kNone, kDisabled, kAutonomous, kTeleop, kTest };
