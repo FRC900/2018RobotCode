@@ -87,22 +87,24 @@ FRCRobotHWInterface::~FRCRobotHWInterface()
 void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	run_hal_thread_ = true;
-	ros::Publisher zero_navX = nh_.advertise<std_msgs::Float64>("/frcrobot/navX_controller/command", 1); //Kinda dirty
         // This will be written by the last controller to be
 	// spawned - waiting here prevents the robot from
 	// report robot code ready to the field until
 	// all controllers are started
-	ros::Rate rate(20);
-	while (robot_code_ready_ == 0.0)
-		rate.sleep();
+	{
+		ros::Rate rate(20);
+		while (robot_code_ready_ == 0.0)
+			rate.sleep();
+	}
 
 	robot_.StartCompetition();
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
 	realtime_tools::RealtimePublisher<std_msgs::Bool> realtime_pub_disable_compressor_reg(nh_, "/frcrobot/regulate_compressor/disable", 4);
+	realtime_tools::RealtimePublisher<std_msgs::Float64> zero_navX(nh_, "/frcrobot/navX_controller/command", 1); //Kinda dirty
 
-	ros::Publisher override_compressor_limits = nh_.advertise<std_msgs::Bool>("/frcrobot/regulate_compressor/disable", 1);	
+	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -121,51 +123,58 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
 
-
-
 	while (run_hal_thread_ && ros::ok())
 	{
 		robot_.OneIteration();
-        	time_now_t = ros::Time::now();
+		time_now_t = ros::Time::now();
 		//ROS_INFO("%f", ros::Time::now().toSec());
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
 		//subTable->PutString("Auto Selector", "Select Auto");
 		if (driveTable && 
-			((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t) && 
-			 realtime_pub_nt.trylock()) 
+			((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t))
 		{
 			// SmartDashboard works!
-
-			
-
 			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_);
 			frc::SmartDashboard::PutNumber("Pressure", pressure_);
-
 			frc::SmartDashboard::PutBoolean("cube_state", cube_state);
-			//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
-			realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
-			realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
-			realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
-			realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
-			realtime_pub_nt.msg_.delays[0] = (int)driveTable->GetNumber("delay_0", 0);
-			realtime_pub_nt.msg_.delays[1] = (int)driveTable->GetNumber("delay_1", 0);
-			realtime_pub_nt.msg_.delays[2] = (int)driveTable->GetNumber("delay_2", 0);
-			realtime_pub_nt.msg_.delays[3] = (int)driveTable->GetNumber("delay_3", 0);
-			realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
-		    	override_compressor_limits.publish((bool)driveTable->GetBoolean("disable_reg", 0));		
-				
-			if((bool)driveTable->GetBoolean("zero_navX", 0))
+
+			if (realtime_pub_nt.trylock()) 
 			{
-				zero_navX.publish((double)driveTable->GetNumber("zero_angle", 0));	
-			}
-			else
-			{
-				zero_navX.publish(-10000);	
+				realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
+				realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
+				realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
+				realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
+				realtime_pub_nt.msg_.delays[0] = (int)driveTable->GetNumber("delay_0", 0);
+				realtime_pub_nt.msg_.delays[1] = (int)driveTable->GetNumber("delay_1", 0);
+				realtime_pub_nt.msg_.delays[2] = (int)driveTable->GetNumber("delay_2", 0);
+				realtime_pub_nt.msg_.delays[3] = (int)driveTable->GetNumber("delay_3", 0);
+				realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
+				realtime_pub_nt.msg_.header.stamp = time_now_t;
+				realtime_pub_nt.unlockAndPublish();
 			}
 
-			realtime_pub_nt.msg_.header.stamp = time_now_t;
-			realtime_pub_nt.unlockAndPublish();
+			if (override_compressor_limits.trylock())
+			{
+				override_compressor_limits.msg_.data = (bool)driveTable->GetBoolean("disable_reg", 0);		
+				override_compressor_limits.unlockAndPublish();
+			}
+
+			if (zero_navX.trylock())
+			{
+				double zero_angle;
+				if(driveTable->GetBoolean("zero_navX", 0) != 0)
+				{
+					zero_angle = (double)driveTable->GetNumber("zero_angle", 0);	
+				}
+				else
+				{
+					zero_angle = -10000;
+				}
+				zero_navX.msg_.data = zero_angle;
+				zero_navX.unlockAndPublish();
+			}
+
 			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
 		}
 
@@ -312,7 +321,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			joystick_down_last_ = joystick_down_;
 			joystick_left_last_ = joystick_left_;
 			joystick_right_last_ = joystick_right_;
-
 
 			realtime_pub_joystick.unlockAndPublish();
 			last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
