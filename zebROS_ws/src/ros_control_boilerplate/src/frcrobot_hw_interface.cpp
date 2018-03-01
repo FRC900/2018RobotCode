@@ -100,7 +100,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
+	realtime_tools::RealtimePublisher<std_msgs::Bool> realtime_pub_disable_compressor_reg(nh_, "/frcrobot/regulate_compressor/disable", 4);
 
+	
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -151,8 +153,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_nt.msg_.delays[2] = (int)driveTable->GetNumber("delay_2", 0);
 			realtime_pub_nt.msg_.delays[3] = (int)driveTable->GetNumber("delay_3", 0);
 			realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
-			
-			
+			realtime_pub_disable_compressor_reg.msg_.data = (bool)driveTable->GetBoolean("disable_reg", 0);	
 			
 			if((bool)driveTable->GetBoolean("zero_navX", 0))
 			{
