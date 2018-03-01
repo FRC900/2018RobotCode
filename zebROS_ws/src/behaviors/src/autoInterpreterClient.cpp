@@ -321,7 +321,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             }*/
             double time_start_auto = ros::Time::now().toSec();
             elevator_controller::Intake IntakeSrv;
-            elevator_controller::ElevatorControlS ElevatorSrv;
+            elevator_controller::ElevatorControlS ElevatorSrv;hardware_interface
             elevator_controller::bool_srv ClampSrv;
             behaviors::IntakeLiftGoal goal;
 

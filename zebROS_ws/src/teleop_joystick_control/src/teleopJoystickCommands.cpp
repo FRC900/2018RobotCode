@@ -60,7 +60,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         leftRumble = 65535;
         rightRumble = 65535;
     }
-    else if(matchTimeRemaining < 31 && matchTimeRemaining > 30.8 || (matchTimeRemaining < 30.7 && matchTimeRemaining > 30.5)) {
+    else if(matchTimeRemaining < 31 && matchTimeRemaining > 30.8 || (matchTimeRemaining < 30.7 && matchTimeRemaining > 30.5) {
         leftRumble = 65535;
         rightRumble = 65535;
     }
@@ -126,63 +126,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         //switch height toggle
         if(JoystickState->buttonAPress==true) {
             currentToggle = "A";
-    
-            if(hasCube) {
-                if(lastToggle=="YDouble") {
-                    srvIntake.request.spring_state = 2; //soft_in
-                    if(IntakeSrv.call(srvIntake)) {
-                        srvClamp.request.data = false;
-                        if(ClampSrv.call(srvClamp)) {
-                            srvIntake.request.power = -.8;
-                            if(IntakeSrv.call(srvIntake)) {
-                                ROS_WARN("Exchanged Cube");
-                                ros::Duration(exchange_delay).sleep(); //TODO
-                            }
-                        }
-                    }
-                    else {
-                        ROS_ERROR("Failed to exchange cube");
-                    }
-                }
-                else {
-                    srvClamp.request.data=false;
-                    behaviors::IntakeLiftGoal goal;
-                    if(ClampSrv.call(srvClamp)) {
-                        ROS_WARN("Placed cube");
-                        goal.IntakeCube = false;
-                        goal.GoToHeight = false;
-                        goal.MoveArmAway = true;
-                        goal.x = intake_config_x;
-                        goal.y = intake_config_y;
-                        /*
-                        goal.IntakeCube = false;
-                        goal.GoToHeight = true;
-                        goal.x = elevatorPosX - 1; //TODO
-                        goal.y = elevatorPosY + 1; //TODO
-                        ac->sendGoal(goal);
-                        
-                        if(ac->waitForResult(ros::Duration(1))) {
-                            ROS_WARN("Moved arm out of the way");
-                            srvElevator.request.x = intake_config_x;
-                            srvElevator.request.y = intake_config_y;
-                            if(ElevatorSrv.call(srvElevator)) {
-                                ROS_WARN("Toggled to intake config");
-                            }
-                        }
-                        else {
-                            ROS_ERROR("Failed to move arm out of the way...");
-                            ROS_ERROR("Manual correction required!");
-                            ROS_ERROR("Manual correction required!");
-                        }
-                        */
-                    }
-                    else {
-                        ROS_ERROR("Failed to place cube");
-                    }
-                }
-            }
-            else{ 
-	
             if(lastToggle==" ") {
                 elevatorHeightBefore = elevatorHeight; //TODO access elevator height
                 ROS_WARN("ElevatorHeightbefore set");
@@ -196,7 +139,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 //TODO publish switch height to ElevatorTarget or something
                 ROS_WARN("Toggled to intake config and start intake");
             }
-	    }
         }
 
         if(timeSecs - YLast > .21 && timeSecs - YLast < .45) {
