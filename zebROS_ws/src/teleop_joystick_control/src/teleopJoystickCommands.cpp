@@ -279,8 +279,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     }
                 }
             }
-             
-
+            else{ 
+	
             if(lastToggle==" ") {
                 unToggle();
             }
@@ -303,6 +303,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 ROS_WARN("Started intaking cube");
 
             }
+	    }
         }
 
         if(timeSecs - YLast > .21 && timeSecs - YLast < .45) {
