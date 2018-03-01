@@ -620,7 +620,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 
 	//ROS_INFO_STREAM("mode: " << *(mode_.readFromRT())); 
-	if(*(buffer_.readFromRT()))
+	if(/**(buffer_.readFromRT())*/ false)
 	{
 		buffer_ = false;
 		
@@ -824,7 +824,7 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 		{
 			ROS_WARN("Reaction wheels need alignment. Please reverse polarity on neutron flux capacitor");
 		}
-		if((command.linear.x > 3.0*pow(10, 8)) || (command.linear.y > 3.0*pow(10, 8)) || (command.linear.z > 3.0*pow(10, 8)))
+		if((command.linear.x > 300000000) || (command.linear.y > 300000000) || (command.linear.z > 300000000))
 		{
 			ROS_WARN("PHYSICS VIOLATION DETECTED. DISABLE TELEPORTATION UNIT!");
 		}

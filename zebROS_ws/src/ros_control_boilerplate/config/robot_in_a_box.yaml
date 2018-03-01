@@ -17,6 +17,7 @@ hardware_interface:
        - {name: digital8, type: digital_output, dio_channel: 7}
        - {name: digital9, type: digital_output, dio_channel: 8}
        - {name: digital10, type: digital_output, dio_channel: 9}
+       - {name: analog_pressure_sensor, type: analog_input, analog_channel: 0, analog_a: .0633897, analog_b: 29.9}
 
 joint_state_controller:
    type:         joint_state_controller/JointStateController

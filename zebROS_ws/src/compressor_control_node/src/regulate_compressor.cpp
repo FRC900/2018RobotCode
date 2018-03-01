@@ -2,7 +2,7 @@
 
 static ros::Publisher CompressorCommand;
 static ros::Subscriber pressure_sub_;
-static ros::Subscriber current_sub_;
+//static ros::Subscriber current_sub_;
 static ros::Subscriber match_data_sub_;
 static ros::Subscriber disable_sub_;
 
@@ -44,10 +44,10 @@ int main(int argc, char **argv) {
 	CompressorCommand = n.advertise<std_msgs::Float64>("/frcrobot/compressor_controller/command", 1);
 
 	pressure_sub_ = n.subscribe("/frcrobot/joint_states", 1, &pressureCallback);
-	current_sub_ = n.subscribe("/frcrobot/total_current", 75, &currentCallback);
+	//current_sub_ = n.subscribe("/frcrobot/total_current", 75, &currentCallback);
 	//HOOK UP ABOVE TO PDP
 	match_data_sub_ = n.subscribe("/frcrobot/match_data", 1, &matchDataCallback);
-	disable_sub_ = n.subscribe("disable", 5, &disableCallback);
+	disable_sub_ = n.subscribe("/frcrobot/regulate_compressor/disable", 5, &disableCallback);
 	//TODO FIX ABOVE topic names
 
 	// TODO : fix me.  spin() will loop forever until !ros::ok()
@@ -75,9 +75,10 @@ int main(int argc, char **argv) {
 				const double end_pressure_estimate = pressure_ - max_estimated  - max_end_game_use_;
 				if(end_pressure_estimate < target_final_pressure_ || run_last_tick)
 				{
-					const double modelVal = -current_multiplier_ * weighted_average_current_
-						+ pressure_multiplier_ * pow(fabs(target_final_pressure_ - end_pressure_estimate),
-								pressure_exponent_) * ((end_pressure_estimate < target_final_pressure_) ? 1 : -1)
+					const double modelVal = /*-current_multiplier_ * weighted_average_current_
+					*/ pressure_multiplier_ * pow(fabs(target_final_pressure_ - 
+					end_pressure_estimate),	pressure_exponent_) * ((end_pressure_estimate < 
+					target_final_pressure_) ? 1 : -1)
 						+ (run_last_tick ? 1 : 0) * inertial_multiplier_;
 
 					if(modelVal > 0)
@@ -151,6 +152,7 @@ void matchDataCallback(const ros_control_boilerplate::MatchSpecificData &MatchDa
 }
 
 // consider a boost::circular_buffer
+/*
 void currentCallback(const std_msgs::Float64 &current)
 {
 	static std::vector<double> currents;
@@ -168,6 +170,7 @@ void currentCallback(const std_msgs::Float64 &current)
 	}
 	weighted_average_current_ = temp_weighted_average_current_;
 }
+*/
 void disableCallback(const std_msgs::Bool &disable)
 {
 	disable_ = disable.data;

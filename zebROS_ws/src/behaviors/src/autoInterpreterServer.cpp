@@ -9,7 +9,7 @@
 #include "elevator_controller/ReturnElevatorCmd.h"
 //elevator_controller/cmd_pos
 //elevator_controller/intake?
-bool linebreak = false;
+bool cube_state = true;
 static double intake_config_x;
 static double intake_config_y;
 
@@ -43,11 +43,12 @@ class autoAction {
             IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
             Clamp = nh_.advertise<std_msgs::Bool>("elevator_controller/clamp", 1);
             elevator_odom = nh_.subscribe("/frcrobot/elevator_controller/odom", 1, &autoAction::OdomCallback, this);
-        }
+            CubeState = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &autoAction::cubeCallback, this);
+	}
 
         
         ros::Subscriber elevator_odom;// = nh_.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
-        //ros:Subscriber Linebreak = nh_.subscribe("linebreakYAY", 1, checkIntakeLinebreak);
+        ros::Subscriber CubeState;
     ~autoAction(void) 
     {
     }
@@ -118,8 +119,8 @@ class autoAction {
         ROS_INFO("%s: Succeeded", action_name_.c_str());
         as_.setSucceeded(result_);
     }
-    void checkIntakeLinebreak(void) {
-        success = true;
+    void cubeCallback(const std_msgs::Bool &msg) {
+        cube_state = msg.data;
     }
     void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg) {
         if(fabs(msg->x-targetPosX) < .1 && fabs(msg->y - targetPosY) < .1) {

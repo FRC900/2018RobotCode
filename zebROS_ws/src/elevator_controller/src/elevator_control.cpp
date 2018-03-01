@@ -125,7 +125,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_STREAM("Can not read offset for pivot " << node_name);
 		return false;
 	}
-
+	
 	if (!pivot_joint_.initWithNode(hw, nullptr, controller_nh, pivot_params))
 	{
 		ROS_ERROR("Can not initialize pivot joint(s)");
@@ -142,7 +142,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR("Can not initialize intake joint(s)");
 		return false;
 	}
-
+	
 	if (!controller_nh.getParam("max_extension", max_extension_))
 	{
 		ROS_ERROR_NAMED(name_, "Can not read max_extension");
@@ -180,7 +180,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read hook_max_height");
 		return false;
 	}
-
+	
 	//Set soft limits using offsets here
 	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_);
 	lift_joint_.setReverseSoftLimitThreshold(min_extension_ + lift_offset_);
@@ -194,7 +194,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 
 	pivot_joint_.setForwardSoftLimitEnable(true);
 	pivot_joint_.setReverseSoftLimitEnable(true);
-
+	
 	//unit conversion will work using conversion_factor
 
 	//TODO: something here to get bounding boxes etc for limits near bottom of drive train
@@ -319,12 +319,13 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		}
 	}
 	Commands curr_cmd = *(command_.readFromRT());
+	cur_intake_cmd_ = *(intake_command_.readFromRT());
 	//Use known info to write to hardware etc.
 	//Put in intelligent bounds checking
 
-	intake_joint_.setCommand(intake_struct_.power);
+	intake_joint_.setCommand(cur_intake_cmd_.power);
 
-	if(intake_struct_.up_command < 0)
+	if(cur_intake_cmd_.up_command < 0)
 	{
 		std_msgs::Float64 msg;
 		msg.data = -1.0;
@@ -333,7 +334,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	else
 	{
-		if((ros::Time::now().toSec() - intake_down_time_) < 2)
+		if((ros::Time::now().toSec() - intake_down_time_) < 1.5) //1.5 is super arbitary
 		{
 			std_msgs::Float64 msg;
 			msg.data = 1.0;
@@ -347,10 +348,12 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		}
 	}
 	//Delay stuff maybe?
+	
+
 
 	std_msgs::Float64 intake_soft_msg;
 	std_msgs::Float64 intake_hard_msg;
-	switch(intake_struct_.spring_command)
+	switch(cur_intake_cmd_.spring_command)
 	{
 		default:
 			intake_soft_msg.data = 1.0;
@@ -379,7 +382,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	elevator_controller::ReturnElevatorCmd return_holder;
 	elevator_controller::ReturnElevatorCmd odom_holder;
 
-	const double lift_position = /*last_tar_l - lift_offset_;*/ lift_joint_.getPosition()  - lift_offset_;
+	const double lift_position =  /*last_tar_l - lift_offset_;*/ lift_joint_.getPosition()  - lift_offset_;
 	double pivot_angle   =  /*last_tar_p - pivot_offset_;*/ pivot_joint_.getPosition() - pivot_offset_;
 
 		
@@ -448,8 +451,8 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
-	//last_tar_l = curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_;
-	//last_tar_p = (pivot_target + pivot_offset_);
+	last_tar_l = curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_;
+	last_tar_p = (pivot_target + pivot_offset_);
 }
 void ElevatorController::starting(const ros::Time &/*time*/)
 {
@@ -599,6 +602,8 @@ bool ElevatorController::intakeService(elevator_controller::Intake::Request &com
 		}
 
 		intake_struct_.spring_command = command.spring_state;	
+		intake_command_.writeFromNonRT(intake_struct_);
+		intake_down_time_ = ros::Time::now().toSec();
 		return true;
 	}
 	else

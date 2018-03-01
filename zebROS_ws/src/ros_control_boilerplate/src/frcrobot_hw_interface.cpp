@@ -100,7 +100,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
+	realtime_tools::RealtimePublisher<std_msgs::Bool> realtime_pub_disable_compressor_reg(nh_, "/frcrobot/regulate_compressor/disable", 4);
 
+	
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -108,6 +110,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
     realtime_pub_nt.msg_.mode.resize(4);
+    realtime_pub_nt.msg_.delays.resize(4);
     ros::Time time_now_t;
 	ros::Time last_nt_publish_time;
 	ros::Time last_joystick_publish_time;
@@ -118,11 +121,12 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
 
+
+
 	while (run_hal_thread_ && ros::ok())
 	{
 		robot_.OneIteration();
-
-        time_now_t = ros::Time::now();
+        	time_now_t = ros::Time::now();
 		//ROS_INFO("%f", ros::Time::now().toSec());
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
@@ -132,20 +136,24 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			 realtime_pub_nt.trylock()) 
 		{
 			// SmartDashboard works!
-			frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
 			
-			double navX_angle = *(navX_angle_raw_.readFromRT());
 
-			frc::SmartDashboard::PutNumber("navX_angle", navX_angle);
+			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_);
+			frc::SmartDashboard::PutNumber("Pressure", pressure_);
+
+			frc::SmartDashboard::PutBoolean("cube_state", cube_state);
 			//realtime_pub_nt.msg_.data = driveTable->GetString("Auto Selector", "0");
 			realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
 			realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
 			realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
 			realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
+			realtime_pub_nt.msg_.delays[0] = (int)driveTable->GetNumber("delay_0", 0);
+			realtime_pub_nt.msg_.delays[1] = (int)driveTable->GetNumber("delay_1", 0);
+			realtime_pub_nt.msg_.delays[2] = (int)driveTable->GetNumber("delay_2", 0);
+			realtime_pub_nt.msg_.delays[3] = (int)driveTable->GetNumber("delay_3", 0);
 			realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
-			
-			
+			realtime_pub_disable_compressor_reg.msg_.data = (bool)driveTable->GetBoolean("disable_reg", 0);	
 			
 			if((bool)driveTable->GetBoolean("zero_navX", 0))
 			{
@@ -362,7 +370,9 @@ void FRCRobotHWInterface::init(void)
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
-
+	
+	cube_state_sub = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
+	
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
@@ -534,27 +544,27 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 		ts.setSpeed(speed);
 
-		const double output_current = talon->GetOutputCurrent();
-		safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
-		ts.setOutputCurrent(output_current);
+		//const double output_current = talon->GetOutputCurrent();
+		//safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
+		//ts.setOutputCurrent(output_current);
 
 		if (read_this_talon == joint_id)
 		{
-			const double bus_voltage = talon->GetBusVoltage();
-			safeTalonCall(talon->GetLastError(), "GetBusVoltage");
-			ts.setBusVoltage(bus_voltage);
+			//const double bus_voltage = talon->GetBusVoltage();
+			//safeTalonCall(talon->GetLastError(), "GetBusVoltage");
+			//ts.setBusVoltage(bus_voltage);
 
-			const double motor_output_percent = talon->GetMotorOutputPercent();
-			safeTalonCall(talon->GetLastError(), "GetMotorOutputPercent");
-			ts.setMotorOutputPercent(motor_output_percent);
+			//const double motor_output_percent = talon->GetMotorOutputPercent();
+			//safeTalonCall(talon->GetLastError(), "GetMotorOutputPercent");
+			//ts.setMotorOutputPercent(motor_output_percent);
 
-			const double output_voltage = talon->GetMotorOutputVoltage();
-			safeTalonCall(talon->GetLastError(), "GetMotorOutputVoltage");
-			ts.setOutputVoltage(output_voltage);
+			//const double output_voltage = talon->GetMotorOutputVoltage();
+			//safeTalonCall(talon->GetLastError(), "GetMotorOutputVoltage");
+			//ts.setOutputVoltage(output_voltage);
 
-			const double temperature = talon->GetTemperature(); //returns in Celsius
-			safeTalonCall(talon->GetLastError(), "GetTemperature");
-			ts.setTemperature(temperature);
+			//const double temperature = talon->GetTemperature(); //returns in Celsius
+			//safeTalonCall(talon->GetLastError(), "GetTemperature");
+			//ts.setTemperature(temperature);
 
 			//closed-loop
 			if ((talon_mode == hardware_interface::TalonMode_Position) ||
@@ -563,72 +573,73 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 					(talon_mode == hardware_interface::TalonMode_MotionProfile) ||
 					(talon_mode == hardware_interface::TalonMode_MotionMagic))
 			{
-				const double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
-				safeTalonCall(talon->GetLastError(), "GetClosedLoopError");
-				ts.setClosedLoopError(closed_loop_error);
-				const double integral_accumulator = talon->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
-				safeTalonCall(talon->GetLastError(), "GetIntegralAccumulator");
-				ts.setIntegralAccumulator(integral_accumulator);
+				
+				//const double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
+				//safeTalonCall(talon->GetLastError(), "GetClosedLoopError");
+				//ts.setClosedLoopError(closed_loop_error);
+				//const double integral_accumulator = talon->GetIntegralAccumulator(pidIdx) * closed_loop_scale;
+				//safeTalonCall(talon->GetLastError(), "GetIntegralAccumulator");
+				//ts.setIntegralAccumulator(integral_accumulator);
 
-				const double error_derivative = talon->GetErrorDerivative(pidIdx) * closed_loop_scale;
-				safeTalonCall(talon->GetLastError(), "GetErrorDerivative");
-				ts.setErrorDerivative(error_derivative);
+				//const double error_derivative = talon->GetErrorDerivative(pidIdx) * closed_loop_scale;
+				//safeTalonCall(talon->GetLastError(), "GetErrorDerivative");
+				//ts.setErrorDerivative(error_derivative);
 
-				const double closed_loop_target = talon->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
-				safeTalonCall(talon->GetLastError(), "GetClosedLoopTarget");
-				ts.setClosedLoopTarget(closed_loop_target);
+				//const double closed_loop_target = talon->GetClosedLoopTarget(pidIdx) * closed_loop_scale;
+				//safeTalonCall(talon->GetLastError(), "GetClosedLoopTarget");
+				//ts.setClosedLoopTarget(closed_loop_target);
 			}
 
 			if ((talon_mode == hardware_interface::TalonMode_MotionProfile) ||
 					(talon_mode == hardware_interface::TalonMode_MotionMagic))
 			{
-				const double active_trajectory_position = talon->GetActiveTrajectoryPosition() * radians_scale;
-				safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryPosition");
-				ts.setActiveTrajectoryPosition(active_trajectory_position);
-				const double active_trajectory_velocity = talon->GetActiveTrajectoryVelocity() * radians_per_second_scale;
-				safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryVelocity");
-				ts.setActiveTrajectoryVelocity(active_trajectory_velocity);
-				const double active_trajectory_heading = talon->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
-				safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
-				ts.setActiveTrajectoryHeading(active_trajectory_heading);
-				ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
-				safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
-				ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
-				safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
-				ctre::phoenix::motion::MotionProfileStatus talon_status;
-				safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+				//const double active_trajectory_position = talon->GetActiveTrajectoryPosition() * radians_scale;
+				//safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryPosition");
+				//ts.setActiveTrajectoryPosition(active_trajectory_position);
+				//const double active_trajectory_velocity = talon->GetActiveTrajectoryVelocity() * radians_per_second_scale;
+				//safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryVelocity");
+				//ts.setActiveTrajectoryVelocity(active_trajectory_velocity);
+				//const double active_trajectory_heading = talon->GetActiveTrajectoryHeading() * 2.*M_PI / 360.; //returns in degrees
+				//safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
+				//ts.setActiveTrajectoryHeading(active_trajectory_heading);
+				//ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
+				//safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
+				//ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
+				//safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
+				//ctre::phoenix::motion::MotionProfileStatus talon_status;
+				//safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
-				hardware_interface::MotionProfileStatus internal_status;
-				internal_status.topBufferRem = talon_status.topBufferRem;
-				internal_status.topBufferCnt = talon_status.topBufferCnt;
-				internal_status.btmBufferCnt = talon_status.btmBufferCnt;
-				internal_status.hasUnderrun = talon_status.hasUnderrun;
-				internal_status.isUnderrun = talon_status.isUnderrun;
-				internal_status.activePointValid = talon_status.activePointValid;
-				internal_status.isLast = talon_status.isLast;
-				internal_status.profileSlotSelect0 = talon_status.profileSlotSelect0;
-				internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
-				internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
-				internal_status.timeDurMs = talon_status.timeDurMs;
+				//hardware_interface::MotionProfileStatus internal_status;
+				//internal_status.topBufferRem = talon_status.topBufferRem;
+				//internal_status.topBufferCnt = talon_status.topBufferCnt;
+				//internal_status.btmBufferCnt = talon_status.btmBufferCnt;
+				//internal_status.hasUnderrun = talon_status.hasUnderrun;
+				//internal_status.isUnderrun = talon_status.isUnderrun;
+				//internal_status.activePointValid = talon_status.activePointValid;
+				//internal_status.isLast = talon_status.isLast;
+				//internal_status.profileSlotSelect0 = talon_status.profileSlotSelect0;
+				//internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
+				//internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
+				//internal_status.timeDurMs = talon_status.timeDurMs;
 
-				ts.setMotionProfileStatus(internal_status);
+				//ts.setMotionProfileStatus(internal_status);
 			}
 
-			ctre::phoenix::motorcontrol::Faults faults;
-			safeTalonCall(talon->GetFaults(faults), "GetFaults");
-			ts.setFaults(faults.ToBitfield());
+			//ctre::phoenix::motorcontrol::Faults faults;
+			//safeTalonCall(talon->GetFaults(faults), "GetFaults");
+			//ts.setFaults(faults.ToBitfield());
 
 			// Grab limit switch and softlimit here
 			auto sensor_collection = talon->GetSensorCollection();
 			ts.setForwardLimitSwitch(sensor_collection.IsFwdLimitSwitchClosed());
 			ts.setReverseLimitSwitch(sensor_collection.IsRevLimitSwitchClosed());
 
-			ts.setForwardSoftlimitHit(faults.ForwardSoftLimit);
-			ts.setReverseSoftlimitHit(faults.ReverseSoftLimit);
+			//ts.setForwardSoftlimitHit(faults.ForwardSoftLimit);
+			//ts.setReverseSoftlimitHit(faults.ReverseSoftLimit);
 
-			ctre::phoenix::motorcontrol::StickyFaults sticky_faults;
-			safeTalonCall(talon->GetStickyFaults(sticky_faults), "GetStickyFaults");
-			ts.setStickyFaults(sticky_faults.ToBitfield());
+			//ctre::phoenix::motorcontrol::StickyFaults sticky_faults;
+			//safeTalonCall(talon->GetStickyFaults(sticky_faults), "GetStickyFaults");
+			//ts.setStickyFaults(sticky_faults.ToBitfield());
 		}
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
@@ -672,6 +683,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
 		analog_input_state_[i] = (analog_inputs_[i]->GetValue())*analog_input_a_[i] + analog_input_b_[i];
+		if(analog_input_names_[i] == "analog_pressure_sensor")
+		{
+			pressure_ = analog_input_state_[i];
+
+		}
 	}
  	//navX read here
 	for (size_t i = 0; i < num_navX_; i++)
@@ -705,7 +721,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
         }
 		if(i == 0)
 		{
-			navX_angle_raw_.writeFromNonRT(navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - offset_navX_[i]);
+			navX_angle_ = navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - offset_navX_[i];
 		}
 		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - offset_navX_[i]  );
 

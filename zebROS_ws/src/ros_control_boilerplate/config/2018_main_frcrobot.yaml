@@ -1,7 +1,7 @@
 # ros_control_boilerplate Settings -----------------------
 # Settings for ros_control control loop
 generic_hw_control_loop:
-  loop_hz: 30
+  loop_hz: 50
   cycle_time_error_threshold: 0.01
 
 # Settings for ros_control hardware interface
@@ -65,7 +65,7 @@ talon_state_controller:
 # speed/effort paradigm)
 joint_state_controller:
    type:         joint_state_controller/JointStateController
-   publish_rate: 10
+   publish_rate: 30
 
 intake_up_controller:
     type: position_controllers/JointPositionController

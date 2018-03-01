@@ -176,8 +176,15 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
     coefs_vect.push_back(srv);
     point_gen.call(coefs_vect[layout]);
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
-    swerve_control_srv.request.points = srv.response.points;
-    swerve_control_srv.request.dt = srv.response.dt;
+    swerve_control_srv.request.points = coefs_vect[layout].response.points;
+    ROS_INFO_STREAM("num_points: " << coefs_vect[layout].response.points.size());
+    swerve_control_srv.request.dt = coefs_vect[layout].response.dt;
+    swerve_control_srv.request.buffer = true;
+    swerve_control_srv.request.clear  = true;
+    swerve_control_srv.request.run    = false;
+    swerve_control_srv.request.mode   = true;
+    
+    
     swerve_control.call(swerve_control_srv);
 }
 
@@ -303,7 +310,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         */
     
     if(MatchData->isAutonomous && !MatchData->isDisabled) {
-        if(MatchData->allianceData != "") {
+        /*
+	if(MatchData->allianceData != "") {
             if(start_time==0) {
                 start_time = ros::Time::now().toSec();
             }
@@ -350,7 +358,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                 layout = 2;
                 times = vectTimes[3];
             }
-
+	    
             if(AutoMode->mode[auto_mode-1]==1) {
             //3 cube switch-scale-scale
                 //0: Time 1: Go to switch config
@@ -583,7 +591,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                 //13: Linebreak sensor: Clamp and release cube
                 clamp(ClampSrv);
                 releaseIntake(IntakeSrv);
-            }
+            
+	    }
             else if(AutoMode->mode[auto_mode-1]==4) { //TODO fix times
 			//4 cube scale-scale-scale-switch
 				//1: Time 1: scale config and soft-in intake
@@ -749,9 +758,10 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                 }
             }   
         }   
+    */
     }
     else{
-        start_time = 0;
+        //start_time = 0;
     }
     /*
     edlse {
@@ -811,9 +821,9 @@ int main(int argc, char** argv) {
     message_filters::Synchronizer<data_sync> sync(data_sync(10), auto_mode_sub, match_data_sub);
     sync.registerCallback(boost::bind(&auto_modes, _1, _2));
     ROS_WARN("Auto Client loaded");
-    ros::Duration(2).sleep();
+    ros::Duration(30).sleep();
 
-    generateTrajectory(0, 0, 0);
+    //generateTrajectory(0, 0, 0);
 
     /*
     ROS_WARN("1");

@@ -58,8 +58,8 @@
 #include "SmartDashboard/SmartDashboard.h"
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
-
-
+#include <std_msgs/Bool.h>
+#include <atomic>
 
 namespace frcrobot_control
 {
@@ -192,6 +192,12 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		bool safeTalonCall(ctre::phoenix::ErrorCode error_code, 
 				const std::string &talon_method_name);
 
+		bool cube_state;
+		void cubeCallback(const std_msgs::Bool &cube)
+		{
+			cube_state = cube.data;
+		}
+		ros::Subscriber cube_state_sub;	
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;
 		std::vector<std::shared_ptr<frc::NidecBrushless>> nidec_brushlesses_;
 		std::vector<std::shared_ptr<frc::DigitalInput>> digital_inputs_;
@@ -200,7 +206,8 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Solenoid>> solenoids_;
 		std::vector<std::shared_ptr<frc::DoubleSolenoid>> double_solenoids_;
 		std::vector<std::shared_ptr<AHRS>> navXs_;
-		realtime_tools::RealtimeBuffer<double> navX_angle_raw_;
+		std::atomic<double> navX_angle_;
+		std::atomic<double> pressure_;
 		std::vector<std::shared_ptr<frc::AnalogInput>> analog_inputs_;
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;

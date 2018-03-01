@@ -18,7 +18,7 @@
 
 #include <nav_msgs/Odometry.h>
 #include <tf/tfMessage.h>
-
+#include <atomic>
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 
@@ -50,13 +50,13 @@ class ElevatorController
 		double before_shift_max_vel_;		
 
 		std::string name_;
-		bool line_break_intake_;
-		bool line_break_clamp_;
+		std::atomic<bool> line_break_intake_;
+		std::atomic<bool> line_break_clamp_;
 		int line_break_intake_index_;
 		int line_break_clamp_index_;
 		bool shift_cmd_;
 		bool shifted_;
-		double clamp_cmd_;
+		std::atomic<double> clamp_cmd_;
 		double climb_height_;
 		bool end_game_deploy_cmd_;
 		bool end_game_deploy_t1_;
@@ -102,6 +102,8 @@ class ElevatorController
 		ros::Subscriber sub_joint_state_;
 		ros::ServiceServer service_command_;
 		IntakeCommand intake_struct_;
+		IntakeCommand cur_intake_cmd_;
+		realtime_tools::RealtimeBuffer<IntakeCommand> intake_command_;
 		ros::ServiceServer service_intake_;
 		ros::ServiceServer service_clamp_;
 		ros::ServiceServer service_shift_;
