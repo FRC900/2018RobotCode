@@ -13,8 +13,6 @@ ElevatorController::ElevatorController():
 	before_shift_max_vel_(0),
 	line_break_intake_(false),
 	line_break_clamp_(false),
-	line_break_intake_index_(-1),
-	line_break_clamp_index_(-1),
 	shift_cmd_(false),
 	shifted_(false),
 	clamp_cmd_(0.0),
@@ -481,37 +479,39 @@ void ElevatorController::lineBreakCallback(const sensor_msgs::JointState &msg)
 {
 	if(isRunning())
 	{
-		if(line_break_intake_index_ == -1)
+		static size_t line_break_intake_index = -1;
+		if(line_break_intake_index == -1)
 		{
 			for(size_t i = 0; i < msg.name.size(); i++)
 			{
 				if(msg.name[i] == "intake_line_break")
 				{
-					line_break_intake_index_ = i;
+					line_break_intake_index = i;
 					break;
 				}
 			}
 		}
-		if(line_break_intake_index_ == -1)
+		if(line_break_intake_index == -1)
 			ROS_ERROR_NAMED(name_, "Could not read index for intake_line_break");
 		else
-			line_break_intake_ = msg.position[line_break_intake_index_] > 0;
+			line_break_intake_ = msg.position[line_break_intake_index] > 0;
 
-		if(line_break_clamp_index_ == -1)
+		static size_t line_break_clamp_index = -1;
+		if(line_break_clamp_index == -1)
 		{
 			for(size_t i = 0; i < msg.name.size(); i++)
 			{
 				if(msg.name[i] == "clamp_line_break")
 				{
-					line_break_clamp_index_ = i;
+					line_break_clamp_index = i;
 					break;
 				}
 			}
 		}
-		if(line_break_clamp_index_ == -1)
+		if(line_break_clamp_index == -1)
 			ROS_ERROR_NAMED(name_, "Could not read index for clamp_line_break");
 		else
-			line_break_clamp_ = msg.position[line_break_clamp_index_] > 0;
+			line_break_clamp_ = msg.position[line_break_clamp_index] > 0;
 	}
 }
 

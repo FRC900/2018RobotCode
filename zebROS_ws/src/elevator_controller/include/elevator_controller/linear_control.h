@@ -52,13 +52,11 @@ class ElevatorController
 		std::string name_;
 		std::atomic<bool> line_break_intake_;
 		std::atomic<bool> line_break_clamp_;
-		int line_break_intake_index_;
-		int line_break_clamp_index_;
-		bool shift_cmd_;
+		std::atomic<bool> shift_cmd_;
 		bool shifted_;
 		std::atomic<double> clamp_cmd_;
 		double climb_height_;
-		bool end_game_deploy_cmd_;
+		std::atomic<bool> end_game_deploy_cmd_;
 		bool end_game_deploy_t1_;
 		bool end_game_deploy_t2_;
 		double end_game_deploy_start_;
