@@ -11,6 +11,7 @@ teleop_params:
     exchange_config_y: .5
     intake_config_x: .1
     intake_config_y: .3
+    climb: 1
     default_x: .2
     default_y: .7
     timeout: 15

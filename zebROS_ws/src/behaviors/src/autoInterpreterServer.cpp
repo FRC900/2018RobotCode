@@ -12,6 +12,7 @@
 bool cube_state = true;
 static double intake_config_x;
 static double intake_config_y;
+static int goal_num = -1;
 
 class autoAction {
     protected:
@@ -65,6 +66,7 @@ class autoAction {
                 break;
             }
             if(goal->IntakeCube) {
+                goal_num = 0;
                 elevator_controller::ElevatorControlS srv_elevator;
                 srv_elevator.request.x = intake_config_x;
                 srv_elevator.request.y = intake_config_y;
@@ -78,6 +80,7 @@ class autoAction {
                 IntakeSrv.call(srv);
             }
             else if(goal->GoToHeight) {
+                goal_num = 1;
                 elevator_controller::ElevatorControlS srv;
                 targetPosX = goal->x;
                 targetPosY = goal->y;
@@ -87,6 +90,7 @@ class autoAction {
                 ElevatorSrv.call(srv);
             }
             else if(goal->MoveArmAway) {
+                goal_num = 2;
                 elevator_controller::ElevatorControlS srv;
                 srv.request.x = goal->x - .1; //TODO
                 srv.request.y = goal->y +.2; //TODO
@@ -110,6 +114,7 @@ class autoAction {
             r.sleep();
             ros::spinOnce();
         }
+        goal_num = -1;
         if(goal->IntakeCube) {
             elevator_controller::Intake srv;
             srv.request.power = 0;
@@ -121,9 +126,12 @@ class autoAction {
     }
     void cubeCallback(const std_msgs::Bool &msg) {
         cube_state = msg.data;
+        if(cube_state && goal_num == 0) {
+            success = true;
+        }
     }
     void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg) {
-        if(fabs(msg->x-targetPosX) < .1 && fabs(msg->y - targetPosY) < .1) {
+        if(fabs(msg->x-targetPosX) < .1 && fabs(msg->y - targetPosY) < .1 && goal_num == 1) {
             success = true;
         }
     }
