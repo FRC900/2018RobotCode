@@ -170,7 +170,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 
 	protected:
 		void hal_keepalive_thread(void);
-		void process_motion_profile_buffer_thread(ros::Rate rate);
+		void process_motion_profile_buffer_thread(double hz);
 
 	private:
 		/** Get conversion factor for position, velocity, and closed-loop stuff */

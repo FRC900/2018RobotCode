@@ -366,14 +366,25 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	}
 }
 
-void FRCRobotHWInterface::process_motion_profile_buffer_thread(ros::Rate rate)
+void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
+	// since our MP is 10ms per point, set the control frame rate and the
+	// notifer to half that
+	for (size_t i = 0; i < num_can_talon_srxs_; i++)
+		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
+
+	ros::Rate rate(hz);
 	while (run_motion_profile_thread_ && ros::ok())
 	{
 		for (size_t i = 0; i < num_can_talon_srxs_; i++)
-			can_talons_[i]->ProcessMotionProfileBuffer();
+		{
+			const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
+			if ((talon_mode != hardware_interface::TalonMode_Follower) &&
+				(talon_mode != hardware_interface::TalonMode_Disabled))
+				can_talons_[i]->ProcessMotionProfileBuffer();
 
-		rate.sleep();
+			rate.sleep();
+		}
 	}
 }
 
@@ -507,7 +518,7 @@ void FRCRobotHWInterface::init(void)
 
 	//HAL_InitializePDP(0,0);
 
-	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, ros::Rate(200));
+	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 200.);
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
