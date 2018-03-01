@@ -53,9 +53,11 @@ static double exchange_config_x;
 static double exchange_config_y;
 static double intake_config_x;
 static double intake_config_y;
+static double climb;
 static double default_x;
 static double default_y;
 static double exchange_delay;
+static bool clamped;
  
 
 bool sendRobotZero = false;
@@ -182,6 +184,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         elevator_controller::bool_srv srvClamp;
         elevator_controller::Intake srvIntake;
 
+        if(JoystickState->directionDownPress == true) {
+            srvElevator.request.y = climb;
+            ElevatorSrv.call(srvElevator);
+            ROS_WARN("Climb config");
+        }
         //**** MID LEVEL SCALE TOGGLE || Grab Cube ***//
         if(JoystickState->buttonXPress==true) {
             if(hasCube) {
@@ -204,21 +211,21 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 }
             }
             else {
-                currentToggle = "XNoCube";
-                if(lastToggle != currentToggle) {
+                if(clamped == false) {
                     srvClamp.request.data = true;
                     if(ClampSrv.call(srvClamp)) {
                         ROS_WARN("Clamped");
+                        clamped = true;
                     }
                     else {
                         ROS_ERROR("Failed to clamp");
                     }
                 }
                 else {
-                    currentToggle = " ";
                     srvClamp.request.data = false;
                     if(ClampSrv.call(srvClamp)) {
                         ROS_WARN("UnClamped");
+                        clamped = false;
                     }
                     else {
                         ROS_ERROR("Failed to unclamp");
@@ -330,7 +337,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 else{
                     ROS_ERROR("Failed to toggle to switch height");
                 }
-                ROS_WARN("Toggled to switch height");
             }
             YLast = 0;
         }
@@ -476,13 +482,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         JoystickElevatorPos.publish(elevatorMsg);
     }
 
-        //TODO BUMPERS FOR SLOW MODE
-        //ROS_WARN("leftStickX: %f", leftStickX);
-        //ROS_WARN("leftStickY: %f", leftStickY);
-    //TODO BUMPERS FOR SLOW MODE
-    //TODO rotate left
-    //TODO rotate right
-	//ROS_WARN("be afraid");
     lastTimeSecs = timeSecs;
 }
 
@@ -539,6 +538,7 @@ int main(int argc, char **argv) {
     n_params.getParam("exchange_config_y", exchange_config_y);
     n_params.getParam("intake_config_x", intake_config_x);
     n_params.getParam("intake_config_y", intake_config_y);
+    n_params.getParam("climb", climb);
     n_params.getParam("default_x", default_x);
     n_params.getParam("default_y", default_y);
     n_params.getParam("exchange_delay", exchange_delay);

@@ -71,6 +71,7 @@ std::vector<talon_swerve_drive_controller::FullGenCoefs> coefs_vect;
 bool defaultConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.x = default_x;
     srv.request.y = default_y;
+    srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     return ElevatorService.call(srv);
@@ -78,6 +79,7 @@ bool defaultConfig(elevator_controller::ElevatorControlS srv) {
 bool intakeConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.x = intake_config_x;
     srv.request.y = intake_config_y;
+    srv.request.up_or_down = false;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     return ElevatorService.call(srv);
@@ -85,6 +87,7 @@ bool intakeConfig(elevator_controller::ElevatorControlS srv) {
 bool switchConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.x = switch_config_x;
     srv.request.y = switch_config_y;
+    srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     return ElevatorService.call(srv);
@@ -92,6 +95,7 @@ bool switchConfig(elevator_controller::ElevatorControlS srv) {
 bool highScale(elevator_controller::ElevatorControlS srv) {
     srv.request.x = high_scale_config_x;
     srv.request.y = high_scale_config_y;
+    srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     return ElevatorService.call(srv);
@@ -99,6 +103,7 @@ bool highScale(elevator_controller::ElevatorControlS srv) {
 bool midScale(elevator_controller::ElevatorControlS srv) {
     srv.request.x = mid_scale_config_x;
     srv.request.y = mid_scale_config_y;
+    srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     return ElevatorService.call(srv);
@@ -106,6 +111,7 @@ bool midScale(elevator_controller::ElevatorControlS srv) {
 bool lowScale(elevator_controller::ElevatorControlS srv) {
     srv.request.x = low_scale_config_x;
     srv.request.y = low_scale_config_y;
+    srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     return ElevatorService.call(srv);
@@ -124,6 +130,7 @@ bool clamp(elevator_controller::bool_srv srv) {
 }
 bool releaseIntake(elevator_controller::Intake srv) {
     srv.request.spring_state = 1;
+    srv.request.power = 0;
     IntakeService.call(srv);
 }
 
@@ -193,13 +200,15 @@ std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
     if(AutoMode->position != start_pos) {
         for(int i = 0; i<4; i++) {
-            generateTrajectory(i, AutoMode->mode[i], AutoMode->position);
+            if(AutoMode->mode[i] == 3 || AutoMode->mode[i] == 4) {
+                generateTrajectory(i, AutoMode->mode[i]-3, AutoMode->position);
+            }
         }
     }
     else {
         for(int i = 0; i<4; i++) {
-            if(AutoMode->mode[i] != auto_mode_vect[i]) {
-                generateTrajectory(i, AutoMode->mode[i], AutoMode->position);
+            if(AutoMode->mode[i] != auto_mode_vect[i] && (AutoMode->mode[i] == 3 || AutoMode->mode[i] == 4)) {
+                generateTrajectory(i, AutoMode->mode[i]-3, AutoMode->position);
             }
             auto_mode_vect[i] = AutoMode->mode[i];
         }
@@ -367,7 +376,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                     times.push_back(vectTimes[3][i]);
                 }
             }
-            if(AutoMode->mode[auto_mode-1] == 0) {
+            if(AutoMode->mode[auto_mode-1] == 2) {
                 //basic switch cmd_vel
                 geometry_msgs::Twist vel;
                 vel.linear.z = 0;

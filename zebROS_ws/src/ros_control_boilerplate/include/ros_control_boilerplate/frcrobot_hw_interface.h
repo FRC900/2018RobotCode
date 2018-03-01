@@ -138,7 +138,7 @@ class ROSIterativeRobot : public frc::IterativeRobotBase
 				TestPeriodic();
 			}
 			RobotPeriodic();
-			SmartDashboard::UpdateValues();
+			//SmartDashboard::UpdateValues();
 			if (use_livewindow)
 				LiveWindow::GetInstance()->UpdateValues();
 		}
