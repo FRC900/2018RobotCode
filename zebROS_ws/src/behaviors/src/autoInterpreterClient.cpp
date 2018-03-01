@@ -58,7 +58,7 @@ static double default_x;
 static double default_y;
 static double timeout;
 static double delay;
-static double autoStart;
+static double autoStart = -1;
 static int layout;
 static std::vector<std::vector<double>> vectTimes;
 static XmlRpc::XmlRpcValue modes;
@@ -321,7 +321,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             }*/
             double time_start_auto = ros::Time::now().toSec();
             elevator_controller::Intake IntakeSrv;
-            elevator_controller::ElevatorControlS ElevatorSrv;hardware_interface
+            elevator_controller::ElevatorControlS ElevatorSrv;
             elevator_controller::bool_srv ClampSrv;
             behaviors::IntakeLiftGoal goal;
 
@@ -816,7 +816,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             }
         }
         else {
-            if(!autoStart) {
+            if(autoStart == -1) {
                 autoStart = ros::Time::now().toSec();
             }
             else {
