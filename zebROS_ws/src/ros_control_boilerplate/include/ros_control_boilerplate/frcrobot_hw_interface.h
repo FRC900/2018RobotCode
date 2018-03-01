@@ -192,12 +192,12 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		bool safeTalonCall(ctre::phoenix::ErrorCode error_code, 
 				const std::string &talon_method_name);
 
-		std::atomic<bool> cube_state;
+		std::atomic<bool> cube_state_;
 		void cubeCallback(const std_msgs::Bool &cube)
 		{
-			cube_state = cube.data;
+			cube_state_ = cube.data;
 		}
-		ros::Subscriber cube_state_sub;	
+		ros::Subscriber cube_state_sub_;	
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;
 		std::vector<std::shared_ptr<frc::NidecBrushless>> nidec_brushlesses_;
 		std::vector<std::shared_ptr<frc::DigitalInput>> digital_inputs_;

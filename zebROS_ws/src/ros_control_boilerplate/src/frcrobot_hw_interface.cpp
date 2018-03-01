@@ -146,7 +146,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			// SmartDashboard works!
 			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_);
 			frc::SmartDashboard::PutNumber("Pressure", pressure_);
-			frc::SmartDashboard::PutBoolean("cube_state", cube_state);
+			frc::SmartDashboard::PutBoolean("cube_state", cube_state_);
 
 			if (realtime_pub_nt.trylock()) 
 			{
@@ -388,7 +388,7 @@ void FRCRobotHWInterface::init(void)
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
 	
-	cube_state_sub = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
+	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
 	
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
