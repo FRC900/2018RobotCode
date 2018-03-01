@@ -550,7 +550,7 @@ int main(int argc, char **argv) {
     JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
     JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
 
-    EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/command", 1);
+    EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/end_game_deploy", 1);
     ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
     ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
     IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");

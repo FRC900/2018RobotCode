@@ -34,9 +34,10 @@
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller intake_up_controller shift_controller clamp_controller intake_spring_soft_controller intake_spring_hard_controller end_game_deploy_controller imu_sensor_controller navx_controller pdp_state_controller compressor_controller elevator_controller swerve_drive_controller rumble_controller robot_code_ready_controller"/>
+			output="screen" args="spawn joint_state_controller talon_state_controller imu_sensor_controller navx_controller pdp_state_controller elevator_controller swerve_drive_controller rumble_controller robot_code_ready_controller"/>
 
         <!-- launch joystick subscriber-->
+		<!--
 		<node name="joystickSubscriber" pkg="teleop_joystick_control" type="joystickSubscriber"
 			output="screen" >
 		</node>
@@ -50,10 +51,10 @@
 
         	<node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="screen" >
 		</node>
+		-->
         	
 		<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="screen" >
         	</node>
-
 		<node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="screen" >
         	</node>
 

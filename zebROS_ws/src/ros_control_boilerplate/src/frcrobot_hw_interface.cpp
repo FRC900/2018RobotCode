@@ -488,7 +488,7 @@ void FRCRobotHWInterface::init(void)
 	//pdp_joint_.ClearStickyFaults();
 	//pdp_joint_.ResetTotalEnergy();
 
-	HAL_InitializePDP(0,0);
+	//HAL_InitializePDP(0,0);
 
 	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, ros::Rate(200));
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
@@ -496,6 +496,7 @@ void FRCRobotHWInterface::init(void)
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
+	
 	
 	const int talon_updates_to_skip = 2;
 	static int talon_skip_counter = 0;
@@ -528,19 +529,21 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			//ROS_WARN("I HATE 31");
 			continue;
 		}
+			
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
 		const hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
 		const hardware_interface::TalonMode talon_mode = ts.getTalonMode();
 		if (talon_mode == hardware_interface::TalonMode_Follower)
 			continue;
+		
 		const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
 		const double conversion_factor = ts.getConversionFactor();
 
 		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
 		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
 		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id)* conversion_factor;
-
+		
 		const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
 		ts.setPosition(position);
@@ -635,9 +638,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			//ts.setFaults(faults.ToBitfield());
 
 			// Grab limit switch and softlimit here
-			auto sensor_collection = talon->GetSensorCollection();
-			ts.setForwardLimitSwitch(sensor_collection.IsFwdLimitSwitchClosed());
-			ts.setReverseLimitSwitch(sensor_collection.IsRevLimitSwitchClosed());
+			//auto sensor_collection = talon->GetSensorCollection();
+			//ts.setForwardLimitSwitch(sensor_collection.IsFwdLimitSwitchClosed());
+			//ts.setReverseLimitSwitch(sensor_collection.IsRevLimitSwitchClosed());
 
 			//ts.setForwardSoftlimitHit(faults.ForwardSoftLimit);
 			//ts.setReverseSoftlimitHit(faults.ReverseSoftLimit);
@@ -647,7 +650,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			//ts.setStickyFaults(sticky_faults.ToBitfield());
 		}
 	}
-	
+		
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
 		brushless_vel_[i] = nidec_brushlesses_[i]->Get();
@@ -755,6 +758,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	//navX read here
 	
 	//read info from the PDP hardware
+	/*
 	auto &ps = pdp_state_;
 	static int32_t status = 0;
 	ps.setVoltage(HAL_GetPDPVoltage(0, &status));
@@ -967,7 +971,7 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
-	
+	/*	
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		//TODO : skip over most or all of this if the talon is in follower mode
@@ -1366,7 +1370,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			//ROS_INFO_STREAM("in mode: " << in_mode);
 			talon->Set(out_mode, command);
 			safeTalonCall(talon->GetLastError(), "Set");
-			ROS_WARN_STREAM("set at: " << ts.getCANID() << " new mode: " << b1 << " command_changed: " << b2 << " cmd: " << command);
+			//ROS_WARN_STREAM("set at: " << ts.getCANID() << " new mode: " << b1 << " command_changed: " << b2 << " cmd: " << command);
 		}
 
 		if (tc.clearStickyFaultsChanged())
@@ -1376,7 +1380,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");
 		}
 	}
-	
+	*/	
 
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -1398,7 +1402,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		const int inverter = (pwm_inverts_[i]) ? -1 : 1;
 		PWMs_[i]->SetSpeed(pwm_command_[i]*inverter);
 	}
-
+	/*
 	for (size_t i = 0; i< num_solenoids_; i++)
 	{
 		const bool setpoint = solenoid_command_[i] > 0;
@@ -1423,7 +1427,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			double_solenoid_state_[i] = setpoint;
 		}
 	}
-
+	*/
 	for (size_t i = 0; i < num_rumble_; i++)
 	{
 		if (rumble_state_[i] != rumble_command_[i])
