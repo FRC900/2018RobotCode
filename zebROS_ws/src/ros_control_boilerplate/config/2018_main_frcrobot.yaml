@@ -34,7 +34,7 @@ hardware_interface:
        - {name: bl_angle, type: can_talon_srx, can_id: 13}
        - {name: navx_mxp, type: navX, frame_id: navx, id: 0}
        - {name: analog_pressure_sensor, type: analog_input, analog_channel: 0, analog_a: .0633897, analog_b: -24.9}
-       #- {name: compressor1, type: compressor, pcm_id: 0}
+       - {name: compressor1, type: compressor, pcm_id: 0}
        - {name: joystick_rumble, type: rumble, rumble_port: 0}
 #TODO: fix ids for pneumatics   
 #TODO: add "spring" pneumatics and some sensors
@@ -56,9 +56,9 @@ hardware_interface:
 # encoder state used by the hw manager and publishes it as
 # a ROS topic.  This is generic ROS stuff, so we'll have
 # to figure out what to map e.g. effort to in the Talon world
-#talon_state_controller:
-#   type:         talon_state_controller/TalonStateController
-#   publish_rate: 30
+talon_state_controller:
+   type:         talon_state_controller/TalonStateController
+   publish_rate: 30
 
 # Similar to above, but this one prints non-Talon state
 # (stuff that fits into the more standard ROS position/
@@ -67,45 +67,45 @@ joint_state_controller:
    type:         joint_state_controller/JointStateController
    publish_rate: 30
 
-#intake_up_controller:
-#    type: position_controllers/JointPositionController
-#    joint: intake_up
+intake_up_controller:
+    type: position_controllers/JointPositionController
+    joint: intake_up
 
-#shift_controller:
-#    type: position_controllers/JointPositionController
-#    joint: shift
+shift_controller:
+    type: position_controllers/JointPositionController
+    joint: shift
 
-#clamp_controller:
-#    type: position_controllers/JointPositionController
-#    joint: clamp
+clamp_controller:
+    type: position_controllers/JointPositionController
+    joint: clamp
 
-#intake_spring_soft_controller:
-#    type: position_controllers/JointPositionController
-#    joint: intake_spring_soft
+intake_spring_soft_controller:
+    type: position_controllers/JointPositionController
+    joint: intake_spring_soft
 
-#intake_spring_hard_controller:
-#    type: position_controllers/JointPositionController
-#    joint: intake_spring_hard
+intake_spring_hard_controller:
+    type: position_controllers/JointPositionController
+    joint: intake_spring_hard
 
-#end_game_deploy_controller:
-#    type: position_controllers/JointPositionController
-#    joint: end_game_deploy
+end_game_deploy_controller:
+    type: position_controllers/JointPositionController
+    joint: end_game_deploy
 
-#imu_sensor_controller:
-#   type:         imu_sensor_controller/ImuSensorController
-#   publish_rate: 20
+imu_sensor_controller:
+   type:         imu_sensor_controller/ImuSensorController
+   publish_rate: 20
 
-#navx_controller:
-#   type: position_controllers/JointPositionController
-#   joint: navx_mxp
+navx_controller:
+   type: position_controllers/JointPositionController
+   joint: navx_mxp
 
-#pdp_state_controller:
-#   type:         pdp_state_controller/PDPStateController
-#   publish_rate: 20
+pdp_state_controller:
+   type:         pdp_state_controller/PDPStateController
+   publish_rate: 20
 
-#compressor_controller:
-#   type: position_controllers/JointPositionController
-#   joint: compressor1
+compressor_controller:
+   type: position_controllers/JointPositionController
+   joint: compressor1
 
 rumble_controller:
     type: position_controllers/JointPositionController
