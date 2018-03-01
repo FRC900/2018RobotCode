@@ -108,6 +108,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
     realtime_pub_nt.msg_.mode.resize(4);
+    realtime_pub_nt.msg_.delays.resize(4);
     ros::Time time_now_t;
 	ros::Time last_nt_publish_time;
 	ros::Time last_joystick_publish_time;
@@ -133,7 +134,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			 realtime_pub_nt.trylock()) 
 		{
 			// SmartDashboard works!
-			frc::SmartDashboard::PutNumber("SmartDashboard Test", 999);
 
 			
 
@@ -146,6 +146,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
 			realtime_pub_nt.msg_.mode[2] = (int)driveTable->GetNumber("auto_mode_2", 0);
 			realtime_pub_nt.msg_.mode[3] = (int)driveTable->GetNumber("auto_mode_3", 0);
+			realtime_pub_nt.msg_.delays[0] = (int)driveTable->GetNumber("delay_0", 0);
+			realtime_pub_nt.msg_.delays[1] = (int)driveTable->GetNumber("delay_1", 0);
+			realtime_pub_nt.msg_.delays[2] = (int)driveTable->GetNumber("delay_2", 0);
+			realtime_pub_nt.msg_.delays[3] = (int)driveTable->GetNumber("delay_3", 0);
 			realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
 			
 			
