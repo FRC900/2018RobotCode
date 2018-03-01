@@ -55,8 +55,8 @@ class TalonHWCommand
 		// rather than relying on them being setup to
 		// a certain state previously
 		TalonHWCommand(void) :
-			command_(0.),
-			command_changed_(false),
+			command_(std::numeric_limits<double>::max()),
+			command_changed_(true),
 			mode_(TalonMode_Uninitialized),
 			mode_changed_(false),
 			pidf_slot_(0),
@@ -344,7 +344,7 @@ class TalonHWCommand
 
 		void set(double command)
 		{
-			command_changed_ = true;
+			command_changed_ = command_ != command;
 			command_ = command;
 		}
 		void setMode(TalonMode mode)

@@ -496,11 +496,12 @@ void FRCRobotHWInterface::init(void)
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
+	
 	const int talon_updates_to_skip = 2;
 	static int talon_skip_counter = 0;
 	static int next_talon_to_read = 0;
 	size_t read_this_talon = std::numeric_limits<size_t>::max();
-
+	
 	// Try to load-balance reading from talons
 	// Loop through and read non-critical data from only one
 	// joint per read() pass.  Only do that read every
@@ -522,7 +523,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 		if (!talon) // skip unintialized Talons
 			continue;
-
+		if (ts.getCANID() == 31)
+		{
+			//ROS_WARN("I HATE 31");
+			continue;
+		}
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
 		const hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
@@ -642,6 +647,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			//ts.setStickyFaults(sticky_faults.ToBitfield());
 		}
 	}
+	
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
 		brushless_vel_[i] = nidec_brushlesses_[i]->Get();
@@ -961,6 +967,7 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
+	
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		//TODO : skip over most or all of this if the talon is in follower mode
@@ -984,6 +991,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		if (tc.encoderFeedbackChanged(internal_feedback_device) &&
 			convertFeedbackDevice(internal_feedback_device, talon_feedback_device))
 		{
+			//ROS_WARN("feedback");
 			safeTalonCall(talon->ConfigSelectedFeedbackSensor(talon_feedback_device, pidIdx, timeoutMs),"ConfigSelectedFeedbackSensor");
 			ts.setEncoderFeedback(internal_feedback_device);
 		}
@@ -1031,6 +1039,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, slot))
 			{
+				//ROS_WARN("PIDF");
 				safeTalonCall(talon->Config_kP(slot, p, timeoutMs),"Config_kP");
 				safeTalonCall(talon->Config_kI(slot, i, timeoutMs),"Config_kI");
 				safeTalonCall(talon->Config_kD(slot, d, timeoutMs),"Config_kD");
@@ -1052,6 +1061,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 			if (slot_changed)
 			{
+				//ROS_WARN("slot");
 				ROS_INFO_STREAM("Updated joint " << joint_id << " PIDF slot to " << slot << std::endl);
 
 				safeTalonCall(talon->SelectProfileSlot(slot, timeoutMs),"SelectProfileSlot");
@@ -1063,6 +1073,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		bool sensor_phase;
 		if (tc.invertChanged(invert, sensor_phase))
 		{
+			//ROS_WARN("invvert");
 			talon->SetInverted(invert);
 			safeTalonCall(talon->GetLastError(), "SetInverted");
 			talon->SetSensorPhase(sensor_phase);
@@ -1077,6 +1088,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		if (tc.neutralModeChanged(neutral_mode) &&
 			convertNeutralMode(neutral_mode, ctre_neutral_mode))
 		{
+			//ROS_WARN("neutral2");
 			talon->SetNeutralMode(ctre_neutral_mode);
 			safeTalonCall(talon->GetLastError(), "SetNeutralMode");
 			ts.setNeutralMode(neutral_mode);
@@ -1085,6 +1097,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 		if (tc.neutralOutputChanged())
 		{
+		
+			//ROS_WARN("neutral");
 			talon->NeutralOutput();
 			safeTalonCall(talon->GetLastError(), "NeutralOutput");
 			ts.setNeutralOutput(true);
@@ -1094,6 +1108,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double iaccum;
 		if (close_loop_mode && tc.integralAccumulatorChanged(iaccum))
 		{
+			//ROS_WARN("iaccum");
 			safeTalonCall(talon->SetIntegralAccumulator(iaccum / closed_loop_scale, pidIdx, timeoutMs),"SetIntegralAccumulator");
 			// Do not set talon state - this changes
 			// dynamically so read it in read() above instead
@@ -1115,6 +1130,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 									nominal_output_reverse,
 									neutral_deadband))
 		{
+			//ROS_WARN("output shape");
 			safeTalonCall(talon->ConfigOpenloopRamp(open_loop_ramp, timeoutMs),"ConfigOpenloopRamp");
 			safeTalonCall(talon->ConfigClosedloopRamp(closed_loop_ramp, timeoutMs),"ConfigClosedloopRamp");
 			safeTalonCall(talon->ConfigPeakOutputForward(peak_output_forward, timeoutMs),"ConfigPeakOutputForward");          // 100
@@ -1139,6 +1155,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 										  v_measurement_filter,
 										  v_c_enable))
 		{
+			//ROS_WARN("volt comp");
 			safeTalonCall(talon->ConfigVoltageCompSaturation(v_c_saturation, timeoutMs),"ConfigVoltageCompSaturation");
 			safeTalonCall(talon->ConfigVoltageMeasurementFilter(v_measurement_filter, timeoutMs),"ConfigVoltageMeasurementFilter");
 			talon->EnableVoltageCompensation(v_c_enable);
@@ -1153,6 +1170,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double sensor_position;
 		if (tc.sensorPositionChanged(sensor_position))
 		{
+			//ROS_WARN("pos");
 			safeTalonCall(talon->SetSelectedSensorPosition(sensor_position / radians_scale, pidIdx, timeoutMs),
 					"SetSelectedSensorPosition");
 			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" selected sensor position");
@@ -1174,6 +1192,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				convertLimitSwitchSource(internal_local_reverse_source, talon_local_reverse_source) &&
 				convertLimitSwitchNormal(internal_local_reverse_normal, talon_local_reverse_normal) )
 		{
+			//ROS_WARN("limit_switch");
 			safeTalonCall(talon->ConfigForwardLimitSwitchSource(talon_local_forward_source, talon_local_forward_normal, timeoutMs),"ConfigForwardLimitSwitchSource");
 			safeTalonCall(talon->ConfigReverseLimitSwitchSource(talon_local_reverse_source, talon_local_reverse_normal, timeoutMs),"ConfigReverseLimitSwitchSource");
 			ts.setForwardLimitSwitchSource(internal_local_forward_source, internal_local_forward_normal);
@@ -1192,6 +1211,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				softlimit_reverse_enable,
 				softlimit_override_enable))
 		{
+			//ROS_WARN("soft limit");
 			double softlimit_forward_threshold_NU = softlimit_forward_threshold / radians_scale; //native units
 			double softlimit_reverse_threshold_NU = softlimit_reverse_threshold / radians_scale;
 			talon->OverrideSoftLimitsEnable(softlimit_override_enable);
@@ -1218,6 +1238,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		bool enable;
 		if (tc.currentLimitChanged(peak_amps, peak_msec, continuous_amps, enable))
 		{
+			//ROS_WARN("cur limit");
 			safeTalonCall(talon->ConfigPeakCurrentLimit(peak_amps, timeoutMs),"ConfigPeakCurrentLimit");
 			safeTalonCall(talon->ConfigPeakCurrentDuration(peak_msec, timeoutMs),"ConfigPeakCurrentDuration");
 			safeTalonCall(talon->ConfigContinuousCurrentLimit(continuous_amps, timeoutMs),"ConfigContinuousCurrentLimit");
@@ -1237,6 +1258,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			double motion_acceleration;
 			if (tc.motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
 			{
+				//ROS_WARN("magic changed");
 				//converted from rad/sec to native units
 				safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_second_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
 				safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_second_scale), timeoutMs),"ConfigMotionAcceleration(");
@@ -1251,6 +1273,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			int motion_control_frame_period;
 			if (tc.motionControlFramePeriodChanged(motion_control_frame_period))
 			{
+				//ROS_WARN("profile frame period");
 				safeTalonCall(talon->ChangeMotionControlFramePeriod(motion_control_frame_period),"ChangeMotionControlFramePeriod");
 				ts.setMotionControlFramePeriod(motion_control_frame_period);
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion control frame period");
@@ -1258,6 +1281,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 			if (tc.clearMotionProfileTrajectoriesChanged())
 			{
+				//ROS_WARN("clear points");
 				talon->ClearMotionProfileTrajectories();
 				safeTalonCall(talon->GetLastError(), "ClearMotionProfileTrajectories");
 
@@ -1266,6 +1290,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 			if (tc.clearMotionProfileHasUnderrunChanged())
 			{
+				//ROS_WARN("clear underrun");
 				safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
 				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile underrun changed");
 
@@ -1278,6 +1303,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
 			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
 			{
+				//ROS_WARN("point_buffer");
 				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
 				{
 					//ROS_WARN("SENDING_POINT");
@@ -1314,11 +1340,14 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		// that is, if newMode is true commandChanged won't
 		// be called.  That' bad because then command would
 		// be undefined
-		if ((tc.newMode(in_mode) | tc.commandChanged(command) ) &&
+		bool b1 = tc.newMode(in_mode);
+		bool b2 =  tc.commandChanged(command);
+		if ((b1 | b2 ) &&
 			convertControlMode(in_mode, out_mode))
 		{
 			ts.setTalonMode(in_mode);
 			ts.setSetpoint(command);
+			
 			ts.setNeutralOutput(false); // maybe make this a part of setSetpoint?
 
 			switch (out_mode)
@@ -1337,14 +1366,17 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			//ROS_INFO_STREAM("in mode: " << in_mode);
 			talon->Set(out_mode, command);
 			safeTalonCall(talon->GetLastError(), "Set");
+			ROS_WARN_STREAM("set at: " << ts.getCANID() << " new mode: " << b1 << " command_changed: " << b2 << " cmd: " << command);
 		}
 
 		if (tc.clearStickyFaultsChanged())
 		{
+			//ROS_WARN("sticky");
 			safeTalonCall(talon->ClearStickyFaults(timeoutMs), "ClearStickyFaults");
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");
 		}
 	}
+	
 
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
