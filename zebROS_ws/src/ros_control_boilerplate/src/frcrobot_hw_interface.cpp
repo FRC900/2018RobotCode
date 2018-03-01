@@ -97,6 +97,15 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			rate.sleep();
 	}
 
+	bool joystick_up_ = false;;
+	bool joystick_down_ = false;;
+	bool joystick_left_ = false;;
+	bool joystick_right_ = false;;
+	bool joystick_up_last_ = false;;
+	bool joystick_down_last_ = false;;
+	bool joystick_left_last_ = false;;
+	bool joystick_right_last_ = false;;
+
 	robot_.StartCompetition();
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
