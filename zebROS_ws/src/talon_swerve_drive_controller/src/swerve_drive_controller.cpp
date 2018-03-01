@@ -840,6 +840,7 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 		mode_.writeFromNonRT (true);
 
 		
+#if 0
 		//TODO fix debug
 		ROS_DEBUG_STREAM_NAMED(name_,
 							  "Added values to command. "
@@ -847,6 +848,7 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 							  << "Lin X: "   << command_struct_.lin[0] << ", "
 							  << "Lin Y: "   << command_struct_.lin[1] << ", "
 							  << "Stamp: " << command_struct_.stamp);
+#endif
 	}
 	else
 	{
