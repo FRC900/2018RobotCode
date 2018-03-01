@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
 	//current_sub_ = n.subscribe("/frcrobot/total_current", 75, &currentCallback);
 	//HOOK UP ABOVE TO PDP
 	match_data_sub_ = n.subscribe("/frcrobot/match_data", 1, &matchDataCallback);
-	disable_sub_ = n.subscribe("disable", 5, &disableCallback);
+	disable_sub_ = n.subscribe("/frcrobot/regulate_compressor/disable", 5, &disableCallback);
 	//TODO FIX ABOVE topic names
 
 	// TODO : fix me.  spin() will loop forever until !ros::ok()
