@@ -31,8 +31,8 @@ ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
 
 
-static int start_pos = -1;
-std::vector<int> auto_mode_vect = {-1, -1, -1, -1};
+static int start_pos = 0;
+std::vector<int> auto_mode_vect = {0, 0, 0, 0};
 static int auto_mode = -1;
 static double start_time;
 
@@ -57,6 +57,7 @@ static double intake_config_y;
 static double default_x;
 static double default_y;
 static double timeout;
+static double delay;
 static double autoStart;
 static int layout;
 static std::vector<std::vector<double>> vectTimes;
@@ -310,14 +311,14 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         */
     
     if(MatchData->isAutonomous && !MatchData->isDisabled) {
-        /*
 	if(MatchData->allianceData != "") {
             if(start_time==0) {
                 start_time = ros::Time::now().toSec();
             }
+            /*
             if(ros::Time::now().toSec() >= start_time+2){
                 return;
-            }
+            }*/
             double time_start_auto = ros::Time::now().toSec();
             elevator_controller::Intake IntakeSrv;
             elevator_controller::ElevatorControlS ElevatorSrv;
@@ -341,24 +342,90 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             if(MatchData->allianceData=="rlr") {
                 auto_mode = 1;
                 layout = 1;
-                times = vectTimes[0];
+                for(int i = 0; i<vectTimes[0].size(); i++) {
+                    times.push_back(vectTimes[0][i]);
+                }
             }
             else if(MatchData->allianceData=="lrl") {
                 auto_mode = 2;
                 layout = 1;
-                times = vectTimes[1];
+                for(int i = 0; i<vectTimes[1].size(); i++) {
+                    times.push_back(vectTimes[1][i]);
+                }
             }
             else if(MatchData->allianceData=="rrr") {
                 auto_mode = 3;
                 layout = 2;
-                times = vectTimes[2];
+                for(int i = 0; i<vectTimes[2].size(); i++) {
+                    times.push_back(vectTimes[2][i]);
+                }
             }
             else if(MatchData->allianceData =="lll") {
                 auto_mode = 4;
                 layout = 2;
-                times = vectTimes[3];
+                for(int i = 0; i<vectTimes[3].size(); i++) {
+                    times.push_back(vectTimes[3][i]);
+                }
             }
-	    
+            if(AutoMode->mode[auto_mode-1] == 0) {
+                //basic switch cmd_vel
+                geometry_msgs::Twist vel;
+                vel.linear.z = 0;
+                vel.angular.x = 0;
+                vel.angular.y = 0;
+                vel.angular.z = 0;
+
+                ros::Duration(AutoMode->delays[auto_mode-1]).sleep();
+                double start_time = ros::Time::now().toSec();
+                switchConfig(ElevatorSrv); 
+                if(auto_mode == 1 || auto_mode == 3) {
+                    if(start_pos == 0 || start_pos == 2) {
+                       delay = 3.5; //TODO
+                        while(ros::Time::now().toSec() < start_time + delay) {
+                            vel.linear.x = 1.05;
+                            vel.linear.y = 1.5;
+                            if(start_pos == 2) {
+                                vel.linear.y = -1 * vel.linear.y;
+                            }
+                            ros::Duration(.1).sleep();
+                        }
+                        releaseClamp(ClampSrv);
+                    }
+                    else {
+                        delay = 3; //TODO
+                        while(ros::Time::now().toSec() < start_time + delay) {
+                            vel.linear.x = 1.75;
+                            vel.linear.y = -0.0875;
+                            ros::Duration(.1).sleep();
+                        }
+                        releaseClamp(ClampSrv);
+                    }
+                }
+                else if(auto_mode == 2 || auto_mode == 4) {
+                    
+                    if(start_pos == 0 || start_pos == 2) {
+                        delay = 3; //TODO
+                        while(ros::Time::now().toSec() < start_time + delay) {
+                            vel.linear.x = 1.2;
+                            vel.linear.y = .53;
+                            if(start_pos == 2) {
+                                vel.linear.y = -1 * vel.linear.y;
+                            }
+                            ros::Duration(.1).sleep();
+                        }
+                        releaseClamp(ClampSrv);
+                    }
+                    else {
+                        delay = 3; //TODO
+                        while(ros::Time::now().toSec() < start_time + delay) {
+                            vel.linear.x = 1.5;
+                            vel.linear.y = .75;
+                            ros::Duration(.1).sleep();
+                        }
+                        releaseClamp(ClampSrv);
+                    }
+                }
+            }
             if(AutoMode->mode[auto_mode-1]==1) {
             //3 cube switch-scale-scale
                 //0: Time 1: Go to switch config
@@ -758,7 +825,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                 }
             }   
         }   
-    */
+    
     }
     else{
         //start_time = 0;
