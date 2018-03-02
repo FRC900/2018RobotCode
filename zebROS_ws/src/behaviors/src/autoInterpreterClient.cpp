@@ -64,8 +64,7 @@ static std::vector<std::vector<double>> vectTimes;
 static XmlRpc::XmlRpcValue modes;
 static std::vector<trajectory_msgs::JointTrajectory> trajectories;
 
-std::vector<talon_swerve_drive_controller::FullGenCoefs> coefs_vect;
-//coefs_vect.reserve(4);
+std::vector<talon_swerve_drive_controller::FullGenCoefs> coefs_vect(4);
 
 
 bool defaultConfig(elevator_controller::ElevatorControlS srv) {
@@ -177,12 +176,13 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
      
     for(int i = 0; i<xml_t.size(); i++) {
         const double t_val = xml_t[i];
-        vectTimes[auto_mode].push_back(t_val);
+        vectTimes[layout].push_back(t_val);
     }
     srv.request.initial_v = 0;
     srv.request.final_v = 0;
-    coefs_vect.push_back(srv);
+    coefs_vect[layout] = srv;
     point_gen.call(coefs_vect[layout]);
+    /*
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.points = coefs_vect[layout].response.points;
     ROS_INFO_STREAM("num_points: " << coefs_vect[layout].response.points.size());
@@ -193,6 +193,22 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
     swerve_control_srv.request.mode   = true;
     
     
+    swerve_control.call(swerve_control_srv);
+    */
+}
+
+void runTrajectory(int auto_mode) {
+    ROS_WARN("Run trajectory");
+    talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
+    swerve_control_srv.request.points = coefs_vect[auto_mode].response.points;
+    ROS_WARN_STREAM("num_points: " << coefs_vect[auto_mode].response.points.size());
+    swerve_control_srv.request.dt = coefs_vect[auto_mode].response.dt;
+    swerve_control_srv.request.buffer = true;
+    swerve_control_srv.request.clear  = true;
+    swerve_control_srv.request.run    = false;
+    swerve_control_srv.request.mode   = true;
+    
+    ROS_WARN("Call swerve control service");
     swerve_control.call(swerve_control_srv);
 }
 
@@ -506,6 +522,19 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                     releaseClamp(ClampSrv);
                 }
             }
+
+            if(AutoMode->mode[auto_mode-1] == 3) {
+                //Profiled scale
+                ROS_WARN("Profiled Scale Auto Mode reached");
+                runTrajectory(auto_mode-1);
+                ros::Duration(times[0]).sleep();
+                ROS_WARN("Profiled Scale elevator to mid reached");
+                midScale(ElevatorSrv);
+                ros::Duration(times[1]).sleep();
+                ROS_WARN("Profiled Scale release clamp reached");
+                releaseClamp(ClampSrv);
+            }
+            /*
             if(AutoMode->mode[auto_mode-1]==1) {
             //3 cube switch-scale-scale
                 //0: Time 1: Go to switch config
@@ -894,6 +923,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             else{
                 
             }
+            */
         }
         else {
             if(autoStart == -1) {
@@ -908,7 +938,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
     
     }
     else{
-        //start_time = 0;
+        start_time = 0;
     }
     /*
     edlse {
