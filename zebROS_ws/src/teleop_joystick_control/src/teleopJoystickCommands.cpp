@@ -29,6 +29,7 @@ static std::string lastToggle = " ";
 static double elevatorPosBeforeX;
 static double elevatorPosBeforeY;
 bool hasCube;
+bool elevatorUpOrDown;
 
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickElevatorPos;
@@ -59,7 +60,7 @@ static double default_y;
 static double exchange_delay;
 static bool clamped;
  
-
+bool disable_arm_limits = false;
 bool sendRobotZero = false;
 bool sendArmZero = false;
 // TODO : initialize values to meaningful defaults
@@ -75,6 +76,7 @@ int navX_index_ = -1;
 ros::Subscriber navX_heading_;
 ros::Subscriber cube_state_;
 ros::Subscriber elevator_odom;
+ros::Subscriber disable_arm_limits_sub;
 
 void unToggle(void) {
     currentToggle = " "; 
@@ -480,6 +482,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         elevatorPosY += (timeSecs-lastTimeSecs)*rightStickY; //Access current elevator position to fix code allowing out of bounds travel
         elevatorMsg.x = elevatorPosX;
         elevatorMsg.y = elevatorPosY;
+	elevatorMsg.up_or_down = elevatorUpOrDown;
+	elevatorMsg.override_pos_limits = disable_arm_limits; 
         JoystickElevatorPos.publish(elevatorMsg);
     }
 
@@ -489,6 +493,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg) {
    elevatorPosX =  msg->x;
    elevatorPosY =  msg->y;
+   elevatorUpOrDown =msg->up_or_down;
 }
 /*
 void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotState) {
@@ -563,6 +568,7 @@ int main(int argc, char **argv) {
     navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
     elevator_odom = n.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
     cube_state_   = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
+    disable_arm_limits_sub = n.subscribe("frcrobot/override_arm_limits", 1, &overrideCallback);
 
     ROS_WARN("joy_init");
 
@@ -616,4 +622,9 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 void cubeCallback(const std_msgs::Bool &cube)
 {
 	hasCube = cube.data;
+}
+void overrideCallback(const std_msgs::Bool &override_lim)
+{
+	disable_arm_limits = override_lim.data;
+	
 }

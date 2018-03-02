@@ -114,6 +114,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	realtime_tools::RealtimePublisher<std_msgs::Float64> zero_navX(nh_, "/frcrobot/navx_controller/command", 1); //Kinda dirty
 
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
+	realtime_tools::RealtimePublisher<std_msgs::Bool> override_arm(nh_, "/frcrobot/override_arm_limits", 1);	
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -167,6 +168,11 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			{
 				override_compressor_limits.msg_.data = (bool)driveTable->GetBoolean("disable_reg", 0);		
 				override_compressor_limits.unlockAndPublish();
+			}
+			if (override_arm.trylock())
+			{
+				override_arm.msg_.data = (bool)driveTable->GetBoolean("disable_arm_limits", 0);		
+				override_arm.unlockAndPublish();
 			}
 
 			if (zero_navX.trylock())
