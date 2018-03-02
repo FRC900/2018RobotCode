@@ -111,7 +111,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
 	realtime_tools::RealtimePublisher<std_msgs::Bool> realtime_pub_disable_compressor_reg(nh_, "/frcrobot/regulate_compressor/disable", 4);
-	realtime_tools::RealtimePublisher<std_msgs::Float64> zero_navX(nh_, "/frcrobot/navX_controller/command", 1); //Kinda dirty
+	realtime_tools::RealtimePublisher<std_msgs::Float64> zero_navX(nh_, "/frcrobot/navx_controller/command", 1); //Kinda dirty
 
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
 
@@ -408,8 +408,8 @@ void FRCRobotHWInterface::init(void)
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
 		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i]));
 		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 50); // Make sure motor is stopped, use a long timeout just in case
-		safeTalonCall(can_talons_[i]->GetLastError(), "Initial Set(Disabled, 0)");
-		safeTalonCall(can_talons_[i]->ClearStickyFaults(timeoutMs), "ClearStickyFaults()");
+		//safeTalonCall(can_talons_[i]->GetLastError(), "Initial Set(Disabled, 0)");
+		//safeTalonCall(can_talons_[i]->ClearStickyFaults(timeoutMs), "ClearStickyFaults()");
 		// TODO : if the talon doesn't initialize - maybe known
 		// by -1 from firmware version read - somehow tag
 		// the entry in can_talons_[] as uninitialized.
@@ -524,7 +524,6 @@ void FRCRobotHWInterface::init(void)
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
-	
 	
 	const int talon_updates_to_skip = 2;
 	static int talon_skip_counter = 0;
@@ -752,15 +751,17 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//navXs_[i]->IsMagnetometerCalibrated();
 		//
 		tf2::Quaternion tempQ;
-        if(navX_command_[i] != -10000)
-        {
-            offset_navX_[i] = navX_command_[i] + navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI;
-        }
 		if(i == 0)
 		{
-			navX_angle_ = navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - offset_navX_[i];
+		if(navX_command_[i] != -10000)
+		{
+			
+			offset_navX_[i] = navX_command_[i] + navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI;
 		}
-		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI - offset_navX_[i]  );
+
+			navX_angle_ = -navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i];
+		}
+		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI + offset_navX_[i]  );
 
 		imu_orientations_[i][3] = tempQ.w();
 		imu_orientations_[i][0] = tempQ.x();
@@ -999,7 +1000,6 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
-	/*	
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		//TODO : skip over most or all of this if the talon is in follower mode
@@ -1408,7 +1408,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");
 		}
 	}
-	*/	
+		
 
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{

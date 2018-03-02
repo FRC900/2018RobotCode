@@ -16,12 +16,12 @@ hardware_interface:
        - {name: pivot, type: can_talon_srx, can_id: 51}
        - {name: intake, type: can_talon_srx, can_id: 31}
        - {name: intake_follower1, type: can_talon_srx, can_id: 32}
-       #- {name: clamp, type: solenoid, pcm: 0, id: 1} #correct
-       #- {name: intake_spring_soft, type: solenoid, pcm: 0, id: 6} #3+6 soft
-       #- {name: intake_spring_hard, type: double_solenoid, pcm: 0, forward_id: 3, reverse_id: 7} 
-       #- {name: intake_up, type: double_solenoid, pcm: 0, forward_id: 4, reverse_id: 0} 
-       #- {name: shift, type: double_solenoid, pcm: 0, forward_id: 5, reverse_id: 2} #doesn't work as far as I can tell
-       #- {name: end_game_deploy, type: solenoid, pcm: 1, id: 7}
+       - {name: clamp, type: solenoid, pcm: 0, id: 1} #correct
+       - {name: intake_spring_soft, type: solenoid, pcm: 0, id: 6} #3+6 soft
+       - {name: intake_spring_hard, type: double_solenoid, pcm: 0, forward_id: 3, reverse_id: 7} 
+       - {name: intake_up, type: double_solenoid, pcm: 0, forward_id: 4, reverse_id: 0} 
+       - {name: shift, type: double_solenoid, pcm: 0, forward_id: 5, reverse_id: 2} #doesn't work as far as I can tell
+       - {name: end_game_deploy, type: solenoid, pcm: 1, id: 7}
        - {name: clamp_line_break, type: digital_input, dio_channel: 0, invert: true}
        - {name: intake_line_break, type: digital_input, dio_channel: 1, invert: true}
        - {name: fl_drive, type: can_talon_srx, can_id: 21}
@@ -34,7 +34,7 @@ hardware_interface:
        - {name: bl_angle, type: can_talon_srx, can_id: 13}
        - {name: navx_mxp, type: navX, frame_id: navx, id: 0}
        - {name: analog_pressure_sensor, type: analog_input, analog_channel: 0, analog_a: .0633897, analog_b: -24.9}
-       #- {name: compressor1, type: compressor, pcm_id: 0}
+       - {name: compressor1, type: compressor, pcm_id: 0}
        - {name: joystick_rumble, type: rumble, rumble_port: 0}
 #TODO: fix ids for pneumatics   
 #TODO: add "spring" pneumatics and some sensors
@@ -67,29 +67,29 @@ joint_state_controller:
    type:         joint_state_controller/JointStateController
    publish_rate: 30
 
-#intake_up_controller:
-#    type: position_controllers/JointPositionController
-#    joint: intake_up
+intake_up_controller:
+    type: position_controllers/JointPositionController
+    joint: intake_up
 
-#shift_controller:
-#    type: position_controllers/JointPositionController
-#    joint: shift
+shift_controller:
+    type: position_controllers/JointPositionController
+    joint: shift
 
-#clamp_controller:
-#    type: position_controllers/JointPositionController
-#    joint: clamp
+clamp_controller:
+    type: position_controllers/JointPositionController
+    joint: clamp
 
-#intake_spring_soft_controller:
-#    type: position_controllers/JointPositionController
-#    joint: intake_spring_soft
+intake_spring_soft_controller:
+    type: position_controllers/JointPositionController
+    joint: intake_spring_soft
 
-#intake_spring_hard_controller:
-#    type: position_controllers/JointPositionController
-#    joint: intake_spring_hard
-#
-#end_game_deploy_controller:
-#    type: position_controllers/JointPositionController
-#    joint: end_game_deploy
+intake_spring_hard_controller:
+    type: position_controllers/JointPositionController
+    joint: intake_spring_hard
+
+end_game_deploy_controller:
+    type: position_controllers/JointPositionController
+    joint: end_game_deploy
 
 imu_sensor_controller:
    type:         imu_sensor_controller/ImuSensorController
