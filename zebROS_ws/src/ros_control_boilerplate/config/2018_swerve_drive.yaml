@@ -88,8 +88,8 @@ swerve_drive_controller:
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
-        invert_output: False
-        sensor_phase: False
+        invert_output: true
+        sensor_phase: true
         peak_output_forward: 1.0
         peak_output_reverse: -1.0
         nominal_output_forward: 0.0
@@ -104,8 +104,8 @@ swerve_drive_controller:
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
-        invert_output: False
-        sensor_phase: False
+        invert_output: true
+        sensor_phase: true
         peak_output_forward: 1.0
         peak_output_reverse: -1.0
         nominal_output_forward: 0.0
@@ -119,8 +119,8 @@ swerve_drive_controller:
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
-        invert_output: False
-        sensor_phase: False
+        invert_output: true
+        sensor_phase: true
         peak_output_forward: 1.0
         peak_output_reverse: -1.0
         nominal_output_forward: 0.0
@@ -134,8 +134,8 @@ swerve_drive_controller:
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
-        invert_output: False
-        sensor_phase: False
+        invert_output: true
+        sensor_phase: true
         peak_output_forward: 1.0
         peak_output_reverse: -1.0
         nominal_output_forward: 0.0

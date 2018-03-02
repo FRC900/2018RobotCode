@@ -104,6 +104,14 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   find_package(OpenCV REQUIRED)
   find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
 
+catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES zms_writer
+  CATKIN_DEPENDS roscpp message_runtime
+  DEPENDS system_lib
+)
+
+
   ## Specify additional locations of header files
   ## Your package locations should be listed before other locations
   include_directories(
@@ -134,13 +142,6 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     ${OpenCV_LIBS} 
     ${Boost_LIBRARIES}
   )
-
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES zms_writer
-  CATKIN_DEPENDS roscpp message_runtime
-#  DEPENDS system_lib
-)
 
   #############
   ## Install ##

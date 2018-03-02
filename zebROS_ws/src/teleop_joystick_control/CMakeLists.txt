@@ -23,6 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   ros_control_boilerplate
   behaviors
+  elevator_controller
 )
 find_package(Eigen REQUIRED)
 

@@ -708,6 +708,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
 			speed_joints_[i].setMode(velocity_mode);
+			speed_joints_[i].setPIDFSlot(0);;
+			steering_joints_[i].setPIDFSlot(0);;
 			steering_joints_[i].setMode(position_mode);
 		}
 		// Brake if cmd_vel has timeout:
@@ -749,7 +751,9 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
 			speed_joints_[i].setMode(motion_profile_mode);
+			speed_joints_[i].setPIDFSlot(1);
 			steering_joints_[i].setMode(motion_profile_mode);
+			steering_joints_[i].setPIDFSlot(1);;
 		}
 
 		const int set_on  = ((*(run_.readFromRT())) && set_check_) ? 1 : 0;

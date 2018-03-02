@@ -117,7 +117,7 @@ find_package(catkin REQUIRED COMPONENTS
 # ACTIONLIB STUFF
 
 #find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
-add_action_files(FILES CubeIntake.action IntakeLift.action)
+add_action_files(DIRECTORY action FILES CubeIntake.action IntakeLift.action)
 generate_messages(DEPENDENCIES actionlib_msgs std_msgs)
 
 catkin_package(
@@ -132,6 +132,7 @@ target_link_libraries(CubeActionServer ${catkin_LIBRARIES})
 add_dependencies(
     CubeActionServer 
     ${behaviors_EXPORTED_TARGETS}
+	${catkin_EXPORTED_TARGETS}
 )
 
 add_executable(CubeActionClient src/CubeActionClient.cpp)
@@ -142,6 +143,7 @@ target_link_libraries(
 add_dependencies(
 	CubeActionClient
     ${behaviors_EXPORTED_TARGETS}
+	${catkin_EXPORTED_TARGETS}
 )
 add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
 target_link_libraries(
@@ -151,6 +153,7 @@ target_link_libraries(
 add_dependencies(
 	autoInterpreterClient
     ${behaviors_EXPORTED_TARGETS}
+	${catkin_EXPORTED_TARGETS}
 )
 add_executable(autoInterpreterServer src/autoInterpreterServer.cpp)
 target_link_libraries(
@@ -160,6 +163,7 @@ target_link_libraries(
 add_dependencies(
 	autoInterpreterServer
     ${behaviors_EXPORTED_TARGETS}
+	${catkin_EXPORTED_TARGETS}
 )
 add_executable(dummy src/dummy.cpp)
 target_link_libraries(
@@ -169,17 +173,11 @@ target_link_libraries(
 add_dependencies(
 	dummy
     ${behaviors_EXPORTED_TARGETS}
+	${catkin_EXPORTED_TARGETS}
 )
 ###########
 ## Build ##
 ###########
-
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
-include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
-)
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
@@ -226,7 +224,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
- install(TARGETS autoInterpreterClient autoInterpreterServer
+install(TARGETS autoInterpreterClient autoInterpreterServer CubeActionClient CubeActionServer
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
