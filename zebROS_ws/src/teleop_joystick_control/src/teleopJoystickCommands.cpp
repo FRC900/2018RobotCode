@@ -89,7 +89,6 @@ static bool intake_up;
 static bool climb_up;
 static bool default_up;
 */
-static bool clamped;
  
 std::atomic<bool> disable_arm_limits;
 bool sendRobotZero = false;
@@ -257,6 +256,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 }
             }
             else {
+				static bool clamped;
                 if(clamped == false) {
                     srvClamp.request.data = true;
                     if(ClampSrv.call(srvClamp)) {
