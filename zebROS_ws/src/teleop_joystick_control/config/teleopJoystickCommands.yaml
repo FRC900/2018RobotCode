@@ -1,14 +1,14 @@
 teleop_params:
-    high_scale_config_x: .32
+    high_scale_config_x: .41586
     high_scale_config_y: 2.15
     high_scale_config_up_or_down: true
-    mid_scale_config_x: .32
+    mid_scale_config_x: .41586
     mid_scale_config_y: 1.85
     mid_scale_config_up_or_down: true
-    low_scale_config_x: .32
+    low_scale_config_x: .41586
     low_scale_config_y: 1.575
     low_scale_config_up_or_down: true
-    switch_config_x: .32
+    switch_config_x: .41586
     switch_config_y: .93345
     switch_config_up_or_down: true
     #exchange should probably be the same as intake
