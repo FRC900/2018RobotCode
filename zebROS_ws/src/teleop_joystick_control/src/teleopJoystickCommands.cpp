@@ -98,7 +98,9 @@ double navX_angle_ = M_PI/2;
 int navX_index_ = -1;
 
 ros::Subscriber navX_heading_;
+ros::Subscriber match_data;
 ros::Subscriber cube_state_;
+ros::Subscriber joystick_sub;
 ros::Subscriber elevator_odom;
 ros::Subscriber disable_arm_limits_sub;
 
@@ -118,14 +120,36 @@ void setHeight(void) {
     elevatorUpOrDownBefore = elevatorUpOrDown;
 }
 
+void match_data_callback(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
+    uint16_t leftRumble=0, rightRumble=0;
+    //Joystick Rumble
+    double matchTimeRemaining = MatchData->matchTimeRemaining;
 
+    if((matchTimeRemaining < 91 && matchTimeRemaining > 90.8) || ( matchTimeRemaining < 90.7 && matchTimeRemaining > 90.5) || (matchTimeRemaining < 90.4 && matchTimeRemaining > 90.2) || ( matchTimeRemaining < 90.1 && matchTimeRemaining > 89.9) ) {
+        leftRumble = 65535;
+        rightRumble = 65535;
+    }
+    if((matchTimeRemaining < 61 && matchTimeRemaining > 60.8) || ( matchTimeRemaining < 60.7 && matchTimeRemaining > 60.5) || (matchTimeRemaining < 60.4 && matchTimeRemaining > 60.2)) {
+        leftRumble = 65535;
+        rightRumble = 65535;
+    }
+    if((matchTimeRemaining < 31 && matchTimeRemaining > 30.8) || ( matchTimeRemaining < 30.7 && matchTimeRemaining > 30.5)) {
+        leftRumble = 65535;
+        rightRumble = 65535;
+    }
+    if((matchTimeRemaining < 11 && matchTimeRemaining > 10.8)) {
+        leftRumble = 65535;
+        rightRumble = 65535;
+    }
+    rumbleTypeConverterPublish(leftRumble, rightRumble);
 
-void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState, const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
+}
+
+void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState) {
 
     behaviors::IntakeLiftGoal goal;
     elevator_controller::ElevatorControl elevatorMsg;
-    uint16_t leftRumble=0, rightRumble=0;
-    double matchTimeRemaining = MatchData->matchTimeRemaining;
+    //double matchTimeRemaining = MatchData->matchTimeRemaining;
     timeSecs = ros::Time::now().toSec();
     /*
         map left joystick+bumpers+triggers into twist
@@ -152,25 +176,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     elevatorHeight = RobotState->elevatorHeight;
 */
 
-    //Joystick Rumble
-
-    if((matchTimeRemaining < 91 && matchTimeRemaining > 90.8) || ( matchTimeRemaining < 90.7 && matchTimeRemaining > 90.5) || (matchTimeRemaining < 90.4 && matchTimeRemaining > 90.2) || ( matchTimeRemaining < 90.1 && matchTimeRemaining > 89.9) ) {
-        leftRumble = 65535;
-        rightRumble = 65535;
-    }
-    if((matchTimeRemaining < 61 && matchTimeRemaining > 60.8) || ( matchTimeRemaining < 60.7 && matchTimeRemaining > 60.5) || (matchTimeRemaining < 60.4 && matchTimeRemaining > 60.2)) {
-        leftRumble = 65535;
-        rightRumble = 65535;
-    }
-    if((matchTimeRemaining < 31 && matchTimeRemaining > 30.8) || ( matchTimeRemaining < 30.7 && matchTimeRemaining > 30.5)) {
-        leftRumble = 65535;
-        rightRumble = 65535;
-    }
-    if((matchTimeRemaining < 11 && matchTimeRemaining > 10.8)) {
-        leftRumble = 65535;
-        rightRumble = 65535;
-    }
-    rumbleTypeConverterPublish(leftRumble, rightRumble);
 
     //Joystick Button Press parse
     /*
@@ -379,6 +384,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         goal.MoveArmAway = false;
                         goal.IntakeCubeNoLift = true;
                         ac->sendGoal(goal);
+                        ac->waitForResult(ros::Duration(15));
                         
                     /* 
                     goal.IntakeCube = false;
@@ -698,8 +704,11 @@ int main(int argc, char **argv) {
     IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
     brake_srv = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake");
 
-    message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "scaled_joystick_vals", 5);
-    message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
+    //message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "scaled_joystick_vals", 5);
+    //message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
+
+    joystick_sub = n.subscribe("scaled_joystick_vals", 1, &evaluateCommands);
+    match_data = n.subscribe("match_data", 1, &match_data_callback);
 
     navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
     elevator_odom = n.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
@@ -708,9 +717,9 @@ int main(int argc, char **argv) {
 
     ROS_WARN("joy_init");
 
-    typedef message_filters::sync_policies::ApproximateTime<ros_control_boilerplate::JoystickState, ros_control_boilerplate::MatchSpecificData> JoystickSync;
-    message_filters::Synchronizer<JoystickSync> sync(JoystickSync(5), joystickSub, matchDataSub);
-    sync.registerCallback(boost::bind(&evaluateCommands, _1, _2));
+    //typedef message_filters::sync_policies::ApproximateTime<ros_control_boilerplate::JoystickState, ros_control_boilerplate::MatchSpecificData> JoystickSync;
+    //message_filters::Synchronizer<JoystickSync> sync(JoystickSync(5), joystickSub, matchDataSub);
+    //sync.registerCallback(boost::bind(&evaluateCommands, _1, _2));
 
     //ac->waitForServer(); //Will wait for infinite time for server to start
 
