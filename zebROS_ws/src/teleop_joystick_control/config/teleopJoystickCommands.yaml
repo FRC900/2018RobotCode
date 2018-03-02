@@ -9,6 +9,8 @@ teleop_params:
     switch_config_y: .8
     exchange_config_x: .2
     exchange_config_y: .5
+    intake_ready_to_drop_x: .1
+    intake_ready_to_drop_y: .4
     intake_config_x: .1
     intake_config_y: .3
     intake_config_low_x: .1

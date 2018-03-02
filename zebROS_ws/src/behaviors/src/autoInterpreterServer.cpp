@@ -133,9 +133,13 @@ class autoAction {
                 ElevatorSrv.call(srv);
                 ros::Duration(.2).sleep();
                 success = true;
+                low = false;
+                high = false;
             }
             if(goal->IntakeCube && high) {
                 success = true;
+                low = false;
+                high = false;
             }
             /*
             else if(goal->PlaceCube) {
