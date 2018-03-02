@@ -59,6 +59,17 @@ static double climb;
 static double default_x;
 static double default_y;
 static double exchange_delay;
+
+static bool high_scale_up;
+static bool mid_scale_up;
+static bool low_scale_up;
+static bool switch_up;
+static bool exchange_up;
+static bool intake_drop_up;
+static bool intake_up;
+static bool climb_up;
+static bool default_up;
+
 static bool clamped;
  
 
@@ -243,19 +254,32 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     
             if(hasCube) {
                 if(lastToggle=="YDouble") {
-                    srvIntake.request.spring_state = 2; //soft_in
-                    if(IntakeSrv.call(srvIntake)) {
+                    goal.IntakeCube = false;
+                    goal.MoveArmAway = false;
+                    goal.GoToHeight = true;
+                    goal.x = intake_ready_to_drop_x;
+                    goal.y = intake_ready_to_drop_y;
+                    ac->sendGoal(goal);
+                    ac->waitForResult(ros::Duration(1));
+                    
+                    goal.x = intake_config_x;
+                    goal.y = intake_config_y;
+                    ac->sendGoal(goal);
+                    if(ac->waitForResult(ros::Duration(15))) {
+                        srvIntake.request.power = 0;
+                        srvIntake.request.spring_state = 1; //soft_in
+                        IntakeSrv.call(srvIntake);
+
                         srvClamp.request.data = false;
-                        if(ClampSrv.call(srvClamp)) {
-                            srvIntake.request.power = -.8;
-                            if(IntakeSrv.call(srvIntake)) {
-                                ROS_WARN("Exchanged Cube");
-                                ros::Duration(exchange_delay).sleep(); //TODO
-                            }
-                        }
-                    }
-                    else {
-                        ROS_ERROR("Failed to exchange cube");
+                        ClampSrv.call(srvClamp);
+
+                        srvIntake.request.power = -8;
+                        srvIntake.request.spring_state = 1; //soft_in
+                        IntakeSrv.call(srvIntake);
+                        ros::Duration(.5).sleep();
+                        srvElevator.request.x = elevatorPosX;
+                        srvElevator.request.y = intake_ready_to_drop_y;
+                        ElevatorSrv.call(srvElevator);
                     }
                 }
                 else {
@@ -305,6 +329,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     unToggle();
                 }
                 else {
+                    goal.IntakeCube = false;
+                    goal.MoveArmAway = false;
                     goal.GoToHeight = true;
                     goal.x = intake_ready_to_drop_x;
                     goal.y = intake_ready_to_drop_y;
@@ -319,6 +345,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         ROS_ERROR("Failed to toggle to intake config");
                     }
                     
+                    goal.GoToHeight = false;
                     goal.IntakeCube = true;
                     ac->sendGoal(goal);
                     if(ac->waitForResult(ros::Duration(15))) {
@@ -548,18 +575,25 @@ int main(int argc, char **argv) {
     
     n_params.getParam("high_scale_config_x", high_scale_config_x);
     n_params.getParam("high_scale_config_y", high_scale_config_y);
+    n_params.getParam("high_scale_up", high_scale_up);
     n_params.getParam("mid_scale_config_x", mid_scale_config_x);
     n_params.getParam("mid_scale_config_y", mid_scale_config_y);
+    n_params.getParam("mid_scale_up", mid_scale_up);
     n_params.getParam("low_scale_config_x", low_scale_config_x);
     n_params.getParam("low_scale_config_y", low_scale_config_y);
+    n_params.getParam("low_scale_up", low_scale_up);
     n_params.getParam("switch_config_x", switch_config_x);
     n_params.getParam("switch_config_y", switch_config_y);
+    n_params.getParam("switch_up", switch_up);
     n_params.getParam("exchange_config_x", exchange_config_x);
     n_params.getParam("exchange_config_y", exchange_config_y);
+    n_params.getParam("exchange_up", exchange_up);
     n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x);
     n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y);
+    n_params.getParam("intake_drop_up", intake_drop_up);
     n_params.getParam("intake_config_x", intake_config_x);
     n_params.getParam("intake_config_y", intake_config_y);
+    n_params.getParam("intake_up", intake_up);
     n_params.getParam("climb", climb);
     n_params.getParam("default_x", default_x);
     n_params.getParam("default_y", default_y);

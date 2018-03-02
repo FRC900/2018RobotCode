@@ -1,22 +1,32 @@
 teleop_params:
     high_scale_config_x: .1
     high_scale_config_y: 2.1
+    high_scale_up: true
     mid_scale_config_x: .2
     mid_scale_config_y: 1.8
+    mid_scale_up: true
     low_scale_config_x: .25
     low_scale_config_y: 1.6
+    low_scale_up: true
     switch_config_x: .3
     switch_config_y: .8
+    switch_up: true
     exchange_config_x: .2
     exchange_config_y: .5
+    exchange_up: false
     intake_ready_to_drop_x: .1
     intake_ready_to_drop_y: .4
+    intake_drop_up: false
     intake_config_x: .1
     intake_config_y: .3
+    intake_up: false
     intake_config_low_x: .1
     intake_config_low_y: .25
+    intake_low_up: false
     climb: 1
+    climb_up: true
     default_x: .2
     default_y: .7
+    default_up: true
     timeout: 15
     exchange_delay: 0.5
