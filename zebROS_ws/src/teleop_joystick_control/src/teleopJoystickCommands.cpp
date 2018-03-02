@@ -259,11 +259,13 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     goal.GoToHeight = true;
                     goal.x = intake_ready_to_drop_x;
                     goal.y = intake_ready_to_drop_y;
+                    goal.up_or_down = intake_drop_up;
                     ac->sendGoal(goal);
                     ac->waitForResult(ros::Duration(1));
                     
                     goal.x = intake_config_x;
                     goal.y = intake_config_y;
+                    goal.up_or_down = intake_up;
                     ac->sendGoal(goal);
                     if(ac->waitForResult(ros::Duration(15))) {
                         srvIntake.request.power = 0;
@@ -292,6 +294,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         goal.MoveArmAway = true;
                         goal.x = intake_config_x;
                         goal.y = intake_config_y;
+                        goal.up_or_down = intake_up;
                         /*
                         goal.IntakeCube = false;
                         goal.GoToHeight = true;
@@ -334,6 +337,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     goal.GoToHeight = true;
                     goal.x = intake_ready_to_drop_x;
                     goal.y = intake_ready_to_drop_y;
+                    goal.up_or_down = intake_drop_up;
                     ac->sendGoal(goal);
                     ac->waitForResult(ros::Duration(1));
                     srvElevator.request.x = intake_config_x;
