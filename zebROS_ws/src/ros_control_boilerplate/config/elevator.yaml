@@ -15,7 +15,7 @@ elevator_controller:
     hook_min_height: 1.27 #FIX
     hook_max_height: 1.45 #FIX
    #Fix below remove poly points 
-    polygon_points: [-1.0, .325, 0.21717, .325, 0.75, .325, 0.75, -1.0, -1.0, -1.0, -1.0, .325] #~5 cm of clearance   
+    polygon_points: [-1.0, .6, 0.21717, .6, 0.75, .6, 0.75, -1.0, -1.0, -1.0, -1.0, .6] #~5 cm of clearance   
     lift_joint:
         joint: lift
         close_loop_values:
