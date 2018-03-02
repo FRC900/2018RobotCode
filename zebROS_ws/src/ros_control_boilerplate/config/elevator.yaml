@@ -25,8 +25,8 @@ elevator_controller:
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
         conversion_factor: 0.0454676
-        motion_cruise_velocity: 5 
-        motion_acceleration: 10
+        motion_cruise_velocity: 1 
+        motion_acceleration: 2
         current_limit_continuous_amps: 60
         current_limit_enable: True
     lift_follower1_joint:
@@ -44,8 +44,8 @@ elevator_controller:
         close_loop_values:
             - {p: 6, i: 0.0006, d: 60, f: 5, i_zone: 700}
             - {p: 6, i: 0.0006, d: 60, f: 5, i_zone: 700}
-        invert_output: False
-        sensor_phase: False
+        invert_output: True
+        sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
         conversion_factor: 1 #FIX
         motion_cruise_velocity: 2
@@ -55,14 +55,14 @@ elevator_controller:
 
     intake_joint:
         joint: intake
-        invert_output: False
+        invert_output: True
         sensor_phase: False
-        current_limit_continuous_amps: 5
+        current_limit_continuous_amps: 40
         current_limit_enable: True
     intake_follower_joint:
         joint: intake_follower1
-        invert_output: True
-        current_limit_continuous_amps: 5
+        invert_output: False
+        current_limit_continuous_amps: 40
         current_limit_enable: True
 
 #hypothetically might have inverts

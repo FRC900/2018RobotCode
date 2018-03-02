@@ -763,12 +763,12 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		if(navX_command_[i] != -10000)
 		{
 			
-			offset_navX_[i] = navX_command_[i] + navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI;
+			offset_navX_[i] = navX_command_[i] - navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI;
 		}
 
-			navX_angle_ = -navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i];
+			navX_angle_ = navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i];
 		}
-		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / -360 * 2 * M_PI + offset_navX_[i]  );
+		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i]  );
 
 		imu_orientations_[i][3] = tempQ.w();
 		imu_orientations_[i][0] = tempQ.x();
@@ -1437,7 +1437,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		const int inverter = (pwm_inverts_[i]) ? -1 : 1;
 		PWMs_[i]->SetSpeed(pwm_command_[i]*inverter);
 	}
-	/*
+	
 	for (size_t i = 0; i< num_solenoids_; i++)
 	{
 		const bool setpoint = solenoid_command_[i] > 0;
@@ -1462,7 +1462,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			double_solenoid_state_[i] = setpoint;
 		}
 	}
-	*/
+	
 	for (size_t i = 0; i < num_rumble_; i++)
 	{
 		if (rumble_state_[i] != rumble_command_[i])

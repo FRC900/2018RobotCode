@@ -61,8 +61,8 @@ pivot_joint_controller:
     joint: pivot_joint
     feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
-        - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
-        - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
+        - {p: 4.2, i: 0.006, d: 45.0, f: 5, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+        - {p: 4.2, i: 0.006, d: 45.0, f: 5, i_zone: 500}
     invert_output: True
     sensor_phase: True
     peak_output_forward: 1.0

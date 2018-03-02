@@ -332,18 +332,18 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	else
 	{
-		if((ros::Time::now().toSec() - intake_down_time_) < 1.5) //1.5 is super arbitary
-		{
+		//if((ros::Time::now().toSec() - intake_down_time_) < 1.5) //1.5 is super arbitary
+		//{
 			std_msgs::Float64 msg;
 			msg.data = 1.0;
 			IntakeUp_.publish(msg);
-		}
-		else
+		//}
+		/*else
 		{
 			std_msgs::Float64 msg;
 			msg.data = 0;
 			IntakeUp_.publish(msg);
-		}
+		}*/
 	}
 	//Delay stuff maybe?
 	
