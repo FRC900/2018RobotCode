@@ -291,14 +291,14 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                             ac->sendGoal(goal);
                             if(ac->waitForResult(ros::Duration(15))) {
                                 srvIntake.request.power = 0;
-                                srvIntake.request.spring_state = 1; //soft_in
+                                srvIntake.request.spring_state = 2; //soft_in
                                 IntakeSrv.call(srvIntake);
 
                                 srvClamp.request.data = false;
                                 ClampSrv.call(srvClamp);
 
                                 srvIntake.request.power = -8;
-                                srvIntake.request.spring_state = 1; //soft_in
+                                srvIntake.request.spring_state = 2; //soft_in
                                 IntakeSrv.call(srvIntake);
                                 ros::Duration(.5).sleep();
                                 srvElevator.request.x = elevatorPosX;
@@ -351,7 +351,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         if(timeSecs - ALast < .3) {
                             ADoubleStart = timeSecs;
                             srvIntake.request.power = -1;
-                            srvIntake.request.spring_state = 1; //soft_in
+                            srvIntake.request.spring_state = 2; //soft_in
                             srvIntake.request.up = false;
                             IntakeSrv.call(srvIntake);
                             ALast = 0;
@@ -424,7 +424,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         }
         if(timeSecs < ADoubleStart + 2) {
             srvIntake.request.power = -1;
-            srvIntake.request.spring_state = 1; //soft_in
+            srvIntake.request.spring_state = 2; //soft_in
             srvIntake.request.up = false;
             IntakeSrv.call(srvIntake);
         }
@@ -557,7 +557,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         }
         if(JoystickState->buttonBackButton==true) {
             srvIntake.request.power = -.8;
-            srvIntake.request.spring_state = 1; //soft_in
+            srvIntake.request.spring_state = 2; //soft_in
             IntakeSrv.call(srvIntake);
         }
         if(JoystickState->buttonBackRelease==true) {

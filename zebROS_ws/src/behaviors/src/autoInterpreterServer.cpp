@@ -98,6 +98,9 @@ class autoAction {
                 ElevatorSrv.call(srv_elevator);
                 elevator_controller::Intake srv;
                 srv.request.up = false;
+            }
+            if(goal->IntakeCubeNoLift) {
+                elevator_controller::Intake srv;
                 srv.request.spring_state = 2; //soft in
                 srv.request.power = .8; //TODO
                 IntakeSrv.call(srv);
@@ -106,7 +109,7 @@ class autoAction {
                 goal_num = 10;
                 elevator_controller::Intake srv;
                 srv.request.power = 0.8;
-                srv.request.spring_state = 1; //soft in
+                srv.request.spring_state = 2; //soft in
                 srv.request.up = false;
                 IntakeSrv.call(srv);
                     
@@ -206,7 +209,8 @@ class autoAction {
         else if(cube_state) {
             low = true;
         }
-    } */
+        */
+    //} 
     void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg) {
         elevator_pos_x = msg->x;
         elevator_pos_y = msg->y;
