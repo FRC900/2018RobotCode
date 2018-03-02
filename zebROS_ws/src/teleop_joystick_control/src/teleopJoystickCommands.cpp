@@ -621,7 +621,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
     joyVector[0] = leftStickX; //intentionally flipped
     joyVector[1] = -leftStickY;
-    Eigen::Rotation2Dd r(navX_angle_ + M_PI/2);
+    Eigen::Rotation2Dd r(-navX_angle_ - M_PI/2);
     Eigen::Vector2d rotatedJoyVector = r.toRotationMatrix() * joyVector;
 	vel.linear.x = rotatedJoyVector[1];
 	vel.linear.y = rotatedJoyVector[0];
