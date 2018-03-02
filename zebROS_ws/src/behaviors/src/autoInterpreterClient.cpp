@@ -336,6 +336,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         */
     
     if(MatchData->isAutonomous && !MatchData->isDisabled) {
+        ROS_WARN("auto entered");
         if(MatchData->allianceData != "") {
             if(start_time==0) {
                 start_time = ros::Time::now().toSec();

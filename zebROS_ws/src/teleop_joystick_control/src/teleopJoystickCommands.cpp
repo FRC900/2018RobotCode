@@ -442,7 +442,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             IntakeSrv.call(srvIntake);
 			run_out = false;
         }
-
+        if(hasCube && !run_out) {
+            srvIntake.request.power = .1;
+            srvIntake.request.spring_state = 2; //soft_in
+            srvIntake.request.up = false;
+            IntakeSrv.call(srvIntake);
+        }
         if(timeSecs - YLast > .21 && timeSecs - YLast < .45) {
             currentToggle = "Yone";
             if(lastToggle==" ") {
