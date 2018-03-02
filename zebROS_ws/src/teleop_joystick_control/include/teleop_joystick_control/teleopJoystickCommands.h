@@ -26,6 +26,7 @@ void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble);
 void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &msg);
 void navXCallback(const sensor_msgs::Imu &navXState);
 void cubeCallback(const std_msgs::Bool &cube);
+void overrideCallback(const std_msgs::Bool &override_lim);
 
 extern double navX_angle_;
 extern int navX_index_;
