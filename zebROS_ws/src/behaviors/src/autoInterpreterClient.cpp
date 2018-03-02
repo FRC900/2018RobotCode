@@ -376,6 +376,70 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                     times.push_back(vectTimes[3][i]);
                 }
             }
+            if(AutoMode->mode[auto_mode-1] == 1) {
+                //basic drive forward cmd_vel
+                geometry_msgs::Twist vel;
+                vel.linear.z = 0;
+                vel.angular.x = 0;
+                vel.angular.y = 0;
+                vel.angular.z = 0;
+
+                ros::Duration(AutoMode->delays[auto_mode-1]).sleep();
+                double start_time = ros::Time::now().toSec();
+                switchConfig(ElevatorSrv); 
+                if(auto_mode == 1 || auto_mode == 3) { //if goal is on the right
+				   if(start_pos == 0) {
+					   delay = 6; //TODO
+						while(ros::Time::now().toSec() < start_time + delay) {
+							vel.linear.x = 1.05; //positive x a lot
+							vel.linear.y = 0.12; //positive y a little bit
+							ros::Duration(.1).sleep();
+						}
+					}
+				   if(start_pos == 2) {
+					delay = 6; //TODO
+			   		   while(ros::Time::now().toSec() < start_time + delay) {
+							vel.linear.x = 1.05; //positive x a lot
+							vel.linear.y = -0.12; //negative y a little bit
+							ros::Duration(.1).sleep();
+						}
+				    }
+                    else {
+                        delay = 3.04; //TODO
+                        while(ros::Time::now().toSec() < start_time + delay) {
+                            vel.linear.x = 0.875; //positive x some
+                            vel.linear.y = 0.5; //positive y some
+                            ros::Duration(.1).sleep();
+                        }
+                    }
+				}
+                else if(auto_mode == 2 || auto_mode == 4) { //goal is on the left
+                    if(start_pos == 0){
+						delay = 6; 
+                        while(ros::Time::now().toSec() < start_time + delay) {
+                            vel.linear.x = 1.05; //positive x a lot
+                            vel.linear.y = 0.12; //positive y a little bit
+                            ros::Duration(.1).sleep();
+						}
+					}
+					if(start_pos == 2) {
+                        delay = 6; //TODO
+                        while(ros::Time::now().toSec() < start_time + delay) {
+                            vel.linear.x = 1.05; //positive x a lot
+                            vel.linear.y = -0.12; //negative y a little bit
+                            ros::Duration(.1).sleep();
+                        }
+                    }
+                    else {
+                        delay = 3.04; //TODO
+                        while(ros::Time::now().toSec() < start_time + delay) {
+                            vel.linear.x = 0.875; //positive x some
+                            vel.linear.y = -0.3; //negative y some
+                            ros::Duration(.1).sleep();
+                        }
+                    }
+                }
+            }
             if(AutoMode->mode[auto_mode-1] == 2) {
                 //basic switch cmd_vel
                 geometry_msgs::Twist vel;
@@ -387,42 +451,49 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                 ros::Duration(AutoMode->delays[auto_mode-1]).sleep();
                 double start_time = ros::Time::now().toSec();
                 switchConfig(ElevatorSrv); 
-                if(auto_mode == 1 || auto_mode == 3) {
-                    if(start_pos == 0 || start_pos == 2) {
-                       delay = 3.5; //TODO
-                        while(ros::Time::now().toSec() < start_time + delay) {
-                            vel.linear.x = 1.05;
-                            vel.linear.y = 1.5;
-                            if(start_pos == 2) {
-                                vel.linear.y = -1 * vel.linear.y;
-                            }
-                            ros::Duration(.1).sleep();
-                        }
-                        releaseClamp(ClampSrv);
-                    }
+                if(auto_mode == 1 || auto_mode == 3) { //if goal is on the right
+				   if(start_pos == 0) {
+					   delay = 3.5; //TODO
+						while(ros::Time::now().toSec() < start_time + delay) {
+							vel.linear.x = 1.05;
+							vel.linear.y = -1.5;
+							ros::Duration(.1).sleep();
+						}
+					}
+				   if(start_pos == 2) {
+					delay = 3; //TODO
+			   		   while(ros::Time::now().toSec() < start_time + delay) {
+							vel.linear.x = 1.2;
+							vel.linear.y = .53;
+							ros::Duration(.1).sleep();
+						}
+				   }
                     else {
                         delay = 3; //TODO
                         while(ros::Time::now().toSec() < start_time + delay) {
                             vel.linear.x = 1.75;
-                            vel.linear.y = -0.0875;
+                            vel.linear.y = -0.7; 
                             ros::Duration(.1).sleep();
                         }
-                        releaseClamp(ClampSrv);
                     }
-                }
-                else if(auto_mode == 2 || auto_mode == 4) {
-                    
-                    if(start_pos == 0 || start_pos == 2) {
-                        delay = 3; //TODO
+					releaseClamp(ClampSrv);
+				}
+                else if(auto_mode == 2 || auto_mode == 4) { //goal is on the left
+                    if(start_pos == 0){
+						delay = 3; 
                         while(ros::Time::now().toSec() < start_time + delay) {
                             vel.linear.x = 1.2;
-                            vel.linear.y = .53;
-                            if(start_pos == 2) {
-                                vel.linear.y = -1 * vel.linear.y;
-                            }
+                            vel.linear.y = -.53;
+                            ros::Duration(.1).sleep();
+						}
+					}
+					if(start_pos == 2) {
+                        delay = 3.5; //TODO
+                        while(ros::Time::now().toSec() < start_time + delay) {
+                            vel.linear.x = 1.05;
+                            vel.linear.y = 1.5;
                             ros::Duration(.1).sleep();
                         }
-                        releaseClamp(ClampSrv);
                     }
                     else {
                         delay = 3; //TODO
@@ -431,8 +502,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                             vel.linear.y = .75;
                             ros::Duration(.1).sleep();
                         }
-                        releaseClamp(ClampSrv);
                     }
+                    releaseClamp(ClampSrv);
                 }
             }
             if(AutoMode->mode[auto_mode-1]==1) {

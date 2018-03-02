@@ -170,7 +170,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 
 	protected:
 		void hal_keepalive_thread(void);
-		void process_motion_profile_buffer_thread(ros::Rate rate);
+		void process_motion_profile_buffer_thread(double hz);
 
 	private:
 		/** Get conversion factor for position, velocity, and closed-loop stuff */
@@ -192,12 +192,12 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		bool safeTalonCall(ctre::phoenix::ErrorCode error_code, 
 				const std::string &talon_method_name);
 
-		bool cube_state;
+		std::atomic<bool> cube_state_;
 		void cubeCallback(const std_msgs::Bool &cube)
 		{
-			cube_state = cube.data;
+			cube_state_ = cube.data;
 		}
-		ros::Subscriber cube_state_sub;	
+		ros::Subscriber cube_state_sub_;	
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;
 		std::vector<std::shared_ptr<frc::NidecBrushless>> nidec_brushlesses_;
 		std::vector<std::shared_ptr<frc::DigitalInput>> digital_inputs_;
@@ -211,17 +211,9 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::AnalogInput>> analog_inputs_;
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;
-		bool        run_hal_thread_;
+		std::atomic<bool> run_hal_thread_;
 		std::thread motion_profile_thread_;
-		bool        run_motion_profile_thread_;
-		bool joystick_up_;
-		bool joystick_down_;
-		bool joystick_left_;
-		bool joystick_right_;
-		bool joystick_up_last_;
-		bool joystick_down_last_;
-		bool joystick_left_last_;
-		bool joystick_right_last_;
+		std::atomic<bool> run_motion_profile_thread_;
 
 		//PowerDistributionPanel pdp_joint_;
 		//

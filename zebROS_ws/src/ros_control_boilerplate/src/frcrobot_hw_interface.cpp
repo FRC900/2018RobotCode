@@ -97,6 +97,15 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			rate.sleep();
 	}
 
+	bool joystick_up_ = false;;
+	bool joystick_down_ = false;;
+	bool joystick_left_ = false;;
+	bool joystick_right_ = false;;
+	bool joystick_up_last_ = false;;
+	bool joystick_down_last_ = false;;
+	bool joystick_left_last_ = false;;
+	bool joystick_right_last_ = false;;
+
 	robot_.StartCompetition();
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
@@ -137,7 +146,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			// SmartDashboard works!
 			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_);
 			frc::SmartDashboard::PutNumber("Pressure", pressure_);
-			frc::SmartDashboard::PutBoolean("cube_state", cube_state);
+			frc::SmartDashboard::PutBoolean("cube_state", cube_state_);
 
 			if (realtime_pub_nt.trylock()) 
 			{
@@ -357,15 +366,25 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	}
 }
 
-void FRCRobotHWInterface::process_motion_profile_buffer_thread(ros::Rate rate)
+void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
-	return;
+	// since our MP is 10ms per point, set the control frame rate and the
+	// notifer to half that
+	for (size_t i = 0; i < num_can_talon_srxs_; i++)
+		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
+
+	ros::Rate rate(hz);
 	while (run_motion_profile_thread_ && ros::ok())
 	{
 		for (size_t i = 0; i < num_can_talon_srxs_; i++)
-			can_talons_[i]->ProcessMotionProfileBuffer();
+		{
+			const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
+			if ((talon_mode != hardware_interface::TalonMode_Follower) &&
+				(talon_mode != hardware_interface::TalonMode_Disabled))
+				can_talons_[i]->ProcessMotionProfileBuffer();
 
-		rate.sleep();
+			rate.sleep();
+		}
 	}
 }
 
@@ -380,7 +399,7 @@ void FRCRobotHWInterface::init(void)
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
 	
-	cube_state_sub = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
+	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
 	
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
@@ -499,7 +518,7 @@ void FRCRobotHWInterface::init(void)
 
 	//HAL_InitializePDP(0,0);
 
-	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, ros::Rate(200));
+	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 200.);
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
