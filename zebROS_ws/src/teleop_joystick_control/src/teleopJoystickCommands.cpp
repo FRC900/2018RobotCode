@@ -391,12 +391,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         goal.MoveArmAway = false;
                         goal.IntakeCubeNoLift = true;
                         ac->sendGoal(goal);
-                        ac->waitForResult(ros::Duration(15));
-                        srvIntake.request.power = 0;
-                        srvIntake.request.spring_state = 2;
-                        srvIntake.request.up = false;
-                        IntakeSrv.call(srvIntake);
-                        
                     /* 
                     goal.IntakeCube = false;
                     goal.MoveArmAway = false;
@@ -439,8 +433,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 //}
             }
         }
-        if(timeSecs < ADoubleStart + 2) {
-            srvIntake.request.power = -1;
+        if(timeSecs > ADoubleStart + 2) {
+            srvIntake.request.power = 0;
             srvIntake.request.spring_state = 2; //soft_in
             srvIntake.request.up = false;
             IntakeSrv.call(srvIntake);
