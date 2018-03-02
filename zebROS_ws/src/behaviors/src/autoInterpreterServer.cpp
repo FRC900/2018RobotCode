@@ -62,9 +62,8 @@ class autoAction {
             //typedef message_filters::sync_policies::ApproximateTime<std_msgs::Bool, std_msgs::Bool> cube_sync;
             //message_filters::Synchronizer<cube_sync> sync(cube_sync(5), cube_sub, high_cube);
             //sync.registerCallback(boost::bind(&autoAction::evaluateCubeState,this, _1, _2));
-	}
+		}
 
-        
         ros::Subscriber elevator_odom;// = nh_.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
         ros::Subscriber CubeState;
         ros::Subscriber HighCube;
@@ -134,7 +133,10 @@ class autoAction {
                 srv.request.up_or_down = false;
                 ElevatorSrv.call(srv);
                 success = true;
-            }
+            } else {
+				goal_num = -1;
+				success = true;
+			}
             if(low) {
                 if(goal_num != 10) {
                     elevator_controller::ElevatorControlS srv;
@@ -159,8 +161,10 @@ class autoAction {
                 Clamp.publish(ClampMsg);
             }
             */
-            r.sleep();
-            ros::spinOnce();
+			if (!success) {
+				r.sleep();
+				ros::spinOnce();
+			}
         }
         //goal_num = -1;
         if(goal->IntakeCube || goal->IntakeCubeNoLift) {
