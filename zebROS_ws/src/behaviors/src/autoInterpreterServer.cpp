@@ -171,6 +171,8 @@ class autoAction {
             elevator_controller::Intake srv;
             srv.request.power = 0;
             IntakeSrv.call(srv);
+			goal_num = -1;
+				
         }
         result_.data = 1;
         ROS_INFO("%s: Succeeded", action_name_.c_str());
@@ -178,6 +180,9 @@ class autoAction {
         return;
     }
     void cubeCallback(const std_msgs::Bool &msg) {
+		if(goal_num==-1){
+			return;
+		}
         const bool cube_state = msg.data;
 		static int cube_state_true = 0;
         if(cube_state) {
@@ -192,6 +197,9 @@ class autoAction {
         }
     }
     void highCubeCallback(const std_msgs::Bool &msg) {
+		if(goal_num==-1){
+			return;
+		}
         const bool high_cube_state = msg.data;
         if(high_cube_state && (goal_num == 0 || goal_num == 10)) {
             high = true;
