@@ -364,7 +364,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             }
 
             else{ 
-        
+                /* 
                 if(lastToggle==" ") {
                     unToggle();
                 }
@@ -372,12 +372,14 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     //ac->cancelGoal();
                     unToggle();
                 }
-                else {
-                    srvIntake.request.power = .8;
-                    srvIntake.request.up = false;
-                    srvIntake.request.spring_state = 1; //soft_in
-                    IntakeSrv.call(srvIntake);
-
+                */
+                //else {
+                        goal.IntakeCube = false;
+                        goal.GoToHeight = false;
+                        goal.MoveArmAway = false;
+                        goal.IntakeCubeNoLift = true;
+                        ac->sendGoal(goal);
+                        
                     /* 
                     goal.IntakeCube = false;
                     goal.MoveArmAway = false;
@@ -417,7 +419,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     ROS_WARN("Started intaking cube");
                     */
 
-                }
+                //}
             }
         }
         if(timeSecs < ADoubleStart + 2) {
