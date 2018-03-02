@@ -32,6 +32,7 @@ double dead_zone_check(double val) {
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 
 static double timeSecs = 0, lastTimeSecs = 0, directionUpLast = 0, YLast = 0, BLast = 0, ALast = 0,ADoubleStart = 0;
+static bool run_out = false;
 static std::string currentToggle = " ";
 static std::string lastToggle = " ";
 static double elevatorPosBeforeX;
@@ -362,6 +363,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     if(hasCube) {
                         if(timeSecs - ALast < .3) {
                             ADoubleStart = timeSecs;
+							run_out = true;
                             srvIntake.request.power = -1;
                             srvIntake.request.spring_state = 2; //soft_in
                             srvIntake.request.up = false;
@@ -433,11 +435,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 //}
             }
         }
-        if(timeSecs > ADoubleStart + 2) {
+        if(run_out && (timeSecs > ADoubleStart + 2)) {
             srvIntake.request.power = 0;
             srvIntake.request.spring_state = 2; //soft_in
             srvIntake.request.up = false;
             IntakeSrv.call(srvIntake);
+			run_out = false;
         }
 
         if(timeSecs - YLast > .21 && timeSecs - YLast < .45) {
