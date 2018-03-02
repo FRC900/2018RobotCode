@@ -20,6 +20,13 @@
  *
  */
 //using namespace message_filters;
+static double dead_zone=.1, slow_mode=.33, max_speed=3.3, max_rot=7.65, joystick_scale=3;
+double dead_zone_check(double val) {
+    if(fabs(val)<=dead_zone) {
+        return 0;
+    }
+    return val;
+}
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 
@@ -584,9 +591,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     //Publish drivetrain messages and elevator/pivot
     geometry_msgs::Twist vel;
     //talon_controllers::CloseLoopControllerMsg arm;
+    double leftStickX = (pow(dead_zone_check(JoystickState->leftStickX), joystick_scale))*max_speed;
+    double leftStickY = (-pow(dead_zone_check(JoystickState->leftStickY), joystick_scale))*max_speed;
 
-    double rightStickX = JoystickState->rightStickX;
-    double rightStickY = JoystickState->rightStickY;
+    double rightStickX = (-pow(dead_zone_check(JoystickState->rightStickX), joystick_scale));
+    double rightStickY = (-pow(dead_zone_check(JoystickState->rightStickY), joystick_scale));
 
     Eigen::Vector2d joyVector;
 
@@ -711,7 +720,7 @@ int main(int argc, char **argv) {
     //message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "scaled_joystick_vals", 5);
     //message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
 
-    joystick_sub = n.subscribe("scaled_joystick_vals", 1, &evaluateCommands);
+    joystick_sub = n.subscribe("joystick_states", 1, &evaluateCommands);
     match_data = n.subscribe("match_data", 1, &match_data_callback);
 
     navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);

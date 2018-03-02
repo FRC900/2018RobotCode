@@ -336,7 +336,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         */
     
     if(MatchData->isAutonomous && !MatchData->isDisabled) {
-	if(MatchData->allianceData != "") {
+        if(MatchData->allianceData != "") {
             if(start_time==0) {
                 start_time = ros::Time::now().toSec();
             }
@@ -409,6 +409,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 						while(ros::Time::now().toSec() < start_time + delay) {
 							vel.linear.x = 1.05; //positive x a lot
 							vel.linear.y = 0.12; //positive y a little bit
+                            VelPub.publish(vel);
 							ros::Duration(.1).sleep();
 						}
 					}
@@ -417,6 +418,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 			   		   while(ros::Time::now().toSec() < start_time + delay) {
 							vel.linear.x = 1.05; //positive x a lot
 							vel.linear.y = -0.12; //negative y a little bit
+                            VelPub.publish(vel);
 							ros::Duration(.1).sleep();
 						}
 				    }
@@ -425,6 +427,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                         while(ros::Time::now().toSec() < start_time + delay) {
                             vel.linear.x = 0.875; //positive x some
                             vel.linear.y = 0.5; //positive y some
+                            VelPub.publish(vel);
                             ros::Duration(.1).sleep();
                         }
                     }
@@ -435,6 +438,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                         while(ros::Time::now().toSec() < start_time + delay) {
                             vel.linear.x = 1.05; //positive x a lot
                             vel.linear.y = 0.12; //positive y a little bit
+                            VelPub.publish(vel);
                             ros::Duration(.1).sleep();
 						}
 					}
@@ -443,6 +447,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                         while(ros::Time::now().toSec() < start_time + delay) {
                             vel.linear.x = 1.05; //positive x a lot
                             vel.linear.y = -0.12; //negative y a little bit
+                            VelPub.publish(vel);
                             ros::Duration(.1).sleep();
                         }
                     }
@@ -451,6 +456,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                         while(ros::Time::now().toSec() < start_time + delay) {
                             vel.linear.x = 0.875; //positive x some
                             vel.linear.y = -0.3; //negative y some
+                            VelPub.publish(vel);
                             ros::Duration(.1).sleep();
                         }
                     }
@@ -473,6 +479,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 						while(ros::Time::now().toSec() < start_time + delay) {
 							vel.linear.x = 1.05;
 							vel.linear.y = -1.5;
+                            VelPub.publish(vel);
 							ros::Duration(.1).sleep();
 						}
 					}
@@ -481,6 +488,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
 			   		   while(ros::Time::now().toSec() < start_time + delay) {
 							vel.linear.x = 1.2;
 							vel.linear.y = .53;
+                            VelPub.publish(vel);
 							ros::Duration(.1).sleep();
 						}
 				   }
@@ -489,6 +497,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                         while(ros::Time::now().toSec() < start_time + delay) {
                             vel.linear.x = 1.75;
                             vel.linear.y = -0.7; 
+                            VelPub.publish(vel);
                             ros::Duration(.1).sleep();
                         }
                     }
@@ -500,6 +509,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                         while(ros::Time::now().toSec() < start_time + delay) {
                             vel.linear.x = 1.2;
                             vel.linear.y = -.53;
+                            VelPub.publish(vel);
                             ros::Duration(.1).sleep();
 						}
 					}
@@ -508,6 +518,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                         while(ros::Time::now().toSec() < start_time + delay) {
                             vel.linear.x = 1.05;
                             vel.linear.y = 1.5;
+                            VelPub.publish(vel);
                             ros::Duration(.1).sleep();
                         }
                     }
@@ -516,6 +527,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                         while(ros::Time::now().toSec() < start_time + delay) {
                             vel.linear.x = 1.5;
                             vel.linear.y = .75;
+                            VelPub.publish(vel);
                             ros::Duration(.1).sleep();
                         }
                     }
@@ -572,7 +584,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                 ros::Duration(.1).sleep(); //TODO
 
                 IntakeSrv.request.spring_state = 2;
-                IntakeService.call(IntakeSrv);
+                IndtakeService.call(IntakeSrv);
 
                 //6: Time 5: release Clamp
                 ros::Duration(times[4]).sleep(); //TODO
