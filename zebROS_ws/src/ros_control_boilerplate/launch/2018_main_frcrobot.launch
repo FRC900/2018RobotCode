@@ -30,7 +30,7 @@
 		<rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
         <rosparam file="$(find teleop_joystick_control)/config/teleopJoystickCommands.yaml" command="load"/>
 		<rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
-        <!--rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/-->
+        <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
