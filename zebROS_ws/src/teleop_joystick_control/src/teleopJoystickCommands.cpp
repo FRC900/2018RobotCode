@@ -52,6 +52,8 @@ static double switch_config_x;
 static double switch_config_y;
 static double exchange_config_x;
 static double exchange_config_y;
+static double intake_ready_to_drop_x;
+static double intake_ready_to_drop_y;
 static double intake_config_x;
 static double intake_config_y;
 static double climb;
@@ -305,6 +307,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     unToggle();
                 }
                 else {
+                    goal.GoToHeight = true;
+                    goal.x = intake_ready_to_drop_x;
+                    goal.y = intake_ready_to_drop_y;
+                    ac->sendGoal(goal);
+                    ac->waitForResult(ros::Duration(1));
                     srvElevator.request.x = intake_config_x;
                     srvElevator.request.y = intake_config_y;
                     if(ElevatorSrv.call(srvElevator)) {
@@ -316,6 +323,18 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     
                     goal.IntakeCube = true;
                     ac->sendGoal(goal);
+                    if(ac->waitForResult(ros::Duration(15))) {
+                        srvClamp.request.data = true;
+                        ClampSrv.call(srvClamp);
+                        srvIntake.request.power = 0;
+                        srvIntake.request.spring_state = 0; //out
+                        IntakeSrv.call(srvIntake);
+                        ros::Duration(.2).sleep();
+                        srvElevator.request.x = elevatorPosX;
+                        srvElevator.request.y = intake_ready_to_drop_y;
+                        ElevatorSrv.call(srvElevator);
+                    }
+
                     ROS_WARN("Started intaking cube");
 
                 }
@@ -542,6 +561,8 @@ int main(int argc, char **argv) {
     n_params.getParam("switch_config_y", switch_config_y);
     n_params.getParam("exchange_config_x", exchange_config_x);
     n_params.getParam("exchange_config_y", exchange_config_y);
+    n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x);
+    n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y);
     n_params.getParam("intake_config_x", intake_config_x);
     n_params.getParam("intake_config_y", intake_config_y);
     n_params.getParam("climb", climb);

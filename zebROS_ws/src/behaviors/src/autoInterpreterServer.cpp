@@ -7,11 +7,21 @@
 #include "cstdlib"
 #include "elevator_controller/ElevatorControlS.h"
 #include "elevator_controller/ReturnElevatorCmd.h"
+#include "message_filters/subscriber.h"
+#include "message_filters/synchronizer.h"
+#include "message_filters/sync_policies/approximate_time.h"
 //elevator_controller/cmd_pos
 //elevator_controller/intake?
-bool cube_state = true;
+bool cube_state;
+bool high_cube_state;
+
+
 static double intake_config_x;
 static double intake_config_y;
+static double intake_low_x;
+static double intake_low_y;
+static int cube_state_true = 0;
+static int high_cube_true = 0;
 static int goal_num = -1;
 
 class autoAction {
@@ -30,6 +40,10 @@ class autoAction {
         ros::Publisher Clamp; 
         double targetPosX;
         double targetPosY;
+        double elevator_pos_x;
+        double elevator_pos_y;
+        bool high;
+        bool low;
         bool success;
 
     public:
@@ -45,11 +59,19 @@ class autoAction {
             Clamp = nh_.advertise<std_msgs::Bool>("elevator_controller/clamp", 1);
             elevator_odom = nh_.subscribe("/frcrobot/elevator_controller/odom", 1, &autoAction::OdomCallback, this);
             CubeState = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &autoAction::cubeCallback, this);
+            HighCube = nh_.subscribe("/frcrobot/elevator_controller/high_cube", 1, &autoAction::highCubeCallback, this);
+            // message_filters::Subscriber<std_msgs::Bool> cube_sub(nh_, "/frcrobot/elevator_controller/cube_state", 5);
+            //message_filters::Subscriber<std_msgs::Bool> high_cube(nh_, "/frcrobot/elevator_controller/high_cube", 5);
+
+            //typedef message_filters::sync_policies::ApproximateTime<std_msgs::Bool, std_msgs::Bool> cube_sync;
+            //message_filters::Synchronizer<cube_sync> sync(cube_sync(5), cube_sub, high_cube);
+            //sync.registerCallback(boost::bind(&autoAction::evaluateCubeState,this, _1, _2));
 	}
 
         
         ros::Subscriber elevator_odom;// = nh_.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
         ros::Subscriber CubeState;
+        ros::Subscriber HighCube;
     ~autoAction(void) 
     {
     }
@@ -104,6 +126,21 @@ class autoAction {
                 ElevatorSrv.call(srv);
                 success = true;
             }
+            if(goal->IntakeCube && low) {
+                elevator_controller::ElevatorControlS srv;
+                srv.request.x = intake_low_x;
+                srv.request.y = intake_low_y;
+                ElevatorSrv.call(srv);
+                ros::Duration(.2).sleep();
+                success = true;
+                low = false;
+                high = false;
+            }
+            if(goal->IntakeCube && high) {
+                success = true;
+                low = false;
+                high = false;
+            }
             /*
             else if(goal->PlaceCube) {
                 std_ElevatorMsgs::Bool ClampMsg;
@@ -126,11 +163,34 @@ class autoAction {
     }
     void cubeCallback(const std_msgs::Bool &msg) {
         cube_state = msg.data;
-        if(cube_state && goal_num == 0) {
-            success = true;
+        if(cube_state) {
+            cube_state_true += 1;
+        }
+        if(cube_state_true >= 3) {
+            low = true;
+            cube_state_true = 0;
         }
     }
+    void highCubeCallback(const std_msgs::Bool &msg) {
+        high_cube_state = msg.data;
+        if(high_cube_state && goal_num == 0) {
+            high = true;
+        }
+    }
+    /*
+    void evaluateCubeState(std_msgs::Bool &cube, std_msgs::Bool &high_cube) {
+        cube_state = cube.data;
+        high_cube_state = high_cube.data;
+        if(cube_state && high_cube_state) {
+            high = true;
+        }
+        else if(cube_state) {
+            low = true;
+        }
+    } */
     void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg) {
+        elevator_pos_x = msg->x;
+        elevator_pos_y = msg->y;
         if(fabs(msg->x-targetPosX) < .1 && fabs(msg->y - targetPosY) < .1 && goal_num == 1) {
             success = true;
         }
@@ -145,6 +205,8 @@ int main(int argc, char** argv) {
 
     n_params.getParam("intake_config_x", intake_config_x);
     n_params.getParam("intake_config_y", intake_config_y);
+    n_params.getParam("intake_config_low_x", intake_low_x);
+    n_params.getParam("intake_config_low_y", intake_low_y);
     
 
 
