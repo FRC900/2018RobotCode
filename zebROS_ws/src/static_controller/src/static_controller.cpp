@@ -1,8 +1,6 @@
-
 #include <ros/node_handle.h>
 #include <static_controller/static_controller.h>
 #include <pluginlib/class_list_macros.h>
-
 
 namespace static_controller
 {
@@ -21,7 +19,6 @@ bool StaticController::init(hardware_interface::JointCommandInterface *hw, ros::
 	}
 	handle_ = hw->getHandle(joint_name);
 	return true;
-
 }
 
 void StaticController::starting(const ros::Time& /*time*/)
