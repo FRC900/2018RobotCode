@@ -108,8 +108,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 	robot_.StartCompetition();
 	Joystick joystick(0);
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 4);
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 4);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 1);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
 	realtime_tools::RealtimePublisher<std_msgs::Bool> realtime_pub_disable_compressor_reg(nh_, "/frcrobot/regulate_compressor/disable", 4);
 	realtime_tools::RealtimePublisher<std_msgs::Float64> zero_navX(nh_, "/frcrobot/navx_controller/command", 1); //Kinda dirty
 
@@ -193,8 +193,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
 		}
 
-		if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
-			realtime_pub_joystick.trylock())
+		//if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
+		//	realtime_pub_joystick.trylock())
 		{
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
