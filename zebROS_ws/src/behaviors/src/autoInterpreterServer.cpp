@@ -102,6 +102,15 @@ class autoAction {
                 srv.request.power = .8; //TODO
                 IntakeSrv.call(srv);
             }
+            else if(goal->IntakeCubeNoLift) {
+                goal_num = 10;
+                elevator_controller::Intake srv;
+                srv.request.power = 0.8;
+                srv.request.spring_state = 1; //soft in
+                srv.request.up = false;
+                IntakeSrv.call(srv);
+                    
+            }
             else if(goal->GoToHeight) {
                 goal_num = 1;
                 elevator_controller::ElevatorControlS srv;
@@ -135,10 +144,12 @@ class autoAction {
                 success = true;
             }
             if(goal->IntakeCube && low) {
-                elevator_controller::ElevatorControlS srv;
-                srv.request.x = intake_low_x;
-                srv.request.y = intake_low_y;
-                ElevatorSrv.call(srv);
+                if(goal_num != 10) {
+                    elevator_controller::ElevatorControlS srv;
+                    srv.request.x = intake_low_x;
+                    srv.request.y = intake_low_y;
+                    ElevatorSrv.call(srv);
+                }
                 ros::Duration(.2).sleep();
                 success = true;
                 low = false;
@@ -160,7 +171,7 @@ class autoAction {
             ros::spinOnce();
         }
         goal_num = -1;
-        if(goal->IntakeCube) {
+        if(goal->IntakeCube || goal->IntakeCubeNoLift) {
             elevator_controller::Intake srv;
             srv.request.power = 0;
             IntakeSrv.call(srv);
@@ -181,7 +192,7 @@ class autoAction {
     }
     void highCubeCallback(const std_msgs::Bool &msg) {
         high_cube_state = msg.data;
-        if(high_cube_state && goal_num == 0) {
+        if(high_cube_state && (goal_num == 0 || goal_num == 10)) {
             high = true;
         }
     }
