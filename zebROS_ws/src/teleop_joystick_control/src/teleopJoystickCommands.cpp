@@ -385,9 +385,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         goal.IntakeCubeNoLift = true;
                         ac->sendGoal(goal);
                         ac->waitForResult(ros::Duration(15));
-                        srvIntake.power = 0;
-                        srvIntake.spring_state = 2;
-                        srvIntake.up = false;
+                        srvIntake.request.power = 0;
+                        srvIntake.request.spring_state = 2;
+                        srvIntake.request.up = false;
                         IntakeSrv.call(srvIntake);
                         
                     /* 

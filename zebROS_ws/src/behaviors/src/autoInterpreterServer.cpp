@@ -182,7 +182,7 @@ class autoAction {
         result_.data = 1;
         ROS_INFO("%s: Succeeded", action_name_.c_str());
         as_.setSucceeded(result_);
-        break;
+        return;
     }
     void cubeCallback(const std_msgs::Bool &msg) {
         cube_state = msg.data;
