@@ -1,21 +1,30 @@
 teleop_params:
-    high_scale_config_x: .1
-    high_scale_config_y: 2.1
-    mid_scale_config_x: .2
-    mid_scale_config_y: 1.8
-    low_scale_config_x: .25
-    low_scale_config_y: 1.6
-    switch_config_x: .3
-    switch_config_y: .8
-    exchange_config_x: .2
+    high_scale_config_x: .32
+    high_scale_config_y: 2.15
+    high_scale_config_up_or_down: true
+    mid_scale_config_x: .32
+    mid_scale_config_y: 1.85
+    mid_scale_config_up_or_down: true
+    low_scale_config_x: .32
+    low_scale_config_y: 1.575
+    low_scale_config_up_or_down: true
+    switch_config_x: .32
+    switch_config_y: .93345
+    switch_config_up_or_down: true
+    #exchange should probably be the same as intake
+    exchange_config_x: .215
     exchange_config_y: .5
-    intake_ready_to_drop_x: .1
-    intake_ready_to_drop_y: .4
-    intake_config_x: .1
-    intake_config_y: .3
-    intake_config_low_x: .1
-    intake_config_low_y: .25
-    climb: 1
+    exchange_config_up_or_down: false
+    intake_ready_to_drop_x: .215
+    intake_ready_to_drop_y: .6607 #1.075 - y pos arm relative
+    intake_ready_to_drop_up_or_down: false
+    intake_config_x: .215
+    intake_config_y: 0.45 #consider always drop - press and then grab
+    intake_config_up_or_down: false
+    intake_config_low_x: .215
+    intake_config_low_y: .387
+    intake_config_low_up_or_down: false
+    climb: 1.5
     default_x: .2
     default_y: .7
     timeout: 15

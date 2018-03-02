@@ -28,8 +28,8 @@ static std::string currentToggle = " ";
 static std::string lastToggle = " ";
 static double elevatorPosBeforeX;
 static double elevatorPosBeforeY;
+static bool elevatorUpOrDownBefore;
 bool hasCube;
-bool elevatorUpOrDown;
 
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickElevatorPos;
@@ -44,21 +44,29 @@ ros::ServiceClient brake_srv;
 
 static double high_scale_config_x;
 static double high_scale_config_y;
+static double high_scale_config_up_or_down;
 static double mid_scale_config_x;
 static double mid_scale_config_y;
+static double mid_scale_config_up_or_down;
 static double low_scale_config_x;
 static double low_scale_config_y;
+static double low_scale_config_up_or_down;
 static double switch_config_x;
 static double switch_config_y;
+static double switch_config_up_or_down;
 static double exchange_config_x;
 static double exchange_config_y;
+static double exchange_config_up_or_down;
 static double intake_ready_to_drop_x;
 static double intake_ready_to_drop_y;
+static double intake_ready_to_drop_up_or_down;
 static double intake_config_x;
 static double intake_config_y;
+static double intake_config_up_or_down;
 static double climb;
 static double default_x;
 static double default_y;
+static double default_up_or_down;
 static double exchange_delay;
 static bool clamped;
  
@@ -70,6 +78,7 @@ bool ifCube = true;
 double elevatorHeight;
 static double elevatorPosX;
 static double elevatorPosY;
+static bool elevatorUpOrDown;
 static int i = 0;
 static behaviors::IntakeLiftGoal elevatorGoal;
 double navX_angle_ = M_PI/2;
@@ -86,11 +95,14 @@ void unToggle(void) {
 
     srvElevator.request.x = elevatorPosBeforeX;
     srvElevator.request.y = elevatorPosBeforeY;
+    srvElevator.request.up_or_down = elevatorUpOrDownBefore;
+    srvElevator.request.override_pos_limits = disable_arm_limits;
     ElevatorSrv.call(srvElevator);
 }
 void setHeight(void) {
     elevatorPosBeforeX = elevatorPosX;
     elevatorPosBeforeY = elevatorPosY;
+    elevatorUpOrDownBefore = elevatorUpOrDown;
 }
 
 
@@ -190,6 +202,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
         if(JoystickState->directionDownPress == true) {
             srvElevator.request.y = climb;
+            srvElevator.request.x = elevatorPosX;
+            srvElevator.request.up_or_down = elevatorUpOrDown;
+    	    srvElevator.request.override_pos_limits = disable_arm_limits;
             ElevatorSrv.call(srvElevator);
             ROS_WARN("Climb config");
         }
@@ -206,6 +221,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 else {
                     srvElevator.request.x = mid_scale_config_x;
                     srvElevator.request.y = mid_scale_config_y;
+                    srvElevator.request.up_or_down = mid_scale_config_up_or_down;
+    	    	    srvElevator.request.override_pos_limits = disable_arm_limits;
                     if(ElevatorSrv.call(srvElevator)) {
                         ROS_WARN("Toggled to mid level scale height");
                     }
@@ -270,6 +287,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         goal.MoveArmAway = true;
                         goal.x = intake_config_x;
                         goal.y = intake_config_y;
+                        goal.up_or_down = intake_config_up_or_down;
                         /*
                         goal.IntakeCube = false;
                         goal.GoToHeight = true;
@@ -314,6 +332,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     ac->waitForResult(ros::Duration(1));
                     srvElevator.request.x = intake_config_x;
                     srvElevator.request.y = intake_config_y;
+                    srvElevator.request.up_or_down = intake_config_up_or_down;
+    	    	    srvElevator.request.override_pos_limits = disable_arm_limits;
                     if(ElevatorSrv.call(srvElevator)) {
                         ROS_WARN("Toggled to intake config");
                     }
@@ -332,6 +352,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         ros::Duration(.2).sleep();
                         srvElevator.request.x = elevatorPosX;
                         srvElevator.request.y = intake_ready_to_drop_y;
+                        srvElevator.request.up_or_down = intake_ready_to_drop_up_or_down;
+    	                srvElevator.request.override_pos_limits = disable_arm_limits;
                         ElevatorSrv.call(srvElevator);
                     }
 
@@ -352,6 +374,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             else {
                 srvElevator.request.x = switch_config_x;
                 srvElevator.request.y = switch_config_y;
+                srvElevator.request.up_or_down = switch_config_up_or_down;
+    	        srvElevator.request.override_pos_limits = disable_arm_limits;
                 if(ElevatorSrv.call(srvElevator)) {
                     ROS_WARN("Toggled to switch height");
                 }
@@ -373,6 +397,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 else {
                     srvElevator.request.x = exchange_config_x;
                     srvElevator.request.y = exchange_config_y;
+                    srvElevator.request.up_or_down = exchange_config_up_or_down;
+    	            srvElevator.request.override_pos_limits = disable_arm_limits;
                     if(ElevatorSrv.call(srvElevator)) {
                         ROS_WARN("Toggled to exchange config");
                     }
@@ -397,6 +423,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             else {
                 srvElevator.request.x = default_x;
                 srvElevator.request.y = default_y;
+                srvElevator.request.up_or_down = default_up_or_down;
+    	        srvElevator.request.override_pos_limits = disable_arm_limits;
                 if(ElevatorSrv.call(srvElevator)) {
                     ROS_WARN("Toggled to default config");
                 }
@@ -422,6 +450,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             else {
                 srvElevator.request.x = low_scale_config_x;
                 srvElevator.request.y = low_scale_config_y;
+                srvElevator.request.up_or_down = low_scale_config_up_or_down;
+    	        srvElevator.request.override_pos_limits = disable_arm_limits;
                 if(ElevatorSrv.call(srvElevator)) {
                     ROS_WARN("Toggled to low level scale");
                 }
@@ -443,6 +473,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 else {
                     srvElevator.request.x = high_scale_config_x;
                     srvElevator.request.y = high_scale_config_y;
+                    srvElevator.request.up_or_down = high_scale_config_up_or_down;
+    	            srvElevator.request.override_pos_limits = disable_arm_limits;
                     if(ElevatorSrv.call(srvElevator)) {
                         ROS_WARN("Toggled to high level scale");
                     }
@@ -553,21 +585,29 @@ int main(int argc, char **argv) {
     
     n_params.getParam("high_scale_config_x", high_scale_config_x);
     n_params.getParam("high_scale_config_y", high_scale_config_y);
+    n_params.getParam("high_scale_config_up_or_down", high_scale_config_up_or_down);
     n_params.getParam("mid_scale_config_x", mid_scale_config_x);
     n_params.getParam("mid_scale_config_y", mid_scale_config_y);
+    n_params.getParam("mid_scale_config_up_or_down", mid_scale_config_up_or_down);
     n_params.getParam("low_scale_config_x", low_scale_config_x);
     n_params.getParam("low_scale_config_y", low_scale_config_y);
+    n_params.getParam("low_scale_config_up_or_down", low_scale_config_up_or_down);
     n_params.getParam("switch_config_x", switch_config_x);
     n_params.getParam("switch_config_y", switch_config_y);
+    n_params.getParam("switch_config_up_or_down", switch_config_up_or_down);
     n_params.getParam("exchange_config_x", exchange_config_x);
     n_params.getParam("exchange_config_y", exchange_config_y);
+    n_params.getParam("exchange_config_up_or_down", exchange_config_up_or_down);
     n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x);
     n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y);
+    n_params.getParam("intake_ready_to_drop_up_or_down", intake_ready_to_drop_up_or_down);
     n_params.getParam("intake_config_x", intake_config_x);
     n_params.getParam("intake_config_y", intake_config_y);
+    n_params.getParam("intake_config_up_or_down", intake_config_up_or_down);
     n_params.getParam("climb", climb);
     n_params.getParam("default_x", default_x);
     n_params.getParam("default_y", default_y);
+    n_params.getParam("default_up_or_down", default_up_or_down);
     n_params.getParam("exchange_delay", exchange_delay);
 
 
