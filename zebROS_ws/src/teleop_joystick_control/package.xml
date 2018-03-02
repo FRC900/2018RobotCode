@@ -38,6 +38,8 @@
   <depend>message_runtime</depend>
   <depend>ros_control_boilerplate</depend>
   <depend>behaviors</depend>
+  <depend>elevator_controller</depend>
+
   
 
 

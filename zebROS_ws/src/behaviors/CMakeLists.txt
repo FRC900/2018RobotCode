@@ -117,7 +117,7 @@ find_package(catkin REQUIRED COMPONENTS
 # ACTIONLIB STUFF
 
 #find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
-add_action_files(FILES CubeIntake.action IntakeLift.action)
+add_action_files(DIRECTORY action FILES CubeIntake.action IntakeLift.action)
 generate_messages(DEPENDENCIES actionlib_msgs std_msgs)
 
 catkin_package(
