@@ -129,6 +129,8 @@ git submodule update
 if [ "$jetson" = true ] ; then
 	sudo mkdir /mnt/900_2
 
+	# TODO - add "Port 5801" to /etc/ssh/sshd_config
+
 	# For tx2 only - install drivers for USB
 	# serial devices
 	if [ "$version" = tx2 ] ; then
@@ -139,8 +141,14 @@ if [ "$jetson" = true ] ; then
 		sudo depmod -a
 	fi
 
+	# Set up ssh host config (port 5801) and keys for 
+	# connections to Rio
 	cd ~/.ssh
 	tar -xjf ~/2018RobotCode/jetson_setup/jetson_dot_ssh.tar.bz2 
+
+	cd /root
+	sudo mkdir -p .ssh
+	sudo tar -xjf /home/ubuntu/jetson_setup/jetson_dot_ssh.tar.bz2 
 
 	# Kernel module build steps for TX2 : https://gist.github.com/sauhaardac/9d7a82c23e4b283a1e79009903095655
 	# Not needed unless Jetpack is updated and modules
