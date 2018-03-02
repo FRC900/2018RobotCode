@@ -20,7 +20,7 @@
  *
  */
 //using namespace message_filters;
-static double dead_zone=.1, slow_mode=.33, max_speed=3.3, max_rot=7.65, joystick_scale=3;
+static double dead_zone=.2, slow_mode=.33, max_speed=3.3, max_rot=7.65/3, joystick_scale=3;
 double dead_zone_check(double val) {
     if(fabs(val)<=dead_zone) {
         return 0;
@@ -594,31 +594,40 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     double leftStickX = (pow(dead_zone_check(JoystickState->leftStickX), joystick_scale))*max_speed;
     double leftStickY = (-pow(dead_zone_check(JoystickState->leftStickY), joystick_scale))*max_speed;
 
-    double rightStickX = (-pow(dead_zone_check(JoystickState->rightStickX), joystick_scale));
+    double rightStickX = (pow(dead_zone_check(JoystickState->rightStickX), joystick_scale));
     double rightStickY = (-pow(dead_zone_check(JoystickState->rightStickY), joystick_scale));
 
     Eigen::Vector2d joyVector;
-
-    joyVector[1] = -JoystickState->leftStickX; //intentionally flipped
-    joyVector[0] = JoystickState->leftStickY;
-    Eigen::Rotation2Dd r(navX_angle_);
-    Eigen::Vector2d rotatedJoyVector = r.toRotationMatrix() * joyVector;
-
-    vel.linear.x = rotatedJoyVector[1];
-    vel.linear.y = -rotatedJoyVector[0];
-    vel.linear.z = 0;
-
-    vel.angular.z = JoystickState->leftTrigger - JoystickState->rightTrigger;
+    
+    vel.angular.z = (JoystickState->leftTrigger - JoystickState->rightTrigger)*max_rot;
     vel.angular.x = 0;
     vel.angular.y = 0;
     
-    if((fabs(vel.linear.x) == 0.0 && fabs(vel.linear.y) == 0.0 && fabs(vel.angular.z) == 0.0) && !sendRobotZero) {
+    if(JoystickState-> bumperLeftButton == true) {
+        leftStickX *= slow_mode;
+        leftStickY *= slow_mode;
+
+        rightStickX *= slow_mode;
+        rightStickY *= slow_mode;
+        
+	vel.angular.z *= slow_mode;
+    }
+    if((fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && fabs(vel.angular.z) == 0.0) && !sendRobotZero) {
 	talon_swerve_drive_controller::Blank blank;
         blank.request.nothing = true;
         brake_srv.call(blank);
         sendRobotZero = true;
     }
-    if(fabs(vel.linear.x) != 0.0 || fabs(vel.linear.y) != 0.0 || fabs(vel.angular.z) != 0.0) {
+    else if(fabs(leftStickX) != 0.0 || fabs(leftStickY) != 0.0 || fabs(vel.angular.z) != 0.0)
+    {
+
+
+    joyVector[0] = leftStickX; //intentionally flipped
+    joyVector[1] = -leftStickY;
+    Eigen::Rotation2Dd r(navX_angle_ + M_PI/2);
+    Eigen::Vector2d rotatedJoyVector = r.toRotationMatrix() * joyVector;
+	vel.linear.x = rotatedJoyVector[1];
+	vel.linear.y = rotatedJoyVector[0];
         JoystickRobotVel.publish(vel);
 	sendRobotZero = false;
     }
