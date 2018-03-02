@@ -48,8 +48,8 @@ elevator_controller:
         sensor_phase: False
         feedback_type: CTRE_MagEncoder_Absolute
         conversion_factor: 1 #FIX
-        motion_cruise_velocity: 10
-        motion_acceleration: 20
+        motion_cruise_velocity: 2
+        motion_acceleration: 4
         current_limit_continuous_amps: 60
         current_limit_enable: True
 
