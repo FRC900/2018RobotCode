@@ -173,7 +173,7 @@ class autoAction {
             r.sleep();
             ros::spinOnce();
         }
-        goal_num = -1;
+        //goal_num = -1;
         if(goal->IntakeCube || goal->IntakeCubeNoLift) {
             elevator_controller::Intake srv;
             srv.request.power = 0;
