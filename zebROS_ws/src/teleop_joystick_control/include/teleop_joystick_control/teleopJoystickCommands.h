@@ -28,7 +28,6 @@ void navXCallback(const sensor_msgs::Imu &navXState);
 void cubeCallback(const std_msgs::Bool &cube);
 void overrideCallback(const std_msgs::Bool &override_lim);
 
-extern double navX_angle_;
-extern int navX_index_;
+//extern double navX_angle_;
 extern ros::Subscriber navX_heading_;
 extern ros::Subscriber cube_state_;
