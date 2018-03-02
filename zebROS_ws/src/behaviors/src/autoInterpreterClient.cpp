@@ -369,31 +369,33 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                 auto_mode = 1;
                 layout = 1;
                 for(int i = 0; i<vectTimes[0].size(); i++) {
-                    times.push_back(vectTimes[0][i]);
+                    //times.push_back(vectTimes[0][i]);
                 }
             }
             else if(MatchData->allianceData=="lrl") {
                 auto_mode = 2;
                 layout = 1;
                 for(int i = 0; i<vectTimes[1].size(); i++) {
-                    times.push_back(vectTimes[1][i]);
+                    //times.push_back(vectTimes[1][i]);
                 }
             }
             else if(MatchData->allianceData=="rrr") {
                 auto_mode = 3;
                 layout = 2;
                 for(int i = 0; i<vectTimes[2].size(); i++) {
-                    times.push_back(vectTimes[2][i]);
+                    //times.push_back(vectTimes[2][i]);
                 }
             }
             else if(MatchData->allianceData =="lll") {
                 auto_mode = 4;
                 layout = 2;
                 for(int i = 0; i<vectTimes[3].size(); i++) {
-                    times.push_back(vectTimes[3][i]);
+                    //times.push_back(vectTimes[3][i]);
                 }
             }
+            ROS_WARN("Auto_mode: %d", auto_mode);
             if(AutoMode->mode[auto_mode-1] == 1) {
+                ROS_WARN("Basic drive forward auto");
                 //basic drive forward cmd_vel
                 geometry_msgs::Twist vel;
                 vel.linear.z = 0;
@@ -464,6 +466,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                 }
             }
             if(AutoMode->mode[auto_mode-1] == 2) {
+                ROS_WARN("Basic switch auto mode");
                 //basic switch cmd_vel
                 geometry_msgs::Twist vel;
                 vel.linear.z = 0;
@@ -537,6 +540,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             }
 
             if(AutoMode->mode[auto_mode-1] == 3) {
+                ROS_WARN("Profiled Scale");
                 //Profiled scale
                 ROS_WARN("Profiled Scale Auto Mode reached");
                 runTrajectory(auto_mode-1);
@@ -939,6 +943,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             */
         }
         else {
+            ROS_WARN("Empty match_data");
             if(autoStart == -1) {
                 autoStart = ros::Time::now().toSec();
             }
