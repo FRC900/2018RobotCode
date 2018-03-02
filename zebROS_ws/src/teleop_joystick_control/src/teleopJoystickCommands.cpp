@@ -454,10 +454,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
     joyVector[1] = -JoystickState->leftStickX; //intentionally flipped
     joyVector[0] = JoystickState->leftStickY;
-    Eigen::Rotation2Dd r(M_PI / 2 - navX_angle_);
+    Eigen::Rotation2Dd r(navX_angle_);
     Eigen::Vector2d rotatedJoyVector = r.toRotationMatrix() * joyVector;
-    vel.linear.x = rotatedJoyVector[0];
-    vel.linear.y = rotatedJoyVector[1];
+
+    vel.linear.x = rotatedJoyVector[1];
+    vel.linear.y = -rotatedJoyVector[0];
     vel.linear.z = 0;
 
     vel.angular.z = JoystickState->leftTrigger - JoystickState->rightTrigger;
@@ -609,7 +610,8 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 
 	tf2::Quaternion navQuat(navXState.orientation.x, navXState.orientation.y, navXState.orientation.z, navXState.orientation.w);
 	double roll;
-	tf2::Matrix3x3(navQuat).getRPY(roll, roll, navX_angle_);
+	double pitch;
+	tf2::Matrix3x3(navQuat).getRPY(roll, pitch, navX_angle_);
 }
 void cubeCallback(const std_msgs::Bool &cube)
 {
