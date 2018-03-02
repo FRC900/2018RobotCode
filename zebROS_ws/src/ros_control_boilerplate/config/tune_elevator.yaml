@@ -82,7 +82,7 @@ lift_joint_controller:
     joint: lift_joint
     feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
-        - {p: .15, i: 0.0005, d: 0.5, f: 0.1669, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+        - {p: .4, i: 0.0005, d: 0.2, f: 0.1669, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
     invert_output: true #TODO transfer
     sensor_phase: true
     peak_output_forward: 1.0
