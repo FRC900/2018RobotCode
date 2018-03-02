@@ -27,5 +27,6 @@ teleop_params:
     climb: 1.5
     default_x: .2
     default_y: .7
+    default_up: true
     timeout: 15
     exchange_delay: 0.5

@@ -68,6 +68,17 @@ static double default_x;
 static double default_y;
 static double default_up_or_down;
 static double exchange_delay;
+
+static bool high_scale_up;
+static bool mid_scale_up;
+static bool low_scale_up;
+static bool switch_up;
+static bool exchange_up;
+static bool intake_drop_up;
+static bool intake_up;
+static bool climb_up;
+static bool default_up;
+
 static bool clamped;
  
 bool disable_arm_limits = false;
@@ -262,19 +273,32 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     
             if(hasCube) {
                 if(lastToggle=="YDouble") {
-                    srvIntake.request.spring_state = 2; //soft_in
-                    if(IntakeSrv.call(srvIntake)) {
+                    goal.IntakeCube = false;
+                    goal.MoveArmAway = false;
+                    goal.GoToHeight = true;
+                    goal.x = intake_ready_to_drop_x;
+                    goal.y = intake_ready_to_drop_y;
+                    ac->sendGoal(goal);
+                    ac->waitForResult(ros::Duration(1));
+                    
+                    goal.x = intake_config_x;
+                    goal.y = intake_config_y;
+                    ac->sendGoal(goal);
+                    if(ac->waitForResult(ros::Duration(15))) {
+                        srvIntake.request.power = 0;
+                        srvIntake.request.spring_state = 1; //soft_in
+                        IntakeSrv.call(srvIntake);
+
                         srvClamp.request.data = false;
-                        if(ClampSrv.call(srvClamp)) {
-                            srvIntake.request.power = -.8;
-                            if(IntakeSrv.call(srvIntake)) {
-                                ROS_WARN("Exchanged Cube");
-                                ros::Duration(exchange_delay).sleep(); //TODO
-                            }
-                        }
-                    }
-                    else {
-                        ROS_ERROR("Failed to exchange cube");
+                        ClampSrv.call(srvClamp);
+
+                        srvIntake.request.power = -8;
+                        srvIntake.request.spring_state = 1; //soft_in
+                        IntakeSrv.call(srvIntake);
+                        ros::Duration(.5).sleep();
+                        srvElevator.request.x = elevatorPosX;
+                        srvElevator.request.y = intake_ready_to_drop_y;
+                        ElevatorSrv.call(srvElevator);
                     }
                 }
                 else {
@@ -325,6 +349,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     unToggle();
                 }
                 else {
+                    goal.IntakeCube = false;
+                    goal.MoveArmAway = false;
                     goal.GoToHeight = true;
                     goal.x = intake_ready_to_drop_x;
                     goal.y = intake_ready_to_drop_y;
@@ -341,6 +367,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         ROS_ERROR("Failed to toggle to intake config");
                     }
                     
+                    goal.GoToHeight = false;
                     goal.IntakeCube = true;
                     ac->sendGoal(goal);
                     if(ac->waitForResult(ros::Duration(15))) {
