@@ -10,19 +10,13 @@
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
 #include "message_filters/sync_policies/approximate_time.h"
+#include <atomic>
 //elevator_controller/cmd_pos
 //elevator_controller/intake?
-bool cube_state;
-bool high_cube_state;
-
-
 static double intake_config_x;
 static double intake_config_y;
 static double intake_low_x;
 static double intake_low_y;
-static int cube_state_true = 0;
-static int high_cube_true = 0;
-static int goal_num = -1;
 
 class autoAction {
     protected:
@@ -38,18 +32,20 @@ class autoAction {
         ros::ServiceClient IntakeSrv;
         ros::ServiceClient ElevatorSrv;
         ros::Publisher Clamp; 
-        double targetPosX;
-        double targetPosY;
-        double elevator_pos_x;
-        double elevator_pos_y;
-        bool high;
-        bool low;
-        bool success;
+		std::atomic<double> targetPosX;
+		std::atomic<double> targetPosY;
+		std::atomic<double> elevator_pos_x;
+		std::atomic<double> elevator_pos_y;
+		std::atomic<bool> high;
+		std::atomic<bool> low;
+		std::atomic<bool> success;
+		std::atomic<int> goal_num;
 
     public:
         autoAction(std::string name) :
             as_(nh_, name, boost::bind(&autoAction::executeCB, this, _1), false),
-            action_name_(name)
+            action_name_(name),
+			goal_num(-1)
         {
             as_.start();
             Elevator = nh_.advertise<elevator_controller::ElevatorControl>("elevator_controller/cmd_pos", 1);
@@ -66,9 +62,8 @@ class autoAction {
             //typedef message_filters::sync_policies::ApproximateTime<std_msgs::Bool, std_msgs::Bool> cube_sync;
             //message_filters::Synchronizer<cube_sync> sync(cube_sync(5), cube_sub, high_cube);
             //sync.registerCallback(boost::bind(&autoAction::evaluateCubeState,this, _1, _2));
-	}
+		}
 
-        
         ros::Subscriber elevator_odom;// = nh_.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
         ros::Subscriber CubeState;
         ros::Subscriber HighCube;
@@ -99,12 +94,6 @@ class autoAction {
                 elevator_controller::Intake srv;
                 srv.request.up = false;
             }
-            if(goal->IntakeCubeNoLift) {
-                elevator_controller::Intake srv;
-                srv.request.spring_state = 2; //soft in
-                srv.request.power = .8; //TODO
-                IntakeSrv.call(srv);
-            }
             else if(goal->IntakeCubeNoLift) {
                 goal_num = 10;
                 elevator_controller::Intake srv;
@@ -112,7 +101,6 @@ class autoAction {
                 srv.request.spring_state = 2; //soft in
                 srv.request.up = false;
                 IntakeSrv.call(srv);
-                    
             }
             else if(goal->GoToHeight) {
                 goal_num = 1;
@@ -145,8 +133,11 @@ class autoAction {
                 srv.request.up_or_down = false;
                 ElevatorSrv.call(srv);
                 success = true;
-            }
-            if(goal->IntakeCube && low) {
+            } else {
+				goal_num = -1;
+				success = true;
+			}
+            if(low) {
                 if(goal_num != 10) {
                     elevator_controller::ElevatorControlS srv;
                     srv.request.x = intake_low_x;
@@ -158,7 +149,7 @@ class autoAction {
                 low = false;
                 high = false;
             }
-            if(goal->IntakeCube && high) {
+            if(high) {
                 success = true;
                 low = false;
                 high = false;
@@ -170,8 +161,10 @@ class autoAction {
                 Clamp.publish(ClampMsg);
             }
             */
-            r.sleep();
-            ros::spinOnce();
+			if (!success) {
+				r.sleep();
+				ros::spinOnce();
+			}
         }
         //goal_num = -1;
         if(goal->IntakeCube || goal->IntakeCubeNoLift) {
@@ -185,25 +178,29 @@ class autoAction {
         return;
     }
     void cubeCallback(const std_msgs::Bool &msg) {
-        cube_state = msg.data;
+        const bool cube_state = msg.data;
+		static int cube_state_true = 0;
         if(cube_state) {
             cube_state_true += 1;
         }
+		else {
+			cube_state_true = 0;
+		}
         if(cube_state_true >= 3) {
             low = true;
             cube_state_true = 0;
         }
     }
     void highCubeCallback(const std_msgs::Bool &msg) {
-        high_cube_state = msg.data;
+        const bool high_cube_state = msg.data;
         if(high_cube_state && (goal_num == 0 || goal_num == 10)) {
             high = true;
         }
     }
     /*
     void evaluateCubeState(std_msgs::Bool &cube, std_msgs::Bool &high_cube) {
-        cube_state = cube.data;
-        high_cube_state = high_cube.data;
+        const bool cube_state = cube.data;
+        const bool high_cube_state = high_cube.data;
         if(cube_state && high_cube_state) {
             high = true;
         }

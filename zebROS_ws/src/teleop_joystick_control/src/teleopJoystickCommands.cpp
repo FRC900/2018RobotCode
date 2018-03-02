@@ -1,3 +1,4 @@
+#include <atomic>
 #include "teleop_joystick_control/teleopJoystickCommands.h"
 #include "elevator_controller/ElevatorControl.h"
 #include "elevator_controller/ReturnElevatorCmd.h"
@@ -31,12 +32,13 @@ double dead_zone_check(double val) {
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 
 static double timeSecs = 0, lastTimeSecs = 0, directionUpLast = 0, YLast = 0, BLast = 0, ALast = 0,ADoubleStart = 0;
+static bool run_out = false;
 static std::string currentToggle = " ";
 static std::string lastToggle = " ";
 static double elevatorPosBeforeX;
 static double elevatorPosBeforeY;
 static bool elevatorUpOrDownBefore;
-bool hasCube;
+std::atomic<bool> hasCube;
 
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickElevatorPos;
@@ -88,21 +90,19 @@ static bool intake_up;
 static bool climb_up;
 static bool default_up;
 */
-static bool clamped;
  
-bool disable_arm_limits = false;
+std::atomic<bool> disable_arm_limits;
 bool sendRobotZero = false;
 bool sendArmZero = false;
 // TODO : initialize values to meaningful defaults
 bool ifCube = true;
-double elevatorHeight;
-static double elevatorPosX;
-static double elevatorPosY;
-static bool elevatorUpOrDown;
+//double elevatorHeight;
+static std::atomic<double> elevatorPosX;
+static std::atomic<double> elevatorPosY;
+static std::atomic<bool> elevatorUpOrDown;
 static int i = 0;
 static behaviors::IntakeLiftGoal elevatorGoal;
-double navX_angle_ = M_PI/2;
-int navX_index_ = -1;
+std::atomic<double> navX_angle_;
 
 ros::Subscriber navX_heading_;
 ros::Subscriber match_data;
@@ -257,6 +257,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 }
             }
             else {
+				static bool clamped;
                 if(clamped == false) {
                     srvClamp.request.data = true;
                     if(ClampSrv.call(srvClamp)) {
@@ -362,6 +363,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     if(hasCube) {
                         if(timeSecs - ALast < .3) {
                             ADoubleStart = timeSecs;
+							run_out = true;
                             srvIntake.request.power = -1;
                             srvIntake.request.spring_state = 2; //soft_in
                             srvIntake.request.up = false;
@@ -391,12 +393,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         goal.MoveArmAway = false;
                         goal.IntakeCubeNoLift = true;
                         ac->sendGoal(goal);
-                        ac->waitForResult(ros::Duration(15));
-                        srvIntake.request.power = 0;
-                        srvIntake.request.spring_state = 2;
-                        srvIntake.request.up = false;
-                        IntakeSrv.call(srvIntake);
-                        
                     /* 
                     goal.IntakeCube = false;
                     goal.MoveArmAway = false;
@@ -439,11 +435,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 //}
             }
         }
-        if(timeSecs < ADoubleStart + 2) {
-            srvIntake.request.power = -1;
+        if(run_out && (timeSecs > ADoubleStart + 2)) {
+            srvIntake.request.power = 0;
             srvIntake.request.spring_state = 2; //soft_in
             srvIntake.request.up = false;
             IntakeSrv.call(srvIntake);
+			run_out = false;
         }
 
         if(timeSecs - YLast > .21 && timeSecs - YLast < .45) {
@@ -632,8 +629,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	sendRobotZero = false;
     }
     if(rightStickX != 0 && rightStickY != 0) {
-        elevatorPosX += (timeSecs-lastTimeSecs)*rightStickX; //Access current elevator position to fix code allowing out of bounds travel
-        elevatorPosY += (timeSecs-lastTimeSecs)*rightStickY; //Access current elevator position to fix code allowing out of bounds travel
+        elevatorPosX = elevatorPosX + (timeSecs-lastTimeSecs)*rightStickX; //Access current elevator position to fix code allowing out of bounds travel
+        elevatorPosY = elevatorPosY + (timeSecs-lastTimeSecs)*rightStickY; //Access current elevator position to fix code allowing out of bounds travel
         elevatorMsg.x = elevatorPosX;
         elevatorMsg.y = elevatorPosY;
 	elevatorMsg.up_or_down = elevatorUpOrDown;
@@ -737,6 +734,9 @@ int main(int argc, char **argv) {
     cube_state_   = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
     disable_arm_limits_sub = n.subscribe("frcrobot/override_arm_limits", 1, &overrideCallback);
 
+	disable_arm_limits = false;
+	navX_angle_ = M_PI/2; 
+
     ROS_WARN("joy_init");
 
     //typedef message_filters::sync_policies::ApproximateTime<ros_control_boilerplate::JoystickState, ros_control_boilerplate::MatchSpecificData> JoystickSync;
@@ -780,11 +780,12 @@ void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble) {
 */
 void navXCallback(const sensor_msgs::Imu &navXState)
 {
-
 	tf2::Quaternion navQuat(navXState.orientation.x, navXState.orientation.y, navXState.orientation.z, navXState.orientation.w);
 	double roll;
 	double pitch;
-	tf2::Matrix3x3(navQuat).getRPY(roll, pitch, navX_angle_);
+	double yaw;
+	tf2::Matrix3x3(navQuat).getRPY(roll, pitch, yaw);
+	navX_angle_ = yaw;
 }
 void cubeCallback(const std_msgs::Bool &cube)
 {
@@ -793,5 +794,4 @@ void cubeCallback(const std_msgs::Bool &cube)
 void overrideCallback(const std_msgs::Bool &override_lim)
 {
 	disable_arm_limits = override_lim.data;
-	
 }
