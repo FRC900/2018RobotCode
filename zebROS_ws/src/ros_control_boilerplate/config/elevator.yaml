@@ -42,7 +42,7 @@ elevator_controller:
         current_limit_continuous_amps: 60
         current_limit_enable: True
     pivot_joint:
-	type: talon_controllers/TalonMotionMagicCloseLoopController
+        type: talon_controllers/TalonMotionMagicCloseLoopController
         joint: pivot_joint
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
