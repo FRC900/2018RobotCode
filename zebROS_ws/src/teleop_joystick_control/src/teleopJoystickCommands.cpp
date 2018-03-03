@@ -30,6 +30,10 @@ double dead_zone_check(double val) {
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 
+const double double_tap_zone = .3;
+const double delay_after_single_tap = .31;
+const double max_delay_after_single_tap = .45;
+
 static double timeSecs = 0, lastTimeSecs = 0, directionUpLast = 0, YLast = 0, BLast = 0, ALast = 0,ADoubleStart = 0;
 static std::string currentToggle = " ";
 static std::string lastToggle = " ";
@@ -48,6 +52,7 @@ static ros::ServiceClient ElevatorSrv;
 static ros::ServiceClient ClampSrv;
 static ros::ServiceClient IntakeSrv;
 ros::ServiceClient brake_srv;
+const double max_delay_after_single_tap = .45;
 
 
 static double high_scale_config_x;
@@ -235,7 +240,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     srvElevator.request.y = mid_scale_config_y;
                     srvElevator.request.up_or_down = mid_scale_config_up_or_down;
     	    	    srvElevator.request.override_pos_limits = disable_arm_limits;
-	    	    achieved_pos = mid_scale;
+                achieved_pos = mid_scale;
                     if(ElevatorSrv.call(srvElevator)) {
                         ROS_WARN("Toggled to mid level scale height");
                     }
@@ -280,7 +285,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	    static bool manage_intaking; 
             if(hasCube) {
 		/*----------------Single Press------------------*/	
-                if(timeSecs - ALast > .25 && timeSecs - ALast < .45) {  //wait .3 before assuming single press
+                if(timeSecs - ALast > delay_after_single_tap && timeSecs - ALast < max_delay_after_single_tap) {  //wait .3 before assuming single press
 		 /*-If in Exchange - Place and Run Intake Out-*/	 
                         if(lastToggle=="YDouble") {
 
@@ -297,7 +302,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         ALast = 0; //Remove flag
 		 	/*Double Press - Just Go Out*/	 
                 if(JoystickState->buttonAPress==true) {
-                        if(timeSecs - ALast < .3) {
+                        if(timeSecs - ALast < double_tap_zone) {
                             ADoubleStart = timeSecs;
 			    run_out = true;
                             srvIntake.request.power = -1;
@@ -473,7 +478,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	
 	/*-----------------Single Press - Switch ---------------------*/	
         
-	if(timeSecs - YLast > .25 && timeSecs - YLast < .45) {
+	if(timeSecs - YLast > delay_after_single_tap && timeSecs - YLast < max_delay_after_single_tap) {
             currentToggle = "Yone";
             if(lastToggle==" ") {
                 setHeight();
