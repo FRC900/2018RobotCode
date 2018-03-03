@@ -6,6 +6,7 @@ bool MoveArmAway
 float64 x
 float64 y
 bool up_or_down
+bool override_pos_limits
 ---
 #result definition
 float64 data

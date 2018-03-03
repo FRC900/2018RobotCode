@@ -45,7 +45,7 @@ class ElevatorController
 	private:
 		double after_shift_max_accel_;		
 		double after_shift_max_vel_;		
-
+		double cut_off_line_;
 		double before_shift_max_accel_;		
 		double before_shift_max_vel_;		
 

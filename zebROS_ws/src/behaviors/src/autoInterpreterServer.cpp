@@ -110,7 +110,7 @@ class autoAction {
                 srv.request.x = targetPosX;
                 srv.request.y = targetPosY;
                 srv.request.up_or_down = goal->up_or_down;
-                srv.request.override_pos_limits = true;
+                srv.request.override_pos_limits = goal->override_pos_limits;
                 ElevatorSrv.call(srv);
             }
             else if(goal->MoveArmAway) {
@@ -122,11 +122,11 @@ class autoAction {
                 srv.request.override_pos_limits = true;
                 srv.request.up_or_down = true;
                 ElevatorSrv.call(srv);
-                ros::Duration(.4).sleep();
+                ros::Duration(.4).sleep(); //Dirty
                 srv.request.x = goal->x - .1;
                 srv.request.y = goal->y;
                 srv.request.up_or_down = false;
-                ros::Duration(.4).sleep();
+                ros::Duration(.4).sleep(); //Dirty
 
                 srv.request.x = intake_config_x;
                 srv.request.y = intake_config_y;
