@@ -892,6 +892,14 @@ class TalonControllerInterface
 		{
 			return talon_.state()->getPosition();
 		}
+		void setPeakOutputForward(double peak)
+		{
+			talon_->setPeakOutputForward(peak);
+		}
+		void setPeakOutputReverse(double peak)
+		{
+			talon_->setPeakOutputReverse(peak);
+		}
 
 	protected:
 		hardware_interface::TalonCommandHandle                          talon_;

@@ -217,6 +217,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, 15);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
+	sub_stop_arm_ = controller_nh.subscribe("stop_arm", 1, &ElevatorController::stopCallback, this);
 	sub_joint_state_ = controller_nh.subscribe("/frcrobot/joint_states", 1, &ElevatorController::lineBreakCallback, this);
 	service_command_ = controller_nh.advertiseService("cmd_posS", &ElevatorController::cmdPosService, this);
 	service_intake_ = controller_nh.advertiseService("intake", &ElevatorController::intakeService, this);
@@ -395,6 +396,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 	bool cur_up_or_down = pivot_angle > 0;
 
+
 	arm_limiting::point_type cur_pos(cos(pivot_angle)*arm_length_, lift_position +
 			sin(pivot_angle)*arm_length_);
 
@@ -403,6 +405,16 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	odom_holder.up_or_down = cur_up_or_down;
 
 	Odom_.publish(odom_holder);
+	
+	if(stop_arm_)
+	{	
+		pivot_joint_.setPeakOutputForward(0);
+		pivot_joint_.setPeakOutputReverse(0);
+
+		lift_joint_.setPeakOutputForward(0);
+		lift_joint_.setPeakOutputReverse(0);
+	}
+
 
 	if(!curr_cmd.override_pos_limits)
 	{
@@ -468,6 +480,17 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 
 		command_struct_.stamp = ros::Time::now();
 		command_.writeFromNonRT(command_struct_);
+	}
+	else
+	{
+		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+	}
+}
+void ElevatorController::stopCallback(const std_msgs::Bool &command)
+{
+	if(isRunning())
+	{
+		stop_arm_ = command.data;
 	}
 	else
 	{

@@ -97,6 +97,7 @@ class ElevatorController
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		ros::Subscriber sub_command_;
+		ros::Subscriber sub_stop_arm_;
 		ros::Subscriber sub_joint_state_;
 		ros::ServiceServer service_command_;
 		IntakeCommand intake_struct_;
@@ -126,6 +127,7 @@ class ElevatorController
 		double pivot_offset_;
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
+		void stopCallback(const std_msgs::Bool& command);
 		void lineBreakCallback(const sensor_msgs::JointState&);
 		bool cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res);
 		bool intakeService(elevator_controller::Intake::Request &command, elevator_controller::Intake::Response &res);
@@ -139,7 +141,7 @@ class ElevatorController
 
 		double last_tar_l;
 		double last_tar_p;
-		
+		std::atomic<bool> stop_arm_;	
 
 		//Something for getting the soft limit bounding boxes
 		//some function for making limits based on soft limit bounding box

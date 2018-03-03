@@ -1,3 +1,4 @@
+#include "ros/console.h"
 #include "ros/ros.h"
 #include "ros_control_boilerplate/AutoMode.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
@@ -345,12 +346,14 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             if(ros::Time::now().toSec() >= start_time+2){
                 return;
             }*/
-            double time_start_auto = ros::Time::now().toSec();
+            //ROS_WARN("1");
+		double time_start_auto = ros::Time::now().toSec();
             elevator_controller::Intake IntakeSrv;
             elevator_controller::ElevatorControlS ElevatorSrv;
             elevator_controller::bool_srv ClampSrv;
             behaviors::IntakeLiftGoal goal;
 
+        ROS_WARN("auto entered");
     ///////////////TESTING/////////////////
     /*
             geometry_msgs::Twist vel;
@@ -372,6 +375,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                     //times.push_back(vectTimes[0][i]);
                 }
             }
+        //ROS_WARN("auto entered");
+            //ROS_WARN("2");
             else if(MatchData->allianceData=="lrl") {
                 auto_mode = 2;
                 layout = 1;
@@ -386,6 +391,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                     //times.push_back(vectTimes[2][i]);
                 }
             }
+        //ROS_WARN("auto entered");
+            //ROS_WARN("3");
             else if(MatchData->allianceData =="lll") {
                 auto_mode = 4;
                 layout = 2;
