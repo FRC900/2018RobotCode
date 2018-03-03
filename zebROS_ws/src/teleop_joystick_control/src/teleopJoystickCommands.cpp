@@ -31,7 +31,6 @@ double dead_zone_check(double val) {
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 
 static double timeSecs = 0, lastTimeSecs = 0, directionUpLast = 0, YLast = 0, BLast = 0, ALast = 0,ADoubleStart = 0;
-static bool run_out = false;
 static std::string currentToggle = " ";
 static std::string lastToggle = " ";
 static double elevatorPosBeforeX;
@@ -100,7 +99,6 @@ bool ifCube = true;
 static std::atomic<double> elevatorPosX;
 static std::atomic<double> elevatorPosY;
 static std::atomic<bool> elevatorUpOrDown;
-static int i = 0;
 static behaviors::IntakeLiftGoal elevatorGoal;
 std::atomic<double> navX_angle_;
 
@@ -154,6 +152,7 @@ void match_data_callback(const ros_control_boilerplate::MatchSpecificData::Const
 
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState) {
 
+	static bool run_out = false;
     behaviors::IntakeLiftGoal goal;
     elevator_controller::ElevatorControl elevatorMsg;
     //double matchTimeRemaining = MatchData->matchTimeRemaining;
