@@ -3,7 +3,7 @@
 #include <ros/time.h>
 #include <ros/console.h>
 #include <teleop_joystick_control/teleopJoystickCommands.h>
-#include <ros_control_boilerplate/frcrobot_hw_interface.h>
+//#include <ros_control_boilerplate/frcrobot_hw_interface.h>
 
 void headerCallback(const std_msgs::Header &msg)
 {
@@ -22,7 +22,7 @@ void headerCallback(const std_msgs::Header &msg)
 		average_delay += (ros::Time::now().toSec() - msg.stamp.sec) / 100.0;
 	}
 }
-
+/*
 void otherHeaderCallback(const ros_control_boilerplate::JoystickStates &msg)
 {
 	static double other_average_delay = 0;
@@ -41,14 +41,14 @@ void otherHeaderCallback(const ros_control_boilerplate::JoystickStates &msg)
 	}
 }
 	
-
+*/
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "debug_cmd_vel");
 	ros::NodeHandle n;
 
 	ros::Subscriber cmd_vel_subscriber = n.subscribe("test_header", 3, &headerCallback);
-	ros::Subscriver cmd_vel_subscriber1 = n.subscribe("joystick_states", 1, &otherHeaderCallback);
+	//ros::Subscriver cmd_vel_subscriber1 = n.subscribe("joystick_states", 1, &otherHeaderCallback);
 
 	ros::spin();
 	return 0;

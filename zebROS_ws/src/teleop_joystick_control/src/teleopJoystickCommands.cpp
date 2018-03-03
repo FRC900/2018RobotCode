@@ -52,7 +52,6 @@ static ros::ServiceClient ElevatorSrv;
 static ros::ServiceClient ClampSrv;
 static ros::ServiceClient IntakeSrv;
 ros::ServiceClient brake_srv;
-const double max_delay_after_single_tap = .45;
 
 
 static double high_scale_config_x;
