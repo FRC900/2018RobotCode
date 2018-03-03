@@ -615,7 +615,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	vel.angular.z *= slow_mode;
     }
     if((fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && fabs(vel.angular.z) == 0.0) && !sendRobotZero) {
-	talon_swerve_drive_controller::Blank blank;
+        talon_swerve_drive_controller::Blank blank;
         blank.request.nothing = true;
         brake_srv.call(blank);
         sendRobotZero = true;
