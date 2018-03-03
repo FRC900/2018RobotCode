@@ -14,6 +14,7 @@
 #include "elevator_controller/Intake.h"
 #include "elevator_controller/ElevatorControlS.h"
 #include "elevator_controller/bool_srv.h"
+#include "talon_swerve_drive_controller/Blank.h"
 #include "cstdlib"
 #include <controller_manager/controller_manager.h>
 #include <hardware_interface/joint_command_interface.h>
@@ -26,6 +27,7 @@
 #include <talon_swerve_drive_controller/Coefs.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <XmlRpcValue.h>
+//#include <std::toLower>
 #include <vector>
 
 ros::ServiceClient point_gen;
@@ -41,6 +43,7 @@ static double start_time;
 static ros::ServiceClient IntakeService;
 static ros::ServiceClient ElevatorService;
 static ros::ServiceClient ClampService;
+static ros::ServiceClient BrakeService;
 static ros::Publisher VelPub;
 
 static double high_scale_config_x;
@@ -64,6 +67,8 @@ static int layout;
 static std::vector<std::vector<double>> vectTimes;
 static XmlRpc::XmlRpcValue modes;
 static std::vector<trajectory_msgs::JointTrajectory> trajectories;
+
+static bool in_auto;
 
 std::vector<talon_swerve_drive_controller::FullGenCoefs> coefs_vect(4);
 
@@ -196,6 +201,14 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
     
     swerve_control.call(swerve_control_srv);
     */
+}
+
+std::string lower(std::string str) {
+    std::string new_string;
+    for(int i = 0; i<str.size(); i++) {
+       new_string += (tolower(str[i])); 
+    }
+    return new_string;
 }
 
 void runTrajectory(int auto_mode) {
@@ -336,7 +349,8 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         swerve_control.call(srv_msg_points);
         */
     
-    if(MatchData->isAutonomous && !MatchData->isDisabled) {
+    if(MatchData->isAutonomous && !MatchData->isDisabled && !in_auto) {
+        in_auto = true;
         ROS_WARN("auto entered");
         if(MatchData->allianceData != "") {
             if(start_time==0) {
@@ -368,32 +382,32 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                                          */
     ///////////////////////////////////////
             std::vector<double> times;
-            if(MatchData->allianceData=="rlr") {
+            if(lower(MatchData->allianceData)=="rlr") {
                 auto_mode = 1;
                 layout = 1;
                 for(int i = 0; i<vectTimes[0].size(); i++) {
                     //times.push_back(vectTimes[0][i]);
                 }
             }
+            else if(lower(MatchData->allianceData)=="lrl") {
         //ROS_WARN("auto entered");
             //ROS_WARN("2");
-            else if(MatchData->allianceData=="lrl") {
                 auto_mode = 2;
                 layout = 1;
                 for(int i = 0; i<vectTimes[1].size(); i++) {
                     //times.push_back(vectTimes[1][i]);
                 }
             }
-            else if(MatchData->allianceData=="rrr") {
+            else if(lower(MatchData->allianceData)=="rrr") {
                 auto_mode = 3;
                 layout = 2;
                 for(int i = 0; i<vectTimes[2].size(); i++) {
                     //times.push_back(vectTimes[2][i]);
                 }
             }
+            else if(lower(MatchData->allianceData) =="lll") {
         //ROS_WARN("auto entered");
             //ROS_WARN("3");
-            else if(MatchData->allianceData =="lll") {
                 auto_mode = 4;
                 layout = 2;
                 for(int i = 0; i<vectTimes[3].size(); i++) {
@@ -471,6 +485,10 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                         }
                     }
                 }
+                ROS_WARN("braked");
+                talon_swerve_drive_controller::Blank blank;
+                blank.request.nothing = true;
+                BrakeService.call(blank);
             }
             if(AutoMode->mode[auto_mode-1] == 2) {
                 ROS_WARN("Basic switch auto mode");
@@ -544,6 +562,11 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
                     }
                     releaseClamp(ClampSrv);
                 }
+                ROS_WARN("braked");
+                talon_swerve_drive_controller::Blank blank;
+                blank.request.nothing = true;
+                BrakeService.call(blank);
+                
             }
 
             if(AutoMode->mode[auto_mode-1] == 3) {
@@ -964,6 +987,9 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
     }
     else{
         start_time = 0;
+        if(!MatchData->isAutonomous || MatchData->isDisabled) {
+            in_auto = false;
+        }
     }
     /*
     edlse {
@@ -1015,6 +1041,8 @@ int main(int argc, char** argv) {
     ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
     //ClampService = n.advertise<std_msgs::Bool>("elevator/Clamp", 1);
     ClampService = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
+    BrakeService = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake");
+    
     VelPub = n.advertise<geometry_msgs::Twist>("/frcrobot/swerve_drive_controller/cmd_vel", 1);
 
     message_filters::Subscriber<ros_control_boilerplate::AutoMode> auto_mode_sub(n, "Autonomous_Mode", 1);

@@ -55,7 +55,9 @@
 		<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="screen" >
         	</node>
 		<node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="screen" >
-        	</node>
+		</node>
+
+		<node name="debug_cmd_vel" pkg="teleop_joystick_control" type="debug_cmd_vel" output="screen" />
 		
 
 		<!-- Convert joint states to /tf tranforms -->

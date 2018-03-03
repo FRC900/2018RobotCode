@@ -6,7 +6,6 @@
 #include "elevator_controller/Intake.h"
 #include "elevator_controller/bool_srv.h"
 #include "elevator_controller/Blank.h"
-#include "cstdlib"
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/IntakeLiftAction.h"
@@ -32,7 +31,6 @@ double dead_zone_check(double val) {
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 
 static double timeSecs = 0, lastTimeSecs = 0, directionUpLast = 0, YLast = 0, BLast = 0, ALast = 0,ADoubleStart = 0;
-static bool run_out = false;
 static std::string currentToggle = " ";
 static std::string lastToggle = " ";
 static double elevatorPosBeforeX;
@@ -108,6 +106,7 @@ static std::atomic<double> elevatorPosX;
 static std::atomic<double> elevatorPosY;
 static std::atomic<bool> elevatorUpOrDown;
 static int i = 0;
+static behaviors::IntakeLiftGoal elevatorGoal;
 std::atomic<double> navX_angle_;
 std::atomic<double> matchTimeRemaining;
 
@@ -172,6 +171,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	elevator_controller::bool_srv srvClamp;
 	elevator_controller::Intake srvIntake;
 
+	static bool run_out = false;
     behaviors::IntakeLiftGoal goal;
     goal.IntakeCube = false;
     goal.IntakeCubeNoLift = false;
@@ -697,7 +697,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	vel.angular.z *= slow_mode;
     }
     if((fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && fabs(vel.angular.z) == 0.0) && !sendRobotZero) {
-	talon_swerve_drive_controller::Blank blank;
+        talon_swerve_drive_controller::Blank blank;
         blank.request.nothing = true;
         brake_srv.call(blank);
         sendRobotZero = true;
@@ -771,36 +771,62 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle n_params(n, "teleop_params");
     
-    n_params.getParam("high_scale_config_x", high_scale_config_x);
-    n_params.getParam("high_scale_config_y", high_scale_config_y);
-    n_params.getParam("high_scale_config_up_or_down", high_scale_config_up_or_down);
-    n_params.getParam("mid_scale_config_x", mid_scale_config_x);
-    n_params.getParam("mid_scale_config_y", mid_scale_config_y);
-    n_params.getParam("mid_scale_config_up_or_down", mid_scale_config_up_or_down);
-    n_params.getParam("low_scale_config_x", low_scale_config_x);
-    n_params.getParam("low_scale_config_y", low_scale_config_y);
-    n_params.getParam("low_scale_config_up_or_down", low_scale_config_up_or_down);
-    n_params.getParam("switch_config_x", switch_config_x);
-    n_params.getParam("switch_config_y", switch_config_y);
-    n_params.getParam("switch_config_up_or_down", switch_config_up_or_down);
-    n_params.getParam("exchange_config_x", exchange_config_x);
-    n_params.getParam("exchange_config_y", exchange_config_y);
-    n_params.getParam("exchange_config_up_or_down", exchange_config_up_or_down);
-    n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x);
-    n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y);
-    n_params.getParam("intake_ready_to_drop_up_or_down", intake_ready_to_drop_up_or_down);
-    n_params.getParam("intake_config_x", intake_config_x);
-    n_params.getParam("intake_config_y", intake_config_y);
-    n_params.getParam("intake_config_up_or_down", intake_config_up_or_down);
-    n_params.getParam("climb", climb);
-    n_params.getParam("default_x", default_x);
-    n_params.getParam("default_y", default_y);
-    n_params.getParam("default_up_or_down", default_up_or_down);
-    n_params.getParam("exchange_delay", exchange_delay);
     n_params.getParam("move_out_pos_x", move_out_pos_x);
     n_params.getParam("move_out_pos_y", move_out_pos_y);
     n_params.getParam("move_out_up_or_down", move_out_up_or_down);
     n_params.getParam("move_out_down_y", move_out_down_y);
+    if (!n_params.getParam("high_scale_config_x", high_scale_config_x))
+		ROS_ERROR("Could not read high_scale_config_x");
+    if (!n_params.getParam("high_scale_config_y", high_scale_config_y))
+		ROS_ERROR("Could not read high_scale_config_y");
+    if (!n_params.getParam("high_scale_config_up_or_down", high_scale_config_up_or_down))
+		ROS_ERROR("Could not read high_scale_config_up_or_down");
+    if (!n_params.getParam("mid_scale_config_x", mid_scale_config_x))
+		ROS_ERROR("Could not read mid_scale_config_x");
+    if (!n_params.getParam("mid_scale_config_y", mid_scale_config_y))
+		ROS_ERROR("Could not read mid_scale_config_y");
+    if (!n_params.getParam("mid_scale_config_up_or_down", mid_scale_config_up_or_down))
+		ROS_ERROR("Could not read mid_scale_config_up_or_down");
+    if (!n_params.getParam("low_scale_config_x", low_scale_config_x))
+		ROS_ERROR("Could not read low_scale_config_x");
+    if (!n_params.getParam("low_scale_config_y", low_scale_config_y))
+		ROS_ERROR("Could not read low_scale_config_y");
+    if (!n_params.getParam("low_scale_config_up_or_down", low_scale_config_up_or_down))
+		ROS_ERROR("Could not read low_scale_config_up_or_down");
+    if (!n_params.getParam("switch_config_x", switch_config_x))
+		ROS_ERROR("Could not read switch_config_x");
+    if (!n_params.getParam("switch_config_y", switch_config_y))
+		ROS_ERROR("Could not read switch_config_y");
+    if (!n_params.getParam("switch_config_up_or_down", switch_config_up_or_down))
+		ROS_ERROR("Could not read switch_config_up_or_down");
+    if (!n_params.getParam("exchange_config_x", exchange_config_x))
+		ROS_ERROR("Could not read exchange_config_x");
+    if (!n_params.getParam("exchange_config_y", exchange_config_y))
+		ROS_ERROR("Could not read exchange_config_y");
+    if (!n_params.getParam("exchange_config_up_or_down", exchange_config_up_or_down))
+		ROS_ERROR("Could not read exchange_config_up_or_down");
+    if (!n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x))
+		ROS_ERROR("Could not read intake_ready_to_drop_x");
+    if (!n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y))
+		ROS_ERROR("Could not read intake_ready_to_drop_y");
+    if (!n_params.getParam("intake_ready_to_drop_up_or_down", intake_ready_to_drop_up_or_down))
+		ROS_ERROR("Could not read intake_ready_to_drop_up_or_down");
+    if (!n_params.getParam("intake_config_x", intake_config_x))
+		ROS_ERROR("Could not read intake_config_x");
+    if (!n_params.getParam("intake_config_y", intake_config_y))
+		ROS_ERROR("Could not read intake_config_y");
+    if (!n_params.getParam("intake_config_up_or_down", intake_config_up_or_down))
+		ROS_ERROR("Could not read intake_config_up_or_down");
+    if (!n_params.getParam("climb", climb))
+		ROS_ERROR("Could not read climb");
+    if (!n_params.getParam("default_x", default_x))
+		ROS_ERROR("Could not read default_x");
+    if (!n_params.getParam("default_y", default_y))
+		ROS_ERROR("Could not read default_y");
+    if (!n_params.getParam("default_up_or_down", default_up_or_down))
+		ROS_ERROR("Could not read default_up_or_down");
+    if (!n_params.getParam("exchange_delay", exchange_delay))
+		ROS_ERROR("Could not read exchange_delay");
 
 
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);

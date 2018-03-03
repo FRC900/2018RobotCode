@@ -100,6 +100,9 @@ teleopJoystickCommands PREFIX "")
 target_link_libraries(teleopJoystickCommands
   ${catkin_LIBRARIES}
 )
+
+
+
 ## Add cmake target dependencies of the executable
 ## same as for the library above. This is needed to force
 ## talon controller messages to be built before the
@@ -109,11 +112,20 @@ add_dependencies(teleopJoystickCommands
   ${catkin_EXPORTED_TARGETS}
 )
 
+add_executable(debug_cmd_vel src/debug_cmd_vel.cpp)
+set_target_properties(debug_cmd_vel PROPERTIES OUTPUT_NAME
+debug_cmd_vel PREFIX "")
+target_link_libraries(debug_cmd_vel
+  ${catkin_LIBRARIES}
+)
+add_dependencies(debug_cmd_vel ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS})
+
 ## TOOLS ------------------------------------------------------
 
 # Install ------------------------------------------------------------
 #Install header files
-install(TARGETS joystickSubscriber teleopJoystickCommands
+install(TARGETS joystickSubscriber teleopJoystickCommands debug_cmd_vel
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
