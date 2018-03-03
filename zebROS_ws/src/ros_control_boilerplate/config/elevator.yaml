@@ -27,8 +27,8 @@ elevator_controller:
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
         conversion_factor: 0.0454676
-        motion_cruise_velocity: 1 
-        motion_acceleration: 2
+        motion_cruise_velocity: 2 
+        motion_acceleration: 4
         current_limit_continuous_amps: 60
         current_limit_enable: True
     lift_follower1_joint:
@@ -42,17 +42,25 @@ elevator_controller:
         current_limit_continuous_amps: 60
         current_limit_enable: True
     pivot_joint:
-        joint: pivot
-        close_loop_values:
-            - {p: 6, i: 0.0006, d: 60, f: 5, i_zone: 700}
-            - {p: 6, i: 0.0006, d: 60, f: 5, i_zone: 700}
-        invert_output: True
-        sensor_phase: True
+	type: talon_controllers/TalonMotionMagicCloseLoopController
+        joint: pivot_joint
         feedback_type: CTRE_MagEncoder_Absolute
+        close_loop_values:
+            - {p: 1, i: 0.0002, d: 2.0, f: .6, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+            - {p: 1, i: 0.0002, d: 2.0, f: .6, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+        invert_output: True
+        sensor_phase: False
+        peak_output_forward: 0.4
+        peak_output_reverse: -0.4
+        nominal_output_forward: 0.0
+        nominal_output_reverse: 0.0
+        motion_cruise_velocity: 1
+        motion_acceleration: 2
+        voltage_compensation_enable: true
+        softlimit_forward_threshold: 0
+        softlimit_forward_threshold: 1
         conversion_factor: 1 #FIX
-        motion_cruise_velocity: 2
-        motion_acceleration: 4
-        current_limit_continuous_amps: 60
+        current_limit_continuous_amps: 30
         current_limit_enable: True
 
     intake_joint:

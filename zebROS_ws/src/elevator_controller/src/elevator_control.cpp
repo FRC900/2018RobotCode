@@ -193,8 +193,8 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	lift_joint_.setForwardSoftLimitEnable(true);
 	lift_joint_.setReverseSoftLimitEnable(true);
 
-	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 + pivot_offset_);
-	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + pivot_offset_);
+	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.05 + pivot_offset_);
+	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
 	
 	//TODO: something is broke with these soft limits
 
