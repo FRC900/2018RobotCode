@@ -3,7 +3,7 @@
 #include <ros/time.h>
 #include <ros/console.h>
 #include <teleop_joystick_control/teleopJoystickCommands.h>
-#include <ros_control_boilerplate/frcrobot_hw_interface.h>
+#include <ros_control_boilerplate/JoystickState.h>
 
 void headerCallback(const std_msgs::Header &msg)
 {
@@ -23,7 +23,7 @@ void headerCallback(const std_msgs::Header &msg)
 	}
 }
 
-void otherHeaderCallback(const ros_control_boilerplate::JoystickStates &msg)
+void HWHeaderCallback(const ros_control_boilerplate::JoystickState &msg)
 {
 	static double other_average_delay = 0;
 	static int other_count = 0;
@@ -37,7 +37,7 @@ void otherHeaderCallback(const ros_control_boilerplate::JoystickStates &msg)
 	}
 	else 
 	{ 
-		other_average_delay += (ros::Time::now().toSec() - msg.stamp.sec) / 100.0;
+		other_average_delay += (ros::Time::now().toSec() - msg.header.stamp.sec) / 100.0;
 	}
 }
 	
@@ -47,8 +47,8 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "debug_cmd_vel");
 	ros::NodeHandle n;
 
-	ros::Subscriber cmd_vel_subscriber = n.subscribe("test_header", 3, &headerCallback);
-	ros::Subscriver cmd_vel_subscriber1 = n.subscribe("joystick_states", 1, &otherHeaderCallback);
+	ros::Subscriber cmd_vel_subscriber1 = n.subscribe("test_header", 3, &headerCallback); //subscribing to teleopJoystickCommands loop
+	ros::Subscriber cmd_vel_subscriber2 = n.subscribe("joystick_states", 1, &HWHeaderCallback); //subscribing to frcrobot_hw_interface loop
 
 	ros::spin();
 	return 0;
