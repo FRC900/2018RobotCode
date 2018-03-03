@@ -354,6 +354,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         ROS_WARN("auto entered");
         if(MatchData->allianceData != "") {
             if(start_time==0) {
+                in_auto = false;
                 start_time = ros::Time::now().toSec();
             }
             /*
