@@ -115,6 +115,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_arm(nh_, "/frcrobot/override_arm_limits", 1);	
+	realtime_tools::RealtimePublisher<std_msgs::Bool> stop_arm(nh_, "/frcrobot/elevator_controller/stop_arm", 1);	
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -174,7 +175,12 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				override_arm.msg_.data = (bool)driveTable->GetBoolean("disable_arm_limits", 0);		
 				override_arm.unlockAndPublish();
 			}
+			if (stop_arm.trylock())
+			{
+				stop_arm.msg_.data = (bool)driveTable->GetBoolean("stop_arm", 0);
+				stop_arm.unlockAndPublish();
 
+			}
 			if (zero_navX.trylock())
 			{
 				double zero_angle;

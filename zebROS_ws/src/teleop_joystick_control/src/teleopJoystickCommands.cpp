@@ -6,7 +6,6 @@
 #include "elevator_controller/Intake.h"
 #include "elevator_controller/bool_srv.h"
 #include "elevator_controller/Blank.h"
-#include "cstdlib"
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/IntakeLiftAction.h"
@@ -32,7 +31,6 @@ double dead_zone_check(double val) {
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
 
 static double timeSecs = 0, lastTimeSecs = 0, directionUpLast = 0, YLast = 0, BLast = 0, ALast = 0,ADoubleStart = 0;
-static bool run_out = false;
 static std::string currentToggle = " ";
 static std::string lastToggle = " ";
 static double elevatorPosBeforeX;
@@ -41,6 +39,7 @@ static bool elevatorUpOrDownBefore;
 std::atomic<bool> hasCube;
 
 static ros::Publisher JoystickRobotVel;
+static ros::Publisher JoystickTestVel;
 static ros::Publisher JoystickElevatorPos;
 static ros::Publisher JoystickRumble;
 static ros::ServiceClient EndGameDeploy;
@@ -100,7 +99,6 @@ bool ifCube = true;
 static std::atomic<double> elevatorPosX;
 static std::atomic<double> elevatorPosY;
 static std::atomic<bool> elevatorUpOrDown;
-static int i = 0;
 static behaviors::IntakeLiftGoal elevatorGoal;
 std::atomic<double> navX_angle_;
 
@@ -154,6 +152,7 @@ void match_data_callback(const ros_control_boilerplate::MatchSpecificData::Const
 
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState) {
 
+	static bool run_out = false;
     behaviors::IntakeLiftGoal goal;
     elevator_controller::ElevatorControl elevatorMsg;
     //double matchTimeRemaining = MatchData->matchTimeRemaining;
@@ -310,7 +309,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                                 srvClamp.request.data = false;
                                 ClampSrv.call(srvClamp);
 
-                                srvIntake.request.power = -8;
+                                srvIntake.request.power = -0.8;
                                 srvIntake.request.spring_state = 2; //soft_in
                                 IntakeSrv.call(srvIntake);
                                 ros::Duration(.5).sleep();
@@ -631,6 +630,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	vel.linear.x = rotatedJoyVector[1];
 	vel.linear.y = rotatedJoyVector[0];
         JoystickRobotVel.publish(vel);
+	std_msgs::Header test_header;
+	test_header.stamp = JoystickState -> header.stamp;
+	JoystickTestVel.publish(test_header);
 	sendRobotZero = false;
     }
     if(rightStickX != 0 && rightStickY != 0) {
@@ -688,37 +690,64 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle n_params(n, "teleop_params");
     
-    n_params.getParam("high_scale_config_x", high_scale_config_x);
-    n_params.getParam("high_scale_config_y", high_scale_config_y);
-    n_params.getParam("high_scale_config_up_or_down", high_scale_config_up_or_down);
-    n_params.getParam("mid_scale_config_x", mid_scale_config_x);
-    n_params.getParam("mid_scale_config_y", mid_scale_config_y);
-    n_params.getParam("mid_scale_config_up_or_down", mid_scale_config_up_or_down);
-    n_params.getParam("low_scale_config_x", low_scale_config_x);
-    n_params.getParam("low_scale_config_y", low_scale_config_y);
-    n_params.getParam("low_scale_config_up_or_down", low_scale_config_up_or_down);
-    n_params.getParam("switch_config_x", switch_config_x);
-    n_params.getParam("switch_config_y", switch_config_y);
-    n_params.getParam("switch_config_up_or_down", switch_config_up_or_down);
-    n_params.getParam("exchange_config_x", exchange_config_x);
-    n_params.getParam("exchange_config_y", exchange_config_y);
-    n_params.getParam("exchange_config_up_or_down", exchange_config_up_or_down);
-    n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x);
-    n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y);
-    n_params.getParam("intake_ready_to_drop_up_or_down", intake_ready_to_drop_up_or_down);
-    n_params.getParam("intake_config_x", intake_config_x);
-    n_params.getParam("intake_config_y", intake_config_y);
-    n_params.getParam("intake_config_up_or_down", intake_config_up_or_down);
-    n_params.getParam("climb", climb);
-    n_params.getParam("default_x", default_x);
-    n_params.getParam("default_y", default_y);
-    n_params.getParam("default_up_or_down", default_up_or_down);
-    n_params.getParam("exchange_delay", exchange_delay);
+    if (!n_params.getParam("high_scale_config_x", high_scale_config_x))
+		ROS_ERROR("Could not read high_scale_config_x");
+    if (!n_params.getParam("high_scale_config_y", high_scale_config_y))
+		ROS_ERROR("Could not read high_scale_config_y");
+    if (!n_params.getParam("high_scale_config_up_or_down", high_scale_config_up_or_down))
+		ROS_ERROR("Could not read high_scale_config_up_or_down");
+    if (!n_params.getParam("mid_scale_config_x", mid_scale_config_x))
+		ROS_ERROR("Could not read mid_scale_config_x");
+    if (!n_params.getParam("mid_scale_config_y", mid_scale_config_y))
+		ROS_ERROR("Could not read mid_scale_config_y");
+    if (!n_params.getParam("mid_scale_config_up_or_down", mid_scale_config_up_or_down))
+		ROS_ERROR("Could not read mid_scale_config_up_or_down");
+    if (!n_params.getParam("low_scale_config_x", low_scale_config_x))
+		ROS_ERROR("Could not read low_scale_config_x");
+    if (!n_params.getParam("low_scale_config_y", low_scale_config_y))
+		ROS_ERROR("Could not read low_scale_config_y");
+    if (!n_params.getParam("low_scale_config_up_or_down", low_scale_config_up_or_down))
+		ROS_ERROR("Could not read low_scale_config_up_or_down");
+    if (!n_params.getParam("switch_config_x", switch_config_x))
+		ROS_ERROR("Could not read switch_config_x");
+    if (!n_params.getParam("switch_config_y", switch_config_y))
+		ROS_ERROR("Could not read switch_config_y");
+    if (!n_params.getParam("switch_config_up_or_down", switch_config_up_or_down))
+		ROS_ERROR("Could not read switch_config_up_or_down");
+    if (!n_params.getParam("exchange_config_x", exchange_config_x))
+		ROS_ERROR("Could not read exchange_config_x");
+    if (!n_params.getParam("exchange_config_y", exchange_config_y))
+		ROS_ERROR("Could not read exchange_config_y");
+    if (!n_params.getParam("exchange_config_up_or_down", exchange_config_up_or_down))
+		ROS_ERROR("Could not read exchange_config_up_or_down");
+    if (!n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x))
+		ROS_ERROR("Could not read intake_ready_to_drop_x");
+    if (!n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y))
+		ROS_ERROR("Could not read intake_ready_to_drop_y");
+    if (!n_params.getParam("intake_ready_to_drop_up_or_down", intake_ready_to_drop_up_or_down))
+		ROS_ERROR("Could not read intake_ready_to_drop_up_or_down");
+    if (!n_params.getParam("intake_config_x", intake_config_x))
+		ROS_ERROR("Could not read intake_config_x");
+    if (!n_params.getParam("intake_config_y", intake_config_y))
+		ROS_ERROR("Could not read intake_config_y");
+    if (!n_params.getParam("intake_config_up_or_down", intake_config_up_or_down))
+		ROS_ERROR("Could not read intake_config_up_or_down");
+    if (!n_params.getParam("climb", climb))
+		ROS_ERROR("Could not read climb");
+    if (!n_params.getParam("default_x", default_x))
+		ROS_ERROR("Could not read default_x");
+    if (!n_params.getParam("default_y", default_y))
+		ROS_ERROR("Could not read default_y");
+    if (!n_params.getParam("default_up_or_down", default_up_or_down))
+		ROS_ERROR("Could not read default_up_or_down");
+    if (!n_params.getParam("exchange_delay", exchange_delay))
+		ROS_ERROR("Could not read exchange_delay");
 
 
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
 
     JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+    JoystickTestVel = n.advertise<std_msgs::Header>("test_header", 1);
     JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
     JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
 
