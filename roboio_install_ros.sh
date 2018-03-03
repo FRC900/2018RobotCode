@@ -22,6 +22,8 @@ opkg install python-pkgutil python-dateutil python-argparse python-nose
 opkg clean
 opkg install python-netifaces libglog0 python-pip coreutils gdb ntp i2c-tools 
 opkg clean
+opkg install ntp ntp-tickadj ntp-utils ntpd
+opkg clean
 
 pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy
 
@@ -38,7 +40,7 @@ mkdir -p 2018RobotCode/zebROS_ws/src
 cd 2018RobotCode/zebROS_ws
 catkin_make_isolated --install
 cd 
-
+#Edit /etc/init.conf to be a copy of ntp-server in 2018RobotCode
 cd
 git clone https://github.com/gflags/gflags.git
 cd gflags
