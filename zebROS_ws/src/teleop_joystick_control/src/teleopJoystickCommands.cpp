@@ -717,10 +717,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	vel.linear.x = rotatedJoyVector[1];
 	vel.linear.y = rotatedJoyVector[0];
         JoystickRobotVel.publish(vel);
-	std_msgs::Header test_header;
+	/*std_msgs::Header test_header;
 	test_header.stamp = JoystickState -> header.stamp;
 	test_header.seq = 1;
-	JoystickTestVel.publish(test_header);
+	JoystickTestVel.publish(test_header);*/
 	sendRobotZero = false;
     }
     if(rightStickX != 0 && rightStickY != 0) {
