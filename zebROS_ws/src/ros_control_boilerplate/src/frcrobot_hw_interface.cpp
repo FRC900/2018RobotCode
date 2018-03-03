@@ -359,8 +359,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
 
 			const std::string game_specific_message = DriverStation::GetInstance().GetGameSpecificMessage();
-			if (game_specific_message.length() > 0)
-				game_specific_message_seen = true;
 			realtime_pub_match_data.msg_.allianceData = game_specific_message;
 			realtime_pub_match_data.msg_.allianceColor = DriverStation::GetInstance().GetAlliance(); //returns int that corresponds to a DriverStation Alliance enum
 			realtime_pub_match_data.msg_.driverStationLocation = DriverStation::GetInstance().GetLocation();
@@ -373,6 +371,12 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_match_data.msg_.header.stamp = time_now_t;
 			realtime_pub_match_data.unlockAndPublish();
+
+			if (realtime_pub_match_data.msg_.isEnabled && game_specific_message.length() > 0)
+				game_specific_message_seen = true;
+			else
+				game_specific_message_seen = false;
+
 			last_match_data_publish_time += ros::Duration(1.0 / match_data_publish_rate);
 		}
 	}
