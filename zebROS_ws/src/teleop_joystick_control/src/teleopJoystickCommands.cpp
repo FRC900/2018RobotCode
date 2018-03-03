@@ -41,6 +41,7 @@ static bool elevatorUpOrDownBefore;
 std::atomic<bool> hasCube;
 
 static ros::Publisher JoystickRobotVel;
+static ros::Publisher JoystickTestVel;
 static ros::Publisher JoystickElevatorPos;
 static ros::Publisher JoystickRumble;
 static ros::ServiceClient EndGameDeploy;
@@ -310,7 +311,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                                 srvClamp.request.data = false;
                                 ClampSrv.call(srvClamp);
 
-                                srvIntake.request.power = -8;
+                                srvIntake.request.power = -0.8;
                                 srvIntake.request.spring_state = 2; //soft_in
                                 IntakeSrv.call(srvIntake);
                                 ros::Duration(.5).sleep();
@@ -631,6 +632,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	vel.linear.x = rotatedJoyVector[1];
 	vel.linear.y = rotatedJoyVector[0];
         JoystickRobotVel.publish(vel);
+	std_msgs::Header test_header;
+	test_header.stamp = JoystickState -> header.stamp;
+	JoystickTestVel.publish(test_header);
 	sendRobotZero = false;
     }
     if(rightStickX != 0 && rightStickY != 0) {
@@ -719,6 +723,7 @@ int main(int argc, char **argv) {
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
 
     JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+    JoystickTestVel = n.advertise<std_msgs::Header>("test_header", 1);
     JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
     JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
 
