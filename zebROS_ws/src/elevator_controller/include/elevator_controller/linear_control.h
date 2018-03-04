@@ -139,6 +139,12 @@ class ElevatorController
 
 		bool getFirstString(XmlRpc::XmlRpcValue value, std::string &str);
 
+		double f_arm_mass_;
+		double f_arm_fric_;
+
+		double f_lift_high_;
+		double f_lift_low_;
+
 		double last_tar_l;
 		double last_tar_p;
 		std::atomic<bool> stop_arm_;	

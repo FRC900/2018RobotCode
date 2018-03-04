@@ -186,6 +186,26 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read hook_max_height");
 		return false;
 	}
+	if (!controller_nh.getParam("custom_f_lift_high", f_lift_high_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read lift high");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_lift_low", f_lift_low_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read lift low");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_arm_mass", f_lift_mass_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read arm mass");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_arm_fric", f_lift_fric_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read arm fric");
+		return false;
+	}
 	
 	//Set soft limits using offsets here
 	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_);
@@ -310,6 +330,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 			lift_joint_.setMotionAcceleration(after_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(after_shift_max_vel_);
 			lift_joint_.setPIDFSlot(1);
+			//lift_joint_.setF(f_lift_low_);
 		}
 	}
 	else
@@ -323,6 +344,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 			lift_joint_.setMotionAcceleration(before_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
 			lift_joint_.setPIDFSlot(0);
+			//lift_joint_.setF(f_lift_high_);
 		}
 	}
 	Commands curr_cmd = *(command_.readFromRT());
@@ -480,6 +502,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
+
+	double pivot_custom_f = cos(pivot_angle) * f_arm_mass_ +f_arm_fric_;
+	//pivot_joint_.setF(pivot_custom_f);
+
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
 	last_tar_l = curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_;
 	last_tar_p = (pivot_target + pivot_offset_);

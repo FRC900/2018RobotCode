@@ -8,6 +8,13 @@ elevator_controller:
     climb_height: 2.0 
     min_extension: 0.38 
    
+
+    custom_f_lift_high: 153.45 #Fix  
+    custom_f_lift_low: 53.45   #Fix  
+
+    custom_f_arm_mass: 153.45 #Fix  
+    custom_f_arm_fric: 53.45   #Fix  
+
     after_shift_max_accel: 2 #fix
     after_shift_max_vel: .5 #fix
 
@@ -31,6 +38,7 @@ elevator_controller:
         motion_acceleration: 4
         current_limit_continuous_amps: 60
         current_limit_enable: True
+
     lift_follower1_joint:
         joint: lift_follower1 
         invert_output: True
