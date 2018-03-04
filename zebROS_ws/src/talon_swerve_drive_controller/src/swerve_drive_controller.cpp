@@ -266,6 +266,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	bool lookup_encoder_drive_set_P_units = !controller_nh.getParam("encoder_drive_set_P_units", units_.rotationSetP);
 	bool lookup_encoder_steering_get_units = !controller_nh.getParam("encoder_steering_get_units", units_.steeringGet);
 	bool lookup_encoder_steering_set_units = !controller_nh.getParam("encoder_steering_set_units", units_.steeringSet);
+	bool lookup_f_static = !controller_nh.getParam("f_static", f_static_); //TODO: Maybe use this?
 	std::vector<double> wheel1a;
 	std::vector<double> wheel2a;
 	std::vector<double> wheel3a;

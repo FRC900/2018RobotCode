@@ -196,12 +196,12 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read lift low");
 		return false;
 	}
-	if (!controller_nh.getParam("custom_f_arm_mass", f_lift_mass_))
+	if (!controller_nh.getParam("custom_f_arm_mass", f_arm_mass_))
 	{
 		ROS_ERROR_NAMED(name_, "Can not read arm mass");
 		return false;
 	}
-	if (!controller_nh.getParam("custom_f_arm_fric", f_lift_fric_))
+	if (!controller_nh.getParam("custom_f_arm_fric", f_arm_fric_))
 	{
 		ROS_ERROR_NAMED(name_, "Can not read arm fric");
 		return false;

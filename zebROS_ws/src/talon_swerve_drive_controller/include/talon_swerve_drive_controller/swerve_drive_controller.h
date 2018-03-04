@@ -206,6 +206,8 @@ class TalonSwerveDriveController
 		swerveVar::ratios driveRatios_;
 		
 		swerveVar::encoderUnits units_;
+		double f_static_;
+
 		/// Timeout to consider cmd_vel commands old:
 		double cmd_vel_timeout_;
 
