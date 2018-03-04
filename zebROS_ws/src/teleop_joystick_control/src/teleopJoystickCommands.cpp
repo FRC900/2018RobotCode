@@ -323,21 +323,22 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	 else if(JoystickState->buttonAPress==true)
 		{
-                        goal.IntakeCube = false;   
+                        /*ROS_WARN("intaking");
+			goal.IntakeCube = false;   
                         goal.GoToHeight = false;
                         goal.MoveArmAway = false;
                         goal.IntakeCubeNoLift = true;
                         ac->sendGoal(goal);
-
+			*/
 			//TODO: eventually, disable above and enable below:
 			//Further more, below and the associated stuff should be
 			//Ported to an action lib (a new one)
-			//srvIntake.request.power = .8;
-                        //srvIntake.request.spring_state = 2; //soft_in
-                        //srvIntake.request.up = false;
-                        //IntakeSrv.call(srvIntake);
-			//go_to_intake_config = achieved_pos != intake;
-			//manage_intaking = true;
+			srvIntake.request.power = .8;
+                        srvIntake.request.spring_state = 2; //soft_in
+                        srvIntake.request.up = false;
+                        IntakeSrv.call(srvIntake);
+			go_to_intake_config = achieved_pos != intake;
+			manage_intaking = true;
 
             }
 	
@@ -845,7 +846,7 @@ int main(int argc, char **argv) {
     JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
     JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
 
-    EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/end_game_deploy", 1);
+    EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/end_game_deploy");
     ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
     ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
     IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");

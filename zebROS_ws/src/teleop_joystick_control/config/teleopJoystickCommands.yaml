@@ -16,7 +16,7 @@ teleop_params:
     exchange_config_y: .5
     exchange_config_up_or_down: false
     intake_ready_to_drop_x: .215
-    intake_ready_to_drop_y: .6607 #1.075 - y pos arm relative
+    intake_ready_to_drop_y: 1.0 #1.075 - y pos arm relative
     intake_ready_to_drop_up_or_down: false
     intake_config_x: .215
     intake_config_y: 0.45 #consider always drop - press and then grab

@@ -4,7 +4,7 @@ elevator_controller:
     intake: ["intake_joint", "intake_follower_joint"]
     pivot: "pivot_joint"
     arm_length: 0.466729 
-    max_extension: 2.375 #3.628571429 #29619 
+    max_extension: 2.1 #3.628571429 #29619 
     climb_height: 2.0 
     min_extension: 0.38 
    
@@ -16,8 +16,8 @@ elevator_controller:
     hook_min_height: 1.27 #FIX
     hook_max_height: 1.45 #FIX
    #Fix below remove poly points 
-    polygon_points: [-1.0, .6, 0.21717, .6, 0.75, .6, 0.75, -1.0, -1.0, -1.0, -1.0, .6] #~5 cm of clearance   
-    cut_off_line: .6 
+    polygon_points: [-1.0, .93, -1.0, 3.0, 0.1, 3.0, 0.1, .93, 0.75, .93, 0.75, -1.0, -1.0, -1.0, -1.0, .93] #~5 cm of clearance   
+    cut_off_line: .93 
     lift_joint:
         joint: lift
         close_loop_values:
@@ -43,7 +43,7 @@ elevator_controller:
         current_limit_enable: True
     pivot_joint:
         type: talon_controllers/TalonMotionMagicCloseLoopController
-        joint: pivot_joint
+        joint: pivot
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
             - {p: 1, i: 0.0002, d: 2.0, f: .6, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}

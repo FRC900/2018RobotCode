@@ -257,11 +257,11 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	if(end_game_deploy_cmd_ && !end_game_deploy_t1_)
 	{
 		
-		ROS_INFO("part 1");
+		//ROS_INFO("part 1");
 		command_struct_.lin[0] = .1;
                 command_struct_.lin[1] = min_extension_ + cos(asin(.1 / arm_length_))*arm_length_;
                 command_struct_.up_or_down = true;
-                command_struct_.override_pos_limits = false;
+                command_struct_.override_pos_limits = true;
                 command_struct_.override_sensor_limits = false;
 		
 		command_.writeFromNonRT(command_struct_);		
@@ -271,11 +271,11 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	if(end_game_deploy_cmd_ && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .65)
 	{
-		ROS_INFO("part 2");
+		//ROS_INFO("part 2");
 		command_struct_.lin[0] = .1;
 		command_struct_.lin[1] = (climb_height_ - min_extension_)*2 + cos(asin(.1 / arm_length_))*arm_length_;
 		command_struct_.up_or_down = true;
-		command_struct_.override_pos_limits = false;
+		command_struct_.override_pos_limits = true;
 		command_struct_.override_sensor_limits = false;
 
 		command_.writeFromNonRT(command_struct_);		
@@ -283,7 +283,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .5)
 	{	
-		ROS_INFO("dropping");
+		//ROS_INFO("dropping");
 		std_msgs::Float64 msg;
 		msg.data = 1.0;
 		EndGameDeploy_.publish(msg);
@@ -297,7 +297,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
 	{
 		shift_cmd_ = true;
-		ROS_INFO("shifting");
+		//ROS_INFO("shifting");
 	} 
 	if(shift_cmd_)
 	{	
@@ -422,8 +422,15 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		lift_joint_.setPeakOutputForward(0);
 		lift_joint_.setPeakOutputReverse(0);
 	}
+	else
+	{
+		pivot_joint_.setPeakOutputForward(1);
+		pivot_joint_.setPeakOutputReverse(-1);
 
+		lift_joint_.setPeakOutputForward(1);
+		lift_joint_.setPeakOutputReverse(-1);
 
+	}
 	if(!curr_cmd.override_pos_limits)
 	{
 
