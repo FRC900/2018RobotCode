@@ -15,7 +15,7 @@
 /*TODO list:
  *
  *
- *Note: arm, end_game_deploy, and intake will become services
+ *Note: arm, EndGameDeploy, and intake will become services
  *
  *Press down to climb (lift goes to position)
  *
@@ -190,9 +190,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*std_msgs::Header first_header;
 	first_header.stamp = JoystickState -> header.stamp;
 	first_header.seq = 0;
-	JoystickTestVel.publish(first_header);*/
+	joystick_test_vel.publish(first_header);*/
 
-	elevator_controller::ElevatorControlS srvElevator;
+	elevator_controller::ElevatorControlS srv_elevator;
 	elevator_controller::bool_srv srvClamp;
 	elevator_controller::Intake srvIntake;
 	static ElevatorPos elevatorPosBefore;
@@ -233,6 +233,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 /*-----------------Down Press Climb to Correct height----------------------*/	
         if(JoystickState->directionDownPress) {
             const ElevatorPos epos = *(elevatorPos.readFromRT());
+		elevator_controller::ElevatorControlS srvElevator;
 		srvElevator.request.x = epos.X_;
 		srvElevator.request.y = climb;
 		srvElevator.request.up_or_down = epos.UpOrDown_;
@@ -267,12 +268,13 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
                 }
                 else {
+					elevator_controller::ElevatorControlS srvElevator;
                     srvElevator.request.x = mid_scale_config_x;
                     srvElevator.request.y = mid_scale_config_y;
                     srvElevator.request.up_or_down = mid_scale_config_up_or_down;
     	    	    srvElevator.request.override_pos_limits = localDisableArmLimits;
                 achieved_pos = mid_scale;
-                    if(ElevatorSrv.call(srvElevator)) {
+                    if(ElevatorSrv.call(srv_elevator)) {
                         ROS_WARN("Toggled to mid level scale height");
                     }
                     else{
@@ -402,6 +404,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 		//TODO: change to going to intake config
 
+		elevator_controller::ElevatorControlS srvElevator;
 		srvElevator.request.x = default_x;
 		srvElevator.request.y = default_y;
 		srvElevator.request.up_or_down = default_up_or_down;
@@ -417,6 +420,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	if (placed_delay_check && (timeSecs - place_start) > .5)
 	{
 		const ElevatorPos epos = *(elevatorPos.readFromRT());
+		elevator_controller::ElevatorControlS srvElevator;
 		srvElevator.request.x = epos.X_ + move_out_pos_x;
 		srvElevator.request.y = epos.Y_ + move_out_pos_y;
 		srvElevator.request.up_or_down = move_out_up_or_down;
@@ -492,6 +496,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 unToggle(last_achieved_pos, elevatorPosBefore, achieved_pos, currentToggle);
             }
             else {
+				elevator_controller::ElevatorControlS srvElevator;
                 srvElevator.request.x = switch_config_x;
                 srvElevator.request.y = switch_config_y;
                 srvElevator.request.up_or_down = switch_config_up_or_down;
@@ -545,6 +550,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 		else
 		{
+			elevator_controller::ElevatorControlS srvElevator;
 			srvElevator.request.x = default_x;
 			srvElevator.request.y = default_y;
 			srvElevator.request.up_or_down = default_up_or_down;
@@ -589,6 +595,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			}
 			else
 			{
+	elevator_controller::ElevatorControlS srvElevator;
 				srvElevator.request.x = low_scale_config_x;
 				srvElevator.request.y = low_scale_config_y;
 				srvElevator.request.up_or_down = low_scale_config_up_or_down;
@@ -622,6 +629,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				}
 				else
 				{
+	elevator_controller::ElevatorControlS srvElevator;
 					srvElevator.request.x = high_scale_config_x;
 					srvElevator.request.y = high_scale_config_y;
 					srvElevator.request.up_or_down = high_scale_config_up_or_down;
@@ -738,7 +746,7 @@ void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
 void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotState) {
     if(RobotState->ifCube==true) {
         ifCube = true;
-        rumbleTypeConverterPublish(0, 32767);
+        rumble_type_converterPublish(0, 32767);
         ROS_WARN("I has cube");
     }
     else {
@@ -750,20 +758,20 @@ void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotSta
 */
 /*
 void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
-    uint16_t leftRumble=0, rightRumble=0;
+    uint16_t left_rumble=0, right_rumble=0;
     double matchTimeRemaining = MatchData->matchTimeRemaining;
 	// TODO : make these a set of else if blocks?
     if(matchTimeRemaining < 61 && matchTimeRemaining > 59) {
-        leftRumble = 65535;
+        left_rumble = 65535;
     }
     else if(matchTimeRemaining < 31 && matchTimeRemaining > 29) {
-        rightRumble = 65535;
+        right_rumble = 65535;
     }
     else if(matchTimeRemaining <17 && matchTimeRemaining > 14) {
         allback(const sensor_msgs::Imu &navXState)
 
     }
-    rumbleTypeConverterPublish(leftRumble, rightRumble);
+    rumble_type_converterPublish(left_rumble, right_rumble);
 }*/
 int main(int argc, char **argv)
 {
@@ -841,7 +849,7 @@ int main(int argc, char **argv)
     JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
     JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
 
-    EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/end_game_deploy");
+    EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/EndGameDeploy");
     ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
     ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
     IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
