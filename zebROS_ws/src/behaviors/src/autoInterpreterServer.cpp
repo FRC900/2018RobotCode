@@ -97,6 +97,7 @@ class autoAction {
                 srv_elevator.request.up_or_down = false;
                 srv_elevator.request.override_pos_limits = false;
                 ElevatorSrv.call(srv_elevator);
+				ROS_INFO("Calling elevator service Intake Cube");
                 elevator_controller::Intake srv;
                 srv.request.up = false;
             }
@@ -107,6 +108,7 @@ class autoAction {
                 srv.request.spring_state = 2; //soft in
                 srv.request.up = false;
                 IntakeSrv.call(srv);
+				ROS_INFO("Calling intake service IntakeCubeNoLift");
             }
             else if(goal->GoToHeight) {
                 goal_num.store(1, std::memory_order_relaxed);
@@ -118,6 +120,7 @@ class autoAction {
                 srv.request.up_or_down = goal->up_or_down;
                 srv.request.override_pos_limits = goal->override_pos_limits;
                 ElevatorSrv.call(srv);
+				ROS_INFO("Calling elevator service ac GoToHeight");
             }
             else if(goal->MoveArmAway) {
                 goal_num.store(2, std::memory_order_relaxed);
@@ -128,16 +131,19 @@ class autoAction {
                 srv.request.override_pos_limits = true;
                 srv.request.up_or_down = true;
                 ElevatorSrv.call(srv);
+				ROS_INFO("Calling elevator service ac MoveArmAway");
                 ros::Duration(.4).sleep(); //Dirty
                 srv.request.x = goal->x - .1;
                 srv.request.y = goal->y;
                 srv.request.up_or_down = false;
+				// TODO : service call?
                 ros::Duration(.4).sleep(); //Dirty
 
                 srv.request.x = intake_config_x;
                 srv.request.y = intake_config_y;
                 srv.request.up_or_down = false;
                 ElevatorSrv.call(srv);
+				ROS_INFO("Calling elevator service ac MoveArmAway 3");
                 success.store(true, std::memory_order_relaxed);
             } else {
 				goal_num.store(-1, std::memory_order_relaxed);
@@ -183,6 +189,7 @@ class autoAction {
             elevator_controller::Intake srv;
             srv.request.power = 0;
             IntakeSrv.call(srv);
+			ROS_INFO("Calling intake service stop");
 			goal_num.store(-1, std::memory_order_relaxed);
 				
         }
