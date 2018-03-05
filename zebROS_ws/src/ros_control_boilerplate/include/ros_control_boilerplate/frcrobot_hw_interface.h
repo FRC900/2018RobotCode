@@ -168,13 +168,12 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		/** \brief Write the command to the robot hardware. */
 		virtual void write(ros::Duration &elapsed_time) override;
 
-	protected:
+	private:
 		void hal_keepalive_thread(void);
 		void process_motion_profile_buffer_thread(double hz);
-
-	private:
 		/** Get conversion factor for position, velocity, and closed-loop stuff */
-		virtual double getConversionFactor(int encoder_cycle_per_revolution, hardware_interface::FeedbackDevice encoder_feedback, hardware_interface::TalonMode talon_mode, int joint_id);
+
+		double getConversionFactor(int encoder_cycle_per_revolution, hardware_interface::FeedbackDevice encoder_feedback, hardware_interface::TalonMode talon_mode, int joint_id);
 
 		bool convertControlMode(const hardware_interface::TalonMode input_mode,
 								ctre::phoenix::motorcontrol::ControlMode &output_mode);
@@ -195,7 +194,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::atomic<bool> cube_state_;
 		void cubeCallback(const std_msgs::Bool &cube)
 		{
-			cube_state_ = cube.data;
+			cube_state_.store(cube.data, std::memory_order_relaxed);
 		}
 		ros::Subscriber cube_state_sub_;	
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;
@@ -211,12 +210,10 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::AnalogInput>> analog_inputs_;
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;
-		std::atomic<bool> run_hal_thread_;
 		std::thread motion_profile_thread_;
-		std::atomic<bool> run_motion_profile_thread_;
 
 		//PowerDistributionPanel pdp_joint_;
-		//
+
 		ROSIterativeRobot robot_;
 };  // class
 
