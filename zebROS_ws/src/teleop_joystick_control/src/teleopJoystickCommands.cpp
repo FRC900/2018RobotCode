@@ -19,7 +19,6 @@
  *Press down to climb (lift goes to position)
  *
  */
-//using namespace message_filters;
 static double dead_zone=.2, slow_mode=.33, max_speed=3.3, max_rot=7.65/2, joystick_scale=3;
 double dead_zone_check(double val) {
     if(fabs(val)<=dead_zone) {
@@ -40,7 +39,6 @@ static std::string lastToggle = " ";
 static double elevatorPosBeforeX;
 static double elevatorPosBeforeY;
 static bool elevatorUpOrDownBefore;
-std::atomic<bool> hasCube;
 
 static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickTestVel;
@@ -101,26 +99,19 @@ static bool climb_up;
 static bool default_up;
 */
  
-std::atomic<bool> disable_arm_limits;
-bool sendRobotZero = false;
-bool sendArmZero = false;
 // TODO : initialize values to meaningful defaults
 //double elevatorHeight;
+// Variables shared between callback threads and main
+// teleop callback
+static std::atomic<bool> hasCube;
 static std::atomic<double> elevatorPosX;
 static std::atomic<double> elevatorPosY;
 static std::atomic<bool> elevatorUpOrDown;
-static int i = 0;
 static behaviors::IntakeLiftGoal elevatorGoal;
-std::atomic<double> navX_angle_;
+
+std::atomic<bool> disable_arm_limits;
+std::atomic<double> navX_angle;
 std::atomic<double> matchTimeRemaining;
-
-
-ros::Subscriber navX_heading_;
-ros::Subscriber match_data;
-ros::Subscriber cube_state_;
-ros::Subscriber joystick_sub;
-ros::Subscriber elevator_odom;
-ros::Subscriber disable_arm_limits_sub;
 
 void unToggle(void) {
     currentToggle = " ";
@@ -133,6 +124,7 @@ void unToggle(void) {
     srvElevator.request.override_pos_limits = disable_arm_limits;
     ElevatorSrv.call(srvElevator);
     achieved_pos = last_achieved_pos;
+	ROS_INFO("teleop : called elevatorSrv in unToggle");
 }
 void setHeight(void) {
     elevatorPosBeforeX = elevatorPosX;
@@ -298,6 +290,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                         else {
                             srvClamp.request.data=false;
 			    ClampSrv.call(srvClamp);
+				ROS_INFO("teleop : called ClampSrv after single A press");
 			     placed_delay_check = true; //Kick off placing
                              place_start = ros::Time::now().toSec();  
 			  }
@@ -312,6 +305,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                             srvIntake.request.spring_state = 2; //soft_in
                             srvIntake.request.up = false;
                             IntakeSrv.call(srvIntake);
+							ROS_INFO("teleop : called intakeSrv after A press");
                             ALast = 0;
                         }
                         else {
@@ -351,11 +345,13 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	    {
 		srvClamp.request.data = false;
 		ClampSrv.call(srvClamp);
+		ROS_INFO("teleop : called ClampSrv in ready_to_spin_out_check");
 
 		srvIntake.request.power = -1;
 		srvIntake.request.spring_state = 2; //soft_in
 		srvIntake.request.up = false;
 		IntakeSrv.call(srvIntake);
+		ROS_INFO("teleop : called IntakeSrv in ready_to_spin_out_check");
 		finish_spin_out_check = true;		
                 ready_to_spin_out_check = false;  
 		time_start_spin = ros::Time::now().toSec();
@@ -369,6 +365,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 srvIntake.request.spring_state = 2; //soft_in
                 srvIntake.request.up = false;
                 IntakeSrv.call(srvIntake);
+				ROS_INFO("teleop : called IntakeSrv in finish_spin_out_check");
                 finish_spin_out_check = false;
 		
                 srvElevator.request.x = default_x;
@@ -376,6 +373,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 srvElevator.request.up_or_down = default_up_or_down;
     	        srvElevator.request.override_pos_limits = disable_arm_limits;
                 ElevatorSrv.call(srvElevator);
+				ROS_INFO("teleop : called ElevatorSrv in finish_spin_out_check");
 	    	achieved_pos = default_c;
 	}
 	static bool return_to_intake_from_low = false;
@@ -389,6 +387,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 srvElevator.request.up_or_down = move_out_up_or_down;
                 srvElevator.request.override_pos_limits = disable_arm_limits;
                 ElevatorSrv.call(srvElevator);
+				ROS_INFO("teleop : called ElevatorSrv in placed_delay_check");
 		placed_delay_check = false;
                 return_to_intake_from_low = achieved_pos == switch_c;
 		return_to_intake_from_high = !return_to_intake_from_low;
@@ -444,6 +443,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		clamp_transfer =false;
 		srvClamp.request.data = true;
 		ClampSrv.call(srvClamp);	
+		ROS_INFO("teleop : called ClampSrv in clamp_transfer");
 		srvIntake.request.power = 0.0;
 		srvIntake.request.spring_state = 1; //hard_out
 		srvIntake.request.up = false;
@@ -465,6 +465,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             srvIntake.request.spring_state = 2; //soft_in
             srvIntake.request.up = false;
             IntakeSrv.call(srvIntake);
+		ROS_INFO("teleop : called IntakeSrv in run)out");
             run_out = false;
         }
         if(hasCube && !run_out) {
@@ -472,6 +473,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             srvIntake.request.spring_state = 3; //hard_in
             srvIntake.request.up = false;
             IntakeSrv.call(srvIntake);
+		ROS_INFO("teleop : called IntakeSrv in not run_out");
         }
 
 /*------------------------------------Y------------------------------------*/
@@ -600,6 +602,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             srvIntake.request.up = true;
             srvIntake.request.spring_state = 2; //soft_in
             IntakeSrv.call(srvIntake);
+		ROS_INFO("teleop : called IntakeSrv in startButtonPress");
         }
 /*-----------------------------------------B------------------------------------------*/
     if(hasCube) //No need to go to switch/exchange without cube
@@ -667,11 +670,13 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             srvIntake.request.up = false;
             srvIntake.request.spring_state = 2; //soft_in
             IntakeSrv.call(srvIntake);
+			ROS_INFO("teleop : called IntakeSrv in BackButton press");
         }
         if(JoystickState->buttonBackRelease==true) {
             srvIntake.request.power = 0;
             srvIntake.request.up = false;
             IntakeSrv.call(srvIntake);
+			ROS_INFO("teleop : called IntakeSrv in BackButton release");
         }
 
    //}
@@ -704,10 +709,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         
 	vel.angular.z *= slow_mode;
     }
+static bool sendRobotZero = false;
     if((fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && fabs(vel.angular.z) == 0.0) && !sendRobotZero) {
         talon_swerve_drive_controller::Blank blank;
         blank.request.nothing = true;
         brake_srv.call(blank);
+		ROS_INFO("teleop : called brake_srv to stop");
         sendRobotZero = true;
     }
     else if(fabs(leftStickX) != 0.0 || fabs(leftStickY) != 0.0 || fabs(vel.angular.z) != 0.0)
@@ -716,7 +723,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
     joyVector[0] = leftStickX; //intentionally flipped
     joyVector[1] = -leftStickY;
-    Eigen::Rotation2Dd r(-navX_angle_ - M_PI/2);
+    Eigen::Rotation2Dd r(-navX_angle - M_PI/2);
     Eigen::Vector2d rotatedJoyVector = r.toRotationMatrix() * joyVector;
 	vel.linear.x = rotatedJoyVector[1];
 	vel.linear.y = rotatedJoyVector[0];
@@ -780,10 +787,14 @@ int main(int argc, char **argv) {
 
     ros::NodeHandle n_params(n, "teleop_params");
     
-    n_params.getParam("move_out_pos_x", move_out_pos_x);
-    n_params.getParam("move_out_pos_y", move_out_pos_y);
-    n_params.getParam("move_out_up_or_down", move_out_up_or_down);
-    n_params.getParam("move_out_down_y", move_out_down_y);
+    if (!n_params.getParam("move_out_pos_x", move_out_pos_x))
+		ROS_ERROR("Could not read move_out_pos_x");
+    if (!n_params.getParam("move_out_pos_y", move_out_pos_y))
+		ROS_ERROR("Could not read move_out_pos_y");
+    if (!n_params.getParam("move_out_up_or_down", move_out_up_or_down))
+		ROS_ERROR("Could not read move_out_up_or_down");
+    if (!n_params.getParam("move_out_down_y", move_out_down_y))
+		ROS_ERROR("Could not read move_out_down_y");
     if (!n_params.getParam("high_scale_config_x", high_scale_config_x))
 		ROS_ERROR("Could not read high_scale_config_x");
     if (!n_params.getParam("high_scale_config_y", high_scale_config_y))
@@ -854,16 +865,17 @@ int main(int argc, char **argv) {
     //message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "scaled_joystick_vals", 5);
     //message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
 
-    joystick_sub = n.subscribe("joystick_states", 1, &evaluateCommands);
-    match_data = n.subscribe("match_data", 1, &match_data_callback);
+	ros::Subscriber joystick_sub = n.subscribe("joystick_states", 1, &evaluateCommands);
+	ros::Subscriber match_data = n.subscribe("match_data", 1, &match_data_callback);
 
-    navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
-    elevator_odom = n.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
-    cube_state_   = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
-    disable_arm_limits_sub = n.subscribe("frcrobot/override_arm_limits", 1, &overrideCallback);
+	ros::Subscriber navX_heading_ = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
+	ros::Subscriber elevator_odom = n.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
+	ros::Subscriber cube_state_   = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
+	ros::Subscriber disable_arm_limits_sub = n.subscribe("frcrobot/override_arm_limits", 1, &overrideCallback);
 
 	disable_arm_limits = false;
-	navX_angle_ = M_PI/2; 
+	navX_angle = M_PI/2; 
+	matchTimeRemaining = std::numeric_limits<double>::max();
 
     ROS_WARN("joy_init");
 
@@ -913,7 +925,7 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 	double pitch;
 	double yaw;
 	tf2::Matrix3x3(navQuat).getRPY(roll, pitch, yaw);
-	navX_angle_ = yaw;
+	navX_angle = yaw;
 }
 void cubeCallback(const std_msgs::Bool &cube)
 {
