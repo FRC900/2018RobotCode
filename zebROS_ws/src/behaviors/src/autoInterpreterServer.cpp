@@ -261,6 +261,9 @@ int main(int argc, char** argv) {
     ros::NodeHandle n;
     ros::NodeHandle n_params(n, "teleop_params");
 
+	// If n is passed into autoAction class constructor, 
+	// these reads could move there also and the vars they
+	// read into moved to member vars
     if (n_params.getParam("intake_config_x", intake_config_x))
 		ROS_ERROR("Could not read intake_config_x");
     if (n_params.getParam("intake_config_y", intake_config_y))
