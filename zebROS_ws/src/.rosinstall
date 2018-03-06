@@ -3,12 +3,6 @@
     local-name: rplidar_ros
     uri: https://github.com/FRC900/rplidar_ros.git
 - git:
-    local-name: steered_wheel_base_controller
-    uri: https://github.com/FRC900/steered_wheel_base_controller.git
-- git:
-    local-name: teleop_twist_joy
-    uri: https://github.com/FRC900/teleop_twist_joy.git
-- git:
     local-name: zed-ros-wrapper
     uri: https://github.com/FRC900/zed-ros-wrapper.git
 - git:
