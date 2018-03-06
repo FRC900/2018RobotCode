@@ -8,7 +8,7 @@
 #include "elevator_controller/Blank.h"
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
-#include "behaviors/IntakeLiftAction.h"
+#include "behaviors/RobotAction.h"
 #include "talon_swerve_drive_controller/Blank.h"
 
 /*TODO list:
@@ -28,7 +28,7 @@ double dead_zone_check(double val) {
     return val;
 }
 
-std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
+std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
 
 const double double_tap_zone = .3;
 const double delay_after_single_tap = .31;
@@ -110,7 +110,6 @@ static std::atomic<double> elevatorPosX;
 static std::atomic<double> elevatorPosY;
 static std::atomic<bool> elevatorUpOrDown;
 static int i = 0;
-static behaviors::IntakeLiftGoal elevatorGoal;
 std::atomic<double> navX_angle_;
 std::atomic<double> matchTimeRemaining;
 
@@ -180,11 +179,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	elevator_controller::Intake srvIntake;
 
 	static bool run_out = false;
-    behaviors::IntakeLiftGoal goal;
+    behaviors::RobotGoal goal;
     goal.IntakeCube = false;
-    goal.IntakeCubeNoLift = false;
-    goal.GoToHeight = false;
-    goal.MoveArmAway = false;
+    goal.MoveToExchangeConfig = false;
     goal.x = 0;
     goal.y = 0;
     goal.up_or_down = true;
@@ -322,25 +319,20 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*------------------No Cube - Single Press Intake-------------------*/	
 
 	 else if(JoystickState->buttonAPress==true)
-		{
-                        /*ROS_WARN("intaking");
-			goal.IntakeCube = false;   
-                        goal.GoToHeight = false;
-                        goal.MoveArmAway = false;
-                        goal.IntakeCubeNoLift = true;
+	 {
+			goal.IntakeCube = true;  
+			goal.MoveToExchangeConfig = false;  
+			goal.x = default_x;
+			goal.y = default_y;
+			goal.up_or_down = default_up_or_down;
+			goal.override_pos_limits = false;
+			goal.dist_tolerance = .5;
+			goal.x_tolerance = .5;
+			goal.y_tolerance = .5;
+			goal.time_out = 15;
+ 
                         ac->sendGoal(goal);
-			*/
-			//TODO: eventually, disable above and enable below:
-			//Further more, below and the associated stuff should be
-			//Ported to an action lib (a new one)
-			srvIntake.request.power = .8;
-                        srvIntake.request.spring_state = 2; //soft_in
-                        srvIntake.request.up = false;
-                        IntakeSrv.call(srvIntake);
-			go_to_intake_config = achieved_pos != intake;
-			manage_intaking = true;
-
-            }
+         }
 	
 	/*-If in Exchange - Place and Run Intake Out-*/	 
 
@@ -516,8 +508,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                     unToggle();
                 }
                 else {
-		    go_to_intake_config = achieved_pos!=intake;
-
+			goal.IntakeCube = false;
+			goal.MoveToExchangeConfig = true;  
+			goal.time_out = 10;  
+ 
+                        ac->sendGoal(goal);
 		    }
                 }
                 YLast = 0;
@@ -526,48 +521,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 YLast = timeSecs;
             }
         }	
-	/*-Go to pos where intake can freely drop-*/	
-	if(go_to_intake_config)
-	{    
-		goal.GoToHeight = true;
-		goal.x = intake_ready_to_drop_x;
-		goal.y = intake_ready_to_drop_y;
-		goal.up_or_down = intake_ready_to_drop_up_or_down;
-		goal.override_pos_limits = disable_arm_limits; 
-		ac->sendGoal(goal);
-		ready_to_drop_check  = true;
-		go_to_intake_config = false;
-		achieved_pos = other;
-	
-	}
-	/*-----------------Drop Down---------------*/	
-	static bool ready_to_drop_check = false;
-	static bool check_intake = false;
-	if(ready_to_drop_check)
-        { 
-	        if(ac->getState().isDone()) 
-		{
-		    goal.GoToHeight = true;
-		    goal.x = intake_config_x;
-		    goal.y = intake_config_y;
-		    goal.up_or_down = intake_config_up_or_down;
-		    goal.override_pos_limits = true; 
-		    ac->sendGoal(goal);
-		    ready_to_drop_check = false;	
-		    check_intake = true;
-                }
-	}
-	/*-----------------Finished---------------*/	
-	if(check_intake)
-	{
-		if(ac->getState().isDone())
-		{
-			check_intake = false;
-		    	achieved_pos = intake;
-			//This needs to be checked so we can see whether or not we can push out a cube
-		}
-
-	}
 
 	
 /*----------------------------Right Bumper - Press Untoggle-----------------------------*/
@@ -839,7 +792,7 @@ int main(int argc, char **argv) {
 		ROS_ERROR("Could not read exchange_delay");
 
 
-    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
+    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
 
     JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
     JoystickTestVel = n.advertise<std_msgs::Header>("test_header", 3);

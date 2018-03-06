@@ -7,6 +7,7 @@ include ("../cmake_modules/CMakeOpt.cmake")
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  cmake_modules
   actionlib
   actionlib_msgs
   joint_trajectory_controller
@@ -117,7 +118,7 @@ find_package(catkin REQUIRED COMPONENTS
 # ACTIONLIB STUFF
 
 #find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
-add_action_files(DIRECTORY action FILES CubeIntake.action IntakeLift.action)
+add_action_files(DIRECTORY action FILES Robot.action Intake.action  Lift.action)
 generate_messages(DEPENDENCIES actionlib_msgs std_msgs)
 
 catkin_package(
@@ -125,25 +126,6 @@ catkin_package(
    #LIBRARIES behaviors
    CATKIN_DEPENDS actionlib nav_msgs roscpp rospy std_msgs
    DEPENDS system_lib
-)
-include_directories(include ${catkin_INCLUDE_DIRS})
-add_executable(CubeActionServer src/CubeActionServer.cpp)
-target_link_libraries(CubeActionServer ${catkin_LIBRARIES})
-add_dependencies(
-    CubeActionServer 
-    ${behaviors_EXPORTED_TARGETS}
-	${catkin_EXPORTED_TARGETS}
-)
-
-add_executable(CubeActionClient src/CubeActionClient.cpp)
-target_link_libraries(
-    CubeActionClient
-    ${catkin_LIBRARIES}
-)
-add_dependencies(
-	CubeActionClient
-    ${behaviors_EXPORTED_TARGETS}
-	${catkin_EXPORTED_TARGETS}
 )
 add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
 target_link_libraries(
@@ -165,6 +147,31 @@ add_dependencies(
     ${behaviors_EXPORTED_TARGETS}
 	${catkin_EXPORTED_TARGETS}
 )
+
+
+add_executable(autoInterpreterServerIntake src/autoInterpreterServerIntake.cpp)
+target_link_libraries(
+    autoInterpreterServerIntake
+    ${catkin_LIBRARIES}
+)
+add_dependencies(
+	autoInterpreterServerIntake
+    ${behaviors_EXPORTED_TARGETS}
+	${catkin_EXPORTED_TARGETS}
+)
+
+
+add_executable(autoInterpreterServerLift src/autoInterpreterServerLift.cpp)
+target_link_libraries(
+    autoInterpreterServerLift
+    ${catkin_LIBRARIES}
+)
+add_dependencies(
+	autoInterpreterServerLift
+    ${behaviors_EXPORTED_TARGETS}
+	${catkin_EXPORTED_TARGETS}
+)
+
 add_executable(dummy src/dummy.cpp)
 target_link_libraries(
     dummy
@@ -224,7 +231,7 @@ add_dependencies(
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS autoInterpreterClient autoInterpreterServer CubeActionClient CubeActionServer
+install(TARGETS autoInterpreterClient autoInterpreterServer autoInterpreterServerLift autoInterpreterServerIntake
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

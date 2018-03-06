@@ -1,5 +1,5 @@
-#include "ros/console.h"
 #include "ros/ros.h"
+#include "ros/console.h"
 #include "ros_control_boilerplate/AutoMode.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
 #include "message_filters/subscriber.h"

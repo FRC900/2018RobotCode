@@ -1,0 +1,15 @@
+#goal definition
+bool GoToPos #what others?
+float64 time_out
+float64 x
+float64 y
+bool up_or_down
+bool override_pos_limits
+float64 dist_tolerance
+float64 y_tolerance
+float64 x_tolerance
+---
+#result definition
+---
+#feedback
+bool timed_out
