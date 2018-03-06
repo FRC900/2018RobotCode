@@ -70,24 +70,19 @@ const int pidIdx = 0; //0 for primary closed-loop, 1 for cascaded closed-loop
 const int timeoutMs = 0; //If nonzero, function will wait for config success and report an error if it times out. If zero, no blocking or checking is performed
 
 FRCRobotHWInterface::FRCRobotHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_model)
-	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model),
-	  run_hal_thread_(true),
-	  run_motion_profile_thread_(true)
+	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model)
 {
 }
 
 FRCRobotHWInterface::~FRCRobotHWInterface()
 {
-	run_hal_thread_            = false;
-	run_motion_profile_thread_ = false;
 	hal_thread_.join();
 	motion_profile_thread_.join();
 }
 
 void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
-	run_hal_thread_ = true;
-        // This will be written by the last controller to be
+	// This will be written by the last controller to be
 	// spawned - waiting here prevents the robot from
 	// report robot code ready to the field until
 	// all controllers are started
@@ -134,7 +129,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
 
-	while (run_hal_thread_ && ros::ok())
+	while (ros::ok())
 	{
 		robot_.OneIteration();
 		time_now_t = ros::Time::now();
@@ -146,9 +141,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t))
 		{
 			// SmartDashboard works!
-			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_);
-			frc::SmartDashboard::PutNumber("Pressure", pressure_);
-			frc::SmartDashboard::PutBoolean("cube_state", cube_state_);
+			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_.load(std::memory_order_relaxed));
+			frc::SmartDashboard::PutNumber("Pressure", pressure_.load(std::memory_order_relaxed));
+			frc::SmartDashboard::PutBoolean("cube_state", cube_state_.load(std::memory_order_relaxed));
 
 			if (realtime_pub_nt.trylock()) 
 			{
@@ -359,8 +354,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.matchTimeRemaining = DriverStation::GetInstance().GetMatchTime();
 
 			const std::string game_specific_message = DriverStation::GetInstance().GetGameSpecificMessage();
-			if (game_specific_message.length() > 0)
-				game_specific_message_seen = true;
 			realtime_pub_match_data.msg_.allianceData = game_specific_message;
 			realtime_pub_match_data.msg_.allianceColor = DriverStation::GetInstance().GetAlliance(); //returns int that corresponds to a DriverStation Alliance enum
 			realtime_pub_match_data.msg_.driverStationLocation = DriverStation::GetInstance().GetLocation();
@@ -373,6 +366,12 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_match_data.msg_.header.stamp = time_now_t;
 			realtime_pub_match_data.unlockAndPublish();
+
+			if (realtime_pub_match_data.msg_.isEnabled && game_specific_message.length() > 0)
+				game_specific_message_seen = true;
+			else
+				game_specific_message_seen = false;
+
 			last_match_data_publish_time += ros::Duration(1.0 / match_data_publish_rate);
 		}
 	}
@@ -387,7 +386,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
 
 	ros::Rate rate(hz);
-	while (run_motion_profile_thread_ && ros::ok())
+	while (ros::ok())
 	{
 		for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		{
@@ -734,7 +733,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		analog_input_state_[i] = (analog_inputs_[i]->GetValue())*analog_input_a_[i] + analog_input_b_[i];
 		if(analog_input_names_[i] == "analog_pressure_sensor")
 		{
-			pressure_ = analog_input_state_[i];
+			pressure_.store(analog_input_state_[i], std::memory_order_relaxed);
 
 		}
 	}
@@ -772,7 +771,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			offset_navX_[i] = navX_command_[i] - navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI;
 		}
 
-			navX_angle_ = navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i];
+			navX_angle_.store(navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i], std::memory_order_relaxed);
 		}
 		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i]  );
 

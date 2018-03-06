@@ -73,6 +73,7 @@ static bool in_auto;
 std::vector<talon_swerve_drive_controller::FullGenCoefs> coefs_vect(4);
 
 
+// TODO : for all of these just make srv a local
 bool defaultConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.x = default_x;
     srv.request.y = default_y;

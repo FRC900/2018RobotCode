@@ -56,6 +56,8 @@ class autoAction {
 	bool timed_out;
 	
     public:
+		// TODO : pass in nh via the constructor - 
+		// use n from main()?
         autoAction(std::string name) :
             as_(nh_, name, boost::bind(&autoAction::executeCB, this, _1), false),
             action_name_(name)
@@ -198,6 +200,11 @@ class autoAction {
 				break;
 			    }
 			    if (!aborted) {
+	// TODO : goal should be to get as many variables as
+	// locals as possible.  This includes goal_num and success
+	// TODO: if the various goals are mutually exclusive, re-do
+	// them as a single enumerated type.  This could then be
+	// used in place of goal_num throughout the callback?
 				r.sleep();
 				ros::spinOnce();
 				timed_out |= (ros::Time::now().toSec()-startTime) < goal->time_out;
@@ -396,6 +403,8 @@ class autoAction {
  
         return;
     }
+	// TODO : verfiy debounce code copied here from
+	// cubeCallback works
     void highCubeCallback(const std_msgs::Bool &msg) {
 	high_cube = msg.data;    
 
@@ -405,10 +414,10 @@ class autoAction {
         const bool cube_state = cube.data;
         const bool high_cube_state = high_cube.data;
         if(cube_state && high_cube_state) {
-            high = true;
+            high.store(true, std::memory_order_relaxed);
         }
         else if(cube_state) {
-            low = true;
+            low.store(true, std::memory_order_relaxed);
         }
         */
     //} 
@@ -416,6 +425,12 @@ class autoAction {
         odom_x = msg->x;
         odom_y = msg->y;
         odom_up_or_down = msg->up_or_down;
+		// TODO : change this to update x & y values and write them to
+		// a current elevator pos struct. Then read this struct in the main
+		// loop and update success accordingly
+		// Should use a realtime_tools::RealtimeBuffer for the
+		// communication. This will make sure accesses to x and y
+		// are done as a unit - i.e. the x value matches the y
     }
 };
 
@@ -425,20 +440,26 @@ int main(int argc, char** argv) {
     ros::NodeHandle n;
     ros::NodeHandle n_params(n, "teleop_params");
 
-    n_params.getParam("intake_config_x", intake_config_x);
-    n_params.getParam("intake_config_y", intake_config_y);
     n_params.getParam("intake_config_up_or_down", intake_config_up_or_down);
-    n_params.getParam("intake_config_low_x", intake_low_x);
-    n_params.getParam("intake_config_low_y", intake_low_y);
     n_params.getParam("intake_config_low_up_or_down", intake_low_up_or_down);
     n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x);
     n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y);
     n_params.getParam("intake_ready_to_drop_up_or_down", intake_ready_to_drop_up_or_down);
 
     n_params.getParam("wait_after_clamp", wait_after_clamp);
-    ros::spin();
+	// If n is passed into autoAction class constructor, 
+	// these reads could move there also and the vars they
+	// read into moved to member vars
+    if (!n_params.getParam("intake_config_x", intake_config_x))
+		ROS_ERROR_STREAM("Could not read intake_config_x: ");
+    if (!n_params.getParam("intake_config_y", intake_config_y))
+		ROS_ERROR("Could not read intake_config_y");
+    if (!n_params.getParam("intake_config_low_x", intake_low_x))
+		ROS_ERROR("Could not read intake_config_low_x");
+    if (!n_params.getParam("intake_config_low_y", intake_low_y))
+		ROS_ERROR("Could not read intake_config_low_y");
     
-
+    ros::spin();
 
     return 0;
 }
