@@ -1359,7 +1359,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				//ROS_WARN("clear points");
 				safeTalonCall(talon->ClearMotionProfileTrajectories(), "ClearMotionProfileTrajectories");
 				(*can_talons_mp_written_)[joint_id].store(false, std::memory_order_relaxed);
-
 				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 			}
 
