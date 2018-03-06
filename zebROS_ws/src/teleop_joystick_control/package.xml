@@ -16,32 +16,13 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>message_generation</build_depend>
-
-  <depend>hardware_interface</depend>
-  <depend>controller_manager</depend>
   <depend>roscpp</depend>
-  <depend>message_filters</depend>
   <depend>control_msgs</depend>
-  <depend>trajectory_msgs</depend>
   <depend>actionlib</depend>
-  <depend>urdf</depend>
-  <depend>joint_limits_interface</depend>
-  <depend>transmission_interface</depend>
-  <depend>control_toolbox</depend>
-  <depend>std_msgs</depend>
   <depend>cmake_modules</depend>
-  <depend>libgflags-dev</depend>
-  <depend>sensor_msgs</depend>
-  <depend>rosparam_shortcuts</depend>
-  <depend>talon_interface</depend>
-  <depend>message_runtime</depend>
   <depend>ros_control_boilerplate</depend>
   <depend>behaviors</depend>
   <depend>elevator_controller</depend>
-
-  
-
 
   <export>
   </export>
