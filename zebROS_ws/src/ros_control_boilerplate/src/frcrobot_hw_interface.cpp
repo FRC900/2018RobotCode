@@ -330,8 +330,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			
 
 			realtime_pub_joystick.msg_.directionRightButton = joystick_right_;
-			realtime_pub_joystick.msg_.directionRightPress = joystick_right_ > joystick_up_last_;
-			realtime_pub_joystick.msg_.directionRightRelease = joystick_right_ > joystick_up_last_;
+			realtime_pub_joystick.msg_.directionRightPress = joystick_right_ > joystick_right_last_;
+			realtime_pub_joystick.msg_.directionRightRelease = joystick_right_ > joystick_right_last_;
 
 			joystick_up_last_ = joystick_up_;
 			joystick_down_last_ = joystick_down_;
@@ -588,7 +588,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
 		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
-		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id)* conversion_factor;
 		
 		const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
@@ -627,6 +626,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 					(talon_mode == hardware_interface::TalonMode_MotionProfile) ||
 					(talon_mode == hardware_interface::TalonMode_MotionMagic))
 			{
+				//const double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id)* conversion_factor;
 				
 				//const double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
 				//safeTalonCall(talon->GetLastError(), "GetClosedLoopError");
