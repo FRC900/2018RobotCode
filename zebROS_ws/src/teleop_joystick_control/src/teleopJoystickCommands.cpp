@@ -487,6 +487,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		goal.IntakeCube = false;
 		goal.MoveToIntakeConfig = true;
 		goal.time_out = 10;
+		ac->sendGoal(goal);
+		ROS_INFO("teleop : sendGoal() return_to_intake_from_high");
 		achieved_pos = intake;
 		// TODO : need to call /set goal?
 	}
@@ -506,6 +508,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		goal.IntakeCube = false;
 		goal.MoveToIntakeConfig = true;
 		goal.time_out = 10;
+		ac->sendGoal(goal);
+		ROS_INFO("teleop : sendGoal() return_to_intake_from_low");
 		achieved_pos = intake;
 		// TODO : need to call /set goal?
 	}
