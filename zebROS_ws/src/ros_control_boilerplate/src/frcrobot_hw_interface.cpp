@@ -1011,17 +1011,17 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 			error_name = "RemoteSensorsNotSupportedYet";
 			break;
 		case ctre::phoenix::MotProfFirmThreshold:
-			error = "MotProfFirmThreshold";
+			error_name = "MotProfFirmThreshold";
 			break;
 		case ctre::phoenix::MotProfFirmThreshold2:
-			error = "MotProfFirmThreshold2";
+			error_name = "MotProfFirmThreshold2";
 			break;
 
 		default:
 			{
 				std::stringstream s;
 				s << "Unknown Talon error " << error_code;
-				error = s.str;
+				error_name = s.str();
 				break;
 			}
 
@@ -1051,13 +1051,16 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		auto &tc = talon_command_[joint_id];
 
 		hardware_interface::FeedbackDevice internal_feedback_device;
+		double feedback_coefficient;
 		ctre::phoenix::motorcontrol::FeedbackDevice talon_feedback_device;
-		if (tc.encoderFeedbackChanged(internal_feedback_device) &&
+		if (tc.encoderFeedbackChanged(internal_feedback_device, feedback_coefficient) &&
 			convertFeedbackDevice(internal_feedback_device, talon_feedback_device))
 		{
 			//ROS_WARN("feedback");
 			safeTalonCall(talon->ConfigSelectedFeedbackSensor(talon_feedback_device, pidIdx, timeoutMs),"ConfigSelectedFeedbackSensor");
+			safeTalonCall(talon->ConfigSelectedFeedbackCoefficient(feedback_coefficient, pidIdx, timeoutMs),"ConfigSelectedFeedbackCoefficient");
 			ts.setEncoderFeedback(internal_feedback_device);
+			ts.setFeedbackCoefficient(feedback_coefficient);
 		}
 
 		const hardware_interface::TalonMode talon_mode = ts.getTalonMode();
@@ -1100,8 +1103,10 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			int    iz;
 			int    allowable_closed_loop_error;
 			double max_integral_accumulator;
+			double closed_loop_peak_output;
+			int    closed_loop_period;
 
-			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, slot))
+			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period, slot))
 			{
 				//ROS_WARN("PIDF");
 				safeTalonCall(talon->Config_kP(slot, p, timeoutMs),"Config_kP");
@@ -1112,6 +1117,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				// TODO : Scale these two?
 				safeTalonCall(talon->ConfigAllowableClosedloopError(slot, allowable_closed_loop_error, timeoutMs),"ConfigAllowableClosedloopError");
 				safeTalonCall(talon->ConfigMaxIntegralAccumulator(slot, max_integral_accumulator, timeoutMs),"ConfigMaxIntegralAccumulator");
+				safeTalonCall(talon->ConfigClosedLoopPeakOutput(slot, closed_loop_peak_output, timeoutMs),"ConfigClosedLoopPeakOutput");
+				safeTalonCall(talon->ConfigClosedLoopPeriod(slot, closed_loop_period, timeoutMs),"ConfigClosedLoopPeriod");
 
 				ts.setPidfP(p, slot);
 				ts.setPidfI(i, slot);
@@ -1120,7 +1127,16 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				ts.setPidfIzone(iz, slot);
 				ts.setAllowableClosedLoopError(allowable_closed_loop_error, slot);
 				ts.setMaxIntegralAccumulator(max_integral_accumulator, slot);
+				ts.setClosedLoopPeakOutput(closed_loop_peak_output, slot);
+				ts.setClosedLoopPeriod(closed_loop_period, slot);
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" PIDF slot " << slot << " config values");
+			}
+
+			bool aux_pid_polarity;
+			if (tc.auxPidPolarityChanged(aux_pid_polarity))
+			{
+				safeTalonCall(talon->ConfigAuxPIDPolarity(aux_pid_polarity, timeoutMs), "ConfigAuxPIDPolarity");
+				ts.setAuxPidPolarity(aux_pid_polarity);
 			}
 
 			if (slot_changed)
