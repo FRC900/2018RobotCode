@@ -972,6 +972,12 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 			error_name = "InvalidHandle";
 			break;
 
+		case ctre::phoenix::FeatureRequiresHigherFirm:
+			error_name = "FeatureRequiresHigherFirm";
+			break;
+		case ctre::phoenix::TalonFeatureRequiresHigherFirm:
+			error_name = "TalonFeatureRequiresHigherFirm";
+			break;
 
 		case ctre::phoenix::PulseWidthSensorNotPresent :
 			error_name = "PulseWidthSensorNotPresent";
@@ -999,11 +1005,25 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 			error_name = "case";
 			break;
 		case ctre::phoenix::CascadedPIDNotSupporteYet:
-			error_name = "CascadedPIDNotSupporteYet";
+			error_name = "CascadedPIDNotSupporteYet/AuxiliaryPIDNotSupportedYet";
 			break;
 		case ctre::phoenix::RemoteSensorsNotSupportedYet:
 			error_name = "RemoteSensorsNotSupportedYet";
 			break;
+		case ctre::phoenix::MotProfFirmThreshold:
+			error = "MotProfFirmThreshold";
+			break;
+		case ctre::phoenix::MotProfFirmThreshold2:
+			error = "MotProfFirmThreshold2";
+			break;
+
+		default:
+			{
+				std::stringstream s;
+				s << "Unknown Talon error " << error_code;
+				error = s.str;
+				break;
+			}
 
 	}
 	//ROS_ERROR_STREAM("Error calling " << talon_method_name << " : " << error_name);
@@ -1326,9 +1346,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			if (tc.clearMotionProfileTrajectoriesChanged())
 			{
 				//ROS_WARN("clear points");
-				talon->ClearMotionProfileTrajectories();
-				safeTalonCall(talon->GetLastError(), "ClearMotionProfileTrajectories");
-
+				safeTalonCall(talon->ClearMotionProfileTrajectories(), "ClearMotionProfileTrajectories");
 				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 			}
 
@@ -1357,6 +1375,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					pt.position = it->position / radians_scale;
 					pt.velocity = it->velocity / radians_per_second_scale;
 					pt.headingDeg = it->headingRad * 180. / M_PI;
+					pt.auxiliaryPos = it->auxiliaryPos; // TODO : unit conversion?
 					pt.profileSlotSelect0 = it->profileSlotSelect0;
 					pt.profileSlotSelect1 = it->profileSlotSelect1;
 					pt.isLastPoint = it->isLastPoint;
@@ -1522,11 +1541,6 @@ bool FRCRobotHWInterface::convertControlMode(
 	case hardware_interface::TalonMode_MotionMagic:
 		output_mode = ctre::phoenix::motorcontrol::ControlMode::MotionMagic;
 		break;
-	//case hardware_interface::TalonMode_TimedPercentOutput:
-		//output_mode = ctre::phoenix::motorcontrol::ControlMode::TimedPercentOutput;
-		//output_mode = ctre::phoenix::motorcontrol::ControlMode::Disabled;
-		//ROS_WARN("TimedPercentOutput mode seen in HW interface");
-		//break;
 	case hardware_interface::TalonMode_Disabled:
 		output_mode = ctre::phoenix::motorcontrol::ControlMode::Disabled;
 		break;

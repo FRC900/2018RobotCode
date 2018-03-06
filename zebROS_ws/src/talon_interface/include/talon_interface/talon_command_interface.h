@@ -23,6 +23,7 @@ struct TrajectoryPoint
 	double position;
 	double velocity;
 	double headingRad;
+	double auxiliaryPos;
 	uint32_t profileSlotSelect0;
 	uint32_t profileSlotSelect1;
 	bool isLastPoint;

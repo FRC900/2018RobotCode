@@ -21,7 +21,6 @@ enum TalonMode
 	TalonMode_Follower,
 	TalonMode_MotionProfile,
 	TalonMode_MotionMagic,
-	TalonMode_TimedPercentOutput,
 	TalonMode_Disabled,
 	TalonMode_Last
 };

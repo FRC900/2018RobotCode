@@ -338,9 +338,6 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 					case hardware_interface::TalonMode_MotionMagic:
 						m.talon_mode[i] = "Motion Magic";
 						break;
-					case hardware_interface::TalonMode_TimedPercentOutput:
-						m.talon_mode[i] = "Timed Percent Output";
-						break;
 					case hardware_interface::TalonMode_Disabled:
 						m.talon_mode[i] = "Disabled";
 						break;
