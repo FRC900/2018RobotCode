@@ -279,6 +279,15 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	{
 		
 		//ROS_INFO("part 1");
+		IntakeCommand climb_intake_cmd;
+		climb_intake_cmd.up_command = -1;
+		climb_intake_cmd.spring_command = 1;
+		climb_intake_cmd.power = 0;
+		
+		intake_command_.writeFromNonRT(climb_intake_cmd); //Not really sure how bad this is
+
+
+
 		command_struct_.lin[0] = .1;
                 command_struct_.lin[1] = min_extension_ + cos(asin(.1 / arm_length_))*arm_length_;
                 command_struct_.up_or_down = true;

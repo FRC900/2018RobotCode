@@ -238,6 +238,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvElevator.request.y = climb;
 		srvElevator.request.up_or_down = epos.UpOrDown_;
 		srvElevator.request.override_pos_limits = localDisableArmLimits;
+	    srvIntake.request.power = 0;
+	    srvIntake.request.spring_state = 1; //hard_out
+	    srvIntake.request.up = false;
+	    IntakeSrv.call(srvIntake); //Is it worth trying to clamp or run the intake slowly?
 
             ElevatorSrv.call(srvElevator);
             ROS_WARN("Climb config");
@@ -256,10 +260,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 /*-------------------------------------X------------------------------------*/	
 
-	static double clamp_time;
+
 	/*---------w/ Cube Single Press Toggle Mid Scale------*/	
-        if(JoystickState->buttonXPress && (!clamped || timeSecs - clamp_time > 10) ) {
-            if(localHasCube && !) {
+        if(JoystickState->buttonXPress  ) {
+	    static double clamp_time;
+	    static bool clamped;
+            if(localHasCube && (!clamped || timeSecs - clamp_time > 10)) {
                 currentToggle = "X";
                 if(lastToggle==" ") {
                     setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
@@ -284,7 +290,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             }
        /*------------No Cube Single Press Toggle Clamp------*/	
             else {
-		static bool clamped;
                 if(clamped == false) {
                     
 		    srvClamp.request.data = true;
