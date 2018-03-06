@@ -391,9 +391,17 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 		for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		{
 			const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
+			// Only write to non-follow, non-disabled talons
 			if ((talon_mode != hardware_interface::TalonMode_Follower) &&
 				(talon_mode != hardware_interface::TalonMode_Disabled))
-				can_talons_[i]->ProcessMotionProfileBuffer();
+			{
+				ctre::phoenix::motion::MotionProfileStatus talon_status;
+				safeTalonCall(can_talons_[i]->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+
+				// Only write if SW buffer has entries in it
+				if (talon_status.topBufferCnt)
+					can_talons_[i]->ProcessMotionProfileBuffer();
+			}
 
 			rate.sleep();
 		}
@@ -525,12 +533,11 @@ void FRCRobotHWInterface::init(void)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
 
+	//HAL_InitializePDP(0,0);
 	//pdp_joint_.ClearStickyFaults();
 	//pdp_joint_.ResetTotalEnergy();
 
-	//HAL_InitializePDP(0,0);
-
-	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 200.);
+	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 55.);
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
