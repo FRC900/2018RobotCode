@@ -7,6 +7,8 @@
 #include <atomic>
 #include <ros/console.h>
 
+static double intake_power;
+static double intake_hold_power;
 class autoAction {
     protected:
         //ros::NodeHandle nh_;
@@ -15,15 +17,13 @@ class autoAction {
 
         actionlib::SimpleActionServer<behaviors::IntakeAction> as_;
         std::string action_name_;
-        behaviors::IntakeFeedback feedback_;
-        behaviors::IntakeResult result_;
-	double intake_power;
-	double intake_hold_power;
         ros::ServiceClient IntakeSrv;
 	std::atomic<double> time_out;
 	std::atomic<int> cube_state_true;
 	std::atomic<bool> success;
+	std::atomic<bool> aborted;
 	bool timed_out;
+	behaviors::IntakeResult result_;
     public:
         autoAction(std::string name) :
             as_(nh_, name, boost::bind(&autoAction::executeCB, this, _1), false),
@@ -33,7 +33,7 @@ class autoAction {
             IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
             CubeState = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &autoAction::cubeCallback, this);
 	}
-
+	ros::Subscriber CubeState;
 
     ~autoAction(void) 
     {
@@ -94,8 +94,8 @@ class autoAction {
                 ROS_INFO("%s: Aborted", action_name_.c_str());
         }
 
-
-	as_.setSucceeded(timed_out);
+	result_.timed_out = timed_out;
+	as_.setSucceeded(result_);
         return;
     }
     void cubeCallback(const std_msgs::Bool &msg) {

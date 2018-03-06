@@ -1,16 +1,33 @@
 #include "ros/ros.h"
 #include "actionlib/server/simple_action_server.h"
-#include "behaviors/IntakeLiftAction.h"
+#include "behaviors/RobotAction.h"
+#include "behaviors/IntakeAction.h"
+#include "behaviors/LiftAction.h"
 #include "elevator_controller/ElevatorControl.h"
 #include "elevator_controller/Intake.h"
+#include "elevator_controller/bool_srv.h"
 #include "std_msgs/Bool.h"
 #include "elevator_controller/ElevatorControlS.h"
 #include "elevator_controller/ReturnElevatorCmd.h"
 #include <cstdlib>
 #include <atomic>
 #include <ros/console.h>
+#include "actionlib/client/simple_action_client.h"
+#include "actionlib/client/terminal_state.h"
+
 //elevator_controller/cmd_pos
 //elevator_controller/intake?
+static double intake_config_x;	 
+static double wait_after_clamp;	 
+static double intake_config_y;	
+static double intake_config_up_or_down;	
+static double intake_low_x;	 
+static double intake_low_y;	 
+static double intake_low_up_or_down;	
+static double intake_ready_to_drop_y;
+static double intake_ready_to_drop_x;
+static double intake_ready_to_drop_up_or_down;
+static double drop_x_tolerance;
 
 class autoAction {
     protected:
@@ -28,24 +45,20 @@ class autoAction {
 	std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ai;
 	std::shared_ptr<actionlib::SimpleActionClient<behaviors::LiftAction>> al;
 	std::atomic<bool> success;
+	std::atomic<bool> aborted;
 	std::atomic<bool> high_cube;
-	behaviors::IntakeGoal i_goal; 
-	behaviors::LiftGoal l_goal;
-	double intake_config_x;	 
-	double wait_after_clamp;	 
-	double intake_config_y;	
-	double intake_config_up_or_down;	
-	double intake_low_x;	 
-	double intake_low_y;	 
-	double intake_low_up_or_down;	
-	double intake_ready_to_drop_y;
-	double intake_ready_to_drop_x;
-	double intake_ready_to_drop_up_or_down; 
+	elevator_controller::Intake srvIntake;
+	behaviors::IntakeGoal goal_i; 
+	behaviors::LiftGoal goal_l;
+	std::atomic<double> odom_x;
+        std::atomic<double> odom_y;
+        std::atomic<double> odom_up_or_down;
+	bool timed_out;
+	
     public:
         autoAction(std::string name) :
             as_(nh_, name, boost::bind(&autoAction::executeCB, this, _1), false),
-            action_name_(name),
-			goal_num(-1)
+            action_name_(name)
         {
             as_.start();
             ElevatorSrv = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
@@ -59,7 +72,7 @@ class autoAction {
     {
     }
 
-    void executeCB(const behaviors::IntakeLiftGoalConstPtr &goal) {
+    void executeCB(const behaviors::RobotGoalConstPtr &goal) {
 	ros::Rate r(10);
         double startTime = ros::Time::now().toSec();
         aborted = false;
@@ -80,7 +93,7 @@ class autoAction {
 		if(!ready_to_drop)
 		{
 			goal_l.time_out = 5;
-			goal_l.GoToHeight = true;
+			goal_l.GoToPos = true;
 			goal_l.x = intake_ready_to_drop_x;
 			goal_l.y = intake_ready_to_drop_y;
 			goal_l.up_or_down = intake_ready_to_drop_up_or_down;
@@ -108,11 +121,11 @@ class autoAction {
 				//time_out if the action times out
 				if(ai->getState().isDone())
 				{
-					timed_out |= *(ai->getResult());  
+					timed_out |= (ai->getResult()->timed_out);  
 			    	}
 				if(al->getState().isDone())
 				{
-					timed_out |= *(al->getResult());  
+					timed_out |= (al->getResult()->timed_out);  
 			    		break;
 				}
 			    }
@@ -148,11 +161,11 @@ class autoAction {
 			if(al->getState().isDone())
 			{
 				//time_out if the action times out
-				timed_out |= *(al->getResult());  
+				timed_out |= (al->getResult()->timed_out);  
 			}
 			if(ai->getState().isDone())
 			{
-				timed_out |= *(ai->getResult());  
+				timed_out |= (ai->getResult()->timed_out);  
 			}
 			if(ai->getState().isDone() &&	ai->getState().isDone())
 			{
@@ -192,21 +205,22 @@ class autoAction {
 				if(al->getState().isDone())
 				{
 					//time_out if the action times out
-					timed_out |= *(al->getResult());  
+					timed_out |= (al->getResult()->timed_out);  
 					break;
 				}
 			
-		    }
+		    	    }
 
 
 		
 
+			}
 		}
-		}
+		double clamp_time;
 		if(!aborted && !timed_out)
 		{
 			srv_clamp.request.data = true;
-			double clamp_time = ros::Time::now().toSec();
+			clamp_time = ros::Time::now().toSec();
 			ClampSrv.call(srv_clamp);
 			srvIntake.request.power = 0;
             		srvIntake.request.up = false;
@@ -259,7 +273,7 @@ class autoAction {
 			if(al->getState().isDone())
 			{
 				//time_out if the action times out
-				timed_out |= *(al->getResult());  
+				timed_out |= (al->getResult()->timed_out);  
 				break;
 			}
 			
@@ -281,7 +295,7 @@ class autoAction {
 		if(!ready_to_drop)
 		{
 			goal_l.time_out = 5;
-			goal_l.GoToHeight = true;
+			goal_l.GoToPos = true;
 			goal_l.x = intake_ready_to_drop_x;
 			goal_l.y = intake_ready_to_drop_y;
 			goal_l.up_or_down = intake_ready_to_drop_up_or_down;
@@ -309,11 +323,11 @@ class autoAction {
 				//time_out if the action times out
 				if(ai->getState().isDone())
 				{
-					timed_out |= *(ai->getResult());  
+					timed_out |= (ai->getResult()->timed_out);  
 			    	}
 				if(al->getState().isDone())
 				{
-					timed_out |= *(al->getResult());  
+					timed_out |= (al->getResult()->timed_out);  
 			    		break;
 				}
 			    }
@@ -349,7 +363,7 @@ class autoAction {
 			if(al->getState().isDone())
 			{
 				//time_out if the action times out
-				timed_out |= *(al->getResult());  
+				timed_out |= (al->getResult()->timed_out);  
 				break;
 			}
 			
@@ -377,7 +391,8 @@ class autoAction {
 	{
                 ROS_INFO("%s: Aborted", action_name_.c_str());
 	}
-        as_.setSucceeded(timed_out);
+        result_.timed_out = timed_out;
+	as_.setSucceeded(result_);
  
         return;
     }
@@ -398,11 +413,9 @@ class autoAction {
         */
     //} 
     void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg) {
-        elevator_pos_x = msg->x;
-        elevator_pos_y = msg->y;
-        if(fabs(msg->x-targetPosX) < .1 && fabs(msg->y - targetPosY) < .1 && goal_num == 1) {
-            success = true;
-        }
+        odom_x = msg->x;
+        odom_y = msg->y;
+        odom_up_or_down = msg->up_or_down;
     }
 };
 

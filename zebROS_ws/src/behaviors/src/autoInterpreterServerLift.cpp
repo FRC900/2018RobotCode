@@ -8,8 +8,10 @@
 #include <cstdlib>
 #include <atomic>
 #include <ros/console.h>
+#include "behaviors/LiftAction.h"
 //elevator_controller/cmd_pos
 //elevator_controller/intake?
+static double arm_length_;
 
 class autoAction {
     protected:
@@ -19,8 +21,6 @@ class autoAction {
 
         actionlib::SimpleActionServer<behaviors::LiftAction> as_;
         std::string action_name_;
-        behaviors::LiftFeedback feedback_;
-        behaviors::LiftResult result_;
         ros::Publisher Elevator;
         ros::ServiceClient IntakeSrv;
         ros::ServiceClient ElevatorSrv;
@@ -30,13 +30,12 @@ class autoAction {
 	std::atomic<double> odom_x;
 	std::atomic<double> odom_y;
 	std::atomic<double> odom_up_or_down;
-	double arm_length_;
 	bool timed_out;
+	behaviors::LiftResult result_;
     public:
         autoAction(std::string name) :
             as_(nh_, name, boost::bind(&autoAction::executeCB, this, _1), false),
-            action_name_(name),
-			goal_num(-1)
+            action_name_(name)
         {
             as_.start();
             ElevatorSrv = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
@@ -44,7 +43,7 @@ class autoAction {
 		}
 
         ros::Subscriber elevator_odom;// = nh_.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
-    autoAction(void) 
+    ~autoAction(void) 
     {
     }
 
@@ -99,8 +98,8 @@ class autoAction {
         {
 	        ROS_INFO("%s: Aborted", action_name_.c_str());
         }
-
-        as_.setSucceeded(timed_out);	
+	result_.timed_out = timed_out;
+        as_.setSucceeded(result_);	
         
 	return;
     }

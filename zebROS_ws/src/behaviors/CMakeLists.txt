@@ -25,6 +25,12 @@ find_package(catkin REQUIRED COMPONENTS
   talon_swerve_drive_controller
 )
 
+include_directories(
+  include/
+  ${catkin_INCLUDE_DIRS}
+)
+
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -127,16 +133,16 @@ catkin_package(
    CATKIN_DEPENDS actionlib nav_msgs roscpp rospy std_msgs
    DEPENDS system_lib
 )
-add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
-target_link_libraries(
-    autoInterpreterClient
-    ${catkin_LIBRARIES}
-)
-add_dependencies(
-	autoInterpreterClient
-    ${behaviors_EXPORTED_TARGETS}
-	${catkin_EXPORTED_TARGETS}
-)
+#add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
+#target_link_libraries(
+#    autoInterpreterClient
+#    ${catkin_LIBRARIES}
+#)
+#add_dependencies(
+#	autoInterpreterClient
+#    ${behaviors_EXPORTED_TARGETS}
+#	${catkin_EXPORTED_TARGETS}
+#)
 add_executable(autoInterpreterServer src/autoInterpreterServer.cpp)
 target_link_libraries(
     autoInterpreterServer
@@ -160,7 +166,6 @@ add_dependencies(
 	${catkin_EXPORTED_TARGETS}
 )
 
-
 add_executable(autoInterpreterServerLift src/autoInterpreterServerLift.cpp)
 target_link_libraries(
     autoInterpreterServerLift
@@ -172,16 +177,17 @@ add_dependencies(
 	${catkin_EXPORTED_TARGETS}
 )
 
-add_executable(dummy src/dummy.cpp)
-target_link_libraries(
-    dummy
-    ${catkin_LIBRARIES}
-)
-add_dependencies(
-	dummy
-    ${behaviors_EXPORTED_TARGETS}
-	${catkin_EXPORTED_TARGETS}
-)
+
+#add_executable(dummy src/dummy.cpp)
+#target_link_libraries(
+#    dummy
+#    ${catkin_LIBRARIES}
+#)
+#add_dependencies(
+#	dummy
+#    ${behaviors_EXPORTED_TARGETS}
+#	${catkin_EXPORTED_TARGETS}
+#)
 ###########
 ## Build ##
 ###########
@@ -231,7 +237,7 @@ add_dependencies(
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS autoInterpreterClient autoInterpreterServer autoInterpreterServerLift autoInterpreterServerIntake
+install(TARGETS autoInterpreterServer autoInterpreterServerLift autoInterpreterServerIntake
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

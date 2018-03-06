@@ -10,6 +10,6 @@ float64 y_tolerance
 float64 x_tolerance
 ---
 #result definition
+bool timed_out
 ---
 #feedback
-bool timed_out
