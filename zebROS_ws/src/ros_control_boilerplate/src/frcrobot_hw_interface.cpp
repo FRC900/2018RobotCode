@@ -125,7 +125,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	ros::Time last_match_data_publish_time;
 
 	const double nt_publish_rate = 2;
-	const double joystick_publish_rate = 20;
+	//const double joystick_publish_rate = 20;
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
 
@@ -339,7 +339,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			joystick_right_last_ = joystick_right_;
 
 			realtime_pub_joystick.unlockAndPublish();
-			last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
+			//last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
 		}
 
 		// Run at full speed until we see the game specific message.
