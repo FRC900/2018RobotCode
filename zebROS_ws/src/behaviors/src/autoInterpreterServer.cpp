@@ -289,14 +289,14 @@ class autoAction {
 
 		}
 	}	
-	if(goal->MoveToExchangeConfig)
+	if(goal->MoveToIntakeConfig)
 	{
 		elevator_controller::bool_srv srv_clamp;
 		ros::spinOnce();
 		bool ready_to_drop = fabs(intake_ready_to_drop_x - odom_x) < drop_x_tolerance;	
 		srvIntake.request.power = 0;
             	srvIntake.request.up = false;
-            	srvIntake.request.spring_state = 1; //hard_out
+            	srvIntake.request.spring_state = goal->hasCube ? 1 : 2; //hard_out or soft in depending
 		IntakeSrv.call(srvIntake);
 		//If we aren't yet ready to drop, go to where we can drop
 		if(!ready_to_drop)

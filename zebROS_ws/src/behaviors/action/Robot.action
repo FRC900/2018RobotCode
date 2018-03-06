@@ -1,5 +1,5 @@
 bool IntakeCube
-bool MoveToExchangeConfig
+bool MoveToIntakeConfig
 float64 time_out
 #below config items are for going to position after completion. Could be used for other things too
 float64 x
@@ -9,6 +9,7 @@ bool override_pos_limits
 float64 dist_tolerance
 float64 y_tolerance
 float64 x_tolerance
+bool hasCube
 ---
 bool timed_out
 ---
