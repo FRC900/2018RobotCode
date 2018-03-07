@@ -193,10 +193,11 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
     ROS_WARN("check 3");
     point_gen.call(coefs_vect[layout]);
     ROS_WARN("check 4");
-    /*
+    
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.points = coefs_vect[layout].response.points;
-    ROS_INFO_STREAM("num_points: " << coefs_vect[layout].response.points.size());
+    ROS_INFO_STREAM("num_points: " << coefs_vect[layout].response.points.size() << " dt: "<< coefs_vect[layout].response.dt);
+    
     swerve_control_srv.request.dt = coefs_vect[layout].response.dt;
     swerve_control_srv.request.buffer = true;
     swerve_control_srv.request.clear  = true;
@@ -205,7 +206,7 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
     
     
     swerve_control.call(swerve_control_srv);
-    */
+    
 }
 
 std::string lower(std::string str) {
@@ -1057,7 +1058,7 @@ int main(int argc, char** argv) {
     message_filters::Synchronizer<data_sync> sync(data_sync(10), auto_mode_sub, match_data_sub);
     sync.registerCallback(boost::bind(&auto_modes, _1, _2));
     ROS_WARN("Auto Client loaded");
-    ros::Duration(10).sleep();
+    ros::Duration(20).sleep();
     ROS_WARN("post sleep");
     generateTrajectory(0, 0, 0);
 

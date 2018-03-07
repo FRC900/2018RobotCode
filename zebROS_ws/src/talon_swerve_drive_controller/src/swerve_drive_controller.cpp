@@ -621,10 +621,10 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 
 	//ROS_INFO_STREAM("mode: " << *(mode_.readFromRT())); 
-	if(/**(buffer_.readFromRT())*/ false)
+	if(*(buffer_.readFromRT()))
 	{
-		buffer_ = false;
-		
+		buffer_.writeFromNonRT(false);
+			
 		cmd_points curr_cmd = *(command_points_.readFromRT());
 		
 		
