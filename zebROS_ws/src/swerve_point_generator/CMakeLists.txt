@@ -1,12 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(swerve_point_generator)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
-
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
 include ("../cmake_modules/CMakeOpt.cmake")
 
 ## Find catkin macros and libraries
@@ -16,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   roscpp
   std_msgs
-  message_generation
   trajectory_msgs
   talon_swerve_drive_controller
 )
@@ -59,9 +52,6 @@ ${EIGEN3_INCLUDE_DIRS}
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
 # catkin_python_setup()
 
-
-
-
 add_executable(point_gen src/point_gen.cpp src/profiler.cpp)
 set_target_properties(point_gen PROPERTIES OUTPUT_NAME 
 point_gen PREFIX "")
@@ -79,7 +69,6 @@ install(TARGETS point_gen
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-
 
 #install(DIRECTORY
 #launch
