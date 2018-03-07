@@ -7,7 +7,7 @@
 #include "message_filters/sync_policies/approximate_time.h"
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
-#include "behaviors/IntakeLiftAction.h"
+#include "behaviors/RobotAction.h"
 #include "geometry_msgs/Twist.h"
 #include "std_msgs/Bool.h"
 #include "elevator_controller/ElevatorControl.h"
@@ -147,6 +147,7 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
     XmlRpc::XmlRpcValue &xml_t = path["times"];
     //const int num_splines = xml_x.size();
     talon_swerve_drive_controller::FullGenCoefs srv;
+    ROS_WARN("check 1");
     for(int num = 0; num<xml_x.size(); num++) {
         XmlRpc::XmlRpcValue &x = path["x"];
         XmlRpc::XmlRpcValue &x_num = x[num];
@@ -181,14 +182,17 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
         srv.request.end_points.push_back(num+1);
     }
      
-    for(int i = 0; i<xml_t.size(); i++) {
+    ROS_WARN("check 2");
+    /*for(int i = 0; i<xml_t.size(); i++) {
         const double t_val = xml_t[i];
         vectTimes[layout].push_back(t_val);
-    }
+    }*/
     srv.request.initial_v = 0;
     srv.request.final_v = 0;
     coefs_vect[layout] = srv;
+    ROS_WARN("check 3");
     point_gen.call(coefs_vect[layout]);
+    ROS_WARN("check 4");
     /*
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.points = coefs_vect[layout].response.points;
@@ -227,7 +231,7 @@ void runTrajectory(int auto_mode) {
     swerve_control.call(swerve_control_srv);
 }
 
-std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
+std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
 void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, const ros_control_boilerplate::MatchSpecificData::ConstPtr& MatchData) {
     if(AutoMode->position != start_pos) {
         for(int i = 0; i<4; i++) {
@@ -367,7 +371,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
             elevator_controller::Intake IntakeSrv;
             elevator_controller::ElevatorControlS ElevatorSrv;
             elevator_controller::bool_srv ClampSrv;
-            behaviors::IntakeLiftGoal goal;
+            behaviors::RobotGoal goal;
 
         ROS_WARN("auto entered");
     ///////////////TESTING/////////////////
@@ -1032,7 +1036,7 @@ int main(int argc, char** argv) {
     n_params.getParam("timeout", timeout);
 
     n_params_behaviors.getParam("modes", modes);
-    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
+    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
     ac->waitForServer(); 
 	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGenCoefs>("/point_gen/command");
 	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile");
@@ -1053,9 +1057,9 @@ int main(int argc, char** argv) {
     message_filters::Synchronizer<data_sync> sync(data_sync(10), auto_mode_sub, match_data_sub);
     sync.registerCallback(boost::bind(&auto_modes, _1, _2));
     ROS_WARN("Auto Client loaded");
-    //ros::Duration(30).sleep();
-
-    //generateTrajectory(0, 0, 0);
+    ros::Duration(10).sleep();
+    ROS_WARN("post sleep");
+    generateTrajectory(0, 0, 0);
 
     /*
     ROS_WARN("1");

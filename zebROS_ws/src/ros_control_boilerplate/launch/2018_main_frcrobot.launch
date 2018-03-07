@@ -17,9 +17,9 @@
 
 		<!-- Load controller settings -->
 		<rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
-		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_0.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
-		<rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets0.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets1.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
 		<rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
@@ -49,8 +49,17 @@
 		<node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="screen" >
         	</node>
 
+        	<node name="autoInterpreterServerLift" pkg="behaviors" type="autoInterpreterServerLift" output="screen" >
+		</node>
+
+        	<node name="autoInterpreterServerIntake" pkg="behaviors" type="autoInterpreterServerIntake" output="screen" >
+		</node>
+
         	<node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="screen" >
 		</node>
+        	
+
+        	
         	
 		<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="screen" >
         	</node>
