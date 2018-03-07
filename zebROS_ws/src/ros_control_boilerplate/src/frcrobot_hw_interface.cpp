@@ -196,6 +196,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 		//if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
 		//	realtime_pub_joystick.trylock())
+		if (realtime_pub_joystick.trylock())
 		{
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
