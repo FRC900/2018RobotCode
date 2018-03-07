@@ -606,17 +606,17 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 	if(*(clear_.readFromRT()))
 	{
-
-
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
-
 			steering_joints_[i].clearMotionProfileTrajectories();
 			speed_joints_[i].clearMotionProfileTrajectories();
 
 			steering_joints_[i].clearMotionProfileHasUnderrun();
 			speed_joints_[i].clearMotionProfileHasUnderrun();
 		}
+		// This is a bad hack, but we need a way to clear out
+		// the clear flag from inside the RT-ish update loop
+		clear_.writeFromNonRT(false);
 	}
 
 
@@ -628,7 +628,6 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		cmd_points curr_cmd = *(command_points_.readFromRT());
 		
 		
-
 		ROS_WARN("buffer in controller");
 		const int point_count2 = curr_cmd.drive_pos.size();
 		ROS_INFO_STREAM("points: " << point_count2);
@@ -765,8 +764,6 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		}
 		set_check_ = true;
 	}
-	
-
 }
 
 void TalonSwerveDriveController::starting(const ros::Time &time)
