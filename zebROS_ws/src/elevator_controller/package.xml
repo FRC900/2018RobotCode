@@ -25,7 +25,6 @@
   <depend>talon_interface</depend>
   <depend>talon_controllers</depend>
   <depend>message_runtime</depend>
-  <depend>talon_controllers</depend> 
 
   <export>
     <controller_interface plugin="${prefix}/elevator_controller_plugins.xml"/>
