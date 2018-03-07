@@ -121,7 +121,7 @@ class TalonSwerveDriveController
         	Eigen::Vector2d wheel3;
         	Eigen::Vector2d wheel4;
 
-		bool set_check_;
+		int set_check_;
 
 		void compOdometry(const ros::Time& time, const double inv_delta_t);
 		Eigen::MatrixX2d new_wheel_pos_;	

@@ -699,7 +699,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 	if(*(mode_.readFromRT()))
 	{
-		set_check_ = false;
+		set_check_ = 0;
 		Commands curr_cmd = *(command_.readFromRT());
 		const double dt = (time - curr_cmd.stamp).toSec();
 
@@ -756,13 +756,14 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			steering_joints_[i].setPIDFSlot(1);;
 		}
 
-		const int set_on  = ((*(run_.readFromRT())) && set_check_) ? 1 : 0;
+		const int set_on  = ((*(run_.readFromRT())) && set_check_ > 2) ? 1 : 0; //Adjust this set_check val
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
 			speed_joints_[i].setCommand(set_on);
 			steering_joints_[i].setCommand(set_on);
 		}
-		set_check_ = true;
+		if(set_check_ < 5)
+			set_check_ += 1;
 	}
 }
 
