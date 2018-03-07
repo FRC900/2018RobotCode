@@ -1,0 +1,8 @@
+#goal definition
+bool IntakeCube #what others?
+float64 time_out
+---
+#result definition
+bool timed_out
+---
+#feedback

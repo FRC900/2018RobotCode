@@ -57,20 +57,20 @@ shift_controller:
     joint: shift
 
 pivot_joint_controller:
-    type: talon_controllers/TalonPercentOutputController
+    type: talon_controllers/TalonMotionMagicCloseLoopController
     joint: pivot_joint
     feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
-        - {p: 4.2, i: 0.006, d: 45.0, f: 5, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
-        - {p: 4.2, i: 0.006, d: 45.0, f: 5, i_zone: 500}
+        - {p: 1, i: 0.0002, d: 2.0, f: .6, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+        - {p: 1, i: 0.0002, d: 2.0, f: .6, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
     invert_output: True
-    sensor_phase: True
-    peak_output_forward: 1.0
-    peak_output_reverse: -1.0
+    sensor_phase: False
+    peak_output_forward: 0.4
+    peak_output_reverse: -0.4
     nominal_output_forward: 0.0
     nominal_output_reverse: 0.0
-    motion_cruise_velocity: 32
-    motion_acceleration: 150
+    motion_cruise_velocity: 1
+    motion_acceleration: 2
     voltage_compensation_enable: true
     softlimit_forward_threshold: 0
     softlimit_forward_threshold: 1
@@ -78,19 +78,19 @@ intake_joint_controller:
     type: talon_controllers/TalonPercentOutputController
     joint: intake
 lift_joint_controller:
-    type: talon_controllers/TalonPercentOutputController
+    type: talon_controllers/TalonMotionMagicCloseLoopController
     joint: lift_joint
     feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
-        - {p: .4, i: 0.0005, d: 0.2, f: 0.1669, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+        - {p: .4, i: 0.0005, d: 0.2, f: 5, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
     invert_output: true #TODO transfer
     sensor_phase: true
     peak_output_forward: 1.0
     peak_output_reverse: -1.0
     nominal_output_forward: 0.0
     nominal_output_reverse: 0.0
-    motion_cruise_velocity: 40
-    motion_acceleration: 70
+    motion_cruise_velocity: .4
+    motion_acceleration: .8
     voltage_compensation_enable: true
     softlimit_reverse_threshold: -5.0
     softlimit_forward_threshold: 20.0
