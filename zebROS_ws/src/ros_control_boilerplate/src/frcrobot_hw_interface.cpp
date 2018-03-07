@@ -197,6 +197,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		//if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
 		//	realtime_pub_joystick.trylock())
 		{
+            
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
 			realtime_pub_joystick.msg_.rightStickY = joystick.GetRawAxis(5);
@@ -339,7 +340,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			joystick_right_last_ = joystick_right_;
 
 			realtime_pub_joystick.unlockAndPublish();
-			last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
+		//	last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
 		}
 
 		// Run at full speed until we see the game specific message.
