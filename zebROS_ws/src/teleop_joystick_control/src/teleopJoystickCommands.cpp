@@ -187,10 +187,10 @@ void match_data_callback(const ros_control_boilerplate::MatchSpecificData::Const
 //
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState)
 {
-	/*std_msgs::Header first_header;
+	std_msgs::Header first_header;
 	first_header.stamp = JoystickState->header.stamp;
 	first_header.seq = 0;
-	JoystickTestVel.publish(first_header);*/
+	JoystickTestVel.publish(first_header);
 
 	elevator_controller::ElevatorControlS srvElevator;
 	elevator_controller::bool_srv srvClamp;
@@ -804,10 +804,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		vel.angular.z = rotation;
 
 		JoystickRobotVel.publish(vel);
-		/*std_msgs::Header test_header;
+		std_msgs::Header test_header;
 		  test_header.stamp = JoystickState->header.stamp;
 		test_header.seq = 1;
-		JoystickTestVel.publish(test_header);*/
+		JoystickTestVel.publish(test_header);
 		sendRobotZero = false;
 	}
 
