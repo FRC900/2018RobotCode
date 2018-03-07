@@ -187,10 +187,10 @@ void match_data_callback(const ros_control_boilerplate::MatchSpecificData::Const
 //
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState)
 {
-	/*std_msgs::Header first_header;
-	first_header.stamp = JoystickState->header.stamp;
-	first_header.seq = 0;
-	JoystickTestVel.publish(first_header);*/
+	std_msgs::Header test_header;
+	test_header.stamp = JoystickState->header.stamp;
+	test_header.seq = 0;
+	JoystickTestVel.publish(test_header);
 
 	elevator_controller::ElevatorControlS srvElevator;
 	elevator_controller::bool_srv srvClamp;
@@ -774,10 +774,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	static bool sendRobotZero = false;
 
-	std_msgs::Header test_header;
-		test_header.stamp = JoystickState->header.stamp;
-		test_header.seq = 1;
-		JoystickTestVel.publish(test_header);
+	test_header.stamp = JoystickState->header.stamp;
+	test_header.seq = 1;
+	JoystickTestVel.publish(test_header);
+
 	// No motion? Tell the drive base to stop
 	if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 	{
@@ -826,6 +826,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		ROS_INFO("teleop : Joystive elevator pos");
 	}
 
+	test_header.stamp = JoystickState->header.stamp;
+	test_header.seq = 2;
+	JoystickTestVel.publish(test_header);
 	lastTimeSecs = timeSecs;
 }
 
@@ -936,7 +939,7 @@ int main(int argc, char **argv)
 	ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
 
 	JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-	JoystickTestVel = n.advertise<std_msgs::Header>("test_header", 3);
+	JoystickTestVel = n.advertise<std_msgs::Header>("test_header", 50);
 	JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
 	JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
 

@@ -82,6 +82,13 @@ target_link_libraries(debug_cmd_vel
 add_dependencies(debug_cmd_vel ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS})
 
+add_executable(simple_js_pub src/simple_js_pub.cpp)
+target_link_libraries(simple_js_pub
+  ${catkin_LIBRARIES}
+)
+add_dependencies(simple_js_pub ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS})
+
 ## TOOLS ------------------------------------------------------
 
 # Install ------------------------------------------------------------
