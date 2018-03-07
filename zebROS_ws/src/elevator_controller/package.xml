@@ -22,6 +22,7 @@
   <depend>roscpp</depend>
   <depend>actionlib</depend>
   <depend>std_msgs</depend>
+  <depend>controller_interface</depend>
   <depend>talon_interface</depend>
   <depend>talon_controllers</depend>
   <depend>message_runtime</depend>

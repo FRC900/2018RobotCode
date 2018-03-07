@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
     cmake_modules
 	roscpp
 	actionlib
+	controller_interface
     talon_interface
     talon_controllers
     message_generation
