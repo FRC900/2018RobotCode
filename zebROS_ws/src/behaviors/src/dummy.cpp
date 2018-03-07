@@ -1,5 +1,5 @@
-#include "behaviors/IntakeLiftAction.h"
-#include "geometry_msgs/Twist.h"
+/*
+//#include "geometry_msgs/Twist.h"
 #include "std_msgs/Bool.h"
 #include "elevator_controller/ElevatorControl.h"
 #include "elevator_controller/Intake.h"
@@ -17,8 +17,9 @@
 #include <talon_swerve_drive_controller/Coefs.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <XmlRpcValue.h>
-#include "ros/console.h"
-
+//#include "ros/console.h"
+*/
+/*
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
 
@@ -62,7 +63,8 @@ int main(int argc, char** argv) {
     //ros::NodeHandle n_params(n, "teleop_params");
 
     //ros::NodeHandle n_params_behaviors(n, "auto_params");
-   /*
+   */
+	/*
     n_params.getParam("high_scale_config_y", high_scale_config_y);
     n_params.getParam("mid_scale_config_x", mid_scale_config_x);
     n_params.getParam("mid_scale_config_y", mid_scale_config_y);

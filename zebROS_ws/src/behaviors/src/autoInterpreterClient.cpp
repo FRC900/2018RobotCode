@@ -1,5 +1,5 @@
-#include "ros/console.h"
 #include "ros/ros.h"
+#include "ros/console.h"
 #include "ros_control_boilerplate/AutoMode.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
 #include "message_filters/subscriber.h"
@@ -73,6 +73,7 @@ static bool in_auto;
 std::vector<talon_swerve_drive_controller::FullGenCoefs> coefs_vect(4);
 
 
+// TODO : for all of these just make srv a local
 bool defaultConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.x = default_x;
     srv.request.y = default_y;
@@ -354,6 +355,7 @@ void auto_modes(const ros_control_boilerplate::AutoMode::ConstPtr & AutoMode, co
         ROS_WARN("auto entered");
         if(MatchData->allianceData != "") {
             if(start_time==0) {
+                in_auto = false;
                 start_time = ros::Time::now().toSec();
             }
             /*

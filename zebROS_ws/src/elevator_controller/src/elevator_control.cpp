@@ -186,6 +186,26 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read hook_max_height");
 		return false;
 	}
+	if (!controller_nh.getParam("custom_f_lift_high", f_lift_high_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read lift high");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_lift_low", f_lift_low_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read lift low");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_arm_mass", f_arm_mass_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read arm mass");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_arm_fric", f_arm_fric_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read arm fric");
+		return false;
+	}
 	
 	//Set soft limits using offsets here
 	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_);
@@ -193,8 +213,8 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	lift_joint_.setForwardSoftLimitEnable(true);
 	lift_joint_.setReverseSoftLimitEnable(true);
 
-	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 + pivot_offset_);
-	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + pivot_offset_);
+	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.05 + pivot_offset_);
+	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
 	
 	//TODO: something is broke with these soft limits
 
@@ -254,14 +274,24 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//const double delta_t = period.toSec();
 	//const double inv_delta_t = 1 / delta_t;
 	//compOdometry(time, inv_delta_t);
-	if(end_game_deploy_cmd_ && !end_game_deploy_t1_)
+	const bool end_game_deploy_cmd = end_game_deploy_cmd_.load(std::memory_order_relaxed);
+	if(end_game_deploy_cmd && !end_game_deploy_t1_)
 	{
 		
-		ROS_INFO("part 1");
+		//ROS_INFO("part 1");
+		IntakeCommand climb_intake_cmd;
+		climb_intake_cmd.up_command = -1;
+		climb_intake_cmd.spring_command = 1;
+		climb_intake_cmd.power = 0;
+		
+		intake_command_.writeFromNonRT(climb_intake_cmd); //Not really sure how bad this is
+
+
+
 		command_struct_.lin[0] = .1;
                 command_struct_.lin[1] = min_extension_ + cos(asin(.1 / arm_length_))*arm_length_;
                 command_struct_.up_or_down = true;
-                command_struct_.override_pos_limits = false;
+                command_struct_.override_pos_limits = true;
                 command_struct_.override_sensor_limits = false;
 		
 		command_.writeFromNonRT(command_struct_);		
@@ -269,21 +299,21 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		end_game_deploy_t1_ = true;	
 		end_game_deploy_start_ = ros::Time::now().toSec();
 	}
-	if(end_game_deploy_cmd_ && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .65)
+	if(end_game_deploy_cmd && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .65)
 	{
-		ROS_INFO("part 2");
+		//ROS_INFO("part 2");
 		command_struct_.lin[0] = .1;
 		command_struct_.lin[1] = (climb_height_ - min_extension_)*2 + cos(asin(.1 / arm_length_))*arm_length_;
 		command_struct_.up_or_down = true;
-		command_struct_.override_pos_limits = false;
+		command_struct_.override_pos_limits = true;
 		command_struct_.override_sensor_limits = false;
 
 		command_.writeFromNonRT(command_struct_);		
 		end_game_deploy_t2_ = true;	
 	}
-	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .5)
+	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > .5)
 	{	
-		ROS_INFO("dropping");
+		//ROS_INFO("dropping");
 		std_msgs::Float64 msg;
 		msg.data = 1.0;
 		EndGameDeploy_.publish(msg);
@@ -294,12 +324,13 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		msg.data = 0.0;
 		EndGameDeploy_.publish(msg);
 	}
-	if(end_game_deploy_cmd_ && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
+	bool local_shift_cmd = shift_cmd_.load(std::memory_order_relaxed);
+	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
 	{
-		shift_cmd_ = true;
-		ROS_INFO("shifting");
+		shift_cmd_.store(true, std::memory_order_relaxed);
+		local_shift_cmd = true;
 	} 
-	if(shift_cmd_)
+	if(local_shift_cmd)
 	{	
 		std_msgs::Float64 msg;
 		msg.data = 1.0;
@@ -310,6 +341,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 			lift_joint_.setMotionAcceleration(after_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(after_shift_max_vel_);
 			lift_joint_.setPIDFSlot(1);
+			//lift_joint_.setF(f_lift_low_);
 		}
 	}
 	else
@@ -323,25 +355,26 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 			lift_joint_.setMotionAcceleration(before_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
 			lift_joint_.setPIDFSlot(0);
+			//lift_joint_.setF(f_lift_high_);
 		}
 	}
 	Commands curr_cmd = *(command_.readFromRT());
-	cur_intake_cmd_ = *(intake_command_.readFromRT());
+	const IntakeCommand cur_intake_cmd = *(intake_command_.readFromRT());
 	//Use known info to write to hardware etc.
 	//Put in intelligent bounds checking
 
-	intake_joint_.setCommand(cur_intake_cmd_.power);
+	intake_joint_.setCommand(cur_intake_cmd.power);
 
-	if(cur_intake_cmd_.up_command < 0)
+	if(cur_intake_cmd.up_command < 0)
 	{
 		std_msgs::Float64 msg;
 		msg.data = -1.0;
 		IntakeUp_.publish(msg);
-		intake_down_time_ = ros::Time::now().toSec();
+		intake_down_time_.store(ros::Time::now().toSec(), std::memory_order_relaxed);
 	}
 	else
 	{
-		//if((ros::Time::now().toSec() - intake_down_time_) < 1.5) //1.5 is super arbitary
+		//if((ros::Time::now().toSec() - intake_down_time_.load(std::memory_order_relaxed)) < 1.5) //1.5 is super arbitary
 		//{
 			std_msgs::Float64 msg;
 			msg.data = 1.0;
@@ -355,12 +388,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		}*/
 	}
 	//Delay stuff maybe?
-	
-
 
 	std_msgs::Float64 intake_soft_msg;
 	std_msgs::Float64 intake_hard_msg;
-	switch(cur_intake_cmd_.spring_command)
+	switch(cur_intake_cmd.spring_command)
 	{
 		default:
 			intake_soft_msg.data = 1.0;
@@ -379,11 +410,11 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	IntakeHardSpring_.publish(intake_hard_msg);
 
 	std_msgs::Float64 clamp_msg;
-	clamp_msg.data = clamp_cmd_;
+	clamp_msg.data = clamp_cmd_.load(std::memory_order_relaxed);
 	Clamp_.publish(std_msgs::Float64(clamp_msg));
 
 	std_msgs::Bool cube_msg;
-	cube_msg.data = line_break_intake_ || line_break_clamp_;
+	cube_msg.data = line_break_intake_.load(std::memory_order_relaxed) || line_break_clamp_.load(std::memory_order_relaxed);
 	CubeState_.publish(cube_msg);
 
 	elevator_controller::ReturnElevatorCmd return_holder;
@@ -414,7 +445,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 	Odom_.publish(odom_holder);
 	
-	if(stop_arm_)
+	if(stop_arm_.load(std::memory_order_relaxed))
 	{	
 		pivot_joint_.setPeakOutputForward(0);
 		pivot_joint_.setPeakOutputReverse(0);
@@ -422,8 +453,15 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		lift_joint_.setPeakOutputForward(0);
 		lift_joint_.setPeakOutputReverse(0);
 	}
+	else
+	{
+		pivot_joint_.setPeakOutputForward(1);
+		pivot_joint_.setPeakOutputReverse(-1);
 
+		lift_joint_.setPeakOutputForward(1);
+		lift_joint_.setPeakOutputReverse(-1);
 
+	}
 	if(!curr_cmd.override_pos_limits)
 	{
 
@@ -469,10 +507,11 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	
 	//ROS_INFO_STREAM("up_or_down: " << curr_cmd.up_or_down << "lin pos target" << curr_cmd.lin << " lift pos tar: " << curr_cmd.lin[1] - arm_length_ * sin(pivot_target));	
 
-	
-
-
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
+
+	double pivot_custom_f = cos(pivot_angle) * f_arm_mass_ +f_arm_fric_;
+	//pivot_joint_.setF(pivot_custom_f);
+
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
 	last_tar_l = curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_;
 	last_tar_p = (pivot_target + pivot_offset_);
@@ -503,7 +542,7 @@ void ElevatorController::stopCallback(const std_msgs::Bool &command)
 {
 	if(isRunning())
 	{
-		stop_arm_ = command.data;
+		stop_arm_.store(command.data, std::memory_order_relaxed);
 	}
 	else
 	{
@@ -530,7 +569,7 @@ void ElevatorController::lineBreakCallback(const sensor_msgs::JointState &msg)
 		if(line_break_intake_index == -1)
 			ROS_ERROR_NAMED(name_, "Could not read index for intake_line_break");
 		else
-			line_break_intake_ = msg.position[line_break_intake_index] > 0;
+			line_break_intake_.store(msg.position[line_break_intake_index] > 0, std::memory_order_relaxed);
 
 		static size_t line_break_clamp_index = -1;
 		if(line_break_clamp_index == -1)
@@ -547,7 +586,7 @@ void ElevatorController::lineBreakCallback(const sensor_msgs::JointState &msg)
 		if(line_break_clamp_index == -1)
 			ROS_ERROR_NAMED(name_, "Could not read index for clamp_line_break");
 		else
-			line_break_clamp_ = msg.position[line_break_clamp_index] > 0;
+			line_break_clamp_.store(msg.position[line_break_clamp_index] > 0, std::memory_order_relaxed);
 	}
 }
 
@@ -578,11 +617,11 @@ bool ElevatorController::clampService(elevator_controller::bool_srv::Request &co
 	{
 		if(command.data)
 		{
-			clamp_cmd_ = -1.0;
+			clamp_cmd_.store(-1.0, std::memory_order_relaxed);
 		}
 		else
 		{
-			clamp_cmd_ = 1.0;
+			clamp_cmd_.store(1.0, std::memory_order_relaxed);
 		}
 		return true;
 	}
@@ -597,7 +636,7 @@ bool ElevatorController::shiftService(elevator_controller::bool_srv::Request &co
 {
 	if(isRunning())
 	{
-		shift_cmd_ = command.data;
+		shift_cmd_.store(command.data, std::memory_order_relaxed);
 		return true;
 	}
 	else
@@ -612,7 +651,7 @@ bool ElevatorController::endGameDeployService(elevator_controller::Blank::Reques
 	if(isRunning())
 	{
 		ROS_WARN("called deploy");
-		end_game_deploy_cmd_ = true;
+		end_game_deploy_cmd_.store(true, std::memory_order_relaxed);
 		return true;
 	}
 	else
@@ -626,20 +665,21 @@ bool ElevatorController::intakeService(elevator_controller::Intake::Request &com
 {
 	if(isRunning())
 	{
-		intake_struct_.power = command.power;
+		IntakeCommand intake_struct;
+		intake_struct.power = command.power;
 
 		if(command.up)
 		{
-			intake_struct_.up_command = -1.0;
+			intake_struct.up_command = -1.0;
 		}
 		else
 		{
-			intake_struct_.up_command = 1.0;
+			intake_struct.up_command = 1.0;
 		}
 
-		intake_struct_.spring_command = command.spring_state;	
-		intake_command_.writeFromNonRT(intake_struct_);
-		intake_down_time_ = ros::Time::now().toSec();
+		intake_struct.spring_command = command.spring_state;
+		intake_command_.writeFromNonRT(intake_struct);
+		intake_down_time_.store(ros::Time::now().toSec(), std::memory_order_relaxed);
 		return true;
 	}
 	else

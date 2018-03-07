@@ -26,6 +26,7 @@
 #include <memory>
 #include <Eigen/Dense>
 
+
 namespace elevator_controller
 {
 
@@ -63,7 +64,7 @@ class ElevatorController
 
 		double max_extension_;
 		double min_extension_;
-		double intake_down_time_;
+		std::atomic<double> intake_down_time_;
 
 		double hook_depth_;
 		double hook_min_height_;
@@ -74,6 +75,7 @@ class ElevatorController
 			double up_command;
 			int32_t spring_command;
 			double power;
+			double down_time;
 			IntakeCommand() : up_command(-1.0), spring_command(0.0), power(0.0) {}
 
 		};
@@ -100,8 +102,6 @@ class ElevatorController
 		ros::Subscriber sub_stop_arm_;
 		ros::Subscriber sub_joint_state_;
 		ros::ServiceServer service_command_;
-		IntakeCommand intake_struct_;
-		IntakeCommand cur_intake_cmd_;
 		realtime_tools::RealtimeBuffer<IntakeCommand> intake_command_;
 		ros::ServiceServer service_intake_;
 		ros::ServiceServer service_clamp_;
@@ -138,6 +138,12 @@ class ElevatorController
 		std::shared_ptr<arm_limiting::arm_limits> arm_limiter_;
 
 		bool getFirstString(XmlRpc::XmlRpcValue value, std::string &str);
+
+		double f_arm_mass_;
+		double f_arm_fric_;
+
+		double f_lift_high_;
+		double f_lift_low_;
 
 		double last_tar_l;
 		double last_tar_p;

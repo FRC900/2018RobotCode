@@ -15,11 +15,6 @@
 
 	<group ns="frcrobot">
 
-		<!-- Load hardware interface -->
-		<node name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
-			output="screen" launch-prefix="$(arg launch_prefix)">
-		</node>
-
 		<!-- Load controller settings -->
 		<rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_0.yaml" command="load"/>
@@ -31,6 +26,11 @@
         <rosparam file="$(find teleop_joystick_control)/config/teleopJoystickCommands.yaml" command="load"/>
 		<rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
         <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
+
+		<!-- Load hardware interface -->
+		<node name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
+			output="screen" launch-prefix="$(arg launch_prefix)">
+		</node>
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"

@@ -10,7 +10,6 @@ if (DEFINED CMAKE_TOOLCHAIN_FILE)
   find_package(catkin REQUIRED COMPONENTS
     roscpp
     message_filters
-    navx_publisher
     message_generation
     geometry_msgs
     std_msgs
@@ -22,7 +21,6 @@ else()
   find_package(catkin REQUIRED COMPONENTS
     roscpp
     message_filters
-    navx_publisher
     message_generation
     geometry_msgs
     std_msgs
@@ -66,8 +64,6 @@ find_package(orocos_kdl)
 ##   * uncomment the generate_messages entry below
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
-
-
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
@@ -91,7 +87,8 @@ add_message_files(
 ## Generate added messages and services with any dependencies listed here
 generate_messages(
   DEPENDENCIES
-  navx_publisher
+  std_msgs
+  geometry_msgs
 )
 
 ################################################
@@ -126,7 +123,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES goal_detection
- CATKIN_DEPENDS roscpp message_runtime navx_publisher geometry_msgs std_msgs sensor_msgs
+ CATKIN_DEPENDS roscpp message_runtime geometry_msgs std_msgs sensor_msgs
  #  DEPENDS system_lib
 )
 
