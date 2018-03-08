@@ -431,7 +431,7 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 
 	if(denomin != 0) 
 	{
-		holder_point.radius = fabs(pow(first_deriv_x*first_deriv_x + first_deriv_y*first_deriv_y, 3/2) / 
+		holder_point.radius = fabs(pow(first_deriv_x*first_deriv_x + first_deriv_y*first_deriv_y, 3.0/2.0) / 
 	denomin);
 	}
 	else
