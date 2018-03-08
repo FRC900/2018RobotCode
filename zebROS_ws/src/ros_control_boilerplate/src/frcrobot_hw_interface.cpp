@@ -419,6 +419,7 @@ void FRCRobotHWInterface::init(void)
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
 	
+	/*
 	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
 	
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
@@ -538,12 +539,14 @@ void FRCRobotHWInterface::init(void)
 	//pdp_joint_.ResetTotalEnergy();
 
 	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 55.);
+	*/	
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
 	
+	return;
 	const int talon_updates_to_skip = 2;
 	static int talon_skip_counter = 0;
 	static int next_talon_to_read = 0;
@@ -1019,6 +1022,7 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
+	/*
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		//TODO : skip over most or all of this if the talon is in follower mode
@@ -1474,7 +1478,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			double_solenoid_state_[i] = setpoint;
 		}
 	}
-	
+	*/	
 	for (size_t i = 0; i < num_rumble_; i++)
 	{
 		if (rumble_state_[i] != rumble_command_[i])
@@ -1486,7 +1490,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			rumble_state_[i] = rumble_command_[i];
 		}
 	}
-
+	/*
 	for (size_t i = 0; i< num_compressors_; i++)
 	{
 		if (last_compressor_command_[i] != compressor_command_[i])
@@ -1496,6 +1500,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			last_compressor_command_[i] = compressor_command_[i];
 		}
 	}
+	*/
 }
 
 // Convert from internal version of hardware mode ID
@@ -1566,7 +1571,7 @@ bool FRCRobotHWInterface::convertNeutralMode(
 		ROS_WARN("Unknown neutral mode seen in HW interface");
 		return false;
 	}
-
+	
 	return true;
 }
 

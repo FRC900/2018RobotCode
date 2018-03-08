@@ -178,7 +178,7 @@ void match_data_callback(const ros_control_boilerplate::MatchSpecificData::Const
 		leftRumble = 65535;
 		rightRumble = 65535;
 	}
-	rumbleTypeConverterPublish(leftRumble, rightRumble);
+	//rumbleTypeConverterPublish(leftRumble, rightRumble);
 }
 
 //TODO: Overrides
@@ -207,6 +207,19 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	goal.override_pos_limits = false;
 	elevator_controller::ElevatorControl elevatorMsg;
 	const double timeSecs = ros::Time::now().toSec();
+	static int counter = 0;
+	static double delay_avg = 0;
+	counter += 1;
+	if(counter % 100 == 0)
+	{
+		ROS_INFO_STREAM("delay ros_control_boilerplate to teleop: " << timeSecs - JoystickState->header.stamp.toSec());
+		delay_avg = 0;
+		counter = 0;
+	}
+	else
+	{
+		delay_avg += (timeSecs - JoystickState->header.stamp.toSec()) / 100;
+	}
 	static double lastTimeSecs = 0;
 	const bool localHasCube = hasCube.load(std::memory_order_relaxed);
 	goal.hasCube = localHasCube;
@@ -635,6 +648,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			}
 			else
 			{
+				ROS_WARN("Toggled to default config");
+				
 
 				goal.IntakeCube = false;
 				goal.MoveToIntakeConfig = true;
@@ -734,11 +749,26 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*------------------------Back Button - Hold Spin Out------------------------------------*/
 	if (JoystickState->buttonBackButton == true)
 	{
+		uint16_t leftRumble = 65535;
+		uint16_t rightRumble = 65535;
+		rumbleTypeConverterPublish(leftRumble, rightRumble);
+		
+		ROS_WARN("Vibrator");
+		/*
 		srvIntake.request.power = -.8;
 		srvIntake.request.up = false;
 		srvIntake.request.spring_state = 2; //soft_in
 		IntakeSrv.call(srvIntake);
 		ROS_INFO("teleop : called IntakeSrv in BackButton press");
+		*/
+	}
+	else
+	{
+		uint16_t leftRumble = 0;
+		uint16_t rightRumble = 0;
+		rumbleTypeConverterPublish(leftRumble, rightRumble);
+
+
 	}
 	if (JoystickState->buttonBackRelease == true)
 	{
