@@ -65,7 +65,7 @@ class autoAction {
             as_.start();
             ElevatorSrv = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
             IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
-            ClampSrv= nh_.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/intake");
+            ClampSrv= nh_.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
             HighCube = nh_.subscribe("/frcrobot/elevator_controller/high_cube", 1, &autoAction::highCubeCallback, this);
     		al = std::make_shared<actionlib::SimpleActionClient<behaviors::LiftAction>>("auto_interpreter_server_lift", true);
     		ai = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
@@ -106,7 +106,7 @@ class autoAction {
 			goal_l.dist_tolerance = 1.0;
 			goal_l.y_tolerance = 1.0;
 			goal_l.x_tolerance = drop_x_tolerance;
-			
+
 			al->sendGoal(goal_l);
 			//loop till we get to where we can drop
 			while(!aborted && !timed_out && !ready_to_drop )
