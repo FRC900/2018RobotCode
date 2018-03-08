@@ -40,7 +40,25 @@ mkdir -p 2018RobotCode/zebROS_ws/src
 cd 2018RobotCode/zebROS_ws
 catkin_make_isolated --install
 cd 
-#Edit /etc/init.conf to be a copy of ntp-server in 2018RobotCode
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+##################-----------------------------#################
+#Edit /etc/ntp.conf to be a copy of ntp-server in 2018RobotCode#
+##################-----------------------------#################
+#
+#
+#
+#---------------------------------------------------------------#
+#               to setup RTC on the rio
+#   Plug the rtc into the i2c port on the rio while unpowered
+#   copy rtc-bq32.ko
+#
+#
+#cp rtc-bq32k.ko /lib/modules/`uname -r`/kernel
+#depmod
+#i2cdetect -y 2
+#echo bq32000 0x68 | tee /sys/class/i2c-adapter/i2c-2/new_device
+
+
 cd
 git clone https://github.com/gflags/gflags.git
 cd gflags
