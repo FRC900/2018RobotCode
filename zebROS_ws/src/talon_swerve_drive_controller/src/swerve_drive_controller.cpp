@@ -606,29 +606,28 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 	if(*(clear_.readFromRT()))
 	{
-
-
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
-
 			steering_joints_[i].clearMotionProfileTrajectories();
 			speed_joints_[i].clearMotionProfileTrajectories();
 
 			steering_joints_[i].clearMotionProfileHasUnderrun();
 			speed_joints_[i].clearMotionProfileHasUnderrun();
 		}
+		// This is a bad hack, but we need a way to clear out
+		// the clear flag from inside the RT-ish update loop
+		clear_.writeFromNonRT(false);
 	}
 
 
 	//ROS_INFO_STREAM("mode: " << *(mode_.readFromRT())); 
-	if(/**(buffer_.readFromRT())*/ false)
+	if(*(buffer_.readFromRT()))
 	{
-		buffer_ = false;
-		
+		buffer_.writeFromNonRT(false);
+			
 		cmd_points curr_cmd = *(command_points_.readFromRT());
 		
 		
-
 		ROS_WARN("buffer in controller");
 		const int point_count2 = curr_cmd.drive_pos.size();
 		ROS_INFO_STREAM("points: " << point_count2);
@@ -700,7 +699,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 	if(*(mode_.readFromRT()))
 	{
-		set_check_ = false;
+		set_check_ = 0;
 		Commands curr_cmd = *(command_.readFromRT());
 		const double dt = (time - curr_cmd.stamp).toSec();
 
@@ -757,16 +756,15 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			steering_joints_[i].setPIDFSlot(1);;
 		}
 
-		const int set_on  = ((*(run_.readFromRT())) && set_check_) ? 1 : 0;
+		const int set_on  = ((*(run_.readFromRT())) && set_check_ > 2) ? 1 : 0; //Adjust this set_check val
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
 			speed_joints_[i].setCommand(set_on);
 			steering_joints_[i].setCommand(set_on);
 		}
-		set_check_ = true;
+		if(set_check_ < 5)
+			set_check_ += 1;
 	}
-	
-
 }
 
 void TalonSwerveDriveController::starting(const ros::Time &time)

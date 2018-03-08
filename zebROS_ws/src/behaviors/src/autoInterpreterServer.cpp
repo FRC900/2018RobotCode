@@ -67,6 +67,8 @@ class autoAction {
             IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
             ClampSrv= nh_.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/intake");
             HighCube = nh_.subscribe("/frcrobot/elevator_controller/high_cube", 1, &autoAction::highCubeCallback, this);
+    		al = std::make_shared<actionlib::SimpleActionClient<behaviors::LiftAction>>("auto_interpreter_server_lift", true);
+    		ai = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
 	}
 
         ros::Subscriber HighCube;
@@ -80,7 +82,8 @@ class autoAction {
         aborted = false;
         success = false;
 	timed_out = false;
-	if(goal->IntakeCube)
+
+	if((goal->IntakeCube))
 	{
 		
 		elevator_controller::bool_srv srv_clamp;
@@ -108,7 +111,7 @@ class autoAction {
 			//loop till we get to where we can drop
 			while(!aborted && !timed_out && !ready_to_drop )
 			{
-			    if(as_.isPreemptRequested()) {
+			    if(as_.isPreemptRequested() || !ros::ok()) {
 				ROS_WARN("%s: Preempted", action_name_.c_str());
 				as_.setPreempted();
 				aborted = true;
@@ -117,7 +120,7 @@ class autoAction {
 			    if (!aborted) {
 				r.sleep();
 				ros::spinOnce();
-				timed_out |= (ros::Time::now().toSec()-startTime) < goal->time_out;
+				timed_out |= (ros::Time::now().toSec()-startTime) > goal->time_out;
 				
 
 				//time_out if the action times out
@@ -149,7 +152,7 @@ class autoAction {
 		}
 		while(!aborted && !timed_out)
 		{
-		    if(as_.isPreemptRequested()) {
+		    if(as_.isPreemptRequested() || !ros::ok()) {
 			ROS_WARN("%s: Preempted", action_name_.c_str());
 			as_.setPreempted();
 			aborted = true;
@@ -158,7 +161,7 @@ class autoAction {
 		    if (!aborted) {
 			r.sleep();
 			ros::spinOnce();
-			timed_out |= (ros::Time::now().toSec()-startTime) < goal->time_out;
+			timed_out |= (ros::Time::now().toSec()-startTime) > goal->time_out;
 				
 			if(al->getState().isDone())
 			{
@@ -193,7 +196,7 @@ class autoAction {
 			al->sendGoal(goal_l);
 			while(!aborted && !timed_out)
 			{
-			    if(as_.isPreemptRequested()) {
+			    if(as_.isPreemptRequested() || !ros::ok()) {
 				ROS_WARN("%s: Preempted", action_name_.c_str());
 				as_.setPreempted();
 				aborted = true;
@@ -207,7 +210,7 @@ class autoAction {
 	// used in place of goal_num throughout the callback?
 				r.sleep();
 				ros::spinOnce();
-				timed_out |= (ros::Time::now().toSec()-startTime) < goal->time_out;
+				timed_out |= (ros::Time::now().toSec()-startTime) > goal->time_out;
 					
 				if(al->getState().isDone())
 				{
@@ -237,7 +240,7 @@ class autoAction {
 		}
 		while(!aborted && !timed_out)
 		{
-			if(as_.isPreemptRequested()) {
+			if(as_.isPreemptRequested() || !ros::ok()) {
 				ROS_WARN("%s: Preempted", action_name_.c_str());
 				as_.setPreempted();
 				aborted = true;
@@ -261,12 +264,12 @@ class autoAction {
 			if (!aborted) {
 				r.sleep();
 				ros::spinOnce();
-				timed_out |= (ros::Time::now().toSec()-startTime) < goal->time_out;
+				timed_out |= (ros::Time::now().toSec()-startTime) > goal->time_out;
 		        }
 		}
 		while(!aborted && !timed_out)
 		{
-		    if(as_.isPreemptRequested()) {
+		    if(as_.isPreemptRequested() || !ros::ok()) {
 			ROS_WARN("%s: Preempted", action_name_.c_str());
 			as_.setPreempted();
 			aborted = true;
@@ -275,7 +278,7 @@ class autoAction {
 		    if (!aborted) {
 			r.sleep();
 			ros::spinOnce();
-			timed_out |= (ros::Time::now().toSec()-startTime) < goal->time_out;
+			timed_out |= (ros::Time::now().toSec()-startTime) > goal->time_out;
 				
 			if(al->getState().isDone())
 			{
@@ -315,7 +318,7 @@ class autoAction {
 			//loop till we get to where we can drop
 			while(!aborted && !timed_out && !ready_to_drop )
 			{
-			    if(as_.isPreemptRequested()) {
+			    if(as_.isPreemptRequested() || !ros::ok()) {
 				ROS_WARN("%s: Preempted", action_name_.c_str());
 				as_.setPreempted();
 				aborted = true;
@@ -324,14 +327,10 @@ class autoAction {
 			    if (!aborted) {
 				r.sleep();
 				ros::spinOnce();
-				timed_out |= (ros::Time::now().toSec()-startTime) < goal->time_out;
+				timed_out |= (ros::Time::now().toSec()-startTime) > goal->time_out;
 				
 
 				//time_out if the action times out
-				if(ai->getState().isDone())
-				{
-					timed_out |= (ai->getResult()->timed_out);  
-			    	}
 				if(al->getState().isDone())
 				{
 					timed_out |= (al->getResult()->timed_out);  
@@ -356,7 +355,7 @@ class autoAction {
 		}
 		while(!aborted && !timed_out)
 		{
-		    if(as_.isPreemptRequested()) {
+		    if(as_.isPreemptRequested() || !ros::ok()) {
 			ROS_WARN("%s: Preempted", action_name_.c_str());
 			as_.setPreempted();
 			aborted = true;
@@ -365,7 +364,7 @@ class autoAction {
 		    if (!aborted) {
 			r.sleep();
 			ros::spinOnce();
-			timed_out |= (ros::Time::now().toSec()-startTime) < goal->time_out;
+			timed_out |= (ros::Time::now().toSec()-startTime) > goal->time_out;
 				
 			if(al->getState().isDone())
 			{
@@ -459,6 +458,9 @@ int main(int argc, char** argv) {
     if (!n_params.getParam("intake_config_low_y", intake_low_y))
 		ROS_ERROR("Could not read intake_config_low_y");
     
+
+
+
     ros::spin();
 
     return 0;

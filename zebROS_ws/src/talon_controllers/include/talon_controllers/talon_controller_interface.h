@@ -55,7 +55,7 @@ class TalonCIParams
 			peak_output_reverse_(-1.),
 			nominal_output_forward_(0.),
 			nominal_output_reverse_(0.),
-			neutral_deadband_(0.),
+			neutral_deadband_(0.04),
 			voltage_compensation_saturation_(12.5),
 			voltage_measurement_filter_(32),
 			voltage_compensation_enable_(true),

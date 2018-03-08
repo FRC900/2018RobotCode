@@ -196,6 +196,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 		//if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
 		//	realtime_pub_joystick.trylock())
+		if (realtime_pub_joystick.trylock())
 		{
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
@@ -379,7 +380,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
-	return;
 	// since our MP is 10ms per point, set the control frame rate and the
 	// notifer to half that
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)

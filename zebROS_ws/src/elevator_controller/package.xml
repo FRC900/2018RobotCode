@@ -19,26 +19,13 @@
   <build_depend>message_generation</build_depend>
   <build_depend>cmake_modules</build_depend>
 
-  <depend>hardware_interface</depend>
-  <depend>controller_manager</depend>
   <depend>roscpp</depend>
-  <depend>message_filters</depend>
-  <depend>control_msgs</depend>
-  <depend>trajectory_msgs</depend>
   <depend>actionlib</depend>
-  <depend>urdf</depend>
-  <depend>joint_limits_interface</depend>
-  <depend>transmission_interface</depend>
-  <depend>control_toolbox</depend>
   <depend>std_msgs</depend>
-  <depend>libgflags-dev</depend>
-  <depend>sensor_msgs</depend>
-  <depend>rosparam_shortcuts</depend>
-  <depend>talon_interface</depend>
-  <depend>message_runtime</depend>
-  <depend>ros_control_boilerplate</depend>
-  <depend>talon_controllers</depend> 
   <depend>controller_interface</depend>
+  <depend>talon_interface</depend>
+  <depend>talon_controllers</depend>
+  <depend>message_runtime</depend>
 
   <export>
     <controller_interface plugin="${prefix}/elevator_controller_plugins.xml"/>

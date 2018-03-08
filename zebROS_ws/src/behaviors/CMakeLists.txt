@@ -10,10 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   actionlib
   actionlib_msgs
-  joint_trajectory_controller
-  controller_interface
-  talon_swerve_drive_controller
-  trajectory_msgs
   nav_msgs
   roscpp
   rospy
@@ -133,16 +129,16 @@ catkin_package(
    CATKIN_DEPENDS actionlib nav_msgs roscpp rospy std_msgs
    DEPENDS system_lib
 )
-#add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
-#target_link_libraries(
-#    autoInterpreterClient
-#    ${catkin_LIBRARIES}
-#)
-#add_dependencies(
-#	autoInterpreterClient
-#    ${behaviors_EXPORTED_TARGETS}
-#	${catkin_EXPORTED_TARGETS}
-#)
+add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
+target_link_libraries(
+    autoInterpreterClient
+    ${catkin_LIBRARIES}
+)
+add_dependencies(
+	autoInterpreterClient
+    ${behaviors_EXPORTED_TARGETS}
+	${catkin_EXPORTED_TARGETS}
+)
 add_executable(autoInterpreterServer src/autoInterpreterServer.cpp)
 target_link_libraries(
     autoInterpreterServer
@@ -237,7 +233,7 @@ add_dependencies(
 # )
 
 ## Mark executables and/or libraries for installation
-install(TARGETS autoInterpreterServer autoInterpreterServerLift autoInterpreterServerIntake
+install(TARGETS autoInterpreterClient autoInterpreterServer autoInterpreterServerLift autoInterpreterServerIntake
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

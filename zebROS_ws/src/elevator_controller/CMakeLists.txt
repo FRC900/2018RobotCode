@@ -5,19 +5,15 @@ include ("../cmake_modules/CMakeOpt.cmake")
 
 find_package(catkin REQUIRED COMPONENTS
     cmake_modules
-    controller_interface
-    nav_msgs
-    realtime_tools
+	roscpp
+	actionlib
+	controller_interface
     talon_interface
-    talon_controllers   
-    tf
-    tf2
+    talon_controllers
     message_generation
-    urdf
     std_msgs
-    sensor_msgs
-    geometry_msgs
 )
+
 find_package(Eigen REQUIRED)
 
 add_message_files (
@@ -36,14 +32,10 @@ add_service_files (
 generate_messages(
   DEPENDENCIES
   std_msgs
-  geometry_msgs
 )
-
-
 
 catkin_package(
   CATKIN_DEPENDS
-	  controller_interface
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
   DEPENDS Eigen
@@ -74,7 +66,7 @@ install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-  )
+)
 
 install(FILES ${PROJECT_NAME}_plugins.xml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

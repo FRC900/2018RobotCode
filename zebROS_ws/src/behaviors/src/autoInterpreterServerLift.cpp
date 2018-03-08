@@ -48,7 +48,7 @@ class autoAction {
     }
 
     void executeCB(const behaviors::LiftGoalConstPtr &goal) {
-        ros::Rate r(10);
+	ros::Rate r(10);
         double startTime = ros::Time::now().toSec();
         success = false;
         aborted = false;
@@ -69,7 +69,7 @@ class autoAction {
 		    (goal->y - odom_y)) < goal->dist_tolerance && (odom_up_or_down == goal->up_or_down  
 		    || (arm_length_ - goal->x)/2 < goal->dist_tolerance) && fabs(goal->x - odom_x) < goal->
 		    x_tolerance &&  fabs(goal->y - odom_y) < goal->y_tolerance;
-		    if(as_.isPreemptRequested()) {
+		    if(as_.isPreemptRequested() || !ros::ok()) {
 			ROS_WARN("%s: Preempted", action_name_.c_str());
 			as_.setPreempted();
 			aborted = true;
@@ -78,7 +78,7 @@ class autoAction {
 		    if (!success) {
 			r.sleep();
 			ros::spinOnce();
-                        timed_out = (ros::Time::now().toSec()-startTime) < goal->time_out;      
+                        timed_out = (ros::Time::now().toSec()-startTime) > goal->time_out;      
 		    }
 		}
 
