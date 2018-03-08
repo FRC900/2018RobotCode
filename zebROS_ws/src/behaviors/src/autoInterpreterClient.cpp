@@ -145,16 +145,24 @@ void generateTrajectory(int layout, int auto_mode, int start_pos) {
     XmlRpc::XmlRpcValue &path = modes[auto_mode][layout][start_pos];
     XmlRpc::XmlRpcValue &xml_x = path["x"];
     XmlRpc::XmlRpcValue &xml_t = path["times"];
-    //const int num_splines = xml_x.size();
-    talon_swerve_drive_controller::FullGenCoefs srv;
+    ROS_WARN("check 0");
+    const int num_splines = xml_x.size();
     ROS_WARN("check 1");
-    for(int num = 0; num<xml_x.size(); num++) {
+    talon_swerve_drive_controller::FullGenCoefs srv;
+
+	ROS_INFO_STREAM("checking size: " << num_splines << " is real?");
+    for(int num = 0; num<num_splines; num++) {
+    ROS_WARN("check 1.5");
         XmlRpc::XmlRpcValue &x = path["x"];
+    ROS_WARN("check 2");
         XmlRpc::XmlRpcValue &x_num = x[num];
         XmlRpc::XmlRpcValue &y = path["y"];
+    ROS_WARN("check 3");
         XmlRpc::XmlRpcValue &y_num = y[num];
         XmlRpc::XmlRpcValue &orient = path["orient"];
+    ROS_WARN("check 4");
         XmlRpc::XmlRpcValue &orient_num = orient[num];
+    ROS_WARN("check 5");
 
         talon_swerve_drive_controller::Coefs x_coefs;
         talon_swerve_drive_controller::Coefs y_coefs;
