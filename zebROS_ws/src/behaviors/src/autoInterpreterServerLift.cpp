@@ -62,7 +62,6 @@ class autoAction {
                 srv_elevator.request.override_pos_limits = goal->override_pos_limits;
                 ElevatorSrv.call(srv_elevator);
                 ros::spinOnce();
-	
 		while(!aborted && !timed_out)
 		{
 		    success = sqrt((goal->x - odom_x) * (goal->x - odom_x) + (goal->y - odom_y) * 
