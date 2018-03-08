@@ -811,7 +811,8 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 {
 	if (isRunning())
 	{
-		// check that we don't have multiple publishers on the command topic
+		// check tha//t we don't have multiple publishers on the command topic
+        //ROS_WARN("Time Difference: %f", ros::Time::now().toSec() - command->header.stamp.toSec());
 		if (!allow_multiple_cmd_vel_publishers_ && sub_command_.getNumPublishers() > 1)
 		{
 			ROS_ERROR_STREAM_THROTTLE_NAMED(1.0, name_, "Detected " << sub_command_.getNumPublishers()

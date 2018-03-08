@@ -842,6 +842,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	}
 
 	lastTimeSecs = timeSecs;
+    ROS_WARN("Header time: %f, Time now: %f, Time difference: %f", JoystickState->header.stamp.toSec(), ros::Time::now().toSec(), ros::Time::now().toSec() - JoystickState->header.stamp.toSec());
 }
 
 void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
