@@ -57,7 +57,7 @@ class autoAction {
 		while(!success && !timed_out && !aborted) {
 		    
 		    success = cube_state_true > 2; 
-		    if(as_.isPreemptRequested()) {
+		    if(as_.isPreemptRequested() || !ros::ok()) {
 			ROS_WARN("%s: Preempted", action_name_.c_str());
 			as_.setPreempted();
 			aborted = true;
@@ -66,7 +66,7 @@ class autoAction {
 			if (!aborted) {
 				r.sleep();
 				ros::spinOnce();
-				timed_out = (ros::Time::now().toSec()-startTime) < goal->time_out;
+				timed_out = (ros::Time::now().toSec()-startTime) > goal->time_out;
 			}
 			/*
 			else
