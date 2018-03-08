@@ -9,7 +9,7 @@
 #include "elevator_controller/Blank.h"
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
-#include "behaviors/IntakeLiftAction.h"
+#include "behaviors/RobotAction.h"
 #include "talon_swerve_drive_controller/Blank.h"
 
 /*TODO list:
@@ -20,7 +20,7 @@
  *Press down to climb (lift goes to position)
  *
  */
-static double dead_zone = .2, slow_mode = .33, max_speed = 3.3, max_rot = 7.65 / 2, joystick_scale = 3;
+static double dead_zone = .2, slow_mode = .33, max_speed = 3.6, max_rot = 7.65, joystick_scale = 3;
 double dead_zone_check(double val)
 {
 	if (fabs(val) <= dead_zone)
@@ -30,7 +30,7 @@ double dead_zone_check(double val)
 	return val;
 }
 
-std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>> ac;
+std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
 
 // make these params?
 const double double_tap_zone = .3;
@@ -116,7 +116,7 @@ struct ElevatorPos
 		UpOrDown_(UpOrDown)
 	{
 	}
-	
+
 	double X_;
 	double Y_;
 	bool   UpOrDown_;
@@ -188,7 +188,7 @@ void match_data_callback(const ros_control_boilerplate::MatchSpecificData::Const
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState)
 {
 	/*std_msgs::Header first_header;
-	first_header.stamp = JoystickState -> header.stamp;
+	first_header.stamp = JoystickState->header.stamp;
 	first_header.seq = 0;
 	JoystickTestVel.publish(first_header);*/
 
@@ -198,11 +198,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	static ElevatorPos elevatorPosBefore;
 
 	static bool run_out = false;
-	behaviors::IntakeLiftGoal goal;
+	behaviors::RobotGoal goal;
 	goal.IntakeCube = false;
-	goal.IntakeCubeNoLift = false;
-	goal.GoToHeight = false;
-	goal.MoveArmAway = false;
+	goal.MoveToIntakeConfig = false;
 	goal.x = 0;
 	goal.y = 0;
 	goal.up_or_down = true;
@@ -211,6 +209,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	const double timeSecs = ros::Time::now().toSec();
 	static double lastTimeSecs = 0;
 	const bool localHasCube = hasCube.load(std::memory_order_relaxed);
+	goal.hasCube = localHasCube;
 	const bool localDisableArmLimits = disableArmLimits.load(std::memory_order_relaxed);
 
 	static pos achieved_pos = other; //Not all neccesarily set after achieving, only if needed
@@ -221,7 +220,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	/*-----------------Up Double Press End Deploy------------------------------*/
 
-	if (JoystickState->directionUpPress == true && matchTimeRemaining.load(std::memory_order_relaxed) < 30 )
+	if (JoystickState->directionUpPress && matchTimeRemaining.load(std::memory_order_relaxed) < 30 )
 	{
 		static double directionUpLast = 0;
 		if (timeSecs - directionUpLast < 1.0)
@@ -235,13 +234,18 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		directionUpLast = timeSecs;
 	}
 	/*-----------------Down Press Climb to Correct height----------------------*/
-	if (JoystickState->directionDownPress == true)
+	if (JoystickState->directionDownPress)
 	{
 		const ElevatorPos epos = *(elevatorPos.readFromRT());
-		srvElevator.request.x = epos.X_;
+		srvElevator.request.x = epos.X_; //Consider changing x_pos + up/down to preassigned rather than curr pos
 		srvElevator.request.y = climb;
 		srvElevator.request.up_or_down = epos.UpOrDown_;
 		srvElevator.request.override_pos_limits = localDisableArmLimits;
+		srvIntake.request.power = 0;
+		srvIntake.request.spring_state = 1; //hard_out
+		srvIntake.request.up = false;
+		IntakeSrv.call(srvIntake); //Is it worth trying to clamp or run the intake slowly?
+
 		ElevatorSrv.call(srvElevator);
 		ROS_WARN("Climb config");
 		achieved_pos = climb_c;
@@ -254,12 +258,18 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	lastToggle = currentToggle;
 
+
+
+
 	/*-------------------------------------X------------------------------------*/
 
+
 	/*---------w/ Cube Single Press Toggle Mid Scale------*/
-	if (JoystickState->buttonXPress == true)
+	if (JoystickState->buttonXPress  )
 	{
-		if (localHasCube)
+		static double clamp_time;
+		static bool clamped;
+		if (localHasCube && (!clamped || timeSecs - clamp_time > 10))
 		{
 			currentToggle = "X";
 			if (lastToggle == " ")
@@ -291,14 +301,15 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		/*------------No Cube Single Press Toggle Clamp------*/
 		else
 		{
-			static bool clamped;
 			if (clamped == false)
 			{
+
 				srvClamp.request.data = true;
 				if (ClampSrv.call(srvClamp))
 				{
 					ROS_WARN("Clamped");
 					clamped = true;
+					clamp_time = timeSecs;
 				}
 				else
 				{
@@ -328,17 +339,17 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	static double place_start = 0;
 	static double ADoubleStart = 0;
 	static bool placed_delay_check = false;
-	static bool go_to_intake_config;
 	static bool manage_intaking;
+	static double ALast = 0;
 	if (localHasCube)
 	{
-		static double ALast = 0;
 		/*----------------Single Press------------------*/
 		if (timeSecs - ALast > delay_after_single_tap && timeSecs - ALast < max_delay_after_single_tap)   //wait .3 before assuming single press
 		{
 			/*-If in Exchange - Place and Run Intake Out-*/
-			if (lastToggle == "YDouble")
+			if (achieved_pos == intake)
 			{
+
 				ready_to_spin_out_check = true; //Kick off ready to drop
 			}
 			/*-Else - Place and Then Move Arm Back-*/
@@ -346,7 +357,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			{
 				srvClamp.request.data = false;
 				ClampSrv.call(srvClamp);
-				ROS_INFO("teleop : called ClampSrv after single A press");
+				ROS_INFO("teleop : Clamp with cube");
 				placed_delay_check = true; //Kick off placing
 				place_start = ros::Time::now().toSec();
 			}
@@ -355,6 +366,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		/*Double Press - Just Go Out*/
 		if (JoystickState->buttonAPress == true)
 		{
+			//Consider changing this functionallity
 			if (timeSecs - ALast < double_tap_zone)
 			{
 				ADoubleStart = timeSecs;
@@ -363,7 +375,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				srvIntake.request.spring_state = 2; //soft_in
 				srvIntake.request.up = false;
 				IntakeSrv.call(srvIntake);
-				ROS_INFO("teleop : called intakeSrv after A press");
+				ROS_INFO("teleop : Intake with cube");
 				ALast = 0;
 			}
 			else
@@ -376,22 +388,19 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	else if (JoystickState->buttonAPress == true)
 	{
-		goal.IntakeCube = false;
-		goal.GoToHeight = false;
-		goal.MoveArmAway = false;
-		goal.IntakeCubeNoLift = true;
+		goal.IntakeCube = true;
+		goal.MoveToIntakeConfig = false;
+		goal.x = default_x;
+		goal.y = default_y;
+		goal.up_or_down = default_up_or_down;
+		goal.override_pos_limits = false;
+		goal.dist_tolerance = .5;
+		goal.x_tolerance = .5;
+		goal.y_tolerance = .5;
+		goal.time_out = 15;
+
 		ac->sendGoal(goal);
-
-		//TODO: eventually, disable above and enable below:
-		//Further more, below and the associated stuff should be
-		//Ported to an action lib (a new one)
-		//srvIntake.request.power = .8;
-		//srvIntake.request.spring_state = 2; //soft_in
-		//srvIntake.request.up = false;
-		//IntakeSrv.call(srvIntake);
-		//go_to_intake_config = achieved_pos != intake;
-		//manage_intaking = true;
-
+		achieved_pos = other;
 	}
 
 	/*-If in Exchange - Place and Run Intake Out-*/
@@ -400,21 +409,18 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	static double time_start_spin = 0;
 	if (ready_to_spin_out_check)
 	{
-		if (achieved_pos = intake)
-		{
-			srvClamp.request.data = false;
-			ClampSrv.call(srvClamp);
-			ROS_INFO("teleop : called ClampSrv in ready_to_spin_out_check");
+		srvClamp.request.data = false;
+		ClampSrv.call(srvClamp);
+		ROS_INFO("teleop : called ClampSrv in ready_to_spin_out_check");
 
-			srvIntake.request.power = -1;
-			srvIntake.request.spring_state = 2; //soft_in
-			srvIntake.request.up = false;
-			IntakeSrv.call(srvIntake);
-			ROS_INFO("teleop : called IntakeSrv in ready_to_spin_out_check");
-			finish_spin_out_check = true;
-			ready_to_spin_out_check = false;
-			time_start_spin = ros::Time::now().toSec();
-		}
+		srvIntake.request.power = -1;
+		srvIntake.request.spring_state = 2; //soft_in
+		srvIntake.request.up = false;
+		IntakeSrv.call(srvIntake);
+		ROS_INFO("teleop : called IntakeSrv in ready_to_spin_out_check");
+		finish_spin_out_check = true;
+		ready_to_spin_out_check = false;
+		time_start_spin = ros::Time::now().toSec();
 	}
 
 	/*-If just spun out, place and Run Intake Out-*/
@@ -427,13 +433,24 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		ROS_INFO("teleop : called IntakeSrv in finish_spin_out_check");
 		finish_spin_out_check = false;
 
+		goal.IntakeCube = false;
+		goal.MoveToIntakeConfig = true;
+		goal.time_out = 10;
+
+		ac->sendGoal(goal);
+
+		//TODO: change to going to intake config
+
+		/*
 		srvElevator.request.x = default_x;
 		srvElevator.request.y = default_y;
 		srvElevator.request.up_or_down = default_up_or_down;
 		srvElevator.request.override_pos_limits = localDisableArmLimits;
+
 		ElevatorSrv.call(srvElevator);
-		ROS_INFO("teleop : called ElevatorSrv in finish_spin_out_check");
-		achieved_pos = default_c;
+		*/
+		ROS_INFO("teleop : called Go to Intake Goal in finish_spin_out_check");
+		achieved_pos = intake;
 	}
 	static bool return_to_intake_from_low = false;
 	static bool return_to_intake_from_high = false;
@@ -467,7 +484,13 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		For right now we will just go back out and then call "go to intake config"
 		*/
 		return_to_intake_from_high = false;
-		go_to_intake_config = true;
+		goal.IntakeCube = false;
+		goal.MoveToIntakeConfig = true;
+		goal.time_out = 10;
+		ac->sendGoal(goal);
+		ROS_INFO("teleop : sendGoal() return_to_intake_from_high");
+		achieved_pos = intake;
+		// TODO : need to call /set goal?
 	}
 
 	if (return_to_intake_from_low && timeSecs - return_to_intake_start > 2)
@@ -482,70 +505,42 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		For right now we will just go back out and then call "go to intake config"
 		*/
 		return_to_intake_from_low = false;
-		go_to_intake_config = true;
+		goal.IntakeCube = false;
+		goal.MoveToIntakeConfig = true;
+		goal.time_out = 10;
+		ac->sendGoal(goal);
+		ROS_INFO("teleop : sendGoal() return_to_intake_from_low");
+		achieved_pos = intake;
+		// TODO : need to call /set goal?
 	}
 
 	/*When we get the cube, slow the intake and grip hard*/
-	static bool clamp_transfer = false;
-	if (manage_intaking && localHasCube)
-	{
-		manage_intaking = false;
-		srvIntake.request.power = -0.1;
-		srvIntake.request.spring_state = 3; //hard_in
-		srvIntake.request.up = false;
-		clamp_transfer = true;
-	}
 
-	static bool go_to_default = false;
-	static double clamp_grab_time  = 0;
-	/*When we get the cube and the clamp is in position, grab the cube*/
-	if (clamp_transfer && achieved_pos == intake)
-	{
-		clamp_transfer = false;
-		srvClamp.request.data = true;
-		ClampSrv.call(srvClamp);
-		ROS_INFO("teleop : called ClampSrv in clamp_transfer");
-		srvIntake.request.power = 0.0;
-		srvIntake.request.spring_state = 1; //hard_out
-		srvIntake.request.up = false;
-		go_to_default = true;
-		clamp_grab_time = timeSecs;
-
-	}
-	/*Go to the normal resting point for a cube*/
-	if (go_to_default && timeSecs - clamp_grab_time > .75)
-	{
-		srvElevator.request.x = default_x;
-		srvElevator.request.y = default_y;
-		srvElevator.request.up_or_down = default_up_or_down;
-		srvElevator.request.override_pos_limits = localDisableArmLimits;
-	}
-
-	/*-below two ifs are exactly like above two ifs, except without clamp/arm/lift*/
 	if (run_out && (timeSecs > ADoubleStart + 2))
 	{
 		srvIntake.request.power = 0;
 		srvIntake.request.spring_state = 2; //soft_in
 		srvIntake.request.up = false;
 		IntakeSrv.call(srvIntake);
-		ROS_INFO("teleop : called IntakeSrv in run)out");
+		ROS_INFO("teleop : Inkate run out finished");
 		run_out = false;
 	}
-	if (localHasCube && !run_out)
-	{
-		srvIntake.request.power = .1;
-		srvIntake.request.spring_state = 3; //hard_in
-		srvIntake.request.up = false;
-		IntakeSrv.call(srvIntake);
-		ROS_INFO("teleop : called IntakeSrv in not run_out");
-	}
+	/*
+	if(localHasCube && !run_out) {
+	           srvIntake.request.power = .1;
+	           srvIntake.request.spring_state = 3; //hard_in
+	           srvIntake.request.up = false;
+	           IntakeSrv.call(srvIntake);
+	       }
+	*/
 
 	/*------------------------------------Y------------------------------------*/
 
 	if (localHasCube) //No need to go to switch/exchange without cube
 	{
-		static double YLast = 0;
+
 		/*-----------------Single Press - Switch ---------------------*/
+		static double YLast = 0;
 		if (timeSecs - YLast > delay_after_single_tap && timeSecs - YLast < max_delay_after_single_tap)
 		{
 			currentToggle = "Yone";
@@ -562,7 +557,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				srvElevator.request.x = switch_config_x;
 				srvElevator.request.y = switch_config_y;
 				srvElevator.request.up_or_down = switch_config_up_or_down;
-				srvElevator.request.override_pos_limits = localDisableArmLimits;
+				srvElevator.request.override_pos_limits =  localDisableArmLimits;
+				achieved_pos = switch_c;
 				if (ElevatorSrv.call(srvElevator))
 				{
 					ROS_WARN("Toggled to switch height");
@@ -591,8 +587,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				}
 				else
 				{
-					go_to_intake_config = achieved_pos != intake;
+					goal.IntakeCube = false;
+					goal.MoveToIntakeConfig = true;
+					goal.time_out = 10;
 
+					ac->sendGoal(goal);
+					achieved_pos = intake;
 				}
 			}
 			YLast = 0;
@@ -601,48 +601,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			YLast = timeSecs;
 		}
-	}
-	static bool ready_to_drop_check = false;
-	static bool check_intake = false;
-	/*-Go to pos where intake can freely drop-*/
-	if (go_to_intake_config)
-	{
-		goal.GoToHeight = true;
-		goal.x = intake_ready_to_drop_x;
-		goal.y = intake_ready_to_drop_y;
-		goal.up_or_down = intake_ready_to_drop_up_or_down;
-		goal.override_pos_limits = localDisableArmLimits;
-		ac->sendGoal(goal);
-		ready_to_drop_check  = true;
-		go_to_intake_config = false;
-		achieved_pos = other;
-	}
-
-	/*-----------------Drop Down---------------*/
-	if (ready_to_drop_check)
-	{
-		if (ac->getState().isDone())
-		{
-			goal.GoToHeight = true;
-			goal.x = intake_config_x;
-			goal.y = intake_config_y;
-			goal.up_or_down = intake_config_up_or_down;
-			goal.override_pos_limits = true;
-			ac->sendGoal(goal);
-			ready_to_drop_check = false;
-			check_intake = true;
-		}
-	}
-	/*-----------------Finished---------------*/
-	if (check_intake)
-	{
-		if (ac->getState().isDone())
-		{
-			check_intake = false;
-			achieved_pos = intake;
-			//This needs to be checked so we can see whether or not we can push out a cube
-		}
-
 	}
 
 	/*----------------------------Right Bumper - Press Untoggle-----------------------------*/
@@ -659,18 +617,32 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 		else
 		{
-			srvElevator.request.x = default_x;
-			srvElevator.request.y = default_y;
-			srvElevator.request.up_or_down = default_up_or_down;
-			srvElevator.request.override_pos_limits = localDisableArmLimits;
-			achieved_pos = default_c;
-			if (ElevatorSrv.call(srvElevator))
+			if (localHasCube)
 			{
-				ROS_WARN("Toggled to default config");
+				srvElevator.request.x = default_x;
+				srvElevator.request.y = default_y;
+				srvElevator.request.up_or_down = default_up_or_down;
+				srvElevator.request.override_pos_limits = localDisableArmLimits;
+				achieved_pos = default_c;
+				if (ElevatorSrv.call(srvElevator))
+				{
+					ROS_WARN("Toggled to default config");
+				}
+				else
+				{
+					ROS_ERROR("Failed to toggle to default config");
+				}
 			}
 			else
 			{
-				ROS_ERROR("Failed to toggle to default config");
+
+				goal.IntakeCube = false;
+				goal.MoveToIntakeConfig = true;
+				goal.time_out = 10;
+
+				ac->sendGoal(goal);
+				achieved_pos = intake;
+
 			}
 		}
 	}
@@ -680,7 +652,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		currentToggle = "start";
 		srvIntake.request.power = 0;
 		srvIntake.request.up = true;
-		srvIntake.request.spring_state = 2; //soft_in
+		srvIntake.request.spring_state = 1; //hard_out
 		IntakeSrv.call(srvIntake);
 		ROS_INFO("teleop : called IntakeSrv in startButtonPress");
 	}
@@ -780,8 +752,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 ///////////////////// Drivetrain and Elevator Control \\\\\\\\\\\\\\\\\\\
 
-	//Publish drivetrain messages and elevator/pivot
-	geometry_msgs::Twist vel;
 	//talon_controllers::CloseLoopControllerMsg arm;
 	double leftStickX = (pow(dead_zone_check(JoystickState->leftStickX), joystick_scale)) * max_speed;
 	double leftStickY = (-pow(dead_zone_check(JoystickState->leftStickY), joystick_scale)) * max_speed;
@@ -789,13 +759,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	double rightStickX = pow(dead_zone_check(JoystickState->rightStickX), joystick_scale);
 	double rightStickY = -pow(dead_zone_check(JoystickState->rightStickY), joystick_scale);
 
-	Eigen::Vector2d joyVector;
+	double rotation = (JoystickState->leftTrigger - JoystickState->rightTrigger) * max_rot;
 
-	vel.angular.z = (JoystickState->leftTrigger - JoystickState->rightTrigger) * max_rot;
-	vel.angular.x = 0;
-	vel.angular.y = 0;
-
-	if (JoystickState-> bumperLeftButton == true)
+	if (JoystickState->bumperLeftButton == true)
 	{
 		leftStickX *= slow_mode;
 		leftStickY *= slow_mode;
@@ -803,42 +769,57 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		rightStickX *= slow_mode;
 		rightStickY *= slow_mode;
 
-		vel.angular.z *= slow_mode;
+		rotation *= slow_mode;
 	}
+
 	static bool sendRobotZero = false;
-	if ((fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && fabs(vel.angular.z) == 0.0) && !sendRobotZero)
+	// No motion? Tell the drive base to stop
+	if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 	{
-		talon_swerve_drive_controller::Blank blank;
-		blank.request.nothing = true;
-		BrakeSrv.call(blank);
-		ROS_INFO("teleop : called BrakeSrv to stop");
-		sendRobotZero = true;
+		if (!sendRobotZero)
+		{
+			talon_swerve_drive_controller::Blank blank;
+			blank.request.nothing = true;
+			BrakeSrv.call(blank);
+			ROS_INFO("teleop : called BrakeSrv to stop");
+			sendRobotZero = true;
+		}
 	}
-	else if (fabs(leftStickX) != 0.0 || fabs(leftStickY) != 0.0 || fabs(vel.angular.z) != 0.0)
+	else // X or Y or rotation != 0 so tell the drive base to move
 	{
-
-
+		//Publish drivetrain messages and elevator/pivot
+		Eigen::Vector2d joyVector;
 		joyVector[0] = leftStickX; //intentionally flipped
 		joyVector[1] = -leftStickY;
 		Eigen::Rotation2Dd r(-navX_angle.load(std::memory_order_relaxed) - M_PI / 2);
 		Eigen::Vector2d rotatedJoyVector = r.toRotationMatrix() * joyVector;
+
+		geometry_msgs::Twist vel;
 		vel.linear.x = rotatedJoyVector[1];
 		vel.linear.y = rotatedJoyVector[0];
+		vel.linear.z = 0;
+
+		vel.angular.x = 0;
+		vel.angular.y = 0;
+		vel.angular.z = rotation;
+
 		JoystickRobotVel.publish(vel);
 		/*std_msgs::Header test_header;
-		test_header.stamp = JoystickState -> header.stamp;
+		  test_header.stamp = JoystickState->header.stamp;
 		test_header.seq = 1;
 		JoystickTestVel.publish(test_header);*/
 		sendRobotZero = false;
 	}
+
 	if (rightStickX != 0 && rightStickY != 0)
-	{ 
+	{
 		const ElevatorPos epos = *(elevatorPos.readFromRT());
 		elevatorMsg.x = epos.X_ + (timeSecs - lastTimeSecs) * rightStickX; //Access current elevator position to fix code allowing out of bounds travel
 		elevatorMsg.y = epos.Y_ + (timeSecs - lastTimeSecs) * rightStickY; //Access current elevator position to fix code allowing out of bounds travel
 		elevatorMsg.up_or_down = epos.UpOrDown_;
 		elevatorMsg.override_pos_limits = localDisableArmLimits;
 		JoystickElevatorPos.publish(elevatorMsg);
+		ROS_INFO("teleop : Joystive elevator pos");
 	}
 
 	lastTimeSecs = timeSecs;
@@ -948,14 +929,15 @@ int main(int argc, char **argv)
 	if (!n_params.getParam("exchange_delay", exchange_delay))
 		ROS_ERROR("Could not read exchange_delay");
 
-	ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeLiftAction>>("auto_interpreter_server", true);
+
+	ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
 
 	JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
 	JoystickTestVel = n.advertise<std_msgs::Header>("test_header", 3);
 	JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
 	JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
 
-	EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/end_game_deploy", 1);
+	EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/end_game_deploy");
 	ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
 	ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
 	IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");

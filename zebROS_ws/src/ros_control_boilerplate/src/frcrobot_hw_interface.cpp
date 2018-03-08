@@ -125,7 +125,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	ros::Time last_match_data_publish_time;
 
 	const double nt_publish_rate = 2;
-	const double joystick_publish_rate = 20;
+	//const double joystick_publish_rate = 20;
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
 
@@ -196,6 +196,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 		//if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
 		//	realtime_pub_joystick.trylock())
+		if (realtime_pub_joystick.trylock())
 		{
             
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
@@ -331,8 +332,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			
 
 			realtime_pub_joystick.msg_.directionRightButton = joystick_right_;
-			realtime_pub_joystick.msg_.directionRightPress = joystick_right_ > joystick_up_last_;
-			realtime_pub_joystick.msg_.directionRightRelease = joystick_right_ > joystick_up_last_;
+			realtime_pub_joystick.msg_.directionRightPress = joystick_right_ > joystick_right_last_;
+			realtime_pub_joystick.msg_.directionRightRelease = joystick_right_ > joystick_right_last_;
 
 			joystick_up_last_ = joystick_up_;
 			joystick_down_last_ = joystick_down_;
@@ -380,7 +381,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
-	return;
 	// since our MP is 10ms per point, set the control frame rate and the
 	// notifer to half that
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
@@ -392,9 +392,17 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 		for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		{
 			const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
+			// Only write to non-follow, non-disabled talons
 			if ((talon_mode != hardware_interface::TalonMode_Follower) &&
 				(talon_mode != hardware_interface::TalonMode_Disabled))
-				can_talons_[i]->ProcessMotionProfileBuffer();
+			{
+				ctre::phoenix::motion::MotionProfileStatus talon_status;
+				safeTalonCall(can_talons_[i]->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+
+				// Only write if SW buffer has entries in it
+				if (talon_status.topBufferCnt)
+					can_talons_[i]->ProcessMotionProfileBuffer();
+			}
 
 			rate.sleep();
 		}
@@ -526,12 +534,11 @@ void FRCRobotHWInterface::init(void)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
 
+	//HAL_InitializePDP(0,0);
 	//pdp_joint_.ClearStickyFaults();
 	//pdp_joint_.ResetTotalEnergy();
 
-	//HAL_InitializePDP(0,0);
-
-	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 200.);
+	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 55.);
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
@@ -582,7 +589,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
 		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
-		double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id)* conversion_factor;
 		
 		const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
@@ -621,6 +627,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 					(talon_mode == hardware_interface::TalonMode_MotionProfile) ||
 					(talon_mode == hardware_interface::TalonMode_MotionMagic))
 			{
+				//const double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, talon_mode, joint_id)* conversion_factor;
 				
 				//const double closed_loop_error = talon->GetClosedLoopError(pidIdx) * closed_loop_scale;
 				//safeTalonCall(talon->GetLastError(), "GetClosedLoopError");

@@ -80,7 +80,7 @@ class TalonHWCommand
 			peak_output_reverse_(-1.),
 			nominal_output_forward_(0.),
 			nominal_output_reverse_(0.),
-			neutral_deadband_(0.),
+			neutral_deadband_(0.04),
 			output_shaping_changed_(true),
 
 			// voltage compensation

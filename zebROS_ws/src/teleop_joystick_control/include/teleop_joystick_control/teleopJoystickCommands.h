@@ -2,7 +2,6 @@
 
 #include "ros/ros.h"
 #include "ros_control_boilerplate/JoystickState.h"
-#include "teleop_joystick_control/RobotState.h"
 #include "talon_controllers/CloseLoopControllerMsg.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
 #include "std_msgs/Float64.h"

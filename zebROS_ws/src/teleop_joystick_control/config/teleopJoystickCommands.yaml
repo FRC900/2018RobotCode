@@ -16,7 +16,7 @@ teleop_params:
     exchange_config_y: .5
     exchange_config_up_or_down: false
     intake_ready_to_drop_x: .215
-    intake_ready_to_drop_y: .6607 #1.075 - y pos arm relative
+    intake_ready_to_drop_y: 1.0 #1.075 - y pos arm relative
     intake_ready_to_drop_up_or_down: false
     intake_config_x: .215
     intake_config_y: 0.45 #consider always drop - press and then grab
@@ -30,6 +30,7 @@ teleop_params:
     move_out_up_or_down: true
     move_out_down_y: -1.0 
     default_x: .2
+    default_y: 1.0
     default_y: .7
     default_up_or_down: true
     high_return_intake_x: .1 
@@ -37,3 +38,6 @@ teleop_params:
     high_return_intake_up_or_down: true
     timeout: 15
     exchange_delay: 0.5
+    intake_power: 0.8
+    intake_hold_power: 0.15
+    wait_after_clamp: 0.5

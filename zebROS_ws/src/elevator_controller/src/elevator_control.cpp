@@ -1,10 +1,5 @@
 #include <elevator_controller/linear_control.h>
-#include <dynamic_reconfigure/DoubleParameter.h>
-#include <dynamic_reconfigure/Reconfigure.h>
-#include <dynamic_reconfigure/Config.h>
 #include <ros/console.h>
-
-
 
 namespace elevator_controller
 {
@@ -186,6 +181,26 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read hook_max_height");
 		return false;
 	}
+	if (!controller_nh.getParam("custom_f_lift_high", f_lift_high_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read lift high");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_lift_low", f_lift_low_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read lift low");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_arm_mass", f_arm_mass_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read arm mass");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_arm_fric", f_arm_fric_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read arm fric");
+		return false;
+	}
 	
 	//Set soft limits using offsets here
 	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_);
@@ -193,8 +208,8 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	lift_joint_.setForwardSoftLimitEnable(true);
 	lift_joint_.setReverseSoftLimitEnable(true);
 
-	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 + pivot_offset_);
-	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + pivot_offset_);
+	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.05 + pivot_offset_);
+	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
 	
 	//TODO: something is broke with these soft limits
 
@@ -258,11 +273,20 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	if(end_game_deploy_cmd && !end_game_deploy_t1_)
 	{
 		
-		ROS_INFO("part 1");
+		//ROS_INFO("part 1");
+		IntakeCommand climb_intake_cmd;
+		climb_intake_cmd.up_command = -1;
+		climb_intake_cmd.spring_command = 1;
+		climb_intake_cmd.power = 0;
+		
+		intake_command_.writeFromNonRT(climb_intake_cmd); //Not really sure how bad this is
+
+
+
 		command_struct_.lin[0] = .1;
                 command_struct_.lin[1] = min_extension_ + cos(asin(.1 / arm_length_))*arm_length_;
                 command_struct_.up_or_down = true;
-                command_struct_.override_pos_limits = false;
+                command_struct_.override_pos_limits = true;
                 command_struct_.override_sensor_limits = false;
 		
 		command_.writeFromNonRT(command_struct_);		
@@ -272,11 +296,11 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	if(end_game_deploy_cmd && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .65)
 	{
-		ROS_INFO("part 2");
+		//ROS_INFO("part 2");
 		command_struct_.lin[0] = .1;
 		command_struct_.lin[1] = (climb_height_ - min_extension_)*2 + cos(asin(.1 / arm_length_))*arm_length_;
 		command_struct_.up_or_down = true;
-		command_struct_.override_pos_limits = false;
+		command_struct_.override_pos_limits = true;
 		command_struct_.override_sensor_limits = false;
 
 		command_.writeFromNonRT(command_struct_);		
@@ -284,7 +308,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > .5)
 	{	
-		ROS_INFO("dropping");
+		//ROS_INFO("dropping");
 		std_msgs::Float64 msg;
 		msg.data = 1.0;
 		EndGameDeploy_.publish(msg);
@@ -300,7 +324,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	{
 		shift_cmd_.store(true, std::memory_order_relaxed);
 		local_shift_cmd = true;
-		ROS_INFO("shifting");
 	} 
 	if(local_shift_cmd)
 	{	
@@ -313,6 +336,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 			lift_joint_.setMotionAcceleration(after_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(after_shift_max_vel_);
 			lift_joint_.setPIDFSlot(1);
+			//lift_joint_.setF(f_lift_low_);
 		}
 	}
 	else
@@ -326,6 +350,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 			lift_joint_.setMotionAcceleration(before_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
 			lift_joint_.setPIDFSlot(0);
+			//lift_joint_.setF(f_lift_high_);
 		}
 	}
 	Commands curr_cmd = *(command_.readFromRT());
@@ -423,8 +448,15 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		lift_joint_.setPeakOutputForward(0);
 		lift_joint_.setPeakOutputReverse(0);
 	}
+	else
+	{
+		pivot_joint_.setPeakOutputForward(1);
+		pivot_joint_.setPeakOutputReverse(-1);
 
+		lift_joint_.setPeakOutputForward(1);
+		lift_joint_.setPeakOutputReverse(-1);
 
+	}
 	if(!curr_cmd.override_pos_limits)
 	{
 
@@ -471,6 +503,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//ROS_INFO_STREAM("up_or_down: " << curr_cmd.up_or_down << "lin pos target" << curr_cmd.lin << " lift pos tar: " << curr_cmd.lin[1] - arm_length_ * sin(pivot_target));	
 
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
+
+	double pivot_custom_f = cos(pivot_angle) * f_arm_mass_ +f_arm_fric_;
+	//pivot_joint_.setF(pivot_custom_f);
+
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
 	last_tar_l = curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_;
 	last_tar_p = (pivot_target + pivot_offset_);

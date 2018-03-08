@@ -3,7 +3,6 @@
 #include <ros/time.h>
 #include <ros/console.h>
 #include <teleop_joystick_control/teleopJoystickCommands.h>
-//#include <ros_control_boilerplate/frcrobot_hw_interface.h>
 #include <ros_control_boilerplate/JoystickState.h>
 
 void headerCallback(const std_msgs::Header &msg)
