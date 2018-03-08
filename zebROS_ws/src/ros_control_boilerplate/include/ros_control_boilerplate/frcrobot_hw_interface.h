@@ -198,6 +198,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		}
 		ros::Subscriber cube_state_sub_;	
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;
+		std::shared_ptr<std::vector<std::atomic<bool>>> can_talons_mp_written_;
 		std::vector<std::shared_ptr<frc::NidecBrushless>> nidec_brushlesses_;
 		std::vector<std::shared_ptr<frc::DigitalInput>> digital_inputs_;
 		std::vector<std::shared_ptr<frc::DigitalOutput>> digital_outputs_;
