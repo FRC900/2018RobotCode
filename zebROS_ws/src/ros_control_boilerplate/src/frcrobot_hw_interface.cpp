@@ -37,32 +37,33 @@
            For a more detailed simulation example, see sim_hw_interface.cpp
 */
 
+#include <cmath>
 #include <iostream>
+#include <math.h>
 #include <thread>
 
-#include <ros_control_boilerplate/frcrobot_hw_interface.h>
-#include <ros_control_boilerplate/JoystickState.h>
+// ROS message types
+#include "ros_control_boilerplate/AutoMode.h"
+#include "ros_control_boilerplate/frcrobot_hw_interface.h"
+#include "ros_control_boilerplate/JoystickState.h"
+#include "ros_control_boilerplate/MatchSpecificData.h"
+#include "ros_control_boilerplate/PDPData.h"
+
+#include <geometry_msgs/Twist.h>
+#include <std_msgs/String.h>
+#include <std_msgs/Float64.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+
+//HAL / wpilib includes
 #include "HAL/DriverStation.h"
 #include "HAL/HAL.h"
 #include "HAL/PDP.h"
 #include "HAL/Ports.h"
 #include "Joystick.h"
-#include "ros_control_boilerplate/MatchSpecificData.h"
-#include "ros_control_boilerplate/AutoMode.h"
-#include "math.h"
-#include <cmath>
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
-#include <SmartDashboard/SendableBuilder.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/String.h>
+
 #include <ctre/phoenix/MotorControl/SensorCollection.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include "ros_control_boilerplate/PDPData.h"
-#include <PowerDistributionPanel.h>
-#include <stdint.h>
-#include <std_msgs/Float64.h>
-#include <tf2/LinearMath/Matrix3x3.h>
 
 namespace frcrobot_control
 {
@@ -578,7 +579,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			//ROS_WARN("I HATE 31");
 			continue;
 		}
-			
+
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
 		const hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
