@@ -94,7 +94,7 @@ class autoAction {
 		goal_i.time_out = 15;
 		ai->sendGoal(goal_i);
 		srv_clamp.request.data = false;
-		ClampSrv.call(srv_clamp);
+		if(!ClampSrv.call(srv_clamp)) ROS_ERROR("Srv clamp call failed");
 		bool ready_to_drop = fabs(intake_ready_to_drop_x - odom_x) < drop_x_tolerance;	
 		//If we aren't yet ready to drop, go to where we can drop
 		if(!ready_to_drop)
@@ -233,11 +233,11 @@ class autoAction {
 		{
 			srv_clamp.request.data = true;
 			clamp_time = ros::Time::now().toSec();
-			ClampSrv.call(srv_clamp);
+			if(!ClampSrv.call(srv_clamp)) ROS_ERROR("Srv clamp call failed");;
 			srvIntake.request.power = 0;
             		srvIntake.request.up = false;
             		srvIntake.request.spring_state = 1; //hard_out
-			IntakeSrv.call(srvIntake);
+			if(!IntakeSrv.call(srvIntake)) ROS_ERROR("Srv intake call failed");;
 
 		}
 		while(!aborted && !timed_out)
@@ -302,7 +302,7 @@ class autoAction {
 		srvIntake.request.power = 0;
             	srvIntake.request.up = false;
             	srvIntake.request.spring_state = goal->hasCube ? 1 : 2; //hard_out or soft in depending
-		IntakeSrv.call(srvIntake);
+		if(!IntakeSrv.call(srvIntake)) ROS_ERROR("Srv intake call failed");;
 		//If we aren't yet ready to drop, go to where we can drop
 		if(!ready_to_drop)
 		{
@@ -384,7 +384,7 @@ class autoAction {
 			srvIntake.request.power = 0;
 	    	        srvIntake.request.up = false;
 		        srvIntake.request.spring_state = 2; //soft_in
-		        IntakeSrv.call(srvIntake);
+		        if(!IntakeSrv.call(srvIntake)) ROS_ERROR("Srv intake call failed");;
 		}
 	}	
         if(timed_out)

@@ -22,7 +22,6 @@ class autoAction {
         actionlib::SimpleActionServer<behaviors::LiftAction> as_;
         std::string action_name_;
         ros::Publisher Elevator;
-        ros::ServiceClient IntakeSrv;
         ros::ServiceClient ElevatorSrv;
         ros::Publisher Clamp; 
 	std::atomic<bool> success;
@@ -62,7 +61,7 @@ class autoAction {
                 srv_elevator.request.y = goal->y;
                 srv_elevator.request.up_or_down = goal->up_or_down;
                 srv_elevator.request.override_pos_limits = goal->override_pos_limits;
-                ElevatorSrv.call(srv_elevator);
+                if(!ElevatorSrv.call(srv_elevator)) ROS_ERROR("Srv elevator call failed from auto server lift");;
                 ros::spinOnce();
 		while(!aborted && !timed_out)
 		{
