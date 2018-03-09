@@ -537,9 +537,9 @@ void FRCRobotHWInterface::init(void)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
 
-	//HAL_InitializePDP(0,0);
-	//pdp_joint_.ClearStickyFaults();
-	//pdp_joint_.ResetTotalEnergy();
+	HAL_InitializePDP(0,0);
+	pdp_joint_.ClearStickyFaults();
+	pdp_joint_.ResetTotalEnergy();
 
 	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 55.);
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
@@ -810,33 +810,17 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	//navX read here
 	
 	//read info from the PDP hardware
-	/*
 	auto &ps = pdp_state_;
 	static int32_t status = 0;
 	ps.setVoltage(HAL_GetPDPVoltage(0, &status));
 	ps.setTemperature(HAL_GetPDPTemperature(0, &status));
 	ps.setTotalCurrent(HAL_GetPDPTotalCurrent(0, &status));
 	ps.setTotalPower(HAL_GetPDPTotalPower(0, &status));
-	//ROS_INFO_STREAM("status after total power is" << status);
-	//ROS_INFO_STREAM("status after setting to zero is" << status);
 	ps.setTotalEnergy(HAL_GetPDPTotalEnergy(0, &status));
-	//ROS_INFO_STREAM("status RIIIIIGHT before current is: " << status << ".........................");
 	for(int channel = 0; channel <= 15; channel++)
 	{
 		ps.setCurrent(HAL_GetPDPChannelCurrent(0, channel, &status), channel);
 	}
-
-	//ROS_INFO_STREAM("status is: " << status << ".........................");
-
-	/*ps.setVoltage(pdp_joint_.GetVoltage());
-	ps.setTemperature(pdp_joint_.GetTemperature());
-	ps.setTotalCurrent(pdp_joint_.GetTotalCurrent());
-	ps.setTotalPower(pdp_joint_.GetTotalPower());
-	ps.setTotalEnergy(pdp_joint_.GetTotalEnergy());
-	for(int channel = 0; channel <= 15; channel++)
-	{
-		ps.setCurrent(pdp_joint_.GetCurrent(channel), channel);
-	}*/
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
