@@ -105,7 +105,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 1);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
-	realtime_tools::RealtimePublisher<std_msgs::Bool> realtime_pub_disable_compressor_reg(nh_, "/frcrobot/regulate_compressor/disable", 4);
 	realtime_tools::RealtimePublisher<std_msgs::Float64> zero_navX(nh_, "/frcrobot/navx_controller/command", 1); //Kinda dirty
 
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
@@ -124,7 +123,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	ros::Time last_joystick_publish_time;
 	ros::Time last_match_data_publish_time;
 
-	const double nt_publish_rate = 2;
+	const double nt_publish_rate = 1.1;
 	//const double joystick_publish_rate = 20;
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
@@ -198,7 +197,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		//	realtime_pub_joystick.trylock())
 		if (realtime_pub_joystick.trylock())
 		{
-            
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
 			realtime_pub_joystick.msg_.rightStickY = joystick.GetRawAxis(5);
@@ -369,7 +367,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.header.stamp = time_now_t;
 			realtime_pub_match_data.unlockAndPublish();
 
-			if (realtime_pub_match_data.msg_.isEnabled && game_specific_message.length() > 0)
+			if (realtime_pub_match_data.msg_.isEnabled && (game_specific_message.length() > 0))
 				game_specific_message_seen = true;
 			else
 				game_specific_message_seen = false;
