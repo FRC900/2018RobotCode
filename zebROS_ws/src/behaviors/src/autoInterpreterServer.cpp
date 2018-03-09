@@ -65,9 +65,9 @@ class autoAction {
 			as_.start();
 			std::map<std::string, std::string> service_connection_header;
 			service_connection_header["tcp_nodelay"] = "1";
-			ElevatorSrv = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", true, service_connection_header);
-			IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", true, service_connection_header);
-            ClampSrv= nh_.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp", true, service_connection_header);
+			ElevatorSrv = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
+			IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
+            ClampSrv= nh_.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
             HighCube = nh_.subscribe("/frcrobot/elevator_controller/high_cube", 1, &autoAction::highCubeCallback, this);
     		al = std::make_shared<actionlib::SimpleActionClient<behaviors::LiftAction>>("auto_interpreter_server_lift", true);
     		ai = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
