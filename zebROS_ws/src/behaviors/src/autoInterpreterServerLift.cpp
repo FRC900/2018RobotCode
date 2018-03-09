@@ -22,7 +22,6 @@ class autoAction {
         actionlib::SimpleActionServer<behaviors::LiftAction> as_;
         std::string action_name_;
         ros::Publisher Elevator;
-        ros::ServiceClient IntakeSrv;
         ros::ServiceClient ElevatorSrv;
         ros::Publisher Clamp; 
 	std::atomic<bool> success;
@@ -40,7 +39,7 @@ class autoAction {
             as_.start();
 			std::map<std::string, std::string> service_connection_header;
 			service_connection_header["tcp_nodelay"] = "1";
-            ElevatorSrv = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", true, service_connection_header);
+            ElevatorSrv = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
             elevator_odom = nh_.subscribe("/frcrobot/elevator_controller/odom", 1, &autoAction::OdomCallback, this);
 		}
 
@@ -62,7 +61,7 @@ class autoAction {
                 srv_elevator.request.y = goal->y;
                 srv_elevator.request.up_or_down = goal->up_or_down;
                 srv_elevator.request.override_pos_limits = goal->override_pos_limits;
-                ElevatorSrv.call(srv_elevator);
+                if(!ElevatorSrv.call(srv_elevator)) ROS_ERROR("Srv elevator call failed from auto server lift");;
                 ros::spinOnce();
 		while(!aborted && !timed_out)
 		{

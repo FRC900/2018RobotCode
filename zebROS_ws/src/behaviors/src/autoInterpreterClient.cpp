@@ -1051,15 +1051,15 @@ int main(int argc, char** argv) {
 	std::map<std::string, std::string> service_connection_header;
 	service_connection_header["tcp_nodelay"] = "1";
 	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGenCoefs>("/point_gen/command", true, service_connection_header);
-	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile", true, service_connection_header);
+	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile", false, service_connection_header);
 
     //IntakeService = n.advertise<elevator_controller::Intake>("elevator/Intake", 1);
-    IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", true, service_connection_header);
+    IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
     //ElevatorService = n.advertise<elevator_controller::ElevatorControl>("elevator/cmd_pos", 1);
-    ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", true, service_connection_header);
+    ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
     //ClampService = n.advertise<std_msgs::Bool>("elevator/Clamp", 1);
-    ClampService = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp", true, service_connection_header);
-    BrakeService = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake", true, service_connection_header);
+    ClampService = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
+    BrakeService = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake", false, service_connection_header);
     
     VelPub = n.advertise<geometry_msgs::Twist>("/frcrobot/swerve_drive_controller/cmd_vel", 1);
 
@@ -1069,7 +1069,7 @@ int main(int argc, char** argv) {
     message_filters::Synchronizer<data_sync> sync(data_sync(10), auto_mode_sub, match_data_sub);
     sync.registerCallback(boost::bind(&auto_modes, _1, _2));
     ROS_WARN("Auto Client loaded");
-    ros::Duration(20).sleep();
+    ros::Duration(7.5).sleep();
     ROS_WARN("post sleep");
     generateTrajectory(0, 0, 0);
 
