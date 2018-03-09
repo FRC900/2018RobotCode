@@ -52,7 +52,7 @@ class autoAction {
                 srv.request.power = intake_power;
                 srv.request.spring_state = 2; //soft in
                 srv.request.up = false;
-                IntakeSrv.call(srv);
+                if(!IntakeSrv.call(srv)) ROS_ERROR("Srv intake call failed in auto interpreter server intake");;
 		ros::spinOnce();
 		while(!success && !timed_out && !aborted) {
 		    
@@ -74,7 +74,7 @@ class autoAction {
 				srv.request.power = -intake_hold_power;
 				srv.request.spring_state = 3; //hard in
 				srv.request.up = false;
-                		IntakeSrv.call(srv);
+                		if(!IntakeSrv.call(srv)) ROS_ERROR("Srv intake call failed in auto interpreter server intake");;
 			}
 			*/		    
 		}
