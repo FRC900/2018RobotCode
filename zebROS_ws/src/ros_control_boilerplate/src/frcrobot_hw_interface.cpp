@@ -399,7 +399,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 				ROS_INFO_STREAM("top count: " << can_talons_[i]->GetMotionProfileTopLevelBufferCount());
 
 				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
-					(talon_mode != hardware_interface::TalonMode_Disabled) )
+					(talon_mode != hardware_interface::TalonMode_Disabled) && can_talons_[i]->GetMotionProfileTopLevelBufferCount() )
 				{
 					// Only write if SW buffer has entries in it
 					ROS_INFO("needs to send points");
