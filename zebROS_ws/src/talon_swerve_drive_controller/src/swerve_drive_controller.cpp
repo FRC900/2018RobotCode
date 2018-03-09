@@ -730,20 +730,22 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		{
 			
 			total_time_since_brake +=ros::Time::now().toSec() - last_time;
-			if(total_time_since_brake > .25)
-			{	
+			//if(total_time_since_brake > .25)
+			//{	
 				brake();
-			}
-			else
-			{								
-				for (size_t i = 0; i < wheel_joints_size_; ++i)
-				{
+			//}
+			//else
+			//{								
+			//	for (size_t i = 0; i < wheel_joints_size_; ++i)
+			//	{
 					//ROS_INFO_STREAM("id:" << i << " speed: " <<speeds_angles[i][0]);
-					speed_joints_[i].setCommand(0);
-					steering_joints_[i].setCommand(speeds_angles[i][1]);
-				}
+			//		speed_joints_[i].setCommand(0);
+                        //                speed_joints_[i].setMode(neutral_mode);
 
-			}					
+			//		steering_joints_[i].setCommand(speeds_angles[i][1]);
+			//	}
+
+			//}					
 			return;
 		}
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
