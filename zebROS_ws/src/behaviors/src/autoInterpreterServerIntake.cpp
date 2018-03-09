@@ -30,7 +30,9 @@ class autoAction {
             action_name_(name)
         {
             as_.start();
-            IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
+			std::map<std::string, std::string> service_connection_header;
+			service_connection_header["tcp_nodelay"] = "1";
+            IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", true, service_connection_header);
             CubeState = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &autoAction::cubeCallback, this);
 	}
 	ros::Subscriber CubeState;
