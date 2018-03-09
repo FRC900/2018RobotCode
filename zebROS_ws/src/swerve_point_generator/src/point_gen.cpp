@@ -205,8 +205,10 @@ int main(int argc, char **argv)
 	defined_dt = .02;
 	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(sqrt(wheel_coords[0][0]*wheel_coords[0][0] + wheel_coords[0][1]*wheel_coords[0][1]), max_accel, model.maxSpeed, 1, 1, defined_dt, ang_accel_conv, max_brake_accel); //Fix last val
 	//Something to get intial wheel position
-	
-	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/visualize_profile");
+
+	std::map<std::string, std::string> service_connection_header;
+	service_connection_header["tcp_nodelay"] = "1";
+	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/visualize_profile", true, service_connection_header);
 
 	ros::spin();
 }
