@@ -198,6 +198,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		//	realtime_pub_joystick.trylock())
 		if (realtime_pub_joystick.trylock())
 		{
+            
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
 			realtime_pub_joystick.msg_.rightStickY = joystick.GetRawAxis(5);
@@ -340,7 +341,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			joystick_right_last_ = joystick_right_;
 
 			realtime_pub_joystick.unlockAndPublish();
-			//last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
+		//	last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
 		}
 
 		// Run at full speed until we see the game specific message.
@@ -393,23 +394,23 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 		//write_counter.resize(num_can_talon_srxs_)	
 		for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		{
-			const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
-			
-			// Only write to non-follow, non-disabled talons
-			if ((talon_mode != hardware_interface::TalonMode_Follower) &&
-				(talon_mode != hardware_interface::TalonMode_Disabled))
+			if ((*can_talons_mp_written_)[i].load(std::memory_order_relaxed))
 			{
-				ctre::phoenix::motion::MotionProfileStatus talon_status;
-				
-				safeTalonCall(can_talons_[i]->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+				const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
+				// Only write to non-follow, non-disabled talons
+				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
+					(talon_mode != hardware_interface::TalonMode_Disabled))
+				{
+					ctre::phoenix::motion::MotionProfileStatus talon_status;
+					safeTalonCall(can_talons_[i]->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
-				// Only write if SW buffer has entries in it
-				if (talon_status.topBufferCnt && talon_status.btmBufferCnt < 128)
-					can_talons_[i]->ProcessMotionProfileBuffer();
+					// Only write if SW buffer has entries in it
+					if (talon_status.topBufferCnt)
+						can_talons_[i]->ProcessMotionProfileBuffer();
+				}
 			}
-
-			rate.sleep();
 		}
+		rate.sleep();
 	}
 }
 
@@ -426,6 +427,7 @@ void FRCRobotHWInterface::init(void)
 	
 	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
 	
+	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
@@ -443,6 +445,7 @@ void FRCRobotHWInterface::init(void)
 							  "\tTalon SRX firmware version " << can_talons_[i]->GetFirmwareVersion());
 		// Clear sticky faults
 		// safeTalonCall(can_talons_[1]->ClearStickyFaults(timeoutMs), "Clear sticky faults.");
+		(*can_talons_mp_written_)[i].store(false, std::memory_order_relaxed);
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -1340,6 +1343,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				//ROS_WARN("clear points");
 				talon->ClearMotionProfileTrajectories();
 				safeTalonCall(talon->GetLastError(), "ClearMotionProfileTrajectories");
+				(*can_talons_mp_written_)[joint_id].store(false, std::memory_order_relaxed);
 
 				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 			}
@@ -1381,6 +1385,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				// Subsequent points will be copied by
 				// the process_motion_profile_buffer_thread code
 				talon->ProcessMotionProfileBuffer();
+				(*can_talons_mp_written_)[joint_id].store(true, std::memory_order_relaxed);
 
 				ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 			}

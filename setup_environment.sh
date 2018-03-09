@@ -139,6 +139,10 @@ if [ "$jetson" = true ] ; then
 		sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/usb/class
 		sudo cp jetson_setup/cdc-acm.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/usb/class/cdc-acm.ko
 		sudo depmod -a
+        sudo apt-get install ntp # TODO work on this NIALL or OLIVIA
+        # edit /etc/init.d/ntp to contain the line: <ntpd -gq> before all content already there.
+        sudo cp ntp-client /etc/ntp.conf  # edit /etc/ntp.conf to be a copy of ntp-client.conf in 2018RobotCode
+
 	fi
 
 	# Set up ssh host config (port 5801) and keys for 

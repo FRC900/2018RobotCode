@@ -22,7 +22,7 @@ opkg install python-pkgutil python-dateutil python-argparse python-nose
 opkg clean
 opkg install python-netifaces libglog0 python-pip coreutils gdb ntp i2c-tools 
 opkg clean
-opkg install ntp ntp-tickadj ntpdate ntp-utils
+opkg install ntp ntp-tickadj ntp-utils ntpd ntpdate
 opkg clean
 
 pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy
@@ -40,6 +40,24 @@ mkdir -p 2018RobotCode/zebROS_ws/src
 cd 2018RobotCode/zebROS_ws
 catkin_make_isolated --install
 cd 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
+##################-----------------------------#################
+#Edit /etc/ntp.conf to be a copy of ntp-server in 2018RobotCode#
+##################-----------------------------#################
+#
+#
+#
+#---------------------------------------------------------------#
+#               to setup RTC on the rio
+#   Plug the rtc into the i2c port on the rio while unpowered
+#   copy rtc-bq32.ko
+#
+#
+#cp rtc-bq32k.ko /lib/modules/`uname -r`/kernel
+#depmod
+#i2cdetect -y 2
+#echo bq32000 0x68 | tee /sys/class/i2c-adapter/i2c-2/new_device
+
 
 cd
 git clone https://github.com/gflags/gflags.git
