@@ -13,7 +13,7 @@
 #include "cameraparams.hpp"
 #include "frameticker.hpp"
 #include "ZvSettings.hpp"
-#include "navXTimeSync/AHRS.h"
+//#include "navXTimeSync/AHRS.h"
 
 // Base class for input.  Derived classes are cameras, videos, etc
 class MediaIn
@@ -106,5 +106,5 @@ class MediaIn
 		long long timeStamp_;
 		long long lockedTimeStamp_;
 		FrameTicker frameTicker;
-		AHRS NavXHandle;
+		//AHRS NavXHandle;
 };
