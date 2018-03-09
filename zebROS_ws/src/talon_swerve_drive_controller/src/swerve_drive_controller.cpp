@@ -640,10 +640,9 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			steering_joints_[i].clearMotionProfileHasUnderrun();
 			speed_joints_[i].clearMotionProfileHasUnderrun();
 
-			steering_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
-                        speed_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
+			//steering_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
+                        //speed_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
 
-			
 
 			holder_points_[i][0].position = curr_cmd.drive_pos[0][i];
 			holder_points_[i][1].position = curr_cmd.steer_pos[0][i];
