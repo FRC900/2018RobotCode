@@ -141,7 +141,10 @@ void unToggle(const pos last_achieved_pos, const ElevatorPos &elevatorPosBefore,
 	srvElevator.request.y = elevatorPosBefore.Y_;
 	srvElevator.request.up_or_down = elevatorPosBefore.UpOrDown_;
 	srvElevator.request.override_pos_limits = disableArmLimits.load(std::memory_order_relaxed);
-	ElevatorSrv.call(srvElevator);
+	if(!ElevatorSrv.call(srvElevator))
+	{
+		ROS_ERROR("Untoggle srv call failed");
+	}
 	ROS_INFO("teleop : called elevatorSrv in unToggle");
 	achieved_pos = last_achieved_pos;
 }
@@ -245,8 +248,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvIntake.request.spring_state = 1; //hard_out
 		srvIntake.request.up = false;
 		IntakeSrv.call(srvIntake); //Is it worth trying to clamp or run the intake slowly?
-
-		ElevatorSrv.call(srvElevator);
+		
+		if(!ElevatorSrv.call(srvElevator))
+		{
+			ROS_ERROR("Climb config srv call failed");
+		}
 		ROS_WARN("Climb config");
 		achieved_pos = climb_c;
 	}
@@ -463,7 +469,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvElevator.request.y = epos.Y_ + move_out_pos_y;
 		srvElevator.request.up_or_down = move_out_up_or_down;
 		srvElevator.request.override_pos_limits = localDisableArmLimits;
-		ElevatorSrv.call(srvElevator);
+		if(!ElevatorSrv.call(srvElevator))
+		{
+			ROS_ERROR("Failed going up after placing");
+		}
 		ROS_INFO("teleop : called ElevatorSrv in placed_delay_check");
 		placed_delay_check = false;
 		return_to_intake_from_low = achieved_pos == switch_c;
