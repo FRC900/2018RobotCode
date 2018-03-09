@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+
+	<node pkg="rosbag" type="play" name="player" output="screen" args="--clock /home/ofugikawa/bagfiles/_2016-02-11-13-33-13.bag.active"/>
+
+	<include file="$(find ros_control_boilerplate)/launch/2018_main_frcrobot.launch"/>
+
+</launch>
