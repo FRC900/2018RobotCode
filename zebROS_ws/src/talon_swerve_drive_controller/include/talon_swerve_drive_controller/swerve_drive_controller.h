@@ -69,6 +69,7 @@ namespace talon_swerve_drive_controller
 {
 const hardware_interface::TalonMode motion_profile_mode = hardware_interface::TalonMode::TalonMode_MotionProfile;
 const hardware_interface::TalonMode velocity_mode = hardware_interface::TalonMode::TalonMode_Velocity;
+//const hardware_interface::TalonMode neutral_mode = hardware_interface::TalonMode::TalonMode_Neutral;
 const hardware_interface::TalonMode position_mode = hardware_interface::TalonMode::TalonMode_Position;
 
 /**

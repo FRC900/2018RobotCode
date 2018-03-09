@@ -778,11 +778,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	{
 		if (sendRobotZero < 1)
 		{
-			//talon_swerve_drive_controller::Blank blank;
-			//blank.request.nothing = true;
-			//BrakeSrv.call(blank);
+			talon_swerve_drive_controller::Blank blank;
+			blank.request.nothing = true;
+			BrakeSrv.call(blank);
 			//ROS_INFO("teleop : called BrakeSrv to stop");
-			
+			/*
 			geometry_msgs::Twist vel;
 			sendRobotZero += 1;
 			
@@ -795,7 +795,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			vel.angular.z = 0;
 			
 			JoystickRobotVel.publish(vel);
-			
+			*/
 		}
 	}
 	else // X or Y or rotation != 0 so tell the drive base to move
@@ -837,7 +837,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	}
 
 	lastTimeSecs = timeSecs;
-    ROS_WARN("Header time: %f, Time now: %f, Time difference: %f", JoystickState->header.stamp.toSec(), ros::Time::now().toSec(), ros::Time::now().toSec() - JoystickState->header.stamp.toSec());
+    //ROS_WARN("Header time: %f, Time now: %f, Time difference: %f", JoystickState->header.stamp.toSec(), ros::Time::now().toSec(), ros::Time::now().toSec() - JoystickState->header.stamp.toSec());
 }
 
 void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
