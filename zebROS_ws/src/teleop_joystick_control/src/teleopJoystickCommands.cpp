@@ -772,21 +772,35 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		rotation *= slow_mode;
 	}
 
-	static bool sendRobotZero = false;
+	static int sendRobotZero = 0;
 	// No motion? Tell the drive base to stop
 	if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 	{
-		if (!sendRobotZero)
+		if (sendRobotZero < 1)
 		{
-			talon_swerve_drive_controller::Blank blank;
-			blank.request.nothing = true;
-			BrakeSrv.call(blank);
-			ROS_INFO("teleop : called BrakeSrv to stop");
-			sendRobotZero = true;
+			//talon_swerve_drive_controller::Blank blank;
+			//blank.request.nothing = true;
+			//BrakeSrv.call(blank);
+			//ROS_INFO("teleop : called BrakeSrv to stop");
+			
+			geometry_msgs::Twist vel;
+			sendRobotZero += 1;
+			
+			vel.linear.x = 0;
+			vel.linear.y = 0;
+			vel.linear.z = 0;
+	
+			vel.angular.x = 0;
+			vel.angular.y = 0;
+			vel.angular.z = 0;
+			
+			JoystickRobotVel.publish(vel);
+			
 		}
 	}
 	else // X or Y or rotation != 0 so tell the drive base to move
 	{
+		sendRobotZero = 0;
 		//Publish drivetrain messages and elevator/pivot
 		Eigen::Vector2d joyVector;
 		joyVector[0] = leftStickX; //intentionally flipped
@@ -940,7 +954,7 @@ int main(int argc, char **argv)
 	ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
 	ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
 	IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
-	BrakeSrv = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake");
+	BrakeSrv = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake", true);
 
 	//message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "scaled_joystick_vals", 5);
 	//message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
