@@ -381,6 +381,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
+	return;
 	// since our MP is 10ms per point, set the control frame rate and the
 	// notifer to half that
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
@@ -389,6 +390,8 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 	ros::Rate rate(hz);
 	while (ros::ok())
 	{
+		//std::vector<double> write_counter;
+		//write_counter.resize(num_can_talon_srxs_)	
 		for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		{
 			if ((*can_talons_mp_written_)[i].load(std::memory_order_relaxed))
