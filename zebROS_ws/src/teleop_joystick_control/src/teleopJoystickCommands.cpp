@@ -20,7 +20,7 @@
  *Press down to climb (lift goes to position)
  *
  */
-static double dead_zone = .2, slow_mode = .33, max_speed = 3.6, max_rot = 7.65, joystick_scale = 3;
+static double dead_zone = .2, slow_mode = .33, max_speed = 3.6, max_rot = 8.8, joystick_scale = 3;
 double dead_zone_check(double val)
 {
 	if (fabs(val) <= dead_zone)
