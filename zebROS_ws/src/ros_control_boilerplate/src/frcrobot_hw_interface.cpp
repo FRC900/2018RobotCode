@@ -381,7 +381,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
-	return;
 	// since our MP is 10ms per point, set the control frame rate and the
 	// notifer to half that
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
@@ -397,11 +396,13 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 				const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
 				// Only write to non-follow, non-disabled talons that
 				// have points to write from their top-level buffer
+				ROS_INFO_STREAM("top count: " << can_talons_[i]->GetMotionProfileTopLevelBufferCount());
+
 				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
-					(talon_mode != hardware_interface::TalonMode_Disabled) &&
-					can_talons_[i]->GetMotionProfileTopLevelBufferCount())
+					(talon_mode != hardware_interface::TalonMode_Disabled) )
 				{
 					// Only write if SW buffer has entries in it
+					ROS_INFO("needs to send points");
 					can_talons_[i]->ProcessMotionProfileBuffer();
 				}
 			}
