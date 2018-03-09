@@ -11,6 +11,7 @@
   <author email="programmers@team900.org">FRC900 Programming Team</author>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
 
   <run_depend>joint_state_publisher</run_depend>
   <run_depend>robot_state_publisher</run_depend>
