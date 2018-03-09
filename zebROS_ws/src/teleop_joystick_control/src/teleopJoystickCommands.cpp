@@ -772,11 +772,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		rotation *= slow_mode;
 	}
 
-	static int sendRobotZero = 0;
+	static bool sendRobotZero = 0;
 	// No motion? Tell the drive base to stop
 	if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 	{
-		if (sendRobotZero < 1)
+		if (sendRobotZero)
 		{
 			talon_swerve_drive_controller::Blank blank;
 			blank.request.nothing = true;
@@ -796,6 +796,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			
 			JoystickRobotVel.publish(vel);
 			*/
+			//ROS_INFO("teleop : called BrakeSrv to stop");
+			sendRobotZero = true;
 		}
 	}
 	else // X or Y or rotation != 0 so tell the drive base to move
@@ -951,11 +953,13 @@ int main(int argc, char **argv)
 	JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
 	JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
 
-	EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/end_game_deploy");
-	ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
-	ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
-	IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
-	BrakeSrv = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake", true);
+	std::map<std::string, std::string> service_connection_header;
+	service_connection_header["tcp_nodelay"] = "1";
+	EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/end_game_deploy", true, service_connection_header);
+	ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", true, service_connection_header);
+	ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp", true, service_connection_header);
+	IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", true, service_connection_header);
+	BrakeSrv = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake", true, service_connection_header);
 
 	//message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "scaled_joystick_vals", 5);
 	//message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);

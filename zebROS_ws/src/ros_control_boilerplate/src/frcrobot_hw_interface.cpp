@@ -397,16 +397,14 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 			if ((*can_talons_mp_written_)[i].load(std::memory_order_relaxed))
 			{
 				const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
-				// Only write to non-follow, non-disabled talons
+				// Only write to non-follow, non-disabled talons that
+				// have points to write from their top-level buffer
 				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
-					(talon_mode != hardware_interface::TalonMode_Disabled))
+					(talon_mode != hardware_interface::TalonMode_Disabled) &&
+					can_talons_[i]->GetMotionProfileTopLevelBufferCount())
 				{
-					ctre::phoenix::motion::MotionProfileStatus talon_status;
-					safeTalonCall(can_talons_[i]->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
-
 					// Only write if SW buffer has entries in it
-					if (talon_status.topBufferCnt)
-						can_talons_[i]->ProcessMotionProfileBuffer();
+					can_talons_[i]->ProcessMotionProfileBuffer();
 				}
 			}
 		}

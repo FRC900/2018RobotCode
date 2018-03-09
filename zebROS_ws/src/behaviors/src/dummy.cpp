@@ -84,7 +84,10 @@ int main(int argc, char** argv) {
     ac->waitForServer(); 
     */
     /*
-	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGen>("/point_gen/command");
+	   std::map<std::string, std::string> service_connection_header;
+	   service_connection_header["tcp_nodelay"] = "1";
+
+	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGen>("/point_gen/command", true, service_connection_header);
     talon_swerve_drive_controller::FullGenCoefs srv;
     std::vector<double> v = {0, 0, 0, 0, 0, 0}; 
     talon_swerve_drive_controller::Coefs orients1;
@@ -176,14 +179,14 @@ int main(int argc, char** argv) {
     
     point_gen.call(srv);
     /*
-	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile");
+	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile", true, service_connection_header);
 
     //IntakeService = n.advertise<elevator_controller::Intake>("elevator/Intake", 1);
-    IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
+    IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", true, service_connection_header);
     //ElevatorService = n.advertise<elevator_controller::ElevatorControl>("elevator/cmd_pos", 1);
-    ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
+    ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", true, service_connection_header);
     //ClampService = n.advertise<std_msgs::Bool>("elevator/Clamp", 1);
-    ClampService = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
+    ClampService = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp", true, service_connection_header);
     VelPub = n.advertise<geometry_msgs::Twist>("/frcrobot/swerve_drive_controller/cmd_vel", 1);
 
     message_filters::Subscriber<ros_control_boilerplate::AutoMode> auto_mode_sub(n, "Autonomous_Mode", 1);
