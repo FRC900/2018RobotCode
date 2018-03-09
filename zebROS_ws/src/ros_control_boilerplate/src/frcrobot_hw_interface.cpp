@@ -539,8 +539,8 @@ void FRCRobotHWInterface::init(void)
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
 
 	HAL_InitializePDP(0,0);
-	pdp_joint_.ClearStickyFaults();
-	pdp_joint_.ResetTotalEnergy();
+	//pdp_joint_.ClearStickyFaults();
+	//pdp_joint_.ResetTotalEnergy();
 
 	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 55.);
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
