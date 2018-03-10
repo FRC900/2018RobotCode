@@ -23,6 +23,7 @@
   <depend>ros_control_boilerplate</depend>
   <depend>behaviors</depend>
   <depend>elevator_controller</depend>
+  <depend>std_srvs</depend>
 
   <export>
   </export>

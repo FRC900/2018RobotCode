@@ -5,12 +5,11 @@
 #include "elevator_controller/ReturnElevatorCmd.h"
 #include "elevator_controller/ElevatorControlS.h"
 #include "elevator_controller/Intake.h"
-#include "elevator_controller/bool_srv.h"
-#include "elevator_controller/Blank.h"
+#include "std_srvs/Empty.h"
+#include "std_srvs/SetBool.h"
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/RobotAction.h"
-#include "talon_swerve_drive_controller/Blank.h"
 
 /*TODO list:
  *
@@ -196,7 +195,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	JoystickTestVel.publish(first_header);*/
 
 	elevator_controller::ElevatorControlS srvElevator;
-	elevator_controller::bool_srv srvClamp;
+	std_srvs::SetBool srvClamp;
 	elevator_controller::Intake srvIntake;
 	static ElevatorPos elevatorPosBefore;
 
@@ -228,9 +227,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		static double directionUpLast = 0;
 		if (timeSecs - directionUpLast < 1.0)
 		{
-			elevator_controller::Blank msg; //TODO
-			msg.request.nothing_here = true;
-			if (!EndGameDeploy.call(msg))
+			std_srvs::Empty empty; //TODO
+			if (!EndGameDeploy.call(empty))
 				ROS_ERROR("EndGameDeploy call in teleop joystick failed");
 			ROS_WARN("SELF DESTURCT");
 			achieved_pos = other;
@@ -311,7 +309,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			if (clamped == false)
 			{
-
 				srvClamp.request.data = true;
 				if (ClampSrv.call(srvClamp))
 				{
@@ -798,9 +795,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	{
 		if (!sendRobotZero)
 		{
-			talon_swerve_drive_controller::Blank blank;
-			blank.request.nothing = true;
-			if (!BrakeSrv.call(blank))
+			std_srvs::Empty empty;
+			if (!BrakeSrv.call(empty))
 				ROS_ERROR("BrakeSrv call failed in sendRobotZero");
 			//ROS_INFO("teleop : called BrakeSrv to stop");
 			/*
@@ -975,11 +971,11 @@ int main(int argc, char **argv)
 
 	std::map<std::string, std::string> service_connection_header;
 	service_connection_header["tcp_nodelay"] = "1";
-	EndGameDeploy = n.serviceClient<elevator_controller::Blank>("/frcrobot/elevator_controller/end_game_deploy", false, service_connection_header);
+	EndGameDeploy = n.serviceClient<std_srvs::Empty>("/frcrobot/elevator_controller/end_game_deploy", false, service_connection_header);
 	ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
-	ClampSrv = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
+	ClampSrv = n.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
 	IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
-	BrakeSrv = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/swerve_drive_controller/brake", false, service_connection_header);
+	BrakeSrv = n.serviceClient<std_srvs::Empty>("/frcrobot/swerve_drive_controller/brake", false, service_connection_header);
 
 	//message_filters::Subscriber<ros_control_boilerplate::JoystickState> joystickSub(n, "scaled_joystick_vals", 5);
 	//message_filters::Subscriber<ros_control_boilerplate::MatchSpecificData> matchDataSub(n, "match_data", 5);
