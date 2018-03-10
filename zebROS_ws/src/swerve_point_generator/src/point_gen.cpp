@@ -101,8 +101,7 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 	res.points.resize(point_count-k_p + n);
 	
 	
-	for(int i = 0; i < n; i++)
-	{
+
 	std::array<Eigen::Vector2d, WHEELCOUNT> angles_positions  = swerve_math->motorOutputs({srv_msg.points[1].positions[0] - srv_msg.points[0].positions[0], srv_msg.points[1].positions[1] - srv_msg.points[0].positions[1]}, srv_msg.points[1].positions[2] - srv_msg.points[0].positions[2], srv_msg.points[1].positions[2], false, holder, false, curPos, false);
 		//TODO: angles on the velocity array below are superfluous, could remove
 	std::array<Eigen::Vector2d, WHEELCOUNT> angles_velocities  = swerve_math->motorOutputs({srv_msg.points[1].velocities[0], srv_msg.points[1].velocities[1]}, srv_msg.points[1].velocities[2], srv_msg.points[1].positions[2], false, holder, false, curPos, false);
@@ -110,17 +109,13 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 			curPos[k] = angles_positions[k][1];
 
 		//ROS_INFO_STREAM("pos_0:" << srv_msg.points[i+1].positions[0] << "pos_1:" << srv_msg.points[i+1].positions[1] <<"pos_2:" <<  srv_msg.points[i+1].positions[2] << " counts: " << point_count << " i: "<< i << " wheels: " << WHEELCOUNT);
+	for(int i = 0; i < n; i++)
+	{
 		for(size_t k = 0; k < WHEELCOUNT; k++)
 		{
 			//ROS_WARN("hhhhere");
-			if(i != 0)
-			{
-				res.points[i].drive_pos.push_back(angles_positions[k][0] + res.points[i-1].drive_pos[k]);
-			}
-			else
-			{
 				res.points[i].drive_pos.push_back(angles_positions[k][0]);
-			}
+				res.points[i].drive_pos.push_back(angles_positions[k][0]);
 			//ROS_WARN("re");
 			
 			res.points[i].drive_vel.push_back(0);
@@ -150,11 +145,9 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 			{
 				res.points[i+n].drive_pos.push_back(angles_positions[k][0]);
 			}
-			ROS_WARN("re");
 			
-			if(i > point_count - k_p -3)
+			if(i > point_count - k_p -1)
 			{
-				ROS_INFO_STREAM("zero vel?");
 				res.points[i+n].drive_vel.push_back(0);
 			}
 			else
