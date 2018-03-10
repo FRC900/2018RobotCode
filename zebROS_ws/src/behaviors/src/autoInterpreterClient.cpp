@@ -916,12 +916,11 @@ void run_auto(int auto_mode) {
 
     }
     else if(AutoMode->mode[auto_mode-1]==12) {
-
     }
     else{
         
     }
-    */
+*/
 }
 
 int main(int argc, char** argv) {
