@@ -10,6 +10,7 @@ project(vid_reader_node)
 
 include ("../cmake_modules/CMakeOpt.cmake")
 
+if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 find_package(catkin REQUIRED COMPONENTS
      roscpp
      message_filters
@@ -233,3 +234,4 @@ target_link_libraries(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+ endif()
