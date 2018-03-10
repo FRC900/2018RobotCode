@@ -200,8 +200,6 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh("~");
 	int sub_rate = 5;
 	int pub_rate = 1;
-
-	
 	
 	message_filters::Subscriber<Image> frame_sub(nh, "/zed_goal/left/image_rect_color", sub_rate);
 	message_filters::Subscriber<Image> depth_sub(nh, "/zed_goal/depth/depth_registered", sub_rate);
