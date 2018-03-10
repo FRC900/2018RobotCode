@@ -39,12 +39,15 @@
 
 #pragma once
 
+#include <atomic>
 #include <thread>
+
 #include <ros_control_boilerplate/frc_robot_interface.h>
+#include <realtime_tools/realtime_publisher.h>
+
 #include <ctre/phoenix/MotorControl/CAN/TalonSRX.h>
 #include <IterativeRobotBase.h>
 #include <DriverStation.h>
-#include <realtime_tools/realtime_publisher.h>
 #include <NidecBrushless.h>
 #include <DigitalInput.h>
 #include <DigitalOutput.h>
@@ -53,13 +56,10 @@
 #include <DoubleSolenoid.h>
 #include <AHRS.h>
 #include <Compressor.h>
-#include <PowerDistributionPanel.h>
 #include "LiveWindow/LiveWindow.h"
 #include "SmartDashboard/SmartDashboard.h"
-#include <realtime_tools/realtime_buffer.h>
-#include <realtime_tools/realtime_publisher.h>
+
 #include <std_msgs/Bool.h>
-#include <atomic>
 
 namespace frcrobot_control
 {

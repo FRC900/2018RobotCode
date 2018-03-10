@@ -32,7 +32,7 @@ class autoAction {
             as_.start();
 			std::map<std::string, std::string> service_connection_header;
 			service_connection_header["tcp_nodelay"] = "1";
-            IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", true, service_connection_header);
+            IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
             CubeState = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &autoAction::cubeCallback, this);
 	}
 	ros::Subscriber CubeState;
@@ -54,7 +54,10 @@ class autoAction {
                 srv.request.power = intake_power;
                 srv.request.spring_state = 2; //soft in
                 srv.request.up = false;
-                if(!IntakeSrv.call(srv)) ROS_ERROR("Srv intake call failed in auto interpreter server intake");;
+                if(!IntakeSrv.call(srv)) 
+					ROS_ERROR("Srv intake call failed in auto interpreter server intake");
+				else
+					ROS_ERROR("Srv intake call OK in auto interpreter server intake");
 		ros::spinOnce();
 		while(!success && !timed_out && !aborted) {
 		    

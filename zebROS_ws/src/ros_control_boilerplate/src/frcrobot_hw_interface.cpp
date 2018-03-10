@@ -37,32 +37,33 @@
            For a more detailed simulation example, see sim_hw_interface.cpp
 */
 
+#include <cmath>
 #include <iostream>
+#include <math.h>
 #include <thread>
 
-#include <ros_control_boilerplate/frcrobot_hw_interface.h>
-#include <ros_control_boilerplate/JoystickState.h>
+// ROS message types
+#include "ros_control_boilerplate/AutoMode.h"
+#include "ros_control_boilerplate/frcrobot_hw_interface.h"
+#include "ros_control_boilerplate/JoystickState.h"
+#include "ros_control_boilerplate/MatchSpecificData.h"
+#include "ros_control_boilerplate/PDPData.h"
+
+#include <geometry_msgs/Twist.h>
+#include <std_msgs/String.h>
+#include <std_msgs/Float64.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+
+//HAL / wpilib includes
 #include "HAL/DriverStation.h"
 #include "HAL/HAL.h"
 #include "HAL/PDP.h"
 #include "HAL/Ports.h"
 #include "Joystick.h"
-#include "ros_control_boilerplate/MatchSpecificData.h"
-#include "ros_control_boilerplate/AutoMode.h"
-#include "math.h"
-#include <cmath>
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
-#include <SmartDashboard/SendableBuilder.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/String.h>
+
 #include <ctre/phoenix/MotorControl/SensorCollection.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include "ros_control_boilerplate/PDPData.h"
-#include <PowerDistributionPanel.h>
-#include <stdint.h>
-#include <std_msgs/Float64.h>
-#include <tf2/LinearMath/Matrix3x3.h>
 
 namespace frcrobot_control
 {
@@ -105,7 +106,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 1);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
-	realtime_tools::RealtimePublisher<std_msgs::Bool> realtime_pub_disable_compressor_reg(nh_, "/frcrobot/regulate_compressor/disable", 4);
 	realtime_tools::RealtimePublisher<std_msgs::Float64> zero_navX(nh_, "/frcrobot/navx_controller/command", 1); //Kinda dirty
 
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
@@ -124,7 +124,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	ros::Time last_joystick_publish_time;
 	ros::Time last_match_data_publish_time;
 
-	const double nt_publish_rate = 2;
+	const double nt_publish_rate = 1.1;
 	//const double joystick_publish_rate = 20;
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
@@ -198,7 +198,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		//	realtime_pub_joystick.trylock())
 		if (realtime_pub_joystick.trylock())
 		{
-            
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
 			realtime_pub_joystick.msg_.rightStickY = joystick.GetRawAxis(5);
@@ -369,7 +368,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.header.stamp = time_now_t;
 			realtime_pub_match_data.unlockAndPublish();
 
-			if (realtime_pub_match_data.msg_.isEnabled && game_specific_message.length() > 0)
+			if (realtime_pub_match_data.msg_.isEnabled && (game_specific_message.length() > 0))
 				game_specific_message_seen = true;
 			else
 				game_specific_message_seen = false;
@@ -539,6 +538,9 @@ void FRCRobotHWInterface::init(void)
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
 
 	HAL_InitializePDP(0,0);
+	static int32_t status = 0;
+	HAL_ResetPDPTotalEnergy(0, &status);
+	HAL_ClearPDPStickyFaults(0, &status);
 	//pdp_joint_.ClearStickyFaults();
 	//pdp_joint_.ResetTotalEnergy();
 
@@ -580,7 +582,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			//ROS_WARN("I HATE 31");
 			continue;
 		}
-			
+
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
 		const hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
@@ -818,6 +820,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	ps.setTotalCurrent(HAL_GetPDPTotalCurrent(0, &status));
 	ps.setTotalPower(HAL_GetPDPTotalPower(0, &status));
 	ps.setTotalEnergy(HAL_GetPDPTotalEnergy(0, &status));
+	ps.setCurrent(HAL_GetPDPChannelCurrent(0, 3, &status), 3);
 	for(int channel = 0; channel <= 15; channel++)
 	{
 		ps.setCurrent(HAL_GetPDPChannelCurrent(0, channel, &status), channel);
