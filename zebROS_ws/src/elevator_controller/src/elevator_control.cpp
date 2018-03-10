@@ -606,7 +606,7 @@ bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Re
 	}
 }
 
-bool ElevatorController::clampService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &/*res*/)
+bool ElevatorController::clampService(std_srvs::SetBool::Request &command, std_srvs::SetBool::Response &/*res*/)
 {
 	if(isRunning())
 	{
@@ -627,7 +627,7 @@ bool ElevatorController::clampService(elevator_controller::bool_srv::Request &co
 	}
 }
 
-bool ElevatorController::shiftService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &/*res*/)
+bool ElevatorController::shiftService(std_srvs::SetBool::Request &command, std_srvs::SetBool::Response &/*res*/)
 {
 	if(isRunning())
 	{
@@ -641,7 +641,7 @@ bool ElevatorController::shiftService(elevator_controller::bool_srv::Request &co
 	}
 }
 
-bool ElevatorController::endGameDeployService(elevator_controller::Blank::Request &/*command*/, elevator_controller::Blank::Response &/*res*/)
+bool ElevatorController::endGameDeployService(std_srvs::Empty::Request &/*command*/, std_srvs::Empty::Response &/*res*/)
 {
 	if(isRunning())
 	{
