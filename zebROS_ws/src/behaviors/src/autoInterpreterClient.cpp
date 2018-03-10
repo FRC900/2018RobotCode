@@ -51,7 +51,12 @@ bool defaultConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
-    return ElevatorService.call(srv);
+    if (!ElevatorService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ElevatorService in defaultConfig");
+		return false;
+	}
+	return true;
 }
 bool intakeConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.x = intake_config_x;
@@ -59,7 +64,12 @@ bool intakeConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.up_or_down = false;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
-    return ElevatorService.call(srv);
+    if (!ElevatorService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
+		return false;
+	}
+	return true;
 }
 bool switchConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.x = switch_config_x;
@@ -67,7 +77,12 @@ bool switchConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
-    return ElevatorService.call(srv);
+    if (!ElevatorService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ElevatorService in switchConfig");
+		return false;
+	}
+	return true;
 }
 bool highScale(elevator_controller::ElevatorControlS srv) {
     srv.request.x = high_scale_config_x;
@@ -75,7 +90,12 @@ bool highScale(elevator_controller::ElevatorControlS srv) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
-    return ElevatorService.call(srv);
+    if (!ElevatorService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ElevatorService in highScale");
+		return false;
+	}
+	return true;
 }
 bool midScale(elevator_controller::ElevatorControlS srv) {
     srv.request.x = mid_scale_config_x;
@@ -83,7 +103,12 @@ bool midScale(elevator_controller::ElevatorControlS srv) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
-    return ElevatorService.call(srv);
+    if (!ElevatorService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ElevatorService in midScale");
+		return false;
+	}
+	return true;
 }
 bool lowScale(elevator_controller::ElevatorControlS srv) {
     srv.request.x = low_scale_config_x;
@@ -91,24 +116,49 @@ bool lowScale(elevator_controller::ElevatorControlS srv) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
-    return ElevatorService.call(srv);
+    if (!ElevatorService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ElevatorService in lowScale");
+		return false;
+	}
+	return true;
 }
 bool stopIntake(elevator_controller::Intake srv) {
     srv.request.power=0;
-    return IntakeService.call(srv);
+    if (!IntakeService.call(srv))
+	{
+		ROS_ERROR("Service call failed : IntakeService in stopIntake");
+		return false;
+	}
+	return true;
 }
 bool releaseClamp(elevator_controller::bool_srv srv) {
     srv.request.data = false;
-    return ClampService.call(srv);
+    if (!ClampService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ClampService in releaseClamp");
+		return false;
+	}
+	return true;
 }
 bool clamp(elevator_controller::bool_srv srv) {
     srv.request.data = true;
-    return ClampService.call(srv);
+    if (!ClampService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ClampService in clamp");
+		return false;
+	}
+	return true;
 }
 bool releaseIntake(elevator_controller::Intake srv) {
     srv.request.spring_state = 1;
     srv.request.power = 0;
-    IntakeService.call(srv);
+    if (!IntakeService.call(srv))
+	{
+		ROS_ERROR("Service call failed : IntakeService in releaseIntake");
+		return false;
+	}
+	return true;
 }
 
 
@@ -171,6 +221,7 @@ void generateTrajectory(int auto_mode, int layout, int start_pos) {
     srv.request.initial_v = 0;
     srv.request.final_v = 0;
     coefs_vect[layout] = srv;
+<<<<<<< HEAD
     ROS_WARN("check 11");
     point_gen.call(coefs_vect[layout]);
     ROS_WARN("check 12");
@@ -178,6 +229,25 @@ void generateTrajectory(int auto_mode, int layout, int start_pos) {
     ///JUST FOR TESTING_______
     runTrajectory(layout);
     ///JUST FOR TESTING_______
+=======
+    ROS_WARN("check 3");
+    if (!point_gen.call(coefs_vect[layout]))
+		ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
+    ROS_WARN("check 4");
+    
+    talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
+    swerve_control_srv.request.points = coefs_vect[layout].response.points;
+    ROS_INFO_STREAM("num_points: " << coefs_vect[layout].response.points.size() << " dt: "<< coefs_vect[layout].response.dt);
+    
+    swerve_control_srv.request.dt = coefs_vect[layout].response.dt;
+    swerve_control_srv.request.buffer = true;
+    swerve_control_srv.request.clear  = true;
+    swerve_control_srv.request.run    = false;
+    swerve_control_srv.request.mode   = true;
+    
+    if (!swerve_control.call(swerve_control_srv))
+		ROS_ERROR("swerve_control call() failed in autoInterpreterClient generateTrajectory()");
+>>>>>>> 9afa78d4e106584c2ab1c4d60bfbcc7afbc2e2f3
 }
 
 std::string lower(std::string str) {
@@ -200,7 +270,8 @@ void runTrajectory(int auto_mode) {
     swerve_control_srv.request.mode   = true;
     
     ROS_WARN("Call swerve control service");
-    swerve_control.call(swerve_control_srv);
+    if (!swerve_control.call(swerve_control_srv))
+		ROS_ERROR("Call to swerve control in autoInterpreterClient runTrajectory() failed");
 }
 
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode) {
@@ -412,6 +483,11 @@ void run_auto(int auto_mode) {
                     r.sleep();
                     ros::spinOnce();
                 }
+                ROS_WARN("braked");
+                talon_swerve_drive_controller::Blank blank;
+                blank.request.nothing = true;
+                if (!BrakeService.call(blank))
+					ROS_ERROR("BrakeService call failed in autoMode == 1");
             }
             releaseClamp(ClampSrv);
         }
@@ -425,6 +501,11 @@ void run_auto(int auto_mode) {
                     r.sleep();
                     ros::spinOnce();
                 }
+                ROS_WARN("braked");
+                talon_swerve_drive_controller::Blank blank;
+                blank.request.nothing = true;
+                if (!BrakeService.call(blank))
+					ROS_ERROR("BrakeService call failed in autoMode == 2");
             }
             if(start_pos == 2) {
                 delay = 3.5; //TODO
@@ -885,23 +966,26 @@ int main(int argc, char** argv) {
     n_params_behaviors.getParam("modes", modes);
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
     ac->waitForServer(); 
-	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGenCoefs>("/point_gen/command");
-	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile");
 
-    IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
+	std::map<std::string, std::string> service_connection_header;
+	service_connection_header["tcp_nodelay"] = "1";
+	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGenCoefs>("/point_gen/command", true, service_connection_header);
+	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile", false, service_connection_header);
 
-    ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
-
-    ClampService = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
-
-    BrakeService = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake");
+    //IntakeService = n.advertise<elevator_controller::Intake>("elevator/Intake", 1);
+    IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
+    //ElevatorService = n.advertise<elevator_controller::ElevatorControl>("elevator/cmd_pos", 1);
+    ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
+    //ClampService = n.advertise<std_msgs::Bool>("elevator/Clamp", 1);
+    ClampService = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
+    BrakeService = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake", false, service_connection_header);
     
     VelPub = n.advertise<geometry_msgs::Twist>("/frcrobot/swerve_drive_controller/cmd_vel", 1);
 
     ros::Subscriber auto_mode_sub = n.subscribe("autonomous_mode", 1, &auto_mode_cb);
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
     ROS_WARN("Auto Client loaded");
-    ros::Duration(10).sleep();
+    ros::Duration(7.5).sleep();
     ROS_WARN("post sleep");
     generateTrajectory(0, 1, 0);
 

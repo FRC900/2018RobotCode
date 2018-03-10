@@ -894,11 +894,43 @@ class TalonControllerInterface
 		}
 		void setPeakOutputForward(double peak)
 		{
+			if (peak == params_.peak_output_forward_)
+				return;
+			params_.peak_output_forward_ = peak;
+
+			syncDynamicReconfigure();
 			talon_->setPeakOutputForward(peak);
 		}
 		void setPeakOutputReverse(double peak)
 		{
+			if (peak == params_.peak_output_reverse_)
+				return;
+			params_.peak_output_reverse_ = peak;
+
+			syncDynamicReconfigure();
 			talon_->setPeakOutputReverse(peak);
+		}
+
+		void setClosedloopRamp(double closed_loop_ramp)
+		{
+			if (closed_loop_ramp == params_.closed_loop_ramp_)
+				return;
+			params_.closed_loop_ramp_ = closed_loop_ramp;
+
+			syncDynamicReconfigure();
+
+			talon_->setClosedloopRamp(params_.closed_loop_ramp_);
+		}
+
+		void setOpenloopRamp(double open_loop_ramp)
+		{
+			if (open_loop_ramp == params_.open_loop_ramp_)
+				return;
+			params_.open_loop_ramp_ = open_loop_ramp;
+
+			syncDynamicReconfigure();
+
+			talon_->setOpenloopRamp(params_.open_loop_ramp_);
 		}
 
 	protected:

@@ -36,7 +36,7 @@ void swerve::setCenterOfRotation(size_t id, const Vector2d &centerOfRotation)
 	{
 		multiplierSet newSet;
 		newSet.multipliers_ = swerveMath_.wheelMultipliersXY(centerOfRotation);
-		newSet.maxRotRate_ = pow((2*M_PI), 2) * furthestWheel(centerOfRotation) / drive_.maxSpeed;
+		newSet.maxRotRate_ = drive_.maxSpeed / furthestWheel(centerOfRotation);
 		multiplierSets_[id] = newSet;
 	}
 }

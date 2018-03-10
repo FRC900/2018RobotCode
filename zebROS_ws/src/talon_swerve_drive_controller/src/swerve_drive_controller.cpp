@@ -640,10 +640,9 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			steering_joints_[i].clearMotionProfileHasUnderrun();
 			speed_joints_[i].clearMotionProfileHasUnderrun();
 
-			steering_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
-                        speed_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
+			//steering_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
+                        //speed_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
 
-			
 
 			holder_points_[i][0].position = curr_cmd.drive_pos[0][i];
 			holder_points_[i][1].position = curr_cmd.steer_pos[0][i];
@@ -705,13 +704,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 		//ROS_INFO_STREAM("ang_vel_tar: " << curr_cmd.ang << " lin_vel_tar: " << curr_cmd.lin);
 
-		for (size_t i = 0; i < wheel_joints_size_; ++i)
-		{
-			speed_joints_[i].setMode(velocity_mode);
-			speed_joints_[i].setPIDFSlot(0);;
-			steering_joints_[i].setPIDFSlot(0);;
-			steering_joints_[i].setMode(position_mode);
-		}
+
 		// Brake if cmd_vel has timeout:
 		if (dt > cmd_vel_timeout_)
 		{
@@ -719,11 +712,53 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			curr_cmd.ang = 0.0;
 		}
 
+		static std::array<Vector2d, WHEELCOUNT> speeds_angles;
+		static double time_before_brake = 0;
+
+
+				
+		for (size_t i = 0; i < wheel_joints_size_; ++i)
+		{
+			steering_joints_[i].setPIDFSlot(0);;
+			steering_joints_[i].setMode(position_mode);
+			speed_joints_[i].setClosedloopRamp(0);
+
+		}
+
 		if (fabs(curr_cmd.lin[0]) <= 1e-6 && fabs(curr_cmd.lin[1]) <= 1e-6 && fabs(curr_cmd.ang) <= 1e-6)
 		{
-			brake();
+				
+			
+			for (size_t i = 0; i < wheel_joints_size_; ++i)
+			{
+				//ROS_INFO_STREAM("id:" << i << " speed: " <<speeds_angles[i][0]);
+				speed_joints_[i].setCommand(0);
+				speed_joints_[i].setMode(percent_voltage_mode);
+			}
+			if(ros::Time::now().toSec() - time_before_brake > .5)
+			{	
+				brake();
+			}
+			else
+			{								
+
+				for (size_t i = 0; i < wheel_joints_size_; ++i)
+				{
+					steering_joints_[i].setCommand(speeds_angles[i][1]);
+				}
+
+			}					
 			return;
 		}
+		time_before_brake = ros::Time::now().toSec();
+		for (size_t i = 0; i < wheel_joints_size_; ++i)
+		{
+			speed_joints_[i].setMode(velocity_mode);
+			speed_joints_[i].setPIDFSlot(0);;
+
+
+		}
+		
 
 		// Limit velocities and accelerations:
 		//const double cmd_dt(period.toSec());
@@ -736,7 +771,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		for (int i = 0; i < WHEELCOUNT; i++)
 			curPos[i] = steering_joints_[i].getPosition();
 		std::array<bool, WHEELCOUNT> holder;
-		std::array<Vector2d, WHEELCOUNT> speeds_angles  = swerveC_->motorOutputs(curr_cmd.lin, curr_cmd.ang, M_PI/2, false, holder, false, curPos, true);
+		speeds_angles  = swerveC_->motorOutputs(curr_cmd.lin, curr_cmd.ang, M_PI/2, false, holder, false, curPos, true);
 		
 		// Set wheels velocities:
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
@@ -753,7 +788,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			speed_joints_[i].setMode(motion_profile_mode);
 			speed_joints_[i].setPIDFSlot(1);
 			steering_joints_[i].setMode(motion_profile_mode);
-			steering_joints_[i].setPIDFSlot(1);;
+			steering_joints_[i].setPIDFSlot(0);
+			speed_joints_[i].setClosedloopRamp(0.0);
 		}
 
 		const int set_on  = ((*(run_.readFromRT())) && set_check_ > 2) ? 1 : 0; //Adjust this set_check val
@@ -955,6 +991,7 @@ bool TalonSwerveDriveController::brakeService(talon_swerve_drive_controller::Bla
 	brake_struct_.lin[0] = 0;
 	brake_struct_.lin[1] = 0;
 	brake_struct_.ang = 0;
+	brake_struct_.stamp = ros::Time::now();
 	command_.writeFromNonRT(brake_struct_);
 
 	return true;

@@ -121,16 +121,8 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 	
 		//ROS_INFO_STREAM(t_raw);	
 		//ROS_WARN("even_now");
-		if(point_count > 500)
-		{
-			ROS_WARN("comp_points");
-		}
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, holder_point, end_points, dtds_for_spline, t_raw);
 		
-		if(point_count > 500)
-		{
-			ROS_WARN("solve for vel");
-		}
 
 		//ROS_INFO_STREAM("t: " << t_raw << " t_raw: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i << "total_arc" << total_arc);
 
@@ -140,10 +132,6 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 			return false;
 		}			
 		//ROS_INFO_STREAM("V: " << curr_v);
-		if(point_count > 500)
-		{
-			ROS_WARN("after vel");
-		}
 	}
 	ROS_INFO_STREAM("passed loop 1");
 	velocities.erase(velocities.end() - 1);
@@ -431,7 +419,7 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 
 	if(denomin != 0) 
 	{
-		holder_point.radius = fabs(pow(first_deriv_x*first_deriv_x + first_deriv_y*first_deriv_y, 3/2) / 
+		holder_point.radius = fabs(pow(first_deriv_x*first_deriv_x + first_deriv_y*first_deriv_y, 3.0/2.0) / 
 	denomin);
 	}
 	else

@@ -8,6 +8,7 @@
 #include <array>
 #include <string>
 #include <talon_swerve_drive_controller/MotionProfile.h> //Only needed for visualization
+#include <talon_swerve_drive_controller/MotionProfilePoints.h> //Only needed for visualization
 
 //Get swerve info here:
 
@@ -16,6 +17,7 @@ std::shared_ptr<swerve> swerve_math;
 std::shared_ptr<swerve_profile::swerve_profiler> profile_gen;
 
 ros::ServiceClient graph_prof;
+ros::ServiceClient graph_swerve_prof;
 double defined_dt;
 
 bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_swerve_drive_controller::FullGenCoefs::Response &res)
@@ -125,6 +127,9 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 			//ROS_INFO_STREAM(" hhhh" << "drive_pos: " << res.points[i+1].drive_pos[k] << "drive_vel: " << res.points[i+1].drive_vel[k] << "steer_pos: " << res.points[i+1].steer_pos[i]); 
 		}
 	}
+	talon_swerve_drive_controller::MotionProfilePoints graph_swerve_msg;
+        graph_swerve_msg.request.points = res.points;
+        graph_swerve_prof.call(graph_swerve_msg);	
 	ROS_WARN("FIN");
 	return true;	
 }
@@ -205,8 +210,11 @@ int main(int argc, char **argv)
 	defined_dt = .02;
 	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(sqrt(wheel_coords[0][0]*wheel_coords[0][0] + wheel_coords[0][1]*wheel_coords[0][1]), max_accel, model.maxSpeed, 1, 1, defined_dt, ang_accel_conv, max_brake_accel); //Fix last val
 	//Something to get intial wheel position
-	
-	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/visualize_profile");
+
+	std::map<std::string, std::string> service_connection_header;
+	service_connection_header["tcp_nodelay"] = "1";
+	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/visualize_profile", false, service_connection_header);
+	graph_swerve_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/visualize_swerve_profile", false, service_connection_header);
 
 	ros::spin();
 }
