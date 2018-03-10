@@ -115,7 +115,11 @@
 		<node machine="roboRIO" name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="screen" >
 		</node>
 
+		<node machine="roboRIO" name="autoInterpreterServerLift" pkg="behaviors" type="autoInterpreterServerLift" output="screen" >
+		</node>
 
+		<node machine="roboRIO" name="autoInterpreterServerIntake" pkg="behaviors" type="autoInterpreterServerIntake" output="screen" >
+		</node>
 		<node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="screen" >
 		</node>
 
