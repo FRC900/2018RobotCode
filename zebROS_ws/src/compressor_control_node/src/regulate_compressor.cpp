@@ -2,7 +2,7 @@
 
 static ros::Publisher CompressorCommand;
 static ros::Subscriber pressure_sub_;
-//static ros::Subscriber current_sub_;
+static ros::Subscriber current_sub_;
 static ros::Subscriber match_data_sub_;
 static ros::Subscriber disable_sub_;
 
@@ -44,8 +44,7 @@ int main(int argc, char **argv) {
 	CompressorCommand = n.advertise<std_msgs::Float64>("/frcrobot/compressor_controller/command", 1);
 
 	pressure_sub_ = n.subscribe("/frcrobot/joint_states", 1, &pressureCallback);
-	//current_sub_ = n.subscribe("/frcrobot/total_current", 75, &currentCallback);
-	//HOOK UP ABOVE TO PDP
+	current_sub_ = n.subscribe("/frcrobot/pdp_states", 75, &currentCallback);
 	match_data_sub_ = n.subscribe("/frcrobot/match_data", 1, &matchDataCallback);
 	disable_sub_ = n.subscribe("/frcrobot/regulate_compressor/disable", 5, &disableCallback);
 	//TODO FIX ABOVE topic names
@@ -152,15 +151,14 @@ void matchDataCallback(const ros_control_boilerplate::MatchSpecificData &MatchDa
 }
 
 // consider a boost::circular_buffer
-/*
-void currentCallback(const std_msgs::Float64 &current)
+void currentCallback(const pdp_state_controller::PDPData &msg)
 {
 	static std::vector<double> currents;
 
 	if(currents.size() > 500)
 		currents.erase(currents.begin());
 
-	currents.push_back(current.data);
+	currents.push_back(msg.totalCurrent);
 
 	double temp_weighted_average_current_ = 0;
 	int divider = currents.size() * (1 + currents.size())/2;
@@ -170,7 +168,6 @@ void currentCallback(const std_msgs::Float64 &current)
 	}
 	weighted_average_current_ = temp_weighted_average_current_;
 }
-*/
 void disableCallback(const std_msgs::Bool &disable)
 {
 	disable_ = disable.data;
