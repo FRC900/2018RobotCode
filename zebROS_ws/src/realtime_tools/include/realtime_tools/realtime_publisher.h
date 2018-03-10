@@ -147,7 +147,6 @@ public:
    * attempt to get unique access to the msg_ variable. Trylock returns
    * true if the lock was aquired, and false if it failed to get the lock.
    */
-#if 0
   void lock()
   {
 #ifdef NON_POLLING
@@ -158,9 +157,7 @@ public:
       usleep(200);
 #endif
   }
-#endif
 
-#if 0
   /**  \brief Unlocks the data without publishing anything
    *
    */
@@ -168,7 +165,6 @@ public:
   {
     msg_mutex_.unlock();
   }
-#endif
 
 private:
   void construct(int queue_size, bool latched=false)
