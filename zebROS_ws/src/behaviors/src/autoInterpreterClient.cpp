@@ -3,7 +3,6 @@
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
 
-
 static int start_pos = 0;
 std::vector<int> auto_mode_vect = {0, 0, 0, 0};
 std::vector<double> delays_vect = {0, 0, 0, 0};
@@ -134,7 +133,7 @@ bool stopIntake(elevator_controller::Intake srv) {
 	}
 	return true;
 }
-bool releaseClamp(elevator_controller::bool_srv srv) {
+bool releaseClamp(std_srvs::SetBool srv) {
     srv.request.data = false;
     if (!ClampService.call(srv))
 	{
@@ -143,7 +142,7 @@ bool releaseClamp(elevator_controller::bool_srv srv) {
 	}
 	return true;
 }
-bool clamp(elevator_controller::bool_srv srv) {
+bool clamp(std_srvs::SetBool srv) {
     srv.request.data = true;
     if (!ClampService.call(srv))
 	{
@@ -162,7 +161,6 @@ bool releaseIntake(elevator_controller::Intake srv) {
 	}
 	return true;
 }
-
 
 void generateTrajectory(int auto_mode, int layout, int start_pos) {
 
@@ -367,8 +365,8 @@ void run_auto(int auto_mode) {
     std::vector<double> times = times_vect[auto_mode];
     elevator_controller::Intake IntakeSrv;
     elevator_controller::ElevatorControlS ElevatorSrv;
-    elevator_controller::bool_srv ClampSrv;
-    behaviors::RobotGoal robot_goal;
+    std_srvs::SetBool ClampSrv;
+    behaviors::RobotGoal goal;
     ROS_WARN("auto entered");
     ros::Rate r(10);
     start_time = ros::Time::now().toSec();
@@ -453,8 +451,7 @@ void run_auto(int auto_mode) {
                 }
             }
             ROS_WARN("braked");
-            talon_swerve_drive_controller::Blank blank;
-            blank.request.nothing = true;
+            std_srvs::Empty blank;
             BrakeService.call(blank);
             in_auto = false;
         }
@@ -501,8 +498,7 @@ void run_auto(int auto_mode) {
                     ros::spinOnce();
                 }
                 ROS_WARN("braked");
-                talon_swerve_drive_controller::Blank blank;
-                blank.request.nothing = true;
+                std_srvs::Empty blank;
                 if (!BrakeService.call(blank))
 					ROS_ERROR("BrakeService call failed in autoMode == 1");
             }
@@ -519,8 +515,7 @@ void run_auto(int auto_mode) {
                     ros::spinOnce();
                 }
                 ROS_WARN("braked");
-                talon_swerve_drive_controller::Blank blank;
-                blank.request.nothing = true;
+                std_srvs::Empty blank;
                 if (!BrakeService.call(blank))
 					ROS_ERROR("BrakeService call failed in autoMode == 2");
             }
@@ -547,8 +542,7 @@ void run_auto(int auto_mode) {
             releaseClamp(ClampSrv);
         }
         ROS_WARN("braked");
-        talon_swerve_drive_controller::Blank blank;
-        blank.request.nothing = true;
+        std_srvs::Empty blank;
         BrakeService.call(blank);
         in_auto = false;
         
@@ -573,8 +567,7 @@ void run_auto(int auto_mode) {
             ros::spinOnce();
         }
         ROS_WARN("braked");
-        talon_swerve_drive_controller::Blank blank;
-        blank.request.nothing = true;
+		std_srvs::Empty blank;
         BrakeService.call(blank);
         in_auto = false;
     }
@@ -594,15 +587,14 @@ void run_auto(int auto_mode) {
             }
             if(curr_time > times[2] && curr_time <= times[2] + (curr_time-last_time)) {
                 ROS_WARN("Intaking Cube and going to intake config");
-                robot_goal.IntakeCube = true; 
+                //robot_goal.IntakeCube = true; 
             }
             last_time = curr_time;
             r.sleep();
             ros::spinOnce();
         }
         ROS_WARN("braked");
-        talon_swerve_drive_controller::Blank blank;
-        blank.request.nothing = true;
+        std_srvs::Empty blank;
         BrakeService.call(blank);
         in_auto = false;
     }
@@ -688,8 +680,8 @@ void run_auto(int auto_mode) {
         clamp(ClampSrv);
         releaseIntake(IntakeSrv);
     }
-    else if(AutoMode->mode[auto_mode]==2) {
-        //2 cube long elevator_controller::bool_srve
+    else if(AutoMode->mode[auto_mode-1]==2) {
+        //2 cube long std_srvs::SetBool
         //0: Time 0: Go to default config && drop intake
         ros::Duration(0).sleep(); //TODO
         defaultConfig(ElevatorSrv);
@@ -1034,8 +1026,8 @@ int main(int argc, char** argv) {
     //ElevatorService = n.advertise<elevator_controller::ElevatorControl>("elevator/cmd_pos", 1);
     ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
     //ClampService = n.advertise<std_msgs::Bool>("elevator/Clamp", 1);
-    ClampService = n.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
-    BrakeService = n.serviceClient<talon_swerve_drive_controller::Blank>("/frcrobot/talon_swerve_drive_controller/brake", false, service_connection_header);
+    ClampService = n.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
+    BrakeService = n.serviceClient<std_srvs::Empty>("/frcrobot/talon_swerve_drive_controller/brake", false, service_connection_header);
     
     VelPub = n.advertise<geometry_msgs::Twist>("/frcrobot/swerve_drive_controller/cmd_vel", 1);
 
