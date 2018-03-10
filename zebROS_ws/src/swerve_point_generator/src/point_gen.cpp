@@ -148,7 +148,7 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 				res.points[i+n].drive_pos.push_back(angles_positions[k][0]);
 			}
 			
-			if(i > point_count - k_p -1)
+			if(i > point_count - k_p -2)
 			{
 				ROS_INFO_STREAM("final pos" << angles_positions[k][0] + res.points[i+n-1].drive_pos[k]);
 				ROS_INFO_STREAM("vel sum" << vel_sum[k]);
