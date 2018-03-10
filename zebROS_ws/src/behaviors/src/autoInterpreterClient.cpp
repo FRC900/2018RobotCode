@@ -222,8 +222,6 @@ void generateTrajectory(int auto_mode, int layout, int start_pos) {
     srv.request.final_v = 0;
     coefs_vect[layout] = srv;
     ROS_WARN("check 11");
-    point_gen.call(coefs_vect[layout]);
-    ROS_WARN("check 12");
     if (!point_gen.call(coefs_vect[layout]))
 		ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
     
