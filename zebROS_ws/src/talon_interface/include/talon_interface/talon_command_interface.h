@@ -996,9 +996,19 @@ class TalonHWCommand
 		}
 		bool motionProfileTrajectoriesChanged(std::vector<TrajectoryPoint> &points)
 		{
-			points = motion_profile_trajectory_points_;
-			motion_profile_trajectory_points_.clear();
-			return points.size() != 0;
+			if (motion_profile_trajectory_points_.size() != 0)
+			{
+				//ROS_WARN_STREAM("motionProfileTraectoriesChanged, mptp.size()=" << motion_profile_trajectory_points_.size());
+				// Return up to 20 points at a time - too
+				// many really slows down the hardware interface
+				auto start = motion_profile_trajectory_points_.begin();
+				auto end   = start + std::min((size_t)motion_profile_trajectory_points_.size(), (size_t)20);
+				points = std::vector<TrajectoryPoint>(start, end);
+				motion_profile_trajectory_points_.erase(start, end);
+				//ROS_WARN_STREAM("  returning points.size()=" << points.size());
+				return true;
+			}
+			return false;
 		}
 
 		// This is a one shot - when set, it needs to

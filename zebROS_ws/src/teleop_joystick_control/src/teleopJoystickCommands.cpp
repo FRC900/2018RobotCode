@@ -230,7 +230,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			elevator_controller::Blank msg; //TODO
 			msg.request.nothing_here = true;
-			EndGameDeploy.call(msg);
+			if (!EndGameDeploy.call(msg))
+				ROS_ERROR("EndGameDeploy call in teleop joystick failed");
 			ROS_WARN("SELF DESTURCT");
 			achieved_pos = other;
 		}
@@ -247,7 +248,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvIntake.request.power = 0;
 		srvIntake.request.spring_state = 1; //hard_out
 		srvIntake.request.up = false;
-		IntakeSrv.call(srvIntake); //Is it worth trying to clamp or run the intake slowly?
+		if (!IntakeSrv.call(srvIntake)) //Is it worth trying to clamp or run the intake slowly?
+			ROS_ERROR("IntakeSrv call failed in teleop joystick climb config");
 		
 		if(!ElevatorSrv.call(srvElevator))
 		{
@@ -362,7 +364,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			else
 			{
 				srvClamp.request.data = false;
-				ClampSrv.call(srvClamp);
+				if (!ClampSrv.call(srvClamp))
+					ROS_ERROR("ClampSrv call failed in clamp with cube");
 				ROS_INFO("teleop : Clamp with cube");
 				placed_delay_check = true; //Kick off placing
 				place_start = ros::Time::now().toSec();
@@ -380,7 +383,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				srvIntake.request.power = -1;
 				srvIntake.request.spring_state = 2; //soft_in
 				srvIntake.request.up = false;
-				IntakeSrv.call(srvIntake);
+				if (!IntakeSrv.call(srvIntake))
+					ROS_ERROR("IntakeSrv call failed in intake with cube");
 				ROS_INFO("teleop : Intake with cube");
 				ALast = 0;
 			}
@@ -416,13 +420,15 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	if (ready_to_spin_out_check)
 	{
 		srvClamp.request.data = false;
-		ClampSrv.call(srvClamp);
+		if (!ClampSrv.call(srvClamp))
+			ROS_ERROR("ClampSrv call failed in ready_to_spin_out_check");
 		ROS_INFO("teleop : called ClampSrv in ready_to_spin_out_check");
 
 		srvIntake.request.power = -1;
 		srvIntake.request.spring_state = 2; //soft_in
 		srvIntake.request.up = false;
-		IntakeSrv.call(srvIntake);
+		if (!IntakeSrv.call(srvIntake))
+			ROS_ERROR("IntakeSrv call failed in ready_to_spin_out_check");
 		ROS_INFO("teleop : called IntakeSrv in ready_to_spin_out_check");
 		finish_spin_out_check = true;
 		ready_to_spin_out_check = false;
@@ -435,7 +441,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvIntake.request.power = 0;
 		srvIntake.request.spring_state = 2; //soft_in
 		srvIntake.request.up = false;
-		IntakeSrv.call(srvIntake);
+		if (!IntakeSrv.call(srvIntake))
+			ROS_ERROR("IntakeSrv call failed in finish_spin_out_check");
 		ROS_INFO("teleop : called IntakeSrv in finish_spin_out_check");
 		finish_spin_out_check = false;
 
@@ -530,7 +537,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvIntake.request.power = 0;
 		srvIntake.request.spring_state = 2; //soft_in
 		srvIntake.request.up = false;
-		IntakeSrv.call(srvIntake);
+		if (!IntakeSrv.call(srvIntake))
+			ROS_ERROR("IntakeSrv call failed in run_out");
 		ROS_INFO("teleop : Inkate run out finished");
 		run_out = false;
 	}
@@ -662,7 +670,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvIntake.request.power = 0;
 		srvIntake.request.up = true;
 		srvIntake.request.spring_state = 1; //hard_out
-		IntakeSrv.call(srvIntake);
+		if (!IntakeSrv.call(srvIntake))
+			ROS_ERROR("IntakeSrv call failed in start button press");
 		ROS_INFO("teleop : called IntakeSrv in startButtonPress");
 	}
 	/*-----------------------------------------B------------------------------------------*/
@@ -746,14 +755,16 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvIntake.request.power = -.8;
 		srvIntake.request.up = false;
 		srvIntake.request.spring_state = 2; //soft_in
-		IntakeSrv.call(srvIntake);
+		if (!IntakeSrv.call(srvIntake))
+			ROS_ERROR("IntakeSrv call failed in back button");
 		ROS_INFO("teleop : called IntakeSrv in BackButton press");
 	}
 	if (JoystickState->buttonBackRelease == true)
 	{
 		srvIntake.request.power = 0;
 		srvIntake.request.up = false;
-		IntakeSrv.call(srvIntake);
+		if (!IntakeSrv.call(srvIntake))
+			ROS_ERROR("IntakeSrv call failed in back button released");
 		ROS_INFO("teleop : called IntakeSrv in BackButton release");
 	}
 
@@ -789,7 +800,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			talon_swerve_drive_controller::Blank blank;
 			blank.request.nothing = true;
-			BrakeSrv.call(blank);
+			if (!BrakeSrv.call(blank))
+				ROS_ERROR("BrakeSrv call failed in sendRobotZero");
 			//ROS_INFO("teleop : called BrakeSrv to stop");
 			/*
 			geometry_msgs::Twist vel;
@@ -953,7 +965,6 @@ int main(int argc, char **argv)
 		ROS_ERROR("Could not read default_up_or_down");
 	if (!n_params.getParam("exchange_delay", exchange_delay))
 		ROS_ERROR("Could not read exchange_delay");
-
 
 	ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
 

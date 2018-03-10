@@ -13,7 +13,7 @@ find_package(OpenCV REQUIRED)
 find_package(ZED REQUIRED)
 find_package(CUDA REQUIRED)
 find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
-find_package(PCL 1.3 REQUIRED COMPONENTS common io)
+find_package(PCL REQUIRED COMPONENTS common io)
 add_definitions(${PCL_DEFINITIONS})
 find_library (LibTinyXML2 tinyxml2)
 
@@ -24,18 +24,9 @@ include_directories(
 	${Boost_INCLUDE_DIR}
 	${PCL_INCLUDE_DIRS}
 	../common
-	../navXTimeSync
 	..)
 
 link_directories(${ZED_LIBRARY_DIR} ${PCL_LIBRARY_DIRS} /usr/local/cuda/lib64/stubs)
-
-set (NAVX_SRCS
-	../navXTimeSync/AHRS.cpp
-	../navXTimeSync/ContinuousAngleTracker.cpp
-	../navXTimeSync/InertialDataIntegrator.cpp
-	../navXTimeSync/OffsetTracker.cpp
-	../navXTimeSync/SerialIO.cpp
-	../navXTimeSync/SerialPort.cpp )
 
 add_executable( goal_detect
 	goal_detect.cpp
@@ -56,7 +47,6 @@ add_executable( goal_detect
 	../common/portable_binary_iarchive.cpp
 	../common/portable_binary_oarchive.cpp
 	../common/ZvSettings.cpp
-	${NAVX_SRCS}
 )
 
 target_link_libraries(
