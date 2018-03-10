@@ -23,6 +23,7 @@
   <depend>controller_interface</depend>
   <depend>tf</depend>
   <depend>urdf</depend>
+  <depend>std_srvs</depend>
 
   <test_depend>rostest</test_depend>
   <test_depend>std_srvs</test_depend>
