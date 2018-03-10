@@ -96,7 +96,7 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 	*/
 	//ROS_INFO_STREAM("pos_0:" << srv_msg.points[0].positions[0] << "pos_1:" << srv_msg.points[0].positions[1] <<"pos_2:" <<  srv_msg.points[0].positions[2]);
 
-	int n = 500;
+	int n = 8;
 	int k_p = 11;
 	res.points.resize(point_count-k_p + n);
 	
