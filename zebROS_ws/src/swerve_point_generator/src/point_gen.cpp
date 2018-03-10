@@ -154,6 +154,7 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 			
 			if(i > point_count - k -3)
 			{
+				ROS_INFO_STREAM("zero vel?");
 				res.points[i+n].drive_vel.push_back(0);
 			}
 			else
