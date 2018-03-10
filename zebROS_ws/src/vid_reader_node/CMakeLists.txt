@@ -20,11 +20,12 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(OpenCV REQUIRED)
 find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io)
+message(" **************** Found PCL")
 add_definitions(${PCL_DEFINITIONS})
 find_library (LibTinyXML2 tinyxml2)
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+message(" **************** PCL_INCLUDE_DIRS = ${PCL_INCLUDE_DIRS}")
 include_directories(
+	${PCL_INCLUDE_DIRS}
 	include
 	${catkin_INCLUDE_DIRS}
 	${OpenCV_INCLUDE_DIRS}
@@ -34,7 +35,6 @@ include_directories(
 	)
 
 link_directories(${ZED_LIBRARY_DIR} ${PCL_LIBRARY_DIRS} /usr/local/cuda/lib64/stubs)
-
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -123,7 +123,7 @@ generate_messages(
  catkin_package(
   #  INCLUDE_DIRS include
   #  LIBRARIES vid_reader_node
-    CATKIN_DEPENDS roscpp message_runtime  sensor_msgs
+    CATKIN_DEPENDS roscpp message_runtime sensor_msgs
   #  DEPENDS system_lib
   )
 
@@ -152,22 +152,13 @@ add_executable(vid_reader_node
 	src/vid_reader.cpp
 	../../../common/mediain.cpp
 	../../../common/syncin.cpp
-	../../../common/asyncin.cpp
-	../../../common/zedcamerain.cpp
-	../../../common/zedsvoin.cpp
 	../../../common/zmsin.cpp
 	../../../common/cameraparams.cpp
 	../../../common/zedparams.cpp
-	../../../common/Utilities.cpp
-	../../../common/objtype.cpp
-	../../../common/track3d.cpp
-	../../../common/kalman.cpp
-	../../../common/hungarian.cpp
 	../../../common/portable_binary_iarchive.cpp
 	../../../common/portable_binary_oarchive.cpp
 	../../../common/ZvSettings.cpp
 )
-
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -182,7 +173,6 @@ add_dependencies(vid_reader_node
     ${catkin_EXPORTED_TARGETS}
   )
 
-
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
@@ -194,7 +184,6 @@ target_link_libraries(
 	${Boost_LIBRARIES}
 	${PCL_COMMON_LIBRARIES}
 	${LibTinyXML2}
-	${ZED_LIBRARIES}
 )
 
 #############
