@@ -104,7 +104,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 	int point_count = 0;
 	//back pass
 	//ROS_INFO_STREAM("total arc: " <<total_arc);
-	for(double i = total_arc; i > 0;)
+	for(double i = total_arc - .1 ; i > 0;)
 	{
 
 		i -= curr_v*dt_;
@@ -113,7 +113,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		velocities.push_back(curr_v);
 		positions.push_back(i);
 		point_count++;
-		if(point_count % 20 == 0)
+		if(point_count % 100 == 0)
 			ROS_INFO_STREAM("num points: " << point_count );	
 		
 		//ROS_WARN("pre - even_now");
@@ -144,7 +144,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 	ros::Duration now(0);
 	ros::Duration period(dt_);
 	fow = false;
-	for(double i = 0; i < total_arc - .05;)
+	for(double i = 0; i < total_arc - .1;)
 	{
 		i += curr_v*dt_;	
 		
