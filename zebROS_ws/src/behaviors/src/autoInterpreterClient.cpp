@@ -221,33 +221,18 @@ void generateTrajectory(int auto_mode, int layout, int start_pos) {
     srv.request.initial_v = 0;
     srv.request.final_v = 0;
     coefs_vect[layout] = srv;
-<<<<<<< HEAD
     ROS_WARN("check 11");
     point_gen.call(coefs_vect[layout]);
     ROS_WARN("check 12");
+    if (!point_gen.call(coefs_vect[layout]))
+		ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
     
     ///JUST FOR TESTING_______
     runTrajectory(layout);
     ///JUST FOR TESTING_______
-=======
     ROS_WARN("check 3");
-    if (!point_gen.call(coefs_vect[layout]))
-		ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
     ROS_WARN("check 4");
     
-    talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
-    swerve_control_srv.request.points = coefs_vect[layout].response.points;
-    ROS_INFO_STREAM("num_points: " << coefs_vect[layout].response.points.size() << " dt: "<< coefs_vect[layout].response.dt);
-    
-    swerve_control_srv.request.dt = coefs_vect[layout].response.dt;
-    swerve_control_srv.request.buffer = true;
-    swerve_control_srv.request.clear  = true;
-    swerve_control_srv.request.run    = false;
-    swerve_control_srv.request.mode   = true;
-    
-    if (!swerve_control.call(swerve_control_srv))
-		ROS_ERROR("swerve_control call() failed in autoInterpreterClient generateTrajectory()");
->>>>>>> 9afa78d4e106584c2ab1c4d60bfbcc7afbc2e2f3
 }
 
 std::string lower(std::string str) {
@@ -261,17 +246,17 @@ std::string lower(std::string str) {
 void runTrajectory(int auto_mode) {
     ROS_WARN("Run trajectory");
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
-    swerve_control_srv.request.points = coefs_vect[auto_mode].response.points;
-    ROS_WARN_STREAM("num_points: " << coefs_vect[auto_mode].response.points.size());
-    swerve_control_srv.request.dt = coefs_vect[auto_mode].response.dt;
+    swerve_control_srv.request.points = coefs_vect[layout].response.points;
+    ROS_INFO_STREAM("num_points: " << coefs_vect[layout].response.points.size() << " dt: "<< coefs_vect[layout].response.dt);
+    
+    swerve_control_srv.request.dt = coefs_vect[layout].response.dt;
     swerve_control_srv.request.buffer = true;
     swerve_control_srv.request.clear  = true;
     swerve_control_srv.request.run    = false;
     swerve_control_srv.request.mode   = true;
     
-    ROS_WARN("Call swerve control service");
     if (!swerve_control.call(swerve_control_srv))
-		ROS_ERROR("Call to swerve control in autoInterpreterClient runTrajectory() failed");
+		ROS_ERROR("swerve_control call() failed in autoInterpreterClient generateTrajectory()");
 }
 
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode) {
