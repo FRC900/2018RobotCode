@@ -37,32 +37,33 @@
            For a more detailed simulation example, see sim_hw_interface.cpp
 */
 
+#include <cmath>
 #include <iostream>
+#include <math.h>
 #include <thread>
 
-#include <ros_control_boilerplate/frcrobot_hw_interface.h>
-#include <ros_control_boilerplate/JoystickState.h>
+// ROS message types
+#include "ros_control_boilerplate/AutoMode.h"
+#include "ros_control_boilerplate/frcrobot_hw_interface.h"
+#include "ros_control_boilerplate/JoystickState.h"
+#include "ros_control_boilerplate/MatchSpecificData.h"
+#include "ros_control_boilerplate/PDPData.h"
+
+#include <geometry_msgs/Twist.h>
+#include <std_msgs/String.h>
+#include <std_msgs/Float64.h>
+#include <tf2/LinearMath/Matrix3x3.h>
+
+//HAL / wpilib includes
 #include "HAL/DriverStation.h"
 #include "HAL/HAL.h"
 #include "HAL/PDP.h"
 #include "HAL/Ports.h"
 #include "Joystick.h"
-#include "ros_control_boilerplate/MatchSpecificData.h"
-#include "ros_control_boilerplate/AutoMode.h"
-#include "math.h"
-#include <cmath>
 #include <networktables/NetworkTable.h>
 #include <SmartDashboard/SmartDashboard.h>
-#include <SmartDashboard/SendableBuilder.h>
-#include <geometry_msgs/Twist.h>
-#include <std_msgs/String.h>
+
 #include <ctre/phoenix/MotorControl/SensorCollection.h>
-#include <tf2/LinearMath/Quaternion.h>
-#include "ros_control_boilerplate/PDPData.h"
-#include <PowerDistributionPanel.h>
-#include <stdint.h>
-#include <std_msgs/Float64.h>
-#include <tf2/LinearMath/Matrix3x3.h>
 
 namespace frcrobot_control
 {
@@ -105,7 +106,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 1);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
-	realtime_tools::RealtimePublisher<std_msgs::Bool> realtime_pub_disable_compressor_reg(nh_, "/frcrobot/regulate_compressor/disable", 4);
 	realtime_tools::RealtimePublisher<std_msgs::Float64> zero_navX(nh_, "/frcrobot/navx_controller/command", 1); //Kinda dirty
 
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
@@ -116,7 +116,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "autonomous_mode", 4);
     realtime_pub_nt.msg_.mode.resize(4);
     realtime_pub_nt.msg_.delays.resize(4);
     ros::Time time_now_t;
@@ -124,7 +124,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	ros::Time last_joystick_publish_time;
 	ros::Time last_match_data_publish_time;
 
-	const double nt_publish_rate = 2;
+	const double nt_publish_rate = 1.1;
 	//const double joystick_publish_rate = 20;
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
@@ -198,7 +198,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		//	realtime_pub_joystick.trylock())
 		if (realtime_pub_joystick.trylock())
 		{
-            
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
 
 			realtime_pub_joystick.msg_.rightStickY = joystick.GetRawAxis(5);
@@ -369,7 +368,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.header.stamp = time_now_t;
 			realtime_pub_match_data.unlockAndPublish();
 
-			if (realtime_pub_match_data.msg_.isEnabled && game_specific_message.length() > 0)
+			if (realtime_pub_match_data.msg_.isEnabled && (game_specific_message.length() > 0))
 				game_specific_message_seen = true;
 			else
 				game_specific_message_seen = false;
@@ -394,16 +393,16 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 			if ((*can_talons_mp_written_)[i].load(std::memory_order_relaxed))
 			{
 				const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
-				// Only write to non-follow, non-disabled talons
+				// Only write to non-follow, non-disabled talons that
+				// have points to write from their top-level buffer
+				//ROS_INFO_STREAM("top count: " << can_talons_[i]->GetMotionProfileTopLevelBufferCount());
+				//TODO: get check for bottom buffer full
 				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
-					(talon_mode != hardware_interface::TalonMode_Disabled))
+					(talon_mode != hardware_interface::TalonMode_Disabled) && can_talons_[i]->GetMotionProfileTopLevelBufferCount() )
 				{
-					ctre::phoenix::motion::MotionProfileStatus talon_status;
-					safeTalonCall(can_talons_[i]->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
-
 					// Only write if SW buffer has entries in it
-					if (talon_status.topBufferCnt)
-						can_talons_[i]->ProcessMotionProfileBuffer();
+					//ROS_INFO("needs to send points");
+					can_talons_[i]->ProcessMotionProfileBuffer();
 				}
 			}
 		}
@@ -538,7 +537,10 @@ void FRCRobotHWInterface::init(void)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
 
-	//HAL_InitializePDP(0,0);
+	HAL_InitializePDP(0,0);
+	static int32_t status = 0;
+	HAL_ResetPDPTotalEnergy(0, &status);
+	HAL_ClearPDPStickyFaults(0, &status);
 	//pdp_joint_.ClearStickyFaults();
 	//pdp_joint_.ResetTotalEnergy();
 
@@ -580,7 +582,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			//ROS_WARN("I HATE 31");
 			continue;
 		}
-			
+
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
 		const hardware_interface::FeedbackDevice encoder_feedback = ts.getEncoderFeedback();
@@ -811,33 +813,18 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	//navX read here
 	
 	//read info from the PDP hardware
-	/*
 	auto &ps = pdp_state_;
 	static int32_t status = 0;
 	ps.setVoltage(HAL_GetPDPVoltage(0, &status));
 	ps.setTemperature(HAL_GetPDPTemperature(0, &status));
 	ps.setTotalCurrent(HAL_GetPDPTotalCurrent(0, &status));
 	ps.setTotalPower(HAL_GetPDPTotalPower(0, &status));
-	//ROS_INFO_STREAM("status after total power is" << status);
-	//ROS_INFO_STREAM("status after setting to zero is" << status);
 	ps.setTotalEnergy(HAL_GetPDPTotalEnergy(0, &status));
-	//ROS_INFO_STREAM("status RIIIIIGHT before current is: " << status << ".........................");
+	ps.setCurrent(HAL_GetPDPChannelCurrent(0, 3, &status), 3);
 	for(int channel = 0; channel <= 15; channel++)
 	{
 		ps.setCurrent(HAL_GetPDPChannelCurrent(0, channel, &status), channel);
 	}
-
-	//ROS_INFO_STREAM("status is: " << status << ".........................");
-
-	/*ps.setVoltage(pdp_joint_.GetVoltage());
-	ps.setTemperature(pdp_joint_.GetTemperature());
-	ps.setTotalCurrent(pdp_joint_.GetTotalCurrent());
-	ps.setTotalPower(pdp_joint_.GetTotalPower());
-	ps.setTotalEnergy(pdp_joint_.GetTotalEnergy());
-	for(int channel = 0; channel <= 15; channel++)
-	{
-		ps.setCurrent(pdp_joint_.GetCurrent(channel), channel);
-	}*/
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
@@ -1360,6 +1347,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
 			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
 			{
+				ROS_INFO_STREAM("Pre buffer");
 				//ROS_WARN("point_buffer");
 				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
 				{
@@ -1377,6 +1365,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
 					safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
 				}
+				ROS_INFO_STREAM("Post buffer");
 				// Copy the 1st profile trajectory point from
 				// the top level buffer to the talon
 				// Subsequent points will be copied by

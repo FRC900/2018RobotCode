@@ -62,10 +62,12 @@ class autoAction {
             as_(nh_, name, boost::bind(&autoAction::executeCB, this, _1), false),
             action_name_(name)
         {
-            as_.start();
-            ElevatorSrv = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS");
-            IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake");
-            ClampSrv= nh_.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp");
+			as_.start();
+			std::map<std::string, std::string> service_connection_header;
+			service_connection_header["tcp_nodelay"] = "1";
+			ElevatorSrv = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
+			IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
+            ClampSrv= nh_.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
             HighCube = nh_.subscribe("/frcrobot/elevator_controller/high_cube", 1, &autoAction::highCubeCallback, this);
     		al = std::make_shared<actionlib::SimpleActionClient<behaviors::LiftAction>>("auto_interpreter_server_lift", true);
     		ai = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
@@ -92,7 +94,7 @@ class autoAction {
 		goal_i.time_out = 15;
 		ai->sendGoal(goal_i);
 		srv_clamp.request.data = false;
-		ClampSrv.call(srv_clamp);
+		if(!ClampSrv.call(srv_clamp)) ROS_ERROR("Srv clamp call failed");
 		bool ready_to_drop = fabs(intake_ready_to_drop_x - odom_x) < drop_x_tolerance;	
 		//If we aren't yet ready to drop, go to where we can drop
 		if(!ready_to_drop)
@@ -231,11 +233,11 @@ class autoAction {
 		{
 			srv_clamp.request.data = true;
 			clamp_time = ros::Time::now().toSec();
-			ClampSrv.call(srv_clamp);
+			if(!ClampSrv.call(srv_clamp)) ROS_ERROR("Srv clamp call failed");;
 			srvIntake.request.power = 0;
             		srvIntake.request.up = false;
             		srvIntake.request.spring_state = 1; //hard_out
-			IntakeSrv.call(srvIntake);
+			if(!IntakeSrv.call(srvIntake)) ROS_ERROR("Srv intake call failed");;
 
 		}
 		while(!aborted && !timed_out)
@@ -300,7 +302,7 @@ class autoAction {
 		srvIntake.request.power = 0;
             	srvIntake.request.up = false;
             	srvIntake.request.spring_state = goal->hasCube ? 1 : 2; //hard_out or soft in depending
-		IntakeSrv.call(srvIntake);
+		if(!IntakeSrv.call(srvIntake)) ROS_ERROR("Srv intake call failed");;
 		//If we aren't yet ready to drop, go to where we can drop
 		if(!ready_to_drop)
 		{
@@ -382,7 +384,7 @@ class autoAction {
 			srvIntake.request.power = 0;
 	    	        srvIntake.request.up = false;
 		        srvIntake.request.spring_state = 2; //soft_in
-		        IntakeSrv.call(srvIntake);
+		        if(!IntakeSrv.call(srvIntake)) ROS_ERROR("Srv intake call failed");;
 		}
 	}	
         if(timed_out)

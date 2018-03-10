@@ -349,7 +349,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
 
 			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
-				ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
+				ROS_INFO_STREAM("Added " << trajectory_points.size() << " points to joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 		}
 
 		if (ts.getTalonMode() == hardware_interface::TalonMode_Position)
