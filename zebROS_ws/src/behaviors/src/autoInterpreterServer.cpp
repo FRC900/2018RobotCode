@@ -1,19 +1,18 @@
 #include "ros/ros.h"
+#include <atomic>
+
+#include "actionlib/client/simple_action_client.h"
+#include "actionlib/client/terminal_state.h"
 #include "actionlib/server/simple_action_server.h"
 #include "behaviors/RobotAction.h"
 #include "behaviors/IntakeAction.h"
 #include "behaviors/LiftAction.h"
 #include "elevator_controller/ElevatorControl.h"
+#include "elevator_controller/ElevatorControlS.h"
 #include "elevator_controller/Intake.h"
+#include "elevator_controller/ReturnElevatorCmd.h"
 #include "std_srvs/SetBool.h"
 #include "std_msgs/Bool.h"
-#include "elevator_controller/ElevatorControlS.h"
-#include "elevator_controller/ReturnElevatorCmd.h"
-#include <cstdlib>
-#include <atomic>
-#include <ros/console.h>
-#include "actionlib/client/simple_action_client.h"
-#include "actionlib/client/terminal_state.h"
 
 //elevator_controller/cmd_pos
 //elevator_controller/intake?

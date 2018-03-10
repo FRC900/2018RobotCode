@@ -2,9 +2,6 @@
 #include "ros/console.h"
 #include "ros_control_boilerplate/AutoMode.h"
 #include "ros_control_boilerplate/MatchSpecificData.h"
-#include "message_filters/subscriber.h"
-#include "message_filters/synchronizer.h"
-#include "message_filters/sync_policies/approximate_time.h"
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/RobotAction.h"
@@ -16,7 +13,6 @@
 #include "elevator_controller/Intake.h"
 #include "elevator_controller/ElevatorControlS.h"
 #include "std_srvs/Empty.h"
-#include "cstdlib"
 #include <controller_manager/controller_manager.h>
 #include <hardware_interface/joint_command_interface.h>
 #include <hardware_interface/imu_sensor_interface.h>
