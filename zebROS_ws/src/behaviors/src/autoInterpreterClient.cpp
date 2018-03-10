@@ -115,40 +115,40 @@ bool releaseIntake(elevator_controller::Intake srv) {
 void generateTrajectory(int auto_mode, int layout, int start_pos) {
 
     //XmlRpc::XmlRpcValue &path = modes[auto_mode][layout][start_pos];
-    XmlRpc::XmlRpcValue &path = modes[0][0][1];
-    XmlRpc::XmlRpcValue &xml_x = path["x"];
-    XmlRpc::XmlRpcValue &xml_t = path["times"];
+    XmlRpc::XmlRpcValue &path = modes[auto_mode][layout][start_pos];
+    //XmlRpc::XmlRpcValue &xml_x = path["x"];
+    //XmlRpc::XmlRpcValue &xml_t = path["times"];
     ROS_WARN("check 0");
-    const int num_splines = xml_x.size();
+    const int num_splines = path.size();
     ROS_WARN("check 1");
     talon_swerve_drive_controller::FullGenCoefs srv;
 
 	ROS_INFO_STREAM("checking size: " << num_splines << " is real?");
     for(int num = 0; num<num_splines; num++) {
-    ROS_WARN("check 1.5");
-        XmlRpc::XmlRpcValue &x = path["x"];
-    ROS_WARN("check 2");
-        XmlRpc::XmlRpcValue &x_num = x[num];
-        XmlRpc::XmlRpcValue &y = path["y"];
-    ROS_WARN("check 3");
-        XmlRpc::XmlRpcValue &y_num = y[num];
-        XmlRpc::XmlRpcValue &orient = path["orient"];
-    ROS_WARN("check 4");
-        XmlRpc::XmlRpcValue &orient_num = orient[num];
-    ROS_WARN("check 5");
+        XmlRpc::XmlRpcValue &spline = path[num];
+        ROS_WARN("check 1.5");
+        XmlRpc::XmlRpcValue &x = spline["x"];
+        ROS_WARN("check 2");
+        XmlRpc::XmlRpcValue &y = spline["y"];
+        ROS_WARN("check 3");
+        XmlRpc::XmlRpcValue &orient = spline["orient"];
+        ROS_WARN("check 4");
 
         talon_swerve_drive_controller::Coefs x_coefs;
         talon_swerve_drive_controller::Coefs y_coefs;
         talon_swerve_drive_controller::Coefs orient_coefs;
-        for(int i = 0; i<x_num.size(); i++) {
-            const double x_coef = x_num[i];
-            const double y_coef = y_num[i];
-            const double orient_coef = orient_num[i];
+        ROS_WARN("check 5");
+        for(int i = 0; i<x.size(); i++) {
+            ROS_WARN("check 6");
+            const double x_coef = x[i];
+            const double y_coef = y[i];
+            const double orient_coef = orient[i];
 
             //ROS_WARN("%f", orient_coef);
             x_coefs.spline.push_back(x_coef);
             y_coefs.spline.push_back(y_coef);
             orient_coefs.spline.push_back(orient_coef);
+            ROS_WARN("check 7");
         }
         /*
         if(coefs_vect[layout].request.x_coefs.size()!=0) {
@@ -163,7 +163,7 @@ void generateTrajectory(int auto_mode, int layout, int start_pos) {
         srv.request.end_points.push_back(num+1);
     }
      
-    ROS_WARN("check 2");
+    ROS_WARN("check 10");
     /*for(int i = 0; i<xml_t.size(); i++) {
         const double t_val = xml_t[i];
         vectTimes[layout].push_back(t_val);
@@ -171,23 +171,13 @@ void generateTrajectory(int auto_mode, int layout, int start_pos) {
     srv.request.initial_v = 0;
     srv.request.final_v = 0;
     coefs_vect[layout] = srv;
-    ROS_WARN("check 3");
+    ROS_WARN("check 11");
     point_gen.call(coefs_vect[layout]);
-    ROS_WARN("check 4");
+    ROS_WARN("check 12");
     
-    talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
-    swerve_control_srv.request.points = coefs_vect[layout].response.points;
-    ROS_INFO_STREAM("num_points: " << coefs_vect[layout].response.points.size() << " dt: "<< coefs_vect[layout].response.dt);
-    
-    swerve_control_srv.request.dt = coefs_vect[layout].response.dt;
-    swerve_control_srv.request.buffer = true;
-    swerve_control_srv.request.clear  = true;
-    swerve_control_srv.request.run    = false;
-    swerve_control_srv.request.mode   = true;
-    
-    
-    swerve_control.call(swerve_control_srv);
-    
+    ///JUST FOR TESTING_______
+    runTrajectory(layout);
+    ///JUST FOR TESTING_______
 }
 
 std::string lower(std::string str) {
@@ -913,7 +903,7 @@ int main(int argc, char** argv) {
     ROS_WARN("Auto Client loaded");
     ros::Duration(10).sleep();
     ROS_WARN("post sleep");
-    generateTrajectory(0, 0, 0);
+    generateTrajectory(0, 1, 0);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::spin();
