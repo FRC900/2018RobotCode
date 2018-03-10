@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
     cmake_modules
     controller_interface
     std_msgs
+	std_srvs
     nav_msgs
     geometry_msgs
     trajectory_msgs
@@ -34,6 +35,7 @@ add_service_files (
   GenerateTrajectory.srv
   GenerateSwerveProfile.srv
 )
+
 generate_messages(
   DEPENDENCIES
   std_msgs
