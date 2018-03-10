@@ -43,59 +43,57 @@ class autoAction {
         ros::Rate r(10);
         double startTime = ros::Time::now().toSec();
         success = false;
-	timed_out = false;
-	aborted = false;
-        if(goal->IntakeCube) 
-	{
-		cube_state_true = 0;
-                elevator_controller::Intake srv;
-                srv.request.power = intake_power;
-                srv.request.spring_state = 2; //soft in
-                srv.request.up = false;
-                IntakeSrv.call(srv);
-		ros::spinOnce();
-		while(!success && !timed_out && !aborted) {
-		    
-		    success = cube_state_true > 2; 
-		    if(as_.isPreemptRequested() || !ros::ok()) {
-			ROS_WARN("%s: Preempted", action_name_.c_str());
-			as_.setPreempted();
-			aborted = true;
-			break;
-		    }
-			if (!aborted) {
-				r.sleep();
-				ros::spinOnce();
-				timed_out = (ros::Time::now().toSec()-startTime) > goal->time_out;
-			}
-			/*
-			else
-			{
-				srv.request.power = -intake_hold_power;
-				srv.request.spring_state = 3; //hard in
-				srv.request.up = false;
-                		IntakeSrv.call(srv);
-			}
-			*/		    
-		}
-	}
+        timed_out = false;
+        aborted = false;
+        if(goal->IntakeCube) {
+            cube_state_true = 0;
+            elevator_controller::Intake srv;
+            srv.request.power = intake_power;
+            srv.request.spring_state = 2; //soft in
+            srv.request.up = false;
+            IntakeSrv.call(srv);
+            ros::spinOnce();
+            while(!success && !timed_out && !aborted) {
+                success = cube_state_true > 2; 
+                if(as_.isPreemptRequested() || !ros::ok()) {
+                ROS_WARN("%s: Preempted", action_name_.c_str());
+                    as_.setPreempted();
+                    aborted = true;
+                    break;
+                }
+                if (!aborted) {
+                    r.sleep();
+                    ros::spinOnce();
+                    timed_out = (ros::Time::now().toSec()-startTime) > goal->time_out;
+                }
+                /*
+                else
+                {
+                    srv.request.power = -intake_hold_power;
+                    srv.request.spring_state = 3; //hard in
+                    srv.request.up = false;
+                            IntakeSrv.call(srv);
+                }
+                */		    
+            }
+        }
 	//else if goal->
 	//{}
-	if(timed_out)
-        {
-                ROS_INFO("%s: Timed Out", action_name_.c_str());
-        }
-        else if(!aborted)
-        {
-                ROS_INFO("%s: Succeeded", action_name_.c_str());
-        }
-        else
-        {
-                ROS_INFO("%s: Aborted", action_name_.c_str());
-        }
+        if(timed_out)
+            {
+                    ROS_INFO("%s: Timed Out", action_name_.c_str());
+            }
+            else if(!aborted)
+            {
+                    ROS_INFO("%s: Succeeded", action_name_.c_str());
+            }
+            else
+            {
+                    ROS_INFO("%s: Aborted", action_name_.c_str());
+            }
 
-	result_.timed_out = timed_out;
-	as_.setSucceeded(result_);
+        result_.timed_out = timed_out;
+        as_.setSucceeded(result_);
         return;
     }
     void cubeCallback(const std_msgs::Bool &msg) {

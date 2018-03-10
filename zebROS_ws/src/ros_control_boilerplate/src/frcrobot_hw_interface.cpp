@@ -116,7 +116,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
 	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "Autonomous_Mode", 4);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "autonomous_mode", 4);
     realtime_pub_nt.msg_.mode.resize(4);
     realtime_pub_nt.msg_.delays.resize(4);
     ros::Time time_now_t;
