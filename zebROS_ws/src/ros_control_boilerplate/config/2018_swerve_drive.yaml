@@ -42,7 +42,7 @@ swerve_drive_controller:
         joint: fl_drive #fix pid
         close_loop_values:
             - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
-            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 300}
+            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.05, i_zone: 300}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
@@ -53,7 +53,7 @@ swerve_drive_controller:
         joint: fr_drive #fix pid
         close_loop_values:
             - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
-            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 300}
+            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.05, i_zone: 300}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
@@ -64,7 +64,7 @@ swerve_drive_controller:
         joint: bl_drive #fix pid
         close_loop_values: 
             - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
-            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 300}
+            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.05, i_zone: 300}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
@@ -75,7 +75,7 @@ swerve_drive_controller:
         joint: br_drive #fix pid
         close_loop_values:
             - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
-            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 300}
+            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.05, i_zone: 300}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
