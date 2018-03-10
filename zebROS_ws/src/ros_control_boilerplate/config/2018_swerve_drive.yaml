@@ -10,8 +10,8 @@ swerve_drive_controller:
     # fix me
     wheel_radius: 0.0381 # m
     max_speed: 3.6 #3.628571429
-    max_accel: 2 #2
-    max_brake_accel: 2 #4
+    max_accel: 3 #2
+    max_brake_accel: 4 #4
     ang_accel_conv: 0.741176471
     mass: 70
     motor_free_speed: 5840
