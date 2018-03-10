@@ -246,10 +246,10 @@ std::string lower(std::string str) {
 void runTrajectory(int auto_mode) {
     ROS_WARN("Run trajectory");
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
-    swerve_control_srv.request.points = coefs_vect[layout].response.points;
-    ROS_INFO_STREAM("num_points: " << coefs_vect[layout].response.points.size() << " dt: "<< coefs_vect[layout].response.dt);
+    swerve_control_srv.request.points = coefs_vect[auto_mode].response.points;
+    ROS_INFO_STREAM("num_points: " << coefs_vect[auto_mode].response.points.size() << " dt: "<< coefs_vect[auto_mode].response.dt);
     
-    swerve_control_srv.request.dt = coefs_vect[layout].response.dt;
+    swerve_control_srv.request.dt = coefs_vect[auto_mode].response.dt;
     swerve_control_srv.request.buffer = true;
     swerve_control_srv.request.clear  = true;
     swerve_control_srv.request.run    = false;
@@ -972,7 +972,7 @@ int main(int argc, char** argv) {
     ROS_WARN("Auto Client loaded");
     ros::Duration(30).sleep();
     ROS_WARN("post sleep");
-    generateTrajectory(0, 1, 0);
+    generateTrajectory(0, 0, 0);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::spin();
