@@ -9,12 +9,13 @@
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/RobotAction.h"
 #include "geometry_msgs/Twist.h"
+#include "std_srvs/SetBool.h"
+
 #include "std_msgs/Bool.h"
 #include "elevator_controller/ElevatorControl.h"
 #include "elevator_controller/Intake.h"
 #include "elevator_controller/ElevatorControlS.h"
-#include "elevator_controller/bool_srv.h"
-#include "talon_swerve_drive_controller/Blank.h"
+#include "std_srvs/Empty.h"
 #include "cstdlib"
 #include <controller_manager/controller_manager.h>
 #include <hardware_interface/joint_command_interface.h>
@@ -37,8 +38,8 @@ bool highScale(elevator_controller::ElevatorControlS srv);
 bool midScale(elevator_controller::ElevatorControlS srv);
 bool lowScale(elevator_controller::ElevatorControlS srv);
 bool stopIntake(elevator_controller::Intake srv);
-bool releaseClamp(elevator_controller::bool_srv srv);
-bool clamp(elevator_controller::bool_srv srv);
+bool releaseClamp(std_srvs::SetBool srv);
+bool clamp(std_srvs::SetBool srv);
 bool releaseIntake(elevator_controller::Intake srv);
 void generateTrajectory(int auto_mode,int layout,int start_pos);
 void runTrajectory(int auto_mode);
