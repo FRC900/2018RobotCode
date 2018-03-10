@@ -122,7 +122,7 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 			}
 			//ROS_WARN("re");
 			
-			res.points[i].drive_vel.push_back(angles_velocities[k][0]);
+			res.points[i].drive_vel.push_back(0);
 			
 			res.points[i].steer_pos.push_back(angles_positions[k][1]);
 			//ROS_INFO_STREAM(" hhhh" << "drive_pos: " << res.points[i+1].drive_pos[k] << "drive_vel: " << res.points[i+1].drive_vel[k] << "steer_pos: " << res.points[i+1].steer_pos[i]); 
