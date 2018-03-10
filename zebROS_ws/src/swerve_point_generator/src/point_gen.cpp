@@ -97,8 +97,8 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 	//ROS_INFO_STREAM("pos_0:" << srv_msg.points[0].positions[0] << "pos_1:" << srv_msg.points[0].positions[1] <<"pos_2:" <<  srv_msg.points[0].positions[2]);
 
 	int n = 500;
-	int k = 11;
-	res.points.resize(point_count-k + n);
+	int k_p = 11;
+	res.points.resize(point_count-k_p + n);
 	
 	
 	for(int i = 0; i < n; i++)
@@ -150,9 +150,9 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 			{
 				res.points[i+n].drive_pos.push_back(angles_positions[k][0]);
 			}
-			//ROS_WARN("re");
+			ROS_WARN("re");
 			
-			if(i > point_count - k -3)
+			if(i > point_count - k_p -3)
 			{
 				ROS_INFO_STREAM("zero vel?");
 				res.points[i+n].drive_vel.push_back(0);
