@@ -24,7 +24,6 @@ include_directories(
 	${Boost_INCLUDE_DIR}
 	${PCL_INCLUDE_DIRS}
 	../common
-	../navXTimeSync
 	..)
 
 link_directories(${ZED_LIBRARY_DIR} ${PCL_LIBRARY_DIRS} /usr/local/cuda/lib64/stubs)
