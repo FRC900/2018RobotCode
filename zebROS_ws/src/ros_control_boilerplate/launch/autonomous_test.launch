@@ -2,8 +2,8 @@
 
 <launch>
 
-	<node pkg="rosbag" type="play" name="player" output="screen" args="--clock /home/ofugikawa/bagfiles/_2016-02-11-13-33-13.bag.active"/>
+	<node pkg="rosbag" type="play" name="player" output="screen" args="--clock /home/ubuntu/bagfiles/_2016-02-11-13-33-13.bag.active --topics /frcrobot/match_data"/>
 
-	<include file="$(find ros_control_boilerplate)/launch/2018_main_frcrobot.launch"/>
+	<include file="$(find controller_node)/launch/controller_master.launch"/>
 
 </launch>
