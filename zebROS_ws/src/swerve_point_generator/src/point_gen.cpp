@@ -130,7 +130,7 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 		}
 	}
 
-	for(int i = 0; i < point_count - k; i++)
+	for(int i = 0; i < point_count - k_p; i++)
 	{
 	std::array<Eigen::Vector2d, WHEELCOUNT> angles_positions  = swerve_math->motorOutputs({srv_msg.points[i+1].positions[0] - srv_msg.points[i].positions[0], srv_msg.points[i+1].positions[1] - srv_msg.points[i].positions[1]}, srv_msg.points[i+1].positions[2] - srv_msg.points[i].positions[2], srv_msg.points[i+1].positions[2], false, holder, false, curPos, false);
 		//TODO: angles on the velocity array below are superfluous, could remove
