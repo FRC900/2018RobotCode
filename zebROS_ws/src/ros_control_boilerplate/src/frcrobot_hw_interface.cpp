@@ -395,13 +395,13 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 				const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
 				// Only write to non-follow, non-disabled talons that
 				// have points to write from their top-level buffer
-				ROS_INFO_STREAM("top count: " << can_talons_[i]->GetMotionProfileTopLevelBufferCount());
-
+				//ROS_INFO_STREAM("top count: " << can_talons_[i]->GetMotionProfileTopLevelBufferCount());
+				//TODO: get check for bottom buffer full
 				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
 					(talon_mode != hardware_interface::TalonMode_Disabled) && can_talons_[i]->GetMotionProfileTopLevelBufferCount() )
 				{
 					// Only write if SW buffer has entries in it
-					ROS_INFO("needs to send points");
+					//ROS_INFO("needs to send points");
 					can_talons_[i]->ProcessMotionProfileBuffer();
 				}
 			}
@@ -1347,6 +1347,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
 			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
 			{
+				ROS_INFO_STREAM("Pre buffer");
 				//ROS_WARN("point_buffer");
 				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
 				{
@@ -1364,6 +1365,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
 					safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
 				}
+				ROS_INFO_STREAM("Post buffer");
 				// Copy the 1st profile trajectory point from
 				// the top level buffer to the talon
 				// Subsequent points will be copied by

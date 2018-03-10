@@ -1069,7 +1069,7 @@ int main(int argc, char** argv) {
     message_filters::Synchronizer<data_sync> sync(data_sync(10), auto_mode_sub, match_data_sub);
     sync.registerCallback(boost::bind(&auto_modes, _1, _2));
     ROS_WARN("Auto Client loaded");
-    ros::Duration(7.5).sleep();
+    ros::Duration(30).sleep();
     ROS_WARN("post sleep");
     generateTrajectory(0, 0, 0);
 

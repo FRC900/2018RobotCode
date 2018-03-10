@@ -781,11 +781,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		rotation *= slow_mode;
 	}
 
-	static bool sendRobotZero = 0;
+	static bool sendRobotZero = false;
 	// No motion? Tell the drive base to stop
 	if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 	{
-		if (sendRobotZero)
+		if (!sendRobotZero)
 		{
 			talon_swerve_drive_controller::Blank blank;
 			blank.request.nothing = true;
@@ -811,7 +811,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	}
 	else // X or Y or rotation != 0 so tell the drive base to move
 	{
-		sendRobotZero = 0;
+		sendRobotZero = false;
 		//Publish drivetrain messages and elevator/pivot
 		Eigen::Vector2d joyVector;
 		joyVector[0] = leftStickX; //intentionally flipped
