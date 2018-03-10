@@ -19,6 +19,8 @@
 #include "kalman.hpp"
 #include "hungarian.hpp"
 
+#include "vid_reader.cpp"
+
 #include <cv_bridge/cv_bridge.h>
 
 int erosion_size = 1;
@@ -203,8 +205,10 @@ int main(int argc, char **argv)
 
 	
 	
-	message_filters::Subscriber<Image> frame_sub(nh, "/zed_goal/left/image_rect_color", sub_rate);
-	message_filters::Subscriber<Image> depth_sub(nh, "/zed_goal/depth/depth_registered", sub_rate);
+	//message_filters::Subscriber<Image> frame_sub(nh, "/zed_goal/left/image_rect_color", sub_rate);
+	//message_filters::Subscriber<Image> depth_sub(nh, "/zed_goal/depth/depth_registered", sub_rate);
+	message_filters::Subscriber<Image> zms_sub(nh, "vid_reader_rgb_msg", sub_rate);
+	message_filters::Subscriber<Image> zms_sub1(nh, "vid_reader_depth_msg", sub_rate);
 
 	typedef sync_policies::ApproximateTime<Image, Image > MySyncPolicy2;
 	// ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(xxx)

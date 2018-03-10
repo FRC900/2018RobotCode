@@ -164,8 +164,8 @@ generate_messages(
 		../../../common/objtype.cpp
 		../../../common/kalman.cpp
 		../../../common/hungarian.cpp
+		../../../zebROS_ws/src/vid_reader_node/src/vid_reader.cpp
   )
-
   ## Rename C++ executable without prefix
   ## The above recommended prefix causes long target names, the following renames the
   ## target back to the shorter version for ease of user use
