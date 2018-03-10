@@ -7,22 +7,6 @@
     local-name: px_ros_pkg
     uri: https://github.com/cvg/px-ros-pkg.git
 - git:
-    local-name: ros_controllers/diff_drive_controller
-    uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/diff_drive_controller/0.13.2-0
-- git:
-    local-name: ros_controllers/effort_controllers
-    uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/effort_controllers/0.13.2-0
-- git:
-    local-name: ros_controllers/forward_command_controller
-    uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/forward_command_controller/0.13.2-0
-- git:
-    local-name: ros_controllers/gripper_action_controller
-    uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/gripper_action_controller/0.13.2-0
-- git:
     local-name: ros_controllers/imu_sensor_controller
     uri: https://github.com/ros-gbp/ros_controllers-release.git
     version: release/kinetic/imu_sensor_controller/0.13.2-0
@@ -42,10 +26,6 @@
     local-name: ros_controllers/ros_controllers
     uri: https://github.com/ros-gbp/ros_controllers-release.git
     version: release/kinetic/ros_controllers/0.13.2-0
-- git:
-    local-name: ros_controllers/rqt_joint_trajectory_controller
-    uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/rqt_joint_trajectory_controller/0.13.2-0
 - git:
     local-name: ros_controllers/velocity_controllers
     uri: https://github.com/ros-gbp/ros_controllers-release.git
