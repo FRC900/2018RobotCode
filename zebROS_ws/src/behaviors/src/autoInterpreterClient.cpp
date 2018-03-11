@@ -989,12 +989,8 @@ void run_auto(int auto_mode) {
     else if(AutoMode->mode[auto_mode]==11) {
 
     }
-<<<<<<< 1b48b57366f4dfe9c9f5afc23c9bf03998784211
-    else if(AutoMode->mode[auto_mode-1]==12) {
-=======
     else if(AutoMode->mode[auto_mode]==12) {
 
->>>>>>> worked on teleop things
     }
     else{
         
@@ -1046,13 +1042,9 @@ int main(int argc, char** argv) {
     ros::Subscriber auto_mode_sub = n.subscribe("autonomous_mode", 1, &auto_mode_cb);
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
     ROS_WARN("Auto Client loaded");
-<<<<<<< 1b48b57366f4dfe9c9f5afc23c9bf03998784211
-    ros::Duration(15).sleep();
-=======
     ros::Duration(10).sleep();
->>>>>>> worked on teleop things
     ROS_WARN("post sleep");
-    generateTrajectory(0, 1, 0);
+    generateTrajectory(0, 2, 0);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::spin();
