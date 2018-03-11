@@ -20,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(Eigen REQUIRED)
 
-find_library(ATOMIC NAMES atomic atomic.so.1 libatomic.so.1)
+find_library(ATOMIC NAMES atomic.so.1.1.0 libatomic.so.1.1.0)
 
 add_message_files (
   FILES
