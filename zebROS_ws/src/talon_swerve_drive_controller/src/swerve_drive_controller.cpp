@@ -465,7 +465,10 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 		//ROS_INFO_STREAM("id: " << k << " delta: " << delta_pos << " steer: " << steer_angle << " dist: " << dist);
 		last_wheel_rot_[k] = new_wheel_rot;
 	}
-	steer_angles_.store(steer_angles, std::memory_order_relaxed);
+	{
+		std::lock_guard<std::mutex> lock(steer_angles_mutex_);
+		steer_angles_ = steer_angles;
+	}
 	const Eigen::RowVector2d new_wheel_centroid =
 		new_wheel_pos_.colwise().mean();
 	new_wheel_pos_.rowwise() -= new_wheel_centroid;
@@ -644,6 +647,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			//steering_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
                         //speed_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
 
+			// TODO : make a speed_trajectory_point and steering_trajectory_point
+			// var locally instead of a global array.
 
 			holder_points_[i][0].position = curr_cmd.drive_pos[0][i];
 			holder_points_[i][1].position = curr_cmd.steer_pos[0][i];
@@ -682,6 +687,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				steering_joints_[k].pushMotionProfileTrajectory(holder_points_[k][1]);
 			}
 		}
+		// TODO : merge with above
 		for(size_t k = 0; k < WHEELCOUNT; k++)
 		{
 			holder_points_[k][0].position = curr_cmd.drive_pos[point_count - 1][k];
@@ -1011,12 +1017,15 @@ bool TalonSwerveDriveController::wheelPosService(talon_swerve_drive_controller::
 {
 	if (isRunning())
 	{
-		const std::array<double, WHEELCOUNT> steer_angles = steer_angles_.load(std::memory_order_relaxed);
+		std::array<double, WHEELCOUNT> steer_angles;
+		{
+			std::lock_guard<std::mutex> lock(steer_angles_mutex_);
+			steer_angles = steer_angles_;
+		}
 
 		for(int i = 0; i < WHEELCOUNT; i++)
 		{
 			res.positions.push_back(steer_angles[i]);
-
 		}
 
 		return true;
