@@ -1039,7 +1039,7 @@ int main(int argc, char** argv) {
     ros::Duration(10).sleep();
     ros::Duration(25).sleep();
     ROS_WARN("post sleep");
-    generateTrajectory(0, 3, 2);
+    generateTrajectory(0, 2, 0);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     //ros::spin();
