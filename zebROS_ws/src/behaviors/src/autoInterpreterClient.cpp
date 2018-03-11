@@ -270,7 +270,7 @@ void runTrajectory(int auto_mode) {
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode) {
     if(AutoMode->position != start_pos) {
         for(int i = 0; i<4; i++) {
-            if(AutoMode->mode[i] == 3 || AutoMode->mode[i] == 4) {
+            if(AutoMode->mode[i] > 2) {
                 generateTrajectory(i, AutoMode->mode[i]-3, AutoMode->position);
             }
             auto_mode_vect[i] = AutoMode->mode[i];
@@ -279,7 +279,7 @@ void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode) {
     }
     else {
         for(int i = 0; i<4; i++) {
-            if(AutoMode->mode[i] != auto_mode_vect[i] && (AutoMode->mode[i] == 3 || AutoMode->mode[i] == 4)) {
+            if(AutoMode->mode[i] != auto_mode_vect[i] && (AutoMode->mode[i] > 2)) {
                 generateTrajectory(i, AutoMode->mode[i]-3, AutoMode->position);
             }
             auto_mode_vect[i] = AutoMode->mode[i];
@@ -351,7 +351,10 @@ void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &M
             layout = 2;
         }
         in_auto = true;
-        bufferTrajectory(auto_mode);
+        
+        if(auto_mode_vect[auto_mode] > 2) {
+            bufferTrajectory(auto_mode);
+        }
         
     }
     else {
@@ -1035,7 +1038,7 @@ int main(int argc, char** argv) {
     ROS_WARN("Auto Client loaded");
     ros::Duration(25).sleep();
     ROS_WARN("post sleep");
-    generateTrajectory(0, 0, 0);
+    generateTrajectory(0, 1, 1);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     //ros::spin();
