@@ -41,8 +41,7 @@
 #include <array>
 #include <functional>
 #include <memory>
-#include <atomic>
-#include <realtime_tools/realtime_buffer.h>
+#include <mutex>
 #include <string>
 #include <controller_interface/controller.h>
 #include <talon_controllers/talon_controller_interface.h>
@@ -184,6 +183,7 @@ class TalonSwerveDriveController
 	
 		
 		std::array<std::array<hardware_interface::TrajectoryPoint, 2>, WHEELCOUNT> holder_points_;
+
 	
 		realtime_tools::RealtimeBuffer<bool> run_;
 
@@ -242,7 +242,9 @@ class TalonSwerveDriveController
 		 */
 		void brake();
 
-		std::atomic<std::array<double, WHEELCOUNT>> steer_angles_;
+		std::array<double, WHEELCOUNT> steer_angles_;
+		std::mutex steer_angles_mutex_;
+
 		/**
 		 * \brief Velocity command callback
 		 * \param command Velocity command message (twist)

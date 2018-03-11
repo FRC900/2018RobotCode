@@ -18,9 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
     urdf
     message_generation
 )
-find_package(Eigen REQUIRED)
 
-find_library(ATOMIC NAMES atomic.so.1.1.0 libatomic.so.1.1.0)
+find_package(Eigen REQUIRED)
 
 add_message_files (
   FILES
@@ -60,16 +59,13 @@ include_directories(
   ${Eigen_INCLUDE_DIRS}
 )
 
-
-
-
 add_library(${PROJECT_NAME} 
-src/swerve_drive_controller.cpp 
-src/odometry.cpp 
-src/speed_limiter.cpp
-src/900Math.cpp
-src/SwerveMath.cpp
-src/Swerve.cpp
+	src/swerve_drive_controller.cpp 
+	src/odometry.cpp 
+	src/speed_limiter.cpp
+	src/900Math.cpp
+	src/SwerveMath.cpp
+	src/Swerve.cpp
 )
 
 add_dependencies(${PROJECT_NAME}
@@ -79,7 +75,7 @@ add_dependencies(${PROJECT_NAME}
 )
 
 
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${ATOMIC})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 install(DIRECTORY include/${PROJECT_NAME}/
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
