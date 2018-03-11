@@ -40,8 +40,18 @@ def create_plot(req):
 	arrow_scale  =1
 	init_pos_x = 0.7
 	init_pos_y = 5.0-0.437
+	orients = []
+	count =0
+	total_vel = 0
+	index =[]
+	total_vels = []
 	#init_orient = -1.5 This will rotate the entire path?
 	for i in req.joint_trajectory.points:
+		total_vel += i.velocities[2] *.02
+		total_vels.append(total_vel)
+		orients.append(i.positions[2])	
+		index.append(count)
+		count+=1
 		if(k%15 == 0):
 			orient.arrow(scale*(i.positions[0]+init_pos_y), scale*(i.positions[1]+init_pos_x), -arrow_scale*scale*math.sin(i.positions[2])*.5, arrow_scale*scale*math.cos(i.positions[2])*.5, head_width=scale*arrow_scale*0.1, head_length=scale*arrow_scale*0.25, fc='k', ec='k');
 		k+=1
@@ -60,6 +70,9 @@ def create_plot(req):
 		path_show.plot(scale*(i.positions[0]+init_pos_y), scale*(i.positions[1]+init_pos_x), 'ro', markersize=0.2);
 		k+=1
 	path_show.axis([0, 490, 0, 960])
+	plt.show()
+	plt.scatter(index, orients)
+	plt.scatter(index, total_vels)
 	plt.show()
 
 
