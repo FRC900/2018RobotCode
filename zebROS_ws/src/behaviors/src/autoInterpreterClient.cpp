@@ -241,7 +241,7 @@ std::string lower(std::string str) {
 }
 
 void bufferTrajectory(int auto_mode) {
-    ROS_WARN("Run trajectory");
+    ROS_WARN("Buffer trajectory");
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.points = coefs_vect[auto_mode].response.points;
     ROS_INFO_STREAM("num_points: " << coefs_vect[auto_mode].response.points.size() << " dt: "<< coefs_vect[auto_mode].response.dt);
@@ -1034,11 +1034,12 @@ int main(int argc, char** argv) {
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
     ROS_WARN("Auto Client loaded");
     ros::Duration(10).sleep();
+    ros::Duration(25).sleep();
     ROS_WARN("post sleep");
     generateTrajectory(0, 2, 0);
     generateTrajectory(0, 0, 0);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
-    ros::spin();
+    //ros::spin();
     return 0;
 }
