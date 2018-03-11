@@ -813,7 +813,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			
 			JoystickRobotVel.publish(vel);
 			*/
-			//ROS_INFO("teleop : called BrakeSrv to stop");
+			ROS_INFO("teleop : called BrakeSrv to stop");
 			sendRobotZero = true;
 		}
 	}
@@ -842,6 +842,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		test_header.seq = 1;
 		JoystickTestVel.publish(test_header);*/
 		sendRobotZero = false;
+		ROS_INFO_STREAM("publishing");
 	}
 
 	if (rightStickX != 0 && rightStickY != 0)
