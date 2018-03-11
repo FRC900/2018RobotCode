@@ -8,7 +8,9 @@ static int start_pos = 0;
 std::vector<int> auto_mode_vect = {0, 0, 0, 0};
 std::vector<double> delays_vect = {0, 0, 0, 0};
 static int auto_mode = -1;
-static double start_time;
+double start_time;
+double curr_time;
+double last_time;
 
 //static ros::Publisher IntakeService;
 static ros::ServiceClient IntakeService;
@@ -35,12 +37,12 @@ static double timeout;
 static double delay;
 static double autoStart = -1;
 static int layout;
-static std::vector<std::vector<double>> vectTimes;
 static XmlRpc::XmlRpcValue modes;
 static std::vector<trajectory_msgs::JointTrajectory> trajectories;
 
 static bool in_auto;
 
+std::vector<std::vector<double>> times_vect(4);
 std::vector<talon_swerve_drive_controller::FullGenCoefs> coefs_vect(4);
 
 
@@ -183,6 +185,7 @@ void generateTrajectory(int auto_mode, int layout, int start_pos) {
         ROS_WARN("check 3");
         XmlRpc::XmlRpcValue &orient = spline["orient"];
         ROS_WARN("check 4");
+        XmlRpc::XmlRpcValue &time = spline["time"];
 
         talon_swerve_drive_controller::Coefs x_coefs;
         talon_swerve_drive_controller::Coefs y_coefs;
@@ -200,6 +203,8 @@ void generateTrajectory(int auto_mode, int layout, int start_pos) {
             orient_coefs.spline.push_back(orient_coef);
             ROS_WARN("check 7");
         }
+        const double t = time;
+        times_vect[layout].push_back(t);
         /*
         if(coefs_vect[layout].request.x_coefs.size()!=0) {
             coefs_vect[layout].request.x_coefs.clear();
@@ -216,7 +221,7 @@ void generateTrajectory(int auto_mode, int layout, int start_pos) {
     ROS_WARN("check 10");
     /*for(int i = 0; i<xml_t.size(); i++) {
         const double t_val = xml_t[i];
-        vectTimes[layout].push_back(t_val);
+        times_vect[layout].push_back(t_val);
     }*/
     srv.request.initial_v = 0;
     srv.request.final_v = 0;
@@ -226,11 +231,8 @@ void generateTrajectory(int auto_mode, int layout, int start_pos) {
 		ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
     
     ///JUST FOR TESTING_______
-    runTrajectory(layout);
+    bufferTrajectory(layout);
     ///JUST FOR TESTING_______
-    ROS_WARN("check 3");
-    ROS_WARN("check 4");
-    
 }
 
 std::string lower(std::string str) {
@@ -241,7 +243,7 @@ std::string lower(std::string str) {
     return new_string;
 }
 
-void runTrajectory(int auto_mode) {
+void bufferTrajectory(int auto_mode) {
     ROS_WARN("Run trajectory");
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.points = coefs_vect[auto_mode].response.points;
@@ -251,6 +253,17 @@ void runTrajectory(int auto_mode) {
     swerve_control_srv.request.buffer = true;
     swerve_control_srv.request.clear  = true;
     swerve_control_srv.request.run    = false;
+    swerve_control_srv.request.mode   = true;
+    
+    if (!swerve_control.call(swerve_control_srv))
+		ROS_ERROR("swerve_control call() failed in autoInterpreterClient generateTrajectory()");
+}
+void runTrajectory(int auto_mode) {
+    ROS_WARN("Run trajectory");
+    talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
+    swerve_control_srv.request.buffer = false;
+    swerve_control_srv.request.clear  = false;
+    swerve_control_srv.request.run    = true;
     swerve_control_srv.request.mode   = true;
     
     if (!swerve_control.call(swerve_control_srv))
@@ -286,8 +299,8 @@ void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &M
         if(lower(MatchData->allianceData)=="rlr") {
             auto_mode = 0;
             layout = 1;
-            for(int i = 0; i<vectTimes[0].size(); i++) {
-                //times.push_back(vectTimes[0][i]);
+            for(int i = 0; i<times_vect[0].size(); i++) {
+                //times.push_back(times_vect[0][i]);
             }
         }
         else if(lower(MatchData->allianceData)=="lrl") {
@@ -295,15 +308,15 @@ void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &M
         //ROS_WARN("2");
             auto_mode = 1;
             layout = 1;
-            for(int i = 0; i<vectTimes[1].size(); i++) {
-                //times.push_back(vectTimes[1][i]);
+            for(int i = 0; i<times_vect[1].size(); i++) {
+                //times.push_back(times_vect[1][i]);
             }
         }
         else if(lower(MatchData->allianceData)=="rrr") {
             auto_mode = 2;
             layout = 2;
-            for(int i = 0; i<vectTimes[2].size(); i++) {
-                //times.push_back(vectTimes[2][i]);
+            for(int i = 0; i<times_vect[2].size(); i++) {
+                //times.push_back(times_vect[2][i]);
             }
         }
         else if(lower(MatchData->allianceData) =="lll") {
@@ -311,36 +324,60 @@ void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &M
         //ROS_WARN("3");
             auto_mode = 3;
             layout = 2;
-            for(int i = 0; i<vectTimes[3].size(); i++) {
-                //times.push_back(vectTimes[3][i]);
+            for(int i = 0; i<times_vect[3].size(); i++) {
+                //times.push_back(times_vect[3][i]);
             }
         }
         in_auto = true;
         run_auto(auto_mode);
+    }
+    else if (MatchData->allianceData != "") {
+        std::vector<double> times;
+        if(lower(MatchData->allianceData)=="rlr") {
+            auto_mode = 0;
+            layout = 1;
+        }
+        else if(lower(MatchData->allianceData)=="lrl") {
+    //ROS_WARN("auto entered");
+        //ROS_WARN("2");
+            auto_mode = 1;
+            layout = 1;
+        }
+        else if(lower(MatchData->allianceData)=="rrr") {
+            auto_mode = 2;
+            layout = 2;
+        }
+        else if(lower(MatchData->allianceData) =="lll") {
+    //ROS_WARN("auto entered");
+        //ROS_WARN("3");
+            auto_mode = 3;
+            layout = 2;
+        }
+        in_auto = true;
+        bufferTrajectory(auto_mode);
+        
     }
     else {
         in_auto = false;
     }
 }
 
-//sequence 0: do Nothing
-//sequence 1: basic switch
-        //lift to switch
-        //release clamp
-//sequence 2: switch-scale-scale
-        //
-
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
 void run_auto(int auto_mode) {
-    std::vector<double> times;
+    std::vector<double> times = times_vect[auto_mode];
     elevator_controller::Intake IntakeSrv;
     elevator_controller::ElevatorControlS ElevatorSrv;
     elevator_controller::bool_srv ClampSrv;
-    behaviors::RobotGoal goal;
+    behaviors::RobotGoal robot_goal;
     ROS_WARN("auto entered");
-    start_time = ros::Time::now().toSec();
     ros::Rate r(10);
-    if(auto_mode_vect[auto_mode-1] == 1) {
+    start_time = ros::Time::now().toSec();
+    while(in_auto && ros::Time::now().toSec() < start_time + delays_vect[auto_mode]) {
+        r.sleep(); 
+        ros::spinOnce();
+    }
+    start_time = ros::Time::now().toSec();
+    if(auto_mode_vect[auto_mode] == 1) {
         while(in_auto) {
             ROS_WARN("Basic drive forward auto");
             //basic drive forward cmd_vel
@@ -350,8 +387,6 @@ void run_auto(int auto_mode) {
             vel.angular.y = 0;
             vel.angular.z = 0;
 
-            ros::Duration(delays_vect[auto_mode-1]).sleep();
-            double start_time = ros::Time::now().toSec();
             switchConfig(ElevatorSrv); 
             if(auto_mode == 1 || auto_mode == 3) { //if goal is on the right
                if(start_pos == 0) {
@@ -424,7 +459,7 @@ void run_auto(int auto_mode) {
             in_auto = false;
         }
     }
-    if(auto_mode_vect[auto_mode-1] == 2) {
+    if(auto_mode_vect[auto_mode] == 2) {
         ROS_WARN("Basic switch auto mode");
         //basic switch cmd_vel
         geometry_msgs::Twist vel;
@@ -433,7 +468,6 @@ void run_auto(int auto_mode) {
         vel.angular.y = 0;
         vel.angular.z = 0;
 
-        ros::Duration(delays_vect[auto_mode-1]).sleep();
         double start_time = ros::Time::now().toSec();
         switchConfig(ElevatorSrv); 
         if(auto_mode == 1 || auto_mode == 3) { //if goal is on the right
@@ -519,21 +553,61 @@ void run_auto(int auto_mode) {
         in_auto = false;
         
     }
-
-    if(auto_mode_vect[auto_mode-1] == 3) {
+    
+    if(auto_mode_vect[auto_mode] == 3) {
         ROS_WARN("Profiled Scale");
-        //Profiled scale
-        ROS_WARN("Profiled Scale Auto Mode reached");
-        runTrajectory(auto_mode-1);
-        ros::Duration(times[0]).sleep();
-        ROS_WARN("Profiled Scale elevator to mid reached");
-        midScale(ElevatorSrv);
-        ros::Duration(times[1]).sleep();
-        ROS_WARN("Profiled Scale release clamp reached");
-        releaseClamp(ClampSrv);
+        runTrajectory(auto_mode);
+        while(in_auto) { 
+            //Profiled scale
+            curr_time = ros::Time::now().toSec();
+            if(curr_time > times[0] && curr_time <= times[0] + (curr_time-last_time)) {
+                ROS_WARN("Profiled Scale elevator to mid reached");
+                midScale(ElevatorSrv);
+            }
+            if(curr_time > times[1] && curr_time <= times[1] + (curr_time-last_time)) {
+                ROS_WARN("Profiled Scale release clamp reached");
+                releaseClamp(ClampSrv);
+            }
+            last_time = curr_time;
+            r.sleep();
+            ros::spinOnce();
+        }
+        ROS_WARN("braked");
+        talon_swerve_drive_controller::Blank blank;
+        blank.request.nothing = true;
+        BrakeService.call(blank);
+        in_auto = false;
+    }
+    if(auto_mode_vect[auto_mode] == 4) {
+        ROS_WARN("Profiled Scale");
+        runTrajectory(auto_mode);
+        while(in_auto) { 
+            //Profiled scale
+            curr_time = ros::Time::now().toSec();
+            if(curr_time > times[0] && curr_time <= times[0] + (curr_time-last_time)) {
+                ROS_WARN("Profiled Scale elevator to mid reached");
+                midScale(ElevatorSrv);
+            }
+            if(curr_time > times[1] && curr_time <= times[1] + (curr_time-last_time)) {
+                ROS_WARN("Profiled Scale release clamp reached");
+                releaseClamp(ClampSrv);
+            }
+            if(curr_time > times[2] && curr_time <= times[2] + (curr_time-last_time)) {
+                ROS_WARN("Intaking Cube and going to intake config");
+                robot_goal.IntakeCube = true; 
+            }
+            last_time = curr_time;
+            r.sleep();
+            ros::spinOnce();
+        }
+        ROS_WARN("braked");
+        talon_swerve_drive_controller::Blank blank;
+        blank.request.nothing = true;
+        BrakeService.call(blank);
+        in_auto = false;
     }
     /*
-    if(AutoMode->mode[auto_mode-1]==1) {
+    if(AutoMode->mode[auto_mode]==1) {
     //3 cube switch-scale-scale
         //0: Time 1: Go to switch config
         ros::Duration(times[0]).sleep(); //TODO
@@ -614,7 +688,7 @@ void run_auto(int auto_mode) {
         clamp(ClampSrv);
         releaseIntake(IntakeSrv);
     }
-    else if(AutoMode->mode[auto_mode-1]==2) {
+    else if(AutoMode->mode[auto_mode]==2) {
         //2 cube long elevator_controller::bool_srve
         //0: Time 0: Go to default config && drop intake
         ros::Duration(0).sleep(); //TODO
@@ -685,7 +759,7 @@ void run_auto(int auto_mode) {
 
 
     }
-    else if(AutoMode->mode[auto_mode-1]==3) {
+    else if(AutoMode->mode[auto_mode]==3) {
     //3 cube switch-scale-scale
         //0: Time 1: Go to mid scale config
         ros::Duration(times[0]).sleep(); //TODO
@@ -767,7 +841,7 @@ void run_auto(int auto_mode) {
         releaseIntake(IntakeSrv);
     
 }
-    else if(AutoMode->mode[auto_mode-1]==4) { //TODO fix times
+    else if(AutoMode->mode[auto_mode]==4) { //TODO fix times
     //4 cube scale-scale-scale-switch
         //1: Time 1: scale config and soft-in intake
         ros::Duration(times[0]).sleep(); //good
@@ -883,7 +957,7 @@ void run_auto(int auto_mode) {
         releaseClamp(ClampSrv);
 
     }
-    else if(AutoMode->mode[auto_mode-1]==5) {
+    else if(AutoMode->mode[auto_mode]==5) {
     //1 cube simple switch
         //1: Time 1: Go to switch config and soft_in intake
         ros::Duration(times[0]).sleep();
@@ -897,25 +971,26 @@ void run_auto(int auto_mode) {
         ros::Duration(times[2]).sleep();
         releaseClamp(ClampSrv);
     }
-    else if(AutoMode->mode[auto_mode-1]==6) {
+    else if(AutoMode->mode[auto_mode]==6) {
 
     }
-    else if(AutoMode->mode[auto_mode-1]==7) {
+    else if(AutoMode->mode[auto_mode]==7) {
 
     }
-    else if(AutoMode->mode[auto_mode-1]==8) {
+    else if(AutoMode->mode[auto_mode]==8) {
 
     }
-    else if(AutoMode->mode[auto_mode-1]==9) {
+    else if(AutoMode->mode[auto_mode]==9) {
 
     }
-    else if(AutoMode->mode[auto_mode-1]==10) {
+    else if(AutoMode->mode[auto_mode]==10) {
 
     }
-    else if(AutoMode->mode[auto_mode-1]==11) {
+    else if(AutoMode->mode[auto_mode]==11) {
 
     }
-    else if(AutoMode->mode[auto_mode-1]==12) {
+    else if(AutoMode->mode[auto_mode]==12) {
+
     }
     else{
         

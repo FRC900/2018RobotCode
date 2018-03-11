@@ -45,4 +45,4 @@ void runTrajectory(int auto_mode);
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode);
 void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData);
 void run_auto(int auto_mode);
-
+void bufferTrajectory(int auto_mode);
