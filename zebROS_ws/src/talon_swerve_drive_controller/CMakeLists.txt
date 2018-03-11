@@ -20,6 +20,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(Eigen REQUIRED)
 
+find_library(ATOMIC atomic)
+
 add_message_files (
   FILES
   SwervePoint.msg
@@ -77,7 +79,7 @@ add_dependencies(${PROJECT_NAME}
 )
 
 
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES} ${ATOMIC})
 
 install(DIRECTORY include/${PROJECT_NAME}/
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
