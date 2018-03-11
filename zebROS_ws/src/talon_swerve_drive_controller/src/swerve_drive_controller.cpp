@@ -36,17 +36,15 @@
 
 #include <cmath>
 
-#include <tf/transform_datatypes.h>
-
-#include <urdf_parser/urdf_parser.h>
-
-#include <urdf/urdfdom_compatibility.h>
-
 #include <boost/assign.hpp>
 
-#include <talon_swerve_drive_controller/swerve_drive_controller.h>
-
 #include <Eigen/Dense>
+
+#include <tf/transform_datatypes.h>
+#include <urdf_parser/urdf_parser.h>
+#include <urdf/urdfdom_compatibility.h>
+
+#include <talon_swerve_drive_controller/swerve_drive_controller.h>
 
 //TODO: include swerve stuff from C-Control
 using Eigen::Vector2d;
@@ -986,7 +984,7 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 	}
 }
 
-bool TalonSwerveDriveController::brakeService(talon_swerve_drive_controller::Blank::Request &/*req*/, talon_swerve_drive_controller::Blank::Response &/*res*/)
+bool TalonSwerveDriveController::brakeService(std_srvs::Empty::Request &/*req*/, std_srvs::Empty::Response &/*res*/)
 {
 	brake_struct_.lin[0] = 0;
 	brake_struct_.lin[1] = 0;

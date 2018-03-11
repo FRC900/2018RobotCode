@@ -3,6 +3,9 @@
 # Reload IPv6 networking blocks
 sudo sysctl -p
 
+sudo rfkill block wifi  
+sudo rfkill block bluetooth
+
 . /home/ubuntu/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh
 #echo 1100-1200,443,80,554,1735 > /proc/sys/net/ipv4/ip_local_reserved_ports
 

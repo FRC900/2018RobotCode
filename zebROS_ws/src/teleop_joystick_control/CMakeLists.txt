@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   ros_control_boilerplate
   behaviors
   elevator_controller
+  std_srvs
 )
 find_package(Eigen REQUIRED)
 

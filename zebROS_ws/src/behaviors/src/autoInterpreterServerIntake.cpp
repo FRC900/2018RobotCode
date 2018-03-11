@@ -56,7 +56,7 @@ class autoAction {
             if(!IntakeSrv.call(srv)) 
                 ROS_ERROR("Srv intake call failed in auto interpreter server intake");
             else
-                ROS_ERROR("Srv intake call OK in auto interpreter server intake");
+                ROS_INFO("Srv intake call OK in auto interpreter server intake");
             ros::spinOnce();
             while(!success && !timed_out && !aborted) {
                 success = cube_state_true > 2; 

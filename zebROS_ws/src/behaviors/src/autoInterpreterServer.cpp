@@ -1,19 +1,18 @@
 #include "ros/ros.h"
+#include <atomic>
+
+#include "actionlib/client/simple_action_client.h"
+#include "actionlib/client/terminal_state.h"
 #include "actionlib/server/simple_action_server.h"
 #include "behaviors/RobotAction.h"
 #include "behaviors/IntakeAction.h"
 #include "behaviors/LiftAction.h"
 #include "elevator_controller/ElevatorControl.h"
-#include "elevator_controller/Intake.h"
-#include "elevator_controller/bool_srv.h"
-#include "std_msgs/Bool.h"
 #include "elevator_controller/ElevatorControlS.h"
+#include "elevator_controller/Intake.h"
 #include "elevator_controller/ReturnElevatorCmd.h"
-#include <cstdlib>
-#include <atomic>
-#include <ros/console.h>
-#include "actionlib/client/simple_action_client.h"
-#include "actionlib/client/terminal_state.h"
+#include "std_srvs/SetBool.h"
+#include "std_msgs/Bool.h"
 
 //elevator_controller/cmd_pos
 //elevator_controller/intake?
@@ -67,7 +66,7 @@ class autoAction {
 			service_connection_header["tcp_nodelay"] = "1";
 			ElevatorSrv = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
 			IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
-            ClampSrv= nh_.serviceClient<elevator_controller::bool_srv>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
+            ClampSrv= nh_.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
             HighCube = nh_.subscribe("/frcrobot/elevator_controller/high_cube", 1, &autoAction::highCubeCallback, this);
     		al = std::make_shared<actionlib::SimpleActionClient<behaviors::LiftAction>>("auto_interpreter_server_lift", true);
     		ai = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
@@ -88,7 +87,7 @@ class autoAction {
 	if((goal->IntakeCube))
 	{
 		
-		elevator_controller::bool_srv srv_clamp;
+		std_srvs::SetBool srv_clamp;
 		ros::spinOnce();
 		goal_i.IntakeCube = true;
 		goal_i.time_out = 15;
@@ -296,7 +295,7 @@ class autoAction {
 	}	
 	if(goal->MoveToIntakeConfig)
 	{
-		elevator_controller::bool_srv srv_clamp;
+		std_srvs::SetBool srv_clamp;
 		ros::spinOnce();
 		bool ready_to_drop = fabs(intake_ready_to_drop_x - odom_x) < drop_x_tolerance;	
 		srvIntake.request.power = 0;
