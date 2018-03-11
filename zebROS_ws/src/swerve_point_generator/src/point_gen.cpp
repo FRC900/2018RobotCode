@@ -9,6 +9,7 @@
 #include <string>
 #include <talon_swerve_drive_controller/MotionProfile.h> //Only needed for visualization
 #include <talon_swerve_drive_controller/MotionProfilePoints.h> //Only needed for visualization
+#include <talon_swerve_drive_controller/WheelPos.h>
 
 //Get swerve info here:
 
@@ -17,6 +18,7 @@ std::shared_ptr<swerve> swerve_math;
 std::shared_ptr<swerve_profile::swerve_profiler> profile_gen;
 
 ros::ServiceClient graph_prof;
+ros::ServiceClient get_pos;
 ros::ServiceClient graph_swerve_prof;
 double defined_dt;
 
@@ -75,9 +77,16 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 
 	ROS_WARN("BUFFERING");
 	//TODO: optimize code?
+	
+	talon_swerve_drive_controller::WheelPos pos_msg;
+	if(!get_pos.call(pos_msg))
+	{
+		ROS_ERROR("failed to get wheel pos in point gen, maybe asked swerve drive controller before it was started up?");
+
+	}
 	std::array<double, WHEELCOUNT> curPos;
 	for (int i = 0; i < WHEELCOUNT; i++)
-		curPos[i] = 0; //TODO: FILL THIS OUT SOMEHOW
+		curPos[i] = pos_msg.response.positions[i]; //TODO: FILL THIS OUT SOMEHOW
 
 	std::array<bool, WHEELCOUNT> holder;
 	
@@ -253,6 +262,7 @@ int main(int argc, char **argv)
 	service_connection_header["tcp_nodelay"] = "1";
 	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/visualize_profile", false, service_connection_header);
 	graph_swerve_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/visualize_swerve_profile", false, service_connection_header);
+	get_pos = nh.serviceClient<talon_swerve_drive_controller::WheelPos>("/frcrobot/swerve_drive_controller/wheel_pos", false, service_connection_header);
 
 	ros::spin();
 }

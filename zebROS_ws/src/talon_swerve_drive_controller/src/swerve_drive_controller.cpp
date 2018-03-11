@@ -347,6 +347,7 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 	sub_command_ = controller_nh.subscribe("cmd_vel", 1, &TalonSwerveDriveController::cmdVelCallback, this);
 	brake_serv_ = controller_nh.advertiseService("brake", &TalonSwerveDriveController::brakeService, this);
 	motion_profile_serv_ = controller_nh.advertiseService("run_profile", &TalonSwerveDriveController::motionProfileService, this);
+	wheel_pos_serv_ = controller_nh.advertiseService("wheel_pos", &TalonSwerveDriveController::wheelPosService, this);
 	//sub_run_profile_ = controller_nh.subscribe("run_profile", 1, &TalonSwerveDriveController::runCallback, this);
 
 
@@ -446,6 +447,7 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 	//ROS_INFO_STREAM("WORKS");
 	// Compute the rigid transform from wheel_pos_ to new_wheel_pos_.
 
+	std::array<double, WHEELCOUNT> steer_angles;
 	for (size_t k = 0; k < WHEELCOUNT; k++)
 	{
 		const double new_wheel_rot = speed_joints_[k].getPosition();
@@ -454,7 +456,8 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 		const double dist = -delta_rot * wheel_radius_ * driveRatios_.encodertoRotations; //* inverterD;
 		//NOTE: below is a hack, TODO: REMOVE
 
-		const double steer_angle = swerveC_->getWheelAngle(k, steering_joints_[k].getPosition());
+		steer_angles[k] = steering_joints_[k].getPosition();
+		const double steer_angle = swerveC_->getWheelAngle(k, steer_angles[k]); 
 		const Eigen::Vector2d delta_pos = {-dist*sin(steer_angle), dist*cos(steer_angle)};
 		new_wheel_pos_(k, 0) = wheel_coords_[k][0] + delta_pos[0];
 		new_wheel_pos_(k, 1) = wheel_coords_[k][1] + delta_pos[1];
@@ -462,7 +465,7 @@ void TalonSwerveDriveController::compOdometry(const Time& time, const double inv
 		//ROS_INFO_STREAM("id: " << k << " delta: " << delta_pos << " steer: " << steer_angle << " dist: " << dist);
 		last_wheel_rot_[k] = new_wheel_rot;
 	}
-
+	steer_angles_.store(steer_angles, std::memory_order_relaxed);
 	const Eigen::RowVector2d new_wheel_centroid =
 		new_wheel_pos_.colwise().mean();
 	new_wheel_pos_.rowwise() -= new_wheel_centroid;
@@ -986,14 +989,43 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 
 bool TalonSwerveDriveController::brakeService(std_srvs::Empty::Request &/*req*/, std_srvs::Empty::Response &/*res*/)
 {
-	brake_struct_.lin[0] = 0;
-	brake_struct_.lin[1] = 0;
-	brake_struct_.ang = 0;
-	brake_struct_.stamp = ros::Time::now();
-	ROS_WARN("called in controller");
-	command_.writeFromNonRT(brake_struct_);
+	if (isRunning())
+	{
+		brake_struct_.lin[0] = 0;
+		brake_struct_.lin[1] = 0;
+		brake_struct_.ang = 0;
+		brake_struct_.stamp = ros::Time::now();
+		ROS_WARN("called in controller");
+		command_.writeFromNonRT(brake_struct_);
 
-	return true;
+		return true;
+	}
+	else
+	{
+		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+		return false;
+	}
+}
+
+bool TalonSwerveDriveController::wheelPosService(talon_swerve_drive_controller::WheelPos::Request &/*req*/, talon_swerve_drive_controller::WheelPos::Response &res)
+{
+	if (isRunning())
+	{
+		const std::array<double, WHEELCOUNT> steer_angles = steer_angles_.load(std::memory_order_relaxed);
+
+		for(int i = 0; i < WHEELCOUNT; i++)
+		{
+			res.positions.push_back(steer_angles[i]);
+
+		}
+
+		return true;
+	}
+	else
+	{
+		ROS_ERROR_NAMED(name_, "Can't distribute data. Controller is not running.");
+		return false;
+	}
 }
 /*
 void TalonSwerveDriveController::cmdCallback(const talon_swerve_drive_controller::CompleteCmd &command)
