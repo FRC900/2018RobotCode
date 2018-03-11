@@ -29,6 +29,7 @@ add_message_files (
 add_service_files (
   FILES
   MotionProfile.srv
+  WheelPos.srv
   MotionProfilePoints.srv
   FullGen.srv
   FullGenCoefs.srv

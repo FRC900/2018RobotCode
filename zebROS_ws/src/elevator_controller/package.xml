@@ -20,6 +20,7 @@
   <build_depend>cmake_modules</build_depend>
 
   <depend>roscpp</depend>
+  <depend>realtime_tools</depend>
   <depend>actionlib</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
