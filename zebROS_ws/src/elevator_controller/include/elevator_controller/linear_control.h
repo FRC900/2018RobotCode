@@ -71,6 +71,8 @@ class ElevatorController
 		double hook_min_height_;
 		double hook_max_height_;
 
+        double second_intake_power_modifier_;
+
 		struct IntakeCommand //This struct is highly subject to change
 		{			
 			double up_command;
@@ -84,7 +86,8 @@ class ElevatorController
 
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface lift_joint_;
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface pivot_joint_;
-		talon_controllers::TalonPercentOutputControllerInterface intake_joint_;
+		talon_controllers::TalonPercentOutputControllerInterface intake_joint1_;
+		talon_controllers::TalonPercentOutputControllerInterface intake_joint2_;
 
 		struct Commands
 		{

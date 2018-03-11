@@ -1,7 +1,9 @@
 elevator_controller:
     type:  elevator_controller/ElevatorController
     lift: ["lift_joint", "lift_follower1_joint", "lift_follower2_joint"]
-    intake: ["intake_joint", "intake_follower_joint"]
+    intake1: "intake_joint1" 
+    intake2: "intake_joint2"
+    second_intake_power_modifier: .85
     pivot: "pivot_joint"
     arm_length: 0.4689729 
     max_extension: 2.375 #3.628571429 #29619 
@@ -52,16 +54,16 @@ elevator_controller:
         current_limit_continuous_amps: 60
         current_limit_enable: True
 
-    intake_joint:
-        joint: intake
-        invert_output: False
+    intake_joint1:
+        joint: intake1
+        invert_output: True
         sensor_phase: False
         current_limit_continuous_amps: 60
         current_limit_enable: True
-    intake_follower_joint:
-        joint: intake_follower1
-        invert_output: True
-        current_limit_continuous_amps: 60
+    intake_joint2:
+        joint: intake2
+        invert_output: False
+        current_limit_continuous_amps: 40
         current_limit_enable: True
 
 #hypothetically might have inverts

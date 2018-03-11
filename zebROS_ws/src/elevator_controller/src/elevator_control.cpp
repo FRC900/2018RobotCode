@@ -82,12 +82,22 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read lift name(s)");
 		return false;
 	}
-	XmlRpc::XmlRpcValue intake_params;
-	if (!controller_nh.getParam("intake", intake_params))
+	XmlRpc::XmlRpcValue intake1_params;
+	if (!controller_nh.getParam("intake1", intake1_params))
 	{
-		ROS_ERROR_NAMED(name_, "Can not read intake name(s)");
+		ROS_ERROR_NAMED(name_, "Can not read intake1 name(s)");
 		return false;
 	}
+    
+	XmlRpc::XmlRpcValue intake2_params;
+	if (!controller_nh.getParam("intake2", intake2_params))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read intake2 name(s)");
+		return false;
+	}
+    if (!controller_nh.getParam("second_intake_power_modifier", second_intake_power_modifier_)) {
+        ROS_ERROR_NAMED(name_, "Can not read intake power modifier");
+    }
 	XmlRpc::XmlRpcValue pivot_params;
 	if (!controller_nh.getParam("pivot", pivot_params))
 	{
@@ -137,7 +147,12 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR("Can not initialize lift joint(s)");
 		return false;
 	}
-	if (!intake_joint_.initWithNode(hw, nullptr, controller_nh, intake_params))
+	if (!intake_joint1_.initWithNode(hw, nullptr, controller_nh, intake1_params))
+	{
+		ROS_ERROR("Can not initialize intake joint(s)");
+		return false;
+	}
+	if (!intake_joint2_.initWithNode(hw, nullptr, controller_nh, intake2_params))
 	{
 		ROS_ERROR("Can not initialize intake joint(s)");
 		return false;
@@ -180,7 +195,28 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read hook_max_height");
 		return false;
 	}
+	if (!controller_nh.getParam("custom_f_lift_high", f_lift_high_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read lift high");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_lift_low", f_lift_low_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read lift low");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_arm_mass", f_arm_mass_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read arm mass");
+		return false;
+	}
+	if (!controller_nh.getParam("custom_f_arm_fric", f_arm_fric_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read arm fric");
+		return false;
+	}
 
+	
 	//Set soft limits using offsets here
 	lift_joint_.setForwardSoftLimitThreshold(M_PI / 2.0 + lift_offset_);
 	lift_joint_.setReverseSoftLimitThreshold(M_PI / 2.0 + lift_offset_);
@@ -315,9 +351,14 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//Use known info to write to hardware etc.
 	//Put in intelligent bounds checking
 
-	intake_joint_.setCommand(intake_struct_.power);
+	//intake_joint_.setCommand(intake_struct_.power);
 
-	if(intake_struct_.up_command < 0)
+	intake_joint1_.setCommand(cur_intake_cmd.power);
+	if(cur_intake_cmd.power > .5)
+    {
+        intake_joint2_.setCommand(cur_intake_cmd.power*second_intake_power_modifier_);
+    }
+	if(cur_intake_cmd.up_command < 0)
 	{
 		std_msgs::Float64 msg;
 		msg.data = -1.0;
