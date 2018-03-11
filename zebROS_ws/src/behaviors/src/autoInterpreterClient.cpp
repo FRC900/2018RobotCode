@@ -227,8 +227,6 @@ void generateTrajectory(int auto_mode, int layout, int start_pos) {
     srv.request.final_v = 0;
     coefs_vect[layout] = srv;
     ROS_WARN("check 11");
-    point_gen.call(coefs_vect[layout]);
-    ROS_WARN("check 12");
     if (!point_gen.call(coefs_vect[layout]))
 		ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
     
@@ -991,13 +989,17 @@ void run_auto(int auto_mode) {
     else if(AutoMode->mode[auto_mode]==11) {
 
     }
+<<<<<<< HEAD
     else if(AutoMode->mode[auto_mode]==12) {
 
+=======
+    else if(AutoMode->mode[auto_mode-1]==12) {
+>>>>>>> ee60b59ed7844426bcf5ea1c1d34f38fc65e8fa9
     }
     else{
         
     }
-    */
+*/
 }
 
 int main(int argc, char** argv) {
