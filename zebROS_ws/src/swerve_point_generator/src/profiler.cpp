@@ -166,7 +166,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		out_msg.points[point_count].positions.push_back(holder_point.orientation);
 		out_msg.points[point_count].velocities.push_back(cos(holder_point.path_angle) * curr_v );
 		out_msg.points[point_count].velocities.push_back(sin(holder_point.path_angle) * curr_v );
-		out_msg.points[point_count].velocities.push_back(holder_point.angular_velocity * (curr_v));
+		out_msg.points[point_count].velocities.push_back(holder_point.angular_velocity * curr_v / max_wheel_dist_);
 		//out_msg.points[point_count].velocities.push_back(holder_point.path_angle_deriv * (current_v));
 		out_msg.points[point_count].time_from_start = now;
 		//ROS_INFO_STREAM(now);
@@ -242,7 +242,7 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double &pat
 	if(current_pos>=0 && current_pos<=path_length)
 	{
 		max_wheel_orientation_accel = path.angular_accel * (current_v )* (current_v );
-		max_wheel_orientation_vel = path.angular_velocity * (current_v );
+		max_wheel_orientation_vel = fabs(path.angular_velocity) * (current_v );
 		theta = fabs(fmod(path.path_angle - path.orientation, M_PI / 8));
 		cos_t = cos(theta);
 		sin_t = sin(theta);
@@ -259,7 +259,7 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double &pat
 		
 		current_v += accel * dt_;
 		
-		v_general_max =  sqrt(max_wheel_vel_* max_wheel_vel_ / (path.angular_velocity * path.angular_velocity / 2 + 1 + sqrt(2) * path.angular_velocity * cos_t + sqrt(2) * path.angular_velocity * sin_t));
+		v_general_max =  sqrt(max_wheel_vel_* max_wheel_vel_ / (path.angular_velocity * fabs(path.angular_velocity) / 2 + 1 + sqrt(2) * fabs(path.angular_velocity) * cos_t + sqrt(2) * fabs(path.angular_velocity) * sin_t));
 		
 		//Note: assumption is that angular velocity doesn't change much over timestep
 		//if(current_v > v_general_max)
@@ -310,20 +310,32 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 	double y_at_b;
 	double x_at_avg;
 	double y_at_avg;
-	double arc_before;
+	double arc_before = 0;
 	std::vector<double> t_vals;
 	std::vector<double> s_vals;
 	t_vals.reserve(x_splines_first_deriv.size() * 101);
 	s_vals.reserve(x_splines_first_deriv.size() * 101);
 	//ROS_INFO_STREAM("Running parametrize");
 	//i starts at 1 for a reason
+	
 	for(size_t i = 0; i < x_splines_first_deriv.size(); i++)
 	{
 		if(i!=0)
 		{
 			period_t = (end_points[i] - end_points[i-1])/100.0; //100 is super arbitrary
 			start = end_points[i-1];
-			dtds_by_spline.push_back((end_points[i] - end_points[i-1])/  (arc_before - total_arc_length));
+		}
+		if(i > 1)
+		{
+			
+			dtds_by_spline.push_back((end_points[i-1] - end_points[i-2])/  (total_arc_length - arc_before));
+
+		}
+		else if(i == 1)
+		{
+			
+			dtds_by_spline.push_back((end_points[0] - 0) /  (total_arc_length - arc_before));
+
 		}
 		arc_before = total_arc_length;
 		for(size_t k = 0; k < 100; k++)
@@ -346,6 +358,9 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 			//ROS_INFO_STREAM("Spline: " << i << " t_val: " << a_val <<"  arc_length: " << total_arc_length);
 		} 
 	}
+	
+	dtds_by_spline.push_back((end_points[x_splines_first_deriv.size() - 1] - end_points[x_splines_first_deriv.size() - 2]) /  (total_arc_length - arc_before));
+	
 	t_vals.push_back(b_val + end_points[end_points.size() - 2]);
 	s_vals.push_back(total_arc_length);
 	//TODO: Loop to generate set of s vals for t vals iterating from 0 to end_time (simpsons rule here)
@@ -439,8 +454,8 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 
 	holder_point.orientation = orient;	
 	
-	holder_point.angular_velocity = fabs(first_deriv_orient * dtds_by_spline[which_spline - 1] * max_wheel_dist_);	
+	holder_point.angular_velocity = first_deriv_orient * dtds_by_spline[which_spline] * max_wheel_dist_;	
 
-	holder_point.angular_accel = fabs(second_deriv_orient *dtds_by_spline[which_spline - 1] * dtds_by_spline[which_spline - 1] * max_wheel_dist_ * ang_accel_conv_);	
+	holder_point.angular_accel = fabs(second_deriv_orient *dtds_by_spline[which_spline] * dtds_by_spline[which_spline] * max_wheel_dist_ * ang_accel_conv_);	
 }
 }
