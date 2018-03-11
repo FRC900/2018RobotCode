@@ -78,10 +78,16 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read lift name(s)");
 		return false;
 	}
-	XmlRpc::XmlRpcValue intake_params;
-	if (!controller_nh.getParam("intake", intake_params))
+	XmlRpc::XmlRpcValue intake1_params;
+	if (!controller_nh.getParam("intake1", intake1_params))
 	{
-		ROS_ERROR_NAMED(name_, "Can not read intake name(s)");
+		ROS_ERROR_NAMED(name_, "Can not read intake1 name(s)");
+		return false;
+	}
+	XmlRpc::XmlRpcValue intake2_params;
+	if (!controller_nh.getParam("intake2", intake2_params))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read intake2 name(s)");
 		return false;
 	}
 	XmlRpc::XmlRpcValue pivot_params;
@@ -104,6 +110,11 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	if (!controller_nh.getParam("cut_off_line", cut_off_line_))
 	{
 		ROS_ERROR_NAMED(name_, "Can not read cut_off_line");
+		return false;
+	}
+	if (!controller_nh.getParam("intake_power_diff_multiplier", intake_power_diff_multiplier_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read intake_power_diff_multiplier");
 		return false;
 	}
 
@@ -138,9 +149,14 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR("Can not initialize lift joint(s)");
 		return false;
 	}
-	if (!intake_joint_.initWithNode(hw, nullptr, controller_nh, intake_params))
+	if (!intake1_joint_.initWithNode(hw, nullptr, controller_nh, intake1_params))
 	{
-		ROS_ERROR("Can not initialize intake joint(s)");
+		ROS_ERROR("Can not initialize intake1 joint(s)");
+		return false;
+	}
+	if (!intake2_joint_.initWithNode(hw, nullptr, controller_nh, intake2_params))
+	{
+		ROS_ERROR("Can not initialize intake2 joint(s)");
 		return false;
 	}
 	
@@ -358,8 +374,16 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//Use known info to write to hardware etc.
 	//Put in intelligent bounds checking
 
-	intake_joint_.setCommand(cur_intake_cmd.power);
+	intake1_joint_.setCommand(cur_intake_cmd.power);
+	if(cur_intake_cmd.power > .5
+	{
+		intake2_joint_.setCommand(cur_intake_cmd.power * intake_power_diff_multiplier_);
+	}
+	else
+	{
+		intake2_joint_.setCommand(cur_intake_cmd.power);
 
+	}
 	if(cur_intake_cmd.up_command < 0)
 	{
 		std_msgs::Float64 msg;

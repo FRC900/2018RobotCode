@@ -80,7 +80,8 @@ class ElevatorController
 
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface lift_joint_;
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface pivot_joint_;
-		talon_controllers::TalonPercentOutputControllerInterface intake_joint_;
+		talon_controllers::TalonPercentOutputControllerInterface intake1_joint_;
+		talon_controllers::TalonPercentOutputControllerInterface intake2_joint_;
 
 		struct Commands
 		{
@@ -134,6 +135,8 @@ class ElevatorController
 		std::shared_ptr<arm_limiting::arm_limits> arm_limiter_;
 
 		bool getFirstString(XmlRpc::XmlRpcValue value, std::string &str);
+
+		double intake_power_diff_multiplier_;
 
 		double f_arm_mass_;
 		double f_arm_fric_;
