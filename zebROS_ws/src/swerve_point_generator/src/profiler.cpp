@@ -157,7 +157,7 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		//TODO: CHECK CONVERSIONS
 
 		//ROS_INFO_STREAM("t: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i);
-		if(point_count % 20 == 0)
+		if(point_count % 100 == 0)
 			ROS_INFO_STREAM("num points: " << point_count );	
 		//ROS_INFO_STREAM("t: " << t_raw << " t_raw: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i << "total_arc" << total_arc);
 		//Check these conversions	
