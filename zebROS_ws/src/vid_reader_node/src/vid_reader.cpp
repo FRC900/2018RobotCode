@@ -23,8 +23,8 @@ using namespace sensor_msgs;
 
 
 int main(int argc, char **argv)
-{
-	
+{	
+	ros::init(argc, argv, "vid_reader");
 	ros::NodeHandle nh("~");
 	int sub_rate = 5;
 	int pub_rate = 1;
@@ -33,10 +33,9 @@ int main(int argc, char **argv)
 	ros::Publisher zms_pub1;
 
 	MediaIn *cap = NULL;
-	String video_file = "cap6_0.zms";
-		cap = new ZMSIn(argv[1]);
-
-
+	const char* video_file = "../../../../../media/ubuntu/5522-557D/PalmettoVideos/cap7_0.zms";
+	//nh.getParam("video_file", video_file);
+	cap = new ZMSIn(video_file);
 
 	if (cap == NULL)
 	{
@@ -68,35 +67,31 @@ int main(int argc, char **argv)
 		depth_in.height = depth.rows;
 		depth_in.width = depth.cols;
 
-		//cv_bridge::CvImage img_bridge;
-		//std_msgs::Header header;
-		//header.seq = vid_reader_msg.header.seq;
-		//header.stamp = ros::Time::now();
- 
-
-		//img_bridge = cv_bridge::CvImage(header, sensor_msgs::image_encodings::TYPE_32FC1, rgb_in);
-		//img_bridge.toImageMsg(rgb_in);
-
-		
-		
-
 		cv_bridge::CvImagePtr cv_ptr;
-	        cv_ptr = cv_bridge::toCvCopy(rgb_in, sensor_msgs::image_encodings::BGR8);
-		zms_pub.publish(rgb_in);
+
+		try {
+	        cv_ptr = cv_bridge::toCvCopy(rgb_in, "BGR8");
+		} catch (cv_bridge::Exception& e) {
+		ROS_ERROR("cv_bridge exception: %s", e.what());
+		}
 
 		cv_bridge::CvImagePtr cv_ptr1;
-		cv_ptr1 = cv_bridge::toCvCopy(depth_in, sensor_msgs::image_encodings::BGR8);
-		zms_pub1.publish(depth_in);
+		try {
+		cv_ptr1 = cv_bridge::toCvCopy(depth_in, "TYPE_32FC1");
+		} catch (cv_bridge::Exception& e) {
+		ROS_ERROR("cv_bridge exception: %s", e.what());
+		}
+		
 
 		stringstream ss;
 		ss << fixed << setprecision(2) << cap->FPS() << "C:" << frameTicker.getFPS() << "GD FPS";
 		putText(image, ss.str(), Point(image.cols - 15 * ss.str().length(), 50), FONT_HERSHEY_PLAIN, 1.5, Scalar(0,0,255));
 		
-		// /zed/rgb/image_rect_color
-		// /zed/depth/depth_registered
-		zms_pub = nh.advertise<sensor_msgs::Image>("vid_reader_rgb_msg", pub_rate);
-		zms_pub1 = nh.advertise<sensor_msgs::Image>("vid_reader_depth_msg", pub_rate);
-		
+		zms_pub = nh.advertise<sensor_msgs::Image>("/zed_goal/left/image_rect_color", pub_rate);
+		zms_pub1 = nh.advertise<sensor_msgs::Image>("/zed_goal/depth/depth_registered", pub_rate);
+
+		zms_pub.publish(rgb_in);
+		zms_pub1.publish(depth_in);
 		imshow ("Image", image);
 
 		if ((uchar)waitKey(5) == 27)

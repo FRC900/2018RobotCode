@@ -13,11 +13,12 @@
 #include <Eigen/Dense>
 #include <sensor_msgs/JointState.h>
 #include <ros_control_boilerplate/MatchSpecificData.h>
+#include <pdp_state_controller/PDPData.h>
 
 //BE WARNED. THIS NODE USES IMPERIAL UNITS..........
 
 void pressureCallback(const sensor_msgs::JointState &pressure);
 void matchDataCallback(const ros_control_boilerplate::MatchSpecificData &MatchData);
-void currentCallback(const std_msgs::Float64 &current);
+void currentCallback(const pdp_state_controller::PDPData &current);
 void disableCallback(const std_msgs::Bool &disable);
 

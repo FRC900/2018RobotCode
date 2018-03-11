@@ -43,10 +43,6 @@ int minTrans = 500;
 
 int pixelError = .06;
 
-
-
-
-
 //orig: 193695.3745 * .2226^x
 
 //min: 193695.3745 * .2226^x - 9000
@@ -202,13 +198,9 @@ int main(int argc, char **argv)
 	ros::NodeHandle nh("~");
 	int sub_rate = 5;
 	int pub_rate = 1;
-
-	
 	
 	message_filters::Subscriber<Image> frame_sub(nh, "/zed_goal/left/image_rect_color", sub_rate);
 	message_filters::Subscriber<Image> depth_sub(nh, "/zed_goal/depth/depth_registered", sub_rate);
-	message_filters::Subscriber<Image> zms_sub(nh, "vid_reader_rgb_msg", sub_rate);
-	message_filters::Subscriber<Image> zms_sub1(nh, "vid_reader_depth_msg", sub_rate);
 
 	typedef sync_policies::ApproximateTime<Image, Image > MySyncPolicy2;
 	// ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(xxx)
