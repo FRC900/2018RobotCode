@@ -179,6 +179,21 @@ document.addEventListener("DOMContentLoaded", function(event)
 	vyl, vyl1, vyl2, vyl3, vyl4, vyl5, vyl6, vyl7, vyl8, 
 	axl, axl1, axl2, axl3, axl4, axl5, axl6, axl7, axl8, 
 	ayl, ayl1, ayl2, ayl3, ayl4, ayl5, ayl6, ayl7, ayl8, 
+
+	]; 
+	
+
+
+
+
+	// put helper expressions in this list to pass to save()
+	document.getElementById('save_load_data').onclick = function()
+	{
+   		console.log("Button was clicked. Beginning Save of Load Data.");
+		save(valuesToSave);
+	};
+	
+	var coefsForYaml = [
 	Ax, Ax1, Ax2, Ax3, Ax4, Ax5, Ax6, Ax7,  
 	Ay, Ay1, Ay2, Ay3, Ay4, Ay5, Ay6, Ay7,  
 	Bx, Bx1, Bx2, Bx3, Bx4, Bx5, Bx6, Bx7,  
@@ -191,13 +206,8 @@ document.addEventListener("DOMContentLoaded", function(event)
 	Ey, Ey1, Ey2, Ey3, Ey4, Ey5, Ey6, Ey7,  
 	Fx, Fx1, Fx2, Fx3, Fx4, Fx5, Fx6, Fx7,  
 	Fy, Fy1, Fy2, Fy3, Fy4, Fy5, Fy6, Fy7,  
-	]; 
-	// put helper expressions in this list to pass to save()
-	document.getElementById('save_load_data').onclick = function()
-	{
-   		console.log("Button was clicked. Beginning Save of Load Data.");
-		save(valuesToSave);
-	};
+	];
+
 	px.observe('numericValue', function () {
   		console.log(px.numericValue);
 	});
