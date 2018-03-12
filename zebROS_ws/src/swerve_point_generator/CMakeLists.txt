@@ -13,8 +13,8 @@ find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
   talon_swerve_drive_controller
 )
-find_package(Eigen REQUIRED)
 
+find_package(Eigen REQUIRED)
 
 ## Generate messages in the 'msg' folder
 
@@ -33,15 +33,17 @@ catkin_package(
   CATKIN_DEPENDS
     cmake_modules
     std_msgs
-    LIBRARIES ${PROJECT_NAME}
-    trajectory_msgs
-  LIBRARIES
+	INCLUDE_DIRS include
+	#LIBRARIES ${PROJECT_NAME} trajectory_msgs
   DEPENDS Eigen
 )
 
-include_directories(${catkin_INCLUDE_DIRS} 
-${EIGEN3_INCLUDE_DIRS}
+include_directories(
+	${catkin_INCLUDE_DIRS} 
+	include
+	${EIGEN3_INCLUDE_DIRS}
 )
+
 #TODO check below
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 #find_package(Gflags REQUIRED)
