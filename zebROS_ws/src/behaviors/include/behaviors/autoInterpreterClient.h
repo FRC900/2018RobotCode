@@ -16,8 +16,6 @@
 #include "elevator_controller/ElevatorControlS.h"
 #include "std_srvs/Empty.h"
 #include <controller_manager/controller_manager.h>
-#include <hardware_interface/joint_command_interface.h>
-#include <hardware_interface/imu_sensor_interface.h>
 #include <hardware_interface/robot_hw.h>
 #include <talon_swerve_drive_controller/GenerateTrajectory.h>
 #include <talon_swerve_drive_controller/MotionProfilePoints.h>
@@ -29,16 +27,16 @@
 #include <vector>
 
 
-bool defaultConfig(elevator_controller::ElevatorControlS srv);
-bool intakeConfig(elevator_controller::ElevatorControlS srv);
-bool switchConfig(elevator_controller::ElevatorControlS srv);
-bool highScale(elevator_controller::ElevatorControlS srv);
-bool midScale(elevator_controller::ElevatorControlS srv);
-bool lowScale(elevator_controller::ElevatorControlS srv);
-bool stopIntake(elevator_controller::Intake srv);
-bool releaseClamp(std_srvs::SetBool srv);
-bool clamp(std_srvs::SetBool srv);
-bool releaseIntake(elevator_controller::Intake srv);
+bool defaultConfig(void);
+bool intakeConfig(void);
+bool switchConfig(void);
+bool highScale(void);
+bool midScale(void);
+bool lowScale(void);
+bool stopIntake(void);
+bool releaseClamp(void);
+bool clamp(void);
+bool releaseIntake(void);
 bool generateTrajectory(int auto_mode,int layout,int start_pos);
 void runTrajectory(int auto_mode);
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode);
