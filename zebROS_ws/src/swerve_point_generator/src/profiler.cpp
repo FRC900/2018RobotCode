@@ -149,8 +149,6 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 
 		t_raw = spline(i);
 
-
-
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, holder_point, end_points, dtds_for_spline, t_raw);
 
 		//TODO: CHECK CONVERSIONS

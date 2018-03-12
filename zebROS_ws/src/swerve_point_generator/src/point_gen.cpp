@@ -1,12 +1,12 @@
-#include <ros/ros.h>
-#include <talon_swerve_drive_controller/Swerve.h>
-#include <talon_swerve_drive_controller/FullGenCoefs.h>
-#include <talon_swerve_drive_controller/GenerateSwerveProfile.h>
-#include <swerve_point_generator/profiler.h>
 #include <Eigen/Dense>
 #include <vector>
 #include <array>
 #include <string>
+#include <ros/ros.h>
+#include <swerve_math/Swerve.h>
+#include <swerve_point_generator/profiler.h>
+#include <talon_swerve_drive_controller/FullGenCoefs.h>
+#include <talon_swerve_drive_controller/GenerateSwerveProfile.h>
 #include <talon_swerve_drive_controller/MotionProfile.h> //Only needed for visualization
 #include <talon_swerve_drive_controller/MotionProfilePoints.h> //Only needed for visualization
 #include <talon_swerve_drive_controller/WheelPos.h>

@@ -1,6 +1,6 @@
 #include <math.h>
 #include <array>
-#include <talon_swerve_drive_controller/SwerveMath.h>
+#include <swerve_math/SwerveMath.h>
 
 static const double pi = M_PI; // TODO : why? just use M_PI
 using namespace std;
