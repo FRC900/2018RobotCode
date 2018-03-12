@@ -426,6 +426,7 @@ void FRCRobotHWInterface::init(void)
 	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
 
 	return;	
+	
 	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
