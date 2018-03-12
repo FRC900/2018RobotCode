@@ -39,7 +39,6 @@
 #pragma once
 
 #include <array>
-#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -51,7 +50,7 @@
 #include <talon_swerve_drive_controller/WheelPos.h>
 #include <talon_swerve_drive_controller/MotionProfilePoints.h>
 #include <talon_swerve_drive_controller/speed_limiter.h>
-#include <talon_swerve_drive_controller/Swerve.h>
+#include <swerve_math/Swerve.h>
 
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Bool.h>
