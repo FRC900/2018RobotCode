@@ -8,9 +8,191 @@ document.addEventListener("DOMContentLoaded", function(event)
 	loadGraph(calculator);
 	console.log(calculator.getExpressions());
 	// must create helper expressions for each value you want to save!
-	var px = calculator.HelperExpression({latex: 'p_x'});
-	console.log(px.numericValue);
-	var valuesToSave = [px]; // put helper expressions in this list to pass to save()
+	var py = calculator.HelperExpression({latex: 'p_{y}'});
+	var py1 = calculator.HelperExpression({latex: 'p_{y1}'});
+	var py2 = calculator.HelperExpression({latex: 'p_{y2}'});
+	var py3 = calculator.HelperExpression({latex: 'p_{y3}'});
+	var py4 = calculator.HelperExpression({latex: 'p_{y4}'});
+	var py5 = calculator.HelperExpression({latex: 'p_{y5}'});
+	var py6 = calculator.HelperExpression({latex: 'p_{y6}'});
+	var py7 = calculator.HelperExpression({latex: 'p_{y7}'});
+	var py8 = calculator.HelperExpression({latex: 'p_{y8}'});
+	var px = calculator.HelperExpression({latex: 'p_{x}'});
+	var px1 = calculator.HelperExpression({latex: 'p_{x1}'});
+	var px2 = calculator.HelperExpression({latex: 'p_{x2}'});
+	var px3 = calculator.HelperExpression({latex: 'p_{x3}'});
+	var px4 = calculator.HelperExpression({latex: 'p_{x4}'});
+	var px5 = calculator.HelperExpression({latex: 'p_{x5}'});
+	var px6 = calculator.HelperExpression({latex: 'p_{x6}'});
+	var px7 = calculator.HelperExpression({latex: 'p_{x7}'});
+	var px8 = calculator.HelperExpression({latex: 'p_{x8}'});
+
+
+	
+	var vyl = calculator.HelperExpression({latex: 'v_{yl}'});
+	var vyl1 = calculator.HelperExpression({latex: 'v_{yl1}'});
+	var vyl2 = calculator.HelperExpression({latex: 'v_{yl2}'});
+	var vyl3 = calculator.HelperExpression({latex: 'v_{yl3}'});
+	var vyl4 = calculator.HelperExpression({latex: 'v_{yl4}'});
+	var vyl5 = calculator.HelperExpression({latex: 'v_{yl5}'});
+	var vyl6 = calculator.HelperExpression({latex: 'v_{yl6}'});
+	var vyl7 = calculator.HelperExpression({latex: 'v_{yl7}'});
+	var vyl8 = calculator.HelperExpression({latex: 'v_{yl8}'});
+	var vxl = calculator.HelperExpression({latex: 'v_{xl}'});
+	var vxl1 = calculator.HelperExpression({latex: 'v_{xl1}'});
+	var vxl2 = calculator.HelperExpression({latex: 'v_{xl2}'});
+	var vxl3 = calculator.HelperExpression({latex: 'v_{xl3}'});
+	var vxl4 = calculator.HelperExpression({latex: 'v_{xl4}'});
+	var vxl5 = calculator.HelperExpression({latex: 'v_{xl5}'});
+	var vxl6 = calculator.HelperExpression({latex: 'v_{xl6}'});
+	var vxl7 = calculator.HelperExpression({latex: 'v_{xl7}'});
+	var vxl8 = calculator.HelperExpression({latex: 'v_{xl8}'});
+
+	
+	var ayl = calculator.HelperExpression({latex: 'a_{yl}'});
+	var ayl1 = calculator.HelperExpression({latex: 'a_{yl1}'});
+	var ayl2 = calculator.HelperExpression({latex: 'a_{yl2}'});
+	var ayl3 = calculator.HelperExpression({latex: 'a_{yl3}'});
+	var ayl4 = calculator.HelperExpression({latex: 'a_{yl4}'});
+	var ayl5 = calculator.HelperExpression({latex: 'a_{yl5}'});
+	var ayl6 = calculator.HelperExpression({latex: 'a_{yl6}'});
+	var ayl7 = calculator.HelperExpression({latex: 'a_{yl7}'});
+	var ayl8 = calculator.HelperExpression({latex: 'a_{yl8}'});
+	var axl = calculator.HelperExpression({latex: 'a_{xl}'});
+	var axl1 = calculator.HelperExpression({latex: 'a_{xl1}'});
+	var axl2 = calculator.HelperExpression({latex: 'a_{xl2}'});
+	var axl3 = calculator.HelperExpression({latex: 'a_{xl3}'});
+	var axl4 = calculator.HelperExpression({latex: 'a_{xl4}'});
+	var axl5 = calculator.HelperExpression({latex: 'a_{xl5}'});
+	var axl6 = calculator.HelperExpression({latex: 'a_{xl6}'});
+	var axl7 = calculator.HelperExpression({latex: 'a_{xl7}'});
+	var axl8 = calculator.HelperExpression({latex: 'a_{xl8}'});
+	
+	var Ay = calculator.HelperExpression({latex: 'A_{y}'});
+	var Ay1 = calculator.HelperExpression({latex: 'A_{y1}'});
+	var Ay2 = calculator.HelperExpression({latex: 'A_{y2}'});
+	var Ay3 = calculator.HelperExpression({latex: 'A_{y3}'});
+	var Ay4 = calculator.HelperExpression({latex: 'A_{y4}'});
+	var Ay5 = calculator.HelperExpression({latex: 'A_{y5}'});
+	var Ay6 = calculator.HelperExpression({latex: 'A_{y6}'});
+	var Ay7 = calculator.HelperExpression({latex: 'A_{y7}'});
+	var Ax = calculator.HelperExpression({latex: 'A_{x}'});
+	var Ax1 = calculator.HelperExpression({latex: 'A_{x1}'});
+	var Ax2 = calculator.HelperExpression({latex: 'A_{x2}'});
+	var Ax3 = calculator.HelperExpression({latex: 'A_{x3}'});
+	var Ax4 = calculator.HelperExpression({latex: 'A_{x4}'});
+	var Ax5 = calculator.HelperExpression({latex: 'A_{x5}'});
+	var Ax6 = calculator.HelperExpression({latex: 'A_{x6}'});
+	var Ax7 = calculator.HelperExpression({latex: 'A_{x7}'});
+
+
+	var By = calculator.HelperExpression({latex: 'B_{y}'});
+	var By1 = calculator.HelperExpression({latex: 'B_{y1}'});
+	var By2 = calculator.HelperExpression({latex: 'B_{y2}'});
+	var By3 = calculator.HelperExpression({latex: 'B_{y3}'});
+	var By4 = calculator.HelperExpression({latex: 'B_{y4}'});
+	var By5 = calculator.HelperExpression({latex: 'B_{y5}'});
+	var By6 = calculator.HelperExpression({latex: 'B_{y6}'});
+	var By7 = calculator.HelperExpression({latex: 'B_{y7}'});
+	var Bx = calculator.HelperExpression({latex: 'B_{x}'});
+	var Bx1 = calculator.HelperExpression({latex: 'B_{x1}'});
+	var Bx2 = calculator.HelperExpression({latex: 'B_{x2}'});
+	var Bx3 = calculator.HelperExpression({latex: 'B_{x3}'});
+	var Bx4 = calculator.HelperExpression({latex: 'B_{x4}'});
+	var Bx5 = calculator.HelperExpression({latex: 'B_{x5}'});
+	var Bx6 = calculator.HelperExpression({latex: 'B_{x6}'});
+	var Bx7 = calculator.HelperExpression({latex: 'B_{x7}'});
+
+
+	var Cy = calculator.HelperExpression({latex: 'C_{y}'});
+	var Cy1 = calculator.HelperExpression({latex: 'C_{y1}'});
+	var Cy2 = calculator.HelperExpression({latex: 'C_{y2}'});
+	var Cy3 = calculator.HelperExpression({latex: 'C_{y3}'});
+	var Cy4 = calculator.HelperExpression({latex: 'C_{y4}'});
+	var Cy5 = calculator.HelperExpression({latex: 'C_{y5}'});
+	var Cy6 = calculator.HelperExpression({latex: 'C_{y6}'});
+	var Cy7 = calculator.HelperExpression({latex: 'C_{y7}'});
+	var Cx = calculator.HelperExpression({latex: 'C_{x}'});
+	var Cx1 = calculator.HelperExpression({latex: 'C_{x1}'});
+	var Cx2 = calculator.HelperExpression({latex: 'C_{x2}'});
+	var Cx3 = calculator.HelperExpression({latex: 'C_{x3}'});
+	var Cx4 = calculator.HelperExpression({latex: 'C_{x4}'});
+	var Cx5 = calculator.HelperExpression({latex: 'C_{x5}'});
+	var Cx6 = calculator.HelperExpression({latex: 'C_{x6}'});
+	var Cx7 = calculator.HelperExpression({latex: 'C_{x7}'});
+
+
+	var Dy = calculator.HelperExpression({latex: 'D_{y}'});
+	var Dy1 = calculator.HelperExpression({latex: 'D_{y1}'});
+	var Dy2 = calculator.HelperExpression({latex: 'D_{y2}'});
+	var Dy3 = calculator.HelperExpression({latex: 'D_{y3}'});
+	var Dy4 = calculator.HelperExpression({latex: 'D_{y4}'});
+	var Dy5 = calculator.HelperExpression({latex: 'D_{y5}'});
+	var Dy6 = calculator.HelperExpression({latex: 'D_{y6}'});
+	var Dy7 = calculator.HelperExpression({latex: 'D_{y7}'});
+	var Dx = calculator.HelperExpression({latex: 'D_{x}'});
+	var Dx1 = calculator.HelperExpression({latex: 'D_{x1}'});
+	var Dx2 = calculator.HelperExpression({latex: 'D_{x2}'});
+	var Dx3 = calculator.HelperExpression({latex: 'D_{x3}'});
+	var Dx4 = calculator.HelperExpression({latex: 'D_{x4}'});
+	var Dx5 = calculator.HelperExpression({latex: 'D_{x5}'});
+	var Dx6 = calculator.HelperExpression({latex: 'D_{x6}'});
+	var Dx7 = calculator.HelperExpression({latex: 'D_{x7}'});
+
+	var Ey = calculator.HelperExpression({latex: 'E_{y}'});
+	var Ey1 = calculator.HelperExpression({latex: 'E_{y1}'});
+	var Ey2 = calculator.HelperExpression({latex: 'E_{y2}'});
+	var Ey3 = calculator.HelperExpression({latex: 'E_{y3}'});
+	var Ey4 = calculator.HelperExpression({latex: 'E_{y4}'});
+	var Ey5 = calculator.HelperExpression({latex: 'E_{y5}'});
+	var Ey6 = calculator.HelperExpression({latex: 'E_{y6}'});
+	var Ey7 = calculator.HelperExpression({latex: 'E_{y7}'});
+	var Ex = calculator.HelperExpression({latex: 'E_{x}'});
+	var Ex1 = calculator.HelperExpression({latex: 'E_{x1}'});
+	var Ex2 = calculator.HelperExpression({latex: 'E_{x2}'});
+	var Ex3 = calculator.HelperExpression({latex: 'E_{x3}'});
+	var Ex4 = calculator.HelperExpression({latex: 'E_{x4}'});
+	var Ex5 = calculator.HelperExpression({latex: 'E_{x5}'});
+	var Ex6 = calculator.HelperExpression({latex: 'E_{x6}'});
+	var Ex7 = calculator.HelperExpression({latex: 'E_{x7}'});
+
+
+	var Fy = calculator.HelperExpression({latex: 'F_{y}'});
+	var Fy1 = calculator.HelperExpression({latex: 'F_{y1}'});
+	var Fy2 = calculator.HelperExpression({latex: 'F_{y2}'});
+	var Fy3 = calculator.HelperExpression({latex: 'F_{y3}'});
+	var Fy4 = calculator.HelperExpression({latex: 'F_{y4}'});
+	var Fy5 = calculator.HelperExpression({latex: 'F_{y5}'});
+	var Fy6 = calculator.HelperExpression({latex: 'F_{y6}'});
+	var Fy7 = calculator.HelperExpression({latex: 'F_{y7}'});
+	var Fx = calculator.HelperExpression({latex: 'F_{x}'});
+	var Fx1 = calculator.HelperExpression({latex: 'F_{x1}'});
+	var Fx2 = calculator.HelperExpression({latex: 'F_{x2}'});
+	var Fx3 = calculator.HelperExpression({latex: 'F_{x3}'});
+	var Fx4 = calculator.HelperExpression({latex: 'F_{x4}'});
+	var Fx5 = calculator.HelperExpression({latex: 'F_{x5}'});
+	var Fx6 = calculator.HelperExpression({latex: 'F_{x6}'});
+	var Fx7 = calculator.HelperExpression({latex: 'F_{x7}'});
+	var valuesToSave = [ px, px1, px2, px3, px4, px5, px6, px7, px8, 
+	py, py1, py2, py3, py4, py5, py6, py7, py8, 
+	vxl, vxl1, vxl2, vxl3, vxl4, vxl5, vxl6, vxl7, vxl8, 
+	vyl, vyl1, vyl2, vyl3, vyl4, vyl5, vyl6, vyl7, vyl8, 
+	axl, axl1, axl2, axl3, axl4, axl5, axl6, axl7, axl8, 
+	ayl, ayl1, ayl2, ayl3, ayl4, ayl5, ayl6, ayl7, ayl8, 
+	Ax, Ax1, Ax2, Ax3, Ax4, Ax5, Ax6, Ax7,  
+	Ay, Ay1, Ay2, Ay3, Ay4, Ay5, Ay6, Ay7,  
+	Bx, Bx1, Bx2, Bx3, Bx4, Bx5, Bx6, Bx7,  
+	By, By1, By2, By3, By4, By5, By6, By7,  
+	Cx, Cx1, Cx2, Cx3, Cx4, Cx5, Cx6, Cx7,  
+	Cy, Cy1, Cy2, Cy3, Cy4, Cy5, Cy6, Cy7,  
+	Dx, Dx1, Dx2, Dx3, Dx4, Dx5, Dx6, Dx7,  
+	Dy, Dy1, Dy2, Dy3, Dy4, Dy5, Dy6, Dy7,  
+	Ex, Ex1, Ex2, Ex3, Ex4, Ex5, Ex6, Ex7,  
+	Ey, Ey1, Ey2, Ey3, Ey4, Ey5, Ey6, Ey7,  
+	Fx, Fx1, Fx2, Fx3, Fx4, Fx5, Fx6, Fx7,  
+	Fy, Fy1, Fy2, Fy3, Fy4, Fy5, Fy6, Fy7,  
+	]; 
+	// put helper expressions in this list to pass to save()
 	document.getElementById('save_load_data').onclick = function()
 	{
    		console.log("Button was clicked. Beginning Save of Load Data.");
@@ -18,6 +200,10 @@ document.addEventListener("DOMContentLoaded", function(event)
 	};
 	px.observe('numericValue', function () {
   		console.log(px.numericValue);
+	});
+	
+	Cx4.observe('numericValue', function () {
+  		console.log(Cx4.numericValue);
 	});
 });
 
@@ -153,24 +339,7 @@ function loadGraph (calculator)
 	calculator.setExpression({id:'position91', latex:'p_{y8}=0'});
 
 	
-	var py = calculator.HelperExpression({latex: 'p_{y}'});
-	var py1 = calculator.HelperExpression({latex: 'p_{y1}'});
-	var py2 = calculator.HelperExpression({latex: 'p_{y2}'});
-	var py3 = calculator.HelperExpression({latex: 'p_{y3}'});
-	var py4 = calculator.HelperExpression({latex: 'p_{y4}'});
-	var py5 = calculator.HelperExpression({latex: 'p_{y5}'});
-	var py6 = calculator.HelperExpression({latex: 'p_{y6}'});
-	var py7 = calculator.HelperExpression({latex: 'p_{y7}'});
-	var py8 = calculator.HelperExpression({latex: 'p_{y8}'});
-	var px = calculator.HelperExpression({latex: 'p_{x}'});
-	var px1 = calculator.HelperExpression({latex: 'p_{x1}'});
-	var px2 = calculator.HelperExpression({latex: 'p_{x2}'});
-	var px3 = calculator.HelperExpression({latex: 'p_{x3}'});
-	var px4 = calculator.HelperExpression({latex: 'p_{x4}'});
-	var px5 = calculator.HelperExpression({latex: 'p_{x5}'});
-	var px6 = calculator.HelperExpression({latex: 'p_{x6}'});
-	var px7 = calculator.HelperExpression({latex: 'p_{x7}'});
-	var px8 = calculator.HelperExpression({latex: 'p_{x8}'});
+
 
 
 
@@ -206,24 +375,7 @@ function loadGraph (calculator)
 	calculator.setExpression({id:'velocity118', latex:'v_{xl8}=-1.1'});
 	calculator.setExpression({id:'velocity119', latex:'v_{yl8}=-2.7'});
 
-	var vyl = calculator.HelperExpression({latex: 'v_{yl}'});
-	var vyl1 = calculator.HelperExpression({latex: 'v_{yl1}'});
-	var vyl2 = calculator.HelperExpression({latex: 'v_{yl2}'});
-	var vyl3 = calculator.HelperExpression({latex: 'v_{yl3}'});
-	var vyl4 = calculator.HelperExpression({latex: 'v_{yl4}'});
-	var vyl5 = calculator.HelperExpression({latex: 'v_{yl5}'});
-	var vyl6 = calculator.HelperExpression({latex: 'v_{yl6}'});
-	var vyl7 = calculator.HelperExpression({latex: 'v_{yl7}'});
-	var vyl8 = calculator.HelperExpression({latex: 'v_{yl8}'});
-	var vxl = calculator.HelperExpression({latex: 'v_{xl}'});
-	var vxl1 = calculator.HelperExpression({latex: 'v_{xl1}'});
-	var vxl2 = calculator.HelperExpression({latex: 'v_{xl2}'});
-	var vxl3 = calculator.HelperExpression({latex: 'v_{xl3}'});
-	var vxl4 = calculator.HelperExpression({latex: 'v_{xl4}'});
-	var vxl5 = calculator.HelperExpression({latex: 'v_{xl5}'});
-	var vxl6 = calculator.HelperExpression({latex: 'v_{xl6}'});
-	var vxl7 = calculator.HelperExpression({latex: 'v_{xl7}'});
-	var vxl8 = calculator.HelperExpression({latex: 'v_{xl8}'});
+
 	
 	// ACCELERATIONS
 	calculator.setExpression({id:'acceleration120', latex:'\\left(a_{xl},\\ a_{yl}\\right)', color: '#c74440'});
@@ -255,25 +407,6 @@ function loadGraph (calculator)
 	calculator.setExpression({id:'acceleration146', latex:'a_{yl8}=-1.64'});
 
 
-	
-	var ayl = calculator.HelperExpression({latex: 'a_{yl}'});
-	var ayl1 = calculator.HelperExpression({latex: 'a_{yl1}'});
-	var ayl2 = calculator.HelperExpression({latex: 'a_{yl2}'});
-	var ayl3 = calculator.HelperExpression({latex: 'a_{yl3}'});
-	var ayl4 = calculator.HelperExpression({latex: 'a_{yl4}'});
-	var ayl5 = calculator.HelperExpression({latex: 'a_{yl5}'});
-	var ayl6 = calculator.HelperExpression({latex: 'a_{yl6}'});
-	var ayl7 = calculator.HelperExpression({latex: 'a_{yl7}'});
-	var ayl8 = calculator.HelperExpression({latex: 'a_{yl8}'});
-	var axl = calculator.HelperExpression({latex: 'a_{xl}'});
-	var axl1 = calculator.HelperExpression({latex: 'a_{xl1}'});
-	var axl2 = calculator.HelperExpression({latex: 'a_{xl2}'});
-	var axl3 = calculator.HelperExpression({latex: 'a_{xl3}'});
-	var axl4 = calculator.HelperExpression({latex: 'a_{xl4}'});
-	var axl5 = calculator.HelperExpression({latex: 'a_{xl5}'});
-	var axl6 = calculator.HelperExpression({latex: 'a_{xl6}'});
-	var axl7 = calculator.HelperExpression({latex: 'a_{xl7}'});
-	var axl8 = calculator.HelperExpression({latex: 'a_{xl8}'});
 
 
 	// SPLINES
@@ -393,111 +526,7 @@ function loadGraph (calculator)
 
 
 	
-	var Ay = calculator.HelperExpression({latex: 'A_{y}'});
-	var Ay1 = calculator.HelperExpression({latex: 'A_{y1}'});
-	var Ay2 = calculator.HelperExpression({latex: 'A_{y2}'});
-	var Ay3 = calculator.HelperExpression({latex: 'A_{y3}'});
-	var Ay4 = calculator.HelperExpression({latex: 'A_{y4}'});
-	var Ay5 = calculator.HelperExpression({latex: 'A_{y5}'});
-	var Ay6 = calculator.HelperExpression({latex: 'A_{y6}'});
-	var Ay7 = calculator.HelperExpression({latex: 'A_{y7}'});
-	var Ax = calculator.HelperExpression({latex: 'A_{x}'});
-	var Ax1 = calculator.HelperExpression({latex: 'A_{x1}'});
-	var Ax2 = calculator.HelperExpression({latex: 'A_{x2}'});
-	var Ax3 = calculator.HelperExpression({latex: 'A_{x3}'});
-	var Ax4 = calculator.HelperExpression({latex: 'A_{x4}'});
-	var Ax5 = calculator.HelperExpression({latex: 'A_{x5}'});
-	var Ax6 = calculator.HelperExpression({latex: 'A_{x6}'});
-	var Ax7 = calculator.HelperExpression({latex: 'A_{x7}'});
 
-
-	var By = calculator.HelperExpression({latex: 'B_{y}'});
-	var By1 = calculator.HelperExpression({latex: 'B_{y1}'});
-	var By2 = calculator.HelperExpression({latex: 'B_{y2}'});
-	var By3 = calculator.HelperExpression({latex: 'B_{y3}'});
-	var By4 = calculator.HelperExpression({latex: 'B_{y4}'});
-	var By5 = calculator.HelperExpression({latex: 'B_{y5}'});
-	var By6 = calculator.HelperExpression({latex: 'B_{y6}'});
-	var By7 = calculator.HelperExpression({latex: 'B_{y7}'});
-	var Bx = calculator.HelperExpression({latex: 'B_{x}'});
-	var Bx1 = calculator.HelperExpression({latex: 'B_{x1}'});
-	var Bx2 = calculator.HelperExpression({latex: 'B_{x2}'});
-	var Bx3 = calculator.HelperExpression({latex: 'B_{x3}'});
-	var Bx4 = calculator.HelperExpression({latex: 'B_{x4}'});
-	var Bx5 = calculator.HelperExpression({latex: 'B_{x5}'});
-	var Bx6 = calculator.HelperExpression({latex: 'B_{x6}'});
-	var Bx7 = calculator.HelperExpression({latex: 'B_{x7}'});
-
-
-	var Cy = calculator.HelperExpression({latex: 'C_{y}'});
-	var Cy1 = calculator.HelperExpression({latex: 'C_{y1}'});
-	var Cy2 = calculator.HelperExpression({latex: 'C_{y2}'});
-	var Cy3 = calculator.HelperExpression({latex: 'C_{y3}'});
-	var Cy4 = calculator.HelperExpression({latex: 'C_{y4}'});
-	var Cy5 = calculator.HelperExpression({latex: 'C_{y5}'});
-	var Cy6 = calculator.HelperExpression({latex: 'C_{y6}'});
-	var Cy7 = calculator.HelperExpression({latex: 'C_{y7}'});
-	var Cx = calculator.HelperExpression({latex: 'C_{x}'});
-	var Cx1 = calculator.HelperExpression({latex: 'C_{x1}'});
-	var Cx2 = calculator.HelperExpression({latex: 'C_{x2}'});
-	var Cx3 = calculator.HelperExpression({latex: 'C_{x3}'});
-	var Cx4 = calculator.HelperExpression({latex: 'C_{x4}'});
-	var Cx5 = calculator.HelperExpression({latex: 'C_{x5}'});
-	var Cx6 = calculator.HelperExpression({latex: 'C_{x6}'});
-	var Cx7 = calculator.HelperExpression({latex: 'C_{x7}'});
-
-
-	var Dy = calculator.HelperExpression({latex: 'D_{y}'});
-	var Dy1 = calculator.HelperExpression({latex: 'D_{y1}'});
-	var Dy2 = calculator.HelperExpression({latex: 'D_{y2}'});
-	var Dy3 = calculator.HelperExpression({latex: 'D_{y3}'});
-	var Dy4 = calculator.HelperExpression({latex: 'D_{y4}'});
-	var Dy5 = calculator.HelperExpression({latex: 'D_{y5}'});
-	var Dy6 = calculator.HelperExpression({latex: 'D_{y6}'});
-	var Dy7 = calculator.HelperExpression({latex: 'D_{y7}'});
-	var Dx = calculator.HelperExpression({latex: 'D_{x}'});
-	var Dx1 = calculator.HelperExpression({latex: 'D_{x1}'});
-	var Dx2 = calculator.HelperExpression({latex: 'D_{x2}'});
-	var Dx3 = calculator.HelperExpression({latex: 'D_{x3}'});
-	var Dx4 = calculator.HelperExpression({latex: 'D_{x4}'});
-	var Dx5 = calculator.HelperExpression({latex: 'D_{x5}'});
-	var Dx6 = calculator.HelperExpression({latex: 'D_{x6}'});
-	var Dx7 = calculator.HelperExpression({latex: 'D_{x7}'});
-
-	var Ey = calculator.HelperExpression({latex: 'E_{y}'});
-	var Ey1 = calculator.HelperExpression({latex: 'E_{y1}'});
-	var Ey2 = calculator.HelperExpression({latex: 'E_{y2}'});
-	var Ey3 = calculator.HelperExpression({latex: 'E_{y3}'});
-	var Ey4 = calculator.HelperExpression({latex: 'E_{y4}'});
-	var Ey5 = calculator.HelperExpression({latex: 'E_{y5}'});
-	var Ey6 = calculator.HelperExpression({latex: 'E_{y6}'});
-	var Ey7 = calculator.HelperExpression({latex: 'E_{y7}'});
-	var Ex = calculator.HelperExpression({latex: 'E_{x}'});
-	var Ex1 = calculator.HelperExpression({latex: 'E_{x1}'});
-	var Ex2 = calculator.HelperExpression({latex: 'E_{x2}'});
-	var Ex3 = calculator.HelperExpression({latex: 'E_{x3}'});
-	var Ex4 = calculator.HelperExpression({latex: 'E_{x4}'});
-	var Ex5 = calculator.HelperExpression({latex: 'E_{x5}'});
-	var Ex6 = calculator.HelperExpression({latex: 'E_{x6}'});
-	var Ex7 = calculator.HelperExpression({latex: 'E_{x7}'});
-
-
-	var Fy = calculator.HelperExpression({latex: 'F_{y}'});
-	var Fy1 = calculator.HelperExpression({latex: 'F_{y1}'});
-	var Fy2 = calculator.HelperExpression({latex: 'F_{y2}'});
-	var Fy3 = calculator.HelperExpression({latex: 'F_{y3}'});
-	var Fy4 = calculator.HelperExpression({latex: 'F_{y4}'});
-	var Fy5 = calculator.HelperExpression({latex: 'F_{y5}'});
-	var Fy6 = calculator.HelperExpression({latex: 'F_{y6}'});
-	var Fy7 = calculator.HelperExpression({latex: 'F_{y7}'});
-	var Fx = calculator.HelperExpression({latex: 'F_{x}'});
-	var Fx1 = calculator.HelperExpression({latex: 'F_{x1}'});
-	var Fx2 = calculator.HelperExpression({latex: 'F_{x2}'});
-	var Fx3 = calculator.HelperExpression({latex: 'F_{x3}'});
-	var Fx4 = calculator.HelperExpression({latex: 'F_{x4}'});
-	var Fx5 = calculator.HelperExpression({latex: 'F_{x5}'});
-	var Fx6 = calculator.HelperExpression({latex: 'F_{x6}'});
-	var Fx7 = calculator.HelperExpression({latex: 'F_{x7}'});
 
 
 
