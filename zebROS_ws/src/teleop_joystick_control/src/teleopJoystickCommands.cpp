@@ -752,14 +752,20 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 ///////////////////// Drivetrain and Elevator Control \\\\\\\\\\\\\\\\\\\
 
 	//talon_controllers::CloseLoopControllerMsg arm;
-	dead_zone_check(JoystickState->leftStickX, JoystickState->leftStickY)
-	dead_zone_check(JoystickState->rightStickX, JoystickState->rightStickY)
+	double leftStickX = JoystickState->leftStickX;
+	double leftStickY = JoystickState->leftStickY;
 
-	double leftStickX = (pow(JoystickState->leftStickX, joystick_scale)) * max_speed;
-	double leftStickY = (-pow(JoystickState->leftStickY, joystick_scale)) * max_speed;
+	double rightStickX = JoystickState->rightStickX;
+	double rightStickY = JoystickState->rightStickY;
+	
+	dead_zone_check(leftStickX, leftStickY);
+	dead_zone_check(rightStickX, rightStickY);
 
-	double rightStickX = pow(JoystickState->rightStickX, joystick_scale);
-	double rightStickY = -pow(JoystickState->rightStickY, joystick_scale);
+	leftStickX = (pow(leftStickX, joystick_scale)) * max_speed;
+	leftStickY = (-pow(leftStickY, joystick_scale)) * max_speed;
+
+	rightStickX = pow(rightStickX, joystick_scale);
+	rightStickY = -pow(rightStickY, joystick_scale);
 
 	double rotation = (JoystickState->leftTrigger - JoystickState->rightTrigger) * max_rot;
 
