@@ -430,7 +430,7 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 		holder_point.radius = 10000000000000000;
 	}
 
-	if (fabs(holder_point.pos[0] > 100) || fabs(holder_point.pos[1] > 100))
+	if (fabs(holder_point.pos[0] > 100) || fabs(holder_point.pos[1]) > 100)
 	{
 		ROS_ERROR_STREAM("resonableness exceeded with x of: " << holder_point.pos[0] << " and y of: " << holder_point.pos[1] << " t: " << t);
 	}
