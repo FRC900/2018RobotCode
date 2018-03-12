@@ -10,6 +10,7 @@
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "behaviors/RobotAction.h"
+#include "behaviors/IntakeAction.h"
 
 /*TODO list:
  *
@@ -30,6 +31,7 @@ double dead_zone_check(double val)
 }
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
+std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac_intake;
 
 // make these params?
 const double double_tap_zone = .3;
@@ -202,6 +204,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	static bool run_out = false;
     static bool run_in = false;
 	behaviors::RobotGoal goal;
+    behaviors::IntakeGoal goal_intake;
 	goal.IntakeCube = false;
 	goal.MoveToIntakeConfig = false;
 	goal.x = 0;
@@ -405,9 +408,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
     else if(JoystickState->buttonStartPress) {
         buttonStartStart = timeSecs;
-        behaviors::IntakeGoal goal;
-        goal.IntakeCube = true;
-        ac_intake->sendGoal(goal);
+        goal_intake.IntakeCube = true;
+        ac_intake->sendGoal(goal_intake);
         ROS_INFO("teleop : Intake No Lift");
     }
 
@@ -556,7 +558,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	{
 
 		/*-----------------Left Stick Press - Switch ---------------------*/
-        if(JostickState->stickLeftPress) {
+        if(JoystickState->stickLeftPress) {
 			currentToggle = "StickLeft";
 			if (lastToggle == " ")
 			{
@@ -585,31 +587,26 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 		/*-----------------Right Stick Press - Exchange ---------------------*/
 
-            if(JoystickState->stickRightPress) {
-				currentToggle = "StickRight";
-				if (lastToggle == " ")
-				{
-					setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
-				}
-				if (currentToggle == lastToggle)
-				{
-					unToggle(last_achieved_pos, elevatorPosBefore, achieved_pos, currentToggle);
-				}
-				else
-				{
-					goal.IntakeCube = false;
-					goal.MoveToIntakeConfig = true;
-					goal.time_out = 10;
+        if(JoystickState->stickRightPress) {
+            currentToggle = "StickRight";
+            if (lastToggle == " ")
+            {
+                setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
+            }
+            if (currentToggle == lastToggle)
+            {
+                unToggle(last_achieved_pos, elevatorPosBefore, achieved_pos, currentToggle);
+            }
+            else
+            {
+                goal.IntakeCube = false;
+                goal.MoveToIntakeConfig = true;
+                goal.time_out = 10;
 
-					ac->sendGoal(goal);
-					achieved_pos = intake;
-				}
-			}
-		}
-		else
-		{
-			YLast = timeSecs;
-		}
+                ac->sendGoal(goal);
+                achieved_pos = intake;
+            }
+        }
 	}
 
 	/*----------------------------Right Bumper - Press Untoggle-----------------------------*/
@@ -947,6 +944,7 @@ int main(int argc, char **argv)
 		ROS_ERROR("Could not read exchange_delay");
 
 	ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
+    
 	ac_intake = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
 
 	JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
