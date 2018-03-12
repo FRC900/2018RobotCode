@@ -796,7 +796,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			speed_joints_[i].setPIDFSlot(1);
 			steering_joints_[i].setMode(motion_profile_mode);
 			steering_joints_[i].setPIDFSlot(0);
-			speed_joints_[i].setClosedloopRamp(0.02);
+			speed_joints_[i].setClosedloopRamp(0);
 		}
 
 		const int set_on  = ((*(run_.readFromRT())) && set_check_ > 2) ? 1 : 0; //Adjust this set_check val
