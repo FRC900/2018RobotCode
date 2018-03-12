@@ -9,9 +9,9 @@ swerve_drive_controller:
     twist_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 1000.0]
     # fix me
     wheel_radius: 0.0381 # m
-    max_speed: 1.5 #3.628571429
-    max_accel: 2 #2
-    max_brake_accel: 2 #4
+    max_speed: 3.6 #3.628571429
+    max_accel: 2.5 #2
+    max_brake_accel: 4.0 #4
     ang_accel_conv: 0.741176471
     mass: 70
     motor_free_speed: 5840
@@ -42,7 +42,7 @@ swerve_drive_controller:
         joint: fl_drive #fix pid
         close_loop_values:
             - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
-            - {p: .15, i: 0.0003, d: .2, f: 0.06145, i_zone: 500}
+            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 500}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
@@ -53,7 +53,7 @@ swerve_drive_controller:
         joint: fr_drive #fix pid
         close_loop_values:
             - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
-            - {p: .15, i: 0.0003, d: .2, f: 0.06145, i_zone: 500}
+            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 500}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
@@ -64,7 +64,7 @@ swerve_drive_controller:
         joint: bl_drive #fix pid
         close_loop_values: 
             - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
-            - {p: .15, i: 0.0003, d: .2, f: 0.06145, i_zone: 500}
+            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 500}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
@@ -75,7 +75,7 @@ swerve_drive_controller:
         joint: br_drive #fix pid
         close_loop_values:
             - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
-            - {p: .15, i: 0.0003, d: .2, f: 0.06145, i_zone: 500}
+            - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 500}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative

@@ -1,17 +1,12 @@
+#include <atomic>
 #include "compressor_control_node/regulate_compressor.h"
 
-static ros::Publisher CompressorCommand;
-static ros::Subscriber pressure_sub_;
-//static ros::Subscriber current_sub_;
-static ros::Subscriber match_data_sub_;
-static ros::Subscriber disable_sub_;
-
-static double pressure_ = 120;
-static double match_time_ = 0;
-static bool fms_connected_ =  false;
-static double weighted_average_current_ = 0;
+static std::atomic<double> pressure_;
+static std::atomic<double> match_time_;
+static std::atomic<bool> fms_connected_;
+static std::atomic<double> weighted_average_current_;
 static int game_mode_ = 1; //0 for auto, one or greater for anything else
-static bool disable_ = false;
+static std::atomic<bool> disable_;
 
 int main(int argc, char **argv) {
 	ros::init(argc, argv, "compressor_regulator");
@@ -28,31 +23,41 @@ int main(int argc, char **argv) {
 	double max_match_non_end_use_;
 	double target_final_pressure_;
 
-	n_params.getParam("current_multiplier", current_multiplier_);
-	n_params.getParam("pressure_exponent", pressure_exponent_);
-	n_params.getParam("pressure_multiplier", pressure_multiplier_);
-	n_params.getParam("inertial_multiplier", inertial_multiplier_);
-	n_params.getParam("tank_count", tank_count_);
-	n_params.getParam("tank_volume", tank_volume_);
-	n_params.getParam("max_end_game_use", max_end_game_use_);
-	n_params.getParam("max_match_non_end_use", max_match_non_end_use_);
-	n_params.getParam("target_final_pressure", target_final_pressure_);
+	if (!n_params.getParam("current_multiplier", current_multiplier_))
+		ROS_ERROR("Could not read current_multiplier in regulate_compressor");
+	if (!n_params.getParam("pressure_exponent", pressure_exponent_))
+		ROS_ERROR("Could not read pressure_exponent in regulate_compressor");
+	if (!n_params.getParam("pressure_multiplier", pressure_multiplier_))
+		ROS_ERROR("Could not read pressure_multiplier in regulate_compressor");
+	if (!n_params.getParam("inertial_multiplier", inertial_multiplier_))
+		ROS_ERROR("Could not read inertial_multiplier in regulate_compressor");
+	if (!n_params.getParam("tank_count", tank_count_))
+		ROS_ERROR("Could not read tank_count in regulate_compressor");
+	if (!n_params.getParam("tank_volume", tank_volume_))
+		ROS_ERROR("Could not read tank_volume in regulate_compressor");
+	if (!n_params.getParam("max_end_game_use", max_end_game_use_))
+		ROS_ERROR("Could not read max_end_game_use in regulate_compressor");
+	if (!n_params.getParam("max_match_non_end_use", max_match_non_end_use_))
+		ROS_ERROR("Could not read max_match_non_end_use in regulate_compressor");
+	if (!n_params.getParam("target_final_pressure", target_final_pressure_))
+		ROS_ERROR("Could not read target_final_pressure in regulate_compressor");
 
-	max_end_game_use_ *= 60/(tank_count_ * tank_volume_); //converting into tank pressure
-	max_match_non_end_use_ *= 60/(tank_count_ * tank_volume_); //converting into tank pressure
+	max_end_game_use_ *= 60./(tank_count_ * tank_volume_); //converting into tank pressure
+	max_match_non_end_use_ *= 60./(tank_count_ * tank_volume_); //converting into tank pressure
 
-	CompressorCommand = n.advertise<std_msgs::Float64>("/frcrobot/compressor_controller/command", 1);
+	ros::Publisher CompressorCommand = n.advertise<std_msgs::Float64>("/frcrobot/compressor_controller/command", 1);
 
-	pressure_sub_ = n.subscribe("/frcrobot/joint_states", 1, &pressureCallback);
-	//current_sub_ = n.subscribe("/frcrobot/total_current", 75, &currentCallback);
-	//HOOK UP ABOVE TO PDP
-	match_data_sub_ = n.subscribe("/frcrobot/match_data", 1, &matchDataCallback);
-	disable_sub_ = n.subscribe("/frcrobot/regulate_compressor/disable", 5, &disableCallback);
+	ros::Subscriber pressure_sub_ = n.subscribe("/frcrobot/joint_states", 1, &pressureCallback);
+	ros::Subscriber current_sub_ = n.subscribe("/frcrobot/pdp_states", 75, &currentCallback);
+	ros::Subscriber match_data_sub_ = n.subscribe("/frcrobot/match_data", 1, &matchDataCallback);
+	ros::Subscriber disable_sub_ = n.subscribe("/frcrobot/regulate_compressor/disable", 5, &disableCallback);
 	//TODO FIX ABOVE topic names
 
-	// TODO : fix me.  spin() will loop forever until !ros::ok()
-	// This needs to be a spinOnce at the end of the ros::ok()
-	// loop below instead
+	pressure_ = 120;
+	match_time_ = 0;
+	fms_connected_ = false;
+	weighted_average_current_ = 0;
+	disable_ = false;
 
 	ros::Rate r(1); //1 hz
 	bool run_last_tick;
@@ -60,22 +65,24 @@ int main(int argc, char **argv) {
 	{
 		ros::spinOnce();
 		std_msgs::Float64 holder_msg;
-		if(fms_connected_ && !disable_ )
+		const double this_match_time = match_time_.load(std::memory_order_relaxed);
+		const double this_pressure = pressure_.load(std::memory_order_relaxed);
+		if(fms_connected_.load(std::memory_order_relaxed) && !disable_.load(std::memory_order_relaxed) )
 		{
-			if(game_mode_ != 0 && match_time_ > 30 && (pressure_ < 110 || (run_last_tick && pressure_ < 120)))
+			if(game_mode_ != 0 && this_match_time > 30 && (this_pressure < 110 || (run_last_tick && this_pressure < 120)))
 			{
-				//const double sensor_estimated = (match_time_-30) * (120 - pressure_) / (150 - match_time_);
+				//const double sensor_estimated = (this_match_time-30) * (120 - this_pressure) / (150 - this_match_time);
 				//FIX ABOVE SO IT TAKES INTO ACCOUNT REFILLS, and maybe use?
 				const double sensor_estimated = 0;
-				double max_estimated = max_match_non_end_use_ * (match_time_ - 30)/(120);
+				double max_estimated = max_match_non_end_use_ * (this_match_time - 30)/(120);
 				if(sensor_estimated > max_estimated)
 				{
 					max_estimated = sensor_estimated;
 				}
-				const double end_pressure_estimate = pressure_ - max_estimated  - max_end_game_use_;
+				const double end_pressure_estimate = this_pressure - max_estimated  - max_end_game_use_;
 				if(end_pressure_estimate < target_final_pressure_ || run_last_tick)
 				{
-					const double modelVal = /*-current_multiplier_ * weighted_average_current_
+					const double modelVal = /*-current_multiplier_ * weighted_average_current_.load(std::memory_order_relaxed)
 					*/ pressure_multiplier_ * pow(fabs(target_final_pressure_ - 
 					end_pressure_estimate),	pressure_exponent_) * ((end_pressure_estimate < 
 					target_final_pressure_) ? 1 : -1)
@@ -106,7 +113,7 @@ int main(int argc, char **argv) {
 			}
 		}
 		/*
-		else if(pressure_ < 100 || run_last_tick && pressure_ < 120)
+		else if(this_pressure < 100 || run_last_tick && this_pressure < 120)
 		{
 			holder_msg.data = 1;
 			run_last_tick = true;
@@ -128,50 +135,41 @@ int main(int argc, char **argv) {
 
 void pressureCallback(const sensor_msgs::JointState &pressure)
 {
-	static int pressure_sensor_index_ = -1;
-	if(pressure_sensor_index_ < 0)
-	{
-		for(size_t i = 0; i < pressure.name.size(); i++)
-		{
-			if(pressure.name[i] == "analog_pressure")
-			{
-				pressure_sensor_index_ = i;
-				break;
-			}
-		}
-	}
-	else
-	{
-		pressure_ = pressure.position[pressure_sensor_index_];
-	}
+	static int pressure_sensor_index = -1;
+	for(size_t i = 0; (pressure_sensor_index < 0) && (i < pressure.name.size()); i++)
+		if(pressure.name[i] == "analog_pressure")
+			pressure_sensor_index = i;
+
+	if(pressure_sensor_index >= 0)
+		pressure_.store(pressure.position[pressure_sensor_index], std::memory_order_relaxed);
 }
+
 void matchDataCallback(const ros_control_boilerplate::MatchSpecificData &MatchData)
 {
-	match_time_ = MatchData.matchTimeRemaining;
-	fms_connected_ = MatchData.matchTimeRemaining >= 0;
+	match_time_.store(MatchData.matchTimeRemaining, std::memory_order_relaxed);
+	fms_connected_.store(MatchData.matchTimeRemaining >= 0, std::memory_order_relaxed);
 }
 
 // consider a boost::circular_buffer
-/*
-void currentCallback(const std_msgs::Float64 &current)
+void currentCallback(const pdp_state_controller::PDPData &msg)
 {
 	static std::vector<double> currents;
 
 	if(currents.size() > 500)
 		currents.erase(currents.begin());
 
-	currents.push_back(current.data);
+	currents.push_back(msg.totalCurrent);
 
-	double temp_weighted_average_current_ = 0;
+	double temp_weighted_average_current = 0;
 	int divider = currents.size() * (1 + currents.size())/2;
 	for(size_t i = 0; i < currents.size(); i++)
 	{
-		temp_weighted_average_current_ += currents[i] * (i+1.0)/divider;
+		temp_weighted_average_current += currents[i] * (i+1.0)/divider;
 	}
-	weighted_average_current_ = temp_weighted_average_current_;
+	weighted_average_current_.store(temp_weighted_average_current, std::memory_order_relaxed);
 }
-*/
+
 void disableCallback(const std_msgs::Bool &disable)
 {
-	disable_ = disable.data;
+	disable_.store(disable.data, std::memory_order_relaxed);
 }

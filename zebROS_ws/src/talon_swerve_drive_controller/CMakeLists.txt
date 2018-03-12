@@ -7,8 +7,10 @@ find_package(catkin REQUIRED COMPONENTS
     cmake_modules
     controller_interface
     std_msgs
+	std_srvs
     nav_msgs
     geometry_msgs
+	swerve_math
     trajectory_msgs
     realtime_tools
     talon_interface
@@ -17,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
     urdf
     message_generation
 )
+
 find_package(Eigen REQUIRED)
 
 add_message_files (
@@ -28,13 +31,14 @@ add_message_files (
 add_service_files (
   FILES
   MotionProfile.srv
+  WheelPos.srv
   MotionProfilePoints.srv
   FullGen.srv
   FullGenCoefs.srv
   GenerateTrajectory.srv
   GenerateSwerveProfile.srv
-  Blank.srv
 )
+
 generate_messages(
   DEPENDENCIES
   std_msgs
@@ -47,7 +51,7 @@ catkin_package(
   CATKIN_DEPENDS
   controller_interface
   INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
+  #LIBRARIES ${PROJECT_NAME}
   DEPENDS Eigen
 )
 
@@ -56,16 +60,10 @@ include_directories(
   ${Eigen_INCLUDE_DIRS}
 )
 
-
-
-
 add_library(${PROJECT_NAME} 
-src/swerve_drive_controller.cpp 
-src/odometry.cpp 
-src/speed_limiter.cpp
-src/900Math.cpp
-src/SwerveMath.cpp
-src/Swerve.cpp
+	src/swerve_drive_controller.cpp 
+	src/odometry.cpp 
+	src/speed_limiter.cpp
 )
 
 add_dependencies(${PROJECT_NAME}
@@ -73,7 +71,6 @@ add_dependencies(${PROJECT_NAME}
   ${catkin_EXPORTED_TARGETS}
   talon_swerve_drive_controller_generate_messages_cpp
 )
-
 
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 

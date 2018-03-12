@@ -14,8 +14,8 @@ hardware_interface:
        - {name: lift_follower1, type: can_talon_srx, can_id: 42}
        - {name: lift_follower2, type: can_talon_srx, can_id: 43}
        - {name: pivot, type: can_talon_srx, can_id: 51}
-       - {name: intake, type: can_talon_srx, can_id: 31}
-       - {name: intake_follower1, type: can_talon_srx, can_id: 32}
+       - {name: intake1, type: can_talon_srx, can_id: 31}
+       - {name: intake1, type: can_talon_srx, can_id: 31}
        - {name: clamp, type: solenoid, pcm: 0, id: 1} #correct
        - {name: intake_spring_soft, type: solenoid, pcm: 0, id: 6} #3+6 soft
        - {name: intake_spring_hard, type: double_solenoid, pcm: 0, forward_id: 3, reverse_id: 7} 

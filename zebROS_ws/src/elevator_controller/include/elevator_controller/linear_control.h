@@ -7,12 +7,11 @@
 #include "std_msgs/Float64.h"
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Bool.h>
-//#include <teleop_joystick_control/RobotState.h>
 #include <elevator_controller/ElevatorControl.h>
 #include <elevator_controller/ElevatorControlS.h>
 #include <elevator_controller/Intake.h>
-#include <elevator_controller/bool_srv.h>
-#include <elevator_controller/Blank.h>
+#include <std_srvs/SetBool.h>
+#include <std_srvs/Empty.h>
 #include <elevator_controller/ReturnElevatorCmd.h>
 #include <elevator_controller/arm_limiting.h>
 
@@ -81,7 +80,8 @@ class ElevatorController
 
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface lift_joint_;
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface pivot_joint_;
-		talon_controllers::TalonPercentOutputControllerInterface intake_joint_;
+		talon_controllers::TalonPercentOutputControllerInterface intake1_joint_;
+		talon_controllers::TalonPercentOutputControllerInterface intake2_joint_;
 
 		struct Commands
 		{
@@ -128,13 +128,15 @@ class ElevatorController
 		void lineBreakCallback(const sensor_msgs::JointState&);
 		bool cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res);
 		bool intakeService(elevator_controller::Intake::Request &command, elevator_controller::Intake::Response &res);
-		bool clampService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &res); 
-		bool shiftService(elevator_controller::bool_srv::Request &command, elevator_controller::bool_srv::Response &res); 
-		bool endGameDeployService(elevator_controller::Blank::Request &command, elevator_controller::Blank::Response &res); 
+		bool clampService(std_srvs::SetBool::Request &command, std_srvs::SetBool::Response &res); 
+		bool shiftService(std_srvs::SetBool::Request &command, std_srvs::SetBool::Response &res); 
+		bool endGameDeployService(std_srvs::Empty::Request &command, std_srvs::Empty::Response &res); 
 
 		std::shared_ptr<arm_limiting::arm_limits> arm_limiter_;
 
 		bool getFirstString(XmlRpc::XmlRpcValue value, std::string &str);
+
+		double intake_power_diff_multiplier_;
 
 		double f_arm_mass_;
 		double f_arm_fric_;

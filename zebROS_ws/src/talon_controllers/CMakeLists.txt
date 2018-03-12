@@ -30,7 +30,7 @@ catkin_package(
     urdf
 	dynamic_reconfigure
   INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
+  #LIBRARIES ${PROJECT_NAME}
 )
 
 include_directories(include ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})

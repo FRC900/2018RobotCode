@@ -9,18 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   hardware_interface
   controller_manager
   roscpp
-  control_msgs
-  trajectory_msgs
-  actionlib
-  urdf
-  joint_limits_interface
-  transmission_interface
-  control_toolbox
   std_msgs
-  sensor_msgs
-  rosparam_shortcuts
-  talon_interface
-  message_generation
   ros_control_boilerplate
 )
 find_package(Eigen REQUIRED)
@@ -47,20 +36,9 @@ catkin_package(
   INCLUDE_DIRS
     include
   CATKIN_DEPENDS
-    hardware_interface
-    message_filters
     controller_manager
     roscpp
-    control_msgs
-    trajectory_msgs
-    urdf
-    joint_limits_interface
-    transmission_interface
-    control_toolbox
     std_msgs
-    sensor_msgs
-    rosparam_shortcuts
-    message_runtime
     ros_control_boilerplate
   LIBRARIES
   DEPENDS Eigen

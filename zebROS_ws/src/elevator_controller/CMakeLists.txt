@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
     talon_controllers
     message_generation
     std_msgs
+    std_srvs
 )
 
 find_package(Eigen REQUIRED)
@@ -26,8 +27,6 @@ add_service_files (
   FILES
   ElevatorControlS.srv
   Intake.srv
-  bool_srv.srv
-  Blank.srv
 )
 generate_messages(
   DEPENDENCIES
@@ -37,7 +36,7 @@ generate_messages(
 catkin_package(
   CATKIN_DEPENDS
   INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
+  #LIBRARIES ${PROJECT_NAME}
   DEPENDS Eigen
 )
 
@@ -70,4 +69,3 @@ install(TARGETS ${PROJECT_NAME}
 
 install(FILES ${PROJECT_NAME}_plugins.xml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-

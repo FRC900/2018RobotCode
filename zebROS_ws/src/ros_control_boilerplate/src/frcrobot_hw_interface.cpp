@@ -81,6 +81,9 @@ FRCRobotHWInterface::~FRCRobotHWInterface()
 	motion_profile_thread_.join();
 }
 
+// Loop running a basic iterative robot. Used to show robot code ready,
+// and then read joystick, match data and network tables values
+// during the match.
 void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	// This will be written by the last controller to be
@@ -323,12 +326,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_joystick.msg_.directionDownButton = joystick_down_;
 			realtime_pub_joystick.msg_.directionDownPress = joystick_down_ > joystick_down_last_;
 			realtime_pub_joystick.msg_.directionDownRelease = joystick_down_ > joystick_down_last_;
-			
 
 			realtime_pub_joystick.msg_.directionLeftButton = joystick_left_;
 			realtime_pub_joystick.msg_.directionLeftPress = joystick_left_ > joystick_left_last_;
 			realtime_pub_joystick.msg_.directionLeftRelease = joystick_left_ > joystick_left_last_;
-			
 
 			realtime_pub_joystick.msg_.directionRightButton = joystick_right_;
 			realtime_pub_joystick.msg_.directionRightPress = joystick_right_ > joystick_right_last_;
@@ -382,6 +383,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
 	// since our MP is 10ms per point, set the control frame rate and the
 	// notifer to half that
+	return;
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
 
@@ -422,7 +424,8 @@ void FRCRobotHWInterface::init(void)
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
 	
 	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
-	
+
+	return;	
 	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
@@ -538,7 +541,7 @@ void FRCRobotHWInterface::init(void)
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
 
 	HAL_InitializePDP(0,0);
-	static int32_t status = 0;
+	int32_t status = 0;
 	HAL_ResetPDPTotalEnergy(0, &status);
 	HAL_ClearPDPStickyFaults(0, &status);
 	//pdp_joint_.ClearStickyFaults();
@@ -550,7 +553,7 @@ void FRCRobotHWInterface::init(void)
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
-	
+	return;
 	const int talon_updates_to_skip = 2;
 	static int talon_skip_counter = 0;
 	static int next_talon_to_read = 0;
@@ -744,11 +747,10 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 #endif
 	for (size_t i = 0; i < num_analog_inputs_; i++)
 	{
-		analog_input_state_[i] = (analog_inputs_[i]->GetValue())*analog_input_a_[i] + analog_input_b_[i];
+		analog_input_state_[i] = analog_inputs_[i]->GetValue() *analog_input_a_[i] + analog_input_b_[i];
 		if(analog_input_names_[i] == "analog_pressure_sensor")
 		{
 			pressure_.store(analog_input_state_[i], std::memory_order_relaxed);
-
 		}
 	}
  	//navX read here
@@ -779,11 +781,10 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		tf2::Quaternion tempQ;
 		if(i == 0)
 		{
-		if(navX_command_[i] != -10000)
-		{
-			
-			offset_navX_[i] = navX_command_[i] - navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI;
-		}
+			if(navX_command_[i] != -10000)
+			{
+				offset_navX_[i] = navX_command_[i] - navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI;
+			}
 
 			navX_angle_.store(navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i], std::memory_order_relaxed);
 		}
@@ -810,20 +811,18 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		compressor_state_[i] = compressors_[i]->GetCompressorCurrent();
 	}
-	//navX read here
 	
 	//read info from the PDP hardware
-	auto &ps = pdp_state_;
-	static int32_t status = 0;
-	ps.setVoltage(HAL_GetPDPVoltage(0, &status));
-	ps.setTemperature(HAL_GetPDPTemperature(0, &status));
-	ps.setTotalCurrent(HAL_GetPDPTotalCurrent(0, &status));
-	ps.setTotalPower(HAL_GetPDPTotalPower(0, &status));
-	ps.setTotalEnergy(HAL_GetPDPTotalEnergy(0, &status));
-	ps.setCurrent(HAL_GetPDPChannelCurrent(0, 3, &status), 3);
+	int32_t status = 0;
+	pdp_state_.setVoltage(HAL_GetPDPVoltage(0, &status));
+	pdp_state_.setTemperature(HAL_GetPDPTemperature(0, &status));
+	pdp_state_.setTotalCurrent(HAL_GetPDPTotalCurrent(0, &status));
+	pdp_state_.setTotalPower(HAL_GetPDPTotalPower(0, &status));
+	pdp_state_.setTotalEnergy(HAL_GetPDPTotalEnergy(0, &status));
+	pdp_state_.setCurrent(HAL_GetPDPChannelCurrent(0, 3, &status), 3);
 	for(int channel = 0; channel <= 15; channel++)
 	{
-		ps.setCurrent(HAL_GetPDPChannelCurrent(0, channel, &status), channel);
+		pdp_state_.setCurrent(HAL_GetPDPChannelCurrent(0, channel, &status), channel);
 	}
 }
 
@@ -1011,6 +1010,7 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
+	return;
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		//TODO : skip over most or all of this if the talon is in follower mode

@@ -38,32 +38,31 @@
 
 #pragma once
 
-
-#include <talon_swerve_drive_controller/MotionProfile.h>
-#include <std_msgs/Bool.h>
+#include <array>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <controller_interface/controller.h>
 #include <talon_controllers/talon_controller_interface.h>
 #include <pluginlib/class_list_macros.h>
 
-#include <geometry_msgs/TwistStamped.h>
+#include <talon_swerve_drive_controller/MotionProfile.h>
+#include <talon_swerve_drive_controller/WheelPos.h>
+#include <talon_swerve_drive_controller/MotionProfilePoints.h>
+#include <talon_swerve_drive_controller/speed_limiter.h>
+#include <swerve_math/Swerve.h>
+
 #include <sensor_msgs/JointState.h>
+#include <std_msgs/Bool.h>
+#include <std_srvs/Empty.h>
 #include <nav_msgs/Odometry.h>
+#include <geometry_msgs/TwistStamped.h>
 #include <tf/tfMessage.h>
 
 #include <realtime_tools/realtime_buffer.h>
 #include <realtime_tools/realtime_publisher.h>
 
-//#include <talon_swerve_drive_controller/odometry.h>
-#include <talon_swerve_drive_controller/speed_limiter.h>
-
-#include <functional>
-#include <talon_swerve_drive_controller/Swerve.h>
-#include <talon_swerve_drive_controller/Blank.h>
-#include <array>
-#include <memory>
 #include <Eigen/Dense>
-#include <talon_swerve_drive_controller/MotionProfilePoints.h>
 
 namespace talon_swerve_drive_controller
 {
@@ -179,9 +178,11 @@ class TalonSwerveDriveController
 
 		ros::ServiceServer motion_profile_serv_;
 		ros::ServiceServer brake_serv_;
+		ros::ServiceServer wheel_pos_serv_;
 	
 		
 		std::array<std::array<hardware_interface::TrajectoryPoint, 2>, WHEELCOUNT> holder_points_;
+
 	
 		realtime_tools::RealtimeBuffer<bool> run_;
 
@@ -240,13 +241,17 @@ class TalonSwerveDriveController
 		 */
 		void brake();
 
+		std::array<double, WHEELCOUNT> steer_angles_;
+		std::mutex steer_angles_mutex_;
+
 		/**
 		 * \brief Velocity command callback
 		 * \param command Velocity command message (twist)
 		 */
 		void cmdVelCallback(const geometry_msgs::Twist &command);
 		bool motionProfileService(talon_swerve_drive_controller::MotionProfilePoints::Request &req, talon_swerve_drive_controller::MotionProfilePoints::Response &res);
-		bool brakeService(talon_swerve_drive_controller::Blank::Request &req, talon_swerve_drive_controller::Blank::Response &res);
+		bool brakeService(std_srvs::Empty::Request &req, std_srvs::Empty::Response &res);
+		bool wheelPosService(talon_swerve_drive_controller::WheelPos::Request &req, talon_swerve_drive_controller::WheelPos::Response &res);
 
 		/**
 		 * \brief Get the wheel names from a wheel param

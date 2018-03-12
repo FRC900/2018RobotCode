@@ -55,18 +55,18 @@ class swerve_profiler
 		swerve_profiler(double max_wheel_dist, double max_wheel_mid_accel, double max_wheel_vel, 
 		double max_steering_accel, double max_steering_vel, double dt, double ang_accel_conv, double max_wheel_brake_accel);
 			
-		bool generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double &initial_v, const double &final_v, talon_swerve_drive_controller::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points);
+		bool generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double initial_v, const double final_v, talon_swerve_drive_controller::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points);
 
 		//TODO: maybe add options to above functions?
 			
 	private:
-		void comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, path_point &holder_point, const std::vector<double> &end_points, const std::vector<double> &dtds_by_spline, const double &raw_t);
+		void comp_point_characteristics(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, const std::vector<spline_coefs> &x_splines_second_deriv, const std::vector<spline_coefs> &y_splines_second_deriv, const std::vector<spline_coefs> &orient_splines, const std::vector<spline_coefs> &orient_splines_first_deriv, const std::vector<spline_coefs> &orient_splines_second_deriv, path_point &holder_point, const std::vector<double> &end_points, const std::vector<double> &dtds_by_spline, const double raw_t);
 
 		tk::spline parametrize_spline(const std::vector<spline_coefs> &x_spline, const std::vector<spline_coefs> &y_spline, std::vector<double> end_points, double &total_arc_length, std::vector<double> &dtds_by_spline);
 		void calc_point(const spline_coefs &spline, const double t, double &returner);
-		bool solve_for_next_V(const path_point &path, const double &path_length, double &current_v, const double &current_pos, double &accel_defined);  //most pointers are just for efficiency
-		bool coerce(double &val, const double &min, const double &max); 
-		bool poly_solve(const double &a, const double &b, const double &c, double &x);
+		bool solve_for_next_V(const path_point &path, const double path_length, double &current_v, const double current_pos, double &accel_defined);  //most pointers are just for efficiency
+		bool coerce(double &val, const double min, const double max); 
+		bool poly_solve(const double a, const double b, const double c, double &x);
 		double max_wheel_dist_;
 		double max_wheel_mid_accel_;
 		double max_wheel_vel_;
