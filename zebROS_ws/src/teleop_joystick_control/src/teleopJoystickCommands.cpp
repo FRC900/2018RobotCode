@@ -21,13 +21,14 @@
  *
  */
 static double dead_zone = .2, slow_mode = .33, max_speed = 3.6, max_rot = 8.8, joystick_scale = 3;
-double dead_zone_check(double val)
+void dead_zone_check(double &val1, double &val2)
 {
-	if (fabs(val) <= dead_zone)
+	if (fabs(val1) <= dead_zone && fabs(val2) <= dead_zone)
 	{
-		return 0;
+		val1 = 0;
+		val2 = 0;
+
 	}
-	return val;
 }
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
@@ -751,11 +752,14 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 ///////////////////// Drivetrain and Elevator Control \\\\\\\\\\\\\\\\\\\
 
 	//talon_controllers::CloseLoopControllerMsg arm;
-	double leftStickX = (pow(dead_zone_check(JoystickState->leftStickX), joystick_scale)) * max_speed;
-	double leftStickY = (-pow(dead_zone_check(JoystickState->leftStickY), joystick_scale)) * max_speed;
+	dead_zone_check(JoystickState->leftStickX, JoystickState->leftStickY)
+	dead_zone_check(JoystickState->rightStickX, JoystickState->rightStickY)
 
-	double rightStickX = pow(dead_zone_check(JoystickState->rightStickX), joystick_scale);
-	double rightStickY = -pow(dead_zone_check(JoystickState->rightStickY), joystick_scale);
+	double leftStickX = (pow(JoystickState->leftStickX, joystick_scale)) * max_speed;
+	double leftStickY = (-pow(JoystickState->leftStickY, joystick_scale)) * max_speed;
+
+	double rightStickX = pow(JoystickState->rightStickX, joystick_scale);
+	double rightStickY = -pow(JoystickState->rightStickY, joystick_scale);
 
 	double rotation = (JoystickState->leftTrigger - JoystickState->rightTrigger) * max_rot;
 
