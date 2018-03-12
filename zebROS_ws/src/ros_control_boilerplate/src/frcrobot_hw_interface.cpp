@@ -383,6 +383,9 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
 	// since our MP is 10ms per point, set the control frame rate and the
 	// notifer to half that
+	
+	ros::Duration(5).sleep();	
+
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
 
@@ -394,12 +397,12 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 			if ((*can_talons_mp_written_)[i].load(std::memory_order_relaxed))
 			{
 				const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
+				const hardware_interface::MotionProfileStatus mp_status = talon_state_[i].getMotionProfileStatus();
 				// Only write to non-follow, non-disabled talons that
 				// have points to write from their top-level buffer
 				//ROS_INFO_STREAM("top count: " << can_talons_[i]->GetMotionProfileTopLevelBufferCount());
-				//TODO: get check for bottom buffer full
 				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
-					(talon_mode != hardware_interface::TalonMode_Disabled) && can_talons_[i]->GetMotionProfileTopLevelBufferCount() )
+				/*can_talons_[i]->GetMotionProfileTopLevelBufferCount()*/ mp_status.topBufferCnt && mp_status.btmBufferCnt < 127)
 				{
 					// Only write if SW buffer has entries in it
 					//ROS_INFO("needs to send points");
@@ -605,6 +608,28 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 		ts.setSpeed(speed);
 
+		
+		ctre::phoenix::motion::MotionProfileStatus talon_status;
+		safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+
+		hardware_interface::MotionProfileStatus internal_status;
+		internal_status.topBufferRem = talon_status.topBufferRem;
+		internal_status.topBufferCnt = talon_status.topBufferCnt;
+		internal_status.btmBufferCnt = talon_status.btmBufferCnt;
+		internal_status.hasUnderrun = talon_status.hasUnderrun;
+		internal_status.isUnderrun = talon_status.isUnderrun;
+		internal_status.activePointValid = talon_status.activePointValid;
+		internal_status.isLast = talon_status.isLast;
+		internal_status.profileSlotSelect0 = talon_status.profileSlotSelect0;
+		internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
+		internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
+		internal_status.timeDurMs = talon_status.timeDurMs;
+		ts.setMotionProfileStatus(internal_status);
+
+
+		//top level buffer has capacity of 4096
+		//ROS_INFO_STREAM("num rem : " << talon_status.topBufferRem);
+
 		//const double output_current = talon->GetOutputCurrent();
 		//safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
 		//ts.setOutputCurrent(output_current);
@@ -665,26 +690,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 				//safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
 				//ts.setActiveTrajectoryHeading(active_trajectory_heading);
 				//ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
-				//safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
-				//ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
+
 				//safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
-				//ctre::phoenix::motion::MotionProfileStatus talon_status;
-				//safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
-				//hardware_interface::MotionProfileStatus internal_status;
-				//internal_status.topBufferRem = talon_status.topBufferRem;
-				//internal_status.topBufferCnt = talon_status.topBufferCnt;
-				//internal_status.btmBufferCnt = talon_status.btmBufferCnt;
-				//internal_status.hasUnderrun = talon_status.hasUnderrun;
-				//internal_status.isUnderrun = talon_status.isUnderrun;
-				//internal_status.activePointValid = talon_status.activePointValid;
-				//internal_status.isLast = talon_status.isLast;
-				//internal_status.profileSlotSelect0 = talon_status.profileSlotSelect0;
-				//internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
-				//internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
-				//internal_status.timeDurMs = talon_status.timeDurMs;
-
-				//ts.setMotionProfileStatus(internal_status);
 			}
 
 			//ctre::phoenix::motorcontrol::Faults faults;
