@@ -6,7 +6,54 @@ document.addEventListener("DOMContentLoaded", function(event)
 	var elt = document.getElementById('calculator');
 	var calculator = Desmos.GraphingCalculator(elt);
 	loadGraph(calculator);
+	console.log(calculator.getExpressions());
+	// must create helper expressions for each value you want to save!
+	var px = calculator.HelperExpression({latex: 'p_x'});
+	console.log(px.numericValue);
+	var valuesToSave = [px]; // put helper expressions in this list to pass to save()
+	document.getElementById('save_load_data').onclick = function()
+	{
+   		console.log("Button was clicked. Beginning Save of Load Data.");
+		save(valuesToSave);
+	};
+	px.observe('numericValue', function () {
+  		console.log(px.numericValue);
+	});
 });
+
+function save (valuesToSave)
+{
+	var stringSave = "";
+	for (var i = 0; i < valuesToSave.length; ++i)
+	{
+		stringSave += valuesToSave[i].numericValue + "\n";
+		console.log("Saved " + valuesToSave[i].numericValue);
+	}
+	writeToFile(stringSave);
+
+}
+
+function writeToFile(text)
+{
+	var textFile = null,
+	makeTextFile = function (text) {
+    	var data = new Blob([text], {type: 'text/plain'});
+
+    	// If we are replacing a previously generated file we need to
+    	// manually revoke the object URL to avoid memory leaks.
+    	if (textFile !== null) {
+      		window.URL.revokeObjectURL(textFile);
+   		}
+
+    	textFile = window.URL.createObjectURL(data);
+
+    	return textFile;
+	};
+
+    var link = document.getElementById('downloadlink_load');
+    link.href = makeTextFile(text); //text will be one long string of all the data
+    link.style.display = 'block';
+};
 
 function loadGraph (calculator)
 {
