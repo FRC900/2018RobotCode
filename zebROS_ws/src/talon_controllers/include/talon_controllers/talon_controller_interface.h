@@ -302,11 +302,11 @@ class TalonCIParams
 		{
 			XmlRpc::XmlRpcValue pid_param_list;
 
+			n.getParam("aux_pid_polarity", pid_param_list);
 			if (!n.getParam("close_loop_values", pid_param_list))
 				return true;
 			if (pid_param_list.size() <= 2)
 			{
-				aux_pid_polarity_ = findBoolParam("aux_pid_polarity", pid_param_list);
 				for (int i = 0; i < pid_param_list.size(); i++)
 				{
 					XmlRpc::XmlRpcValue &pidparams = pid_param_list[i];
@@ -507,22 +507,6 @@ class TalonCIParams
 				return (int)param;
 			else
 				throw std::runtime_error("A non-int value was passed for" + param_type);
-			return 0;
-		}
-
-		// Read a bool named <param_type> from the array/map
-		// in params
-		bool findBoolParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
-		{
-			if (!params.hasMember(param_type))
-				return 0;
-			XmlRpc::XmlRpcValue &param = params[param_type];
-			if (!param.valid())
-				throw std::runtime_error(param_type + " was not a valid int type");
-			if (param.getType() == XmlRpc::XmlRpcValue::TypeBoolean)
-				return (int)param;
-			else
-				throw std::runtime_error("A non-bool value was passed for" + param_type);
 			return 0;
 		}
 
