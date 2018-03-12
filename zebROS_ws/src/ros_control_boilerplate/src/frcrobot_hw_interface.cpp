@@ -424,7 +424,8 @@ void FRCRobotHWInterface::init(void)
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
-	
+
+
 	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
 
 	
@@ -555,6 +556,8 @@ void FRCRobotHWInterface::init(void)
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
+	//return;
+		
 	const int talon_updates_to_skip = 2;
 	static int talon_skip_counter = 0;
 	static int next_talon_to_read = 0;
@@ -573,17 +576,17 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			next_talon_to_read = (next_talon_to_read + 1) % num_can_talon_srxs_;
 		}
 	}
-
+		
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
+		
 		auto &ts = talon_state_[joint_id];
 		auto &talon = can_talons_[joint_id];
 
 		if (!talon) // skip unintialized Talons
 			continue;
-		if (ts.getCANID() == 31)
+		if (ts.getCANID() == 31 || ts.getCANID() == 32)
 		{
-			//ROS_WARN("I HATE 31");
 			continue;
 		}
 
@@ -607,8 +610,13 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		const double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 		ts.setSpeed(speed);
-
 		
+	
+		if (ts.getCANID() > 30)
+		{
+			continue;
+		}
+			
 		ctre::phoenix::motion::MotionProfileStatus talon_status;
 		safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
@@ -626,7 +634,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		internal_status.timeDurMs = talon_status.timeDurMs;
 		ts.setMotionProfileStatus(internal_status);
 
-
+		
 		//top level buffer has capacity of 4096
 		//ROS_INFO_STREAM("num rem : " << talon_status.topBufferRem);
 
@@ -813,12 +821,14 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		
 		navX_state_[i] = offset_navX_[i];
 	}
-	for (size_t i = 0; i < num_compressors_; i++)
+	
+	/*for (size_t i = 0; i < num_compressors_; i++)
 	{
 		compressor_state_[i] = compressors_[i]->GetCompressorCurrent();
-	}
+	}*/
 	
 	//read info from the PDP hardware
+	/*	
 	int32_t status = 0;
 	pdp_state_.setVoltage(HAL_GetPDPVoltage(0, &status));
 	pdp_state_.setTemperature(HAL_GetPDPTemperature(0, &status));
@@ -830,6 +840,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		pdp_state_.setCurrent(HAL_GetPDPChannelCurrent(0, channel, &status), channel);
 	}
+	*/
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
