@@ -2,7 +2,7 @@ elevator_controller:
     type:  elevator_controller/ElevatorController
     lift: ["lift_joint", "lift_follower1_joint", "lift_follower2_joint"]
     intake1: "intake1_joint"
-    intake2: "intake1_joint"
+    intake2: "intake2_joint"
     pivot: "pivot_joint"
     
     intake_power_diff_multiplier: .85
