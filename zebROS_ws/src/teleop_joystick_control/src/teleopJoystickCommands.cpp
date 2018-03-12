@@ -15,7 +15,7 @@
 /*TODO list:
  *
  *
- *Note: arm, EndGameDeploy, and intake will become services
+ *Note: arm, end_game_deploy, and intake will become services
  *
  *Press down to climb (lift goes to position)
  *
@@ -194,7 +194,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*std_msgs::Header first_header;
 	first_header.stamp = JoystickState->header.stamp;
 	first_header.seq = 0;
-	joystick_test_vel.publish(first_header);*/
+	JoystickTestVel.publish(first_header);*/
 
 	elevator_controller::ElevatorControlS srvElevator;
 	std_srvs::SetBool srvClamp;
@@ -848,7 +848,7 @@ void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
 void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotState) {
     if(RobotState->ifCube==true) {
         ifCube = true;
-        rumble_type_converterPublish(0, 32767);
+        rumbleTypeConverterPublish(0, 32767);
         ROS_WARN("I has cube");
     }
     else {
@@ -860,20 +860,20 @@ void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotSta
 */
 /*
 void evaluateTime(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
-    uint16_t left_rumble=0, right_rumble=0;
+    uint16_t leftRumble=0, rightRumble=0;
     double matchTimeRemaining = MatchData->matchTimeRemaining;
 	// TODO : make these a set of else if blocks?
     if(matchTimeRemaining < 61 && matchTimeRemaining > 59) {
-        left_rumble = 65535;
+        leftRumble = 65535;
     }
     else if(matchTimeRemaining < 31 && matchTimeRemaining > 29) {
-        right_rumble = 65535;
+        rightRumble = 65535;
     }
     else if(matchTimeRemaining <17 && matchTimeRemaining > 14) {
         allback(const sensor_msgs::Imu &navXState)
 
     }
-    rumble_type_converterPublish(left_rumble, right_rumble);
+    rumbleTypeConverterPublish(leftRumble, rightRumble);
 }*/
 int main(int argc, char **argv)
 {
