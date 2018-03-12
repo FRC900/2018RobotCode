@@ -6,11 +6,349 @@ document.addEventListener("DOMContentLoaded", function(event)
 	var elt = document.getElementById('calculator');
 	var calculator = Desmos.GraphingCalculator(elt);
 	loadGraph(calculator);
+	console.log(calculator.getExpressions());
+	// must create helper expressions for each value you want to save!
+	var n_splines = calculator.HelperExpression({latex: 'n_{splines}'})
+	var py = calculator.HelperExpression({latex: 'p_{y}'});
+	var py1 = calculator.HelperExpression({latex: 'p_{y1}'});
+	var py2 = calculator.HelperExpression({latex: 'p_{y2}'});
+	var py3 = calculator.HelperExpression({latex: 'p_{y3}'});
+	var py4 = calculator.HelperExpression({latex: 'p_{y4}'});
+	var py5 = calculator.HelperExpression({latex: 'p_{y5}'});
+	var py6 = calculator.HelperExpression({latex: 'p_{y6}'});
+	var py7 = calculator.HelperExpression({latex: 'p_{y7}'});
+	var py8 = calculator.HelperExpression({latex: 'p_{y8}'});
+	var px = calculator.HelperExpression({latex: 'p_{x}'});
+	var px1 = calculator.HelperExpression({latex: 'p_{x1}'});
+	var px2 = calculator.HelperExpression({latex: 'p_{x2}'});
+	var px3 = calculator.HelperExpression({latex: 'p_{x3}'});
+	var px4 = calculator.HelperExpression({latex: 'p_{x4}'});
+	var px5 = calculator.HelperExpression({latex: 'p_{x5}'});
+	var px6 = calculator.HelperExpression({latex: 'p_{x6}'});
+	var px7 = calculator.HelperExpression({latex: 'p_{x7}'});
+	var px8 = calculator.HelperExpression({latex: 'p_{x8}'});
+
+
+	
+	var vyl = calculator.HelperExpression({latex: 'v_{yl}'});
+	var vyl1 = calculator.HelperExpression({latex: 'v_{yl1}'});
+	var vyl2 = calculator.HelperExpression({latex: 'v_{yl2}'});
+	var vyl3 = calculator.HelperExpression({latex: 'v_{yl3}'});
+	var vyl4 = calculator.HelperExpression({latex: 'v_{yl4}'});
+	var vyl5 = calculator.HelperExpression({latex: 'v_{yl5}'});
+	var vyl6 = calculator.HelperExpression({latex: 'v_{yl6}'});
+	var vyl7 = calculator.HelperExpression({latex: 'v_{yl7}'});
+	var vyl8 = calculator.HelperExpression({latex: 'v_{yl8}'});
+	var vxl = calculator.HelperExpression({latex: 'v_{xl}'});
+	var vxl1 = calculator.HelperExpression({latex: 'v_{xl1}'});
+	var vxl2 = calculator.HelperExpression({latex: 'v_{xl2}'});
+	var vxl3 = calculator.HelperExpression({latex: 'v_{xl3}'});
+	var vxl4 = calculator.HelperExpression({latex: 'v_{xl4}'});
+	var vxl5 = calculator.HelperExpression({latex: 'v_{xl5}'});
+	var vxl6 = calculator.HelperExpression({latex: 'v_{xl6}'});
+	var vxl7 = calculator.HelperExpression({latex: 'v_{xl7}'});
+	var vxl8 = calculator.HelperExpression({latex: 'v_{xl8}'});
+
+	
+	var ayl = calculator.HelperExpression({latex: 'a_{yl}'});
+	var ayl1 = calculator.HelperExpression({latex: 'a_{yl1}'});
+	var ayl2 = calculator.HelperExpression({latex: 'a_{yl2}'});
+	var ayl3 = calculator.HelperExpression({latex: 'a_{yl3}'});
+	var ayl4 = calculator.HelperExpression({latex: 'a_{yl4}'});
+	var ayl5 = calculator.HelperExpression({latex: 'a_{yl5}'});
+	var ayl6 = calculator.HelperExpression({latex: 'a_{yl6}'});
+	var ayl7 = calculator.HelperExpression({latex: 'a_{yl7}'});
+	var ayl8 = calculator.HelperExpression({latex: 'a_{yl8}'});
+	var axl = calculator.HelperExpression({latex: 'a_{xl}'});
+	var axl1 = calculator.HelperExpression({latex: 'a_{xl1}'});
+	var axl2 = calculator.HelperExpression({latex: 'a_{xl2}'});
+	var axl3 = calculator.HelperExpression({latex: 'a_{xl3}'});
+	var axl4 = calculator.HelperExpression({latex: 'a_{xl4}'});
+	var axl5 = calculator.HelperExpression({latex: 'a_{xl5}'});
+	var axl6 = calculator.HelperExpression({latex: 'a_{xl6}'});
+	var axl7 = calculator.HelperExpression({latex: 'a_{xl7}'});
+	var axl8 = calculator.HelperExpression({latex: 'a_{xl8}'});
+	
+	var Ay = calculator.HelperExpression({latex: 'A_{y}'});
+	var Ay1 = calculator.HelperExpression({latex: 'A_{y1}'});
+	var Ay2 = calculator.HelperExpression({latex: 'A_{y2}'});
+	var Ay3 = calculator.HelperExpression({latex: 'A_{y3}'});
+	var Ay4 = calculator.HelperExpression({latex: 'A_{y4}'});
+	var Ay5 = calculator.HelperExpression({latex: 'A_{y5}'});
+	var Ay6 = calculator.HelperExpression({latex: 'A_{y6}'});
+	var Ay7 = calculator.HelperExpression({latex: 'A_{y7}'});
+	var Ax = calculator.HelperExpression({latex: 'A_{x}'});
+	var Ax1 = calculator.HelperExpression({latex: 'A_{x1}'});
+	var Ax2 = calculator.HelperExpression({latex: 'A_{x2}'});
+	var Ax3 = calculator.HelperExpression({latex: 'A_{x3}'});
+	var Ax4 = calculator.HelperExpression({latex: 'A_{x4}'});
+	var Ax5 = calculator.HelperExpression({latex: 'A_{x5}'});
+	var Ax6 = calculator.HelperExpression({latex: 'A_{x6}'});
+	var Ax7 = calculator.HelperExpression({latex: 'A_{x7}'});
+
+
+	var By = calculator.HelperExpression({latex: 'B_{y}'});
+	var By1 = calculator.HelperExpression({latex: 'B_{y1}'});
+	var By2 = calculator.HelperExpression({latex: 'B_{y2}'});
+	var By3 = calculator.HelperExpression({latex: 'B_{y3}'});
+	var By4 = calculator.HelperExpression({latex: 'B_{y4}'});
+	var By5 = calculator.HelperExpression({latex: 'B_{y5}'});
+	var By6 = calculator.HelperExpression({latex: 'B_{y6}'});
+	var By7 = calculator.HelperExpression({latex: 'B_{y7}'});
+	var Bx = calculator.HelperExpression({latex: 'B_{x}'});
+	var Bx1 = calculator.HelperExpression({latex: 'B_{x1}'});
+	var Bx2 = calculator.HelperExpression({latex: 'B_{x2}'});
+	var Bx3 = calculator.HelperExpression({latex: 'B_{x3}'});
+	var Bx4 = calculator.HelperExpression({latex: 'B_{x4}'});
+	var Bx5 = calculator.HelperExpression({latex: 'B_{x5}'});
+	var Bx6 = calculator.HelperExpression({latex: 'B_{x6}'});
+	var Bx7 = calculator.HelperExpression({latex: 'B_{x7}'});
+
+
+	var Cy = calculator.HelperExpression({latex: 'C_{y}'});
+	var Cy1 = calculator.HelperExpression({latex: 'C_{y1}'});
+	var Cy2 = calculator.HelperExpression({latex: 'C_{y2}'});
+	var Cy3 = calculator.HelperExpression({latex: 'C_{y3}'});
+	var Cy4 = calculator.HelperExpression({latex: 'C_{y4}'});
+	var Cy5 = calculator.HelperExpression({latex: 'C_{y5}'});
+	var Cy6 = calculator.HelperExpression({latex: 'C_{y6}'});
+	var Cy7 = calculator.HelperExpression({latex: 'C_{y7}'});
+	var Cx = calculator.HelperExpression({latex: 'C_{x}'});
+	var Cx1 = calculator.HelperExpression({latex: 'C_{x1}'});
+	var Cx2 = calculator.HelperExpression({latex: 'C_{x2}'});
+	var Cx3 = calculator.HelperExpression({latex: 'C_{x3}'});
+	var Cx4 = calculator.HelperExpression({latex: 'C_{x4}'});
+	var Cx5 = calculator.HelperExpression({latex: 'C_{x5}'});
+	var Cx6 = calculator.HelperExpression({latex: 'C_{x6}'});
+	var Cx7 = calculator.HelperExpression({latex: 'C_{x7}'});
+
+
+	var Dy = calculator.HelperExpression({latex: 'D_{y}'});
+	var Dy1 = calculator.HelperExpression({latex: 'D_{y1}'});
+	var Dy2 = calculator.HelperExpression({latex: 'D_{y2}'});
+	var Dy3 = calculator.HelperExpression({latex: 'D_{y3}'});
+	var Dy4 = calculator.HelperExpression({latex: 'D_{y4}'});
+	var Dy5 = calculator.HelperExpression({latex: 'D_{y5}'});
+	var Dy6 = calculator.HelperExpression({latex: 'D_{y6}'});
+	var Dy7 = calculator.HelperExpression({latex: 'D_{y7}'});
+	var Dx = calculator.HelperExpression({latex: 'D_{x}'});
+	var Dx1 = calculator.HelperExpression({latex: 'D_{x1}'});
+	var Dx2 = calculator.HelperExpression({latex: 'D_{x2}'});
+	var Dx3 = calculator.HelperExpression({latex: 'D_{x3}'});
+	var Dx4 = calculator.HelperExpression({latex: 'D_{x4}'});
+	var Dx5 = calculator.HelperExpression({latex: 'D_{x5}'});
+	var Dx6 = calculator.HelperExpression({latex: 'D_{x6}'});
+	var Dx7 = calculator.HelperExpression({latex: 'D_{x7}'});
+
+	var Ey = calculator.HelperExpression({latex: 'E_{y}'});
+	var Ey1 = calculator.HelperExpression({latex: 'E_{y1}'});
+	var Ey2 = calculator.HelperExpression({latex: 'E_{y2}'});
+	var Ey3 = calculator.HelperExpression({latex: 'E_{y3}'});
+	var Ey4 = calculator.HelperExpression({latex: 'E_{y4}'});
+	var Ey5 = calculator.HelperExpression({latex: 'E_{y5}'});
+	var Ey6 = calculator.HelperExpression({latex: 'E_{y6}'});
+	var Ey7 = calculator.HelperExpression({latex: 'E_{y7}'});
+	var Ex = calculator.HelperExpression({latex: 'E_{x}'});
+	var Ex1 = calculator.HelperExpression({latex: 'E_{x1}'});
+	var Ex2 = calculator.HelperExpression({latex: 'E_{x2}'});
+	var Ex3 = calculator.HelperExpression({latex: 'E_{x3}'});
+	var Ex4 = calculator.HelperExpression({latex: 'E_{x4}'});
+	var Ex5 = calculator.HelperExpression({latex: 'E_{x5}'});
+	var Ex6 = calculator.HelperExpression({latex: 'E_{x6}'});
+	var Ex7 = calculator.HelperExpression({latex: 'E_{x7}'});
+
+
+	var Fy = calculator.HelperExpression({latex: 'F_{y}'});
+	var Fy1 = calculator.HelperExpression({latex: 'F_{y1}'});
+	var Fy2 = calculator.HelperExpression({latex: 'F_{y2}'});
+	var Fy3 = calculator.HelperExpression({latex: 'F_{y3}'});
+	var Fy4 = calculator.HelperExpression({latex: 'F_{y4}'});
+	var Fy5 = calculator.HelperExpression({latex: 'F_{y5}'});
+	var Fy6 = calculator.HelperExpression({latex: 'F_{y6}'});
+	var Fy7 = calculator.HelperExpression({latex: 'F_{y7}'});
+	var Fx = calculator.HelperExpression({latex: 'F_{x}'});
+	var Fx1 = calculator.HelperExpression({latex: 'F_{x1}'});
+	var Fx2 = calculator.HelperExpression({latex: 'F_{x2}'});
+	var Fx3 = calculator.HelperExpression({latex: 'F_{x3}'});
+	var Fx4 = calculator.HelperExpression({latex: 'F_{x4}'});
+	var Fx5 = calculator.HelperExpression({latex: 'F_{x5}'});
+	var Fx6 = calculator.HelperExpression({latex: 'F_{x6}'});
+	var Fx7 = calculator.HelperExpression({latex: 'F_{x7}'});
+	var valuesToSave = [n_splines, px, px1, px2, px3, px4, px5, px6, px7, px8, 
+	py, py1, py2, py3, py4, py5, py6, py7, py8, 
+	vxl, vxl1, vxl2, vxl3, vxl4, vxl5, vxl6, vxl7, vxl8, 
+	vyl, vyl1, vyl2, vyl3, vyl4, vyl5, vyl6, vyl7, vyl8, 
+	axl, axl1, axl2, axl3, axl4, axl5, axl6, axl7, axl8, 
+	ayl, ayl1, ayl2, ayl3, ayl4, ayl5, ayl6, ayl7, ayl8, 
+
+	]; 
+	
+
+
+
+
+	// put helper expressions in this list to pass to save()
+	document.getElementById('save_load_data').onclick = function()
+	{
+   		console.log("Button was clicked. Beginning Save of Load Data.");
+		save(valuesToSave);
+	};
+
+
+	
+	var coefsForYaml = [
+	Ax, Ax1, Ax2, Ax3, Ax4, Ax5, Ax6, Ax7,  
+	Ay, Ay1, Ay2, Ay3, Ay4, Ay5, Ay6, Ay7,  
+	Bx, Bx1, Bx2, Bx3, Bx4, Bx5, Bx6, Bx7,  
+	By, By1, By2, By3, By4, By5, By6, By7,  
+	Cx, Cx1, Cx2, Cx3, Cx4, Cx5, Cx6, Cx7,  
+	Cy, Cy1, Cy2, Cy3, Cy4, Cy5, Cy6, Cy7,  
+	Dx, Dx1, Dx2, Dx3, Dx4, Dx5, Dx6, Dx7,  
+	Dy, Dy1, Dy2, Dy3, Dy4, Dy5, Dy6, Dy7,  
+	Ex, Ex1, Ex2, Ex3, Ex4, Ex5, Ex6, Ex7,  
+	Ey, Ey1, Ey2, Ey3, Ey4, Ey5, Ey6, Ey7,  
+	Fx, Fx1, Fx2, Fx3, Fx4, Fx5, Fx6, Fx7,  
+	Fy, Fy1, Fy2, Fy3, Fy4, Fy5, Fy6, Fy7,  
+	];
+
+	document.getElementById('save_coef_data').onclick = function()
+	{
+   		console.log("Button was clicked. Beginning Save of Load Data.");
+		saveC(coefsForYaml, Math.round(n_splines.numericValue));
+	};
+    document.getElementById('load_data').onclick = function()
+    {
+        console.log("Button was clicked. Beginning Loading of Data.");
+        handleFileSelect();
+    };
+	px.observe('numericValue', function () {
+  		console.log(px.numericValue);
+	});
+	
+	Cx4.observe('numericValue', function () {
+  		console.log(Cx4.numericValue);
+	});
+	
+	n_splines.observe('numericValue', function() {
+		var index_num = Math.round(n_splines.numericValue);
+		console.log("index num " + index_num + " splines " + n_splines.numericValue);
+	});
+	
 });
+
+function save (valuesToSave)
+{
+	var stringSave = "";
+
+	for (var i = 0; i < valuesToSave.length; ++i)
+	{
+		stringSave += valuesToSave[i].numericValue + "\n";
+		console.log("Saved " + valuesToSave[i].numericValue);
+	}
+	writeToFile(stringSave);
+
+}
+
+function handleFileSelect() {
+    var node = document.getElementById('data');
+    console.log(node.textContent);
+    var output = [];
+    var text = node.textContent;
+    var array = text.split("\n");
+    array.splice(array.length-1)
+    console.log(array);
+    node.textContent = array;
+}
+
+
+function saveC (valuesToSave, index_num)
+{
+	var stringSave = "[";
+	for (var k = 0; k < index_num; ++k)
+	{
+		for(var s = 0; s < 2; s++)
+		{
+			if(s ==0)
+			{
+				stringSave += "{ x: ["
+			}
+			else
+			{
+
+				stringSave += "y: ["
+
+			}
+			for (var i = 0; i < 5 ; ++i)
+			{
+				
+				stringSave += valuesToSave[k + (2*i+s) * index_num].numericValue + ", ";
+				console.log("Saved: " + valuesToSave[k + (2*i+s) * index_num].numericValue + " at index: " + k + (2*i+s) * 6);
+			}
+			stringSave += valuesToSave[k + (10+s) * index_num].numericValue + "], ";
+			if(s == 1)
+			{
+				if(k != index_num -1)
+				{
+					stringSave += "orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }," + "\n"; 
+				}
+				else
+				{
+				stringSave += "orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]"+ "\n"; 
+				}
+			}
+		}	
+	}
+	writeToFileC(stringSave);
+
+}
+
+function writeToFile(text)
+{
+	var textFile = null,
+	makeTextFile = function (text) {
+    	var data = new Blob([text], {type: 'text/plain'});
+
+    	// If we are replacing a previously generated file we need to
+    	// manually revoke the object URL to avoid memory leaks.
+    	if (textFile !== null) {
+      		window.URL.revokeObjectURL(textFile);
+   		}
+
+    	textFile = window.URL.createObjectURL(data);
+
+    	return textFile;
+	};
+
+    var link = document.getElementById('downloadlink_load');
+    link.href = makeTextFile(text); //text will be one long string of all the data
+    link.style.display = 'block';
+};
+function writeToFileC(text)
+{
+	var textFile = null,
+	makeTextFile = function (text) {
+    	var data = new Blob([text], {type: 'text/plain'});
+
+    	// If we are replacing a previously generated file we need to
+    	// manually revoke the object URL to avoid memory leaks.
+    	if (textFile !== null) {
+      		window.URL.revokeObjectURL(textFile);
+   		}
+
+    	textFile = window.URL.createObjectURL(data);
+
+    	return textFile;
+	};
+
+    var link = document.getElementById('downloadlink_coef');
+    link.href = makeTextFile(text); //text will be one long string of all the data
+    link.style.display = 'block';
+};
 
 function loadGraph (calculator)
 {
 	// FIELD
+	calculator.setExpression({id:'num_splines0', latex:'n_{splines} = 5'});
 	calculator.setExpression({id:'field1', latex:'y=0\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', domain:{min:'-d_1+d_2', max:'d_1-d_2'}, color: '#000000'});
 	calculator.setExpression({id:'field2', latex:'d_1=\\frac{27}{2}\\cdot12\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field3', latex:'d_2=26.69\\cdot\\frac{2.54}{100}'});
@@ -105,6 +443,14 @@ function loadGraph (calculator)
 	calculator.setExpression({id:'position90', latex:'p_{x8}=0'});
 	calculator.setExpression({id:'position91', latex:'p_{y8}=0'});
 
+	
+
+
+
+
+
+
+
 	// VELOCITIES
 	calculator.setExpression({id:'velocity93', latex:'\\left(v_{xl},\\ v_{yl}\\right)', color: '#c74440'});
 	calculator.setExpression({id:'velocity94', latex:'v_{xl}=2.77'});
@@ -133,35 +479,40 @@ function loadGraph (calculator)
 	calculator.setExpression({id:'velocity117', latex:'\\left(v_{xl8},\\ v_{yl8}\\right)', color: '#000000'});
 	calculator.setExpression({id:'velocity118', latex:'v_{xl8}=-1.1'});
 	calculator.setExpression({id:'velocity119', latex:'v_{yl8}=-2.7'});
+
+
 	
 	// ACCELERATIONS
-	calculator.setExpression({id:'velocity120', latex:'\\left(a_{xl},\\ a_{yl}\\right)', color: '#c74440'});
-	calculator.setExpression({id:'velocity121', latex:'a_{xl}=6.49'});
-	calculator.setExpression({id:'velocity122', latex:'a_{yl}=3.72'});
-	calculator.setExpression({id:'velocity123', latex:'\\left(a_{xl1},\\ a_{yl1}\\right)', color: '#2d70b3'});
-	calculator.setExpression({id:'velocity124', latex:'a_{xl1}=1.13'});
-	calculator.setExpression({id:'velocity125', latex:'a_{yl1}=6.54'});
-	calculator.setExpression({id:'velocity126', latex:'\\left(a_{xl2},\\ a_{yl2}\\right)', color: '#388c46'});
-	calculator.setExpression({id:'velocity127', latex:'a_{xl2}=-3.5'});
-	calculator.setExpression({id:'velocity128', latex:'a_{yl2}=2.48'});
-	calculator.setExpression({id:'velocity129', latex:'\\left(a_{xl3},\\ a_{yl3}\\right)', color: '#fa7319'});
-	calculator.setExpression({id:'velocity130', latex:'a_{xl3}=12'});
-	calculator.setExpression({id:'velocity131', latex:'a_{yl3}=7.7'});
-	calculator.setExpression({id:'velocity132', latex:'\\left(a_{xl4},\\ a_{yl4}\\right)', color: '#6042a6'});
-	calculator.setExpression({id:'velocity133', latex:'a_{xl4}=2.55'});
-	calculator.setExpression({id:'velocity134', latex:'a_{yl4}=6.29'});
-	calculator.setExpression({id:'velocity135', latex:'\\left(a_{xl5},\\ a_{yl5}\\right)', color: '#000000'});
-	calculator.setExpression({id:'velocity136', latex:'a_{xl5}=0.797'});
-	calculator.setExpression({id:'velocity137', latex:'a_{yl5}=6.034'});
-	calculator.setExpression({id:'velocity138', latex:'\\left(a_{xl6},\\ a_{yl6}\\right)', color: '#c74440'});
-	calculator.setExpression({id:'velocity139', latex:'a_{xl6}=2.87'});
-	calculator.setExpression({id:'velocity140', latex:'a_{yl6}=6.91'});
-	calculator.setExpression({id:'velocity141', latex:'\\left(a_{xl7},\\ a_{yl7}\\right)', color: '#2d70b3'});
-	calculator.setExpression({id:'velocity142', latex:'a_{xl7}=2.32'});
-	calculator.setExpression({id:'velocity143', latex:'a_{yl7}=5.08'});
-	calculator.setExpression({id:'velocity144', latex:'\\left(a_{xl8},\\ a_{yl8}\\right)', color: '#000000'});
-	calculator.setExpression({id:'velocity145', latex:'a_{xl8}=-0.7'});
-	calculator.setExpression({id:'velocity146', latex:'a_{yl8}=-1.64'});
+	calculator.setExpression({id:'acceleration120', latex:'\\left(a_{xl},\\ a_{yl}\\right)', color: '#c74440'});
+	calculator.setExpression({id:'acceleration121', latex:'a_{xl}=6.49'});
+	calculator.setExpression({id:'acceleration122', latex:'a_{yl}=3.72'});
+	calculator.setExpression({id:'acceleration123', latex:'\\left(a_{xl1},\\ a_{yl1}\\right)', color: '#2d70b3'});
+	calculator.setExpression({id:'acceleration124', latex:'a_{xl1}=1.13'});
+	calculator.setExpression({id:'acceleration125', latex:'a_{yl1}=6.54'});
+	calculator.setExpression({id:'acceleration126', latex:'\\left(a_{xl2},\\ a_{yl2}\\right)', color: '#388c46'});
+	calculator.setExpression({id:'acceleration127', latex:'a_{xl2}=-3.5'});
+	calculator.setExpression({id:'acceleration128', latex:'a_{yl2}=2.48'});
+	calculator.setExpression({id:'acceleration129', latex:'\\left(a_{xl3},\\ a_{yl3}\\right)', color: '#fa7319'});
+	calculator.setExpression({id:'acceleration130', latex:'a_{xl3}=12'});
+	calculator.setExpression({id:'acceleration131', latex:'a_{yl3}=7.7'});
+	calculator.setExpression({id:'acceleration132', latex:'\\left(a_{xl4},\\ a_{yl4}\\right)', color: '#6042a6'});
+	calculator.setExpression({id:'acceleration133', latex:'a_{xl4}=2.55'});
+	calculator.setExpression({id:'acceleration134', latex:'a_{yl4}=6.29'});
+	calculator.setExpression({id:'acceleration135', latex:'\\left(a_{xl5},\\ a_{yl5}\\right)', color: '#000000'});
+	calculator.setExpression({id:'acceleration136', latex:'a_{xl5}=0.797'});
+	calculator.setExpression({id:'acceleration137', latex:'a_{yl5}=6.034'});
+	calculator.setExpression({id:'acceleration138', latex:'\\left(a_{xl6},\\ a_{yl6}\\right)', color: '#c74440'});
+	calculator.setExpression({id:'acceleration139', latex:'a_{xl6}=2.87'});
+	calculator.setExpression({id:'acceleration140', latex:'a_{yl6}=6.91'});
+	calculator.setExpression({id:'acceleration141', latex:'\\left(a_{xl7},\\ a_{yl7}\\right)', color: '#2d70b3'});
+	calculator.setExpression({id:'acceleration142', latex:'a_{xl7}=2.32'});
+	calculator.setExpression({id:'acceleration143', latex:'a_{yl7}=5.08'});
+	calculator.setExpression({id:'acceleration144', latex:'\\left(a_{xl8},\\ a_{yl8}\\right)', color: '#000000'});
+	calculator.setExpression({id:'acceleration145', latex:'a_{xl8}=-0.7'});
+	calculator.setExpression({id:'acceleration146', latex:'a_{yl8}=-1.64'});
+
+
+
 
 	// SPLINES
 	calculator.setExpression({id:'spline147', latex:'A_x\\ =\\ \\frac{1}{2}\\left(\\left(a_{x1}-a_x\\right)-6\\left(v_x+v_{x1}\\right)+12\\left(p_{x1}-p_x\\right)\\right)'});
@@ -278,6 +629,14 @@ function loadGraph (calculator)
 	calculator.setExpression({id:'spline259', latex:'f_7\\left(x\\right)\\ =\\ A_{x7}x^5+B_{x7}x^4+C_{x7}x^3+D_{x7}x^2+E_{x7}x+F_{x7}', hidden: true});
 	calculator.setExpression({id:'spline260', latex:'g_7\\left(x\\right)\\ =\\ A_{y7}x^5+B_{y7}x^4+C_{y7}x^3+D_{y7}x^2+E_{y7}x+F_{y7}', hidden: true});
 
+
+	
+
+
+
+
+
+
 	// OUT
 	calculator.setExpression({id:'out261', latex:'v_x\\ =\\left(\\ v_{xl}-p_x\\right)'});
 	calculator.setExpression({id:'out262', latex:'v_y\\ =\\ \\left(\\ v_{yl}-p_y\\right)'});
@@ -336,3 +695,50 @@ function loadGraph (calculator)
 	calculator.setExpression({id:'func312', latex:'\\left(f_6\\left(t\\right),\\ g_6\\left(t\\right)\\right)', color: '#c74440', domain:{min: 6, max: 7}});
 	calculator.setExpression({id:'func315', latex:'\\left(f_7\\left(t\\right),\\ g_7\\left(t\\right)\\right)', color: '#000000', domain:{min: 7, max: 8}});
 }
+
+/*function () {
+var textFile = null,
+  makeTextFile = function (text) {
+    var data = new Blob([text], {type: 'text/plain'});
+
+    // If we are replacing a previously generated file we need to
+    // manually revoke the object URL to avoid memory leaks.
+    if (textFile !== null) {
+      window.URL.revokeObjectURL(textFile);
+    }
+
+    textFile = window.URL.createObjectURL(data);
+
+    return textFile;
+  };
+var create = document.getElementById('create'),
+    textbox = document.getElementById('textbox');
+
+  create.addEventListener('click', function () {
+    var link = document.getElementById('downloadlink');
+    link.href = makeTextFile(textbox.value);
+    link.style.display = 'block';
+  }, false);
+})();*/
+
+
+
+/*function download_coefs()
+{
+    
+
+
+var textFile = null,
+
+
+
+  var create = document.getElementById('create'),
+    textbox = document.getElementById('textbox');
+
+  create.addEventListener('click', function () {
+    var link = document.getElementById('downloadlink');
+    link.href = makeTextFile(textbox.value);
+    link.style.display = 'block';
+
+
+}*/

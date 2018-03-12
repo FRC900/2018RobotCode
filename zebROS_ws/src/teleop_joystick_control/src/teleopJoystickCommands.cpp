@@ -21,13 +21,14 @@
  *
  */
 static double dead_zone = .2, slow_mode = .33, max_speed = 3.6, max_rot = 8.8, joystick_scale = 3;
-double dead_zone_check(double val)
+void dead_zone_check(double &val1, double &val2)
 {
-	if (fabs(val) <= dead_zone)
+	if (fabs(val1) <= dead_zone && fabs(val2) <= dead_zone)
 	{
-		return 0;
+		val1 = 0;
+		val2 = 0;
+
 	}
-	return val;
 }
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
@@ -127,6 +128,7 @@ struct ElevatorPos
 // want it to be the fast part of the code, so for now
 // pretend that is the realtime side of the code
 realtime_tools::RealtimeBuffer<ElevatorPos> elevatorPos;
+realtime_tools::RealtimeBuffer<ElevatorPos> elevatorCmd;
 
 std::atomic<bool> disableArmLimits;
 std::atomic<double> navX_angle;
@@ -750,11 +752,20 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 ///////////////////// Drivetrain and Elevator Control \\\\\\\\\\\\\\\\\\\
 
 	//talon_controllers::CloseLoopControllerMsg arm;
-	double leftStickX = (pow(dead_zone_check(JoystickState->leftStickX), joystick_scale)) * max_speed;
-	double leftStickY = (-pow(dead_zone_check(JoystickState->leftStickY), joystick_scale)) * max_speed;
+	double leftStickX = JoystickState->leftStickX;
+	double leftStickY = JoystickState->leftStickY;
 
-	double rightStickX = pow(dead_zone_check(JoystickState->rightStickX), joystick_scale);
-	double rightStickY = -pow(dead_zone_check(JoystickState->rightStickY), joystick_scale);
+	double rightStickX = JoystickState->rightStickX;
+	double rightStickY = JoystickState->rightStickY;
+	
+	dead_zone_check(leftStickX, leftStickY);
+	dead_zone_check(rightStickX, rightStickY);
+
+	leftStickX = (pow(leftStickX, joystick_scale)) * max_speed;
+	leftStickY = (-pow(leftStickY, joystick_scale)) * max_speed;
+
+	rightStickX = pow(rightStickX, joystick_scale);
+	rightStickY = -pow(rightStickY, joystick_scale);
 
 	double rotation = (JoystickState->leftTrigger - JoystickState->rightTrigger) * max_rot;
 
@@ -793,7 +804,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			
 			JoystickRobotVel.publish(vel);
 			*/
-			ROS_INFO("teleop : called BrakeSrv to stop");
 			sendRobotZero = true;
 		}
 	}
@@ -822,12 +832,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		test_header.seq = 1;
 		JoystickTestVel.publish(test_header);*/
 		sendRobotZero = false;
-		ROS_INFO_STREAM("publishing");
 	}
 
-	if (rightStickX != 0 && rightStickY != 0)
+	if (rightStickX != 0 || rightStickY != 0)
 	{
-		const ElevatorPos epos = *(elevatorPos.readFromRT());
+		const ElevatorPos epos = *(elevatorCmd.readFromRT());
 		elevatorMsg.x = epos.X_ + (timeSecs - lastTimeSecs) * rightStickX; //Access current elevator position to fix code allowing out of bounds travel
 		elevatorMsg.y = epos.Y_ + (timeSecs - lastTimeSecs) * rightStickY; //Access current elevator position to fix code allowing out of bounds travel
 		elevatorMsg.up_or_down = epos.UpOrDown_;
@@ -843,6 +852,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
 {
 	elevatorPos.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down));
+}
+void elevCmdCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
+{
+	elevatorCmd.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down));
 }
 /*
 void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotState) {
@@ -968,6 +981,7 @@ int main(int argc, char **argv)
 
 	ros::Subscriber navX_heading  = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
 	ros::Subscriber elevator_odom = n.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
+	ros::Subscriber elevator_cmd = n.subscribe("/frcrobot/elevator_controller/return_cmd_pos", 1, &elevCmdCallback);
 	ros::Subscriber cube_state    = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
 	ros::Subscriber diable_arm_limits_sub = n.subscribe("frcrobot/override_arm_limits", 1, &overrideCallback);
 

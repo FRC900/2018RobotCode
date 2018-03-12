@@ -672,7 +672,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 		const int point_count = curr_cmd.drive_pos.size();
 		ROS_INFO_STREAM("points: " << point_count);
-		for(int i = 0; i < point_count - 2; i++)
+		for(int i = 1; i < point_count - 1; i++)
 		{
 			for(size_t k = 0; k < WHEELCOUNT; k++)
 			{
@@ -796,7 +796,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			speed_joints_[i].setPIDFSlot(1);
 			steering_joints_[i].setMode(motion_profile_mode);
 			steering_joints_[i].setPIDFSlot(0);
-			speed_joints_[i].setClosedloopRamp(0.1);
+			speed_joints_[i].setClosedloopRamp(0);
 		}
 
 		const int set_on  = ((*(run_.readFromRT())) && set_check_ > 2) ? 1 : 0; //Adjust this set_check val

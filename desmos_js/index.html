@@ -6,8 +6,37 @@
 </head>
 
 <body>
-	<div id="calculator" style="width: 1000px; height: 400px;"></div>	
+	<div id="calculator" style="width: 1700px; height: 800px;"></div>	
+	<!--button onclick="download_coefs()">Download Coefs</button-->	
+	<!--textarea id="textbox">Type something here</textarea--> 
+	<!--button id="create">Create file</button-->
+	<!--a download="info.txt" id="downloadlink" style="display: none">Download</a-->
 	<script src="./pull_data.js"></script>
+	<button id="save_load_data">Save Load Data</button>
+	<a download="Load_Data.txt" id="downloadlink_load" style="display: none">Download Load Data</a>
+	<button id="save_coef_data">Save Coef Data</button>
+	<a download="Coefs.txt" id="downloadlink_coef" style="display: none">Download Coef Data</a>
+    <button id="load_data">Load Data</button>
+
+</script>
+<input type='file' accept='text/plain' onchange='openFile(event)'><br>
+<img id='output'>
+<script>
+  var openFile = function(event) {
+    var input = event.target;
+
+    var reader = new FileReader();
+    reader.onload = function(){
+      var text = reader.result;
+      var node = document.getElementById('data');
+      node.textContent = reader.result.substring(0, 2000);
+      //console.log(node.textContent);
+      //console.log(reader.result.substring(0, 2000));
+    };
+    reader.readAsText(input.files[0]);
+  };
+</script>
+<p id="data"></p>
 </body>
 
 </html>

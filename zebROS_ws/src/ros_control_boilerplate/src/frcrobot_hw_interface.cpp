@@ -383,6 +383,9 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
 	// since our MP is 10ms per point, set the control frame rate and the
 	// notifer to half that
+	
+	ros::Duration(5).sleep();	
+
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
 
@@ -394,12 +397,12 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 			if ((*can_talons_mp_written_)[i].load(std::memory_order_relaxed))
 			{
 				const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
+				const hardware_interface::MotionProfileStatus mp_status = talon_state_[i].getMotionProfileStatus();
 				// Only write to non-follow, non-disabled talons that
 				// have points to write from their top-level buffer
 				//ROS_INFO_STREAM("top count: " << can_talons_[i]->GetMotionProfileTopLevelBufferCount());
-				//TODO: get check for bottom buffer full
 				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
-					(talon_mode != hardware_interface::TalonMode_Disabled) && can_talons_[i]->GetMotionProfileTopLevelBufferCount() )
+				/*can_talons_[i]->GetMotionProfileTopLevelBufferCount()*/ mp_status.topBufferCnt && mp_status.btmBufferCnt < 127)
 				{
 					// Only write if SW buffer has entries in it
 					//ROS_INFO("needs to send points");
@@ -421,8 +424,10 @@ void FRCRobotHWInterface::init(void)
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
-	
+
+
 	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
+
 	
 	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
@@ -551,6 +556,8 @@ void FRCRobotHWInterface::init(void)
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
+	//return;
+		
 	const int talon_updates_to_skip = 2;
 	static int talon_skip_counter = 0;
 	static int next_talon_to_read = 0;
@@ -569,17 +576,17 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			next_talon_to_read = (next_talon_to_read + 1) % num_can_talon_srxs_;
 		}
 	}
-
+		
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
+		
 		auto &ts = talon_state_[joint_id];
 		auto &talon = can_talons_[joint_id];
 
 		if (!talon) // skip unintialized Talons
 			continue;
-		if (ts.getCANID() == 31)
+		if (ts.getCANID() == 31 || ts.getCANID() == 32)
 		{
-			//ROS_WARN("I HATE 31");
 			continue;
 		}
 
@@ -603,6 +610,33 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		const double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 		ts.setSpeed(speed);
+		
+	
+		if (ts.getCANID() > 30)
+		{
+			continue;
+		}
+			
+		ctre::phoenix::motion::MotionProfileStatus talon_status;
+		safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+
+		hardware_interface::MotionProfileStatus internal_status;
+		internal_status.topBufferRem = talon_status.topBufferRem;
+		internal_status.topBufferCnt = talon_status.topBufferCnt;
+		internal_status.btmBufferCnt = talon_status.btmBufferCnt;
+		internal_status.hasUnderrun = talon_status.hasUnderrun;
+		internal_status.isUnderrun = talon_status.isUnderrun;
+		internal_status.activePointValid = talon_status.activePointValid;
+		internal_status.isLast = talon_status.isLast;
+		internal_status.profileSlotSelect0 = talon_status.profileSlotSelect0;
+		internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
+		internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
+		internal_status.timeDurMs = talon_status.timeDurMs;
+		ts.setMotionProfileStatus(internal_status);
+
+		
+		//top level buffer has capacity of 4096
+		//ROS_INFO_STREAM("num rem : " << talon_status.topBufferRem);
 
 		//const double output_current = talon->GetOutputCurrent();
 		//safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
@@ -664,26 +698,9 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 				//safeTalonCall(talon->GetLastError(), "GetActiveTrajectoryHeading");
 				//ts.setActiveTrajectoryHeading(active_trajectory_heading);
 				//ts.setMotionProfileTopLevelBufferCount(talon->GetMotionProfileTopLevelBufferCount());
-				//safeTalonCall(talon->GetLastError(), "GetMotionProfileTopLevelBufferCount");
-				//ts.setMotionProfileTopLevelBufferFull(talon->IsMotionProfileTopLevelBufferFull());
+
 				//safeTalonCall(talon->GetLastError(), "IsMotionProfileTopLevelBufferFull");
-				//ctre::phoenix::motion::MotionProfileStatus talon_status;
-				//safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
 
-				//hardware_interface::MotionProfileStatus internal_status;
-				//internal_status.topBufferRem = talon_status.topBufferRem;
-				//internal_status.topBufferCnt = talon_status.topBufferCnt;
-				//internal_status.btmBufferCnt = talon_status.btmBufferCnt;
-				//internal_status.hasUnderrun = talon_status.hasUnderrun;
-				//internal_status.isUnderrun = talon_status.isUnderrun;
-				//internal_status.activePointValid = talon_status.activePointValid;
-				//internal_status.isLast = talon_status.isLast;
-				//internal_status.profileSlotSelect0 = talon_status.profileSlotSelect0;
-				//internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
-				//internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
-				//internal_status.timeDurMs = talon_status.timeDurMs;
-
-				//ts.setMotionProfileStatus(internal_status);
 			}
 
 			//ctre::phoenix::motorcontrol::Faults faults;
@@ -804,12 +821,14 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		
 		navX_state_[i] = offset_navX_[i];
 	}
-	for (size_t i = 0; i < num_compressors_; i++)
+	
+	/*for (size_t i = 0; i < num_compressors_; i++)
 	{
 		compressor_state_[i] = compressors_[i]->GetCompressorCurrent();
-	}
+	}*/
 	
 	//read info from the PDP hardware
+	/*	
 	int32_t status = 0;
 	pdp_state_.setVoltage(HAL_GetPDPVoltage(0, &status));
 	pdp_state_.setTemperature(HAL_GetPDPTemperature(0, &status));
@@ -821,6 +840,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		pdp_state_.setCurrent(HAL_GetPDPChannelCurrent(0, channel, &status), channel);
 	}
+	*/
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
