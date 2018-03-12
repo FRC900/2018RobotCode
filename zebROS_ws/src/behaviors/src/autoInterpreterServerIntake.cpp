@@ -81,6 +81,14 @@ class autoAction {
             }
             */		    
             }
+            
+            srv.request.power = success ? -0.15 : 0;
+            srv.request.spring_state = 3; //soft in
+            srv.request.up = false;
+            if(!IntakeSrv.call(srv)) 
+                ROS_ERROR("Srv intake call failed in auto interpreter server intake");
+            else
+                ROS_INFO("Srv intake call OK in auto interpreter server intake");
         }
 	//else if goal->
 	//{}
