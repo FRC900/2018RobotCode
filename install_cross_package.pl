@@ -146,3 +146,7 @@ install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-
 
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/tbb-dev_4.1-r20130314.8_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/tbb_4.1-r20130314.8_cortexa9-vfpv3.ipk");
+
+# rsync packages needed for deployment script
+install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/libacl1_2.2.52-r0.105_cortexa9-vfpv3.ipk");
+install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/rsync_3.1.2-r0.3_cortexa9-vfpv3.ipk");
