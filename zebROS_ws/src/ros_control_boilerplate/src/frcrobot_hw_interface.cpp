@@ -384,7 +384,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 	// since our MP is 10ms per point, set the control frame rate and the
 	// notifer to half that
 	
-	ros::Duration(5).sleep();	
+	ros::Duration(3).sleep();	
 
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
@@ -406,7 +406,15 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 				{
 					// Only write if SW buffer has entries in it
 					//ROS_INFO("needs to send points");
+					(*can_talons_mp_writing_)[i].store(true, std::memory_order_relaxed);
 					can_talons_[i]->ProcessMotionProfileBuffer();
+				}
+				else
+				{
+					
+					(*can_talons_mp_writing_)[i].store(false, std::memory_order_relaxed);
+			
+
 				}
 			}
 		}
@@ -430,6 +438,8 @@ void FRCRobotHWInterface::init(void)
 
 	
 	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
+	can_talons_mp_writing_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
+	can_talons_mp_running_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
@@ -596,23 +606,40 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		const hardware_interface::TalonMode talon_mode = ts.getTalonMode();
 		if (talon_mode == hardware_interface::TalonMode_Follower)
 			continue;
-		
-		const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
-		const double conversion_factor = ts.getConversionFactor();
 
-		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
-		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
-		
-		const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
-		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
-		ts.setPosition(position);
+		/*	
+		if((*can_talons_mp_running_)[joint_id].load(std::memory_order_relaxed))
+		{
+			ROS_INFO_STREAM("running");
+		}
+		if((*can_talons_mp_writing_)[joint_id].load(std::memory_order_relaxed))
+		{
+			ROS_INFO_STREAM("writing");
+		}
+		if((*can_talons_mp_written_)[joint_id].load(std::memory_order_relaxed))
+		{
+			ROS_INFO_STREAM("written");
+		}
+		*/
+		if (!(*can_talons_mp_writing_)[joint_id].load(std::memory_order_relaxed) &&  !(*can_talons_mp_running_)[joint_id].load(std::memory_order_relaxed) )
+		{
+			
+			const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
+			const double conversion_factor = ts.getConversionFactor();
 
-		const double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
-		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
-		ts.setSpeed(speed);
-		
-	
-		if (ts.getCANID() > 30)
+			const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
+			const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
+			
+			const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
+			safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
+			ts.setPosition(position);
+
+			const double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
+			safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
+			ts.setSpeed(speed);
+			
+		}
+		if (ts.getCANID() > 30 || !(*can_talons_mp_written_)[joint_id].load(std::memory_order_relaxed))
 		{
 			continue;
 		}
@@ -1363,7 +1390,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
 			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
 			{
-				ROS_INFO_STREAM("Pre buffer");
+				//ROS_INFO_STREAM("Pre buffer");
 				//ROS_WARN("point_buffer");
 				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
 				{
@@ -1381,7 +1408,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
 					safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
 				}
-				ROS_INFO_STREAM("Post buffer");
+				//ROS_INFO_STREAM("Post buffer");
 				// Copy the 1st profile trajectory point from
 				// the top level buffer to the talon
 				// Subsequent points will be copied by
@@ -1425,6 +1452,9 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					command /= radians_scale;
 					break;
 			}
+
+			
+			(*can_talons_mp_running_)[joint_id].store(out_mode == ctre::phoenix::motorcontrol::ControlMode::MotionProfile && command == 1, std::memory_order_relaxed);
 
 			//ROS_INFO_STREAM("in mode: " << in_mode);
 			talon->Set(out_mode, command);
