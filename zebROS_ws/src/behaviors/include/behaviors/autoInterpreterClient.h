@@ -1,3 +1,5 @@
+#pragma once
+
 #include "ros/ros.h"
 #include "ros/console.h"
 #include "ros_control_boilerplate/AutoMode.h"
@@ -37,9 +39,10 @@ bool stopIntake(elevator_controller::Intake srv);
 bool releaseClamp(std_srvs::SetBool srv);
 bool clamp(std_srvs::SetBool srv);
 bool releaseIntake(elevator_controller::Intake srv);
-void generateTrajectory(int auto_mode,int layout,int start_pos);
+bool generateTrajectory(int auto_mode,int layout,int start_pos);
 void runTrajectory(int auto_mode);
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode);
 void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData);
 void run_auto(int auto_mode);
-void bufferTrajectory(int auto_mode);
+void bufferTrajectory(int auto_mode, int layout, int start_pos);
+void load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data);

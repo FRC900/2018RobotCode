@@ -44,6 +44,21 @@ static bool in_auto;
 std::vector<std::vector<double>> times_vect(4);
 std::vector<talon_swerve_drive_controller::FullGenCoefs> coefs_vect(4);
 
+//consider adding some constructors for these structs
+
+struct full_mode
+{
+	talon_swerve_drive_controller::FullGenCoefs srv_msg;
+	std::vector<double> times;
+	bool exists;
+
+	full_mode(void): exists(false) {}	
+};
+
+typedef std::vector<std::vector<std::vector<full_mode>>> mode_list;
+
+static mode_list all_modes;
+
 // TODO : for all of these just make srv a local
 bool defaultConfig(elevator_controller::ElevatorControlS srv) {
     srv.request.x = default_x;
@@ -161,75 +176,95 @@ bool releaseIntake(elevator_controller::Intake srv) {
 	return true;
 }
 
-void generateTrajectory(int auto_mode, int layout, int start_pos) {
 
-    //XmlRpc::XmlRpcValue &path = modes[auto_mode][layout][start_pos];
-    XmlRpc::XmlRpcValue &path = modes[auto_mode][layout][start_pos];
-    //XmlRpc::XmlRpcValue &xml_x = path["x"];
-    //XmlRpc::XmlRpcValue &xml_t = path["times"];
-    ROS_WARN("check 0");
-    const int num_splines = path.size();
-    ROS_WARN("check 1");
-    talon_swerve_drive_controller::FullGenCoefs srv;
+void load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data)
+{
+	XmlRpc::XmlRpcValue mode_xml;
+	all_modes.resize(max_mode_num + 1);
+	for(int mode = 0; mode <= max_mode_num; mode++)
+	{
+		all_modes[mode].resize(4);
+		for(int layout = 0; layout <= 3; layout++)
+		{
+			all_modes[mode][layout].resize(max_start_pos_num + 1);
+			for(int start_pos = 0; start_pos <= max_start_pos_num; start_pos++)
+			{
+				
+				std::string identifier("mode_"+std::to_string(mode)+"_layout_"+
+				std::to_string(layout)+"_start_"+std::to_string(start_pos));
 
-	ROS_INFO_STREAM("checking size: " << num_splines << " is real?");
-    for(int num = 0; num<num_splines; num++) {
-        XmlRpc::XmlRpcValue &spline = path[num];
-        ROS_WARN("check 1.5");
-        XmlRpc::XmlRpcValue &x = spline["x"];
-        ROS_WARN("check 2");
-        XmlRpc::XmlRpcValue &y = spline["y"];
-        ROS_WARN("check 3");
-        XmlRpc::XmlRpcValue &orient = spline["orient"];
-        ROS_WARN("check 4");
-        XmlRpc::XmlRpcValue &time = spline["time"];
 
-        talon_swerve_drive_controller::Coefs x_coefs;
-        talon_swerve_drive_controller::Coefs y_coefs;
-        talon_swerve_drive_controller::Coefs orient_coefs;
-        ROS_WARN("check 5");
-        for(int i = 0; i<x.size(); i++) {
-            ROS_WARN("check 6");
-            const double x_coef = x[i];
-            const double y_coef = y[i];
-            const double orient_coef = orient[i];
+				if(auto_data.getParam(identifier, mode_xml))
+				{
+					ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
+					const int num_splines = mode_xml.size();
+					for(int num = 0; num<num_splines; num++) {
+						XmlRpc::XmlRpcValue &spline = mode_xml[num];
+						XmlRpc::XmlRpcValue &x = spline["x"];
+						XmlRpc::XmlRpcValue &y = spline["y"];
+						XmlRpc::XmlRpcValue &orient = spline["orient"];
+						XmlRpc::XmlRpcValue &time = spline["time"];
 
-            //ROS_WARN("%f", orient_coef);
-            x_coefs.spline.push_back(x_coef);
-            y_coefs.spline.push_back(y_coef);
-            orient_coefs.spline.push_back(orient_coef);
-            ROS_WARN("check 7");
-        }
-        const double t = time;
-        times_vect[layout].push_back(t);
-        /*
-        if(coefs_vect[layout].request.x_coefs.size()!=0) {
-            coefs_vect[layout].request.x_coefs.clear();
-            coefs_vect[layout].request.y_coefs.clear();
-            coefs_vect[layout].request.orient_coefs.clear();
-            coefs_vect[layout].request.end_points.clear();
-        }*/
-        srv.request.x_coefs.push_back(x_coefs);
-        srv.request.y_coefs.push_back(y_coefs);
-        srv.request.orient_coefs.push_back(orient_coefs);
-        srv.request.end_points.push_back(num+1);
-    }
-     
-    ROS_WARN("check 10");
-    /*for(int i = 0; i<xml_t.size(); i++) {
-        const double t_val = xml_t[i];
-        times_vect[layout].push_back(t_val);
-    }*/
-    srv.request.initial_v = 0;
-    srv.request.final_v = 0;
-    coefs_vect[layout] = srv;
-    ROS_WARN("check 11");
-    if (!point_gen.call(coefs_vect[layout]))
-		ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
+						talon_swerve_drive_controller::Coefs x_coefs;
+						talon_swerve_drive_controller::Coefs y_coefs;
+						talon_swerve_drive_controller::Coefs orient_coefs;
+						for(int i = 0; i<x.size(); i++) {
+						    const double x_coef = x[i];
+						    const double y_coef = y[i];
+						    const double orient_coef = orient[i];
+
+						    //ROS_WARN("%f", orient_coef);
+						    x_coefs.spline.push_back(x_coef);
+						    y_coefs.spline.push_back(y_coef);
+						    orient_coefs.spline.push_back(orient_coef);
+						}
+						const double t = time;
+						all_modes[mode][layout][start_pos].times.push_back(t);
+						/*
+						if(coefs_vect[layout].request.x_coefs.size()!=0) {
+						    coefs_vect[layout].request.x_coefs.clear();
+						    coefs_vect[layout].request.y_coefs.clear();
+						    coefs_vect[layout].request.orient_coefs.clear();
+						    coefs_vect[layout].request.end_points.clear();
+						}*/
+						all_modes[mode][layout][start_pos].srv_msg.request.x_coefs.push_back(x_coefs);
+						all_modes[mode][layout][start_pos].srv_msg.request.y_coefs.push_back(y_coefs);
+						all_modes[mode][layout][start_pos].srv_msg.request.orient_coefs.push_back(orient_coefs);
+						all_modes[mode][layout][start_pos].srv_msg.request.end_points.push_back(num+1);
+					}
+					all_modes[mode][layout][start_pos].srv_msg.request.initial_v = 0; 
+					all_modes[mode][layout][start_pos].srv_msg.request.final_v = 0; 
+					all_modes[mode][layout][start_pos].exists = true; 
+
+				}
+			}
+
+		}
+
+	}
+
+
+
+
+}
+bool generateTrajectory(int auto_mode, int layout, int start_pos) {
     
+    if(!all_modes[auto_mode][layout][start_pos].exists)
+    {
+	//TODO MAKE LIGHT GO RED ON DRIVERSTATION
+	ROS_ERROR("auto mode/layout/start selected which wasn't found in the yaml");
+    	return false;
+    }
+    
+    if (!point_gen.call(all_modes[auto_mode][layout][start_pos].srv_msg))
+    {
+		ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
+    	return false;
+    }
     ///JUST FOR TESTING_______
-    bufferTrajectory(layout);
+    bufferTrajectory(auto_mode, layout, start_pos);
     ///JUST FOR TESTING_______
+    return true;
 }
 
 std::string lower(std::string str) {
@@ -240,13 +275,13 @@ std::string lower(std::string str) {
     return new_string;
 }
 
-void bufferTrajectory(int auto_mode) {
+void bufferTrajectory(int auto_mode, int layout, int start_pos) {
     ROS_WARN("Buffer trajectory");
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
-    swerve_control_srv.request.points = coefs_vect[auto_mode].response.points;
-    ROS_INFO_STREAM("num_points: " << coefs_vect[auto_mode].response.points.size() << " dt: "<< coefs_vect[auto_mode].response.dt);
+    swerve_control_srv.request.points = all_modes[auto_mode][layout][start_pos].srv_msg.response.points;
+    ROS_INFO_STREAM("num_points: " << all_modes[auto_mode][layout][start_pos].srv_msg.response.points.size() << " dt: "<<all_modes[auto_mode][layout][start_pos].srv_msg.response.dt);
     
-    swerve_control_srv.request.dt = coefs_vect[auto_mode].response.dt;
+    swerve_control_srv.request.dt = all_modes[auto_mode][layout][start_pos].srv_msg.response.dt;
     swerve_control_srv.request.buffer = true;
     swerve_control_srv.request.clear  = true;
     swerve_control_srv.request.run    = false;
@@ -353,7 +388,8 @@ void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &M
         in_auto = true;
         
         if(auto_mode_vect[auto_mode] > 2) {
-            bufferTrajectory(auto_mode);
+            //bufferTrajectory(auto_mode);
+	    //TODO WHAT IS THIS FOR???
         }
         
     }
@@ -1014,7 +1050,11 @@ int main(int argc, char** argv) {
     n_params.getParam("default_y", default_y);
     n_params.getParam("timeout", timeout);
 
-    n_params_behaviors.getParam("modes", modes);
+    int max_num_mode;
+    int max_num_start;
+
+    n_params_behaviors.getParam("max_num_mode", max_num_mode);
+    n_params_behaviors.getParam("max_num_start", max_num_start);
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
     ac->waitForServer(); 
 
@@ -1035,10 +1075,13 @@ int main(int argc, char** argv) {
 
     ros::Subscriber auto_mode_sub = n.subscribe("autonomous_mode", 1, &auto_mode_cb);
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
+    load_all_trajectories(max_num_mode, max_num_start, n_params_behaviors);
+
+
     ROS_WARN("Auto Client loaded");
-    ros::Duration(25).sleep();
+    ros::Duration(10).sleep();
     ROS_WARN("post sleep");
-    generateTrajectory(0, 2, 0);
+    generateTrajectory(0, 3, 2);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     //ros::spin();
