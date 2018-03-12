@@ -208,6 +208,12 @@ document.addEventListener("DOMContentLoaded", function(event)
 	Fy, Fy1, Fy2, Fy3, Fy4, Fy5, Fy6, Fy7,  
 	];
 
+	document.getElementById('save_coef_data').onclick = function()
+	{
+   		console.log("Button was clicked. Beginning Save of Load Data.");
+		saveC(coefsForYaml);
+	};
+
 	px.observe('numericValue', function () {
   		console.log(px.numericValue);
 	});
@@ -226,6 +232,17 @@ function save (valuesToSave)
 		console.log("Saved " + valuesToSave[i].numericValue);
 	}
 	writeToFile(stringSave);
+
+}
+function saveC (valuesToSave)
+{
+	var stringSave = "";
+	for (var i = 0; i < valuesToSave.length; ++i)
+	{
+		stringSave += valuesToSave[i].numericValue + "\n";
+		console.log("Saved " + valuesToSave[i].numericValue);
+	}
+	writeToFileC(stringSave);
 
 }
 
@@ -247,6 +264,27 @@ function writeToFile(text)
 	};
 
     var link = document.getElementById('downloadlink_load');
+    link.href = makeTextFile(text); //text will be one long string of all the data
+    link.style.display = 'block';
+};
+function writeToFileC(text)
+{
+	var textFile = null,
+	makeTextFile = function (text) {
+    	var data = new Blob([text], {type: 'text/plain'});
+
+    	// If we are replacing a previously generated file we need to
+    	// manually revoke the object URL to avoid memory leaks.
+    	if (textFile !== null) {
+      		window.URL.revokeObjectURL(textFile);
+   		}
+
+    	textFile = window.URL.createObjectURL(data);
+
+    	return textFile;
+	};
+
+    var link = document.getElementById('downloadlink_coef');
     link.href = makeTextFile(text); //text will be one long string of all the data
     link.style.display = 'block';
 };
