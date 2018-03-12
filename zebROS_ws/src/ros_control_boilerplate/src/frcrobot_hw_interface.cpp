@@ -383,6 +383,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
 	// since our MP is 10ms per point, set the control frame rate and the
 	// notifer to half that
+	return;
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
 
@@ -423,7 +424,8 @@ void FRCRobotHWInterface::init(void)
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
 	
 	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
-	
+
+	return;	
 	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
@@ -551,6 +553,7 @@ void FRCRobotHWInterface::init(void)
 
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
+	return;
 	const int talon_updates_to_skip = 2;
 	static int talon_skip_counter = 0;
 	static int next_talon_to_read = 0;
@@ -1007,6 +1010,7 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
+	return;
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		//TODO : skip over most or all of this if the talon is in follower mode
