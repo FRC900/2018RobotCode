@@ -7,6 +7,9 @@ ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
 
 // Stuff shared between callbacks and main code
+// Wrap these in 1 realtime buffer per callback
+// writefromnonRt in callback, readFromRT in
+// run_auto and other uses
 static std::atomic<int> start_pos; // or maybe just bundle with mutex below
 std::vector<int> auto_mode_vect = {0, 0, 0, 0};
 std::vector<double> delays_vect = {0, 0, 0, 0};
@@ -15,7 +18,6 @@ static std::atomic<int> auto_mode;
 static std::atomic<int> layout;
 static std::atomic<bool> in_auto;
 
-//static ros::Publisher IntakeService;
 static ros::ServiceClient IntakeService;
 static ros::ServiceClient ElevatorService;
 static ros::ServiceClient ClampService;
@@ -36,7 +38,6 @@ static double intake_config_x;
 static double intake_config_y;
 static double default_x;
 static double default_y;
-static XmlRpc::XmlRpcValue modes;
 
 //consider adding some constructors for these structs
 
