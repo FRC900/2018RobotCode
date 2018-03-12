@@ -1036,7 +1036,6 @@ int main(int argc, char** argv) {
     ros::Subscriber auto_mode_sub = n.subscribe("autonomous_mode", 1, &auto_mode_cb);
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
     ROS_WARN("Auto Client loaded");
-    ros::Duration(10).sleep();
     ros::Duration(25).sleep();
     ROS_WARN("post sleep");
     generateTrajectory(0, 2, 0);
