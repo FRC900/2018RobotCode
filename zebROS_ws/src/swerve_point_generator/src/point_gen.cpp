@@ -193,35 +193,62 @@ int main(int argc, char **argv)
 	double max_brake_accel;
 	double ang_accel_conv;
 
-	bool lookup_wheel_radius = !controller_nh.getParam("wheel_radius", model.wheelRadius);
-	bool lookup_max_accel = !controller_nh.getParam("max_accel", max_accel);
-	bool lookup_max_brake_accel = !controller_nh.getParam("max_brake_accel", max_brake_accel);
-	bool lookup_ang_accel_conv = !controller_nh.getParam("ang_accel_conv", ang_accel_conv);
-	bool lookup_max_speed = !controller_nh.getParam("max_speed", model.maxSpeed);
-	bool lookup_mass = !controller_nh.getParam("mass", model.mass);
-	bool lookup_motor_free_speed = !controller_nh.getParam("motor_free_speed", model.motorFreeSpeed);
-	bool lookup_motor_stall_torque = !controller_nh.getParam("motor_stall_torque", model.motorStallTorque);
+	if (!controller_nh.getParam("wheel_radius", model.wheelRadius))
+		ROS_ERROR("Could not read wheel_radius in point_gen");
+	if (!controller_nh.getParam("max_accel", max_accel))
+		ROS_ERROR("Could not read max_accel in point_gen");
+	if (!controller_nh.getParam("max_brake_accel", max_brake_accel))
+		ROS_ERROR("Could not read max_brake_accel in point_gen");
+	if (!controller_nh.getParam("ang_accel_conv", ang_accel_conv))
+		ROS_ERROR("Could not read ang_accel_conv in point_gen");
+	if (!controller_nh.getParam("max_speed", model.maxSpeed))
+		ROS_ERROR("Could not read max_speed in point_gen");
+	if (!controller_nh.getParam("mass", model.mass))
+		ROS_ERROR("Could not read mass in point_gen");
+	if (!controller_nh.getParam("motor_free_speed", model.motorFreeSpeed))
+		ROS_ERROR("Could not read motor_free_speed in point_gen");
+	if (!controller_nh.getParam("motor_stall_torque", model.motorStallTorque))
+		ROS_ERROR("Could not read motor_stall_torque in point_gen");
 	// TODO : why not just use the number of wheels read from yaml?
-	bool lookup_motor_quantity = !controller_nh.getParam("motor_quantity", model.motorQuantity);
-	bool lookup_invert_wheel_angle = !controller_nh.getParam("invert_wheel_angle", invert_wheel_angle);
-	bool lookup_ratio_encoder_to_rotations = !controller_nh.getParam("ratio_encoder_to_rotations", drive_ratios.encodertoRotations);
-	bool lookup_ratio_motor_to_rotations = !controller_nh.getParam("ratio_motor_to_rotations", drive_ratios.motortoRotations);
-	bool lookup_ratio_motor_to_steering = !controller_nh.getParam("ratio_motor_to_steering", drive_ratios.motortoSteering); // TODO : not used?
-	bool lookup_encoder_drive_get_V_units = !controller_nh.getParam("encoder_drive_get_V_units", units.rotationGetV);
-	bool lookup_encoder_drive_get_P_units = !controller_nh.getParam("encoder_drive_get_P_units", units.rotationGetP);
-	bool lookup_encoder_drive_set_V_units = !controller_nh.getParam("encoder_drive_set_V_units", units.rotationSetV);
-	bool lookup_encoder_drive_set_P_units = !controller_nh.getParam("encoder_drive_set_P_units", units.rotationSetP);
-	bool lookup_encoder_steering_get_units = !controller_nh.getParam("encoder_steering_get_units", units.steeringGet);
-	bool lookup_encoder_steering_set_units = !controller_nh.getParam("encoder_steering_set_units", units.steeringSet);
+	if (!controller_nh.getParam("motor_quantity", model.motorQuantity))
+		ROS_ERROR("Could not read motor_quantity in point_gen");
+	if (!controller_nh.getParam("invert_wheel_angle", invert_wheel_angle))
+		ROS_ERROR("Could not read invert_wheel_angle in point_gen");
+	if (!controller_nh.getParam("ratio_encoder_to_rotations", drive_ratios.encodertoRotations))
+		ROS_ERROR("Could not read ratio_encoder_to_rotations in point_gen");
+	if (!controller_nh.getParam("ratio_motor_to_rotations", drive_ratios.motortoRotations))
+		ROS_ERROR("Could not read ratio_motor_to_rotations in point_gen");
+	if (!controller_nh.getParam("ratio_motor_to_steering", drive_ratios.motortoSteering))
+		ROS_ERROR("Could not read ratio_motor_to_steering in point_gen");
+	if (!controller_nh.getParam("encoder_drive_get_V_units", units.rotationGetV))
+		ROS_ERROR("Could not read encoder_drive_get_V_units in point_gen");
+	if (!controller_nh.getParam("encoder_drive_get_P_units", units.rotationGetP))
+		ROS_ERROR("Could not read encoder_drive_get_P_units in point_gen");
+	if (!controller_nh.getParam("encoder_drive_set_V_units", units.rotationSetV))
+		ROS_ERROR("Could not read encoder_drive_set_V_units in point_gen");
+	if (!controller_nh.getParam("encoder_drive_set_P_units", units.rotationSetP))
+		ROS_ERROR("Could not read encoder_drive_set_P_units in point_gen");
+	if (!controller_nh.getParam("encoder_steering_get_units", units.steeringGet))
+		ROS_ERROR("Could not read encoder_steering_get_units in point_gen");
+	if (!controller_nh.getParam("encoder_steering_set_units", units.steeringSet))
+		ROS_ERROR("Could not read encoder_steering_set_units in point_gen");
 	std::array<Eigen::Vector2d, WHEELCOUNT> wheel_coords;
-	bool lookup_wheel1x = !controller_nh.getParam("wheel_coords1x", wheel_coords[0][0]);
-	bool lookup_wheel2x = !controller_nh.getParam("wheel_coords2x", wheel_coords[1][0]);
-	bool lookup_wheel3x = !controller_nh.getParam("wheel_coords3x", wheel_coords[2][0]);
-	bool lookup_wheel4x = !controller_nh.getParam("wheel_coords4x", wheel_coords[3][0]);
-	bool lookup_wheel1y = !controller_nh.getParam("wheel_coords1y", wheel_coords[0][1]);
-	bool lookup_wheel2y = !controller_nh.getParam("wheel_coords2y", wheel_coords[1][1]);
-	bool lookup_wheel3y = !controller_nh.getParam("wheel_coords3y", wheel_coords[2][1]);
-	bool lookup_wheel4y = !controller_nh.getParam("wheel_coords4y", wheel_coords[3][1]);
+	if (!controller_nh.getParam("wheel_coords1x", wheel_coords[0][0]))
+		ROS_ERROR("Could not read wheel_coords1x in point_gen");
+	if (!controller_nh.getParam("wheel_coords2x", wheel_coords[1][0]))
+		ROS_ERROR("Could not read wheel_coords2x in point_gen");
+	if (!controller_nh.getParam("wheel_coords3x", wheel_coords[2][0]))
+		ROS_ERROR("Could not read wheel_coords3x in point_gen");
+	if (!controller_nh.getParam("wheel_coords4x", wheel_coords[3][0]))
+		ROS_ERROR("Could not read wheel_coords4x in point_gen");
+	if (!controller_nh.getParam("wheel_coords1y", wheel_coords[0][1]))
+		ROS_ERROR("Could not read wheel_coords1y in point_gen");
+	if (!controller_nh.getParam("wheel_coords2y", wheel_coords[1][1]))
+		ROS_ERROR("Could not read wheel_coords2y in point_gen");
+	if (!controller_nh.getParam("wheel_coords3y", wheel_coords[2][1]))
+		ROS_ERROR("Could not read wheel_coords3y in point_gen");
+	if (!controller_nh.getParam("wheel_coords4y", wheel_coords[3][1]))
+		ROS_ERROR("Could not read wheel_coords4y in point_gen");
 
 	//ROS_WARN("point_init");
 	//ROS_INFO_STREAM("model max speed: " << model.maxSpeed << " radius: " << model.wheelRadius);
