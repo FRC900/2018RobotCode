@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 	loadGraph(calculator);
 	console.log(calculator.getExpressions());
 	// must create helper expressions for each value you want to save!
+	var n_splines = calculator.HelperExpression({latex: 'n_{splines}'})
 	var py = calculator.HelperExpression({latex: 'p_{y}'});
 	var py1 = calculator.HelperExpression({latex: 'p_{y1}'});
 	var py2 = calculator.HelperExpression({latex: 'p_{y2}'});
@@ -173,7 +174,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 	var Fx5 = calculator.HelperExpression({latex: 'F_{x5}'});
 	var Fx6 = calculator.HelperExpression({latex: 'F_{x6}'});
 	var Fx7 = calculator.HelperExpression({latex: 'F_{x7}'});
-	var valuesToSave = [ px, px1, px2, px3, px4, px5, px6, px7, px8, 
+	var valuesToSave = [n_splines, px, px1, px2, px3, px4, px5, px6, px7, px8, 
 	py, py1, py2, py3, py4, py5, py6, py7, py8, 
 	vxl, vxl1, vxl2, vxl3, vxl4, vxl5, vxl6, vxl7, vxl8, 
 	vyl, vyl1, vyl2, vyl3, vyl4, vyl5, vyl6, vyl7, vyl8, 
@@ -193,7 +194,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 		save(valuesToSave);
 	};
 
-	var index_num = 8;
+
 	
 	var coefsForYaml = [
 	Ax, Ax1, Ax2, Ax3, Ax4, Ax5, Ax6, Ax7,  
@@ -213,7 +214,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 	document.getElementById('save_coef_data').onclick = function()
 	{
    		console.log("Button was clicked. Beginning Save of Load Data.");
-		saveC(coefsForYaml, index_num);
+		saveC(coefsForYaml, Math.round(n_splines.numericValue));
 	};
 
 	px.observe('numericValue', function () {
@@ -223,6 +224,12 @@ document.addEventListener("DOMContentLoaded", function(event)
 	Cx4.observe('numericValue', function () {
   		console.log(Cx4.numericValue);
 	});
+	
+	n_splines.observe('numericValue', function() {
+		var index_num = Math.round(n_splines.numericValue);
+		console.log("index num " + index_num + " splines " + n_splines.numericValue);
+	});
+	
 });
 
 function save (valuesToSave)
@@ -324,6 +331,7 @@ function writeToFileC(text)
 function loadGraph (calculator)
 {
 	// FIELD
+	calculator.setExpression({id:'num_splines0', latex:'n_{splines} = 5'});
 	calculator.setExpression({id:'field1', latex:'y=0\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', domain:{min:'-d_1+d_2', max:'d_1-d_2'}, color: '#000000'});
 	calculator.setExpression({id:'field2', latex:'d_1=\\frac{27}{2}\\cdot12\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field3', latex:'d_2=26.69\\cdot\\frac{2.54}{100}'});
