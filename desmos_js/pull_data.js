@@ -192,6 +192,8 @@ document.addEventListener("DOMContentLoaded", function(event)
    		console.log("Button was clicked. Beginning Save of Load Data.");
 		save(valuesToSave);
 	};
+
+	var index_num = 8;
 	
 	var coefsForYaml = [
 	Ax, Ax1, Ax2, Ax3, Ax4, Ax5, Ax6, Ax7,  
@@ -211,7 +213,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 	document.getElementById('save_coef_data').onclick = function()
 	{
    		console.log("Button was clicked. Beginning Save of Load Data.");
-		saveC(coefsForYaml);
+		saveC(coefsForYaml, index_num);
 	};
 
 	px.observe('numericValue', function () {
@@ -226,6 +228,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 function save (valuesToSave)
 {
 	var stringSave = "";
+
 	for (var i = 0; i < valuesToSave.length; ++i)
 	{
 		stringSave += valuesToSave[i].numericValue + "\n";
@@ -234,13 +237,42 @@ function save (valuesToSave)
 	writeToFile(stringSave);
 
 }
-function saveC (valuesToSave)
+function saveC (valuesToSave, index_num)
 {
-	var stringSave = "";
-	for (var i = 0; i < valuesToSave.length; ++i)
+	var stringSave = "[";
+	for (var k = 0; k < index_num; ++k)
 	{
-		stringSave += valuesToSave[i].numericValue + "\n";
-		console.log("Saved " + valuesToSave[i].numericValue);
+		for(var s = 0; s < 2; s++)
+		{
+			if(s ==0)
+			{
+				stringSave += "{ x: ["
+			}
+			else
+			{
+
+				stringSave += "y: ["
+
+			}
+			for (var i = 0; i < 5 ; ++i)
+			{
+				
+				stringSave += valuesToSave[k + (2*i+s) * index_num].numericValue + ", ";
+				console.log("Saved: " + valuesToSave[k + (2*i+s) * index_num].numericValue + " at index: " + k + (2*i+s) * 6);
+			}
+			stringSave += valuesToSave[k + (10+s) * index_num].numericValue + "], ";
+			if(s == 1)
+			{
+				if(k != index_num -1)
+				{
+					stringSave += "orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }," + "\n"; 
+				}
+				else
+				{
+				stringSave += "orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]"+ "\n"; 
+				}
+			}
+		}	
 	}
 	writeToFileC(stringSave);
 
