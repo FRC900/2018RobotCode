@@ -36,7 +36,7 @@ generate_messages(
 catkin_package(
   CATKIN_DEPENDS
   INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
+  #LIBRARIES ${PROJECT_NAME}
   DEPENDS Eigen
 )
 

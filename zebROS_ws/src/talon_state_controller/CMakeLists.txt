@@ -21,7 +21,7 @@ catkin_package(
   CATKIN_DEPENDS realtime_tools roscpp hardware_interface pluginlib
   controller_interface sensor_msgs message_runtime
   INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
+  #LIBRARIES ${PROJECT_NAME}
   )
 
 include_directories(include ${Boost_INCLUDE_DIR} ${catkin_INCLUDE_DIRS})

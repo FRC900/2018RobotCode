@@ -74,7 +74,6 @@ add_dependencies(${PROJECT_NAME}
   talon_swerve_drive_controller_generate_messages_cpp
 )
 
-
 target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
 
 install(DIRECTORY include/${PROJECT_NAME}/
