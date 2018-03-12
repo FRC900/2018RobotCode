@@ -18,5 +18,6 @@ DEBIAN_FRONTEND=noninteractive sudo apt install -y \
 	ros-kinetic-control-toolbox \
 	ros-kinetic-rosparam-shortcuts \
 	ros-kinetic-joint-trajectory-controller \
-	ros-kinetic-serial
+	ros-kinetic-serial \
+	ros-kinetic-forward-command-controller
 
