@@ -1094,7 +1094,7 @@ int main(int argc, char** argv) {
     ROS_WARN("Auto Client loaded");
     ros::Duration(10).sleep();
     ROS_WARN("post sleep");
-    generateTrajectory(0, 3, 2);
+    generateTrajectory(2, 3, 0);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     //ros::spin();
