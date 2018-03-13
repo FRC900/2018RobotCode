@@ -95,13 +95,14 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 		
 		talon_swerve_drive_controller::GenerateSwerveProfile::Response srv_msg; //TODO FIX THIS, HACK
 		srv_msg.points.resize(0);
-		profile_gen->generate_profile(x_splines, y_splines, orient_splines, req.initial_v, req.final_v, srv_msg, end_points_holder, t_shift);
+		profile_gen->generate_profile(x_splines, y_splines, orient_splines, req.initial_v, req.final_v, srv_msg, end_points_holder, /*t_shift*/ 0);
 		const int point_count = srv_msg.points.size();
 		ROS_WARN("TEST2");
 
 		talon_swerve_drive_controller::MotionProfile graph_msg;
 		graph_msg.request.joint_trajectory.header = srv_msg.header;
 		graph_msg.request.joint_trajectory.points = srv_msg.points;
+		if(s == 2)
 		graph_prof.call(graph_msg);
 
 		res.dt = defined_dt;
