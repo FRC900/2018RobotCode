@@ -358,7 +358,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	{
     /*----------------Single Press------------------*/
         /*-If in Exchange - Place and Run Intake Out-*/
-        if (achieved_pos == intake)
+        
+	if (JoystickState->buttonAPress == true)
+	{
+	if (achieved_pos == intake)
         {
 
             ready_to_spin_out_check = true; //Kick off ready to drop
@@ -373,7 +376,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             placed_delay_check = true; //Kick off placing
             place_start = ros::Time::now().toSec();
         }
-		ALast = 0; //Remove flag
+	}
+		//ALast = 0; //Remove flag
 		/*Back button press(M2) - Just Go Out*/
 		if (JoystickState->buttonBackPress == true)
 		{
