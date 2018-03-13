@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 set -e
 set -o pipefail
@@ -10,10 +10,12 @@ JETSON_ADDR=10.9.0.8
 # Environment to deploy to (prod or dev).
 INSTALL_ENV=dev
 
+# Whether we're doing a build or just updating symlinks.
+UPDATE_LINKS_ONLY=0
+
 # Location of the code.
 LOCAL_CLONE_LOCATION=$HOME/2018RobotCode
 ROS_CODE_LOCATION=$LOCAL_CLONE_LOCATION/zebROS_ws
-JETSON_CLONE_LOCATION=/home/ubuntu/2018RobotCode
 
 usage() {
     echo "Usage: $0 [-d|-p]"
@@ -28,7 +30,7 @@ while [[ $# -gt 0 ]] ; do
     case $key in
     -h|--help)
         usage
-        exit 0
+        exit 1
         ;;
     -p|--prod)
         INSTALL_ENV=prod
@@ -38,6 +40,10 @@ while [[ $# -gt 0 ]] ; do
         INSTALL_ENV=dev
         shift
         ;;
+    -u|--update-links-only)
+        UPDATE_LINKS_ONLY=1
+        shift
+	;;
     *) # unknown option
         POSITIONAL+=("$1") # save it in an array for later
         shift # past argument
@@ -45,6 +51,27 @@ while [[ $# -gt 0 ]] ; do
     esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
+
+# Directory paths on the Jetson and roboRIO.
+RIO_CLONE_LOCATION=/home/admin/2018RobotCode
+RIO_ENV_LOCATION=$RIO_CLONE_LOCATION.$INSTALL_ENV
+RIO_ROS_CODE_LOCATION=$RIO_ENV_LOCATION/zebROS_ws
+RIO_INSTALL_LOCATION=$RIO_ROS_CODE_LOCATION/install_isolated
+
+JETSON_CLONE_LOCATION=/home/ubuntu/2018RobotCode
+JETSON_ENV_LOCATION=$JETSON_CLONE_LOCATION.$INSTALL_ENV
+JETSON_ROS_CODE_LOCATION=$JETSON_ENV_LOCATION/zebROS_ws
+
+# Update symlinks on the roboRIO and Jetson.
+ssh $ROBORIO_ADDR "rm $RIO_CLONE_LOCATION && \
+    ln -s $RIO_ENV_LOCATION $RIO_CLONE_LOCATION"
+ssh $JETSON_ADDR "rm $JETSON_CLONE_LOCATION && \
+    ln -s $JETSON_ENV_LOCATION $JETSON_CLONE_LOCATION"
+echo "Symlinks updated."
+if [ $UPDATE_LINKS_ONLY -ne 0 ]; then
+    echo "Done"
+    exit 0
+fi
 
 echo "Checking NTP synchronization."
 ntp-wait -n 60 -s 1 -v
@@ -57,38 +84,39 @@ fi
 echo "Synchronizing local changes TO $INSTALL_ENV environment."
 rsync -avzru --exclude '.git' --exclude 'zebROS_ws/build*' \
     --exclude 'zebROS_ws/devel*' --exclude 'zebROS_ws/install*' \
-    $LOCAL_CLONE_LOCATION/ $JETSON_ADDR:$JETSON_CLONE_LOCATION.$INSTALL_ENV/
+    $LOCAL_CLONE_LOCATION/ $JETSON_ADDR:$JETSON_ENV_LOCATION/
 if [ $? -ne 0 ]; then
     echo "Failed to synchronize source code TO $INSTALL_ENV on Jetson!"
     exit 1
 fi
+echo "Synchronization complete"
 echo "Synchronizing remote changes FROM $INSTALL_ENV environment."
 rsync -avzru --exclude '.git' --exclude 'zebROS_ws/build*' \
     --exclude 'zebROS_ws/devel*' --exclude 'zebROS_ws/install*' \
-    $JETSON_ADDR:$JETSON_CLONE_LOCATION.$INSTALL_ENV/ $LOCAL_CLONE_LOCATION/
+    $JETSON_ADDR:$JETSON_ENV_LOCATION/ $LOCAL_CLONE_LOCATION/
 if [ $? -ne 0 ]; then
     echo "Failed to synchronize source code FROM $INSTALL_ENV on Jetson!"
     exit 1
 fi
-
-# TODO: Update remote symlink
-# 2018RobotCode should be a symlink that points to either the prod or dev
-# clone that we push to. Make sure it is a symlink before proceeding.
-#if [ ! -h $LOCAL_CLONE_LOCATION ]; then
-#    echo "$LOCAL_CLONE_LOCATION is not a symlink."
-#fi
+echo "Synchronization complete"
 
 # Run local roboRIO cross build.
 bash -c "cd $ROS_CODE_LOCATION && \
     source /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/setup.bash && \
     ./cross_build.sh"
+echo "roboRIO cross build complete"
 
-# TODO: rsync build products to roboRIO
+# Synchronize cross build products to roboRIO.
+echo "Synchronizing $INSTALL_ENV cross build to roboRIO"
+rsync -avz --delete $ROS_CODE_LOCATION/install_isolated/ \
+    $ROBORIO_ADDR:$RIO_INSTALL_LOCATION/
+echo "Synchronization complete"
 
 # Run Jetson native build.
+echo "Starting Jetson native build"
 ssh $JETSON_ADDR "cd $JETSON_CLONE_LOCATION.$INSTALL_ENV/zebROS_ws && \
     source /opt/ros/kinetic/setup.bash && \
     catkin_make"
-
-# TODO: rsync build products to Jetson's 2018RobotCode directory.
+echo "Jetson native build complete"
+echo "FINISHED SUCCESSFULLY"
 

@@ -58,6 +58,7 @@
 #include <Compressor.h>
 #include "LiveWindow/LiveWindow.h"
 #include "SmartDashboard/SmartDashboard.h"
+#include <PowerDistributionPanel.h>
 
 #include <std_msgs/Bool.h>
 
@@ -213,7 +214,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::thread hal_thread_;
 		std::thread motion_profile_thread_;
 
-		//PowerDistributionPanel pdp_joint_;
+		PowerDistributionPanel pdp_joint_;
 
 		ROSIterativeRobot robot_;
 };  // class
