@@ -1125,6 +1125,6 @@ int main(int argc, char** argv) {
     generateTrajectory(2, 3, 2);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
-    //ros::spin();
+    ros::spin();
     return 0;
 }
