@@ -15,13 +15,11 @@ ExecStartPre=/bin/sh -ec 'sleep 30' ; \
 
 ExecStart=/bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/master.sh || true" ;
 
-#should combine this with ExecStart and make Type oneshot?
-#don't forget to change roscore.xml settings
-ExecStartPost=/bin/sh -ec 'sleep 30' ; \
-	      /bin/bash -ec "rosnode kill -a" ; \ #autoInterpreterClient occasionally WILL NOT DIE
-	      /bin/bash -ec "killall -9 rosmaster" ; \
-	      /bin/sh -ec 'sleep 30' ; \
-	      /bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/master.sh || true" ;
+#having issues with kill.sh
+#don't forget to change roscore.xml settings on the jetson
+#ExecStartPost=/bin/sh -ec 'sleep 30' ; \
+#	      /bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/kill.sh" ; \
+#	      /bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/master.sh || true" ;
 
 Restart=on-failure
 

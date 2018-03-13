@@ -216,7 +216,11 @@ document.addEventListener("DOMContentLoaded", function(event)
    		console.log("Button was clicked. Beginning Save of Load Data.");
 		saveC(coefsForYaml, Math.round(n_splines.numericValue));
 	};
-
+    document.getElementById('load_data').onclick = function()
+    {
+        console.log("Button was clicked. Beginning Loading of Data.");
+        handleFileSelect();
+    };
 	px.observe('numericValue', function () {
   		console.log(px.numericValue);
 	});
@@ -244,6 +248,19 @@ function save (valuesToSave)
 	writeToFile(stringSave);
 
 }
+
+function handleFileSelect() {
+    var node = document.getElementById('data');
+    console.log(node.textContent);
+    var output = [];
+    var text = node.textContent;
+    var array = text.split("\n");
+    array.splice(array.length-1)
+    console.log(array);
+    node.textContent = array;
+}
+
+
 function saveC (valuesToSave, index_num)
 {
 	var stringSave = "[";

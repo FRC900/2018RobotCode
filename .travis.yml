@@ -23,6 +23,7 @@ script:
      wstool update -t src &&
      source /opt/ros/kinetic/setup.bash &&
      catkin_make &&
+     timeout -k 30 --preserve-status 60 roslaunch ros_control_boilerplate 2018_main_frcrobot.launch hw_or_sim:=sim &&
      echo \"Finished Ubuntu compile.\""
   - docker run --user ubuntu frc900/zebros-dev:latest /bin/bash -l -c
     "cd ~ &&
