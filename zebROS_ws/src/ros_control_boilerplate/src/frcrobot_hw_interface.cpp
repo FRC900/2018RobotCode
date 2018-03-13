@@ -855,19 +855,17 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}*/
 	
 	//read info from the PDP hardware
-	/*	
-	int32_t status = 0;
-	pdp_state_.setVoltage(HAL_GetPDPVoltage(0, &status));
-	pdp_state_.setTemperature(HAL_GetPDPTemperature(0, &status));
-	pdp_state_.setTotalCurrent(HAL_GetPDPTotalCurrent(0, &status));
-	pdp_state_.setTotalPower(HAL_GetPDPTotalPower(0, &status));
-	pdp_state_.setTotalEnergy(HAL_GetPDPTotalEnergy(0, &status));
-	pdp_state_.setCurrent(HAL_GetPDPChannelCurrent(0, 3, &status), 3);
+	auto &ps = pdp_state_;
+	ps.setVoltage(pdp_joint_.GetVoltage());
+	ps.setTemperature(pdp_joint_.GetTemperature());
+	ps.setTotalCurrent(pdp_joint_.GetTotalCurrent());
+	ps.setTotalPower(pdp_joint_.GetTotalPower());
+	ps.setTotalEnergy(pdp_joint_.GetTotalEnergy());
 	for(int channel = 0; channel <= 15; channel++)
 	{
-		pdp_state_.setCurrent(HAL_GetPDPChannelCurrent(0, channel, &status), channel);
+		ps.setCurrent(pdp_joint_.GetCurrent(channel), channel);
 	}
-	*/
+
 }
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
