@@ -146,7 +146,7 @@ bool lowScale(void) {
 }
 bool stopIntake(void) {
 	elevator_controller::Intake srv;
-	// TODO : pick a default for spring_state
+    srv.request.spring_state = 2; //soft_in
     srv.request.power=0;
     if (!IntakeService.call(srv))
 	{
