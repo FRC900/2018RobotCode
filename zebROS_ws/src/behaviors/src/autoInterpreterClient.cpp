@@ -24,7 +24,6 @@ static ros::ServiceClient ClampService;
 static ros::ServiceClient BrakeService;
 static ros::Publisher VelPub;
 
-<<<<<<< HEAD
 double high_scale_config_x;
 double high_scale_config_y;
 double mid_scale_config_x;
@@ -42,11 +41,9 @@ double default_y;
 double timeout;
 double delay;
 double autoStart = -1;
-int layout;
 XmlRpc::XmlRpcValue modes;
 std::vector<trajectory_msgs::JointTrajectory> trajectories;
 
-bool in_auto;
 
 //consider adding some constructors for these structs
 
