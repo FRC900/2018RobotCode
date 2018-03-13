@@ -84,6 +84,10 @@ class autoAction {
         success = false;
 	timed_out = false;
 
+	
+	al->cancelAllGoals();
+	ai->cancelAllGoals();
+
 	if((goal->IntakeCube))
 	{
 		
