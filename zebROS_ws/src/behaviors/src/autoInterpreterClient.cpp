@@ -187,6 +187,18 @@ bool clamp(void) {
 	return true;
 }
 
+bool parkingConfig(void)
+{
+	std_srvs::Empty empty;
+	ROS_WARN("Braking");
+	if (!BrakeService.call(empty))
+	{
+		ROS_ERROR("Service call failed : BrakeService in parkingConfig");
+		return false;
+	}
+	return true;
+}
+
 void load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data)
 {
 	XmlRpc::XmlRpcValue mode_xml;
@@ -509,9 +521,7 @@ void run_auto(int auto_mode) {
                 }
             }
 			// TODO : brake if in_auto is set false by match data?
-            ROS_WARN("braked");
-            std_srvs::Empty blank;
-            BrakeService.call(blank);
+			parkingConfig();
             in_auto = false;
         }
     }
@@ -556,10 +566,7 @@ void run_auto(int auto_mode) {
                     r.sleep();
                     ros::spinOnce();
                 }
-                ROS_WARN("braked");
-                std_srvs::Empty blank;
-                if (!BrakeService.call(blank))
-					ROS_ERROR("BrakeService call failed in autoMode == 1");
+				parkingConfig();
             }
             releaseClamp();
         }
@@ -573,10 +580,7 @@ void run_auto(int auto_mode) {
                     r.sleep();
                     ros::spinOnce();
                 }
-                ROS_WARN("braked");
-                std_srvs::Empty blank;
-                if (!BrakeService.call(blank))
-					ROS_ERROR("BrakeService call failed in autoMode == 2");
+				parkingConfig();
             }
             if(this_start_pos == 2) {
                 const double delay = 3.5; //TODO
@@ -600,9 +604,7 @@ void run_auto(int auto_mode) {
             }
             releaseClamp();
         }
-        ROS_WARN("braked");
-        std_srvs::Empty blank;
-        BrakeService.call(blank);
+		parkingConfig();
         in_auto = false;
     }
     
@@ -626,9 +628,7 @@ void run_auto(int auto_mode) {
             r.sleep();
             ros::spinOnce();
         }
-        ROS_WARN("braked");
-		std_srvs::Empty blank;
-        BrakeService.call(blank);
+		parkingConfig();
         in_auto = false;
     }
 	else if(auto_mode_vect_auto_mode == 4) {
@@ -655,9 +655,7 @@ void run_auto(int auto_mode) {
             r.sleep();
             ros::spinOnce();
         }
-        ROS_WARN("braked");
-        std_srvs::Empty blank;
-        BrakeService.call(blank);
+		parkingConfig();
         in_auto = false;
     }
     /*

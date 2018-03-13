@@ -37,6 +37,7 @@ bool stopIntake(void);
 bool releaseClamp(void);
 bool clamp(void);
 bool releaseIntake(void);
+bool parkingConfig(void);
 bool generateTrajectory(int auto_mode,int layout,int start_pos);
 void runTrajectory(int auto_mode);
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode);
