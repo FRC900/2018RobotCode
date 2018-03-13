@@ -82,7 +82,7 @@ class autoAction {
             */		    
             }
             
-            srv.request.power = success ? -0.15 : 0;
+            srv.request.power = success ? 0.15 : 0;
             srv.request.spring_state = 3; //soft in
             srv.request.up = false;
             if(!IntakeSrv.call(srv)) 
