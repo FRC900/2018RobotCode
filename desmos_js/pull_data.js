@@ -417,7 +417,7 @@ function loadGraphVals(calculator, vals)
 
 	// POSITIONS
 	calculator.setExpression({id:'position64', latex:'x=1'});
-	calculator.setExpression({id:'position64', latex:'\\left(p_x,\\ p_y\\right)', color: '#c74440'});
+	calculator.setExpression({id:'position64', latex:'\\left(p_x,\\ p_y\\right)', color: '#c74440',hidden: true});
 	calculator.setExpression({id:'position65', latex:'p_x=' + vals[1].toString()});
 	calculator.setExpression({id:'position66', latex:'p_y=' + vals[10].toString() }); //
 	calculator.setExpression({id:'position67', latex:'\\left(p_{x1},\\ p_{y1}\\right)', color: '#2d70b3'});
@@ -688,14 +688,90 @@ function loadGraphVals(calculator, vals)
 	
 	// FUNCTIONS
 	
-	calculator.setExpression({id:'func306', latex:'\\left(f\\left(t\\right),\\ g\\left(t\\right)\\right)', color: '#c74440', domain:{min: 0, max: 1}});
-	calculator.setExpression({id:'func307', latex:'\\left(f_1\\left(t\\right),\\ g_1\\left(t\\right)\\right)', domain:{min: 1, max: 2}});
-	calculator.setExpression({id:'func308', latex:'\\left(f_2\\left(t\\right),\\ g_2\\left(t\\right)\\right)', domain:{min: 2, max: 3}});
-	calculator.setExpression({id:'func309', latex:'\\left(f_3\\left(t\\right),\\ g_3\\left(t\\right)\\right)', domain:{min: 3, max: 4}});
-	calculator.setExpression({id:'func310', latex:'\\left(f_4\\left(t\\right),\\ g_4\\left(t\\right)\\right)', domain:{min: 4, max: 5}});
+	if(vals[0] < 1)
+	{ 
+		calculator.setExpression({id:'func306', latex:'\\left(f\\left(t\\right),\\ g\\left(t\\right)\\right)', color: '#c74440', domain:{min: 0, max: 1}, hidden: true});
+	}
+	else
+	{
+		calculator.setExpression({id:'func306', latex:'\\left(f\\left(t\\right),\\ g\\left(t\\right)\\right)', color: '#c74440', domain:{min: 0, max: 1}});
+
+	}
+	if(vals[0] < 2)
+	{ 
+		calculator.setExpression({id:'func307', latex:'\\left(f_1\\left(t\\right),\\ g_1\\left(t\\right)\\right)', domain:{min: 1, max: 2}, hidden: true  });
+	}
+	else
+	{
+		calculator.setExpression({id:'func307', latex:'\\left(f_1\\left(t\\right),\\ g_1\\left(t\\right)\\right)', domain:{min: 1, max: 2}});
+	}
+
+
+	if(vals[0] < 3)
+	{ 
+		calculator.setExpression({id:'func308', latex:'\\left(f_2\\left(t\\right),\\ g_2\\left(t\\right)\\right)', domain:{min: 2, max: 3},hidden: true });
+	}
+	else
+	{
+		calculator.setExpression({id:'func308', latex:'\\left(f_2\\left(t\\right),\\ g_2\\left(t\\right)\\right)', domain:{min: 2, max: 3}});
+
+	}
+
+
+
+
+	if(vals[0] < 4)
+	{ 
+		calculator.setExpression({id:'func309', latex:'\\left(f_3\\left(t\\right),\\ g_3\\left(t\\right)\\right)', domain:{min: 3, max: 4}, hidden: true});
+	}
+	else
+	{
+
+		calculator.setExpression({id:'func309', latex:'\\left(f_3\\left(t\\right),\\ g_3\\left(t\\right)\\right)', domain:{min: 3, max: 4}});
+	}
+
+	if(vals[0] < 5)
+	{
+		calculator.setExpression({id:'func310', latex:'\\left(f_4\\left(t\\right),\\ g_4\\left(t\\right)\\right)', domain:{min: 4, max: 5}, hidden: true});
+
+	}
+	else
+	{
+		calculator.setExpression({id:'func310', latex:'\\left(f_4\\left(t\\right),\\ g_4\\left(t\\right)\\right)', domain:{min: 4, max: 5}});
+
+	}
+	if(vals[0] < 6)
+	{
+	calculator.setExpression({id:'func311', latex:'\\left(f_5\\left(t\\right),\\ g_5\\left(t\\right)\\right)', domain:{min: 5, max: 6}, hidden: true});
+
+	}
+	else
+	{
 	calculator.setExpression({id:'func311', latex:'\\left(f_5\\left(t\\right),\\ g_5\\left(t\\right)\\right)', domain:{min: 5, max: 6}});
+
+	}
+	if(vals[0] < 7)
+	{
+	calculator.setExpression({id:'func312', latex:'\\left(f_6\\left(t\\right),\\ g_6\\left(t\\right)\\right)', color: '#c74440', domain:{min: 6, max: 7}, hidden: true});
+
+	}
+	else
+	{
 	calculator.setExpression({id:'func312', latex:'\\left(f_6\\left(t\\right),\\ g_6\\left(t\\right)\\right)', color: '#c74440', domain:{min: 6, max: 7}});
+
+	}
+	if(vals[0] < 8)
+	{
+	calculator.setExpression({id:'func315', latex:'\\left(f_7\\left(t\\right),\\ g_7\\left(t\\right)\\right)', color: '#000000', domain:{min: 7, max: 8}, hidden: true});
+
+	}
+	else
+	{
 	calculator.setExpression({id:'func315', latex:'\\left(f_7\\left(t\\right),\\ g_7\\left(t\\right)\\right)', color: '#000000', domain:{min: 7, max: 8}});
+
+	}
+
+
 }
 
 function loadGraph(calculator)
