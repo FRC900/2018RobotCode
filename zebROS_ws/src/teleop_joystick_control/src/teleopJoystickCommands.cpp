@@ -767,10 +767,10 @@ For right now we will just go back out and then call "go to intake config"
 				}
 			}
 		}
-		/*--------------------X Single Press - High Scale ---------------------*/
-		if (JoystickState->buttonXPress == true)
+		/*--------------------B Single Press - High Scale ---------------------*/
+		if (JoystickState->buttonBPress == true)
 		{
-			currentToggle = "doubleB";
+			currentToggle = "B";
 			if (lastToggle == " ")
 			{
 				setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
