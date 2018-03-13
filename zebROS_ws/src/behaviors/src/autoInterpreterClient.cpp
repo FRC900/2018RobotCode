@@ -192,6 +192,18 @@ bool clamp(void) {
 	return true;
 }
 
+bool parkingConfig(void)
+{
+	std_srvs::Empty empty;
+	ROS_WARN("Braking");
+	if (!BrakeService.call(empty))
+	{
+		ROS_ERROR("Service call failed : BrakeService in parkingConfig");
+		return false;
+	}
+	return true;
+}
+
 void load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data)
 {
 	XmlRpc::XmlRpcValue mode_xml;
@@ -243,6 +255,36 @@ void load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHan
 					all_modes[mode][layout][start_pos].srv_msg.request.final_v = 0; 
 					all_modes[mode][layout][start_pos].exists = true; 
 
+					XmlRpc::XmlRpcValue group_xml;
+					if(auto_data.getParam(identifier + "_spline_group", group_xml))
+					{
+						ROS_INFO_STREAM("Custom grouping for identifier: " << identifier << " found");
+						for(int i = 0; i < group_xml.size(); i++)
+						{	
+							all_modes[mode][layout][start_pos].srv_msg.request.spline_groups.push_back(group_xml[i]);
+						}
+						XmlRpc::XmlRpcValue wait_xml;
+						if(auto_data.getParam(identifier + "_waits", wait_xml))
+						{
+							ROS_INFO_STREAM("Custom waits for identifier: " << identifier << " found");
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(wait_xml[i]);
+							}
+						}
+						else
+						{
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(.16);
+							}
+						}
+					}
+					else
+					{
+							all_modes[mode][layout][start_pos].srv_msg.request.spline_groups.push_back(num_splines);
+							all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(.16);
+					}
 				}
 			}
 
@@ -488,10 +530,8 @@ void run_auto(int auto_mode) {
                 }
             }
 			// TODO : brake if in_auto is set false by match data?
-            ROS_WARN("braked");
-            std_srvs::Empty blank;
-            BrakeService.call(blank);
-            end_auto = true;
+			parkingConfig();
+            in_auto = false;
         }
     }
 	else if(auto_mode_vect_auto_mode == 2) {
@@ -535,10 +575,7 @@ void run_auto(int auto_mode) {
                     r.sleep();
                     ros::spinOnce();
                 }
-                ROS_WARN("braked");
-                std_srvs::Empty blank;
-                if (!BrakeService.call(blank))
-					ROS_ERROR("BrakeService call failed in autoMode == 1");
+				parkingConfig();
             }
             releaseClamp();
         }
@@ -552,10 +589,7 @@ void run_auto(int auto_mode) {
                     r.sleep();
                     ros::spinOnce();
                 }
-                ROS_WARN("braked");
-                std_srvs::Empty blank;
-                if (!BrakeService.call(blank))
-					ROS_ERROR("BrakeService call failed in autoMode == 2");
+				parkingConfig();
             }
             if(this_start_pos == 2) {
                 const double delay = 3.5; //TODO
@@ -579,10 +613,8 @@ void run_auto(int auto_mode) {
             }
             releaseClamp();
         }
-        ROS_WARN("braked");
-        std_srvs::Empty blank;
-        BrakeService.call(blank);
-        end_auto = true;
+		parkingConfig();
+        in_auto = false;
     }
     
 	else if(auto_mode_vect_auto_mode == 3) {
@@ -605,10 +637,8 @@ void run_auto(int auto_mode) {
             r.sleep();
             ros::spinOnce();
         }
-        ROS_WARN("braked");
-		std_srvs::Empty blank;
-        BrakeService.call(blank);
-        end_auto = true;
+		parkingConfig();
+        in_auto = false;
     }
 	else if(auto_mode_vect_auto_mode == 4) {
         ROS_WARN("Profiled Scale");
@@ -634,10 +664,8 @@ void run_auto(int auto_mode) {
             r.sleep();
             ros::spinOnce();
         }
-        ROS_WARN("braked");
-        std_srvs::Empty blank;
-        BrakeService.call(blank);
-        end_auto = true;
+		parkingConfig();
+        in_auto = false;
     }
     /*
     if(AutoMode->mode[auto_mode]==1) {
@@ -1101,9 +1129,9 @@ int main(int argc, char** argv) {
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
 
     ROS_WARN("Auto Client loaded");
-    ros::Duration(10).sleep();
+    ros::Duration(3).sleep();
     ROS_WARN("post sleep");
-    generateTrajectory(2, 3, 0);
+    generateTrajectory(2, 3, 2);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
