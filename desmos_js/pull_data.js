@@ -215,7 +215,7 @@ document.addEventListener("DOMContentLoaded", function(event)
 	document.getElementById('save_coef_data').onclick = function()
 	{
    		console.log("Button was clicked. Beginning Save of Load Data.");
-		saveC(coefsForYaml, Math.round(n_splines.numericValue));
+		saveC(coefsForYaml, Math.round(n_splines.numericValue), 8);
 	};
     document.getElementById('load_data').onclick = function()
     {
@@ -263,7 +263,7 @@ function handleFileSelect(calculator) {
 }
 
 
-function saveC (valuesToSave, index_num)
+function saveC (valuesToSave, index_num, max_spline_num)
 {
 	var stringSave = "[";
 	for (var k = 0; k < index_num; ++k)
@@ -283,10 +283,10 @@ function saveC (valuesToSave, index_num)
 			for (var i = 0; i < 5 ; ++i)
 			{
 				
-				stringSave += valuesToSave[k + (2*i+s) * index_num].numericValue + ", ";
-				console.log("Saved: " + valuesToSave[k + (2*i+s) * index_num].numericValue + " at index: " + k + (2*i+s) * 6);
+				stringSave += valuesToSave[k + (2*i+s) * max_spline_num].numericValue + ", ";
+				console.log("Saved: " + valuesToSave[k + (2*i+s) * max_spline_num].numericValue + " at index: " + k + (2*i+s) * max_spline_num);
 			}
-			stringSave += valuesToSave[k + (10+s) * index_num].numericValue + "], ";
+			stringSave += valuesToSave[k + (10+s) * max_spline_num].numericValue + "], ";
 			if(s == 1)
 			{
 				if(k != index_num -1)
