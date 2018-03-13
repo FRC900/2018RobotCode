@@ -16,7 +16,7 @@ namespace pdp_state_controller
 class PDPStateController: public controller_interface::Controller<hardware_interface::PDPStateInterface>
 {
 	public:
-		PDPStateController() : publish_rate_(1.0) {}
+		PDPStateController() : publish_rate_(15.0) {}
 
 		virtual bool init(hardware_interface::PDPStateInterface *hw,
 							ros::NodeHandle 					&root_nh,

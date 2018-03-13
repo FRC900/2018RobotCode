@@ -8,7 +8,7 @@ namespace pdp_state_controller
 
 bool PDPStateController::init(hardware_interface::PDPStateInterface *hw,
 								ros::NodeHandle 					&root_nh,
-								ros::NodeHandle 					&/*controller_nh*/)
+								ros::NodeHandle 					&controller_nh)
 {
 	ROS_INFO_STREAM_NAMED("pdp_state_controller", "init is running");
 
@@ -21,6 +21,9 @@ bool PDPStateController::init(hardware_interface::PDPStateInterface *hw,
 		return false; }
 
 	const std::string pdp_name = pdp_names[0];
+
+	if (!controller_nh.getParam("publish_rate", publish_rate_))
+                ROS_ERROR("Could not read publish_rate in PDP state controller");
 
 	realtime_pub_.reset(new realtime_tools::RealtimePublisher<pdp_state_controller::PDPData>(root_nh, "pdp_states", 4));
 
@@ -50,6 +53,7 @@ void PDPStateController::starting(const ros::Time &time)
 
 void PDPStateController::update(const ros::Time &time, const ros::Duration & )
 {
+	//ROS_INFO_STREAM("pdp pub: " << publish_rate_);
 	if ((publish_rate_ > 0.0) && (last_publish_time_ + ros::Duration(1.0 / publish_rate_) < time))
 	{
 		if (realtime_pub_->trylock())

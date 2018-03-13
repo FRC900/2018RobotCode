@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 	ros::init(argc, argv, "compressor_regulator");
 	ros::NodeHandle n;
 
-	ros::NodeHandle n_params(n, "model_param");
+	ros::NodeHandle n_params(n, "model_params");
 	double current_multiplier_;
 	double pressure_exponent_;
 	double pressure_multiplier_;
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
 	ros::Publisher CompressorCommand = n.advertise<std_msgs::Float64>("/frcrobot/compressor_controller/command", 1);
 
 	ros::Subscriber pressure_sub_ = n.subscribe("/frcrobot/joint_states", 1, &pressureCallback);
-	ros::Subscriber current_sub_ = n.subscribe("/frcrobot/pdp_states", 75, &currentCallback);
+	ros::Subscriber current_sub_ = n.subscribe("/frcrobot/pdp_states",60, &currentCallback);
 	ros::Subscriber match_data_sub_ = n.subscribe("/frcrobot/match_data", 1, &matchDataCallback);
 	ros::Subscriber disable_sub_ = n.subscribe("/frcrobot/regulate_compressor/disable", 5, &disableCallback);
 	//TODO FIX ABOVE topic names
@@ -82,12 +82,13 @@ int main(int argc, char **argv) {
 				const double end_pressure_estimate = this_pressure - max_estimated  - max_end_game_use_;
 				if(end_pressure_estimate < target_final_pressure_ || run_last_tick)
 				{
-					const double modelVal = /*-current_multiplier_ * weighted_average_current_.load(std::memory_order_relaxed)
-					*/ pressure_multiplier_ * pow(fabs(target_final_pressure_ - 
+					const double modelVal = -current_multiplier_ * weighted_average_current_.load(std::memory_order_relaxed)
+					+ pressure_multiplier_ * pow(fabs(target_final_pressure_ - 
 					end_pressure_estimate),	pressure_exponent_) * ((end_pressure_estimate < 
 					target_final_pressure_) ? 1 : -1)
 						+ (run_last_tick ? 1 : 0) * inertial_multiplier_;
 
+					ROS_INFO_STREAM("model val: " << modelVal);
 					if(modelVal > 0)
 					{
 						holder_msg.data = 1;
@@ -155,7 +156,7 @@ void currentCallback(const pdp_state_controller::PDPData &msg)
 {
 	static std::vector<double> currents;
 
-	if(currents.size() > 500)
+	if(currents.size() > 60)
 		currents.erase(currents.begin());
 
 	currents.push_back(msg.totalCurrent);
@@ -166,6 +167,7 @@ void currentCallback(const pdp_state_controller::PDPData &msg)
 	{
 		temp_weighted_average_current += currents[i] * (i+1.0)/divider;
 	}
+	//ROS_INFO_STREAM("current weigted avg: " << temp_weighted_average_current);
 	weighted_average_current_.store(temp_weighted_average_current, std::memory_order_relaxed);
 }
 
