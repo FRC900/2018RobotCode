@@ -238,6 +238,36 @@ void load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHan
 					all_modes[mode][layout][start_pos].srv_msg.request.final_v = 0; 
 					all_modes[mode][layout][start_pos].exists = true; 
 
+					XmlRpc::XmlRpcValue group_xml;
+					if(auto_data.getParam(identifier + "_spline_group", group_xml))
+					{
+						ROS_INFO_STREAM("Custom grouping for identifier: " << identifier << " found");
+						for(int i = 0; i < group_xml.size(); i++)
+						{	
+							all_modes[mode][layout][start_pos].srv_msg.request.spline_groups.push_back(group_xml[i]);
+						}
+						XmlRpc::XmlRpcValue wait_xml;
+						if(auto_data.getParam(identifier + "_waits", wait_xml))
+						{
+							ROS_INFO_STREAM("Custom waits for identifier: " << identifier << " found");
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(wait_xml[i]);
+							}
+						}
+						else
+						{
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(.16);
+							}
+						}
+					}
+					else
+					{
+							all_modes[mode][layout][start_pos].srv_msg.request.spline_groups.push_back(num_splines);
+							all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(.16);
+					}
 				}
 			}
 
@@ -1092,7 +1122,7 @@ int main(int argc, char** argv) {
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
 
     ROS_WARN("Auto Client loaded");
-    ros::Duration(10).sleep();
+    ros::Duration(3).sleep();
     ROS_WARN("post sleep");
     generateTrajectory(2, 3, 0);
 
