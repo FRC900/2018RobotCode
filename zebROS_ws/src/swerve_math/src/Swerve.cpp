@@ -57,6 +57,7 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 		velocityVector /= drive_.maxSpeed;
 
 		rotation /= multiplierSets_[rotationCenterID].maxRotRate_;
+		//ROS_WARN_STREAM("max rate r/s: " <<  multiplierSets_[rotationCenterID].maxRotRate_);
 		//ROS_INFO_STREAM("vel: " << velocityVector << " rot: " << rotation);
 		speedsAndAngles = swerveMath_.wheelSpeedsAngles(multiplierSets_[rotationCenterID].multipliers_, velocityVector, rotation, angle, norm);
 		for (int i = 0; i < WHEELCOUNT; i++)

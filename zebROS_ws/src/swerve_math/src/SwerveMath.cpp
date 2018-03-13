@@ -1,6 +1,8 @@
 #include <math.h>
 #include <array>
 #include <swerve_math/SwerveMath.h>
+#include <ros/ros.h>
+#include <ros/console.h>
 
 static const double pi = M_PI; // TODO : why? just use M_PI
 using namespace std;
@@ -27,7 +29,7 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(Eigen::Ve
 	{
 		double x = wheelCoordinate_[i][0] - rotationCenter[0];
 		double y = wheelCoordinate_[i][1] - rotationCenter[1];
-		wheelMultipliers[i] = -sqrt(x * x + y * y); // TODO : use hypot function
+		wheelMultipliers[i] = -1;//-sqrt(x * x + y * y); // TODO : use hypot function
 		wheelAngles[i] = (atan2(x, y) + .5 * pi);
 	}
 	array<Eigen::Vector2d, WHEELCOUNT> multipliersXY;
@@ -64,12 +66,14 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eige
 	array<double, WHEELCOUNT> speeds;
 	array<double, WHEELCOUNT> angles;
 	//Sum cartisian velocity for each wheel and then convert to polar coordinates
+
 	for (int i = 0; i < WHEELCOUNT; i++)
 	{
 		//int inverterD = (i%2==0) ? -1 : 1;
 		//Only the rotation of the robot differently effects each wheel
 		double x = wheelMultipliersXY[i][0] * rotation + rotatedVelocity[0];
 		double y = wheelMultipliersXY[i][1] * rotation - rotatedVelocity[1];
+		//ROS_INFO_STREAM("rot: " << rotation << " wheel_multipliers_x: " << wheelMultipliersXY[i][0]<< " wheel_multipliers_y " << wheelMultipliersXY[i][1]);
 		angles[i] = atan2(x, y);
 		speeds[i] = sqrt(x * x + y * y); // TODO : Use hypot func?
 	}
