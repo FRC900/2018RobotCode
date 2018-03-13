@@ -24,12 +24,12 @@
 static double dead_zone = .2, slow_mode = .33, max_speed = 3.6, max_rot = 8.8, joystick_scale = 3;
 void dead_zone_check(double &val1, double &val2)
 {
-	if (fabs(val1) <= dead_zone && fabs(val2) <= dead_zone)
-	{
-		val1 = 0;
-		val2 = 0;
+    if (fabs(val1) <= dead_zone && fabs(val2) <= dead_zone)
+    {
+        val1 = 0;
+        val2 = 0;
 
-	}
+    }
 }
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
@@ -108,22 +108,22 @@ static std::atomic<bool> hasCube;
 // but Y hasn't yet.
 struct ElevatorPos
 {
-	ElevatorPos():
-		X_(0),
-		Y_(0),
-		UpOrDown_(false)
-	{
-	}
-	ElevatorPos(double X, double Y, bool UpOrDown) :
-		X_(X),
-		Y_(Y),
-		UpOrDown_(UpOrDown)
-	{
-	}
+    ElevatorPos():
+        X_(0),
+        Y_(0),
+        UpOrDown_(false)
+    {
+    }
+    ElevatorPos(double X, double Y, bool UpOrDown) :
+        X_(X),
+        Y_(Y),
+        UpOrDown_(UpOrDown)
+    {
+    }
 
-	double X_;
-	double Y_;
-	bool   UpOrDown_;
+    double X_;
+    double Y_;
+    bool   UpOrDown_;
 };
 // Use a realtime buffer to store the odom callback data
 // The main teleop code isn't technically realtime but we
@@ -168,8 +168,8 @@ void unToggle(const pos last_achieved_pos, const ElevatorPos &elevatorPosBefore,
 }
 void setHeight(const pos achieved_pos, pos &last_achieved_pos, ElevatorPos &elevatorPosBefore)
 {
-	elevatorPosBefore = *(elevatorPos.readFromRT());
-	last_achieved_pos = achieved_pos;
+    elevatorPosBefore = *(elevatorPos.readFromRT());
+    last_achieved_pos = achieved_pos;
 }
 
 void match_data_callback(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData)
@@ -213,10 +213,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	  first_header.seq = 0;
 	  JoystickTestVel.publish(first_header);*/
 
-	elevator_controller::ElevatorControlS srvElevator;
-	std_srvs::SetBool srvClamp;
-	elevator_controller::Intake srvIntake;
-	static ElevatorPos elevatorPosBefore;
+    elevator_controller::ElevatorControlS srvElevator;
+    std_srvs::SetBool srvClamp;
+    elevator_controller::Intake srvIntake;
+    static ElevatorPos elevatorPosBefore;
 
 	static bool run_out = false;
 	static bool run_in = false;
@@ -925,11 +925,11 @@ lastTimeSecs = timeSecs;
 
 void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
 {
-	elevatorPos.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down));
+    elevatorPos.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down));
 }
 void elevCmdCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
 {
-	elevatorCmd.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down));
+    elevatorCmd.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down));
 }
 /*
    void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotState) {
@@ -1080,27 +1080,27 @@ int main(int argc, char **argv)
 
 void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble)
 {
-	const unsigned int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF);
-	const double rumble_val = *((double *)&rumble);
-	std_msgs::Float64 rumbleMsg;
-	rumbleMsg.data = rumble_val;
-	JoystickRumble.publish(rumbleMsg);
+    const unsigned int rumble = ((leftRumble & 0xFFFF) << 16) | (rightRumble & 0xFFFF);
+    const double rumble_val = *((double *)&rumble);
+    std_msgs::Float64 rumbleMsg;
+    rumbleMsg.data = rumble_val;
+    JoystickRumble.publish(rumbleMsg);
 }
 
 void navXCallback(const sensor_msgs::Imu &navXState)
 {
-	tf2::Quaternion navQuat(navXState.orientation.x, navXState.orientation.y, navXState.orientation.z, navXState.orientation.w);
-	double roll;
-	double pitch;
-	double yaw;
-	tf2::Matrix3x3(navQuat).getRPY(roll, pitch, yaw);
-	navX_angle.store(yaw, std::memory_order_relaxed);
+    tf2::Quaternion navQuat(navXState.orientation.x, navXState.orientation.y, navXState.orientation.z, navXState.orientation.w);
+    double roll;
+    double pitch;
+    double yaw;
+    tf2::Matrix3x3(navQuat).getRPY(roll, pitch, yaw);
+    navX_angle.store(yaw, std::memory_order_relaxed);
 }
 void cubeCallback(const std_msgs::Bool &cube)
 {
-	hasCube.store(cube.data, std::memory_order_relaxed);
+    hasCube.store(cube.data, std::memory_order_relaxed);
 }
 void overrideCallback(const std_msgs::Bool &override_lim)
 {
-	disableArmLimits.store(override_lim.data, std::memory_order_relaxed);
+    disableArmLimits.store(override_lim.data, std::memory_order_relaxed);
 }
