@@ -38,6 +38,7 @@
 
 #ifndef REALTIME_TOOLS__REALTIME_BUFFER_H_
 #define REALTIME_TOOLS__REALTIME_BUFFER_H_
+#define NON_POLLING
 
 #include <boost/thread/mutex.hpp>
 
