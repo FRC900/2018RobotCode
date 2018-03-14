@@ -71,8 +71,8 @@ update_links() {
     echo "Symlinks updated."
 }
 
+update_links
 if [ $UPDATE_LINKS_ONLY -ne 0 ]; then
-    update_links
     exit 0
 fi
 
@@ -117,7 +117,7 @@ echo "Synchronization complete"
 
 # Run Jetson native build.
 echo "Starting Jetson native build"
-ssh $JETSON_ADDR "cd $JETSON_CLONE_LOCATION.$INSTALL_ENV/zebROS_ws && \
+ssh $JETSON_ADDR "cd $JETSON_CLONE_LOCATION/zebROS_ws && \
     source /opt/ros/kinetic/setup.bash && \
     catkin_make"
 echo "Jetson native build complete"
