@@ -224,27 +224,20 @@ void load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHan
 				{
 					ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
 					const int num_splines = mode_xml.size();
-					ROS_INFO("1");
 					for(int num = 0; num<num_splines; num++) {
-					ROS_INFO("2");
 						XmlRpc::XmlRpcValue &spline = mode_xml[num];
 						XmlRpc::XmlRpcValue &x = spline["x"];
 						XmlRpc::XmlRpcValue &y = spline["y"];
 						XmlRpc::XmlRpcValue &orient = spline["orient"];
 						XmlRpc::XmlRpcValue &time = spline["time"];
-					ROS_INFO("3");
 
 						talon_swerve_drive_controller::Coefs x_coefs;
 						talon_swerve_drive_controller::Coefs y_coefs;
 						talon_swerve_drive_controller::Coefs orient_coefs;
 						for(int i = 0; i<x.size(); i++) {
-						    ROS_INFO("4");
 							const double x_coef = x[i];
-						    ROS_INFO("5");
 						    const double y_coef = y[i];
-						    ROS_INFO("6");
 						    const double orient_coef = orient[i];
-						    ROS_INFO("7");
 
 						    //ROS_WARN("%f", orient_coef);
 						    x_coefs.spline.push_back(x_coef);
