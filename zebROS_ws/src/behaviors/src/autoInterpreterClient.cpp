@@ -13,10 +13,15 @@ ros::ServiceClient swerve_control;
 static std::atomic<int> start_pos; // or maybe just bundle with mutex below
 std::vector<int> auto_mode_vect = {0, 0, 0, 0};
 std::vector<double> delays_vect = {0, 0, 0, 0};
+std::vector<bool> generated_vect = {false, false, false, false};
 std::mutex auto_mode_delays_mutex;
 static std::atomic<int> auto_mode;
+static std::atomic<bool> match_data_received;
+static std::atomic<bool> mode_buffered;
 static std::atomic<int> layout;
 static std::atomic<bool> in_auto;
+static std::atomic<bool> end_auto;
+static std::atomic<bool> in_teleop;
 
 static ros::ServiceClient IntakeService;
 static ros::ServiceClient ElevatorService;
@@ -349,6 +354,7 @@ void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode) {
 			((AutoMode->mode[i] != auto_mode_vect[i]) || (AutoMode->position != start_pos)))
 		{
 			generateTrajectory(i, AutoMode->mode[i]-3, AutoMode->position);
+            generated_vect[i] = true;
 		}
 		{
 			std::lock_guard<std::mutex> l(auto_mode_delays_mutex);
@@ -360,13 +366,16 @@ void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode) {
 }
 
 void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
+    if(in_auto && MatchData->isAutonomous == false) {
+        in_teleop = true;
+    }
     if(MatchData->isEnabled && MatchData->isAutonomous && MatchData->allianceData != "") {
         if(lower(MatchData->allianceData)=="rlr") {
             auto_mode = 0;
             layout = 1;
         }
         else if(lower(MatchData->allianceData)=="lrl") {
-    //ROS_WARN("auto entered");
+        //ROS_WARN("auto entered");
         //ROS_WARN("2");
             auto_mode = 1;
             layout = 1;
@@ -376,13 +385,13 @@ void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &M
             layout = 2;
         }
         else if(lower(MatchData->allianceData) =="lll") {
-    //ROS_WARN("auto entered");
+        //ROS_WARN("auto entered");
         //ROS_WARN("3");
             auto_mode = 3;
             layout = 2;
         }
         in_auto = true;
-        run_auto(auto_mode);
+        //run_auto(auto_mode);
     }
     else if (MatchData->allianceData != "") {
         if(lower(MatchData->allianceData)=="rlr") {
@@ -406,12 +415,12 @@ void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &M
             layout = 2;
         }
 		// TODO :: Check this - are we really in auto mode if in this else() block
-        in_auto = true;
+        match_data_received = true;
         
-        if(auto_mode_vect[auto_mode] > 2) {
+        //if(auto_mode_vect[auto_mode] > 2) {
             //bufferTrajectory(auto_mode);
 	    //TODO WHAT IS THIS FOR???
-        }
+        //}
     }
     else {
         in_auto = false;
@@ -1122,9 +1131,34 @@ int main(int argc, char** argv) {
     ROS_WARN("Auto Client loaded");
     ros::Duration(3).sleep();
     ROS_WARN("post sleep");
-    generateTrajectory(2, 3, 2);
+    generateTrajectory(0, 1, 0);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
-    ros::spin();
+    ros::Rate r(10);
+    while(!in_teleop || !end_auto) {
+        if(match_data_received && !mode_buffered) {
+            if(generated_vect[auto_mode]) {
+                bufferTrajectory(auto_mode_vect[auto_mode], auto_mode, start_pos);
+                mode_buffered = true;
+            }
+            else {
+                ROS_WARN("No path generated when match_data received");
+            }
+        }
+        if(in_auto) {
+            if(!mode_buffered) {
+                if(generated_vect[auto_mode]) {
+                    bufferTrajectory(auto_mode_vect[auto_mode], auto_mode, start_pos);
+                    mode_buffered = true;
+                }
+            }
+            if(mode_buffered) {
+                run_auto(auto_mode);
+            }
+        }
+        ros::spinOnce();
+        r.sleep();
+    }
+    //ros::spin();
     return 0;
 }
