@@ -62,14 +62,17 @@ JETSON_CLONE_LOCATION=/home/ubuntu/2018RobotCode
 JETSON_ENV_LOCATION=$JETSON_CLONE_LOCATION.$INSTALL_ENV
 JETSON_ROS_CODE_LOCATION=$JETSON_ENV_LOCATION/zebROS_ws
 
-# Update symlinks on the roboRIO and Jetson.
-ssh $ROBORIO_ADDR "rm $RIO_CLONE_LOCATION && \
-    ln -s $RIO_ENV_LOCATION $RIO_CLONE_LOCATION"
-ssh $JETSON_ADDR "rm $JETSON_CLONE_LOCATION && \
-    ln -s $JETSON_ENV_LOCATION $JETSON_CLONE_LOCATION"
-echo "Symlinks updated."
+update_links() {
+    # Update symlinks on the roboRIO and Jetson.
+    ssh $ROBORIO_ADDR "rm $RIO_CLONE_LOCATION && \
+        ln -s $RIO_ENV_LOCATION $RIO_CLONE_LOCATION"
+    ssh $JETSON_ADDR "rm $JETSON_CLONE_LOCATION && \
+        ln -s $JETSON_ENV_LOCATION $JETSON_CLONE_LOCATION"
+    echo "Symlinks updated."
+}
+
 if [ $UPDATE_LINKS_ONLY -ne 0 ]; then
-    echo "Done"
+    update_links
     exit 0
 fi
 
@@ -118,5 +121,7 @@ ssh $JETSON_ADDR "cd $JETSON_CLONE_LOCATION.$INSTALL_ENV/zebROS_ws && \
     source /opt/ros/kinetic/setup.bash && \
     catkin_make"
 echo "Jetson native build complete"
+
+update_links
 echo "FINISHED SUCCESSFULLY"
 
