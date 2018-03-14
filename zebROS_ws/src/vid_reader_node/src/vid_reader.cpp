@@ -27,14 +27,15 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "vid_reader");
 	ros::NodeHandle nh("~");
 	int sub_rate = 5;
-	int pub_rate = 1;
+	int pub_rate;
+	nh.getParam("pub_rate", pub_rate);
 
 	ros::Publisher zms_pub;
 	ros::Publisher zms_pub1;
 
 	MediaIn *cap = NULL;
-	const char* video_file = "../../../../../media/ubuntu/5522-557D/PalmettoVideos/cap7_0.zms";
-	//nh.getParam("video_file", video_file);
+	const char* video_file = "/home/yambati/PalmettoVideos/cap7_0.zms";
+	//nh.getParam("file_path", video_file);
 	cap = new ZMSIn(video_file);
 
 	if (cap == NULL)
@@ -67,21 +68,23 @@ int main(int argc, char **argv)
 		depth_in.height = depth.rows;
 		depth_in.width = depth.cols;
 
-		cv_bridge::CvImagePtr cv_ptr;
+		cv_bridge::CvImage rgb_out;
 
 		try {
-	        cv_ptr = cv_bridge::toCvCopy(rgb_in, "BGR8");
+	        rgb_out.encoding = sensor_msgs::image_encodings::BGR8;
+		rgb_out.image = image;
 		} catch (cv_bridge::Exception& e) {
 		ROS_ERROR("cv_bridge exception: %s", e.what());
 		}
 
-		cv_bridge::CvImagePtr cv_ptr1;
-		try {
-		cv_ptr1 = cv_bridge::toCvCopy(depth_in, "TYPE_32FC1");
-		} catch (cv_bridge::Exception& e) {
-		ROS_ERROR("cv_bridge exception: %s", e.what());
-		}
+		cv_bridge::CvImage depth_out;
 		
+		try {
+		depth_out.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
+		depth_out.image = depth;
+		} catch (cv_bridge::Exception& e) {
+		ROS_ERROR("cv_bridge exception: %s", e.what());
+		}
 
 		stringstream ss;
 		ss << fixed << setprecision(2) << cap->FPS() << "C:" << frameTicker.getFPS() << "GD FPS";
@@ -90,8 +93,9 @@ int main(int argc, char **argv)
 		zms_pub = nh.advertise<sensor_msgs::Image>("/zed_goal/left/image_rect_color", pub_rate);
 		zms_pub1 = nh.advertise<sensor_msgs::Image>("/zed_goal/depth/depth_registered", pub_rate);
 
-		zms_pub.publish(rgb_in);
-		zms_pub1.publish(depth_in);
+		zms_pub.publish(rgb_out.toImageMsg());
+		zms_pub1.publish(depth_out.toImageMsg());
+
 		imshow ("Image", image);
 
 		if ((uchar)waitKey(5) == 27)
