@@ -485,16 +485,16 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	{
 
 		arm_limiting::point_type cmd_point(curr_cmd.lin[0], curr_cmd.lin[1]);
-		if(cur_pos.y() < cut_off_line_)
+		/*if(cur_pos.y() < cut_off_line_)
 		{
 			cmd_point.x(cur_pos.x()); //Don't smack stuff	
-		}
+		}*/
 
 		bool reassignment_holder;
 
 		arm_limiting::point_type return_cmd;
 		bool return_up_or_down;
-		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, hook_depth_, hook_min_height_, hook_max_height_, return_cmd, return_up_or_down);
+		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, hook_depth_, hook_min_height_, hook_max_height_, return_cmd, return_up_or_down, bottom_limit);
 
 		return_holder.x = return_cmd.x();
 		return_holder.y = return_cmd.y();

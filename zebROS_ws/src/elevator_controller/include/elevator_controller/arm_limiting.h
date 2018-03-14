@@ -35,11 +35,18 @@ class arm_limits
 		arm_limits() {};
 
 		arm_limits(double min_extension, double max_extension, double x_back, double arm_length, 
-		const polygon_type &remove_zone_down, int circle_point_count)
+		const polygon_type &remove_zone_down, int circle_point_count, double cut_off_y_line, 
+		double cut_off_x_line, double safe_to_go_back_y, double drop_down_tolerance, double drop_down_pos)
 		{
-			saved_polygons_ =  arm_limitation_polygon(min_extension, max_extension, 
-			x_back, arm_length, remove_zone_down, circle_point_count);
-		
+
+			
+			cut_off_y_line_ = cut_off_y_line;
+			cut_off_x_line_ = cut_off_x_line;
+			safe_to_go_back_y_ = safe_to_go_back_y;
+			drop_down_tolerance_ =  drop_down_tolerance; 
+			drop_down_pos_ = drop_down_pos;
+
+
 			max_extension_ = max_extension;
 			min_extension_ = min_extension;
 				
@@ -55,6 +62,9 @@ class arm_limits
 			top_pivot_circle.push_back(bottom);	
 			top_pivot_circle.push_back(top);
 			top_pivot_circle.push_back(top_pivot_circle[0]);
+
+			
+			saved_polygons_ =  arm_limitation_polygon(x_back, remove_zone_down, circle_point_count);
 			
 				
 			boost::geometry::assign_points(pivot_circle, top_pivot_circle);
@@ -195,7 +205,29 @@ class arm_limits
 			double y_low_hook_corner =  2 * (hook_min_height) - min_extension_ - sin(acos((hook_depth + 0.05)/arm_length_))*arm_length_;
 			double y_high_hook_corner = 2 * (hook_max_height) - min_extension_ - sin(acos((hook_depth + 0.05)/arm_length_))*arm_length_;
 
+			if(cmd.y() < cut_off_y_line_)
+			{
+				cmd.x(drop_down_pos_);
+				up_or_down = false;
 
+				if(!(fabs(cur_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit)
+				{
+					cmd.y(cut_off_y_line_);
+				}	
+
+			}
+			else if(cmd.x() < cut_off_x_line_ && isolated_lift_delta_y + curr_lift_height > safe_to_go_back_y_ && curr_lift_height < safe_to_go_back_y_)
+			{
+				cmd.x(cut_off_x_line_);
+				up_or_down = true;
+				cmd.y(isolated_lift_delta_y + curr_lift_height+sin(acos(cmd.x()/arm_length_))*arm_length_);	
+			}
+			
+
+			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
+			isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
+			*( up_or_down ? 1 : -1) + cur_lift_height;
+			
 			//hook_heights are for when arm is all the way down
 			if((cmd.x() < hook_depth || cur_pos.x() < hook_depth) && 
 			((cur_pos.y() > hook_current_height_delta + hook_min_height  
@@ -290,6 +322,11 @@ class arm_limits
 		double min_extension_;
 		double max_extension_;	
 		double arm_length_;
+		double cut_off_y_line_;
+		double cut_off_x_line_;
+		double safe_to_go_back_y_;
+		double drop_down_tolerance_; 
+		double drop_down_pos_;
 		std::array<std::vector<linestring_type>, 2> poly_lines;
 		polygon_type pivot_circle;
 		std::array<polygon_type, 2> saved_polygons_;
@@ -533,10 +570,10 @@ class arm_limits
 	
 			ROS_INFO_STREAM("poly up: " << boost::geometry::wkt(back_line_up[0])<< boost::geometry::wkt(back_line_up[1])<< boost::geometry::wkt(front_line_up[0])<< boost::geometry::wkt(front_line_up[1]));
 			
-			quarter_circle_gen(arm_length, max_extension, x_back, circle_point_count, top_circle_up, false);
-			quarter_circle_gen(-arm_length, max_extension, x_back, circle_point_count, top_circle_down, false);
-			quarter_circle_gen(arm_length, min_extension, x_back, circle_point_count, bottom_circle_up, true);
-			quarter_circle_gen(-arm_length, min_extension, x_back, circle_point_count, bottom_circle_down, true);
+			quarter_circle_gen(arm_length_, max_extension_, 0, circle_point_count, top_circle_up, false);
+			quarter_circle_gen(-arm_length_, max_extension_, 0, circle_point_count, top_circle_down, false);
+			quarter_circle_gen(arm_length_, min_extension_, 0, circle_point_count, bottom_circle_up, true);
+			quarter_circle_gen(-arm_length_, min_extension_, 0, circle_point_count, bottom_circle_down, true);
 	
 			//for(int i = 0; i < top_circle_up.size()	
 			//insert into back line
