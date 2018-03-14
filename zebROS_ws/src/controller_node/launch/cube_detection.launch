@@ -18,7 +18,7 @@
   <arg name="sub_rate" default="10" />
   <arg name="pub_rate" default="1" />
 
-  <arg name="file_path" default="/home/yambati/PalmettoVideos/cap7_0.zms"/>
+  <arg name="file_path" />
   
   <!--
   <group ns="$(arg name)">
