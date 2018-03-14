@@ -24,6 +24,8 @@ opkg install python-netifaces libglog0 python-pip coreutils gdb ntp i2c-tools
 opkg clean
 opkg install ntp ntp-tickadj ntp-utils ntpd ntpdate
 opkg clean
+opkg install rsync
+opkg clean
 
 pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy
 

@@ -24,13 +24,13 @@ double defined_dt;
 bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_swerve_drive_controller::FullGenCoefs::Response &res)
 {
 	ROS_WARN("running");
-
 	
 	std::array<double, WHEELCOUNT> curPos;
 	talon_swerve_drive_controller::WheelPos pos_msg;
 	if (!get_pos.call(pos_msg))
 	{
 		ROS_ERROR("failed to get wheel pos in point gen, maybe asked swerve drive controller before it was started up?");
+		return false;
 	}
 	for (int i = 0; i < WHEELCOUNT; i++)
 		curPos[i] = pos_msg.response.positions[i]; //TODO: FILL THIS OUT SOMEHOW
@@ -318,6 +318,8 @@ int main(int argc, char **argv)
 	service_connection_header["tcp_nodelay"] = "1";
 	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/visualize_profile", false, service_connection_header);
 	graph_swerve_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/visualize_swerve_profile", false, service_connection_header);
+
+	ros::service::waitForService("/frcrobot/swerve_drive_controller/wheel_pos");
 	get_pos = nh.serviceClient<talon_swerve_drive_controller::WheelPos>("/frcrobot/swerve_drive_controller/wheel_pos", false, service_connection_header);
 
 	ros::spin();
