@@ -38,6 +38,7 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 	int k_p = 1;
 	res.points.resize(155/defined_dt);
 	int prev_point_count = 0;	
+	talon_swerve_drive_controller::MotionProfile graph_msg;
 	for(int s = 0; s < req.spline_groups.size(); s++)
 	{
 		int priv_num = 0;
@@ -99,11 +100,9 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 		const int point_count = srv_msg.points.size();
 		ROS_WARN("TEST2");
 
-		talon_swerve_drive_controller::MotionProfile graph_msg;
+
 		graph_msg.request.joint_trajectory.header = srv_msg.header;
-		graph_msg.request.joint_trajectory.points = srv_msg.points;
-		if(s == 2)
-		graph_prof.call(graph_msg);
+		graph_msg.request.joint_trajectory.points.insert(graph_msg.request.joint_trajectory.points.end(), srv_msg.points.begin(), srv_msg.points.end());
 
 		res.dt = defined_dt;
 
@@ -205,6 +204,7 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 		prev_point_count += point_count + n - k_p;	
 	}
 	
+	graph_prof.call(graph_msg);
 	res.points.erase(res.points.begin() + prev_point_count, res.points.end());
 	talon_swerve_drive_controller::MotionProfilePoints graph_swerve_msg;
 	graph_swerve_msg.request.points = res.points;

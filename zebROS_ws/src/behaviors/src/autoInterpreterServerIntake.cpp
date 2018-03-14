@@ -48,6 +48,7 @@ class autoAction {
         timed_out = false;
         aborted = false;
         if(goal->IntakeCube) {
+			ROS_INFO("start of intake cube");
             cube_state_true = 0;
             elevator_controller::Intake srv;
             srv.request.power = intake_power;

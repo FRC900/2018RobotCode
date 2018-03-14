@@ -10,9 +10,9 @@ from mpl_toolkits.mplot3d import Axes3D
 import math
 
 home = os.path.expanduser("~");
-print(home)
+#print(home)
 filename = home + '/2018RobotCode/zebROS_ws/src/visualize_profile/field.jpg'
-print(filename)
+#print(filename)
 def create_plot(req):
 	print("called")
 	fig = plt.figure()
@@ -57,31 +57,31 @@ def create_plot(req):
 		k+=1
 	orient.axis([0, 490, 0, 960])
 	plt.show()
-	print("hi1")
+	#print("hi1")
 	im = plt.imread(filename)
 	implot = plt.imshow(im)
-	print("hi2")
+	#print("hi2")
 	path_show = plt.axes()
-	print("hi3")
+	#print("hi3")
 	k = 0
 	scale = 53.404782735
 	arrow_scale  =1
 	init_pos_x = 0.7
 	init_pos_y = 5.0-0.437
 	#init_orient = -1.5 This will rotate the entire path?
-	print("hi4")
+	#print("hi4")
 	for i in req.joint_trajectory.points:
-		print("hi: " + str(k))
-		print("hi: " + str(scale*(i.positions[0]+init_pos_y)) + " hi: " + str(scale*(i.positions[1]+init_pos_x)))
+		#print("hi: " + str(k))
+		#print("hi: " + str(scale*(i.positions[0]+init_pos_y)) + " hi: " + str(scale*(i.positions[1]+init_pos_x)))
 		path_show.plot(scale*(i.positions[0]+init_pos_y), scale*(i.positions[1]+init_pos_x), 'ro', markersize=0.2)
 		k+=1
 	path_show.axis([0, 490, 0, 960])
-	print("hi5")
+	#print("hi5")
 	plt.show()
-	print("hi6")
+	#print("hi6")
 	plt.scatter(index, orients)
 	plt.scatter(index, total_vels)
-	print("hi7")
+	#print("hi7")
 	plt.show()
 
 

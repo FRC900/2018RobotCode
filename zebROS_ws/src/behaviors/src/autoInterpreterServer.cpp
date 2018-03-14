@@ -91,6 +91,7 @@ class autoAction {
 	if((goal->IntakeCube))
 	{
 		
+		ROS_INFO("start of pickup cube");
 		std_srvs::SetBool srv_clamp;
 		ros::spinOnce();
 		goal_i.IntakeCube = true;
@@ -299,6 +300,7 @@ class autoAction {
 	}	
 	if(goal->MoveToIntakeConfig)
 	{
+		ROS_INFO("start of go to intake config");
 		std_srvs::SetBool srv_clamp;
 		ros::spinOnce();
 		bool ready_to_drop = fabs(intake_ready_to_drop_x - odom_x) < drop_x_tolerance;	
