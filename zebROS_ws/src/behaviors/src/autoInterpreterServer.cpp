@@ -1,6 +1,8 @@
 #include "ros/ros.h"
 #include <atomic>
 
+#include <realtime_tools/realtime_buffer.h>
+
 #include "actionlib/client/simple_action_client.h"
 #include "actionlib/client/terminal_state.h"
 #include "actionlib/server/simple_action_server.h"
@@ -49,9 +51,32 @@ class autoAction {
 	elevator_controller::Intake srvIntake;
 	behaviors::IntakeGoal goal_i; 
 	behaviors::LiftGoal goal_l;
-	std::atomic<double> odom_x;
-        std::atomic<double> odom_y;
-        std::atomic<double> odom_up_or_down;
+
+	// Elevator odometry. Make this a struct so that
+	// reads from it get data which is consistent - avoid
+	// cases where X has been modified by the callback
+	// but Y hasn't yet.
+	struct ElevatorPos
+	{
+		ElevatorPos():
+			X_(0),
+			Y_(0),
+			UpOrDown_(false)
+		{
+		}
+		ElevatorPos(double X, double Y, bool UpOrDown) :
+			X_(X),
+			Y_(Y),
+			UpOrDown_(UpOrDown)
+		{
+		}
+
+		double X_;
+		double Y_;
+		bool   UpOrDown_;
+	};
+	realtime_tools::RealtimeBuffer<ElevatorPos> elevator_odom;
+
 	bool timed_out;
 	
     public:
@@ -79,18 +104,17 @@ class autoAction {
 
     void executeCB(const behaviors::RobotGoalConstPtr &goal) {
 	ros::Rate r(10);
-        double startTime = ros::Time::now().toSec();
+	const double startTime = ros::Time::now().toSec();
         aborted = false;
         success = false;
 	timed_out = false;
 
-	
 	al->cancelAllGoals();
 	ai->cancelAllGoals();
 
-	if((goal->IntakeCube))
+	const double odom_x = elevator_odom.readFromRT()->X_;
+	if(goal->IntakeCube)
 	{
-		
 		ROS_INFO("start of pickup cube");
 		std_srvs::SetBool srv_clamp;
 		ros::spinOnce();
@@ -128,7 +152,6 @@ class autoAction {
 				ros::spinOnce();
 				timed_out |= (ros::Time::now().toSec()-startTime) > goal->time_out;
 				
-
 				//time_out if the action times out
 				if(ai->getState().isDone())
 				{
@@ -141,7 +164,6 @@ class autoAction {
 				}
 			    }
 			}
-		
 		}
 		if(!aborted && !timed_out)
 		{
@@ -184,12 +206,9 @@ class autoAction {
 			}
 			
 		    }
-
-
 		}
 		if(!aborted && !timed_out && !high_cube)
 		{
-			
 			goal_l.time_out = 5;
 			goal_l.GoToPos = true;
 			goal_l.x = intake_low_x;
@@ -209,11 +228,6 @@ class autoAction {
 				break;
 			    }
 			    if (!aborted) {
-	// TODO : goal should be to get as many variables as
-	// locals as possible.  This includes goal_num and success
-	// TODO: if the various goals are mutually exclusive, re-do
-	// them as a single enumerated type.  This could then be
-	// used in place of goal_num throughout the callback?
 				r.sleep();
 				ros::spinOnce();
 				timed_out |= (ros::Time::now().toSec()-startTime) > goal->time_out;
@@ -226,10 +240,6 @@ class autoAction {
 				}
 			
 		    	    }
-
-
-		
-
 			}
 		}
 		double clamp_time;
@@ -294,8 +304,6 @@ class autoAction {
 			}
 			
 		    }
-
-
 		}
 	}	
 	if(goal->MoveToIntakeConfig)
@@ -345,7 +353,6 @@ class autoAction {
 				}
 			    }
 			}
-		
 		}
 		if(!aborted && !timed_out)
 		{
@@ -381,8 +388,6 @@ class autoAction {
 			}
 			
 		    }
-
-
 		}
 		if(!aborted && !timed_out)
 		{
@@ -428,15 +433,7 @@ class autoAction {
         */
     //} 
     void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg) {
-        odom_x = msg->x;
-        odom_y = msg->y;
-        odom_up_or_down = msg->up_or_down;
-		// TODO : change this to update x & y values and write them to
-		// a current elevator pos struct. Then read this struct in the main
-		// loop and update success accordingly
-		// Should use a realtime_tools::RealtimeBuffer for the
-		// communication. This will make sure accesses to x and y
-		// are done as a unit - i.e. the x value matches the y
+		elevator_odom.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down));
     }
 };
 
@@ -446,13 +443,19 @@ int main(int argc, char** argv) {
     ros::NodeHandle n;
     ros::NodeHandle n_params(n, "teleop_params");
 
-    n_params.getParam("intake_config_up_or_down", intake_config_up_or_down);
-    n_params.getParam("intake_config_low_up_or_down", intake_low_up_or_down);
-    n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x);
-    n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y);
-    n_params.getParam("intake_ready_to_drop_up_or_down", intake_ready_to_drop_up_or_down);
+    if (!n_params.getParam("intake_config_up_or_down", intake_config_up_or_down))
+		ROS_ERROR("Could not read intake_config_up_or_down");
+    if (!n_params.getParam("intake_config_low_up_or_down", intake_low_up_or_down))
+		ROS_ERROR("Could not read intake_low_up_or_down");
+    if (!n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x))
+		ROS_ERROR("Could not read intake_ready_to_drop_x");
+    if (!n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y))
+		ROS_ERROR("Could not read intake_ready_to_drop_y");
+    if (!n_params.getParam("intake_ready_to_drop_up_or_down", intake_ready_to_drop_up_or_down))
+		ROS_ERROR("Could not read intake_ready_to_drop_up_or_down");
+    if (!n_params.getParam("wait_after_clamp", wait_after_clamp))
+		ROS_ERROR("Could not read wait_after_clamp");
 
-    n_params.getParam("wait_after_clamp", wait_after_clamp);
 	// If n is passed into autoAction class constructor, 
 	// these reads could move there also and the vars they
 	// read into moved to member vars
@@ -464,9 +467,6 @@ int main(int argc, char** argv) {
 		ROS_ERROR("Could not read intake_config_low_x");
     if (!n_params.getParam("intake_config_low_y", intake_low_y))
 		ROS_ERROR("Could not read intake_config_low_y");
-    
-
-
 
     ros::spin();
 
