@@ -382,12 +382,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
 	ros::Duration(3).sleep();	
-
+	bool set_frame_period[num_can_talon_srxs_];
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
-	{
-		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
-		talon_state_[i].setMotionControlFramePeriod(1000./hz);
-	}
+		set_frame_period[i] = false;
 
 	ros::Rate rate(hz);
 	while (ros::ok())
@@ -404,6 +401,12 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
 				/*can_talons_[i]->GetMotionProfileTopLevelBufferCount()*/ mp_status.topBufferCnt && mp_status.btmBufferCnt < 127)
 				{
+					if (!set_frame_period[i])
+					{
+						can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
+						talon_state_[i].setMotionControlFramePeriod(1000./hz);
+						set_frame_period[i] = true;
+					}
 					// Only write if SW buffer has entries in it
 					//ROS_INFO("needs to send points");
 					(*can_talons_mp_writing_)[i].store(true, std::memory_order_relaxed);
