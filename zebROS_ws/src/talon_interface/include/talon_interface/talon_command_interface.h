@@ -20,6 +20,19 @@ enum TrajectoryDuration
 	
 struct TrajectoryPoint
 {
+	// Sane? defaults
+	TrajectoryPoint() :
+		position(0),
+		velocity(0),
+		headingRad(0),
+		auxiliaryPos(0),
+		profileSlotSelect0(0),
+		profileSlotSelect1(0),
+		isLastPoint(false),
+		zeroPos(false),
+		trajectoryDuration(TrajectoryDuration::TrajectoryDuration_0ms)
+	{
+	}
 	double position;
 	double velocity;
 	double headingRad;
@@ -129,6 +142,8 @@ class TalonHWCommand
 			motion_profile_clear_has_underrun_(false),
 			motion_profile_control_frame_period_(20),
 			motion_profile_control_frame_period_changed_(true),
+			motion_profile_profile_trajectory_period_(0),
+			motion_profile_profile_trajectory_period_changed_(true),
 
 			clear_sticky_faults_(false),
 			p_{0, 0},
@@ -139,7 +154,7 @@ class TalonHWCommand
 			allowable_closed_loop_error_{0, 0}, // need better defaults
 			max_integral_accumulator_{0, 0},
 			closed_loop_peak_output_{1, 1},
-			closed_loop_period_{20, 20},
+			closed_loop_period_{1, 1},
 			aux_pid_polarity_(false),
 			aux_pid_polarity_changed_(true),
 			pidf_changed_{true, true},
@@ -1139,6 +1154,27 @@ class TalonHWCommand
 			return true;
 		}
 
+		void setMotionProfileTrajectoryPeriod(int msec)
+		{
+			if (msec != motion_profile_profile_trajectory_period_)
+			{
+				motion_profile_profile_trajectory_period_ = msec;
+				motion_profile_profile_trajectory_period_changed_ = true;
+			}
+		}
+		int getMotionProfileTrajectoryPeriod(void) const
+		{
+			return motion_profile_profile_trajectory_period_;
+		}
+		bool motionProfileTrajectoryPeriodChanged(int &msec)
+		{
+			msec = motion_profile_profile_trajectory_period_;
+			if (!motion_profile_profile_trajectory_period_changed_)
+				return false;
+			motion_profile_profile_trajectory_period_changed_ = false;
+			return true;
+		}
+
 		void setClearStickyFaults(void)
 		{
 			clear_sticky_faults_ = true;
@@ -1254,6 +1290,8 @@ class TalonHWCommand
 		std::vector<TrajectoryPoint> motion_profile_trajectory_points_;
 		int motion_profile_control_frame_period_;
 		bool motion_profile_control_frame_period_changed_;
+		int motion_profile_profile_trajectory_period_;
+		bool motion_profile_profile_trajectory_period_changed_;
 
 		bool clear_sticky_faults_;
 

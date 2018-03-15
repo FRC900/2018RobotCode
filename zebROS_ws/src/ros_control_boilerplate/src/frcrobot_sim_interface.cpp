@@ -344,6 +344,13 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				ts.setMotionControlFramePeriod(motion_control_frame_period);
 			}
 
+			int motion_profile_trajectory_period;
+			if (tc.motionProfileTrajectoryPeriodChanged(motion_profile_trajectory_period))
+			{
+				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectory period");
+				ts.setMotionProfileTrajectoryPeriod(motion_profile_trajectory_period);
+			}
+
 			if (tc.clearMotionProfileTrajectoriesChanged())
 				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 

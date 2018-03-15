@@ -1401,6 +1401,15 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion control frame period");
 			}
 
+			int motion_profile_trajectory_period;
+			if (tc.motionProfileTrajectoryPeriodChanged(motion_profile_trajectory_period))
+			{
+				//ROS_WARN("profile frame period");
+				safeTalonCall(talon->ConfigMotionProfileTrajectoryPeriod(motion_profile_trajectory_period, timeoutMs),"ConfigMotionProfileTrajectoryPeriod");
+				ts.setMotionProfileTrajectoryPeriod(motion_profile_trajectory_period);
+				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectory period");
+			}
+
 			if (tc.clearMotionProfileTrajectoriesChanged())
 			{
 				//ROS_WARN("clear points");

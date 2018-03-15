@@ -151,7 +151,7 @@ class TalonHWState
 			allowable_closed_loop_error_ {0, 0},
 			max_integral_accumulator_ {0, 0},
 			closed_loop_peak_output_{1, 1},
-			closed_loop_period_{20, 20},
+			closed_loop_period_{1, 1},
 			aux_pid_polarity_(false),
 			closed_loop_error_(0.0),
 			integral_accumulator_(0.0),
@@ -218,6 +218,7 @@ class TalonHWState
 			motion_profile_top_level_buffer_count_(0),
 			motion_profile_top_level_buffer_full_(false),
 			motion_control_frame_period_(20), // Guess at 50Hz?
+			motion_profile_trajectory_period_(0),
 
 			// faults
 			faults_(0),
@@ -731,6 +732,14 @@ class TalonHWState
 		{
 			return motion_control_frame_period_;
 		}
+		void setMotionProfileTrajectoryPeriod(int msec)
+		{
+			motion_profile_trajectory_period_ = msec;
+		}
+		int getMotionProfileTrajectoryPeriod(void) const
+		{
+			return motion_profile_trajectory_period_;
+		}
 
 		void setPidfP(double pidf_p, size_t index)
 		{
@@ -995,6 +1004,7 @@ class TalonHWState
 		bool motion_profile_top_level_buffer_full_;
 		MotionProfileStatus motion_profile_status_;
 		int motion_control_frame_period_;
+		int motion_profile_trajectory_period_;
 
 		unsigned int faults_;
 		unsigned int sticky_faults_;
