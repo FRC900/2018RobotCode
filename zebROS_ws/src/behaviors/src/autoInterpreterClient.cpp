@@ -2,6 +2,7 @@
 #include <mutex>
 
 #include <behaviors/autoInterpreterClient.h>
+#include <realtime_tools/realtime_buffer.h>
 
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
@@ -11,7 +12,7 @@ ros::ServiceClient swerve_control;
 // writefromnonRt in callback, readFromRT in
 // run_auto and other uses
 static std::atomic<int> start_pos; // or maybe just bundle with mutex below
-std::vector<int> auto_mode_vect = {0, 0, 0, 0};
+std::vector<int> auto_mode_vect = {-1, -1, -1, -1};
 std::vector<double> delays_vect = {0, 0, 0, 0};
 std::vector<bool> generated_vect = {false, false, false, false};
 std::mutex auto_mode_delays_mutex;
@@ -60,6 +61,49 @@ struct full_mode
 
 	full_mode(void): exists(false) {}	
 };
+
+struct MatchData {
+    MatchData():
+        isEnabled_(false),
+        isAutonomous_(false),
+        alliance_data_("")
+    {
+    }
+    
+    MatchData(bool isEnabled, bool isAutonomous, std::string alliance_data):
+        isEnabled_(isEnabled),
+        isAutonomous_(isAutonomous),
+        alliance_data_(alliance_data)
+    {
+    }
+    bool isEnabled_;
+    bool isAutonomous_;
+    std::string alliance_data_;
+};
+
+
+struct AutoMode {
+    AutoMode():
+        modes_ {0, 0, 0, 0},
+        delays_ {0, 0, 0, 0},
+        start_pos_(0)
+    {
+    }
+    
+    AutoMode(std::vector<int> modes, std::vector<double> delays, int start_pos):
+        modes_(modes),
+        delays_(delays),
+        start_pos_(start_pos)
+    {
+    }
+    
+    std::vector<int> modes_;
+    std::vector<double> delays_;
+    int start_pos_;
+};
+
+realtime_tools::RealtimeBuffer<MatchData> matchData;
+realtime_tools::RealtimeBuffer<AutoMode> autoMode;
 
 typedef std::vector<std::vector<std::vector<full_mode>>> mode_list;
 
@@ -348,24 +392,10 @@ void runTrajectory(int auto_mode) {
 		ROS_ERROR("swerve_control call() failed in autoInterpreterClient runTrajectory()");
 }
 
-void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode) {
-	for(int i = 0; i<4; i++) {
-		if ((AutoMode->mode[i] > 2) &&
-			((AutoMode->mode[i] != auto_mode_vect[i]) || (AutoMode->position != start_pos)))
-		{
-			generateTrajectory(i, AutoMode->mode[i]-3, AutoMode->position);
-            generated_vect[i] = true;
-		}
-		{
-			std::lock_guard<std::mutex> l(auto_mode_delays_mutex);
-			auto_mode_vect[i] = AutoMode->mode[i];
-			delays_vect[i] = AutoMode->delays[i];
-		}
-	}
-	start_pos = AutoMode->position;
-}
+void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &msg) {
+    matchData.writeFromNonRT(MatchData(msg->isEnabled, msg->isAutonomous, msg->allianceData));
 
-void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData) {
+    /*
     if(in_auto && MatchData->isAutonomous == false) {
         in_teleop = true;
     }
@@ -425,7 +455,29 @@ void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &M
     else {
         in_auto = false;
     }
+    */
 }
+
+void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
+    autoMode.writeFromNonRT(AutoMode(msg->mode, msg->delays, msg->position));
+    /*
+	for(int i = 0; i<4; i++) {
+		if ((AutoMode->mode[i] > 2) &&
+			((AutoMode->mode[i] != auto_mode_vect[i]) || (AutoMode->position != start_pos)))
+		{
+			generateTrajectory(i, AutoMode->mode[i]-3, AutoMode->position);
+            generated_vect[i] = true;
+		}
+		{
+			std::lock_guard<std::mutex> l(auto_mode_delays_mutex);
+			auto_mode_vect[i] = AutoMode->mode[i];
+			delays_vect[i] = AutoMode->delays[i];
+		}
+	}
+	start_pos = AutoMode->position;
+    */
+}
+
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
 void run_auto(int auto_mode) {
@@ -1135,30 +1187,91 @@ int main(int argc, char** argv) {
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
-    while(!in_teleop || !end_auto) {
-        if(match_data_received && !mode_buffered) {
+    double auto_start_time = DBL_MAX;
+    while(!in_teleop && !end_auto) {
+
+        MatchData match_data = *(matchData.readFromRT());
+        AutoMode auto_mode_data = *(autoMode.readFromRT());
+
+        if(!match_data_received && !in_auto) { //accept changes to chosen auto_modes until we receive match data or auto starts
+            //loop through auto_mode data 
+            //generate trajectories for all changed modes
+            for(int i = 0; i<4; i++) {
+                if ((auto_mode_data.modes_[i] > 2) &&
+                    ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
+                {
+                    generateTrajectory(i, auto_mode_data.modes_[i]-3, auto_mode_data.start_pos_);
+                    generated_vect[i] = true;
+                }
+                {
+                    std::lock_guard<std::mutex> l(auto_mode_delays_mutex);
+                    auto_mode_vect[i] = auto_mode_data.modes_[i];
+                    delays_vect[i] = auto_mode_data.delays_[i];
+                }
+            }
+            start_pos = auto_mode_data.start_pos_;
+        }
+        if(!match_data_received) { //look for match data until we have it or have given up
+            if(in_auto && match_data.isAutonomous_ == false) {
+                in_teleop = true;
+            }
+            if (match_data.alliance_data_ != "") {
+                if(lower(match_data.alliance_data_)=="rlr") {
+                    auto_mode = 0;
+                    layout = 1;
+                }
+                else if(lower(match_data.alliance_data_)=="lrl") {
+                    auto_mode = 1;
+                    layout = 1;
+                }
+                else if(lower(match_data.alliance_data_)=="rrr") {
+                    auto_mode = 2;
+                    layout = 2;
+                }
+                else if(lower(match_data.alliance_data_) =="lll") {
+                    auto_mode = 3;
+                    layout = 2;
+                }
+                // TODO :: Check this - are we really in auto mode if in this else() block
+                match_data_received = true;
+                
+                //if(auto_mode_vect[auto_mode] > 2) {
+                    //bufferTrajectory(auto_mode);
+                //TODO WHAT IS THIS FOR???
+                //}
+            }
+            else {
+                match_data_received = false;
+            }
+        }
+        if(!match_data_received && ros::Time::now().toSec() > auto_start_time + 2) { //if match data isn't found after 2 seconds of auto starting run default auto
+            auto_mode = 0;
+            auto_mode_vect[0] = 1; //default auto: cross baseline
+            match_data_received = true;
+        }
+        if(!in_auto) { //check for auto to start and set a start time
+            if(match_data.isAutonomous_ && match_data.isEnabled_) {
+                in_auto = true;
+                auto_start_time = ros::Time::now().toSec();
+            }
+        }
+        if(in_auto && mode_buffered) { //if in auto with a mode buffered run it
+            run_auto(auto_mode);
+        }
+
+        if(match_data_received && !mode_buffered) { //if we have match data and haven't buffered yet, buffer
             if(generated_vect[auto_mode]) {
-                bufferTrajectory(auto_mode_vect[auto_mode], auto_mode, start_pos);
+                if(auto_mode_vect[auto_mode] > 2) {
+                    bufferTrajectory(auto_mode_vect[auto_mode], auto_mode, start_pos);
+                }
                 mode_buffered = true;
             }
             else {
                 ROS_WARN("No path generated when match_data received");
             }
         }
-        if(in_auto) {
-            if(!mode_buffered) {
-                if(generated_vect[auto_mode]) {
-                    bufferTrajectory(auto_mode_vect[auto_mode], auto_mode, start_pos);
-                    mode_buffered = true;
-                }
-            }
-            if(mode_buffered) {
-                run_auto(auto_mode);
-            }
-        }
         ros::spinOnce();
         r.sleep();
     }
-    //ros::spin();
     return 0;
 }
