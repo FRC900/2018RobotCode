@@ -35,8 +35,9 @@ class arm_limits
 		arm_limits() {};
 
 		arm_limits(double min_extension, double max_extension, double x_back, double arm_length, 
-		const polygon_type &remove_zone_down, int circle_point_count, double cut_off_y_line, 
-		double cut_off_x_line, double safe_to_go_back_y, double drop_down_tolerance, double drop_down_pos)
+		const polygon_type &remove_zone_down, const polygon_type &remove_zone_up, int circle_point_count, double cut_off_y_line, 
+		double cut_off_x_line, double safe_to_go_back_y, double drop_down_tolerance, double drop_down_pos, double hook_depth, 
+		double hook_min_height, double hook_max_height )
 		{
 
 			
@@ -45,6 +46,10 @@ class arm_limits
 			safe_to_go_back_y_ = safe_to_go_back_y;
 			drop_down_tolerance_ =  drop_down_tolerance; 
 			drop_down_pos_ = drop_down_pos;
+
+			hook_min_height_ = hook_min_height;
+			hook_max_height_ = hook_max_height;
+			hook_depth_ = hook_depth;
 
 
 			max_extension_ = max_extension;
@@ -62,12 +67,22 @@ class arm_limits
 			top_pivot_circle.push_back(bottom);	
 			top_pivot_circle.push_back(top);
 			top_pivot_circle.push_back(top_pivot_circle[0]);
+			
+
+			polygon_edges hook_box_edges;
+			hook_box_edges.push_back(point_type(0.0, hook_min_height_));
+			hook_box_edges.push_back(point_type(0.0, hook_max_height_));
+			hook_box_edges.push_back(point_type(hook_depth_, hook_max_height_));
+			hook_box_edges.push_back(point_type(hook_depth_, hook_min_height_));
+			hook_box_edges.push_back(point_type(0.0, hook_min_height_));
 
 			
-			saved_polygons_ =  arm_limitation_polygon(x_back, remove_zone_down, circle_point_count);
+			saved_polygons_ =  arm_limitation_polygon(x_back, remove_zone_down, remove_zone_up, circle_point_count);
+			saved_polygons_no_hook_ =  saved_polygons_;
 			
 				
 			boost::geometry::assign_points(pivot_circle, top_pivot_circle);
+			boost::geometry::assign_points(hook_box_, hook_box_edges);
 			//dis be contructor
 			//TODO: make better
 		}
@@ -152,10 +167,41 @@ class arm_limits
 			}
 		}
 		bool safe_cmd(point_type &cmd, bool &up_or_down, bool &cmd_works, point_type &cur_pos, 
-		bool &cur_up_or_down, double &hook_depth, double &hook_min_height, double &hook_max_height,
-		point_type &cmd_return, bool &up_or_down_return, bool bottom_limit)
+		bool &cur_up_or_down, point_type &cmd_return, bool &up_or_down_return, bool bottom_limit)
 		{
+			auto orig_pos = cur_pos;
+			bool orig_up_or_down = cur_up_or_down;
 			
+			
+			boost::geometry::strategy::transform::translate_transformer<double, 2, 2> translate(0, (orig_pos.y() - min_extension_)/2);
+			polygon_type t_hook_box;
+			boost::geometry::transform(hook_box_, t_hook_box, translate);
+
+
+
+			for(int k = 0; k < saved_polygons_no_hook_.size(); k++)
+			{
+				std::list<polygon_type> output;			
+				
+				int i = 0;	
+				
+				boost::geometry::difference(saved_polygons_no_hook_[k], t_hook_box, output);
+
+
+				BOOST_FOREACH(polygon_type const& p, output)
+				{
+					if(i == 0) {saved_polygons_[k] = p;
+					
+					}
+					else{ROS_ERROR("Bad hook Zone, REINSTALL WINDOWS?");}
+					i++;
+				}
+				ROS_INFO_STREAM("Poly: " << k << "    " << boost::geometry::wkt(saved_polygons_[k]));
+			}
+
+			
+
+	
 			//Note: uses heuristics only applicable to our robot
 
 			//ROS_INFO_STREAM("cmd base check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
@@ -164,23 +210,24 @@ class arm_limits
 			{	
 				cmd.x(-.00002 + arm_length_);
 			}
-			else if(cmd.x() < .00002 && cmd.y() < safe_to_go_back_y_ + arm_length_)
+			else if(cmd.x() < cut_off_x_line_ + .00002 && cmd.y() < safe_to_go_back_y_ + arm_length_ - .03)
 			{	
-				cmd.x(.00002);
+				cmd.x(cut_off_x_line_ +   .00002);
 			}
 			//ROS_INFO_STREAM("cmd base check fixed. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 			
 			cmd_return = cmd;
 			up_or_down_return = up_or_down;
 
+
 			bool pos_works = check_if_possible(cur_pos, cur_up_or_down, 0);
 			if(cur_pos.x() - arm_length_ > -.00002)
 			{	
 				cur_pos.x(-.00002 + arm_length_);
 			}
-			else if(cur_pos.x() < .00002)
+			else if(cur_pos.x() < cut_off_x_line_ +  .00002 && cur_pos.y() < safe_to_go_back_y_ + arm_length_ - .03)
 			{	
-				cur_pos.x(.00002);
+				cur_pos.x(cut_off_x_line_ +   .00002);
 			}
 			
 			//ROS_INFO_STREAM("cur_pos check");
@@ -201,85 +248,166 @@ class arm_limits
 
 			const double hook_current_height_delta = (cur_lift_height - min_extension_)/2;
 
-			double y_low_hook_corner =  2 * (hook_min_height) - min_extension_ - sin(acos((hook_depth + 0.05)/arm_length_))*arm_length_;
-			double y_high_hook_corner = 2 * (hook_max_height) - min_extension_ - sin(acos((hook_depth + 0.05)/arm_length_))*arm_length_;
 
+
+			bool enforced_hook_x_limit = false;
 
 			if(cmd.y() < cut_off_y_line_ || cur_pos.y() < cut_off_y_line_)
 			{
 				cmd.x(drop_down_pos_);
+				enforced_hook_x_limit = cur_pos.y() < cut_off_y_line_;
 				up_or_down = false;
 			}
-			if(!(fabs(cur_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit && cmd.y() < cut_off_y_line_)
+			if(!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_ && !orig_up_or_down) && !bottom_limit && cmd.y() < cut_off_y_line_)
 			{
 				cmd.y(cut_off_y_line_);
-			}	
+			}
+			bool recalc_due_to_lim = false; 	
 			if(cmd.x() < cut_off_x_line_ - .001   && cur_lift_height < safe_to_go_back_y_)
 			{
 				cmd.x(cut_off_x_line_);
 				up_or_down = true;
-				cmd.y(isolated_lift_delta_y + cur_lift_height+sin(acos(cmd.x()/arm_length_))*arm_length_);	
+				cmd.y(isolated_lift_delta_y + cur_lift_height+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
 				ROS_INFO_STREAM(cmd.y());
 				ROS_INFO_STREAM(isolated_lift_delta_y + cur_lift_height);
 			}
 			else if(cmd.x() - cut_off_x_line_ > -.001 && cur_pos.x() < cut_off_x_line_ - .001 && cur_lift_height +isolated_lift_delta_y < safe_to_go_back_y_)
-			{
-				cmd.y(safe_to_go_back_y_+sin(acos(cmd.x()/arm_length_))*arm_length_);	
+			{	
+				recalc_due_to_lim = true;
+				cmd.y(safe_to_go_back_y_+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
+				ROS_WARN_STREAM("making it safe to go down by setting: " << cmd.y()); 
 			}
 			isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
 
 			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
+			
+			double y_low_hook_corner =  2 * (hook_min_height_) - min_extension_ - sin(acos((hook_depth_ + 0.05)/arm_length_))*arm_length_*(up_or_down ? 1 : -1);
+			double y_high_hook_corner = 2 * (hook_max_height_) - min_extension_ - sin(acos((hook_depth_ + 0.05)/arm_length_))*arm_length_*(up_or_down ? 1 : -1);
 
-			const double hook_cmd_height_delta = (isolated_lift_delta_y)/2 + hook_current_height_delta;
+			double hook_cmd_height_delta = (isolated_lift_delta_y)/2 + hook_current_height_delta;
 			
 			//hook_heights are for when arm is all the way down
-			if((cmd.x() < hook_depth || cur_pos.x() < hook_depth) && 
-			((cur_pos.y() > hook_current_height_delta + hook_min_height  
-			&& cmd.y() < hook_max_height + hook_cmd_height_delta) || 
-			(cmd.y() > hook_min_height + hook_cmd_height_delta 
-			&& cur_pos.y() < hook_current_height_delta +  hook_max_height)))
+			if((cmd.x() < hook_depth_ || cur_pos.x() < hook_depth_) && 
+			((cur_pos.y() > hook_current_height_delta + hook_min_height_  
+			&& cmd.y() < hook_max_height_ + hook_cmd_height_delta) || 
+			(cmd.y() > hook_min_height_ + hook_cmd_height_delta 
+			&& cur_pos.y() < hook_current_height_delta +  hook_max_height_)))
 			{
-				//ROS_WARN("HOOK LIMITED");
-				if(cmd.x() < hook_depth)
+				
+				ROS_WARN("HOOK LIMITED");
+				//up_or_down = cur_up_or_down;
+				if(cmd.x() < hook_depth_ && !enforced_hook_x_limit)
 				{
-					cmd.x(hook_depth + .05); //adjust this arbitrary constant?
-					if(cmd.y() > hook_min_height + hook_cmd_height_delta)
-					{
-						if(cur_pos.x() < hook_depth)
-						{
-							cmd.y(y_low_hook_corner);
-						}
-						else
-						{
-							cmd.y(cur_lift_height + isolated_lift_delta_y 
-							+ sin(acos((hook_depth+.05)/arm_length_))*arm_length_
-							*(up_or_down ? 1 : -1));
-						}	
-					}
-					else
-					{	
-						if(cur_pos.x() < hook_depth)
+					cmd.x(hook_depth_ + .05); //adjust this arbitrary constant?
+
+					if(recalc_due_to_lim)
+					{					
+						ROS_WARN("here to check");	
+						cmd.y(safe_to_go_back_y_+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
+						isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
+						*( up_or_down ? 1 : -1) + cur_lift_height;
+	
+						isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
+
+						hook_cmd_height_delta = (isolated_lift_delta_y)/2 + hook_current_height_delta;
+
+					
+						if(cmd.y() < hook_max_height_ + hook_cmd_height_delta)
 						{
 							cmd.y(y_high_hook_corner);
+							if(cmd.y() - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_ )
+							{	
+								const double theta_new = asin((hook_max_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
+								up_or_down  = theta_new > 0;
+								cmd.x(cos(theta_new) * arm_length_);
+								cmd.y(max_extension_ + sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));
+							}
+						}
+					}
+					else
+					{
+						ROS_WARN("here2");	
+						
+						if(cur_pos.y() < hook_min_height_ + hook_cmd_height_delta)
+						{
+							ROS_WARN("here3");	
+							if(cur_pos.x() < hook_depth_)
+							{
+								cmd.y(y_low_hook_corner);
+								if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
+								{	
+									const double theta_new = asin((hook_min_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
+									up_or_down  = theta_new > 0;
+									cmd.x(cos(theta_new) * arm_length_);
+									cmd.y(max_extension_ + sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));
+								}
+							}
+							else
+							{
+								ROS_WARN("here6");	
+								cmd.y(cur_lift_height + isolated_lift_delta_y 
+								+ sin(acos((hook_depth_+.05)/arm_length_))*arm_length_
+								*(up_or_down ? 1 : -1));
+							}	
 						}
 						else
-						{
-							cmd.y(cur_lift_height + isolated_lift_delta_y 
-							+ sin(acos((hook_depth+.05)/arm_length_))*arm_length_
-							*(up_or_down ? 1 : -1));
-						}	
+						{	
+							ROS_WARN("here");
+							if(cur_pos.x() < hook_depth_)
+							{
+								cmd.y(y_high_hook_corner);
+								if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
+								{	
+									const double theta_new = asin((hook_max_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
+									up_or_down  = theta_new > 0;
+									cmd.x(cos(theta_new) * arm_length_);
+									cmd.y(max_extension_ + sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));
+									ROS_WARN_STREAM("here: " << cmd.x());
+								}
+							}
+							else
+							{
+								cmd.y(cur_lift_height + isolated_lift_delta_y 
+								+ sin(acos((hook_depth_+.05)/arm_length_))*arm_length_
+								*(up_or_down ? 1 : -1));
+							}	
+						}
 					}
+					
 				}
 				else
 				{
-					if(cmd.y() > hook_min_height + hook_cmd_height_delta)
+					if(cur_pos.y() < hook_min_height_ + hook_cmd_height_delta)
 					{
 						cmd.y(y_low_hook_corner);
+						if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
+						{
+							if(!enforced_hook_x_limit)
+							{
+								const double theta_new = asin((hook_min_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
+								up_or_down  = theta_new > 0;
+								cmd.x(cos(theta_new) * arm_length_);
+								cmd.y(max_extension_ + sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));
+							}
+							else
+							{
+								cmd.y(max_extension_ + sin(acos((cmd.x())/arm_length_))*arm_length_
+								*(up_or_down ? 1 : -1));
+
+							}
+						}
 					}
 					else
 					{	
 						cmd.y(y_high_hook_corner);
+						if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
+						{	
+							const double theta_new = asin((hook_max_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
+							up_or_down  = theta_new > 0;
+							cmd.x(cos(theta_new) * arm_length_);
+							cmd.y(max_extension_ + sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));
+						}
 					}	
 				}
 
@@ -333,9 +461,16 @@ class arm_limits
 		double safe_to_go_back_y_;
 		double drop_down_tolerance_; 
 		double drop_down_pos_;
+		double hook_depth_;
+		double hook_min_height_; 
+		double hook_max_height_;	
+
+
 		std::array<std::vector<linestring_type>, 2> poly_lines;
 		polygon_type pivot_circle;
+		polygon_type hook_box_;
 		std::array<polygon_type, 2> saved_polygons_;
+		std::array<polygon_type, 2> saved_polygons_no_hook_;
 		void find_nearest_point(point_type &cmd, bool &up_or_down, int check_type, double lift_height = 0)
 		{
 			//ROS_INFO_STREAM("finding nearest point for: " << boost::geometry::wkt(cmd) << " up/down: " << up_or_down << " check type: " << check_type);
@@ -549,7 +684,7 @@ class arm_limits
 				std::reverse(circle.begin(), circle.end());
 			}
 		}
-		std::array<polygon_type, 2> arm_limitation_polygon(double x_back, polygon_type remove_zone_down, int circle_point_count)
+		std::array<polygon_type, 2> arm_limitation_polygon(double x_back, polygon_type remove_zone_down, polygon_type remove_zone_up, int circle_point_count)
 		{
 			polygon_edges back_line_down;
 			polygon_edges back_line_up;
@@ -638,7 +773,7 @@ class arm_limits
 
 
 			output.clear();			
-			boost::geometry::difference(up_poly, remove_zone_down, output);
+			boost::geometry::difference(up_poly, remove_zone_up, output);
 			
 			i = 0;
 			BOOST_FOREACH(polygon_type const& p, output)

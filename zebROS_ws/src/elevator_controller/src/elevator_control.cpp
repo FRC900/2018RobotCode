@@ -261,24 +261,46 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 
 	//TODO: something here to get bounding boxes etc for limits near bottom of drive train
 	arm_limiting::polygon_type remove_zone_poly_down;
-	std::vector<arm_limiting::point_type> point_vector;
-	XmlRpc::XmlRpcValue poly_points;
-	if (!controller_nh.getParam("polygon_points", poly_points))
+	std::vector<arm_limiting::point_type> point_vector_down;
+	XmlRpc::XmlRpcValue poly_points_down;
+	if (!controller_nh.getParam("polygon_points_down", poly_points_down))
 	{
-		ROS_ERROR_NAMED(name_, "Can not read polygon_points");
+		ROS_ERROR_NAMED(name_, "Can not read polygon_points_down");
 		return false;
 	}
-	point_vector.resize(poly_points.size()/2);
+	point_vector_down.resize(poly_points_down.size()/2);
 	//ROS_ERROR_NAMED(name_, "hypothetical errors");
-	ROS_INFO_STREAM("Poly_points " << std::endl << poly_points.size());
-	for (int i = 0; i < poly_points.size()/2; ++i)
+	ROS_INFO_STREAM("Poly_points down" << std::endl << poly_points_down.size());
+	for (int i = 0; i < poly_points_down.size()/2; ++i)
 	{
-		point_vector[i].x(static_cast<double>(poly_points[2*i]));
-		point_vector[i].y(static_cast<double>(poly_points[2*i + 1]));
-		ROS_INFO_STREAM("point from remove zone: " << boost::geometry::wkt(point_vector[i]));
+		point_vector_down[i].x(static_cast<double>(poly_points_down[2*i]));
+		point_vector_down[i].y(static_cast<double>(poly_points_down[2*i + 1]));
+		ROS_INFO_STREAM("point from remove zone up: " << boost::geometry::wkt(point_vector_down[i]));
 	}
-	boost::geometry::assign_points(remove_zone_poly_down, point_vector);
-	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos);
+	boost::geometry::assign_points(remove_zone_poly_down, point_vector_down);
+
+	
+	arm_limiting::polygon_type remove_zone_poly_up;
+	std::vector<arm_limiting::point_type> point_vector_up;
+	XmlRpc::XmlRpcValue poly_points_up;
+	if (!controller_nh.getParam("polygon_points_up", poly_points_up))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read polygon_points_up");
+		return false;
+	}
+	point_vector_up.resize(poly_points_up.size()/2);
+	//ROS_ERROR_NAMED(name_, "hypothetical errors");
+	ROS_INFO_STREAM("Poly_points up" << std::endl << poly_points_up.size());
+	for (int i = 0; i < poly_points_up.size()/2; ++i)
+	{
+		point_vector_up[i].x(static_cast<double>(poly_points_up[2*i]));
+		point_vector_up[i].y(static_cast<double>(poly_points_up[2*i + 1]));
+		ROS_INFO_STREAM("point from remove zone up: " << boost::geometry::wkt(point_vector_up[i]));
+	}
+	boost::geometry::assign_points(remove_zone_poly_up, point_vector_up);
+
+
+	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, remove_zone_poly_up, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos, hook_depth_, hook_min_height_, hook_max_height_);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
 	sub_stop_arm_ = controller_nh.subscribe("stop_arm", 1, &ElevatorController::stopCallback, this);
@@ -520,7 +542,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		arm_limiting::point_type return_cmd;
 		bool return_up_or_down;
 		bool bottom_limit = false; //TODO FIX THIS
-		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, hook_depth_, hook_min_height_, hook_max_height_, return_cmd, return_up_or_down, bottom_limit);
+		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit);
 
 		return_holder.x = return_cmd.x();
 		return_holder.y = return_cmd.y();
