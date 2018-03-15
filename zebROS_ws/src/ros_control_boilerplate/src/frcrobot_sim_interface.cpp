@@ -262,7 +262,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 		double v_c_saturation;
 		int v_measurement_filter;
 		bool v_c_enable;
-		if (tc.VoltageCompensationChanged(v_c_saturation,
+		if (tc.voltageCompensationChanged(v_c_saturation,
 									v_measurement_filter,
 									v_c_enable))
 		{
@@ -271,6 +271,17 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			ts.setVoltageMeasurementFilter(v_measurement_filter);
 			ts.setVoltageCompensationEnable(v_c_enable);
 		}
+
+		hardware_interface::VelocityMeasurementPeriod v_m_period;
+		int v_m_window;
+
+		if (tc.velocityMeasurementChanged(v_m_period, v_m_window))
+		{
+			ts.setVelocityMeasurementPeriod(v_m_period);
+			ts.setVelocityMeasurementWindow(v_m_window);
+			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" velocity measurement period / window");
+		}
+		
 		double sensor_position;
 		if (tc.sensorPositionChanged(sensor_position))
 		{

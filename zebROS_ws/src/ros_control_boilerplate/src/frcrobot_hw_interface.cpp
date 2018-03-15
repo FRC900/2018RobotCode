@@ -1276,7 +1276,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double v_c_saturation;
 		int v_measurement_filter;
 		bool v_c_enable;
-		if (tc.VoltageCompensationChanged(v_c_saturation,
+		if (tc.voltageCompensationChanged(v_c_saturation,
 										  v_measurement_filter,
 										  v_c_enable))
 		{
@@ -1290,6 +1290,21 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ts.setVoltageMeasurementFilter(v_measurement_filter);
 			ts.setVoltageCompensationEnable(v_c_enable);
 			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" voltage compensation");
+		}
+
+		hardware_interface::VelocityMeasurementPeriod internal_v_m_period;
+		ctre::phoenix::motorcontrol::VelocityMeasPeriod phoenix_v_m_period;
+		int v_m_window;
+
+		if (tc.velocityMeasurementChanged(internal_v_m_period, v_m_window) &&
+			convertVelocityMeasurementPeriod(internal_v_m_period, phoenix_v_m_period))
+		{
+			safeTalonCall(talon->ConfigVelocityMeasurementPeriod(phoenix_v_m_period, timeoutMs),"ConfigVelocityMeasurementPeriod");
+			safeTalonCall(talon->ConfigVelocityMeasurementWindow(v_m_window, timeoutMs),"ConfigVelocityMeasurementWindow");
+
+			ts.setVelocityMeasurementPeriod(internal_v_m_period);
+			ts.setVelocityMeasurementWindow(v_m_window);
+			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" velocity measurement period / window");
 		}
 
 		double sensor_position;
@@ -1742,4 +1757,39 @@ bool FRCRobotHWInterface::convertLimitSwitchNormal(
 
 }
 
+bool FRCRobotHWInterface::convertVelocityMeasurementPeriod(const hardware_interface::VelocityMeasurementPeriod input_v_m_p, ctre::phoenix::motorcontrol::VelocityMeasPeriod &output_v_m_period)
+{
+	switch(input_v_m_p)
+	{
+		case hardware_interface::VelocityMeasurementPeriod::Period_1Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_1Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_2Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_2Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_5Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_5Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_10Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_10Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_20Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_20Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_25Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_25Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_50Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_50Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_100Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_100Ms;
+			break;
+		default:
+			ROS_WARN("Unknown velocity measurement period seen in HW interface");
+			return false;
+	}
+	return true;
 }
+
+} // namespace 

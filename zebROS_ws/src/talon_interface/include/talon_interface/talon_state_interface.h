@@ -79,6 +79,16 @@ enum LimitSwitchNormal
 	LimitSwitchNormal_Last
 };
 
+enum VelocityMeasurementPeriod {
+	Period_1Ms = 1,
+	Period_2Ms = 2,
+	Period_5Ms = 5,
+	Period_10Ms = 10,
+	Period_20Ms = 20,
+	Period_25Ms = 25,
+	Period_50Ms = 50,
+	Period_100Ms = 100,
+};
 
 // Match up with CTRE Motion profile struct
 enum SetValueMotionProfile
@@ -188,6 +198,10 @@ class TalonHWState
 			voltage_compensation_saturation_(12.5),
 			voltage_measurement_filter_(32),
 			voltage_compensation_enable_(true),
+
+			// velocity signal conditioning
+			velocity_measurement_period_(Period_100Ms),
+			velocity_measurement_window_(64),
 
 			limit_switch_local_forward_source_(LimitSwitchSource_FeedbackConnector),
 			limit_switch_local_forward_normal_(LimitSwitchNormal_NormallyOpen),
@@ -580,6 +594,25 @@ class TalonHWState
 		{
 			return voltage_compensation_enable_;
 		}
+		void setVelocityMeasurementPeriod(hardware_interface::VelocityMeasurementPeriod period)
+		{
+			velocity_measurement_period_ = period;
+		}
+
+		bool getVelocityMeasurementPeriod(void) const
+		{
+			return velocity_measurement_period_;
+		}
+
+		void setVelocityMeasurementWindow(int window)
+		{
+			velocity_measurement_window_ = window;
+		}
+
+		bool getVelocityMeasurementWindow(void) const
+		{
+			return velocity_measurement_window_;
+		}
 
 		void setForwardLimitSwitchSource(LimitSwitchSource source, LimitSwitchNormal normal)
 		{
@@ -970,6 +1003,9 @@ class TalonHWState
 		double voltage_compensation_saturation_;
 		int   voltage_measurement_filter_;
 		bool  voltage_compensation_enable_;
+
+		hardware_interface::VelocityMeasurementPeriod velocity_measurement_period_;
+		int velocity_measurement_window_;
 
 		LimitSwitchSource limit_switch_local_forward_source_;
 		LimitSwitchNormal limit_switch_local_forward_normal_;
