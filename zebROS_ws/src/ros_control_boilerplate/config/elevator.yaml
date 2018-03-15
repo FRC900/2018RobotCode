@@ -21,12 +21,20 @@ elevator_controller:
     after_shift_max_accel: 2 #fix
     after_shift_max_vel: .5 #fix
 
-
     hook_depth: 0.314706  #FIX
     hook_min_height: 1.27 #FIX
     hook_max_height: 1.45 #FIX
-   #Fix below remove poly points 
-    polygon_points: [-1.0, .93, -1.0, 3.0, 0.07, 3.0, 0.07, .93, 0.75, .93, 0.75, -1.0, -1.0, -1.0, -1.0, .93] #~5 cm of clearance   
+    
+
+
+    drop_down_pos: .3 #FIX
+    drop_down_tolerance: .03 #FIX
+    safe_to_go_back_y: 2.05 #FIX
+    cut_off_x_line: .07 #FIX
+    cut_off_y_line: .93 #FIX
+    
+    #Fix below remove poly points 
+    polygon_points: [-2.0, -1.0, -2.0, 3.0, -0.155, 3.0, -0.155, -1.0, -0.03, -1.0, 0.0, 2.516729, .07, 2.516729, .07, 0.93, .27, .93, .27, .5, .33, .5, .33, .93, 1.0, 0.93, 1.0, -1.1, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
     cut_off_line: .93 
     lift_joint:
         joint: lift

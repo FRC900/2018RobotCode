@@ -51,8 +51,8 @@ class arm_limits
 			min_extension_ = min_extension;
 				
 			arm_length_ = arm_length;
-			point_type top(-.01, arm_length_ + .01);
-			point_type bottom(-.01, -arm_length_ + .01);
+			point_type top(-.00001, arm_length_+ 0.00001);
+			point_type bottom(-.00001, -arm_length_ + 0.00001);
 			//the -.01 is for some edge case
 			polygon_edges top_pivot_circle;
 			quarter_circle_gen(arm_length_, 0, 0, 30, top_pivot_circle, true);
@@ -153,20 +153,20 @@ class arm_limits
 		}
 		bool safe_cmd(point_type &cmd, bool &up_or_down, bool &cmd_works, point_type &cur_pos, 
 		bool &cur_up_or_down, double &hook_depth, double &hook_min_height, double &hook_max_height,
-		point_type &cmd_return, bool &up_or_down_return)
+		point_type &cmd_return, bool &up_or_down_return, bool bottom_limit)
 		{
 			
 			//Note: uses heuristics only applicable to our robot
 
 			//ROS_INFO_STREAM("cmd base check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 			cmd_works = check_if_possible(cmd, up_or_down, 0);
-			if(cmd.x() - arm_length_ > -.002)
+			if(cmd.x() - arm_length_ > -.00002)
 			{	
-				cmd.x(-.002 + arm_length_);
+				cmd.x(-.00002 + arm_length_);
 			}
-			else if(cmd.x() < .002)
+			else if(cmd.x() < .00002 && cmd.y() < safe_to_go_back_y_ + arm_length_)
 			{	
-				cmd.x(.002);
+				cmd.x(.00002);
 			}
 			//ROS_INFO_STREAM("cmd base check fixed. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 			
@@ -174,13 +174,13 @@ class arm_limits
 			up_or_down_return = up_or_down;
 
 			bool pos_works = check_if_possible(cur_pos, cur_up_or_down, 0);
-			if(cur_pos.x() - arm_length_ > -.002)
+			if(cur_pos.x() - arm_length_ > -.00002)
 			{	
-				cur_pos.x(-.002 + arm_length_);
+				cur_pos.x(-.00002 + arm_length_);
 			}
-			else if(cur_pos.x() < .002)
+			else if(cur_pos.x() < .00002)
 			{	
-				cur_pos.x(.002);
+				cur_pos.x(.00002);
 			}
 			
 			//ROS_INFO_STREAM("cur_pos check");
@@ -200,33 +200,38 @@ class arm_limits
 			double isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
 
 			const double hook_current_height_delta = (cur_lift_height - min_extension_)/2;
-			const double hook_cmd_height_delta = (isolated_lift_delta_y)/2 + hook_current_height_delta;
 
 			double y_low_hook_corner =  2 * (hook_min_height) - min_extension_ - sin(acos((hook_depth + 0.05)/arm_length_))*arm_length_;
 			double y_high_hook_corner = 2 * (hook_max_height) - min_extension_ - sin(acos((hook_depth + 0.05)/arm_length_))*arm_length_;
 
-			if(cmd.y() < cut_off_y_line_)
+
+			if(cmd.y() < cut_off_y_line_ || cur_pos.y() < cut_off_y_line_)
 			{
 				cmd.x(drop_down_pos_);
 				up_or_down = false;
-
-				if(!(fabs(cur_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit)
-				{
-					cmd.y(cut_off_y_line_);
-				}	
-
 			}
-			else if(cmd.x() < cut_off_x_line_ && isolated_lift_delta_y + curr_lift_height > safe_to_go_back_y_ && curr_lift_height < safe_to_go_back_y_)
+			if(!(fabs(cur_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit && cmd.y() < cut_off_y_line_)
+			{
+				cmd.y(cut_off_y_line_);
+			}	
+			if(cmd.x() < cut_off_x_line_ - .001   && cur_lift_height < safe_to_go_back_y_)
 			{
 				cmd.x(cut_off_x_line_);
 				up_or_down = true;
-				cmd.y(isolated_lift_delta_y + curr_lift_height+sin(acos(cmd.x()/arm_length_))*arm_length_);	
+				cmd.y(isolated_lift_delta_y + cur_lift_height+sin(acos(cmd.x()/arm_length_))*arm_length_);	
+				ROS_INFO_STREAM(cmd.y());
+				ROS_INFO_STREAM(isolated_lift_delta_y + cur_lift_height);
 			}
-			
-
-			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
+			else if(cmd.x() - cut_off_x_line_ > -.001 && cur_pos.x() < cut_off_x_line_ - .001 && cur_lift_height +isolated_lift_delta_y < safe_to_go_back_y_)
+			{
+				cmd.y(safe_to_go_back_y_+sin(acos(cmd.x()/arm_length_))*arm_length_);	
+			}
 			isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
+
+			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
+
+			const double hook_cmd_height_delta = (isolated_lift_delta_y)/2 + hook_current_height_delta;
 			
 			//hook_heights are for when arm is all the way down
 			if((cmd.x() < hook_depth || cur_pos.x() < hook_depth) && 
@@ -245,7 +250,7 @@ class arm_limits
 						{
 							cmd.y(y_low_hook_corner);
 						}
-						else if(!(cmd.y() > hook_min_height + hook_cmd_height_delta))
+						else
 						{
 							cmd.y(cur_lift_height + isolated_lift_delta_y 
 							+ sin(acos((hook_depth+.05)/arm_length_))*arm_length_
@@ -258,7 +263,7 @@ class arm_limits
 						{
 							cmd.y(y_high_hook_corner);
 						}
-						else if(!(cmd.y() < hook_max_height + hook_cmd_height_delta))
+						else
 						{
 							cmd.y(cur_lift_height + isolated_lift_delta_y 
 							+ sin(acos((hook_depth+.05)/arm_length_))*arm_length_
@@ -291,29 +296,30 @@ class arm_limits
 			point_type test_pivot_cmd(cmd.x(), isolated_pivot_y);
 	
 			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
+			ROS_INFO_STREAM("c: " << isolated_lift_delta_y + cur_lift_height);
 			
-			//ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
+			ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
 			
 			if(!check_if_possible(test_pivot_cmd, up_or_down, 1, cur_lift_height))
 			{
 				cmd.x(test_pivot_cmd.x());
 				cmd.y(isolated_lift_delta_y + test_pivot_cmd.y());
-				//ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+				ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 				return false;				
 			}
 			else
 			{
 				point_type test_lift_cmd(cur_pos.x(), cur_pos.y() + isolated_lift_delta_y);
-				//ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
+				ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
 				if(!check_if_possible(test_lift_cmd, cur_up_or_down, 2))
 				{
 					cmd.y(test_lift_cmd.y() - cur_pos.y() + isolated_pivot_y);
-					//ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+					ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 					return false;
 				}
 				else
 				{
-					//ROS_INFO_STREAM("cmd final check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+					ROS_INFO_STREAM("cmd final check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 					return true;
 				}
 			} 
@@ -526,25 +532,24 @@ class arm_limits
                         }
                 }
 		void quarter_circle_gen(double delta_height, double midpoint_z, double midpoint_x, int point_count,
-		polygon_edges &circle, bool flip)
+		polygon_edges &circle, bool flip, bool neg_x = false)
 		{
 			point_count++;
 			//(z-midpoint_z)^2+(x-midpoint_x)^2 = radius^2
 			//x = midpoint_x + sqrt(radius^2 - (z-midpoint_z)^2)
 
+			int invert = neg_x ? -1 : 1;
 
 			for(int i  = 1; i < point_count; i++) //Don't need beginning line or end line
 			{
-				circle.push_back(point_type(midpoint_x+sqrt(pow(delta_height, 2) - pow(i*delta_height/point_count, 2)), i*delta_height/point_count + midpoint_z));
+				circle.push_back(point_type(invert * (midpoint_x+sqrt(pow(delta_height, 2) - pow(i*delta_height/point_count, 2))), i*delta_height/point_count + midpoint_z));
 			}
 			if(flip)
 			{
 				std::reverse(circle.begin(), circle.end());
 			}
 		}
-		std::array<polygon_type, 2> arm_limitation_polygon(double min_extension, 
-		double max_extension, double x_back, double arm_length, polygon_type remove_zone_down, 
-		int circle_point_count)
+		std::array<polygon_type, 2> arm_limitation_polygon(double x_back, polygon_type remove_zone_down, int circle_point_count)
 		{
 			polygon_edges back_line_down;
 			polygon_edges back_line_up;
@@ -553,17 +558,19 @@ class arm_limits
 
 			polygon_edges top_circle_down;
 			polygon_edges top_circle_up;
+			polygon_edges top_circle_up_top_back;
+			polygon_edges top_circle_up_bottom_back;
 			polygon_edges bottom_circle_down;
 			polygon_edges bottom_circle_up;
 			
-			back_line_down.push_back(point_type(x_back, max_extension - arm_length));
-			back_line_down.push_back(point_type(x_back, min_extension - arm_length));
-			back_line_up.push_back(point_type(x_back, max_extension + arm_length));
-			back_line_up.push_back(point_type(x_back, min_extension + arm_length));
-			front_line_down.push_back(point_type(x_back + arm_length -.001, min_extension));
-			front_line_down.push_back(point_type(x_back + arm_length - .001, max_extension)); 	
-			front_line_up.push_back(point_type(x_back + arm_length - .001, min_extension));
-			front_line_up.push_back(point_type(x_back + arm_length - .001, max_extension)); 	
+			back_line_down.push_back(point_type(x_back, max_extension_ - arm_length_));
+			back_line_down.push_back(point_type(x_back, min_extension_ - arm_length_));
+			back_line_up.push_back(point_type(x_back, safe_to_go_back_y_ + arm_length_));
+			back_line_up.push_back(point_type(x_back, min_extension_ + arm_length_));
+			front_line_down.push_back(point_type(x_back + arm_length_ -.00001, min_extension_));
+			front_line_down.push_back(point_type(x_back + arm_length_ - .00001, max_extension_)); 	
+			front_line_up.push_back(point_type(x_back + arm_length_ - .00001, min_extension_));
+			front_line_up.push_back(point_type(x_back + arm_length_ - .00001, max_extension_)); 	
 		
 			//These -.01s are a hack
 
@@ -571,6 +578,8 @@ class arm_limits
 			ROS_INFO_STREAM("poly up: " << boost::geometry::wkt(back_line_up[0])<< boost::geometry::wkt(back_line_up[1])<< boost::geometry::wkt(front_line_up[0])<< boost::geometry::wkt(front_line_up[1]));
 			
 			quarter_circle_gen(arm_length_, max_extension_, 0, circle_point_count, top_circle_up, false);
+			quarter_circle_gen(arm_length_, max_extension_, 0, /*circle_point_count*/ 100, top_circle_up_top_back, true, true);
+			quarter_circle_gen(arm_length_, safe_to_go_back_y_, 0, /*circle_point_count*/ 100, top_circle_up_bottom_back, false, true);
 			quarter_circle_gen(-arm_length_, max_extension_, 0, circle_point_count, top_circle_down, false);
 			quarter_circle_gen(arm_length_, min_extension_, 0, circle_point_count, bottom_circle_up, true);
 			quarter_circle_gen(-arm_length_, min_extension_, 0, circle_point_count, bottom_circle_down, true);
@@ -582,6 +591,8 @@ class arm_limits
 			back_line_up.insert(back_line_up.end(), bottom_circle_up.begin(), bottom_circle_up.end());
 			back_line_up.insert(back_line_up.end(), front_line_up.begin(), front_line_up.end());
 			back_line_up.insert(back_line_up.end(), top_circle_up.begin(), top_circle_up.end());
+			back_line_up.insert(back_line_up.end(), top_circle_up_top_back.begin(), top_circle_up_top_back.end());
+			back_line_up.insert(back_line_up.end(), top_circle_up_bottom_back.begin(), top_circle_up_bottom_back.end());
 			back_line_up.push_back(back_line_up[0]);
 
 

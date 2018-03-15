@@ -212,9 +212,34 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read arm mass");
 		return false;
 	}
-	if (!controller_nh.getParam("custom_f_arm_fric", f_arm_fric_))
+	
+
+	double cut_off_y_line, cut_off_x_line, safe_to_go_back_y, drop_down_tolerance, drop_down_pos;
+
+
+	if (!controller_nh.getParam("cut_off_y_line", cut_off_y_line))
 	{
-		ROS_ERROR_NAMED(name_, "Can not read arm fric");
+		ROS_ERROR_NAMED(name_, "Can not read cut_off_y_line");
+		return false;
+	}
+	if (!controller_nh.getParam("cut_off_x_line", cut_off_x_line))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read cut_off_x_line");
+		return false;
+	}
+	if (!controller_nh.getParam("safe_to_go_back_y", safe_to_go_back_y))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read safe_to_go_back_y ");
+		return false;
+	}
+	if (!controller_nh.getParam("drop_down_tolerance", drop_down_tolerance))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read drop_down_tolerance");
+		return false;
+	}
+	if (!controller_nh.getParam("drop_down_pos", drop_down_pos))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read drop_down_pos");
 		return false;
 	}
 	
@@ -253,7 +278,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_INFO_STREAM("point from remove zone: " << boost::geometry::wkt(point_vector[i]));
 	}
 	boost::geometry::assign_points(remove_zone_poly_down, point_vector);
-	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, 15);
+	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
 	sub_stop_arm_ = controller_nh.subscribe("stop_arm", 1, &ElevatorController::stopCallback, this);
@@ -439,8 +464,8 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	elevator_controller::ReturnElevatorCmd return_holder;
 	elevator_controller::ReturnElevatorCmd odom_holder;
 
-	const double lift_position =  /*last_tar_l - lift_offset_;*/ lift_joint_.getPosition()  - lift_offset_;
-	double pivot_angle   =  /*last_tar_p - pivot_offset_;*/ pivot_joint_.getPosition() - pivot_offset_;
+	const double lift_position =  last_tar_l - lift_offset_;// lift_joint_.getPosition()  - lift_offset_;
+	double pivot_angle   =  last_tar_p - pivot_offset_;// pivot_joint_.getPosition() - pivot_offset_;
 
 		
 
@@ -494,6 +519,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 		arm_limiting::point_type return_cmd;
 		bool return_up_or_down;
+		bool bottom_limit = false; //TODO FIX THIS
 		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, hook_depth_, hook_min_height_, hook_max_height_, return_cmd, return_up_or_down, bottom_limit);
 
 		return_holder.x = return_cmd.x();
