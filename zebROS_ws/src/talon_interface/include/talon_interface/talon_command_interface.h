@@ -20,6 +20,19 @@ enum TrajectoryDuration
 	
 struct TrajectoryPoint
 {
+	// Sane? defaults
+	TrajectoryPoint() :
+		position(0),
+		velocity(0),
+		headingRad(0),
+		auxiliaryPos(0),
+		profileSlotSelect0(0),
+		profileSlotSelect1(0),
+		isLastPoint(false),
+		zeroPos(false),
+		trajectoryDuration(TrajectoryDuration::TrajectoryDuration_0ms)
+	{
+	}
 	double position;
 	double velocity;
 	double headingRad;
