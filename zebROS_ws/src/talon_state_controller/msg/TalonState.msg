@@ -109,6 +109,8 @@ int32[]   motion_profile_status_profile_slot_select0
 int32[]   motion_profile_status_profile_slot_select1
 string[]  motion_profile_status_output_enable
 int32[]   motion_profile_time_dur_ms
+float64[] motion_profile_control_frame_period
+float64[] motion_profile_trajectory_period
 string[]  faults
 string[]  sticky_faults
 float64[] conversion_factor

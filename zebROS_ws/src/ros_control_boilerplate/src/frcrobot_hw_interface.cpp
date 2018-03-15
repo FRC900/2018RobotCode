@@ -387,7 +387,10 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 	ros::Duration(3).sleep();	
 
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
+	{
 		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
+		talon_state_[i].setMotionControlFramePeriod(1000./hz);
+	}
 
 	ros::Rate rate(hz);
 	while (ros::ok())
