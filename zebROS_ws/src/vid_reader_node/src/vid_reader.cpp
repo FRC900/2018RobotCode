@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 		cv_bridge::CvImage rgb_out;
 
 		try {
-	        rgb_out.encoding = sensor_msgs::image_encodings::BGR8;
+	        	rgb_out.encoding = sensor_msgs::image_encodings::BGR8;
 			rgb_out.image = image;
 		} catch (cv_bridge::Exception& e) {
 			ROS_ERROR("cv_bridge exception: %s", e.what());
@@ -103,6 +103,7 @@ int main(int argc, char **argv)
 		zms_pub1.publish(depth_out.toImageMsg());
 
 		imshow ("Image", image);
+		imshow ("Depth", depth);
 
 		if ((uchar)waitKey(5) == 27)
 			break;
