@@ -162,6 +162,8 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 		m.motion_profile_status_profile_slot_select1.push_back(0);
 		m.motion_profile_status_output_enable.push_back("");
 		m.motion_profile_time_dur_ms.push_back(0);
+		m.motion_profile_control_frame_period.push_back(0);
+		m.motion_profile_trajectory_period.push_back(0);
 		m.faults.push_back("");
 		m.sticky_faults.push_back("");
 		m.conversion_factor.push_back(0.0);
@@ -448,6 +450,8 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 				}
 				m.motion_profile_time_dur_ms[i] = mp_status.timeDurMs;
 
+				m.motion_profile_control_frame_period[i] = ts->getMotionControlFramePeriod();
+				m.motion_profile_trajectory_period[i] = ts->getMotionProfileTrajectoryPeriod();
 				{
 					unsigned faults = ts->getFaults();
 					unsigned int mask = 1;
