@@ -142,6 +142,8 @@ class TalonHWCommand
 			motion_profile_clear_has_underrun_(false),
 			motion_profile_control_frame_period_(20),
 			motion_profile_control_frame_period_changed_(true),
+			motion_profile_profile_trajectory_period_(0),
+			motion_profile_profile_trajectory_period_changed_(true),
 
 			clear_sticky_faults_(false),
 			p_{0, 0},
@@ -1152,6 +1154,27 @@ class TalonHWCommand
 			return true;
 		}
 
+		void setMotionProfileTrajectoryPeriod(int msec)
+		{
+			if (msec != motion_profile_profile_trajectory_period_)
+			{
+				motion_profile_profile_trajectory_period_ = msec;
+				motion_profile_profile_trajectory_period_changed_ = true;
+			}
+		}
+		int getMotionProfileTrajectoryPeriod(void) const
+		{
+			return motion_profile_profile_trajectory_period_;
+		}
+		bool motionProfileTrajectoryPeriodChanged(int &msec)
+		{
+			msec = motion_profile_profile_trajectory_period_;
+			if (!motion_profile_profile_trajectory_period_changed_)
+				return false;
+			motion_profile_profile_trajectory_period_changed_ = false;
+			return true;
+		}
+
 		void setClearStickyFaults(void)
 		{
 			clear_sticky_faults_ = true;
@@ -1267,6 +1290,8 @@ class TalonHWCommand
 		std::vector<TrajectoryPoint> motion_profile_trajectory_points_;
 		int motion_profile_control_frame_period_;
 		bool motion_profile_control_frame_period_changed_;
+		int motion_profile_profile_trajectory_period_;
+		bool motion_profile_profile_trajectory_period_changed_;
 
 		bool clear_sticky_faults_;
 

@@ -79,6 +79,7 @@ class TalonCIParams
 			motion_cruise_velocity_(0), // No idea at a guess
 			motion_acceleration_(0),
 			motion_control_frame_period_(20), // Guess at 50Hz default?
+			motion_profile_trajectory_period_(0),
 			
 			conversion_factor_(1.0)
 		{
@@ -145,6 +146,7 @@ class TalonCIParams
 			motion_cruise_velocity_ = config.motion_cruise_velocity;
 			motion_acceleration_ = config.motion_acceleration;
 			motion_control_frame_period_ = config.motion_control_frame_period;
+			motion_profile_trajectory_period_ = config.motion_profile_trajectory_period;
 		
 			conversion_factor_ = config.conversion_factor;
 		}
@@ -205,6 +207,7 @@ class TalonCIParams
 			config.motion_cruise_velocity = motion_cruise_velocity_;
 			config.motion_acceleration = motion_acceleration_;
 			config.motion_control_frame_period = motion_control_frame_period_;
+			config.motion_profile_trajectory_period = motion_profile_trajectory_period_;
 			config.conversion_factor = conversion_factor_;
 			return config;
 		}
@@ -423,6 +426,7 @@ class TalonCIParams
 			n.getParam("motion_cruise_velocity", motion_cruise_velocity_);
 			n.getParam("motion_acceleration", motion_acceleration_);
 			n.getParam("motion_control_frame_period", motion_control_frame_period_);
+			n.getParam("motion_profile_trajectory_period", motion_profile_trajectory_period_);
 			return true;
 		}
 
@@ -473,6 +477,7 @@ class TalonCIParams
 		double motion_cruise_velocity_;
 		double motion_acceleration_;
 		int    motion_control_frame_period_;
+		int    motion_profile_trajectory_period_;
 		
 		double conversion_factor_;
 	private:
@@ -904,6 +909,17 @@ class TalonControllerInterface
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
 		}
 
+		virtual void setMotionProfileTrajectoryPeriod(int msec)
+		{
+			if (msec == params_.motion_profile_trajectory_period_)
+				return;
+			params_.motion_profile_trajectory_period_ = msec;
+
+			syncDynamicReconfigure();
+
+			talon_->setMotionProfileTrajectoryPeriod(params_.motion_profile_trajectory_period_);
+		}
+
 		virtual void clearMotionProfileTrajectories(void)
 		{
 			talon_->setClearMotionProfileTrajectories();
@@ -1112,6 +1128,7 @@ class TalonControllerInterface
 			talon->setMotionCruiseVelocity(params.motion_cruise_velocity_);
 			talon->setMotionAcceleration(params.motion_acceleration_);
 			talon->setMotionControlFramePeriod(params.motion_control_frame_period_);
+			talon->setMotionProfileTrajectoryPeriod(params.motion_profile_trajectory_period_);
 
 			talon->setConversionFactor(params.conversion_factor_);
 
