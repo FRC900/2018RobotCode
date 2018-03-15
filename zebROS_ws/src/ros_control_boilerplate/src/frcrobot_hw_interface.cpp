@@ -1408,6 +1408,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" cruise velocity / acceleration");
 			}
+
+#if 0 // DISABLE FOR NOW UNTIL WE CAN FIND A SAFE DEFAULT
 			// Do this before rest of motion profile stuff
 			// so it takes effect before starting a buffer?
 			int motion_control_frame_period;
@@ -1418,6 +1420,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				ts.setMotionControlFramePeriod(motion_control_frame_period);
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion control frame period");
 			}
+#endif
 
 			int motion_profile_trajectory_period;
 			if (tc.motionProfileTrajectoryPeriodChanged(motion_profile_trajectory_period))
