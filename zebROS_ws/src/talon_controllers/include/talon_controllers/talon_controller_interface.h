@@ -311,15 +311,15 @@ class TalonCIParams
 				{
 					XmlRpc::XmlRpcValue &pidparams = pid_param_list[i];
 
-					p_[i] = findFloatParam("p", pidparams);
-					i_[i] = findFloatParam("i", pidparams);
-					d_[i] = findFloatParam("d", pidparams);
-					f_[i] = findFloatParam("f", pidparams);
-					izone_[i] = findIntParam("i_zone", pidparams);
-					allowable_closed_loop_error_[i] = findIntParam("allowable_closed_loop_error", pidparams);
-					max_integral_accumulator_[i] = findFloatParam("max_integral_accumulator", pidparams);
-					closed_loop_peak_output_[i] = findFloatParam("closed_loop_peak_output", pidparams);
-					closed_loop_period_[i] = findIntParam("closed_loop_period", pidparams);
+					findFloatParam("p", pidparams, p_[i]);
+					findFloatParam("i", pidparams, i_[i]);
+					findFloatParam("d", pidparams, d_[i]);
+					findFloatParam("f", pidparams, f_[i]);
+					findIntParam("i_zone", pidparams, izone_[i]);
+					findIntParam("allowable_closed_loop_error", pidparams, allowable_closed_loop_error_[i]);
+					findFloatParam("max_integral_accumulator", pidparams, max_integral_accumulator_[i]);
+					findFloatParam("closed_loop_peak_output", pidparams, closed_loop_peak_output_[i]);
+					findIntParam("closed_loop_period", pidparams, closed_loop_period_[i]);
 				}
 				return true;
 			}
@@ -478,36 +478,43 @@ class TalonCIParams
 	private:
 		// Read a double named <param_type> from the array/map
 		// in params
-		double findFloatParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
+		bool findFloatParam(std::string param_type, XmlRpc::XmlRpcValue &params, double &val) const
 		{
 			if (!params.hasMember(param_type))
-				return 0;
+				return false;
 			XmlRpc::XmlRpcValue &param = params[param_type];
 			if (!param.valid())
 				throw std::runtime_error(param_type + " was not a double valid type");
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-				return (double)param;
+			{
+				val = (double)param;
+				return true;
+			}
 			else if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
-				return (int)param;
+			{
+				val = (int)param;
+				return true;
+			}
 			else
 				throw std::runtime_error("A non-double value was passed for" + param_type);
-			return 0;
+
+			return false;
 		}
 
 		// Read an integer named <param_type> from the array/map
 		// in params
-		int findIntParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
+		bool findIntParam(std::string param_type, XmlRpc::XmlRpcValue &params, int &val) const
 		{
 			if (!params.hasMember(param_type))
-				return 0;
+				return false;
 			XmlRpc::XmlRpcValue &param = params[param_type];
 			if (!param.valid())
 				throw std::runtime_error(param_type + " was not a valid int type");
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
-				return (int)param;
+				val = (int)param;
 			else
 				throw std::runtime_error("A non-int value was passed for" + param_type);
-			return 0;
+			return false;
 		}
 
 		bool stringToLimitSwitchSource(const std::string &str,
