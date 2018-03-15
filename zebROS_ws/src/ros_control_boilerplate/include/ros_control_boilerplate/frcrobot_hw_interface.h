@@ -189,6 +189,10 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		bool convertLimitSwitchNormal(
 			const hardware_interface::LimitSwitchNormal input_ls,
 			ctre::phoenix::motorcontrol::LimitSwitchNormal &output_ls);
+		bool convertVelocityMeasurementPeriod(
+			const hardware_interface::VelocityMeasurementPeriod input_v_m_p, 
+			ctre::phoenix::motorcontrol::VelocityMeasPeriod &output_v_m_period);
+
 		bool safeTalonCall(ctre::phoenix::ErrorCode error_code, 
 				const std::string &talon_method_name);
 

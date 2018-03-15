@@ -5,8 +5,8 @@
 #include <ros/ros.h>
 #include <swerve_math/Swerve.h>
 #include <swerve_point_generator/profiler.h>
-#include <talon_swerve_drive_controller/FullGenCoefs.h>
-#include <talon_swerve_drive_controller/GenerateSwerveProfile.h>
+#include <swerve_point_generator/FullGenCoefs.h>
+#include <swerve_point_generator/GenerateSwerveProfile.h>
 #include <talon_swerve_drive_controller/MotionProfile.h> //Only needed for visualization
 #include <talon_swerve_drive_controller/MotionProfilePoints.h> //Only needed for visualization
 #include <talon_swerve_drive_controller/WheelPos.h>
@@ -21,7 +21,7 @@ ros::ServiceClient get_pos;
 ros::ServiceClient graph_swerve_prof;
 double defined_dt;
 
-bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_swerve_drive_controller::FullGenCoefs::Response &res)
+bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_generator::FullGenCoefs::Response &res)
 {
 	ROS_WARN("running");
 	
@@ -94,7 +94,7 @@ bool full_gen(talon_swerve_drive_controller::FullGenCoefs::Request &req, talon_s
 			end_points_holder.push_back(req.end_points[i] - t_shift);
 		}
 		
-		talon_swerve_drive_controller::GenerateSwerveProfile::Response srv_msg; //TODO FIX THIS, HACK
+		swerve_point_generator::GenerateSwerveProfile::Response srv_msg; //TODO FIX THIS, HACK
 		srv_msg.points.resize(0);
 		profile_gen->generate_profile(x_splines, y_splines, orient_splines, req.initial_v, req.final_v, srv_msg, end_points_holder, /*t_shift*/ 0);
 		const int point_count = srv_msg.points.size();

@@ -63,6 +63,8 @@ class TalonCIParams
 			voltage_compensation_saturation_(12.5),
 			voltage_measurement_filter_(32),
 			voltage_compensation_enable_(true),
+			velocity_measurement_period_(hardware_interface::Period_100Ms),
+			velocity_measurement_window_(64),
 			limit_switch_local_forward_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
 			limit_switch_local_forward_normal_(hardware_interface::LimitSwitchNormal_Disabled),
 			limit_switch_local_reverse_source_(hardware_interface::LimitSwitchSource_FeedbackConnector),
@@ -73,7 +75,7 @@ class TalonCIParams
 			softlimit_reverse_enable_(false),
 			softlimits_override_enable_(true),
 			current_limit_peak_amps_(0),
-			current_limit_peak_msec_(0),
+			current_limit_peak_msec_(10), // to avoid errata - see https://github.com/CrossTheRoadElec/Phoenix-Documentation/blob/master/README.md#motor-output-direction-is-incorrect-or-accelerates-when-current-limit-is-enabled and https://github.com/CrossTheRoadElec/Phoenix-Examples-Languages/blob/master/C%2B%2B/Current%20Limit/src/Robot.cpp#L37
 			current_limit_continuous_amps_(0),
 			current_limit_enable_(false),
 			motion_cruise_velocity_(0), // No idea at a guess
@@ -128,6 +130,8 @@ class TalonCIParams
 			voltage_compensation_saturation_ = config.voltage_compensation_saturation;
 			voltage_measurement_filter_ = config.voltage_measurement_filter;
 			voltage_compensation_enable_ = config.voltage_compensation_enable;
+			velocity_measurement_period_ = static_cast<hardware_interface::VelocityMeasurementPeriod>(config.velocity_measurement_period);
+			velocity_measurement_window_ = config.velocity_measurement_window;
 			limit_switch_local_forward_source_ = static_cast<hardware_interface::LimitSwitchSource>(config.limit_switch_local_forward_source);
 			limit_switch_local_forward_normal_ = static_cast<hardware_interface::LimitSwitchNormal>(config.limit_switch_local_forward_normal);
 			limit_switch_local_reverse_source_ = static_cast<hardware_interface::LimitSwitchSource>(config.limit_switch_local_reverse_source);
@@ -191,6 +195,8 @@ class TalonCIParams
 			config.voltage_compensation_saturation = voltage_compensation_saturation_;
 			config.voltage_measurement_filter = voltage_measurement_filter_;
 			config.voltage_compensation_enable = voltage_compensation_enable_;
+			config.velocity_measurement_period = velocity_measurement_period_;
+			config.velocity_measurement_window = velocity_measurement_window_;
 			config.limit_switch_local_forward_source = limit_switch_local_forward_source_;
 			config.limit_switch_local_forward_normal = limit_switch_local_forward_normal_;
 			config.limit_switch_local_reverse_source = limit_switch_local_reverse_source_;
@@ -357,6 +363,39 @@ class TalonCIParams
 			return true;
 		}
 
+		bool readVelocitySignalConditioning(ros::NodeHandle &n)
+		{
+			std::string str_val;
+			n.getParam("velocity_measurement_period", str_val);
+			if (str_val != "")
+			{
+				if (str_val == "Period_1Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_1Ms;
+				else if (str_val == "Period_2Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_2Ms;
+				else if (str_val == "Period_5Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_5Ms;
+				else if (str_val == "Period_10Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_10Ms;
+				else if (str_val == "Period_20Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_20Ms;
+				else if (str_val == "Period_25Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_25Ms;
+				else if (str_val == "Period_50Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_50Ms;
+				else if (str_val == "Period_100Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_100Ms;
+				else
+				{
+					ROS_ERROR_STREAM("Invalid velocity_measurement_period (" << str_val << ")");
+					return false;
+				}
+			}
+
+			n.getParam("velocity_measurement_window", velocity_measurement_window_);
+			return true;
+		};
+
 		bool readLimitSwitches(ros::NodeHandle &n)
 		{
 			std::string str_val;
@@ -459,6 +498,8 @@ class TalonCIParams
 		double voltage_compensation_saturation_;
 		int    voltage_measurement_filter_;
 		bool   voltage_compensation_enable_;
+		hardware_interface::VelocityMeasurementPeriod velocity_measurement_period_;
+		int    velocity_measurement_window_;
 
 		hardware_interface::LimitSwitchSource limit_switch_local_forward_source_;
 		hardware_interface::LimitSwitchNormal limit_switch_local_forward_normal_;
@@ -585,6 +626,7 @@ class TalonControllerInterface
 				   params.readFeedbackType(n) &&
 				   params.readOutputShaping(n) &&
 				   params.readVoltageCompensation(n) &&
+				   params.readVelocitySignalConditioning(n) &&
 				   params.readLimitSwitches(n) &&
 				   params.readSoftLimits(n) &&
 				   params.readCurrentLimits(n) &&
@@ -1111,6 +1153,9 @@ class TalonControllerInterface
 			talon->setVoltageCompensationSaturation(params.voltage_compensation_saturation_);
 			talon->setVoltageMeasurementFilter(params.voltage_measurement_filter_);
 			talon->setVoltageCompensationEnable(params.voltage_compensation_enable_);
+			
+			talon->setVelocityMeasurementPeriod(params.velocity_measurement_period_);
+			talon->setVelocityMeasurementWindow(params.velocity_measurement_window_);
 
 			talon->setForwardLimitSwitchSource(params.limit_switch_local_forward_source_, params.limit_switch_local_forward_normal_);
 			talon->setReverseLimitSwitchSource(params.limit_switch_local_reverse_source_, params.limit_switch_local_reverse_normal_);

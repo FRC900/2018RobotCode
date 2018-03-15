@@ -56,6 +56,8 @@
   <depend>std_msgs</depend>
   <depend>cmake_modules</depend>
   <depend>talon_swerve_drive_controller</depend>
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
   <!-- The export tag contains other, unspecified, tags -->
   <export>
     <!-- Other tools can request additional information be placed here -->

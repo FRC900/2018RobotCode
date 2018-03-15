@@ -132,6 +132,9 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 		m.voltage_measurement_filter.push_back(0);
 		m.voltage_compensation_enable.push_back(false);
 
+		m.velocity_measurement_period.push_back(0);
+		m.velocity_measurement_window.push_back(0);
+
 		m.limit_switch_local_forward_source.push_back("");
 		m.limit_switch_local_forward_normal.push_back("");
 		m.limit_switch_local_reverse_source.push_back("");
@@ -396,6 +399,9 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 				m.voltage_compensation_saturation[i] = ts->getVoltageCompensationSaturation();
 				m.voltage_measurement_filter[i] = ts->getVoltageMeasurementFilter();
 				m.voltage_compensation_enable[i] = ts->getVoltageCompensationEnable();
+
+				m.velocity_measurement_period[i] = ts->getVelocityMeasurementPeriod();
+				m.velocity_measurement_window[i] = ts->getVelocityMeasurementWindow();
 				hardware_interface::LimitSwitchSource ls_source;
 				hardware_interface::LimitSwitchNormal ls_normal;
 				ts->getForwardLimitSwitchSource(ls_source, ls_normal);

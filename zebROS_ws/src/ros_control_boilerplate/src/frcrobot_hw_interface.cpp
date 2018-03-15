@@ -381,16 +381,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
-	// since our MP is 10ms per point, set the control frame rate and the
-	// notifer to half that
-	
 	ros::Duration(3).sleep();	
-
+	bool set_frame_period[num_can_talon_srxs_];
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
-	{
-		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
-		talon_state_[i].setMotionControlFramePeriod(1000./hz);
-	}
+		set_frame_period[i] = false;
 
 	ros::Rate rate(hz);
 	while (ros::ok())
@@ -407,6 +401,12 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
 				/*can_talons_[i]->GetMotionProfileTopLevelBufferCount()*/ mp_status.topBufferCnt && mp_status.btmBufferCnt < 127)
 				{
+					if (!set_frame_period[i])
+					{
+						can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
+						talon_state_[i].setMotionControlFramePeriod(1000./hz);
+						set_frame_period[i] = true;
+					}
 					// Only write if SW buffer has entries in it
 					//ROS_INFO("needs to send points");
 					(*can_talons_mp_writing_)[i].store(true, std::memory_order_relaxed);
@@ -414,10 +414,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 				}
 				else
 				{
-					
 					(*can_talons_mp_writing_)[i].store(false, std::memory_order_relaxed);
-			
-
 				}
 			}
 		}
@@ -439,7 +436,6 @@ void FRCRobotHWInterface::init(void)
 
 	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
 
-	
 	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	can_talons_mp_writing_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	can_talons_mp_running_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
@@ -461,6 +457,8 @@ void FRCRobotHWInterface::init(void)
 		// Clear sticky faults
 		// safeTalonCall(can_talons_[1]->ClearStickyFaults(timeoutMs), "Clear sticky faults.");
 		(*can_talons_mp_written_)[i].store(false, std::memory_order_relaxed);
+		(*can_talons_mp_writing_)[i].store(false, std::memory_order_relaxed);
+		(*can_talons_mp_running_)[i].store(false, std::memory_order_relaxed);
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -570,7 +568,8 @@ void FRCRobotHWInterface::init(void)
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
 	//return;
-		
+	//
+#if 0		
 	const int talon_updates_to_skip = 2;
 	static int talon_skip_counter = 0;
 	static int next_talon_to_read = 0;
@@ -589,19 +588,17 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			next_talon_to_read = (next_talon_to_read + 1) % num_can_talon_srxs_;
 		}
 	}
+#endif
 		
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
-		
 		auto &ts = talon_state_[joint_id];
 		auto &talon = can_talons_[joint_id];
 
 		if (!talon) // skip unintialized Talons
 			continue;
 		if (ts.getCANID() == 31 || ts.getCANID() == 32)
-		{
 			continue;
-		}
 
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
@@ -624,9 +621,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			ROS_INFO_STREAM("written");
 		}
 		*/
-		if (!(*can_talons_mp_writing_)[joint_id].load(std::memory_order_relaxed) &&  !(*can_talons_mp_running_)[joint_id].load(std::memory_order_relaxed) )
+		if (!(*can_talons_mp_writing_)[joint_id].load(std::memory_order_relaxed) && !(*can_talons_mp_running_)[joint_id].load(std::memory_order_relaxed) )
 		{
-			
 			const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
 			const double conversion_factor = ts.getConversionFactor();
 
@@ -640,8 +636,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			const double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
 			safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 			ts.setSpeed(speed);
-			
 		}
+
 		if (ts.getCANID() > 30 || !(*can_talons_mp_written_)[joint_id].load(std::memory_order_relaxed))
 		{
 			continue;
@@ -672,7 +668,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
 		//ts.setOutputCurrent(output_current);
 
-		if (read_this_talon == joint_id)
+	//	if (read_this_talon == joint_id)
 		{
 			//const double bus_voltage = talon->GetBusVoltage();
 			//safeTalonCall(talon->GetLastError(), "GetBusVoltage");
@@ -858,15 +854,14 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}*/
 	
 	//read info from the PDP hardware
-	auto &ps = pdp_state_;
-	ps.setVoltage(pdp_joint_.GetVoltage());
-	ps.setTemperature(pdp_joint_.GetTemperature());
-	ps.setTotalCurrent(pdp_joint_.GetTotalCurrent());
-	ps.setTotalPower(pdp_joint_.GetTotalPower());
-	ps.setTotalEnergy(pdp_joint_.GetTotalEnergy());
+	pdp_state_.setVoltage(pdp_joint_.GetVoltage());
+	pdp_state_.setTemperature(pdp_joint_.GetTemperature());
+	pdp_state_.setTotalCurrent(pdp_joint_.GetTotalCurrent());
+	pdp_state_.setTotalPower(pdp_joint_.GetTotalPower());
+	pdp_state_.setTotalEnergy(pdp_joint_.GetTotalEnergy());
 	for(int channel = 0; channel <= 15; channel++)
 	{
-		ps.setCurrent(pdp_joint_.GetCurrent(channel), channel);
+		pdp_state_.setCurrent(pdp_joint_.GetCurrent(channel), channel);
 	}
 
 }
@@ -1276,7 +1271,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double v_c_saturation;
 		int v_measurement_filter;
 		bool v_c_enable;
-		if (tc.VoltageCompensationChanged(v_c_saturation,
+		if (tc.voltageCompensationChanged(v_c_saturation,
 										  v_measurement_filter,
 										  v_c_enable))
 		{
@@ -1290,6 +1285,21 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ts.setVoltageMeasurementFilter(v_measurement_filter);
 			ts.setVoltageCompensationEnable(v_c_enable);
 			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" voltage compensation");
+		}
+
+		hardware_interface::VelocityMeasurementPeriod internal_v_m_period;
+		ctre::phoenix::motorcontrol::VelocityMeasPeriod phoenix_v_m_period;
+		int v_m_window;
+
+		if (tc.velocityMeasurementChanged(internal_v_m_period, v_m_window) &&
+			convertVelocityMeasurementPeriod(internal_v_m_period, phoenix_v_m_period))
+		{
+			safeTalonCall(talon->ConfigVelocityMeasurementPeriod(phoenix_v_m_period, timeoutMs),"ConfigVelocityMeasurementPeriod");
+			safeTalonCall(talon->ConfigVelocityMeasurementWindow(v_m_window, timeoutMs),"ConfigVelocityMeasurementWindow");
+
+			ts.setVelocityMeasurementPeriod(internal_v_m_period);
+			ts.setVelocityMeasurementWindow(v_m_window);
+			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" velocity measurement period / window");
 		}
 
 		double sensor_position;
@@ -1393,6 +1403,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" cruise velocity / acceleration");
 			}
+
+#if 0 // DISABLE FOR NOW UNTIL WE CAN FIND A SAFE DEFAULT
 			// Do this before rest of motion profile stuff
 			// so it takes effect before starting a buffer?
 			int motion_control_frame_period;
@@ -1403,6 +1415,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				ts.setMotionControlFramePeriod(motion_control_frame_period);
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion control frame period");
 			}
+#endif
 
 			int motion_profile_trajectory_period;
 			if (tc.motionProfileTrajectoryPeriodChanged(motion_profile_trajectory_period))
@@ -1473,15 +1486,11 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double command;
 		hardware_interface::TalonMode in_mode;
 		ctre::phoenix::motorcontrol::ControlMode out_mode;
-		// Note thie has to be | rather than ||
-		// Using || gives a chance of it being short-circuted ...
-		// that is, if newMode is true commandChanged won't
-		// be called.  That' bad because then command would
-		// be undefined
-		bool b1 = tc.newMode(in_mode);
-		bool b2 =  tc.commandChanged(command);
-		if ((b1 | b2 ) &&
-			convertControlMode(in_mode, out_mode))
+
+		const bool b1 = tc.newMode(in_mode);
+		const bool b2 = tc.commandChanged(command);
+
+		if ((b1 || b2) && convertControlMode(in_mode, out_mode))
 		{
 			ts.setTalonMode(in_mode);
 			ts.setSetpoint(command);
@@ -1500,7 +1509,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					command /= radians_scale;
 					break;
 			}
-
 			
 			(*can_talons_mp_running_)[joint_id].store(out_mode == ctre::phoenix::motorcontrol::ControlMode::MotionProfile && command == 1, std::memory_order_relaxed);
 
@@ -1742,4 +1750,39 @@ bool FRCRobotHWInterface::convertLimitSwitchNormal(
 
 }
 
+bool FRCRobotHWInterface::convertVelocityMeasurementPeriod(const hardware_interface::VelocityMeasurementPeriod input_v_m_p, ctre::phoenix::motorcontrol::VelocityMeasPeriod &output_v_m_period)
+{
+	switch(input_v_m_p)
+	{
+		case hardware_interface::VelocityMeasurementPeriod::Period_1Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_1Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_2Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_2Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_5Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_5Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_10Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_10Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_20Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_20Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_25Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_25Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_50Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_50Ms;
+			break;
+		case hardware_interface::VelocityMeasurementPeriod::Period_100Ms:
+			output_v_m_period = ctre::phoenix::motorcontrol::VelocityMeasPeriod::Period_100Ms;
+			break;
+		default:
+			ROS_WARN("Unknown velocity measurement period seen in HW interface");
+			return false;
+	}
+	return true;
 }
+
+} // namespace 

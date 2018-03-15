@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   ros_control_boilerplate
   elevator_controller
   talon_swerve_drive_controller
+  swerve_point_generator
 )
 
 include_directories(

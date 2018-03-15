@@ -23,20 +23,15 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Eigen REQUIRED)
 
 add_message_files (
-  FILES
-  SwervePoint.msg
-  Coefs.msg
-)
+	FILES
+	SwervePoint.msg
+	)
 
 add_service_files (
   FILES
   MotionProfile.srv
-  WheelPos.srv
   MotionProfilePoints.srv
-  FullGen.srv
-  FullGenCoefs.srv
-  GenerateTrajectory.srv
-  GenerateSwerveProfile.srv
+  WheelPos.srv
 )
 
 generate_messages(

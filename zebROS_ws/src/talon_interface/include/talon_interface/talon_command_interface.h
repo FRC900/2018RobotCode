@@ -104,6 +104,10 @@ class TalonHWCommand
 			voltage_compensation_enable_(true),
 			voltage_compensation_changed_(true),
 
+			velocity_measurement_period_(Period_100Ms),
+			velocity_measurement_window_(64),
+			velocity_measurement_changed_(true),
+
 			sensor_position_value_(0.),
 			sensor_position_changed_(false),
 
@@ -129,7 +133,7 @@ class TalonHWCommand
 
 			// current limiting
 			current_limit_peak_amps_(0),
-			current_limit_peak_msec_(0),
+			current_limit_peak_msec_(10), // see https://github.com/CrossTheRoadElec/Phoenix-Documentation/blob/master/README.md#motor-output-direction-is-incorrect-or-accelerates-when-current-limit-is-enabled
 			current_limit_continuous_amps_(0),
 			current_limit_enable_(false),
 			current_limit_changed_(true),
@@ -784,7 +788,7 @@ class TalonHWCommand
 			return voltage_compensation_enable_;
 		}
 
-		bool VoltageCompensationChanged(double &voltage_compensation_saturation,
+		bool voltageCompensationChanged(double &voltage_compensation_saturation,
 										int &voltage_measurement_filter,
 										bool &voltage_compensation_enable)
 		{
@@ -794,6 +798,47 @@ class TalonHWCommand
 			if (voltage_compensation_changed_)
 			{
 				voltage_compensation_changed_ = false;
+				return true;
+			}
+			return false;
+		}
+
+		void setVelocityMeasurementPeriod(hardware_interface::VelocityMeasurementPeriod period)
+		{
+			if (period != velocity_measurement_period_)
+			{
+				velocity_measurement_period_ = period;
+				velocity_measurement_changed_ = true;
+			}
+		}
+
+		bool getVoltageMeasurementPeriod(void) const
+		{
+			return velocity_measurement_period_;
+		}
+
+		void setVelocityMeasurementWindow(int window)
+		{
+			if (window != velocity_measurement_window_)
+			{
+				velocity_measurement_window_ = window;
+				velocity_measurement_changed_ = true;
+			}
+		}
+
+		bool getVoltageMeasurementWindow(void) const
+		{
+			return velocity_measurement_window_;
+		}
+
+		bool velocityMeasurementChanged(hardware_interface::VelocityMeasurementPeriod &period,
+										int &window)
+		{
+			period = velocity_measurement_period_;
+			window = velocity_measurement_window_;
+			if (velocity_measurement_changed_)
+			{
+				velocity_measurement_changed_ = false;
 				return true;
 			}
 			return false;
@@ -1250,6 +1295,10 @@ class TalonHWCommand
 		int   voltage_measurement_filter_;
 		bool  voltage_compensation_enable_;
 		bool  voltage_compensation_changed_;
+
+		hardware_interface::VelocityMeasurementPeriod velocity_measurement_period_;
+		int velocity_measurement_window_;
+		bool velocity_measurement_changed_;
 
 		double sensor_position_value_;
 		bool sensor_position_changed_;

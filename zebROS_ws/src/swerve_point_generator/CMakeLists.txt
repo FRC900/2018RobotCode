@@ -13,9 +13,23 @@ find_package(catkin REQUIRED COMPONENTS
   swerve_math
   trajectory_msgs
   talon_swerve_drive_controller
+  message_generation
 )
 
 find_package(Eigen REQUIRED)
+
+add_message_files (
+  FILES
+  Coefs.msg
+)
+
+add_service_files (
+  FILES
+  FullGen.srv
+  FullGenCoefs.srv
+  GenerateTrajectory.srv
+  GenerateSwerveProfile.srv
+)
 
 ## Generate messages in the 'msg' folder
 
@@ -28,12 +42,21 @@ find_package(Eigen REQUIRED)
 #   Action2.action
 # )
 
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  trajectory_msgs
+  swerve_point_generator
+  talon_swerve_drive_controller
+)
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 catkin_package(
   CATKIN_DEPENDS
     cmake_modules
     std_msgs
+	message_runtime
 	INCLUDE_DIRS include
 	#LIBRARIES ${PROJECT_NAME} trajectory_msgs
   DEPENDS Eigen
@@ -42,7 +65,7 @@ catkin_package(
 include_directories(
 	${catkin_INCLUDE_DIRS} 
 	include
-	${EIGEN3_INCLUDE_DIRS}
+	${EIGEN_INCLUDE_DIRS}
 )
 
 #TODO check below
@@ -56,8 +79,6 @@ include_directories(
 # catkin_python_setup()
 
 add_executable(point_gen src/point_gen.cpp src/profiler.cpp)
-set_target_properties(point_gen PROPERTIES OUTPUT_NAME 
-point_gen PREFIX "")
 target_link_libraries(point_gen
   ${catkin_LIBRARIES}
 )
@@ -72,6 +93,9 @@ install(TARGETS point_gen
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
 #install(DIRECTORY
 #launch

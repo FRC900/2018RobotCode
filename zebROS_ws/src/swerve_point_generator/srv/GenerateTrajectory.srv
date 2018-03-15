@@ -11,7 +11,6 @@ float64[] accelerationX
 float64[] accelerationY
 float64[] accelerationZ
 
-
 ---
 talon_swerve_drive_controller/SwervePoint[] points
 float64 dt

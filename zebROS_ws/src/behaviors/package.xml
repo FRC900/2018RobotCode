@@ -54,6 +54,7 @@
   <depend>message_filters</depend>
   <depend>talon_swerve_drive_controller</depend>
   <depend>std_srvs</depend>
+  <depend>swerve_point_generator</depend>
   <build_depend>message_generation</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>roscpp</build_depend>
