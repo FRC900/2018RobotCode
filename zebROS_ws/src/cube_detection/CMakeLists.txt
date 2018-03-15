@@ -16,7 +16,7 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   endif()
 endif()
 
-if (BUILD_ME_CUBE_DETECTION)
+#if (BUILD_ME_CUBE_DETECTION)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -238,4 +238,4 @@ generate_messages(
 
   ## Add folders to be run by python nosetests
   # catkin_add_nosetests(test)
-endif()
+#endif()
