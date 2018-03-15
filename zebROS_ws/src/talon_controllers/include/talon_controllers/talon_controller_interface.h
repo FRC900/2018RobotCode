@@ -44,7 +44,7 @@ class TalonCIParams
 			allowable_closed_loop_error_{0, 0}, // need better defaults
 			max_integral_accumulator_{0, 0},
 			closed_loop_peak_output_{1, 1},
-			closed_loop_period_{20, 20},
+			closed_loop_period_{1, 1},
 			pidf_slot_(0),
 			aux_pid_polarity_(false),
 			invert_output_(false),

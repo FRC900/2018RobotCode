@@ -151,7 +151,7 @@ class TalonHWState
 			allowable_closed_loop_error_ {0, 0},
 			max_integral_accumulator_ {0, 0},
 			closed_loop_peak_output_{1, 1},
-			closed_loop_period_{20, 20},
+			closed_loop_period_{1, 1},
 			aux_pid_polarity_(false),
 			closed_loop_error_(0.0),
 			integral_accumulator_(0.0),
