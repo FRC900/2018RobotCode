@@ -387,7 +387,10 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 	ros::Duration(3).sleep();	
 
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
+	{
 		can_talons_[i]->ChangeMotionControlFramePeriod(1000./hz); // 1000 to convert from sec to mSec
+		talon_state_[i].setMotionControlFramePeriod(1000./hz);
+	}
 
 	ros::Rate rate(hz);
 	while (ros::ok())
@@ -1012,7 +1015,13 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 			error_name = "InvalidHandle";
 			break;
 
-
+		case ctre::phoenix::FeatureRequiresHigherFirm:
+			error_name = "FeatureRequiresHigherFirm";
+			break;
+		case ctre::phoenix::TalonFeatureRequiresHigherFirm:
+			error_name = "TalonFeatureRequiresHigherFirm";
+			break;
+ 
 		case ctre::phoenix::PulseWidthSensorNotPresent :
 			error_name = "PulseWidthSensorNotPresent";
 			break;
@@ -1039,11 +1048,25 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 			error_name = "case";
 			break;
 		case ctre::phoenix::CascadedPIDNotSupporteYet:
-			error_name = "CascadedPIDNotSupporteYet";
+			error_name = "CascadedPIDNotSupporteYet/AuxiliaryPIDNotSupportedYet";
 			break;
 		case ctre::phoenix::RemoteSensorsNotSupportedYet:
 			error_name = "RemoteSensorsNotSupportedYet";
 			break;
+		case ctre::phoenix::MotProfFirmThreshold:
+			error_name = "MotProfFirmThreshold";
+			break;
+		case ctre::phoenix::MotProfFirmThreshold2:
+			error_name = "MotProfFirmThreshold2";
+			break;
+
+		default:
+			{
+				std::stringstream s;
+				s << "Unknown Talon error " << error_code;
+				error_name = s.str();
+				break;
+			}
 
 	}
 	//ROS_ERROR_STREAM("Error calling " << talon_method_name << " : " << error_name);
@@ -1071,13 +1094,17 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		auto &tc = talon_command_[joint_id];
 
 		hardware_interface::FeedbackDevice internal_feedback_device;
+		double feedback_coefficient;
+
 		ctre::phoenix::motorcontrol::FeedbackDevice talon_feedback_device;
-		if (tc.encoderFeedbackChanged(internal_feedback_device) &&
+		if (tc.encoderFeedbackChanged(internal_feedback_device, feedback_coefficient) &&
 			convertFeedbackDevice(internal_feedback_device, talon_feedback_device))
 		{
 			//ROS_WARN("feedback");
 			safeTalonCall(talon->ConfigSelectedFeedbackSensor(talon_feedback_device, pidIdx, timeoutMs),"ConfigSelectedFeedbackSensor");
-			ts.setEncoderFeedback(internal_feedback_device);
+			safeTalonCall(talon->ConfigSelectedFeedbackCoefficient(feedback_coefficient, pidIdx, timeoutMs),"ConfigSelectedFeedbackCoefficient");
+ 			ts.setEncoderFeedback(internal_feedback_device);
+			ts.setFeedbackCoefficient(feedback_coefficient);
 		}
 
 		const hardware_interface::TalonMode talon_mode = ts.getTalonMode();
@@ -1120,8 +1147,10 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			int    iz;
 			int    allowable_closed_loop_error;
 			double max_integral_accumulator;
-
-			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, slot))
+			double closed_loop_peak_output;
+			int    closed_loop_period;
+ 
+			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period, slot))
 			{
 				//ROS_WARN("PIDF");
 				safeTalonCall(talon->Config_kP(slot, p, timeoutMs),"Config_kP");
@@ -1132,6 +1161,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				// TODO : Scale these two?
 				safeTalonCall(talon->ConfigAllowableClosedloopError(slot, allowable_closed_loop_error, timeoutMs),"ConfigAllowableClosedloopError");
 				safeTalonCall(talon->ConfigMaxIntegralAccumulator(slot, max_integral_accumulator, timeoutMs),"ConfigMaxIntegralAccumulator");
+				safeTalonCall(talon->ConfigClosedLoopPeakOutput(slot, closed_loop_peak_output, timeoutMs),"ConfigClosedLoopPeakOutput");
+				safeTalonCall(talon->ConfigClosedLoopPeriod(slot, closed_loop_period, timeoutMs),"ConfigClosedLoopPeriod");
 
 				ts.setPidfP(p, slot);
 				ts.setPidfI(i, slot);
@@ -1140,7 +1171,17 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				ts.setPidfIzone(iz, slot);
 				ts.setAllowableClosedLoopError(allowable_closed_loop_error, slot);
 				ts.setMaxIntegralAccumulator(max_integral_accumulator, slot);
+				ts.setClosedLoopPeakOutput(closed_loop_peak_output, slot);
+				ts.setClosedLoopPeriod(closed_loop_period, slot);
+
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" PIDF slot " << slot << " config values");
+			}
+ 
+			bool aux_pid_polarity;
+			if (tc.auxPidPolarityChanged(aux_pid_polarity))
+			{
+				safeTalonCall(talon->ConfigAuxPIDPolarity(aux_pid_polarity, timeoutMs), "ConfigAuxPIDPolarity");
+				ts.setAuxPidPolarity(aux_pid_polarity);
 			}
 
 			if (slot_changed)
@@ -1363,11 +1404,19 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion control frame period");
 			}
 
+			int motion_profile_trajectory_period;
+			if (tc.motionProfileTrajectoryPeriodChanged(motion_profile_trajectory_period))
+			{
+				//ROS_WARN("profile frame period");
+				safeTalonCall(talon->ConfigMotionProfileTrajectoryPeriod(motion_profile_trajectory_period, timeoutMs),"ConfigMotionProfileTrajectoryPeriod");
+				ts.setMotionProfileTrajectoryPeriod(motion_profile_trajectory_period);
+				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectory period");
+			}
+
 			if (tc.clearMotionProfileTrajectoriesChanged())
 			{
 				//ROS_WARN("clear points");
-				talon->ClearMotionProfileTrajectories();
-				safeTalonCall(talon->GetLastError(), "ClearMotionProfileTrajectories");
+				safeTalonCall(talon->ClearMotionProfileTrajectories(), "ClearMotionProfileTrajectories");
 				(*can_talons_mp_written_)[joint_id].store(false, std::memory_order_relaxed);
 
 				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
@@ -1399,6 +1448,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					pt.position = it->position / radians_scale;
 					pt.velocity = it->velocity / radians_per_second_scale;
 					pt.headingDeg = it->headingRad * 180. / M_PI;
+					pt.auxiliaryPos = it->auxiliaryPos; // TODO : unit conversion?
 					pt.profileSlotSelect0 = it->profileSlotSelect0;
 					pt.profileSlotSelect1 = it->profileSlotSelect1;
 					pt.isLastPoint = it->isLastPoint;
@@ -1569,11 +1619,6 @@ bool FRCRobotHWInterface::convertControlMode(
 	case hardware_interface::TalonMode_MotionMagic:
 		output_mode = ctre::phoenix::motorcontrol::ControlMode::MotionMagic;
 		break;
-	//case hardware_interface::TalonMode_TimedPercentOutput:
-		//output_mode = ctre::phoenix::motorcontrol::ControlMode::TimedPercentOutput;
-		//output_mode = ctre::phoenix::motorcontrol::ControlMode::Disabled;
-		//ROS_WARN("TimedPercentOutput mode seen in HW interface");
-		//break;
 	case hardware_interface::TalonMode_Disabled:
 		output_mode = ctre::phoenix::motorcontrol::ControlMode::Disabled;
 		break;
@@ -1582,7 +1627,6 @@ bool FRCRobotHWInterface::convertControlMode(
 		ROS_WARN("Unknown mode seen in HW interface");
 		return false;
 	}
-
 	return true;
 }
 

@@ -431,7 +431,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			srvIntake.request.spring_state = 2; //soft_in
 			srvIntake.request.up = false;
 			if (!IntakeSrv.call(srvIntake))
-				ROS_ERROR("IntakeSrv call failed in intake with cube");
+				ROS_ERROR("IntakeSrv call failed in spit out cube");
 			ROS_INFO("teleop : Intake with cube");
 		}
 	}

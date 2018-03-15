@@ -56,6 +56,7 @@ class autoAction {
 	timed_out = false;
 	if(goal->GoToPos)
 	{
+		ROS_INFO("start of got to pos");
 		elevator_controller::ElevatorControlS srv_elevator;
                 srv_elevator.request.x = goal->x;
                 srv_elevator.request.y = goal->y;

@@ -279,7 +279,7 @@ void load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHan
 						talon_swerve_drive_controller::Coefs y_coefs;
 						talon_swerve_drive_controller::Coefs orient_coefs;
 						for(int i = 0; i<x.size(); i++) {
-						    const double x_coef = x[i];
+							const double x_coef = x[i];
 						    const double y_coef = y[i];
 						    const double orient_coef = orient[i];
 
@@ -1181,9 +1181,9 @@ int main(int argc, char** argv) {
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
 
     ROS_WARN("Auto Client loaded");
-    ros::Duration(3).sleep();
+    ros::Duration(17).sleep();
     ROS_WARN("post sleep");
-    generateTrajectory(2, 3, 2);
+    generateTrajectory(3, 3, 2);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);

@@ -43,11 +43,15 @@ class TalonCIParams
 			izone_{0, 0},
 			allowable_closed_loop_error_{0, 0}, // need better defaults
 			max_integral_accumulator_{0, 0},
+			closed_loop_peak_output_{1, 1},
+			closed_loop_period_{1, 1},
 			pidf_slot_(0),
+			aux_pid_polarity_(false),
 			invert_output_(false),
 			sensor_phase_(false),
 			neutral_mode_(hardware_interface::NeutralMode_Uninitialized),
 			feedback_type_(hardware_interface::FeedbackDevice_Uninitialized),
+			feedback_coefficient_(1.0),
 			ticks_per_rotation_(4096),
 			closed_loop_ramp_(0.),
 			open_loop_ramp_(0.),
@@ -75,6 +79,7 @@ class TalonCIParams
 			motion_cruise_velocity_(0), // No idea at a guess
 			motion_acceleration_(0),
 			motion_control_frame_period_(20), // Guess at 50Hz default?
+			motion_profile_trajectory_period_(0),
 			
 			conversion_factor_(1.0)
 		{
@@ -100,11 +105,17 @@ class TalonCIParams
 			allowable_closed_loop_error_[1] = config.allowable_closed_loop_error1;
 			max_integral_accumulator_[0] = config.max_integral_accumulator0;
 			max_integral_accumulator_[1] = config.max_integral_accumulator1;
+			closed_loop_peak_output_[0] = config.closed_loop_peak_output0;
+			closed_loop_peak_output_[1] = config.closed_loop_peak_output1;
+			closed_loop_period_[0] = config.closed_loop_period0;
+			closed_loop_period_[1] = config.closed_loop_period1;
 			pidf_slot_ = config.pid_config;
+			aux_pid_polarity_ = config.aux_pid_polarity;
 			invert_output_ = config.invert_output;
 
 			sensor_phase_ = config.sensor_phase;
 			feedback_type_ = static_cast<hardware_interface::FeedbackDevice>(config.feedback_type);
+			feedback_coefficient_ = config.feedback_coefficient;
 			ticks_per_rotation_ = config.encoder_ticks_per_rotation;
 			neutral_mode_ = static_cast<hardware_interface::NeutralMode>(config.neutral_mode);
 			closed_loop_ramp_ = config.closed_loop_ramp;
@@ -135,6 +146,7 @@ class TalonCIParams
 			motion_cruise_velocity_ = config.motion_cruise_velocity;
 			motion_acceleration_ = config.motion_acceleration;
 			motion_control_frame_period_ = config.motion_control_frame_period;
+			motion_profile_trajectory_period_ = config.motion_profile_trajectory_period;
 		
 			conversion_factor_ = config.conversion_factor;
 		}
@@ -157,10 +169,16 @@ class TalonCIParams
 			config.allowable_closed_loop_error1 = allowable_closed_loop_error_[1];
 			config.max_integral_accumulator0 = max_integral_accumulator_[0];
 			config.max_integral_accumulator1 = max_integral_accumulator_[1];
+			config.closed_loop_peak_output0 = closed_loop_peak_output_[0];
+			config.closed_loop_peak_output1 = closed_loop_peak_output_[1];
+			config.closed_loop_period0 = closed_loop_period_[0];
+			config.closed_loop_period1 = closed_loop_period_[1];
 			config.pid_config    = pidf_slot_;
+			config.aux_pid_polarity = aux_pid_polarity_;
 			config.invert_output = invert_output_;
 			config.sensor_phase  = sensor_phase_;
 			config.feedback_type = feedback_type_;
+			config.feedback_coefficient = feedback_coefficient_;
 			config.encoder_ticks_per_rotation = ticks_per_rotation_;
 			config.neutral_mode  = neutral_mode_;
 			config.closed_loop_ramp = closed_loop_ramp_;
@@ -189,6 +207,7 @@ class TalonCIParams
 			config.motion_cruise_velocity = motion_cruise_velocity_;
 			config.motion_acceleration = motion_acceleration_;
 			config.motion_control_frame_period = motion_control_frame_period_;
+			config.motion_profile_trajectory_period = motion_profile_trajectory_period_;
 			config.conversion_factor = conversion_factor_;
 			return config;
 		}
@@ -271,6 +290,7 @@ class TalonCIParams
 				return false;
 			}
 			n.getParam("ticks_per_rotation", ticks_per_rotation_);
+			n.getParam("feedback_coefficient", feedback_coefficient_);
 			return true;
 		}
 
@@ -285,21 +305,24 @@ class TalonCIParams
 		{
 			XmlRpc::XmlRpcValue pid_param_list;
 
+			n.getParam("aux_pid_polarity", pid_param_list);
 			if (!n.getParam("close_loop_values", pid_param_list))
 				return true;
 			if (pid_param_list.size() <= 2)
 			{
 				for (int i = 0; i < pid_param_list.size(); i++)
 				{
-					XmlRpc::XmlRpcValue &pidparams_ = pid_param_list[i];
+					XmlRpc::XmlRpcValue &pidparams = pid_param_list[i];
 
-					p_[i] = findFloatParam("p", pidparams_);
-					i_[i] = findFloatParam("i", pidparams_);
-					d_[i] = findFloatParam("d", pidparams_);
-					f_[i] = findFloatParam("f", pidparams_);
-					izone_[i] = findIntParam("i_zone", pidparams_);
-					allowable_closed_loop_error_[i] = findIntParam("allowable_closed_loop_error", pidparams_);
-					max_integral_accumulator_[i] = findFloatParam("max_integral_accumulator", pidparams_);
+					findFloatParam("p", pidparams, p_[i]);
+					findFloatParam("i", pidparams, i_[i]);
+					findFloatParam("d", pidparams, d_[i]);
+					findFloatParam("f", pidparams, f_[i]);
+					findIntParam("i_zone", pidparams, izone_[i]);
+					findIntParam("allowable_closed_loop_error", pidparams, allowable_closed_loop_error_[i]);
+					findFloatParam("max_integral_accumulator", pidparams, max_integral_accumulator_[i]);
+					findFloatParam("closed_loop_peak_output", pidparams, closed_loop_peak_output_[i]);
+					findIntParam("closed_loop_period", pidparams, closed_loop_period_[i]);
 				}
 				return true;
 			}
@@ -403,6 +426,7 @@ class TalonCIParams
 			n.getParam("motion_cruise_velocity", motion_cruise_velocity_);
 			n.getParam("motion_acceleration", motion_acceleration_);
 			n.getParam("motion_control_frame_period", motion_control_frame_period_);
+			n.getParam("motion_profile_trajectory_period", motion_profile_trajectory_period_);
 			return true;
 		}
 
@@ -415,11 +439,15 @@ class TalonCIParams
 		int    izone_[2];
 		int    allowable_closed_loop_error_[2];
 		double max_integral_accumulator_[2];
+		double closed_loop_peak_output_[2];
+		int    closed_loop_period_[2];
 		int    pidf_slot_;
+		bool   aux_pid_polarity_;
 		bool   invert_output_;
 		bool   sensor_phase_;
 		hardware_interface::NeutralMode neutral_mode_;
 		hardware_interface::FeedbackDevice feedback_type_;
+		double feedback_coefficient_;
 		int    ticks_per_rotation_;
 		double closed_loop_ramp_;
 		double open_loop_ramp_;
@@ -449,41 +477,49 @@ class TalonCIParams
 		double motion_cruise_velocity_;
 		double motion_acceleration_;
 		int    motion_control_frame_period_;
+		int    motion_profile_trajectory_period_;
 		
 		double conversion_factor_;
 	private:
 		// Read a double named <param_type> from the array/map
 		// in params
-		double findFloatParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
+		bool findFloatParam(std::string param_type, XmlRpc::XmlRpcValue &params, double &val) const
 		{
 			if (!params.hasMember(param_type))
-				return 0;
+				return false;
 			XmlRpc::XmlRpcValue &param = params[param_type];
 			if (!param.valid())
 				throw std::runtime_error(param_type + " was not a double valid type");
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeDouble)
-				return (double)param;
+			{
+				val = (double)param;
+				return true;
+			}
 			else if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
-				return (int)param;
+			{
+				val = (int)param;
+				return true;
+			}
 			else
 				throw std::runtime_error("A non-double value was passed for" + param_type);
-			return 0;
+
+			return false;
 		}
 
 		// Read an integer named <param_type> from the array/map
 		// in params
-		int findIntParam(std::string param_type, XmlRpc::XmlRpcValue &params) const
+		bool findIntParam(std::string param_type, XmlRpc::XmlRpcValue &params, int &val) const
 		{
 			if (!params.hasMember(param_type))
-				return 0;
+				return false;
 			XmlRpc::XmlRpcValue &param = params[param_type];
 			if (!param.valid())
 				throw std::runtime_error(param_type + " was not a valid int type");
 			if (param.getType() == XmlRpc::XmlRpcValue::TypeInt)
-				return (int)param;
+				val = (int)param;
 			else
 				throw std::runtime_error("A non-int value was passed for" + param_type);
-			return 0;
+			return false;
 		}
 
 		bool stringToLimitSwitchSource(const std::string &str,
@@ -873,6 +909,17 @@ class TalonControllerInterface
 			talon_->setMotionControlFramePeriod(params_.motion_control_frame_period_);
 		}
 
+		virtual void setMotionProfileTrajectoryPeriod(int msec)
+		{
+			if (msec == params_.motion_profile_trajectory_period_)
+				return;
+			params_.motion_profile_trajectory_period_ = msec;
+
+			syncDynamicReconfigure();
+
+			talon_->setMotionProfileTrajectoryPeriod(params_.motion_profile_trajectory_period_);
+		}
+
 		virtual void clearMotionProfileTrajectories(void)
 		{
 			talon_->setClearMotionProfileTrajectories();
@@ -1039,11 +1086,15 @@ class TalonControllerInterface
 				// better default values than 0.0
 				talon->setAllowableClosedloopError(params.allowable_closed_loop_error_[i], i);
 				talon->setMaxIntegralAccumulator(params.max_integral_accumulator_[i], i);
+				talon->setClosedLoopPeakOutput(params.closed_loop_peak_output_[i], i);
+				talon->setClosedLoopPeriod(params.closed_loop_period_[i], i);
 			}
 			talon->setPidfSlot(params.pidf_slot_);
+			talon->setAuxPidPolarity(params.aux_pid_polarity_);
 			talon->setNeutralMode(params.neutral_mode_);
 
 			talon->setEncoderFeedback(params.feedback_type_);
+			talon->setFeedbackCoefficient(params.feedback_coefficient_);
 			talon->setEncoderTicksPerRotation(params.ticks_per_rotation_);
 
 			talon->setInvert(params.invert_output_);
@@ -1077,6 +1128,7 @@ class TalonControllerInterface
 			talon->setMotionCruiseVelocity(params.motion_cruise_velocity_);
 			talon->setMotionAcceleration(params.motion_acceleration_);
 			talon->setMotionControlFramePeriod(params.motion_control_frame_period_);
+			talon->setMotionProfileTrajectoryPeriod(params.motion_profile_trajectory_period_);
 
 			talon->setConversionFactor(params.conversion_factor_);
 

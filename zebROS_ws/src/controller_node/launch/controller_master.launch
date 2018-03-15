@@ -59,7 +59,7 @@
 
   <!--<include file="$(find controller_node)/launch/fuse_odom.launch"/>-->
 
-  <!-- <include file="$(find rplidar_ros)/launch/rplidar.launch" /> -->
+  <include file="$(find rplidar_ros)/launch/rplidar.launch" />
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4175125 -0.3184779 0.22178 3.14159265 0 0 base_link laser" />
 
   <!--<include file="$(find controller_node)/launch/gmapping.launch"/>-->

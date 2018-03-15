@@ -407,7 +407,7 @@ function loadGraphVals(calculator, vals)
 	calculator.setExpression({id:'field54', latex:'x=-d_{16}+\\left(d_{15}+d_{14}\\right)\\cdot5\\left\\{d_5+d_7<y<d_5+d_7+d_{14}\\right\\}', color: '#000000'});
 	calculator.setExpression({id:'field55', latex:'x=-d_{16}+d_{14}+\\left(d_{15}+d_{14}\\right)\\cdot5\\left\\{d_5+d_7<y<d_5+d_7+d_{14}\\right\\}', color: '#000000'});
 	calculator.setExpression({id:'field56', latex:'y=d_5+d_7+d_{14}\\left\\{-d_{16}+\\left(d_{15}+d_{14}\\right)\\cdot5<x<-d_{16}+d_{14}+\\left(d_{15}+d_{14}\\right)\\cdot5\\right\\}', color: '#000000'});
-	calculator.setExpression({id:'field57', latex:'y=d_5+d_7+d_{14}+\\frac{28+5}{2}\\cdot\\frac{2.54}{100}', color: '#2d70b3', style: Desmos.Styles.DOTTED});
+	calculator.setExpression({id:'field57', latex:'y=d_5+d_7+d_{14}+\\frac{28}{1}\\cdot\\frac{2.54}{100}', color: '#2d70b3', style: Desmos.Styles.DOTTED});
 	calculator.setExpression({id:'field58', latex:'d_{17}=\\left(3\\cdot12+5.25\\right)\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field59', latex:'d_{18}=\\left(8\\cdot12+8\\right)\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field60', latex:'d_{19}=\\left(1\\cdot12+.75\\right)\\cdot\\frac{2.54}{100}'});
@@ -834,7 +834,7 @@ function loadGraph(calculator)
 	calculator.setExpression({id:'field54', latex:'x=-d_{16}+\\left(d_{15}+d_{14}\\right)\\cdot5\\left\\{d_5+d_7<y<d_5+d_7+d_{14}\\right\\}', color: '#000000'});
 	calculator.setExpression({id:'field55', latex:'x=-d_{16}+d_{14}+\\left(d_{15}+d_{14}\\right)\\cdot5\\left\\{d_5+d_7<y<d_5+d_7+d_{14}\\right\\}', color: '#000000'});
 	calculator.setExpression({id:'field56', latex:'y=d_5+d_7+d_{14}\\left\\{-d_{16}+\\left(d_{15}+d_{14}\\right)\\cdot5<x<-d_{16}+d_{14}+\\left(d_{15}+d_{14}\\right)\\cdot5\\right\\}', color: '#000000'});
-	calculator.setExpression({id:'field57', latex:'y=d_5+d_7+d_{14}+\\frac{28+5}{2}\\cdot\\frac{2.54}{100}', color: '#2d70b3', style: Desmos.Styles.DOTTED});
+	calculator.setExpression({id:'field57', latex:'y=d_5+d_7+d_{14}+\\frac{28}{1}\\cdot\\frac{2.54}{100}', color: '#2d70b3', style: Desmos.Styles.DOTTED});
 	calculator.setExpression({id:'field58', latex:'d_{17}=\\left(3\\cdot12+5.25\\right)\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field59', latex:'d_{18}=\\left(8\\cdot12+8\\right)\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field60', latex:'d_{19}=\\left(1\\cdot12+.75\\right)\\cdot\\frac{2.54}{100}'});
