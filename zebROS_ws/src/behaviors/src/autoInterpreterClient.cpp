@@ -1235,6 +1235,8 @@ int main(int argc, char** argv) {
             }
         }
         if(in_auto && mode_buffered) { //if in auto with a mode buffered run it
+			// TODO : be very sure auto_mode has to have a valid value
+			// here before using it
             run_auto(auto_mode_vect[auto_mode], auto_mode, layout, start_pos, 
 					 delays_vect[auto_mode], all_modes[auto_mode][layout][start_pos].times);
 			// Auto finished, either by finishing the requested path
@@ -1244,6 +1246,8 @@ int main(int argc, char** argv) {
 
 		// TODO : why not move this above run_auto code?
         if(match_data_received && !mode_buffered) { //if we have match data and haven't buffered yet, buffer
+			// TODO : be very sure auto_mode has to have a valid value
+			// here before using it
             if(generated_vect[auto_mode]) {
                 if(auto_mode_vect[auto_mode] > 2) {
 					// TODO : check return code of bufferTrajectory, only set mode_buffered
