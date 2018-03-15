@@ -1106,7 +1106,6 @@ int main(int argc, char** argv) {
     if (!n_params_behaviors.getParam("max_num_start", max_num_start))
 		ROS_ERROR("Didn't read param max_num_start in autoInterpreterClient");
 
-
 	// Load trajectories before callbacks which use them can
 	// start
 	mode_list all_modes = load_all_trajectories(max_num_mode, max_num_start, n_params_behaviors);
@@ -1129,6 +1128,7 @@ int main(int argc, char** argv) {
     ros::Subscriber auto_mode_sub = n.subscribe("autonomous_mode", 1, &auto_mode_cb);
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
 
+	// Kick off 2 threads to process messages
 	ros::AsyncSpinner spinner(2);
 	spinner.start();
 	
@@ -1140,6 +1140,11 @@ int main(int argc, char** argv) {
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
 
+	// TODO : enclose all of this in a while(ros::ok()) loop,
+	// have something at the bottom of it which loops at a slow rate 
+	// waiting for mode != telelop, then loop back to the top
+	// and start all over
+	//
 	// List of stuff to reset before waiting for next auto run
     double auto_start_time = DBL_MAX;
 	std::vector<bool> generated_vect = {false, false, false, false};
@@ -1154,6 +1159,8 @@ int main(int argc, char** argv) {
 	bool end_auto = false;
 	bool in_teleop = false;
 
+	// TODO : rethink this loop - neither flag is ever set
+	// so decide what should trigger an exit
     while(!in_teleop && !end_auto) {
 
         MatchData match_data = *(matchData.readFromRT());
@@ -1230,6 +1237,8 @@ int main(int argc, char** argv) {
         if(in_auto && mode_buffered) { //if in auto with a mode buffered run it
             run_auto(auto_mode_vect[auto_mode], auto_mode, layout, start_pos, 
 					 delays_vect[auto_mode], all_modes[auto_mode][layout][start_pos].times);
+			// Auto finished, either by finishing the requested path
+			// or by match data reporting not in autonomous
 			in_auto = false;
         }
 
