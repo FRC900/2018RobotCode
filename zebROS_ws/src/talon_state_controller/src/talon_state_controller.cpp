@@ -75,6 +75,7 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 		m.temperature.push_back(0.0);
 
 		m.feedback_sensor.push_back("");
+		m.feedback_coefficient.push_back(0.0);
 		m.encoder_ticks_per_rotation.push_back(0);
 
 		m.pid_slot.push_back(0);
@@ -96,6 +97,11 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 		m.pid_allowable_closed_loop_error1.push_back(0);
 		m.pid_max_integral_accumulator0.push_back(0);
 		m.pid_max_integral_accumulator1.push_back(0);
+		m.pid_closed_loop_peak_output0.push_back(0);
+		m.pid_closed_loop_peak_output1.push_back(0);
+		m.pid_closed_loop_period0.push_back(0);
+		m.pid_closed_loop_period1.push_back(0);
+		m.aux_pid_polarity.push_back(false);
 		m.set_point.push_back(0.0);
 		m.can_id.push_back(0);
 		m.closed_loop_error.push_back(0);
@@ -277,6 +283,7 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 						m.feedback_sensor[i] = "Unknown";
 						break;
 				}
+				m.feedback_coefficient[i] = ts->getFeedbackCoefficient();
 				m.encoder_ticks_per_rotation[i] = ts->getEncoderTicksPerRotation();
 
 				//publish the array of PIDF values
@@ -288,6 +295,8 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 				m.pid_izone0[i] = ts->getPidfIzone(0);
 				m.pid_allowable_closed_loop_error0[i] = ts->getAllowableClosedLoopError(0);
 				m.pid_max_integral_accumulator0[i] = ts->getMaxIntegralAccumulator(0);
+				m.pid_closed_loop_peak_output0[i] = ts->getClosedLoopPeakOutput(0);
+				m.pid_closed_loop_period0[i] = ts->getClosedLoopPeriod(0);
 
 				m.pid_p1[i] = ts->getPidfP(1);
 				m.pid_i1[i] = ts->getPidfI(1);
@@ -296,6 +305,10 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 				m.pid_izone1[i] = ts->getPidfIzone(1);
 				m.pid_allowable_closed_loop_error1[i] = ts->getAllowableClosedLoopError(1);
 				m.pid_max_integral_accumulator1[i] = ts->getMaxIntegralAccumulator(1);
+				m.pid_closed_loop_peak_output1[i] = ts->getClosedLoopPeakOutput(1);
+				m.pid_closed_loop_period1[i] = ts->getClosedLoopPeriod(1);
+
+				m.aux_pid_polarity[i] = ts->getAuxPidPolarity();
 
 				m.closed_loop_error[i] = ts->getClosedLoopError();
 				m.integral_accumulator[i] = ts->getIntegralAccumulator();
@@ -337,9 +350,6 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 						break;
 					case hardware_interface::TalonMode_MotionMagic:
 						m.talon_mode[i] = "Motion Magic";
-						break;
-					case hardware_interface::TalonMode_TimedPercentOutput:
-						m.talon_mode[i] = "Timed Percent Output";
 						break;
 					case hardware_interface::TalonMode_Disabled:
 						m.talon_mode[i] = "Disabled";

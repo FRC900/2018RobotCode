@@ -21,7 +21,6 @@ enum TalonMode
 	TalonMode_Follower,
 	TalonMode_MotionProfile,
 	TalonMode_MotionMagic,
-	TalonMode_TimedPercentOutput,
 	TalonMode_Disabled,
 	TalonMode_Last
 };
@@ -151,6 +150,9 @@ class TalonHWState
 			pidf_izone_ {0, 0},
 			allowable_closed_loop_error_ {0, 0},
 			max_integral_accumulator_ {0, 0},
+			closed_loop_peak_output_{1, 1},
+			closed_loop_period_{20, 20},
+			aux_pid_polarity_(false),
 			closed_loop_error_(0.0),
 			integral_accumulator_(0.0),
 			error_derivative_(0.0),
@@ -170,6 +172,7 @@ class TalonHWState
 			neutral_mode_(NeutralMode_Uninitialized),
 			neutral_output_(false),
 			encoder_feedback_(FeedbackDevice_Uninitialized),
+			feedback_coefficient_(1.0),
 			encoder_ticks_per_rotation_(4096),
 
 			//output shaping
@@ -260,7 +263,7 @@ class TalonHWState
 		{
 			return temperature_;
 		}
-		double getPidfP(int index) const
+		double getPidfP(size_t index) const
 		{
 			if ((index == 0) || (index == 1))
 				return pidf_p_[index];
@@ -270,7 +273,7 @@ class TalonHWState
 				return 0.0;
 			}
 		}
-		double getPidfI(int index) const
+		double getPidfI(size_t index) const
 		{
 			if ((index == 0) || (index == 1))
 				return pidf_i_[index];
@@ -280,7 +283,7 @@ class TalonHWState
 				return 0.0;
 			}
 		}
-		double getPidfD(int index) const
+		double getPidfD(size_t index) const
 		{
 			if ((index == 0) || (index == 1))
 				return pidf_d_[index];
@@ -290,7 +293,7 @@ class TalonHWState
 				return 0.0;
 			}
 		}
-		double getPidfF(int index) const
+		double getPidfF(size_t index) const
 		{
 			if ((index == 0) || (index == 1))
 				return pidf_f_[index];
@@ -300,7 +303,7 @@ class TalonHWState
 				return 0.0;
 			}
 		}
-		int getPidfIzone(int index) const
+		int getPidfIzone(size_t index) const
 		{
 			if ((index == 0) || (index == 1))
 				return pidf_izone_[index];
@@ -310,7 +313,7 @@ class TalonHWState
 				return 0;
 			}
 		}
-		int getAllowableClosedLoopError(int index) const
+		int getAllowableClosedLoopError(size_t index) const
 		{
 			if ((index == 0) || (index == 1))
 				return allowable_closed_loop_error_[index];
@@ -320,7 +323,7 @@ class TalonHWState
 				return 0;
 			}
 		}
-		double getMaxIntegralAccumulator(int index) const
+		double getMaxIntegralAccumulator(size_t index) const
 		{
 			if ((index == 0) || (index == 1))
 				return max_integral_accumulator_[index];
@@ -329,6 +332,30 @@ class TalonHWState
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 				return 0;
 			}
+		}
+		double getClosedLoopPeakOutput(size_t index) const
+		{
+			if ((index == 0) || (index == 1))
+				return closed_loop_peak_output_[index];
+			else
+			{
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0;
+			}
+		}
+		int getClosedLoopPeriod(size_t index) const
+		{
+			if ((index == 0) || (index == 1))
+				return closed_loop_period_[index];
+			else
+			{
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+				return 0;
+			}
+		}
+		bool getAuxPidPolarity(void) const
+		{
+			return aux_pid_polarity_;
 		}
 
 		double getClosedLoopError(void) const
@@ -405,6 +432,10 @@ class TalonHWState
 		FeedbackDevice getEncoderFeedback(void) const
 		{
 			return encoder_feedback_;
+		}
+		double getFeedbackCoefficient(void) const
+		{
+			return feedback_coefficient_;
 		}
 		int getEncoderTicksPerRotation(void) 	const
 		{
@@ -701,54 +732,72 @@ class TalonHWState
 			return motion_control_frame_period_;
 		}
 
-		void setPidfP(double pidf_p, int index)
+		void setPidfP(double pidf_p, size_t index)
 		{
 			if ((index == 0) || (index == 1))
 				pidf_p_[index] = pidf_p;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 		}
-		void setPidfI(double pidf_i, int index)
+		void setPidfI(double pidf_i, size_t index)
 		{
 			if ((index == 0) || (index == 1))
 				pidf_i_[index] = pidf_i;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 		}
-		void setPidfD(double pidf_d, int index)
+		void setPidfD(double pidf_d, size_t index)
 		{
 			if ((index == 0) || (index == 1))
 				pidf_d_[index] = pidf_d;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 		}
-		void setPidfF(double pidf_f, int index)
+		void setPidfF(double pidf_f, size_t index)
 		{
 			if ((index == 0) || (index == 1))
 				pidf_f_[index] = pidf_f;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 		}
-		void setPidfIzone(int pidf_izone, int index)
+		void setPidfIzone(int pidf_izone, size_t index)
 		{
 			if ((index == 0) || (index == 1))
 				pidf_izone_[index] = pidf_izone;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 		}
-		void setAllowableClosedLoopError(int allowable_closed_loop_error, int index)
+		void setAllowableClosedLoopError(int allowable_closed_loop_error, size_t index)
 		{
 			if ((index == 0) || (index == 1))
 				allowable_closed_loop_error_[index] = allowable_closed_loop_error;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
 		}
-		void setMaxIntegralAccumulator(double max_integral_accumulator, int index)
+		void setMaxIntegralAccumulator(double max_integral_accumulator, size_t index)
 		{
 			if ((index == 0) || (index == 1))
 				max_integral_accumulator_[index] = max_integral_accumulator;
 			else
 				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+		}
+		void setClosedLoopPeakOutput(double closed_loop_peak_output, size_t index)
+		{
+			if ((index == 0) || (index == 1))
+				closed_loop_peak_output_[index] = closed_loop_peak_output;
+			else
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+		}
+		void setClosedLoopPeriod(double closed_loop_period, size_t index)
+		{
+			if ((index == 0) || (index == 1))
+				closed_loop_period_[index] = closed_loop_period;
+			else
+				ROS_WARN_STREAM("Invalid index. Must be 0 or 1.");
+		}
+		void setAuxPidPolarity(bool aux_pid_polarity)
+		{
+			aux_pid_polarity_ = aux_pid_polarity;
 		}
 
 		void setClosedLoopError(double closed_loop_error)
@@ -837,6 +886,10 @@ class TalonHWState
 			else
 				ROS_WARN_STREAM("Invalid feedback device requested");
 		}
+		void setFeedbackCoefficient(double feedback_coefficient)
+		{
+			feedback_coefficient_ = feedback_coefficient;
+		}
 		void setEncoderTicksPerRotation(int encoder_ticks_per_rotation)
 		{
 			encoder_ticks_per_rotation_ = encoder_ticks_per_rotation;
@@ -866,6 +919,9 @@ class TalonHWState
 		int   pidf_izone_[2];
 		int   allowable_closed_loop_error_[2];
 		double max_integral_accumulator_[2];
+		double closed_loop_peak_output_[2];
+		int    closed_loop_period_[2];
+		bool   aux_pid_polarity_;
 		double closed_loop_error_;
 		double integral_accumulator_;
 		double error_derivative_;
@@ -889,6 +945,7 @@ class TalonHWState
 		bool        neutral_output_;
 
 		FeedbackDevice encoder_feedback_;
+		double feedback_coefficient_;
 		int encoder_ticks_per_rotation_;
 
 		// output shaping

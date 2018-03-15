@@ -43,11 +43,15 @@ class TalonCIParams
 			izone_{0, 0},
 			allowable_closed_loop_error_{0, 0}, // need better defaults
 			max_integral_accumulator_{0, 0},
+			closed_loop_peak_output_{1, 1},
+			closed_loop_period_{20, 20},
 			pidf_slot_(0),
+			aux_pid_polarity_(false),
 			invert_output_(false),
 			sensor_phase_(false),
 			neutral_mode_(hardware_interface::NeutralMode_Uninitialized),
 			feedback_type_(hardware_interface::FeedbackDevice_Uninitialized),
+			feedback_coefficient_(1.0),
 			ticks_per_rotation_(4096),
 			closed_loop_ramp_(0.),
 			open_loop_ramp_(0.),
@@ -100,11 +104,17 @@ class TalonCIParams
 			allowable_closed_loop_error_[1] = config.allowable_closed_loop_error1;
 			max_integral_accumulator_[0] = config.max_integral_accumulator0;
 			max_integral_accumulator_[1] = config.max_integral_accumulator1;
+			closed_loop_peak_output_[0] = config.closed_loop_peak_output0;
+			closed_loop_peak_output_[1] = config.closed_loop_peak_output1;
+			closed_loop_period_[0] = config.closed_loop_period0;
+			closed_loop_period_[1] = config.closed_loop_period1;
 			pidf_slot_ = config.pid_config;
+			aux_pid_polarity_ = config.aux_pid_polarity;
 			invert_output_ = config.invert_output;
 
 			sensor_phase_ = config.sensor_phase;
 			feedback_type_ = static_cast<hardware_interface::FeedbackDevice>(config.feedback_type);
+			feedback_coefficient_ = config.feedback_coefficient;
 			ticks_per_rotation_ = config.encoder_ticks_per_rotation;
 			neutral_mode_ = static_cast<hardware_interface::NeutralMode>(config.neutral_mode);
 			closed_loop_ramp_ = config.closed_loop_ramp;
@@ -157,10 +167,16 @@ class TalonCIParams
 			config.allowable_closed_loop_error1 = allowable_closed_loop_error_[1];
 			config.max_integral_accumulator0 = max_integral_accumulator_[0];
 			config.max_integral_accumulator1 = max_integral_accumulator_[1];
+			config.closed_loop_peak_output0 = closed_loop_peak_output_[0];
+			config.closed_loop_peak_output1 = closed_loop_peak_output_[1];
+			config.closed_loop_period0 = closed_loop_period_[0];
+			config.closed_loop_period1 = closed_loop_period_[1];
 			config.pid_config    = pidf_slot_;
+			config.aux_pid_polarity = aux_pid_polarity_;
 			config.invert_output = invert_output_;
 			config.sensor_phase  = sensor_phase_;
 			config.feedback_type = feedback_type_;
+			config.feedback_coefficient = feedback_coefficient_;
 			config.encoder_ticks_per_rotation = ticks_per_rotation_;
 			config.neutral_mode  = neutral_mode_;
 			config.closed_loop_ramp = closed_loop_ramp_;
@@ -271,6 +287,7 @@ class TalonCIParams
 				return false;
 			}
 			n.getParam("ticks_per_rotation", ticks_per_rotation_);
+			n.getParam("feedback_coefficient", feedback_coefficient_);
 			return true;
 		}
 
@@ -285,21 +302,24 @@ class TalonCIParams
 		{
 			XmlRpc::XmlRpcValue pid_param_list;
 
+			n.getParam("aux_pid_polarity", pid_param_list);
 			if (!n.getParam("close_loop_values", pid_param_list))
 				return true;
 			if (pid_param_list.size() <= 2)
 			{
 				for (int i = 0; i < pid_param_list.size(); i++)
 				{
-					XmlRpc::XmlRpcValue &pidparams_ = pid_param_list[i];
+					XmlRpc::XmlRpcValue &pidparams = pid_param_list[i];
 
-					p_[i] = findFloatParam("p", pidparams_);
-					i_[i] = findFloatParam("i", pidparams_);
-					d_[i] = findFloatParam("d", pidparams_);
-					f_[i] = findFloatParam("f", pidparams_);
-					izone_[i] = findIntParam("i_zone", pidparams_);
-					allowable_closed_loop_error_[i] = findIntParam("allowable_closed_loop_error", pidparams_);
-					max_integral_accumulator_[i] = findFloatParam("max_integral_accumulator", pidparams_);
+					p_[i] = findFloatParam("p", pidparams);
+					i_[i] = findFloatParam("i", pidparams);
+					d_[i] = findFloatParam("d", pidparams);
+					f_[i] = findFloatParam("f", pidparams);
+					izone_[i] = findIntParam("i_zone", pidparams);
+					allowable_closed_loop_error_[i] = findIntParam("allowable_closed_loop_error", pidparams);
+					max_integral_accumulator_[i] = findFloatParam("max_integral_accumulator", pidparams);
+					closed_loop_peak_output_[i] = findFloatParam("closed_loop_peak_output", pidparams);
+					closed_loop_period_[i] = findIntParam("closed_loop_period", pidparams);
 				}
 				return true;
 			}
@@ -415,11 +435,15 @@ class TalonCIParams
 		int    izone_[2];
 		int    allowable_closed_loop_error_[2];
 		double max_integral_accumulator_[2];
+		double closed_loop_peak_output_[2];
+		int    closed_loop_period_[2];
 		int    pidf_slot_;
+		bool   aux_pid_polarity_;
 		bool   invert_output_;
 		bool   sensor_phase_;
 		hardware_interface::NeutralMode neutral_mode_;
 		hardware_interface::FeedbackDevice feedback_type_;
+		double feedback_coefficient_;
 		int    ticks_per_rotation_;
 		double closed_loop_ramp_;
 		double open_loop_ramp_;
@@ -1039,11 +1063,15 @@ class TalonControllerInterface
 				// better default values than 0.0
 				talon->setAllowableClosedloopError(params.allowable_closed_loop_error_[i], i);
 				talon->setMaxIntegralAccumulator(params.max_integral_accumulator_[i], i);
+				talon->setClosedLoopPeakOutput(params.closed_loop_peak_output_[i], i);
+				talon->setClosedLoopPeriod(params.closed_loop_period_[i], i);
 			}
 			talon->setPidfSlot(params.pidf_slot_);
+			talon->setAuxPidPolarity(params.aux_pid_polarity_);
 			talon->setNeutralMode(params.neutral_mode_);
 
 			talon->setEncoderFeedback(params.feedback_type_);
+			talon->setFeedbackCoefficient(params.feedback_coefficient_);
 			talon->setEncoderTicksPerRotation(params.ticks_per_rotation_);
 
 			talon->setInvert(params.invert_output_);
