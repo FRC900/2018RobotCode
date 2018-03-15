@@ -3,7 +3,7 @@
 #include <behaviors/autoInterpreterClient.h>
 #include <realtime_tools/realtime_buffer.h>
 
-std::atomic<bool> exit_auto; // robot is disabled or teleop started during auto_loop
+std::atomic<bool> abort_auto; // robot is disabled or teleop started during auto_loop
 
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
@@ -28,6 +28,17 @@ double intake_config_x;
 double intake_config_y;
 double default_x;
 double default_y;
+
+//consider adding some constructors for these structs
+
+struct full_mode
+{
+	talon_swerve_drive_controller::FullGenCoefs srv_msg;
+	std::vector<double> times;
+	bool exists;
+
+	full_mode(void): exists(false) {}	
+};
 
 struct MatchData {
     MatchData():
@@ -72,7 +83,9 @@ struct AutoMode {
 realtime_tools::RealtimeBuffer<MatchData> matchData;
 realtime_tools::RealtimeBuffer<AutoMode> autoMode;
 
+typedef std::vector<std::vector<std::vector<full_mode>>> mode_list;
 
+static mode_list all_modes;
 
 bool defaultConfig(void) {
 	elevator_controller::ElevatorControlS srv;
@@ -213,10 +226,9 @@ bool parkingConfig(void)
 	return true;
 }
 
-mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data)
+void load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data)
 {
 	XmlRpc::XmlRpcValue mode_xml;
-	mode_list all_modes;
 	all_modes.resize(max_mode_num + 1);
 	for(int mode = 0; mode <= max_mode_num; mode++)
 	{
@@ -241,9 +253,9 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 						XmlRpc::XmlRpcValue &orient = spline["orient"];
 						XmlRpc::XmlRpcValue &time = spline["time"];
 
-						swerve_point_generator::Coefs x_coefs;
-						swerve_point_generator::Coefs y_coefs;
-						swerve_point_generator::Coefs orient_coefs;
+						talon_swerve_drive_controller::Coefs x_coefs;
+						talon_swerve_drive_controller::Coefs y_coefs;
+						talon_swerve_drive_controller::Coefs orient_coefs;
 						for(int i = 0; i<x.size(); i++) {
 							const double x_coef = x[i];
 						    const double y_coef = y[i];
@@ -301,31 +313,26 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 		}
 
 	}
-	return all_modes;
 }
 
-bool generateTrajectory(full_mode &trajectory) 
-{
-	if(!trajectory.exists)
-	{
-		//TODO MAKE LIGHT GO RED ON DRIVERSTATION
-		ROS_ERROR("auto mode/layout/start selected which wasn't found in the yaml");
-		return false;
-	}
-
-	if (!point_gen.call(trajectory.srv_msg))
-	{
+bool generateTrajectory(int auto_mode, int layout, int start_pos) {
+    
+    if(!all_modes[auto_mode][layout][start_pos].exists)
+    {
+	//TODO MAKE LIGHT GO RED ON DRIVERSTATION
+	ROS_ERROR("auto mode/layout/start selected which wasn't found in the yaml");
+    	return false;
+    }
+    
+    if (!point_gen.call(all_modes[auto_mode][layout][start_pos].srv_msg))
+    {
 		ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
-		return false;
-	}
-	///JUST FOR TESTING_______
-	if (!bufferTrajectory(trajectory.srv_msg.response))
-	{
-		ROS_ERROR("bufferTrajectory call failed in autoInterpreterClient generateTrajectory()");
-		return false;
-	}
-	///JUST FOR TESTING_______
-	return true;
+    	return false;
+    }
+    ///JUST FOR TESTING_______
+    bufferTrajectory(auto_mode, layout, start_pos);
+    ///JUST FOR TESTING_______
+    return true;
 }
 
 std::string lower(const std::string &str) {
@@ -336,26 +343,22 @@ std::string lower(const std::string &str) {
     return new_string;
 }
 
-bool bufferTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
-{
-    ROS_INFO_STREAM("Buffer trajectory num_points: " << traj.points.size() << " dt: " << traj.dt);
+void bufferTrajectory(int auto_mode, int layout, int start_pos) {
+    ROS_WARN("Buffer trajectory");
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
-    swerve_control_srv.request.points = traj.points;
-    swerve_control_srv.request.dt = traj.dt;
+    swerve_control_srv.request.points = all_modes[auto_mode][layout][start_pos].srv_msg.response.points;
+    ROS_INFO_STREAM("num_points: " << all_modes[auto_mode][layout][start_pos].srv_msg.response.points.size() << " dt: "<<all_modes[auto_mode][layout][start_pos].srv_msg.response.dt);
+    
+    swerve_control_srv.request.dt = all_modes[auto_mode][layout][start_pos].srv_msg.response.dt;
     swerve_control_srv.request.buffer = true;
     swerve_control_srv.request.clear  = true;
     swerve_control_srv.request.run    = false;
     swerve_control_srv.request.mode   = true;
     
     if (!swerve_control.call(swerve_control_srv))
-	{
 		ROS_ERROR("swerve_control call() failed in autoInterpreterClient bufferTrajectory()");
-		return false;
-	}
-	return true;
 }
-
-bool runTrajectory(void) {
+void runTrajectory(void) {
     ROS_WARN("Run trajectory");
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.buffer = false;
@@ -364,22 +367,13 @@ bool runTrajectory(void) {
     swerve_control_srv.request.mode   = true;
     
     if (!swerve_control.call(swerve_control_srv))
-	{
 		ROS_ERROR("swerve_control call() failed in autoInterpreterClient runTrajectory()");
-		return false;
-	}
-	return true;
 }
 
 void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &msg) {
     matchData.writeFromNonRT(MatchData(msg->isEnabled, msg->isAutonomous, msg->allianceData));
-
-	// Not sure about the msg->isEnabled part - robot
-	// will stop driving if disabled and it might be
-	// nice for testing to continue the code for
-	// debugging
-	if (!(msg->isAutonomous && msg->isEnabled))
-		exit_auto = true;
+	if (!(MatchData->isAutonomous && MatchData->isEnabled))
+		abort_auto = true;
 
     /*
     if(in_auto && MatchData->isAutonomous == false) {
@@ -466,20 +460,23 @@ void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
 
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
-void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay, const std::vector<double> &times) {
+void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay) {
     ROS_WARN("auto entered");
     ros::Rate r(10);
     double start_time = ros::Time::now().toSec();
 
 	// TODO : need some way to set in_auto based on callback
 	// results
-    while(!exit_auto && ros::Time::now().toSec() < start_time + initial_delay) {
+    while(!abort_auto && ros::Time::now().toSec() < start_time + initial_delay) {
         r.sleep(); 
     }
     start_time = ros::Time::now().toSec();
 
+	// Lock in auto mode info here in case it somehow changes
+	// in callback?  Running based on data which is changing
+	// could be dangerous
     if(auto_select == 1) {
-        while(!exit_auto) { // TODO - should this be looped?
+        while(!abort_auto) {
             ROS_WARN("Basic drive forward auto");
             //basic drive forward cmd_vel
             geometry_msgs::Twist vel;
@@ -492,7 +489,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
             if(auto_mode == 1 || auto_mode == 3) { //if goal is on the right
                if(start_pos == 0) {
                    const double delay = 6; //TODO
-                    while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                         vel.linear.x = 1.05; //positive x a lot
                         vel.linear.y = 0.12; //positive y a little bit
                         VelPub.publish(vel);
@@ -501,7 +498,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                }
                if(start_pos == 2) {
                    const double delay = 6; //TODO
-                   while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                   while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                         vel.linear.x = 1.05; //positive x a lot
                         vel.linear.y = -0.12; //negative y a little bit
                         VelPub.publish(vel);
@@ -510,7 +507,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                 }
                 else {
                     const double delay = 3.04; //TODO
-                    while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                         vel.linear.x = 0.875; //positive x some
                         vel.linear.y = 0.5; //positive y some
                         VelPub.publish(vel);
@@ -521,7 +518,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
             else if(auto_mode == 2 || auto_mode == 4) { //goal is on the left
                 if(start_pos == 0){
                     const double delay = 6; 
-                    while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                         vel.linear.x = 1.05; //positive x a lot
                         vel.linear.y = 0.12; //positive y a little bit
                         VelPub.publish(vel);
@@ -530,7 +527,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                 }
                 if(start_pos == 2) {
                     const double delay = 6; //TODO
-                    while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                         vel.linear.x = 1.05; //positive x a lot
                         vel.linear.y = -0.12; //negative y a little bit
                         VelPub.publish(vel);
@@ -539,7 +536,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                 }
                 else {
                     const double delay = 3.04; //TODO
-                    while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                         vel.linear.x = 0.875; //positive x some
                         vel.linear.y = -0.3; //negative y some
                         VelPub.publish(vel);
@@ -564,7 +561,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         if(auto_mode == 1 || auto_mode == 3) { //if goal is on the right
            if(start_pos == 0) {
                const double delay = 3.5; //TODO
-                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                     vel.linear.x = 1.05;
                     vel.linear.y = -1.5;
                     VelPub.publish(vel);
@@ -573,7 +570,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
             }
            if(start_pos == 2) {
             const double delay = 3; //TODO
-               while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+               while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                     vel.linear.x = 1.2;
                     vel.linear.y = .53;
                     VelPub.publish(vel);
@@ -582,7 +579,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
            }
             else {
                 const double delay = 3; //TODO
-                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                     vel.linear.x = 1.75;
                     vel.linear.y = -0.7; 
                     VelPub.publish(vel);
@@ -595,7 +592,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         else if(auto_mode == 2 || auto_mode == 4) { //goal is on the left
             if(start_pos == 0){
                 const double delay = 3; 
-                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                     vel.linear.x = 1.2;
                     vel.linear.y = -.53;
                     VelPub.publish(vel);
@@ -605,7 +602,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
             }
             if(start_pos == 2) {
                 const double delay = 3.5; //TODO
-                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                     vel.linear.x = 1.05;
                     vel.linear.y = 1.5;
                     VelPub.publish(vel);
@@ -614,7 +611,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
             }
             else {
                 const double delay = 3; //TODO
-                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                while(ros::Time::now().toSec() < start_time + delay && !abort_auto) {
                     vel.linear.x = 1.5;
                     vel.linear.y = .75;
                     VelPub.publish(vel);
@@ -628,10 +625,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
     
 	else if(auto_select == 3) {
         ROS_WARN("Profiled Scale");
-        while (!exit_auto && !runTrajectory())
-			r.sleep();
+        runTrajectory(auto_mode);
 		double last_time = 0;
-        while(!exit_auto) { 
+		const auto &times = all_modes[auto_mode][layout][start_pos].times;
+        while(!abort_auto) { 
             //Profiled scale
             const double curr_time = ros::Time::now().toSec();
             if(curr_time > times[0] && curr_time <= times[0] + (curr_time-last_time)) {
@@ -649,10 +646,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
     }
 	else if(auto_select == 4) {
         ROS_WARN("Profiled Scale");
-        while (!exit_auto && !runTrajectory())
-			r.sleep();
+        runTrajectory(auto_mode);
 		double last_time = 0;
-        while(!exit_auto) { 
+		const auto &times = all_modes[auto_mode][layout][start_pos].times;
+        while(!abort_auto) { 
             //Profiled scale
             const double curr_time = ros::Time::now().toSec();
             if(curr_time > times[0] && curr_time <= times[0] + (curr_time-last_time)) {
@@ -1109,14 +1106,14 @@ int main(int argc, char** argv) {
 
 	// Load trajectories before callbacks which use them can
 	// start
-	mode_list all_modes = load_all_trajectories(max_num_mode, max_num_start, n_params_behaviors);
+    load_all_trajectories(max_num_mode, max_num_start, n_params_behaviors);
 
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
     ac->waitForServer(); 
 
 	std::map<std::string, std::string> service_connection_header;
 	service_connection_header["tcp_nodelay"] = "1";
-	point_gen = n.serviceClient<swerve_point_generator::FullGenCoefs>("/point_gen/command", true, service_connection_header);
+	point_gen = n.serviceClient<talon_swerve_drive_controller::FullGenCoefs>("/point_gen/command", true, service_connection_header);
 	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile", false, service_connection_header);
 
     IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
@@ -1135,7 +1132,7 @@ int main(int argc, char** argv) {
     ROS_WARN("Auto Client loaded");
     ros::Duration(17).sleep();
     ROS_WARN("post sleep");
-    generateTrajectory(all_modes[3][3][3]);
+    generateTrajectory(3, 3, 2);
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
@@ -1168,7 +1165,7 @@ int main(int argc, char** argv) {
                 {
 					// TODO : Check return code here 
 					//        if it is false don't set generated_vect and reset auto_mode_vect[i] == -1?
-                    generateTrajectory(all_modes[i][auto_mode_data.modes_[i] - 3][auto_mode_data.start_pos_]);
+                    generateTrajectory(i, auto_mode_data.modes_[i]-3, auto_mode_data.start_pos_);
                     generated_vect[i] = true;
                 }
 				auto_mode_vect[i] = auto_mode_data.modes_[i];
@@ -1201,8 +1198,7 @@ int main(int argc, char** argv) {
                 else if(lower(match_data.alliance_data_) =="lll") {
                     auto_mode = 3;
                     layout = 2;
-                } 
-				// TODO : add a final else and report an error and don't set match_data_received
+                }
                 // TODO :: Check this - are we really in auto mode if in this else() block
                 match_data_received = true;
                 
@@ -1228,8 +1224,7 @@ int main(int argc, char** argv) {
             }
         }
         if(in_auto && mode_buffered) { //if in auto with a mode buffered run it
-            run_auto(auto_mode_vect[auto_mode], auto_mode, layout, start_pos, 
-					 delays_vect[auto_mode], all_modes[auto_mode][layout][start_pos].times);
+            run_auto(auto_mode_vect[auto_mode], auto_mode, layout, start_pos, delays_vect[auto_mode]);
 			in_auto = false;
         }
 
@@ -1239,7 +1234,7 @@ int main(int argc, char** argv) {
                 if(auto_mode_vect[auto_mode] > 2) {
 					// TODO : check return code of bufferTrajectory, only set mode_buffered
 					// if it was successful
-                    bufferTrajectory(all_modes[auto_mode_vect[auto_mode]][auto_mode][start_pos].srv_msg.response);
+                    bufferTrajectory(auto_mode_vect[auto_mode], auto_mode, start_pos);
                 }
                 mode_buffered = true;
             }

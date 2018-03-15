@@ -18,7 +18,7 @@ swerve_profiler::swerve_profiler(double max_wheel_dist, double max_wheel_mid_acc
 	t_shift_;
 }
 
-bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double initial_v, const double final_v, talon_swerve_drive_controller::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points, double t_shift)
+bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double initial_v, const double final_v, swerve_point_generator::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points, double t_shift)
 {
 	t_shift_ = t_shift;
 	tk::spline spline;
