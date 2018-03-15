@@ -381,9 +381,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
-	// since our MP is 10ms per point, set the control frame rate and the
-	// notifer to half that
-	
 	ros::Duration(3).sleep();	
 
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
@@ -414,10 +411,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 				}
 				else
 				{
-					
 					(*can_talons_mp_writing_)[i].store(false, std::memory_order_relaxed);
-			
-
 				}
 			}
 		}
@@ -439,7 +433,6 @@ void FRCRobotHWInterface::init(void)
 
 	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
 
-	
 	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	can_talons_mp_writing_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	can_talons_mp_running_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
@@ -461,6 +454,8 @@ void FRCRobotHWInterface::init(void)
 		// Clear sticky faults
 		// safeTalonCall(can_talons_[1]->ClearStickyFaults(timeoutMs), "Clear sticky faults.");
 		(*can_talons_mp_written_)[i].store(false, std::memory_order_relaxed);
+		(*can_talons_mp_writing_)[i].store(false, std::memory_order_relaxed);
+		(*can_talons_mp_running_)[i].store(false, std::memory_order_relaxed);
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -570,7 +565,8 @@ void FRCRobotHWInterface::init(void)
 void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 {
 	//return;
-		
+	//
+#if 0		
 	const int talon_updates_to_skip = 2;
 	static int talon_skip_counter = 0;
 	static int next_talon_to_read = 0;
@@ -589,19 +585,17 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			next_talon_to_read = (next_talon_to_read + 1) % num_can_talon_srxs_;
 		}
 	}
+#endif
 		
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
-		
 		auto &ts = talon_state_[joint_id];
 		auto &talon = can_talons_[joint_id];
 
 		if (!talon) // skip unintialized Talons
 			continue;
 		if (ts.getCANID() == 31 || ts.getCANID() == 32)
-		{
 			continue;
-		}
 
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever units make sense
@@ -624,9 +618,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			ROS_INFO_STREAM("written");
 		}
 		*/
-		if (!(*can_talons_mp_writing_)[joint_id].load(std::memory_order_relaxed) &&  !(*can_talons_mp_running_)[joint_id].load(std::memory_order_relaxed) )
+		if (!(*can_talons_mp_writing_)[joint_id].load(std::memory_order_relaxed) && !(*can_talons_mp_running_)[joint_id].load(std::memory_order_relaxed) )
 		{
-			
 			const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
 			const double conversion_factor = ts.getConversionFactor();
 
@@ -640,8 +633,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			const double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
 			safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 			ts.setSpeed(speed);
-			
 		}
+
 		if (ts.getCANID() > 30 || !(*can_talons_mp_written_)[joint_id].load(std::memory_order_relaxed))
 		{
 			continue;
@@ -672,7 +665,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		//safeTalonCall(talon->GetLastError(), "GetOutputCurrent");
 		//ts.setOutputCurrent(output_current);
 
-		if (read_this_talon == joint_id)
+	//	if (read_this_talon == joint_id)
 		{
 			//const double bus_voltage = talon->GetBusVoltage();
 			//safeTalonCall(talon->GetLastError(), "GetBusVoltage");
@@ -858,15 +851,14 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	}*/
 	
 	//read info from the PDP hardware
-	auto &ps = pdp_state_;
-	ps.setVoltage(pdp_joint_.GetVoltage());
-	ps.setTemperature(pdp_joint_.GetTemperature());
-	ps.setTotalCurrent(pdp_joint_.GetTotalCurrent());
-	ps.setTotalPower(pdp_joint_.GetTotalPower());
-	ps.setTotalEnergy(pdp_joint_.GetTotalEnergy());
+	pdp_state_.setVoltage(pdp_joint_.GetVoltage());
+	pdp_state_.setTemperature(pdp_joint_.GetTemperature());
+	pdp_state_.setTotalCurrent(pdp_joint_.GetTotalCurrent());
+	pdp_state_.setTotalPower(pdp_joint_.GetTotalPower());
+	pdp_state_.setTotalEnergy(pdp_joint_.GetTotalEnergy());
 	for(int channel = 0; channel <= 15; channel++)
 	{
-		ps.setCurrent(pdp_joint_.GetCurrent(channel), channel);
+		pdp_state_.setCurrent(pdp_joint_.GetCurrent(channel), channel);
 	}
 
 }
@@ -1514,7 +1506,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 					command /= radians_scale;
 					break;
 			}
-
 			
 			(*can_talons_mp_running_)[joint_id].store(out_mode == ctre::phoenix::motorcontrol::ControlMode::MotionProfile && command == 1, std::memory_order_relaxed);
 
