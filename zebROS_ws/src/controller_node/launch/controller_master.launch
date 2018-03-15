@@ -59,7 +59,7 @@
 
   <!--<include file="$(find controller_node)/launch/fuse_odom.launch"/>-->
 
-  <!-- <include file="$(find rplidar_ros)/launch/rplidar.launch" /> -->
+  <include file="$(find rplidar_ros)/launch/rplidar.launch" />
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4175125 -0.3184779 0.22178 3.14159265 0 0 base_link laser" />
 
   <!--<include file="$(find controller_node)/launch/gmapping.launch"/>-->
@@ -89,9 +89,9 @@
 
   <!-- Load controller settings -->
   <rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
-  <rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
+  <rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_0.yaml" command="load"/>
   <rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
-  <rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets1.yaml" command="load"/>
+  <rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets0.yaml" command="load"/>
   <rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
   <rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
   <rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>

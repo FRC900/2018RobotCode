@@ -20,9 +20,23 @@ enum TrajectoryDuration
 	
 struct TrajectoryPoint
 {
+	// Sane? defaults
+	TrajectoryPoint() :
+		position(0),
+		velocity(0),
+		headingRad(0),
+		auxiliaryPos(0),
+		profileSlotSelect0(0),
+		profileSlotSelect1(0),
+		isLastPoint(false),
+		zeroPos(false),
+		trajectoryDuration(TrajectoryDuration::TrajectoryDuration_0ms)
+	{
+	}
 	double position;
 	double velocity;
 	double headingRad;
+	double auxiliaryPos;
 	uint32_t profileSlotSelect0;
 	uint32_t profileSlotSelect1;
 	bool isLastPoint;
@@ -70,6 +84,7 @@ class TalonHWCommand
 			neutral_mode_changed_(false),
 			neutral_output_(false),
 			encoder_feedback_(FeedbackDevice_Uninitialized),
+			feedback_coefficient_(1.0),
 			encoder_feedback_changed_(false),
 			encoder_ticks_per_rotation_(4096),
 
@@ -127,6 +142,8 @@ class TalonHWCommand
 			motion_profile_clear_has_underrun_(false),
 			motion_profile_control_frame_period_(20),
 			motion_profile_control_frame_period_changed_(true),
+			motion_profile_profile_trajectory_period_(0),
+			motion_profile_profile_trajectory_period_changed_(true),
 
 			clear_sticky_faults_(false),
 			p_{0, 0},
@@ -136,6 +153,10 @@ class TalonHWCommand
 			i_zone_{0, 0},
 			allowable_closed_loop_error_{0, 0}, // need better defaults
 			max_integral_accumulator_{0, 0},
+			closed_loop_peak_output_{1, 1},
+			closed_loop_period_{1, 1},
+			aux_pid_polarity_(false),
+			aux_pid_polarity_changed_(true),
 			pidf_changed_{true, true},
 
 			conversion_factor_(1.0),
@@ -164,9 +185,9 @@ class TalonHWCommand
 			return mode_;
 		}
 
-		void setP(double oldP, int index)
+		void setP(double oldP, size_t index)
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
+			if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setP()");
 				return;
@@ -177,9 +198,9 @@ class TalonHWCommand
 				p_[index] = oldP;
 			}
 		}
-		double getP(int index) const
+		double getP(size_t index) const
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
+			if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getP()");
 				return 0.0;
@@ -187,9 +208,9 @@ class TalonHWCommand
 			return p_[index];
 		}
 
-		void setI(double ii, int index)
+		void setI(double ii, size_t index)
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(i_) / sizeof(i_[0]))))
+			if ((index < 0) || (index >= (sizeof(i_) / sizeof(i_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setI()");
 				return;
@@ -200,9 +221,9 @@ class TalonHWCommand
 				i_[index] = ii;
 			}
 		}
-		double getI(int index) const
+		double getI(size_t index) const
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(i_) / sizeof(i_[0]))))
+			if ((index < 0) || (index >= (sizeof(i_) / sizeof(i_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getI()");
 				return 0.0;
@@ -210,9 +231,9 @@ class TalonHWCommand
 			return i_[index];
 		}
 
-		void setD(double dd, int index)
+		void setD(double dd, size_t index)
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(d_) / sizeof(d_[0]))))
+			if ((index < 0) || (index >= (sizeof(d_) / sizeof(d_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setD()");
 				return;
@@ -223,9 +244,9 @@ class TalonHWCommand
 				d_[index] = dd;
 			}
 		}
-		double getD(int index) const
+		double getD(size_t index) const
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(d_) / sizeof(d_[0]))))
+			if ((index < 0) || (index >= (sizeof(d_) / sizeof(d_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getD()");
 				return 0.0;
@@ -233,9 +254,9 @@ class TalonHWCommand
 			return d_[index];
 		}
 
-		void setF(double ff, int index)
+		void setF(double ff, size_t index)
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(f_) / sizeof(f_[0]))))
+			if ((index < 0) || (index >= (sizeof(f_) / sizeof(f_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setF()");
 				return;
@@ -246,9 +267,9 @@ class TalonHWCommand
 				f_[index] = ff;
 			}
 		}
-		double getF(int index)
+		double getF(size_t index)
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(f_) / sizeof(f_[0]))))
+			if ((index < 0) || (index >= (sizeof(f_) / sizeof(f_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getF()");
 				return 0.0;
@@ -256,9 +277,9 @@ class TalonHWCommand
 			return f_[index];
 		}
 
-		void setIZ(int i_zone, int index)
+		void setIZ(int i_zone, size_t index)
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
+			if ((index < 0) || (index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setIZ()");
 				return;
@@ -269,9 +290,9 @@ class TalonHWCommand
 				i_zone_[index] = i_zone;
 			}
 		}
-		int getIZ(int index) const
+		int getIZ(size_t index) const
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
+			if ((index < 0) || (index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getIZ()");
 				return 0.0;
@@ -279,9 +300,9 @@ class TalonHWCommand
 			return i_zone_[index];
 		}
 
-		void setAllowableClosedloopError(int allowable_closed_loop_error, int index)
+		void setAllowableClosedloopError(int allowable_closed_loop_error, size_t index)
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
+			if ((index < 0) || (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
 				return;
@@ -292,18 +313,18 @@ class TalonHWCommand
 				allowable_closed_loop_error_[index] = allowable_closed_loop_error;
 			}
 		}
-		int getAllowableClosedloopError(int index) const
+		int getAllowableClosedloopError(size_t index) const
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
+			if ((index < 0) || (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getAllowableClosedLoopErrro()");
 				return 0;
 			}
 			return allowable_closed_loop_error_[index];
 		}
-		void setMaxIntegralAccumulator(int max_integral_accumulator, int index)
+		void setMaxIntegralAccumulator(int max_integral_accumulator, size_t index)
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
+			if ((index < 0) || (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
 				return;
@@ -314,14 +335,72 @@ class TalonHWCommand
 				max_integral_accumulator_[index] = max_integral_accumulator;
 			}
 		}
-		int getMaxIntegralAccumulator(int index) const
+		int getMaxIntegralAccumulator(size_t index) const
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
+			if ((index < 0) || (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getAllowableClosedLoopErrro()");
 				return 0.0;
 			}
 			return max_integral_accumulator_[index];
+		}
+		void setClosedLoopPeakOutput(double closed_loop_peak_output, size_t index)
+		{
+			if ((index < 0) || (index >= (sizeof(closed_loop_peak_output_) / sizeof(closed_loop_peak_output_[0]))))
+			{
+				ROS_WARN("Invalid index passed to TalonHWCommand::setClosedLoopPeakOutput()");
+				return;
+			}
+			if (closed_loop_peak_output != closed_loop_peak_output_[index])
+			{
+				pidf_changed_[index] = true;
+				closed_loop_peak_output_[index] = closed_loop_peak_output;
+			}
+		}
+		double getClosedLoopPeakOutput(size_t index) const
+		{
+			if ((index < 0) || (index >= (sizeof(closed_loop_peak_output_) / sizeof(closed_loop_peak_output_[0]))))
+			{
+				ROS_WARN("Invalid index passed to TalonHWCommand::getClosedLoopPeakOutput()");
+				return 0.0;
+			}
+			return closed_loop_peak_output_[index];
+		}
+
+		void setClosedLoopPeriod(int closed_loop_period, size_t index)
+		{
+			if ((index < 0) || (index >= (sizeof(closed_loop_period_) / sizeof(closed_loop_period_[0]))))
+			{
+				ROS_WARN("Invalid index passed to TalonHWCommand::setClosedLoopPeriod()");
+				return;
+			}
+			if (closed_loop_period != closed_loop_period_[index])
+			{
+				pidf_changed_[index] = true;
+				closed_loop_period_[index] = closed_loop_period;
+			}
+		}
+		int getClosedLoopPeriod(size_t index) const
+		{
+			if ((index < 0) || (index >= (sizeof(closed_loop_period_) / sizeof(closed_loop_period_[0]))))
+			{
+				ROS_WARN("Invalid index passed to TalonHWCommand::getClosedLoopPeriod()");
+				return 0.0;
+			}
+			return closed_loop_period_[index];
+		}
+
+		void setAuxPidPolarity(bool aux_pid_polarity)
+		{
+			if (aux_pid_polarity_ != aux_pid_polarity)
+			{
+				aux_pid_polarity_ = aux_pid_polarity;
+				aux_pid_polarity_changed_ = true;
+			}
+		}
+		bool getAuxPidPolarity(void) const
+		{
+			return aux_pid_polarity_;
 		}
 
 		void setIntegralAccumulator(double iaccum)
@@ -395,9 +474,9 @@ class TalonHWCommand
 			pidf_slot_changed_ = false;
 			return true;
 		}
-		bool pidfChanged(double &p, double &i, double &d, double &f, int &iz, int &allowable_closed_loop_error, double &max_integral_accumulator, int index)
+		bool pidfChanged(double &p, double &i, double &d, double &f, int &iz, int &allowable_closed_loop_error, double &max_integral_accumulator, double &closed_loop_peak_output, int &closed_loop_period, size_t index)
 		{
-			if ((index < 0) || ((size_t)index >= (sizeof(p_) / sizeof(p_[0]))))
+			if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::pidfChanged()");
 				return false;
@@ -409,13 +488,24 @@ class TalonHWCommand
 			iz = i_zone_[index];
 			allowable_closed_loop_error = allowable_closed_loop_error_[index];
 			max_integral_accumulator = max_integral_accumulator_[index];
+			closed_loop_peak_output = closed_loop_peak_output_[index];
+			closed_loop_period = closed_loop_period_[index];
 			if (!pidf_changed_[index])
 				return false;
 			pidf_changed_[index] = false;
 			return true;
 		}
 
-		// Check  to see if mode changed since last call
+		bool auxPidPolarityChanged(bool &aux_pid_polarity)
+		{
+			aux_pid_polarity = aux_pid_polarity_;
+			if (!aux_pid_polarity_changed_)
+				return false;
+			aux_pid_polarity_changed_ = false;
+			return true;
+		}
+
+		// Check to see if mode changed since last call
 		// If so, return true and set mode to new desired
 		// talon mode
 		// If mode hasn't changed, return false
@@ -531,9 +621,22 @@ class TalonHWCommand
 			else
 				ROS_WARN_STREAM("Invalid feedback device requested");
 		}
-		bool encoderFeedbackChanged(FeedbackDevice &encoder_feedback)
+		double getFeedbackCoefficient(void) const
+		{
+			return feedback_coefficient_;
+		}
+		void setFeedbackCoefficient(double feedback_coefficient)
+		{
+			if (feedback_coefficient != feedback_coefficient_)
+			{
+				feedback_coefficient_ = feedback_coefficient;
+				encoder_feedback_changed_ = true;
+			}
+		}
+		bool encoderFeedbackChanged(FeedbackDevice &encoder_feedback, double &feedback_coefficient)
 		{
 			encoder_feedback = encoder_feedback_;
+			feedback_coefficient = feedback_coefficient_;
 			if (!encoder_feedback_changed_)
 				return false;
 			encoder_feedback_changed_ = false;
@@ -1051,6 +1154,27 @@ class TalonHWCommand
 			return true;
 		}
 
+		void setMotionProfileTrajectoryPeriod(int msec)
+		{
+			if (msec != motion_profile_profile_trajectory_period_)
+			{
+				motion_profile_profile_trajectory_period_ = msec;
+				motion_profile_profile_trajectory_period_changed_ = true;
+			}
+		}
+		int getMotionProfileTrajectoryPeriod(void) const
+		{
+			return motion_profile_profile_trajectory_period_;
+		}
+		bool motionProfileTrajectoryPeriodChanged(int &msec)
+		{
+			msec = motion_profile_profile_trajectory_period_;
+			if (!motion_profile_profile_trajectory_period_changed_)
+				return false;
+			motion_profile_profile_trajectory_period_changed_ = false;
+			return true;
+		}
+
 		void setClearStickyFaults(void)
 		{
 			clear_sticky_faults_ = true;
@@ -1108,6 +1232,7 @@ class TalonHWCommand
 		bool        neutral_output_;
 
 		FeedbackDevice encoder_feedback_;
+		double feedback_coefficient_;
 		bool encoder_feedback_changed_;
 		int encoder_ticks_per_rotation_;
 
@@ -1165,6 +1290,8 @@ class TalonHWCommand
 		std::vector<TrajectoryPoint> motion_profile_trajectory_points_;
 		int motion_profile_control_frame_period_;
 		bool motion_profile_control_frame_period_changed_;
+		int motion_profile_profile_trajectory_period_;
+		bool motion_profile_profile_trajectory_period_changed_;
 
 		bool clear_sticky_faults_;
 
@@ -1176,7 +1303,11 @@ class TalonHWCommand
 		int    i_zone_[2];
 		int    allowable_closed_loop_error_[2];
 		double max_integral_accumulator_[2];
+		double closed_loop_peak_output_[2];
+		int    closed_loop_period_[2];
 		bool   pidf_changed_[2];
+		bool   aux_pid_polarity_;
+		bool   aux_pid_polarity_changed_;
 
 		double conversion_factor_;
 		bool   conversion_factor_changed_;

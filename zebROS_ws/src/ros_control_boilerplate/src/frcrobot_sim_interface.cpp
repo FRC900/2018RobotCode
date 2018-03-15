@@ -185,7 +185,9 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			int   iz;
 			int   allowable_closed_loop_error;
 			double max_integral_accumulator;
-			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, slot))
+			double closed_loop_peak_output;
+			int    closed_loop_period;
+			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period, slot))
 			{
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" PIDF slot " << slot << " config values");
 				ts.setPidfP(p, slot);
@@ -195,6 +197,8 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				ts.setPidfIzone(iz, slot);
 				ts.setAllowableClosedLoopError(allowable_closed_loop_error, slot);
 				ts.setMaxIntegralAccumulator(max_integral_accumulator, slot);
+				ts.setClosedLoopPeakOutput(closed_loop_peak_output, slot);
+				ts.setClosedLoopPeriod(closed_loop_period, slot);
 			}
 
 			if (slot_changed)
@@ -338,6 +342,13 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			{
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion control frame period");
 				ts.setMotionControlFramePeriod(motion_control_frame_period);
+			}
+
+			int motion_profile_trajectory_period;
+			if (tc.motionProfileTrajectoryPeriodChanged(motion_profile_trajectory_period))
+			{
+				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectory period");
+				ts.setMotionProfileTrajectoryPeriod(motion_profile_trajectory_period);
 			}
 
 			if (tc.clearMotionProfileTrajectoriesChanged())
