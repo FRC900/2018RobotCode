@@ -133,7 +133,7 @@ class TalonHWCommand
 
 			// current limiting
 			current_limit_peak_amps_(0),
-			current_limit_peak_msec_(0),
+			current_limit_peak_msec_(10), // see https://github.com/CrossTheRoadElec/Phoenix-Documentation/blob/master/README.md#motor-output-direction-is-incorrect-or-accelerates-when-current-limit-is-enabled
 			current_limit_continuous_amps_(0),
 			current_limit_enable_(false),
 			current_limit_changed_(true),

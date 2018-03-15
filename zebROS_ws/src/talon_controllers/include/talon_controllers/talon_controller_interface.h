@@ -75,7 +75,7 @@ class TalonCIParams
 			softlimit_reverse_enable_(false),
 			softlimits_override_enable_(true),
 			current_limit_peak_amps_(0),
-			current_limit_peak_msec_(0),
+			current_limit_peak_msec_(10), // to avoid errata - see https://github.com/CrossTheRoadElec/Phoenix-Documentation/blob/master/README.md#motor-output-direction-is-incorrect-or-accelerates-when-current-limit-is-enabled and https://github.com/CrossTheRoadElec/Phoenix-Examples-Languages/blob/master/C%2B%2B/Current%20Limit/src/Robot.cpp#L37
 			current_limit_continuous_amps_(0),
 			current_limit_enable_(false),
 			motion_cruise_velocity_(0), // No idea at a guess
