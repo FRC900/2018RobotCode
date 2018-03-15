@@ -367,26 +367,29 @@ class TalonCIParams
 		{
 			std::string str_val;
 			n.getParam("velocity_measurement_period", str_val);
-			if (str_val == "Period_1Ms")
-				velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_1Ms;
-			else if (str_val == "Period_2Ms")
-				velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_2Ms;
-			else if (str_val == "Period_5Ms")
-				velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_5Ms;
-			else if (str_val == "Period_10Ms")
-				velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_10Ms;
-			else if (str_val == "Period_20Ms")
-				velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_20Ms;
-			else if (str_val == "Period_25Ms")
-				velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_25Ms;
-			else if (str_val == "Period_50Ms")
-				velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_50Ms;
-			else if (str_val == "Period_100Ms")
-				velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_100Ms;
-			else
+			if (str_val != "")
 			{
-				ROS_ERROR_STREAM("Invalid velocity_measurement_period (" << str_val << ")");
-				return false;
+				if (str_val == "Period_1Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_1Ms;
+				else if (str_val == "Period_2Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_2Ms;
+				else if (str_val == "Period_5Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_5Ms;
+				else if (str_val == "Period_10Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_10Ms;
+				else if (str_val == "Period_20Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_20Ms;
+				else if (str_val == "Period_25Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_25Ms;
+				else if (str_val == "Period_50Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_50Ms;
+				else if (str_val == "Period_100Ms")
+					velocity_measurement_period_ = hardware_interface::VelocityMeasurementPeriod::Period_100Ms;
+				else
+				{
+					ROS_ERROR_STREAM("Invalid velocity_measurement_period (" << str_val << ")");
+					return false;
+				}
 			}
 
 			n.getParam("velocity_measurement_window", velocity_measurement_window_);
