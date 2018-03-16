@@ -84,19 +84,22 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 			y_splines.push_back(temp_holder_s);
 		}
 		std::vector<double> end_points_holder;
-		double t_shift = 0;
+		double shift_by = 0;
 		if(s!=0)
 		{
-			t_shift = req.end_points[priv_num-1];
+			shift_by = req.end_points[priv_num-1];
 		}
 		for (size_t i = priv_num; i < req.spline_groups[s]; i++)
 		{
-			end_points_holder.push_back(req.end_points[i] - t_shift);
+			end_points_holder.push_back(req.end_points[i] - shift_by);
+			
 		}
-		
+		double t_shift = req.t_shift[s];
+		bool flip_dirc = req.flip[s];	
+	
 		swerve_point_generator::GenerateSwerveProfile::Response srv_msg; //TODO FIX THIS, HACK
 		srv_msg.points.resize(0);
-		profile_gen->generate_profile(x_splines, y_splines, orient_splines, req.initial_v, req.final_v, srv_msg, end_points_holder, /*t_shift*/ 0);
+		profile_gen->generate_profile(x_splines, y_splines, orient_splines, req.initial_v, req.final_v, srv_msg, end_points_holder, t_shift, flip_dirc);
 		const int point_count = srv_msg.points.size();
 		ROS_WARN("TEST2");
 

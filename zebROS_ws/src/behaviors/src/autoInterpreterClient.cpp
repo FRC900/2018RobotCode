@@ -290,11 +290,45 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 								all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(.16);
 							}
 						}
+						XmlRpc::XmlRpcValue shift_xml;
+						if(auto_data.getParam(identifier + "_t_shifts", shift_xml))
+						{
+							ROS_INFO_STREAM("Custom shifts for identifier: " << identifier << " found");
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.t_shift.push_back(shift_xml[i]);
+							}
+						}
+						else
+						{
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.t_shift.push_back(0);
+							}
+						}
+						XmlRpc::XmlRpcValue flip_xml;
+						if(auto_data.getParam(identifier + "_flips", flip_xml))
+						{
+							ROS_INFO_STREAM("Custom flips for identifier: " << identifier << " found");
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.flip.push_back(flip_xml[i]);
+							}
+						}
+						else
+						{
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.flip.push_back(false);
+							}
+						}
 					}
 					else
 					{
+							all_modes[mode][layout][start_pos].srv_msg.request.flip.push_back(false);
 							all_modes[mode][layout][start_pos].srv_msg.request.spline_groups.push_back(num_splines);
 							all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(.16);
+							all_modes[mode][layout][start_pos].srv_msg.request.t_shift.push_back(0);
 					}
 				}
 			}

@@ -57,7 +57,7 @@ class swerve_profiler
 		swerve_profiler(double max_wheel_dist, double max_wheel_mid_accel, double max_wheel_vel, 
 		double max_steering_accel, double max_steering_vel, double dt, double ang_accel_conv, double max_wheel_brake_accel);
 			
-		bool generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double initial_v, const double final_v, swerve_point_generator::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points, double t_shift);
+		bool generate_profile(std::vector<spline_coefs> x_splines, std::vector<spline_coefs> y_splines, std::vector<spline_coefs> orient_splines, const double initial_v, const double final_v, swerve_point_generator::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points, double t_shift, bool flip_dirc);
 
 		//TODO: maybe add options to above functions?
 			
@@ -76,6 +76,8 @@ class swerve_profiler
 		double max_steering_vel_;
 		double dt_;
 		double t_shift_;
+		bool flip_dirc_;
+		double t_total_;
 		double ang_accel_conv_;
 		bool fow;
 		double max_wheel_brake_accel_;

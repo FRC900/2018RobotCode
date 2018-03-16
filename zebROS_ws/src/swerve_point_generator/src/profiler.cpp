@@ -18,9 +18,11 @@ swerve_profiler::swerve_profiler(double max_wheel_dist, double max_wheel_mid_acc
 	t_shift_;
 }
 
-bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_splines, const std::vector<spline_coefs> &y_splines, const std::vector<spline_coefs> &orient_splines, const double initial_v, const double final_v, swerve_point_generator::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points, double t_shift)
+bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std::vector<spline_coefs> y_splines, std::vector<spline_coefs> orient_splines, const double initial_v, const double final_v, swerve_point_generator::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 {
 	t_shift_ = t_shift;
+	flip_dirc = flip_dirc_;
+	t_total_ = end_points[end_points.size()] - end_points[0];
 	tk::spline spline;
 	double total_arc;
 
@@ -97,6 +99,18 @@ bool swerve_profiler::generate_profile(const std::vector<spline_coefs> &x_spline
 		holder_spline.a = 0;
 
 		orient_splines_second_deriv.push_back(holder_spline);
+	}
+	if(flip_dirc_)
+	{	
+		std::reverse(x_splines.begin(), x_splines.end());
+		std::reverse(y_splines.begin(), y_splines.end());
+		std::reverse(orient_splines.begin(), orient_splines.end());
+		std::reverse(x_splines_first_deriv.begin(), x_splines_first_deriv.end());
+		std::reverse(y_splines_first_deriv.begin(), y_splines_first_deriv.end());
+		std::reverse(orient_splines_first_deriv.begin(), orient_splines_first_deriv.end());
+		std::reverse(x_splines_second_deriv.begin(), x_splines_second_deriv.end());
+		std::reverse(y_splines_second_deriv.begin(), y_splines_second_deriv.end());
+		std::reverse(orient_splines_second_deriv.begin(), orient_splines_second_deriv.end());
 	}
 	std::vector<double> dtds_for_spline;
 	double t_raw;
@@ -380,6 +394,7 @@ bool swerve_profiler::poly_solve(const double a, const double b, const double c,
 }
 void swerve_profiler::calc_point(const spline_coefs &spline, double t, double &returner)
 {
+	if(flip_dirc_) t_total_ - t;
 	t += t_shift_;
 	const double t_squared = t * t;
 	const double t_cubed   = t_squared * t;
