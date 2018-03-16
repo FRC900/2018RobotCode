@@ -290,11 +290,45 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 								all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(.16);
 							}
 						}
+						XmlRpc::XmlRpcValue shift_xml;
+						if(auto_data.getParam(identifier + "_t_shifts", shift_xml))
+						{
+							ROS_INFO_STREAM("Custom shifts for identifier: " << identifier << " found");
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.t_shift.push_back(shift_xml[i]);
+							}
+						}
+						else
+						{
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.t_shift.push_back(0);
+							}
+						}
+						XmlRpc::XmlRpcValue flip_xml;
+						if(auto_data.getParam(identifier + "_flips", flip_xml))
+						{
+							ROS_INFO_STREAM("Custom flips for identifier: " << identifier << " found");
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.flip.push_back(flip_xml[i]);
+							}
+						}
+						else
+						{
+							for(int i = 0; i < group_xml.size(); i++)
+							{
+								all_modes[mode][layout][start_pos].srv_msg.request.flip.push_back(false);
+							}
+						}
 					}
 					else
 					{
+							all_modes[mode][layout][start_pos].srv_msg.request.flip.push_back(false);
 							all_modes[mode][layout][start_pos].srv_msg.request.spline_groups.push_back(num_splines);
 							all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(.16);
+							all_modes[mode][layout][start_pos].srv_msg.request.t_shift.push_back(0);
 					}
 				}
 			}
@@ -1187,6 +1221,13 @@ int main(int argc, char** argv) {
 	ros::AsyncSpinner spinner(2);
 	spinner.start();
 	
+<<<<<<< HEAD
+    ROS_WARN("Auto Client loaded");
+    ros::Duration(20).sleep();
+    ROS_WARN("post sleep");
+    
+    /*---------------------------- JUST FOR TESTING ------------------------------------ */
+    generateTrajectory(all_modes[4][3][2]);
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
