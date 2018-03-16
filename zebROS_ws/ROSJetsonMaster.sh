@@ -18,7 +18,7 @@ else
     echo "Unknown environment! Trying to proceed anyway using local environment."
     source /opt/ros/kinetic/setup.bash
     source $HOME/2018RobotCode/zebROS_ws/devel/setup.bash
-    #export ROS_IP=`/bin/hostname -I | tr -d ' ' | tr -d '\n'`
+    export ROS_IP=`/bin/hostname -I | tr -d ' ' | tr -d '\n'`
 fi
 
 # Common configuration
