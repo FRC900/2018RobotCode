@@ -395,7 +395,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
     exit_auto = false;
     ros::Rate r(10);
     double start_time = ros::Time::now().toSec();
-
+    
     while(!exit_auto && ros::Time::now().toSec() < start_time + initial_delay) {
         r.sleep(); 
     }
@@ -574,10 +574,87 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         }
 		parkingConfig();
     }
-    
+  /*-------------------------------Drive backwards and slam into switch--------------------*/
+    else if(auto_select == 3)
+    { 
+        ROS_WARN("Backwards switch auto mode");
+        //basic switch cmd_vel
+        geometry_msgs::Twist vel;
+        vel.linear.z = 0;
+        vel.angular.x = 0;
+        vel.angular.y = 0;
+        vel.angular.z = 0;
+
+        double start_time = ros::Time::now().toSec();
+
+        /* Our switch is on the right */
+        if(auto_mode == 1 || auto_mode == 3) {
+           if(start_pos == 0) {
+               const double delay = 3.5; //TODO
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -1.05;
+                    vel.linear.y = 1.5;
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+            }
+           if(start_pos == 2) {
+            const double delay = 3; //TODO
+               while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -1.2;
+                    vel.linear.y = -.53;
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+           }
+           else {
+                const double delay = 3; //TODO
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -1.75;
+                    vel.linear.y = 0.7; 
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+		parkingConfig();
+            }
+        }
+
+        /* Our switch is on the left */
+        else if(auto_mode == 2 || auto_mode == 4) {
+            if(start_pos == 0){
+                const double delay = 3; 
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -1.2;
+                    vel.linear.y = .53;
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+				parkingConfig();
+            }
+            if(start_pos == 2) {
+                const double delay = 3.5; //TODO
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -1.05;
+                    vel.linear.y = -1.5;
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+            }
+            else {
+                const double delay = 3; //TODO
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -1.5;
+                    vel.linear.y = -.75;
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+            }
+        }
+		parkingConfig();
+    }
     /*--------------------------- Profiled Single Scale auto mode ------------------------*/
 
-	else if(auto_select == 3) {
+	else if(auto_select == 4) {
         ROS_WARN("Profiled Scale");
         while (!exit_auto && !runTrajectory())
 			r.sleep();
@@ -599,7 +676,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         }
 		parkingConfig();
     }
-	else if(auto_select == 4) {
+	else if(auto_select == 5) {
         ROS_WARN("Profiled Scale");
         while (!exit_auto && !runTrajectory())
 			r.sleep();
