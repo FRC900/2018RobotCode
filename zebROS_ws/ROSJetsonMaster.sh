@@ -3,7 +3,7 @@
 # Setup ROS for Jetson Master
 if [ -f /home/ubuntu/2018RobotCode/zebROS_ws/devel/setup.bash ] ; then
     # Jetson-specific configuration
-    echo "Sourcing Jetson environment"
+    echo "Sourcing Jetson / native Linux environment"
     source /opt/ros/kinetic/setup.bash
     source /home/ubuntu/2018RobotCode/zebROS_ws/devel/setup.bash
     export ROS_IP=10.9.0.8
@@ -15,7 +15,10 @@ elif [ -f /home/admin/rio_bashrc.sh ] ; then
     export LD_LIBRARY_PATH=/home/admin/wpilib:$LD_LIBRARY_PATH
     swapon /dev/sda5
 else
-    echo "Unknown environment! Trying to proceed anyway..."
+    echo "Unknown environment! Trying to proceed anyway using local environment."
+    source /opt/ros/kinetic/setup.bash
+    source $HOME/2018RobotCode/zebROS_ws/devel/setup.bash
+    #export ROS_IP=`/bin/hostname -I | tr -d ' ' | tr -d '\n'`
 fi
 
 # Common configuration
