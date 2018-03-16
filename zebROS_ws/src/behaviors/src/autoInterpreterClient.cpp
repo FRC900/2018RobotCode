@@ -1244,6 +1244,7 @@ int main(int argc, char** argv) {
                 end_auto = false;
                 in_teleop = !match_data.isAutonomous_;
             }
+			slow.sleep(); //I think you want this.....
         }
         while(in_teleop) {
             ROS_INFO("Exited auto into teleop");
