@@ -5,7 +5,7 @@
 Description=2018 ROS Master Startup Script
 
 [Service]
-Type=simple
+Type=oneshot
 WorkingDirectory=/mnt/900_2
 
 
@@ -14,15 +14,18 @@ ExecStartPre=/bin/sh -ec 'sleep 30' ; \
 	     /bin/bash -ec "/home/ubuntu/2018RobotCode/set_freq_tx.sh || true" ; \
 	     /bin/sh -ec 'ifup eth0 || true' ;
 
-ExecStart=/bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/master.sh || true" 
+ExecStart=/bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/master.sh || true" ; \
+		  /bin/bash -ec 'sleep 30' ; \
+	      /bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/kill.sh || true" ; \
+	      /bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/master.sh || true" ;
 
 #having issues with kill.sh
 #don't forget to change roscore.xml settings on the jetson
-ExecStartPost=/bin/sh -ec 'sleep 30' ; \
-	      /bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/kill.sh" ; \
-	      /bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/master.sh || true" ;
+#ExecStartPost=/bin/sh -ec 'sleep 30' ; \
+#	      /bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/kill.sh || true" ; \
+#	      /bin/bash -ec "/home/ubuntu/2018RobotCode/jetson_setup/master.sh || true" ;
 
-Restart=on-failure
+Restart=no
 
 [Install]
 WantedBy=default.target
