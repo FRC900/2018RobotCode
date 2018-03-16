@@ -14,6 +14,11 @@ elif [ -f /home/admin/rio_bashrc.sh ] ; then
     export ROS_IP=10.9.0.2
     export LD_LIBRARY_PATH=/home/admin/wpilib:$LD_LIBRARY_PATH
     swapon /dev/sda5
+elif [ -f /home/ryan/2018RobotCode/zebROS_ws/devel/setup.bash ] ; then
+    # ryan-specific configuration
+    echo "Sourcing ryan's environment"
+    source /home/ryan/2018RobotCode/zebROS_ws/devel/setup.bash
+    export ROS_IP=10.9.0.12
 else
     echo "Unknown environment! Trying to proceed anyway using local environment."
     source /opt/ros/kinetic/setup.bash
