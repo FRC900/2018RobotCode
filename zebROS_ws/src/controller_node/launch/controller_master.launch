@@ -24,7 +24,7 @@
   <arg name="whitebalance" default="-1" />
   <arg name="name" default="zed_goal" />
 
-  <arg name="record" default="False" />
+  <arg name="record" default="True" />  <!-- otherwise does not record unless run by master.sh -->
   <arg name="down_sample" default="False" />
   <arg name="sub_rate" default="10" />
   <arg name="pub_rate" default="1" />
