@@ -59,6 +59,7 @@
 #include "LiveWindow/LiveWindow.h"
 #include "SmartDashboard/SmartDashboard.h"
 #include <PowerDistributionPanel.h>
+#include <elevator_controller/CubeState.h>
 
 #include <std_msgs/Bool.h>
 
@@ -197,7 +198,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 				const std::string &talon_method_name);
 
 		std::atomic<bool> cube_state_;
-		void cubeCallback(const std_msgs::Bool &cube)
+		void cubeCallback(const elevator_controller::CubeState &cube)
 		{
 			cube_state_.store(cube.data, std::memory_order_relaxed);
 		}

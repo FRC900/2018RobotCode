@@ -588,7 +588,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         double start_time = ros::Time::now().toSec();
 
         /* Our switch is on the right */
-        if(auto_mode == 1 || auto_mode == 3) {
+        if(auto_mode == 0 || auto_mode == 2) {
            if(start_pos == 0) {
                const double delay = 3.5; //TODO
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
@@ -620,7 +620,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         }
 
         /* Our switch is on the left */
-        else if(auto_mode == 2 || auto_mode == 4) {
+        else if(auto_mode == 1 || auto_mode == 3) {
             if(start_pos == 0){
                 const double delay = 3; 
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
@@ -1222,6 +1222,7 @@ int main(int argc, char** argv) {
                         auto_mode_vect[i] = auto_mode_data.modes_[i];
                         delays_vect[i] = auto_mode_data.delays_[i];
                         start_pos = auto_mode_data.start_pos_;
+                        generated_vect[i] = true;
                         ROS_WARN("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                     }
                 }
@@ -1299,7 +1300,7 @@ int main(int argc, char** argv) {
                     }
                 }
                 else {
-                    ROS_WARN("No path generated when match_data received");
+                    ROS_WARN("No path generated when match_data received, Auto Mode: [%d]", auto_mode);
                 }
             }
 
