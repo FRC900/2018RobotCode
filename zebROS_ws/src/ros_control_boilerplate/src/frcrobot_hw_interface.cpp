@@ -399,7 +399,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 				// have points to write from their top-level buffer
 				//ROS_INFO_STREAM("top count: " << can_talons_[i]->GetMotionProfileTopLevelBufferCount());
 				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
-				/*can_talons_[i]->GetMotionProfileTopLevelBufferCount()*/ mp_status.topBufferCnt && mp_status.btmBufferCnt < 127)
+				/*can_talons_[i]->GetMotionProfileTopLevelBufferCount()*/ (mp_status.topBufferCnt && mp_status.btmBufferCnt < 127) || )
 				{
 					if (!set_frame_period[i])
 					{
@@ -589,12 +589,21 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		}
 	}
 #endif
-		
+	bool profile_is_live = false;
+	for(std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
+	{
+		if((*can_talons_mp_running_)[joint_id].load(std::memory_order_relaxed))
+		{
+			profile_is_live = true;
+			break;	
+
+		} 
+	}
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		auto &ts = talon_state_[joint_id];
 		auto &talon = can_talons_[joint_id];
-
+		}
 		if (!talon) // skip unintialized Talons
 			continue;
 		if (ts.getCANID() == 31 || ts.getCANID() == 32)
@@ -621,22 +630,29 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			ROS_INFO_STREAM("written");
 		}
 		*/
-		if (!(*can_talons_mp_writing_)[joint_id].load(std::memory_order_relaxed) && !(*can_talons_mp_running_)[joint_id].load(std::memory_order_relaxed) )
+		const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
+		const double conversion_factor = ts.getConversionFactor();
+
+		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
+		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
+		if(profile_is_live)
 		{
-			const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
-			const double conversion_factor = ts.getConversionFactor();
-
-			const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
-			const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
-			
-			const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
-			safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
-			ts.setPosition(position);
-
-			const double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
-			safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
-			ts.setSpeed(speed);
+			if(ts.getCANID() != 51 || ts.getCANID() != 41) //All we care about are the arm and lift
+			{
+				const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
+				safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
+				ts.setPosition(position);
+			}
+			continue;
 		}
+			
+		const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
+		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
+		ts.setPosition(position);
+
+		const double speed = talon->GetSelectedSensorVelocity(pidIdx) * radians_per_second_scale;
+		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
+		ts.setSpeed(speed);
 
 		if (ts.getCANID() > 30 || !(*can_talons_mp_written_)[joint_id].load(std::memory_order_relaxed))
 		{
