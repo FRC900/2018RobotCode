@@ -13,6 +13,7 @@
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Empty.h>
 #include <elevator_controller/ReturnElevatorCmd.h>
+#include <elevator_controller/CubeState.h>
 #include <elevator_controller/arm_limiting.h>
 
 #include <nav_msgs/Odometry.h>
@@ -47,7 +48,8 @@ class ElevatorController
 		double before_shift_max_vel_;		
 
 		std::string name_;
-		std::atomic<bool> line_break_intake_;
+		std::atomic<bool> line_break_intake_high_;
+		std::atomic<bool> line_break_intake_low_;
 		std::atomic<bool> line_break_clamp_;
 		std::atomic<bool> shift_cmd_;
 		bool shifted_;

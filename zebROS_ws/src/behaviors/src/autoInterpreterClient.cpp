@@ -1104,13 +1104,13 @@ int main(int argc, char** argv) {
         bool in_teleop = false;
         ROS_WARN("Start of auto loop");
         while(!in_teleop && !end_auto) {
-            ROS_WARN("In auto loop");
+            //ROS_WARN("In auto loop");
 
             MatchData match_data = *(matchData.readFromRT());
             AutoMode auto_mode_data = *(autoMode.readFromRT());
 
             if(!match_data_received && !in_auto) { //accept changes to chosen auto_modes until we receive match data or auto starts
-                ROS_INFO("No match data and not in auto");
+                //ROS_INFO("No match data and not in auto");
                 //loop through auto_mode data 
                 //generate trajectories for all changed modes
                 for(int i = 0; i<4; i++) {
@@ -1171,7 +1171,7 @@ int main(int argc, char** argv) {
                 }
             }
             else {
-                ROS_INFO("No alliance data");
+                //ROS_INFO("No alliance data");
                 match_data_received = false;
             }
             if(!match_data_received && ros::Time::now().toSec() > auto_start_time + 2) { //if match data isn't found after 2 seconds of auto starting run default auto
@@ -1182,7 +1182,7 @@ int main(int argc, char** argv) {
                 match_data_received = true;
             }
             if(!in_auto) { //check for auto to start and set a start time
-                ROS_INFO("Not in auto yet");
+                //ROS_INFO("Not in auto yet");
                 if(match_data.isAutonomous_ && match_data.isEnabled_) {
                     ROS_WARN("Entering Auto");
                     in_auto = true;

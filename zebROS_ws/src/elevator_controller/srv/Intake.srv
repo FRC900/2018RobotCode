@@ -1,5 +1,6 @@
 Header header
 bool up
 int32 spring_state
+bool just_override_power
 float64 power
 ---

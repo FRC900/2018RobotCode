@@ -2,6 +2,7 @@
 #include "actionlib/server/simple_action_server.h"
 #include "behaviors/IntakeAction.h"
 #include "elevator_controller/Intake.h"
+#include "elevator_controller/CubeState.h"
 #include "std_msgs/Bool.h"
 #include <cstdlib>
 #include <atomic>
@@ -52,6 +53,7 @@ class autoAction {
             cube_state_true = 0;
             elevator_controller::Intake srv;
             srv.request.power = intake_power;
+            srv.request.just_override_power = false;
             srv.request.spring_state = 2; //soft in
             srv.request.up = false;
             if(!IntakeSrv.call(srv)) 
@@ -82,15 +84,18 @@ class autoAction {
             }
             */		    
             }
-            
+           if(!timed_out && !aborted)
+			{
             srv.request.power = success ? 0.15 : 0;
             srv.request.spring_state = 3; //soft in
             srv.request.up = false;
+            srv.request.just_override_power = !success;
             if(!IntakeSrv.call(srv)) 
                 ROS_ERROR("Srv intake call failed in auto interpreter server intake");
             else
                 ROS_INFO("Srv intake call OK in auto interpreter server intake");
-        }
+			}
+		}
 	//else if goal->
 	//{}
         if(timed_out)
@@ -110,8 +115,8 @@ class autoAction {
         as_.setSucceeded(result_);
         return;
     }
-    void cubeCallback(const std_msgs::Bool &msg) {
-        if(msg.data) {
+    void cubeCallback(const elevator_controller::CubeState &msg) {
+        if(msg.has_cube) {
             cube_state_true += 1;
         }
 	else {

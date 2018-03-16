@@ -21,6 +21,7 @@ add_message_files (
   FILES
   ElevatorControl.msg
   ReturnElevatorCmd.msg
+  CubeState.msg
 )
 
 add_service_files (

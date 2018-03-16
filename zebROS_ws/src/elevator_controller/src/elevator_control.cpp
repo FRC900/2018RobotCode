@@ -8,7 +8,8 @@ ElevatorController::ElevatorController():
 	after_shift_max_vel_(0),
 	before_shift_max_accel_(0),
 	before_shift_max_vel_(0),
-	line_break_intake_(false),
+	line_break_intake_low_(false),
+	line_break_intake_high_(false),
 	line_break_clamp_(false),
 	shift_cmd_(false),
 	shifted_(false),
@@ -314,7 +315,7 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	Clamp_     	      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);
 	Shift_     	      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/shift_controller/command", 1);
 	EndGameDeploy_    = controller_nh.advertise<std_msgs::Float64>("/frcrobot/end_game_deploy_controller/command", 1);
-	CubeState_        = controller_nh.advertise<std_msgs::Bool>("cube_state", 1);
+	CubeState_        = controller_nh.advertise<elevator_controller::CubeState>("cube_state", 1);
 	IntakeUp_         = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_up_controller/command", 1);
 	IntakeSoftSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_soft_controller/command", 1);
 	IntakeHardSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_hard_controller/command", 1);
@@ -421,6 +422,9 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//Use known info to write to hardware etc.
 	//Put in intelligent bounds checking
 
+	ROS_INFO_STREAM("Intake power: " << cur_intake_cmd.power << " up?: " << cur_intake_cmd.up_command << " in state: " <<  cur_intake_cmd.spring_command);
+	
+
 	intake1_joint_.setCommand(cur_intake_cmd.power);
 	if(cur_intake_cmd.power > .5)
 	{
@@ -479,15 +483,20 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	clamp_msg.data = clamp_cmd_.load(std::memory_order_relaxed);
 	Clamp_.publish(std_msgs::Float64(clamp_msg));
 
-	std_msgs::Bool cube_msg;
-	cube_msg.data = line_break_intake_.load(std::memory_order_relaxed) || line_break_clamp_.load(std::memory_order_relaxed);
+
+	
+	elevator_controller::CubeState cube_msg;
+	cube_msg.has_cube = line_break_intake_high_.load(std::memory_order_relaxed) || line_break_intake_low_.load(std::memory_order_relaxed) || line_break_clamp_.load(std::memory_order_relaxed);
+	cube_msg.intake_high = line_break_intake_high_.load(std::memory_order_relaxed);
+	cube_msg.intake_low = line_break_intake_low_.load(std::memory_order_relaxed);
+	cube_msg.clamp = line_break_clamp_.load(std::memory_order_relaxed);
 	CubeState_.publish(cube_msg);
 
 	elevator_controller::ReturnElevatorCmd return_holder;
 	elevator_controller::ReturnElevatorCmd odom_holder;
 
-	const double lift_position =  last_tar_l - lift_offset_;// lift_joint_.getPosition()  - lift_offset_;
-	double pivot_angle   =  last_tar_p - pivot_offset_;// pivot_joint_.getPosition() - pivot_offset_;
+	const double lift_position =  /*last_tar_l - lift_offset_;*/ lift_joint_.getPosition()  - lift_offset_;
+	double pivot_angle   =  /*last_tar_p - pivot_offset_;*/ pivot_joint_.getPosition() - pivot_offset_;
 
 		
 
@@ -621,22 +630,39 @@ void ElevatorController::lineBreakCallback(const sensor_msgs::JointState &msg)
 {
 	if(isRunning())
 	{
-		static size_t line_break_intake_index = -1;
-		if(line_break_intake_index == -1)
+		static size_t line_break_intake_low_index = -1;
+		if(line_break_intake_low_index == -1)
 		{
 			for(size_t i = 0; i < msg.name.size(); i++)
 			{
-				if(msg.name[i] == "intake_line_break")
+				if(msg.name[i] == "intake_line_break_low")
 				{
-					line_break_intake_index = i;
+					line_break_intake_low_index = i;
 					break;
 				}
 			}
 		}
-		if(line_break_intake_index == -1)
+		if(line_break_intake_low_index == -1)
+			ROS_ERROR_NAMED(name_, "Could not read index for intake_line_break_low");
+		else
+			line_break_intake_low_.store(msg.position[line_break_intake_low_index] > 0, std::memory_order_relaxed);
+		
+		static size_t line_break_intake_high_index = -1;
+		if(line_break_intake_high_index == -1)
+		{
+			for(size_t i = 0; i < msg.name.size(); i++)
+			{
+				if(msg.name[i] == "intake_line_break_high")
+				{
+					line_break_intake_high_index = i;
+					break;
+				}
+			}
+		}
+		if(line_break_intake_high_index == -1)
 			ROS_ERROR_NAMED(name_, "Could not read index for intake_line_break");
 		else
-			line_break_intake_.store(msg.position[line_break_intake_index] > 0, std::memory_order_relaxed);
+			line_break_intake_high_.store(msg.position[line_break_intake_high_index] > 0, std::memory_order_relaxed);
 
 		static size_t line_break_clamp_index = -1;
 		if(line_break_clamp_index == -1)
@@ -734,17 +760,27 @@ bool ElevatorController::intakeService(elevator_controller::Intake::Request &com
 	{
 		IntakeCommand intake_struct;
 		intake_struct.power = command.power;
-
-		if(command.up)
+		if(!command.just_override_power)
 		{
-			intake_struct.up_command = -1.0;
+			if(command.up)
+			{
+				intake_struct.up_command = -1.0;
+			}
+			else
+			{
+				intake_struct.up_command = 1.0;
+			}
+
+			intake_struct.spring_command = command.spring_state;
 		}
 		else
 		{
-			intake_struct.up_command = 1.0;
-		}
+			const IntakeCommand cur_intake_cmd = *(intake_command_.readFromRT());
+			intake_struct.up_command = cur_intake_cmd.up_command;
+			intake_struct.spring_command = cur_intake_cmd.spring_command;
 
-		intake_struct.spring_command = command.spring_state;
+
+		}
 		intake_command_.writeFromNonRT(intake_struct);
 		intake_down_time_.store(ros::Time::now().toSec(), std::memory_order_relaxed);
 		return true;
