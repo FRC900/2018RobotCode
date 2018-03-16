@@ -23,8 +23,10 @@
   </node>
 
   <node name="rosbag_record_node" pkg="rosbag" type="record"
-	  args="record -o /home/ubuntu/ --lz4 --buffsize=0
-			/frcrobot/AutoServer/cancel
+	  args="record -o /mnt/900_2/pembrooke --lz4 --buffsize=0 -a" />
+
+  <!--		list of old topics (we are now just rosbagging all)
+		/frcrobot/AutoServer/cancel
 			/frcrobot/AutoServer/feedback
 			/frcrobot/AutoServer/goal
 			/frcrobot/AutoServer/result
@@ -94,7 +96,6 @@
 /rosout_agg
 /scan
 /tf
-/tf_static
-"/>
+/tf_static -->
 	
 </launch>
