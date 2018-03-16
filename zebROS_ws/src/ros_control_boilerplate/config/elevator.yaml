@@ -22,7 +22,7 @@ elevator_controller:
     after_shift_max_vel: .5 #fix
 
     hook_depth: 0.314706  #FIX
-    hook_min_height: 1.27 #FIX
+    hook_min_height: 1.2 #FIX
     hook_max_height: 1.35 #FIX
     
 
