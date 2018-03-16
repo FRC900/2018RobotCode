@@ -205,7 +205,7 @@ bool clamp(void) {
 bool parkingConfig(void)
 {
 	std_srvs::Empty empty;
-	ROS_WARN("Braking");
+	//ROS_WARN("Braking");
 	if (!BrakeService.call(empty))
 	{
 		ROS_ERROR("Service call failed : BrakeService in parkingConfig");
@@ -233,7 +233,7 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 
 				if(auto_data.getParam(identifier, mode_xml))
 				{
-					ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
+					//ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
 					const int num_splines = mode_xml.size();
 					for(int num = 0; num<num_splines; num++) {
 						XmlRpc::XmlRpcValue &spline = mode_xml[num];
@@ -250,7 +250,7 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 						    const double y_coef = y[i];
 						    const double orient_coef = orient[i];
 
-						    //ROS_WARN("%f", orient_coef);
+						    ////ROS_WARN("%f", orient_coef);
 						    x_coefs.spline.push_back(x_coef);
 						    y_coefs.spline.push_back(y_coef);
 						    orient_coefs.spline.push_back(orient_coef);
@@ -269,7 +269,7 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 					XmlRpc::XmlRpcValue group_xml;
 					if(auto_data.getParam(identifier + "_spline_group", group_xml))
 					{
-						ROS_INFO_STREAM("Custom grouping for identifier: " << identifier << " found");
+						//ROS_INFO_STREAM("Custom grouping for identifier: " << identifier << " found");
 						for(int i = 0; i < group_xml.size(); i++)
 						{	
 							all_modes[mode][layout][start_pos].srv_msg.request.spline_groups.push_back(group_xml[i]);
@@ -277,7 +277,7 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 						XmlRpc::XmlRpcValue wait_xml;
 						if(auto_data.getParam(identifier + "_waits", wait_xml))
 						{
-							ROS_INFO_STREAM("Custom waits for identifier: " << identifier << " found");
+							//ROS_INFO_STREAM("Custom waits for identifier: " << identifier << " found");
 							for(int i = 0; i < group_xml.size(); i++)
 							{
 								all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(wait_xml[i]);
@@ -339,7 +339,7 @@ std::string lower(const std::string &str) {
 
 bool bufferTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
 {
-    ROS_INFO_STREAM("Buffer trajectory num_points: " << traj.points.size() << " dt: " << traj.dt);
+    //ROS_INFO_STREAM("Buffer trajectory num_points: " << traj.points.size() << " dt: " << traj.dt);
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.points = traj.points;
     swerve_control_srv.request.dt = traj.dt;
@@ -357,7 +357,7 @@ bool bufferTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj
 }
 
 bool runTrajectory(void) {
-    ROS_WARN("Run trajectory");
+    //ROS_WARN("Run trajectory");
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.buffer = false;
     swerve_control_srv.request.clear  = false;
@@ -391,7 +391,7 @@ void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
 void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay, const std::vector<double> &times) {
-    ROS_WARN("auto entered");
+    //ROS_WARN("auto entered");
     exit_auto = false;
     ros::Rate r(10);
     double start_time = ros::Time::now().toSec();
@@ -403,7 +403,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
     /*-------------------- Basic Cross line cmd vel auto ---------------------*/
     if(auto_select == 1) {
-        ROS_WARN("Basic drive forward auto");
+        //ROS_WARN("Basic drive forward auto");
         geometry_msgs::Twist vel;
         vel.linear.z = 0;
         vel.angular.x = 0;
@@ -423,7 +423,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     vel.linear.x = 1.05; //positive x a lot
                     vel.linear.y = 0.12; //positive y a little bit
                     VelPub.publish(vel);
-                    ROS_INFO("Here");
+                    //ROS_INFO("Here");
                     r.sleep();
                 }
            }
@@ -435,7 +435,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     vel.linear.x = 1.05; //positive x a lot
                     vel.linear.y = -0.12; //negative y a little bit
                     VelPub.publish(vel);
-                    ROS_INFO("Here");
+                    //ROS_INFO("Here");
                     r.sleep();
                 }
             }
@@ -447,7 +447,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     vel.linear.x = 0.875; //positive x some
                     vel.linear.y = 0.5; //positive y some
                     VelPub.publish(vel);
-                    ROS_INFO("Here");
+                    //ROS_INFO("Here");
                     r.sleep();
                 }
             }
@@ -496,7 +496,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
     /*--------------------- Basic Switch Cmd Vel -------------------------*/
 
 	else if(auto_select == 2) {
-        ROS_WARN("Basic switch auto mode");
+        //ROS_WARN("Basic switch auto mode");
         //basic switch cmd_vel
         geometry_msgs::Twist vel;
         vel.linear.z = 0;
@@ -577,7 +577,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
   /*-------------------------------Drive backwards and slam into switch--------------------*/
     else if(auto_select == 3)
     { 
-        ROS_WARN("Backwards switch auto mode");
+        //ROS_WARN("Backwards switch auto mode");
         //basic switch cmd_vel
         geometry_msgs::Twist vel;
         vel.linear.z = 0;
@@ -655,7 +655,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
     /*--------------------------- Profiled Single Scale auto mode ------------------------*/
 
 	else if(auto_select == 4) {
-        ROS_WARN("Profiled Scale");
+        //ROS_WARN("Profiled Scale");
         while (!exit_auto && !runTrajectory())
 			r.sleep();
 		double last_time = 0;
@@ -663,11 +663,11 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
             //Profiled scale
             const double curr_time = ros::Time::now().toSec();
             if(curr_time > times[0] && curr_time <= times[0] + (curr_time-last_time)) {
-                ROS_WARN("Profiled Scale elevator to mid reached");
+                //ROS_WARN("Profiled Scale elevator to mid reached");
                 midScale();
             }
             if(curr_time > times[1] && curr_time <= times[1] + (curr_time-last_time)) {
-                ROS_WARN("Profiled Scale release clamp reached");
+                //ROS_WARN("Profiled Scale release clamp reached");
                 releaseClamp();
                 exit_auto = true;
             }
@@ -677,7 +677,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 		parkingConfig();
     }
 	else if(auto_select == 5) {
-        ROS_WARN("Profiled Scale");
+        //ROS_WARN("Profiled Scale");
         while (!exit_auto && !runTrajectory())
 			r.sleep();
 		double last_time = 0;
@@ -685,15 +685,15 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
             //Profiled scale
             const double curr_time = ros::Time::now().toSec();
             if(curr_time > times[0] && curr_time <= times[0] + (curr_time-last_time)) {
-                ROS_WARN("Profiled Scale elevator to mid reached");
+                //ROS_WARN("Profiled Scale elevator to mid reached");
                 midScale();
             }
             if(curr_time > times[1] && curr_time <= times[1] + (curr_time-last_time)) {
-                ROS_WARN("Profiled Scale release clamp reached");
+                //ROS_WARN("Profiled Scale release clamp reached");
                 releaseClamp();
             }
             if(curr_time > times[2] && curr_time <= times[2] + (curr_time-last_time)) {
-                ROS_WARN("Intaking Cube and going to intake config");
+                //ROS_WARN("Intaking Cube and going to intake config");
                 //robot_goal.IntakeCube = true; 
             }
             last_time = curr_time;
@@ -721,7 +721,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         bool success = ac->waitForResult(ros::Duration(timeout)); //TODO
 
         if(!success) {
-            ROS_WARN("Failed to intake cube: TIME OUT");
+            //ROS_WARN("Failed to intake cube: TIME OUT");
         }
 
         stopIntake();
@@ -846,7 +846,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         //8: Linebreak sensor: Clamp && release intake && stop running intake
         stopIntake();
         if(!success) {
-            ROS_WARN("Failed to intake cube: TIME OUT");
+            //ROS_WARN("Failed to intake cube: TIME OUT");
         }
 
         clamp();
@@ -873,7 +873,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         bool success = ac->waitForResult(ros::Duration(timeout)); //TODO
 
         if(!success) {
-            ROS_WARN("Failed to intake cube: TIME OUT");
+            //ROS_WARN("Failed to intake cube: TIME OUT");
         }
 
         stopIntake();
@@ -960,7 +960,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         bool success = ac->waitForResult(ros::Duration(timeout));
 
         if(!success) {
-            ROS_WARN("Failed to intake cube: TIME OUT");
+            //ROS_WARN("Failed to intake cube: TIME OUT");
         }
 
         stopIntake();
@@ -994,7 +994,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         success = ac->waitForResult(ros::Duration(timeout));
 
         if(!success) {
-            ROS_WARN("Failed to intake cube: TIME OUT");
+            //ROS_WARN("Failed to intake cube: TIME OUT");
         }
 
         stopIntake();
@@ -1028,7 +1028,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         success = ac->waitForResult(ros::Duration(timeout));
 
         if(!success) {
-            ROS_WARN("Failed to intake cube: TIME OUT");
+            //ROS_WARN("Failed to intake cube: TIME OUT");
         }
 
         stopIntake();
@@ -1163,15 +1163,15 @@ int main(int argc, char** argv) {
 	ros::AsyncSpinner spinner(2);
 	spinner.start();
 	
-    ROS_WARN("Auto Client loaded");
+    //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
-    ROS_WARN("post sleep");
+    //ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
     //generateTrajectory(all_modes[3][3][2]);
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
 
-    ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
+    //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
 
     while(ros::ok()) {
@@ -1187,15 +1187,15 @@ int main(int argc, char** argv) {
         bool mode_buffered = false;
         bool end_auto = false;
         bool in_teleop = false;
-        ROS_WARN("Start of auto loop");
+        //ROS_WARN("Start of auto loop");
         while(!in_teleop && !end_auto) {
-            //ROS_WARN("In auto loop");
+            ////ROS_WARN("In auto loop");
 
             MatchData match_data = *(matchData.readFromRT());
             AutoMode auto_mode_data = *(autoMode.readFromRT());
 
             if(!match_data_received && !in_auto) { //accept changes to chosen auto_modes until we receive match data or auto starts
-                //ROS_INFO("No match data and not in auto");
+                ////ROS_INFO("No match data and not in auto");
                 //loop through auto_mode data 
                 //generate trajectories for all changed modes
                 for(int i = 0; i<4; i++) {
@@ -1207,13 +1207,13 @@ int main(int argc, char** argv) {
                             auto_mode_vect[i] = auto_mode_data.modes_[i];
                             delays_vect[i] = auto_mode_data.delays_[i];
                             start_pos = auto_mode_data.start_pos_;
-                            ROS_WARN("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+                            //ROS_WARN("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                         }
                         else {
                             auto_mode_vect[i] = -1;
                             start_pos = -1;
                             generated_vect[i] = false;
-                            ROS_WARN("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+                            //ROS_WARN("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                         }
                     }
                     else if (auto_mode_data.modes_[i] <= 3 && (auto_mode_data.modes_[i] >= 0) &&
@@ -1223,17 +1223,17 @@ int main(int argc, char** argv) {
                         delays_vect[i] = auto_mode_data.delays_[i];
                         start_pos = auto_mode_data.start_pos_;
                         generated_vect[i] = true;
-                        ROS_WARN("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+                        //ROS_WARN("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                     }
                 }
             }
 
             if(in_auto && match_data.isAutonomous_ == false) {
-                ROS_WARN("Leaving Autonomous to teleop");
+                //ROS_WARN("Leaving Autonomous to teleop");
                 in_teleop = true;
             }
             if (match_data.alliance_data_ != "") {
-                ROS_INFO("Receiving alliance data");
+                //ROS_INFO("Receiving alliance data");
                 match_data_received = true;
                 if(lower(match_data.alliance_data_)=="rlr") {
                     auto_mode = 0;
@@ -1257,11 +1257,11 @@ int main(int argc, char** argv) {
                 }
             }
             else {
-                //ROS_INFO("No alliance data");
+                ////ROS_INFO("No alliance data");
                 match_data_received = false;
             }
             if(!match_data_received && ros::Time::now().toSec() > auto_start_time + 2) { //if match data isn't found after 2 seconds of auto starting run default auto
-                ROS_INFO("In first two seconds of auto with no match data");
+                //ROS_INFO("In first two seconds of auto with no match data");
                 auto_mode = 0;
                 auto_mode_vect[0] = 1; //default auto: cross baseline
                 generated_vect[0] = true;
@@ -1269,46 +1269,46 @@ int main(int argc, char** argv) {
                 mode_buffered = true;
             }
             if(!in_auto) { //check for auto to start and set a start time
-                //ROS_INFO("Not in auto yet");
+                ////ROS_INFO("Not in auto yet");
                 if(match_data.isAutonomous_ && match_data.isEnabled_) {
-                    ROS_WARN("Entering Auto");
+                    //ROS_WARN("Entering Auto");
                     in_auto = true;
                     auto_start_time = ros::Time::now().toSec();
                 }
             }
             if(in_auto) {
-                ROS_INFO("In auto");
+                //ROS_INFO("In auto");
                 if(!match_data.isAutonomous_ || !match_data.isEnabled_) {
-                    ROS_WARN("Disabled in Auto");
+                    //ROS_WARN("Disabled in Auto");
                     in_auto = false;
                     auto_start_time = DBL_MAX;
                 }
             }
 
             if(match_data_received && !mode_buffered) { //if we have match data and haven't buffered yet, buffer
-                ROS_INFO("Match data received no auto buffered yet");
+                //ROS_INFO("Match data received no auto buffered yet");
                 if(generated_vect[auto_mode]) {
                     if(auto_mode_vect[auto_mode] > 3) {
                         if(bufferTrajectory(all_modes[auto_mode_vect[auto_mode]][auto_mode][start_pos].srv_msg.response)) {
-                            ROS_WARN("Buffering Profiled auto mode");
+                            //ROS_WARN("Buffering Profiled auto mode");
                             mode_buffered = true;
                         }
                     }
                     else {
-                        ROS_WARN("Fake buffering cmd_vel auto mode");
+                        //ROS_WARN("Fake buffering cmd_vel auto mode");
                         mode_buffered = true;
                     }
                 }
                 else {
-                    ROS_WARN("No path generated when match_data received, Auto Mode: [%d]", auto_mode);
+                    //ROS_WARN("No path generated when match_data received, Auto Mode: [%d]", auto_mode);
                 }
             }
 
             if(in_auto && mode_buffered) { //if in auto with a mode buffered run it
-                ROS_INFO("Match data received and auto buffered");
+                //ROS_INFO("Match data received and auto buffered");
                 run_auto(auto_mode_vect[auto_mode], auto_mode, layout, start_pos, 
                          delays_vect[auto_mode], all_modes[auto_mode][layout][start_pos].times);
-                ROS_WARN("Running Auto");
+                //ROS_WARN("Running Auto");
                 // Auto finished, either by finishing the requested path
                 // or by match data reporting not in autonomous
                 in_auto = false;
@@ -1320,9 +1320,9 @@ int main(int argc, char** argv) {
 
         /* ------------- For testing wait until !in_teleop to loop back to beginning -----------------------*/
         ros::Rate slow(.5);
-        ROS_WARN("Exited Auto loop");
+        //ROS_WARN("Exited Auto loop");
         while(end_auto) {
-            ROS_INFO("Between auto and teleop or robot disabled");
+            //ROS_INFO("Between auto and teleop or robot disabled");
             MatchData match_data = *(matchData.readFromRT());
             if(!match_data.isAutonomous_ || !match_data.isEnabled_) {
                 end_auto = false;
@@ -1331,7 +1331,7 @@ int main(int argc, char** argv) {
 			slow.sleep(); //I think you want this.....
         }
         while(in_teleop) {
-            ROS_INFO("Exited auto into teleop");
+            //ROS_INFO("Exited auto into teleop");
             MatchData match_data = *(matchData.readFromRT());
             if(!match_data.isEnabled_ || match_data.isAutonomous_) {
                 in_teleop = false;
