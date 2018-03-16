@@ -71,7 +71,7 @@ auto_params:
      mode_3_layout_3_start_2_spline_group:
                 [1, 2, 3, 4]
      mode_3_layout_3_start_2_waits:
-                [3.0, 3.0, 3.0, 3.0]
+                [10.0, 3.0, 3.0, 3.0]
       
            
 #above is for s:r ll

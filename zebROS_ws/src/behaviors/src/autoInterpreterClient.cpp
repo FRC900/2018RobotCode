@@ -1133,7 +1133,7 @@ int main(int argc, char** argv) {
 	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    ros::Duration(17).sleep();
+    ros::Duration(30).sleep();
     ROS_WARN("post sleep");
     generateTrajectory(all_modes[3][3][2]);
 

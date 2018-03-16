@@ -196,7 +196,7 @@ class arm_limits
 					else{ROS_ERROR("Bad hook Zone, REINSTALL WINDOWS?");}
 					i++;
 				}
-				ROS_INFO_STREAM("Poly: " << k << "    " << boost::geometry::wkt(saved_polygons_[k]));
+				//ROS_INFO_STREAM("Poly: " << k << "    " << boost::geometry::wkt(saved_polygons_[k]));
 			}
 
 			
@@ -268,14 +268,14 @@ class arm_limits
 				cmd.x(cut_off_x_line_);
 				up_or_down = true;
 				cmd.y(isolated_lift_delta_y + cur_lift_height+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
-				ROS_INFO_STREAM(cmd.y());
-				ROS_INFO_STREAM(isolated_lift_delta_y + cur_lift_height);
+				//ROS_INFO_STREAM(cmd.y());
+				//ROS_INFO_STREAM(isolated_lift_delta_y + cur_lift_height);
 			}
 			else if(cmd.x() - cut_off_x_line_ > -.001 && cur_pos.x() < cut_off_x_line_ - .001 && cur_lift_height +isolated_lift_delta_y < safe_to_go_back_y_)
 			{	
 				recalc_due_to_lim = true;
 				cmd.y(safe_to_go_back_y_+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
-				ROS_WARN_STREAM("making it safe to go down by setting: " << cmd.y()); 
+				//ROS_WARN_STREAM("making it safe to go down by setting: " << cmd.y()); 
 			}
 			isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
@@ -295,15 +295,18 @@ class arm_limits
 			&& cur_pos.y() < hook_current_height_delta +  hook_max_height_)))
 			{
 				
-				ROS_WARN("HOOK LIMITED");
+				//ROS_WARN("0");	
+				//ROS_WARN("HOOK LIMITED");
 				//up_or_down = cur_up_or_down;
 				if(cmd.x() < hook_depth_ && !enforced_hook_x_limit)
 				{
 					cmd.x(hook_depth_ + .05); //adjust this arbitrary constant?
 
+					//ROS_WARN("1");	
 					if(recalc_due_to_lim)
 					{					
-						ROS_WARN("here to check");	
+						//ROS_WARN("2");	
+						//ROS_WARN("here to check");	
 						cmd.y(safe_to_go_back_y_+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
 						isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 						*( up_or_down ? 1 : -1) + cur_lift_height;
@@ -315,9 +318,11 @@ class arm_limits
 					
 						if(cmd.y() < hook_max_height_ + hook_cmd_height_delta)
 						{
+							//ROS_WARN("3");	
 							cmd.y(y_high_hook_corner);
 							if(cmd.y() - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_ )
 							{	
+								//ROS_WARN("4");	
 								const double theta_new = asin((hook_max_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
 								up_or_down  = theta_new > 0;
 								cmd.x(cos(theta_new) * arm_length_);
@@ -327,16 +332,20 @@ class arm_limits
 					}
 					else
 					{
-						ROS_WARN("here2");	
+						//ROS_WARN("5");	
+						//ROS_WARN("here2");	
 						
 						if(cur_pos.y() < hook_min_height_ + hook_cmd_height_delta)
 						{
-							ROS_WARN("here3");	
+							//ROS_WARN("6");	
+							//ROS_WARN("here3");	
 							if(cur_pos.x() < hook_depth_)
 							{
+								//ROS_WARN("7");	
 								cmd.y(y_low_hook_corner);
 								if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
 								{	
+									//ROS_WARN("8");	
 									const double theta_new = asin((hook_min_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
 									up_or_down  = theta_new > 0;
 									cmd.x(cos(theta_new) * arm_length_);
@@ -345,7 +354,8 @@ class arm_limits
 							}
 							else
 							{
-								ROS_WARN("here6");	
+								//ROS_WARN("9");	
+								//ROS_WARN("here6");	
 								cmd.y(cur_lift_height + isolated_lift_delta_y 
 								+ sin(acos((hook_depth_+.05)/arm_length_))*arm_length_
 								*(up_or_down ? 1 : -1));
@@ -353,21 +363,24 @@ class arm_limits
 						}
 						else
 						{	
-							ROS_WARN("here");
+							//ROS_WARN("here");
 							if(cur_pos.x() < hook_depth_)
 							{
+								//ROS_WARN("10");	
 								cmd.y(y_high_hook_corner);
 								if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
 								{	
 									const double theta_new = asin((hook_max_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
+									//ROS_WARN("11");	
 									up_or_down  = theta_new > 0;
 									cmd.x(cos(theta_new) * arm_length_);
 									cmd.y(max_extension_ + sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));
-									ROS_WARN_STREAM("here: " << cmd.x());
+									//ROS_WARN_STREAM("here: " << cmd.x());
 								}
 							}
 							else
 							{
+								//ROS_WARN("12");	
 								cmd.y(cur_lift_height + isolated_lift_delta_y 
 								+ sin(acos((hook_depth_+.05)/arm_length_))*arm_length_
 								*(up_or_down ? 1 : -1));
@@ -380,11 +393,14 @@ class arm_limits
 				{
 					if(cur_pos.y() < hook_min_height_ + hook_cmd_height_delta)
 					{
+						//ROS_WARN("13");	
 						cmd.y(y_low_hook_corner);
 						if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
 						{
+							//ROS_WARN("14");	
 							if(!enforced_hook_x_limit)
 							{
+								//ROS_WARN("15");	
 								const double theta_new = asin((hook_min_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
 								up_or_down  = theta_new > 0;
 								cmd.x(cos(theta_new) * arm_length_);
@@ -392,6 +408,7 @@ class arm_limits
 							}
 							else
 							{
+								//ROS_WARN("16");	
 								cmd.y(max_extension_ + sin(acos((cmd.x())/arm_length_))*arm_length_
 								*(up_or_down ? 1 : -1));
 
@@ -400,9 +417,11 @@ class arm_limits
 					}
 					else
 					{	
+						//ROS_WARN("17");	
 						cmd.y(y_high_hook_corner);
 						if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
 						{	
+							//ROS_WARN("18");	
 							const double theta_new = asin((hook_max_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
 							up_or_down  = theta_new > 0;
 							cmd.x(cos(theta_new) * arm_length_);
@@ -424,30 +443,30 @@ class arm_limits
 			point_type test_pivot_cmd(cmd.x(), isolated_pivot_y);
 	
 			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
-			ROS_INFO_STREAM("c: " << isolated_lift_delta_y + cur_lift_height);
+			//ROS_INFO_STREAM("c: " << isolated_lift_delta_y + cur_lift_height);
 			
-			ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
+			//ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
 			
 			if(!check_if_possible(test_pivot_cmd, up_or_down, 1, cur_lift_height))
 			{
 				cmd.x(test_pivot_cmd.x());
 				cmd.y(isolated_lift_delta_y + test_pivot_cmd.y());
-				ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+				//ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 				return false;				
 			}
 			else
 			{
 				point_type test_lift_cmd(cur_pos.x(), cur_pos.y() + isolated_lift_delta_y);
-				ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
+				//ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
 				if(!check_if_possible(test_lift_cmd, cur_up_or_down, 2))
 				{
 					cmd.y(test_lift_cmd.y() - cur_pos.y() + isolated_pivot_y);
-					ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+					//ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 					return false;
 				}
 				else
 				{
-					ROS_INFO_STREAM("cmd final check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+					//ROS_INFO_STREAM("cmd final check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 					return true;
 				}
 			} 
