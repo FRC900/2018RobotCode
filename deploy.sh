@@ -85,6 +85,8 @@ fi
 
 # Bidirectional synchronization of the selected environment.
 echo "Synchronizing local changes TO $INSTALL_ENV environment."
+scp $ROS_CODE_LOCATION/ROSJetsonMaster.sh $JETSON_ADDR:$JETSON_ROS_CODE_LOCATION
+scp $ROS_CODE_LOCATION/ROSJetsonMaster.sh $ROBORIO_ADDR:$RIO_ROS_CODE_LOCATION
 rsync -avzru --exclude '.git' --exclude 'zebROS_ws/build*' \
     --exclude 'zebROS_ws/devel*' --exclude 'zebROS_ws/install*' \
     $LOCAL_CLONE_LOCATION/ $JETSON_ADDR:$JETSON_ENV_LOCATION/
@@ -111,6 +113,7 @@ echo "roboRIO cross build complete"
 
 # Synchronize cross build products to roboRIO.
 echo "Synchronizing $INSTALL_ENV cross build to roboRIO"
+ssh $ROBORIO_ADDR "/etc/init.d/nilvrt stop"
 rsync -avz --delete $ROS_CODE_LOCATION/install_isolated/ \
     $ROBORIO_ADDR:$RIO_INSTALL_LOCATION/
 echo "Synchronization complete"
