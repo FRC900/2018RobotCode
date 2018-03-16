@@ -21,7 +21,7 @@ swerve_profiler::swerve_profiler(double max_wheel_dist, double max_wheel_mid_acc
 bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std::vector<spline_coefs> y_splines, std::vector<spline_coefs> orient_splines, const double initial_v, const double final_v, swerve_point_generator::GenerateSwerveProfile::Response &out_msg, const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 {
 	t_shift_ = t_shift;
-	flip_dirc = flip_dirc_;
+	flip_dirc_ = flip_dirc;
 	t_total_ = end_points[end_points.size()] - end_points[0];
 	tk::spline spline;
 	double total_arc;
@@ -394,7 +394,7 @@ bool swerve_profiler::poly_solve(const double a, const double b, const double c,
 }
 void swerve_profiler::calc_point(const spline_coefs &spline, double t, double &returner)
 {
-	if(flip_dirc_) t_total_ - t;
+	if(flip_dirc_)t = t_total_ - t;
 	t += t_shift_;
 	const double t_squared = t * t;
 	const double t_cubed   = t_squared * t;
@@ -436,7 +436,7 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 	calc_point(orient_splines_second_deriv[which_spline], t, second_deriv_orient);
 
 	//if(fow)
-	//ROS_INFO_STREAM("which spline: " << which_spline << " t_raw: "<< t << " x: " << holder_point.pos[0] << " y: " << holder_point.pos[1] << " a: " << x_splines[which_spline].a <<" b: " << x_splines[which_spline].b <<" c: " << x_splines[which_spline].c <<" d: " << x_splines[which_spline].d <<" e: " << x_splines[which_spline].e <<" f: " << x_splines[which_spline].f);
+	ROS_INFO_STREAM("which spline: " << which_spline << " t_raw: "<< t << " x: " << holder_point.pos[0] << " y: " << holder_point.pos[1] << " a: " << x_splines[which_spline].a <<" b: " << x_splines[which_spline].b <<" c: " << x_splines[which_spline].c <<" d: " << x_splines[which_spline].d <<" e: " << x_splines[which_spline].e <<" f: " << x_splines[which_spline].f);
 
 	//Radius = (x'^2 + y'^2)^(3/2) / (x' * y'' - y' * x'')
 

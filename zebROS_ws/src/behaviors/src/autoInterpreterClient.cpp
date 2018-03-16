@@ -1116,11 +1116,11 @@ int main(int argc, char** argv) {
 	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    ros::Duration(30).sleep();
+    ros::Duration(5).sleep();
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    generateTrajectory(all_modes[3][3][2]);
+    generateTrajectory(all_modes[4][3][2]);
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
