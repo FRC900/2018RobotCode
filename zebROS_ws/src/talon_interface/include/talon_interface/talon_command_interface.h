@@ -1150,7 +1150,7 @@ class TalonHWCommand
 				// Return up to 20 points at a time - too
 				// many really slows down the hardware interface
 				auto start = motion_profile_trajectory_points_.begin();
-				auto end   = start + std::min((size_t)motion_profile_trajectory_points_.size(), (size_t)20);
+				auto end   = start + std::min((size_t)motion_profile_trajectory_points_.size(), (size_t)4000); //Intentionally very large
 				points = std::vector<TrajectoryPoint>(start, end);
 				motion_profile_trajectory_points_.erase(start, end);
 				//ROS_WARN_STREAM("  returning points.size()=" << points.size());
