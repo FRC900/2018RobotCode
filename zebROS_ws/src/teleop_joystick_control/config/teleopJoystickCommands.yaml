@@ -15,15 +15,25 @@ teleop_params:
     exchange_config_x: .215
     exchange_config_y: .5
     exchange_config_up_or_down: false
-    intake_ready_to_drop_x: .215
+    intake_ready_to_drop_x: .315
     intake_ready_to_drop_y: 1.0 #1.075 - y pos arm relative
+
     intake_ready_to_drop_up_or_down: false
-    intake_config_x: .215
-    intake_config_y: 0.45 #consider always drop - press and then grab
-    intake_config_up_or_down: false
-    intake_config_low_x: .215
-    intake_config_low_y: .387
-    intake_config_low_up_or_down: false
+    intake_high_x: .25
+    intake_high_y: .5
+    
+
+
+
+    intake_high_up_or_down: false
+    intake_low_x: .25
+    intake_low_y: .45
+    
+
+
+
+
+    intake_low_up_or_down: false
     climb: 1.5
     move_out_pos_x: .1
     move_out_pos_y: .6
@@ -41,3 +51,5 @@ teleop_params:
     intake_power: 0.8
     intake_hold_power: 0.15
     wait_after_clamp: 0.5
+    wait_open_before_drop: 0.5
+    delay_after_move_intake: 0.5

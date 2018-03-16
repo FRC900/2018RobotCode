@@ -24,8 +24,9 @@ double switch_config_x;
 double switch_config_y;
 double exchange_config_x;
 double exchange_config_y;
-double intake_config_x;
-double intake_config_y;
+double intake_ready_to_drop_x;
+double intake_ready_to_drop_y;
+double intake_ready_to_drop_up_or_down;
 double default_x;
 double default_y;
 
@@ -90,9 +91,9 @@ bool defaultConfig(void) {
 }
 bool intakeConfig(void) {
 	elevator_controller::ElevatorControlS srv;
-    srv.request.x = intake_config_x;
-    srv.request.y = intake_config_y;
-    srv.request.up_or_down = false;
+    srv.request.x = intake_ready_to_drop_x;
+    srv.request.y = intake_ready_to_drop_y;
+    srv.request.up_or_down = intake_ready_to_drop_up_or_down;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     if (!ElevatorService.call(srv))
@@ -1035,10 +1036,12 @@ int main(int argc, char** argv) {
 		ROS_ERROR("Didn't read param exchange_config_x in autoInterpreterClient");
     if (!n_params.getParam("exchange_config_y", exchange_config_y))
 		ROS_ERROR("Didn't read param exchange_config_y in autoInterpreterClient");
-    if (!n_params.getParam("intake_config_x", intake_config_x))
-		ROS_ERROR("Didn't read param intake_config_x in autoInterpreterClient");
-    if (!n_params.getParam("intake_config_y", intake_config_y))
-		ROS_ERROR("Didn't read param intake_config_y in autoInterpreterClient");
+    if (!n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x))
+		ROS_ERROR("Didn't read param intake_ready_to_drop_x in autoInterpreterClient");
+    if (!n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y))
+		ROS_ERROR("Didn't read param intake_ready_to_drop_y in autoInterpreterClient");
+    if (!n_params.getParam("intake_ready_to_drop_up_or_down", intake_ready_to_drop_up_or_down))
+		ROS_ERROR("Didn't read param intake_ready_to_drop_up_or_down in autoInterpreterClient");
     if (!n_params.getParam("default_x", default_x))
 		ROS_ERROR("Didn't read param default_x in autoInterpreterClient");
     if (!n_params.getParam("default_y", default_y))
@@ -1079,7 +1082,7 @@ int main(int argc, char** argv) {
 	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    ros::Duration(3).sleep();
+    ros::Duration(30).sleep();
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */

@@ -422,7 +422,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//Use known info to write to hardware etc.
 	//Put in intelligent bounds checking
 
-	ROS_INFO_STREAM("Intake power: " << cur_intake_cmd.power << " up?: " << cur_intake_cmd.up_command << " in state: " <<  cur_intake_cmd.spring_command);
+	//ROS_INFO_STREAM("Intake power: " << cur_intake_cmd.power << " up?: " << cur_intake_cmd.up_command << " in state: " <<  cur_intake_cmd.spring_command);
 	
 
 	intake1_joint_.setCommand(cur_intake_cmd.power);

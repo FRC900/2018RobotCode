@@ -70,9 +70,6 @@ static bool exchange_config_up_or_down;
 static double intake_ready_to_drop_x;
 static double intake_ready_to_drop_y;
 static bool intake_ready_to_drop_up_or_down;
-static double intake_config_x;
-static double intake_config_y;
-static bool intake_config_up_or_down;
 static double climb;
 static double default_x;
 static double default_y;
@@ -156,8 +153,10 @@ void unToggle(const pos last_achieved_pos, const ElevatorPos &elevatorPosBefore,
 	//TOGGLING BACK TO INTAKE/EXCHANGE CONFIG WON'T FULLY WORK
 	elevator_controller::ElevatorControlS srvElevator;
 
-	ac->cancelAllGoals();
-	ac_lift->cancelAllGoals();
+	//if(!ac->getState().isDone())
+		ac->cancelAllGoals();
+	//if(!ac_lift->getState().isDone())
+		ac_lift->cancelAllGoals();
 
 	srvElevator.request.x = elevatorPosBefore.X_;
 	srvElevator.request.y = elevatorPosBefore.Y_;
@@ -252,9 +251,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	if (JoystickState->directionUpPress && matchTimeRemaining.load(std::memory_order_relaxed) < 30 )
 	{
 
-		ac->cancelAllGoals();
-		ac_lift->cancelAllGoals();
-		ac_intake->cancelAllGoals();
+		//if(!ac->getState().isDone())
+			ac->cancelAllGoals();
+		//if(!ac_lift->getState().isDone())
+			ac_lift->cancelAllGoals();
+		//if(!ac_intake->getState().isDone())
+			ac_intake->cancelAllGoals();
 
 
 		static double directionUpLast = 0;
@@ -271,9 +273,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*-----------------Down Press Climb to Correct height----------------------*/
 	if (JoystickState->directionDownPress)
 	{
-		ac->cancelAllGoals();
-		ac_lift->cancelAllGoals();
-		ac_intake->cancelAllGoals();
+		//if(!ac->getState().isDone())
+			ac->cancelAllGoals();
+		//if(!ac_lift->getState().isDone())
+			ac_lift->cancelAllGoals();
+		//if(!ac_intake->getState().isDone())
+			ac_intake->cancelAllGoals();
 		const ElevatorPos epos = *(elevatorPos.readFromRT());
 		srvElevator.request.x = epos.X_; //Consider changing x_pos + up/down to preassigned rather than curr pos
 		srvElevator.request.y = climb;
@@ -330,9 +335,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			}
 			else
 			{
-				ac->cancelAllGoals();
-				ac_lift->cancelAllGoals();
-				ac_intake->cancelAllGoals();
+				//if(!ac->getState().isDone())
+					ac->cancelAllGoals();
+				//if(!ac_lift->getState().isDone())
+					ac_lift->cancelAllGoals();
+				//if(!ac_intake->getState().isDone())
+					ac_intake->cancelAllGoals();
 				intakeGoToDefault();
 				srvElevator.request.x = mid_scale_config_x;
 				srvElevator.request.y = mid_scale_config_y;
@@ -394,7 +402,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	static bool manage_intaking;
 	static double ALast = 0;
 	static double A_intake_time = 0;
-	static bool A_toggle_on = 0;
+	static bool A_toggle_on = false;
+	static bool start_toggle_on = false;
 	if (localHasCube)
 	{
 		/*----------------Single Press------------------*/
@@ -404,18 +413,24 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			if (localHasCubeLow)
 			{
-				ac->cancelAllGoals();
-				ac_lift->cancelAllGoals();
-				ac_intake->cancelAllGoals();
+				//if(!ac->getState().isDone())
+					ac->cancelAllGoals();
+				//if(!ac_lift->getState().isDone())
+					ac_lift->cancelAllGoals();
+				//if(!ac_intake->getState().isDone())
+					ac_intake->cancelAllGoals();
 
 				ready_to_spin_out_check = true; //Kick off ready to drop
 			}
 			/*-Else - Place and Then Move Arm Back-*/
 			else
 			{
-				ac->cancelAllGoals();
-				ac_lift->cancelAllGoals();
-				ac_intake->cancelAllGoals();
+				//if(!ac->getState().isDone())
+					ac->cancelAllGoals();
+				//if(!ac_lift->getState().isDone())
+					ac_lift->cancelAllGoals();
+				//if(!ac_intake->getState().isDone())
+					ac_intake->cancelAllGoals();
 				intakeGoToDefault();
 				srvClamp.request.data = false;
 				if (!ClampSrv.call(srvClamp))
@@ -430,9 +445,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		if (JoystickState->buttonBackPress == true)
 		{
 			//Consider changing this functionallity
-			ac->cancelAllGoals();
-			ac_lift->cancelAllGoals();
-			ac_intake->cancelAllGoals();
+			//if(!ac->getState().isDone())
+				ac->cancelAllGoals();
+			//if(!ac_lift->getState().isDone())
+				ac_lift->cancelAllGoals();
+			//if(!ac_intake->getState().isDone())
+				ac_intake->cancelAllGoals();
 			buttonBackStart = timeSecs;
 			run_out = true;
 			srvIntake.request.power = -1;
@@ -448,15 +466,21 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	else if (JoystickState->buttonAPress == true)
 	{
-		if(A_intake_time - ros::Time::now().toSec() < 15 && A_toggle_on)
+		if(ros::Time::now().toSec() - A_intake_time  < 15 && !ac->getState().isDone() && A_toggle_on)
 		{
-			ac->cancelAllGoals();
-			ac_lift->cancelAllGoals();
-			ac_intake->cancelAllGoals();
+
+			//if(!ac->getState().isDone())
+				ac->cancelAllGoals();
+			//if(!ac_lift->getState().isDone())
+				ac_lift->cancelAllGoals();
+			//if(!ac_intake->getState().isDone())
+				ac_intake->cancelAllGoals();
 			A_toggle_on = false;
 		}
 		else
 		{
+
+			ROS_WARN("intaking cube");
 			goal.IntakeCube = true;
 			goal.MoveToIntakeConfig = false;
 			goal.x = default_x;
@@ -477,12 +501,27 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*------------------ Start Button No Cube - Intake No Lift --------------*/
 
 	else if(JoystickState->buttonStartPress) {
+
 		
-		ac->cancelAllGoals();
+		if(ros::Time::now().toSec() - buttonStartStart < 15 && !ac_intake->getState().isDone() && start_toggle_on)
+		{
+			ac_intake->cancelAllGoals();
+
+			start_toggle_on = false;
+		}
+		else
+		{
+
+	
+		//if(!ac->getState().isDone())
+			ac->cancelAllGoals();
+		start_toggle_on = true;
 		buttonStartStart = timeSecs;
 		goal_intake.IntakeCube = true;
+		goal_intake.time_out = 15;
 		ac_intake->sendGoal(goal_intake);
 		ROS_INFO("teleop : Intake No Lift");
+		}
 	}
 
 	/*-If in Exchange - Place and Run Intake Out-*/
@@ -664,9 +703,12 @@ For right now we will just go back out and then call "go to intake config"
 			else
 			{
 				
-				ac->cancelAllGoals();
-				ac_lift->cancelAllGoals();
-				ac_intake->cancelAllGoals();
+				//if(!ac->getState().isDone())
+					ac->cancelAllGoals();
+				//if(!ac_lift->getState().isDone())
+					ac_lift->cancelAllGoals();
+				//if(!ac_intake->getState().isDone())
+					ac_intake->cancelAllGoals();
 				srvIntake.request.power = 0;
 				srvIntake.request.spring_state = 1; //hard_out
 				srvIntake.request.up = true; //
@@ -729,9 +771,12 @@ For right now we will just go back out and then call "go to intake config"
 		{
 			if (localHasCubeClamp)
 			{
-				ac->cancelAllGoals();
-				ac_lift->cancelAllGoals();
-				ac_intake->cancelAllGoals();
+				//if(!ac->getState().isDone())
+					ac->cancelAllGoals();
+				//if(!ac_lift->getState().isDone())
+					ac_lift->cancelAllGoals();
+				//if(!ac_intake->getState().isDone())
+					ac_intake->cancelAllGoals();
 				srvElevator.request.x = default_x;
 				srvElevator.request.y = default_y;
 				srvElevator.request.up_or_down = default_up_or_down;
@@ -749,6 +794,7 @@ For right now we will just go back out and then call "go to intake config"
 			else
 			{
 
+				ROS_INFO_STREAM("is done?: " <<ac->getState().isDone());
 				srvElevator.request.x = intake_ready_to_drop_x;
 				srvElevator.request.y = intake_ready_to_drop_y;
 				srvElevator.request.up_or_down = intake_ready_to_drop_up_or_down;
@@ -794,9 +840,12 @@ For right now we will just go back out and then call "go to intake config"
 			else
 			{
 				
-				ac->cancelAllGoals();
-				ac_lift->cancelAllGoals();
-				ac_intake->cancelAllGoals();
+				//if(!ac->getState().isDone())
+					ac->cancelAllGoals();
+				//if(!ac_lift->getState().isDone())
+					ac_lift->cancelAllGoals();
+				//if(!ac_intake->getState().isDone())
+					ac_intake->cancelAllGoals();
 				intakeGoToDefault();
 
 
@@ -830,9 +879,12 @@ For right now we will just go back out and then call "go to intake config"
 			}
 			else
 			{
-				ac->cancelAllGoals();
-				ac_lift->cancelAllGoals();
-				ac_intake->cancelAllGoals();
+				//if(!ac->getState().isDone())
+					ac->cancelAllGoals();
+				//if(!ac_lift->getState().isDone())
+					ac_lift->cancelAllGoals();
+				//if(!ac_intake->getState().isDone())
+					ac_intake->cancelAllGoals();
 				intakeGoToDefault();
 				srvElevator.request.x = high_scale_config_x;
 				srvElevator.request.y = high_scale_config_y;
@@ -976,7 +1028,7 @@ if (rightStickX != 0 || rightStickY != 0)
 	elevatorMsg.up_or_down = epos.UpOrDown_;
 	elevatorMsg.override_pos_limits = localDisableArmLimits;
 	JoystickElevatorPos.publish(elevatorMsg);
-	ROS_INFO("teleop : Joystive elevator pos");
+	//ROS_INFO("teleop : Joystive elevator pos");
 }
 
 lastTimeSecs = timeSecs;
@@ -1069,17 +1121,11 @@ int main(int argc, char **argv)
 	if (!n_params.getParam("exchange_config_up_or_down", exchange_config_up_or_down))
 		ROS_ERROR("Could not read exchange_config_up_or_down");
 	if (!n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x))
-		ROS_ERROR("Could not read intake_ready_to_drop_x");
+		ROS_ERROR("Could not read intake_ready_to_drop_x in teleop");
 	if (!n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y))
-		ROS_ERROR("Could not read intake_ready_to_drop_y");
+		ROS_ERROR("Could not read intake_ready_to_drop_y in teleop");
 	if (!n_params.getParam("intake_ready_to_drop_up_or_down", intake_ready_to_drop_up_or_down))
-		ROS_ERROR("Could not read intake_ready_to_drop_up_or_down");
-	if (!n_params.getParam("intake_config_x", intake_config_x))
-		ROS_ERROR("Could not read intake_config_x");
-	if (!n_params.getParam("intake_config_y", intake_config_y))
-		ROS_ERROR("Could not read intake_config_y");
-	if (!n_params.getParam("intake_config_up_or_down", intake_config_up_or_down))
-		ROS_ERROR("Could not read intake_config_up_or_down");
+		ROS_ERROR("Could not read intake_ready_to_drop_up_or_down in teleop");
 	if (!n_params.getParam("climb", climb))
 		ROS_ERROR("Could not read climb");
 	if (!n_params.getParam("default_x", default_x))

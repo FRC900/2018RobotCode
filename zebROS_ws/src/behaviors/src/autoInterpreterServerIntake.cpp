@@ -84,8 +84,6 @@ class autoAction {
             }
             */		    
             }
-           if(!timed_out && !aborted)
-			{
             srv.request.power = success ? 0.15 : 0;
             srv.request.spring_state = 3; //soft in
             srv.request.up = false;
@@ -94,7 +92,6 @@ class autoAction {
                 ROS_ERROR("Srv intake call failed in auto interpreter server intake");
             else
                 ROS_INFO("Srv intake call OK in auto interpreter server intake");
-			}
 		}
 	//else if goal->
 	//{}

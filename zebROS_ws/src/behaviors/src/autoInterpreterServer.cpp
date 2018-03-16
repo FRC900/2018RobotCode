@@ -114,8 +114,10 @@ class autoAction
 			success = false;
 			bool timed_out = false;
 
-			al->cancelAllGoals();
-			ai->cancelAllGoals();
+			//if(!al->getState().isDone())
+				//al->cancelAllGoals();
+			//if(!ai->getState().isDone())
+				//ai->cancelAllGoals();
 
 			const double odom_x = elevator_odom.readFromRT()->X_;
 			if (goal->IntakeCube)
@@ -143,6 +145,7 @@ class autoAction
 				//loop till we get to where we can drop
 				while (!aborted && !timed_out)
 				{
+					ROS_INFO("start of pickup cube 1");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -154,17 +157,17 @@ class autoAction
 					{
 						r.sleep();
 						ros::spinOnce();
-						timed_out |= (ros::Time::now().toSec() - startTime) > goal->time_out;
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 						//time_out if the action times out
 						if (ai->getState().isDone())
 						{
-							timed_out |= (ai->getResult()->timed_out);
+							timed_out = timed_out || (ai->getResult()->timed_out);
 							
 							break;
 						}
 						if (al->getState().isDone())
 						{
-							timed_out |= (al->getResult()->timed_out);
+							timed_out = timed_out || (al->getResult()->timed_out);
 						}
 					}
 				}
@@ -180,6 +183,7 @@ class autoAction
 
 				while (!aborted && !timed_out)
 				{
+					ROS_INFO("start of pickup cube 2");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -191,10 +195,10 @@ class autoAction
 					{
 						r.sleep();
 						ros::spinOnce();
-						timed_out |= (ros::Time::now().toSec() - startTime) > goal->time_out;
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 						if (al->getState().isDone())
 						{
-							timed_out |= (al->getResult()->timed_out);
+							timed_out = timed_out || (al->getResult()->timed_out);
 							if(ros::Time::now().toSec() - t_before_move_intake > delay_after_move_intake)
 								break;
 						}
@@ -214,6 +218,7 @@ class autoAction
 					al->sendGoal(goal_l);
 					while (!aborted && !timed_out)
 					{
+						ROS_INFO("start of pickup cube 3");
 						if (as_.isPreemptRequested() || !ros::ok())
 						{
 							ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -225,12 +230,12 @@ class autoAction
 						{
 							r.sleep();
 							ros::spinOnce();
-							timed_out |= (ros::Time::now().toSec() - startTime) > goal->time_out;
+							timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 
 							if (al->getState().isDone())
 							{
 								//time_out if the action times out
-								timed_out |= (al->getResult()->timed_out);
+								timed_out = timed_out || (al->getResult()->timed_out);
 								break;
 							}
 
@@ -251,6 +256,7 @@ class autoAction
 					al->sendGoal(goal_l);
 					while (!aborted && !timed_out)
 					{
+						ROS_INFO("start of pickup cube 4");
 						if (as_.isPreemptRequested() || !ros::ok())
 						{
 							ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -262,12 +268,12 @@ class autoAction
 						{
 							r.sleep();
 							ros::spinOnce();
-							timed_out |= (ros::Time::now().toSec() - startTime) > goal->time_out;
+							timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 
 							if (al->getState().isDone())
 							{
 								//time_out if the action times out
-								timed_out |= (al->getResult()->timed_out);
+								timed_out = timed_out || (al->getResult()->timed_out);
 								break;
 							}
 
@@ -285,6 +291,7 @@ class autoAction
 				}
 				while (!aborted && !timed_out)
 				{
+					ROS_INFO("start of pickup cube 5");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -311,11 +318,12 @@ class autoAction
 					{
 						r.sleep();
 						ros::spinOnce();
-						timed_out |= (ros::Time::now().toSec() - startTime) > goal->time_out;
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 					}
 				}
 				while (!aborted && !timed_out)
 				{
+					ROS_INFO("start of pickup cube 6");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -327,12 +335,12 @@ class autoAction
 					{
 						r.sleep();
 						ros::spinOnce();
-						timed_out |= (ros::Time::now().toSec() - startTime) > goal->time_out;
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 
 						if (al->getState().isDone())
 						{
 							//time_out if the action times out
-							timed_out |= (al->getResult()->timed_out);
+							timed_out = timed_out || (al->getResult()->timed_out);
 							break;
 						}
 
@@ -341,6 +349,7 @@ class autoAction
 			}
 			if (goal->MoveToIntakeConfig)
 			{
+				ai->cancelAllGoals();
 				ROS_INFO("start of go to intake config with cube");
 				goal_l.time_out = 5; //This honestly doesn't need to be an action lib
 				goal_l.GoToPos = true;
@@ -375,7 +384,7 @@ class autoAction
 					{
 						r.sleep();
 						ros::spinOnce();
-						timed_out |= (ros::Time::now().toSec() - startTime) > goal->time_out;
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 						//time_out if the action times out
 						if (ros::Time::now().toSec() - t_before_move_intake > wait_open_before_drop)
 						{
@@ -383,7 +392,7 @@ class autoAction
 						}
 						if (al->getState().isDone())
 						{
-							timed_out |= (al->getResult()->timed_out);
+							timed_out = timed_out || (al->getResult()->timed_out);
 						}
 					}
 				}
@@ -420,11 +429,11 @@ class autoAction
 					{
 						r.sleep();
 						ros::spinOnce();
-						timed_out |= (ros::Time::now().toSec() - startTime) > goal->time_out;
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 						//time_out if the action times out
 						if (al->getState().isDone())
 						{
-							timed_out |= (al->getResult()->timed_out);
+							timed_out = timed_out || (al->getResult()->timed_out);
 							break;
 						}
 					}
@@ -442,8 +451,10 @@ class autoAction
 			{
 				ROS_INFO("%s: Aborted", action_name_.c_str());
 			}
-			al->cancelAllGoals();
-			ai->cancelAllGoals();
+			//if(!al->getState().isDone())
+				al->cancelAllGoals();
+			//if(!ai->getState().isDone())
+				ai->cancelAllGoals();
 			result_.timed_out = timed_out;
 			as_.setSucceeded(result_);
 
@@ -481,15 +492,15 @@ int main(int argc, char **argv)
 	ros::NodeHandle n_params(n, "teleop_params");
 
 	if (!n_params.getParam("intake_high_up_or_down", intake_high_up_or_down))
-		ROS_ERROR("Could not read intake_high_up_or_down");
-	if (!n_params.getParam("intake_config_low_up_or_down", intake_low_up_or_down))
-		ROS_ERROR("Could not read intake_low_up_or_down");
+		ROS_ERROR("Could not read intake_high_up_or_down in auto server");
+	if (!n_params.getParam("intake_low_up_or_down", intake_low_up_or_down))
+		ROS_ERROR("Could not read intake_low_up_or_down in auto server");
 	if (!n_params.getParam("intake_ready_to_drop_x", intake_ready_to_drop_x))
 		ROS_ERROR("Could not read intake_ready_to_drop_x");
 	if (!n_params.getParam("intake_ready_to_drop_y", intake_ready_to_drop_y))
 		ROS_ERROR("Could not read intake_ready_to_drop_y");
 	if (!n_params.getParam("intake_ready_to_drop_up_or_down", intake_ready_to_drop_up_or_down))
-		ROS_ERROR("Could not read intake_ready_to_drop_up_or_down");
+		ROS_ERROR("Could not read intake_ready_to_drop_up_or_down in auto server");
 	if (!n_params.getParam("wait_after_clamp", wait_after_clamp))
 		ROS_ERROR("could not read wait_after_clamp");
 	if (!n_params.getParam("delay_after_move_intake", delay_after_move_intake))
@@ -502,10 +513,10 @@ int main(int argc, char **argv)
 		ROS_ERROR_STREAM("Could not read intake_high_x: ");
 	if (!n_params.getParam("intake_high_y", intake_high_y))
 		ROS_ERROR("Could not read intake_high_y");
-	if (!n_params.getParam("intake_config_low_x", intake_low_x))
-		ROS_ERROR("Could not read intake_config_low_x");
-	if (!n_params.getParam("intake_config_low_y", intake_low_y))
-		ROS_ERROR("Could not read intake_config_low_y");
+	if (!n_params.getParam("intake_low_x", intake_low_x))
+		ROS_ERROR("Could not read intake_low_x");
+	if (!n_params.getParam("intake_low_y", intake_low_y))
+		ROS_ERROR("Could not read intake_low_y");
 	if (!n_params.getParam("wait_open_before_drop", wait_open_before_drop))
 		ROS_ERROR("Could not read wait_open_before_drop");
 
