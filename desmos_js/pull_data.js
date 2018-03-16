@@ -351,6 +351,8 @@ function loadGraphVals(calculator, vals)
 {
 	// FIELD
 	calculator.setExpression({id:'num_splines0', latex:'n_{splines} =' + vals[0].toString()});
+	calculator.setExpression({id:'scale_point_y0', latex:'y_{show} = ' +7.31746 });
+	calculator.setExpression({id:'scale_point_x0', latex:'x_{show} =' + 2.17});
 	calculator.setExpression({id:'field1', latex:'y=0\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', domain:{min:'-d_1+d_2', max:'d_1-d_2'}, color: '#000000'});
 	calculator.setExpression({id:'field2', latex:'d_1=\\frac{27}{2}\\cdot12\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field3', latex:'d_2=26.69\\cdot\\frac{2.54}{100}'});
@@ -778,6 +780,8 @@ function loadGraph(calculator)
 {
 	// FIELD
 	calculator.setExpression({id:'num_splines0', latex:'n_{splines} = 5'});
+	calculator.setExpression({id:'scale_point_y0', latex:'y_{show} = ' +7.31746 });
+	calculator.setExpression({id:'scale_point_x0', latex:'x_{show} =' + 2.17});
 	calculator.setExpression({id:'field1', latex:'y=0\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', domain:{min:'-d_1+d_2', max:'d_1-d_2'}, color: '#000000'});
 	calculator.setExpression({id:'field2', latex:'d_1=\\frac{27}{2}\\cdot12\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field3', latex:'d_2=26.69\\cdot\\frac{2.54}{100}'});
@@ -843,10 +847,10 @@ function loadGraph(calculator)
 	calculator.setExpression({id:'field63', latex:'x=\\frac{d_{18}}{2}+d_{19}+\\frac{23.75}{2}\\cdot\\frac{2.54}{100}\\left\\{\\frac{d_3}{2}-d_{17}-d_{19}-\\frac{23.75}{2}\\cdot\\frac{2.54}{100}<y<\\frac{d_3}{2}\\right\\}', color: '#c74440', style: Desmos.Styles.DASHED});
 
 	// POSITIONS
-	calculator.setExpression({id:'position64', latex:'x=1'});
+	//calculator.setExpression({id:'position64', latex:'x=1'});
 	calculator.setExpression({id:'position64', latex:'\\left(p_x,\\ p_y\\right)', color: '#c74440'});
-	calculator.setExpression({id:'position65', latex:'p_x=d_1-d_2-\\left(\\frac{28}{2}+3.25\\right)\\cdot\\frac{2.54}{100}'});
-	calculator.setExpression({id:'position66', latex:'p_y=\\left(\\frac{32.875}{2}+3.25\\right)\\cdot\\frac{2.54}{100}'});
+		calculator.setExpression({id:'position65', latex:'p_x=d_1-d_2-\\left(\\frac{28}{2}+3.25\\right)\\cdot\\frac{2.54}{100}'});
+	calculator.setExpression({id:'position66', latex:'p_y=\\left(\\frac{38.5}{2}+3.25\\right)\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'position67', latex:'\\left(p_{x1},\\ p_{y1}\\right)', color: '#2d70b3'});
 	calculator.setExpression({id:'position68', latex:'p_{x1}=2.226'});
 	calculator.setExpression({id:'position69', latex:'p_{y1}=7.31'});
