@@ -23,13 +23,13 @@ static double intake_high_x;
 static double delay_after_move_intake;
 static double wait_after_clamp;
 static double intake_high_y;
-static double intake_high_up_or_down;
+static bool intake_high_up_or_down;
 static double intake_low_x;
 static double intake_low_y;
-static double intake_low_up_or_down;
+static bool intake_low_up_or_down;
 static double intake_ready_to_drop_y;
 static double intake_ready_to_drop_x;
-static double intake_ready_to_drop_up_or_down;
+static bool intake_ready_to_drop_up_or_down;
 static double drop_x_tolerance;
 static double wait_open_before_drop;
 

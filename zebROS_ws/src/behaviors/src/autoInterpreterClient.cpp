@@ -26,7 +26,7 @@ double exchange_config_x;
 double exchange_config_y;
 double intake_ready_to_drop_x;
 double intake_ready_to_drop_y;
-double intake_ready_to_drop_up_or_down;
+bool intake_ready_to_drop_up_or_down;
 double default_x;
 double default_y;
 
