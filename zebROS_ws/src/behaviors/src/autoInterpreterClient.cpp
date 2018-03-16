@@ -392,6 +392,7 @@ void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
 void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay, const std::vector<double> &times) {
     ROS_WARN("auto entered");
+    exit_auto = false;
     ros::Rate r(10);
     double start_time = ros::Time::now().toSec();
 
@@ -413,7 +414,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
         /*---------------------- Our Switch is on the Right ------------------------*/
 
-        if(auto_mode == 1 || auto_mode == 3) {
+        if(auto_mode == 0 || auto_mode == 2) {
 
            /* Starting on the left -> go to the left */
            if(start_pos == 0) {
@@ -422,6 +423,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     vel.linear.x = 1.05; //positive x a lot
                     vel.linear.y = 0.12; //positive y a little bit
                     VelPub.publish(vel);
+                    ROS_INFO("Here");
                     r.sleep();
                 }
            }
@@ -433,6 +435,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     vel.linear.x = 1.05; //positive x a lot
                     vel.linear.y = -0.12; //negative y a little bit
                     VelPub.publish(vel);
+                    ROS_INFO("Here");
                     r.sleep();
                 }
             }
@@ -444,6 +447,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     vel.linear.x = 0.875; //positive x some
                     vel.linear.y = 0.5; //positive y some
                     VelPub.publish(vel);
+                    ROS_INFO("Here");
                     r.sleep();
                 }
             }
@@ -451,7 +455,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
         /*------------------ Our Switch is on the Left -------------------------*/
 
-        else if(auto_mode == 2 || auto_mode == 4) { //goal is on the left
+        else if(auto_mode == 1 || auto_mode == 3) { //goal is on the left
 
             /* Starting on the left -> go to the left */
             if(start_pos == 0){
@@ -504,7 +508,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         switchConfig(); 
 
         /* Our switch is on the right */
-        if(auto_mode == 1 || auto_mode == 3) {
+        if(auto_mode == 0 || auto_mode == 2) {
            if(start_pos == 0) {
                const double delay = 3.5; //TODO
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
@@ -537,7 +541,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         }
 
         /* Our switch is on the left */
-        else if(auto_mode == 2 || auto_mode == 4) {
+        else if(auto_mode == 1 || auto_mode == 3) {
             if(start_pos == 0){
                 const double delay = 3; 
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
@@ -588,6 +592,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
             if(curr_time > times[1] && curr_time <= times[1] + (curr_time-last_time)) {
                 ROS_WARN("Profiled Scale release clamp reached");
                 releaseClamp();
+                exit_auto = true;
             }
             last_time = curr_time;
             r.sleep();
@@ -1082,11 +1087,11 @@ int main(int argc, char** argv) {
 	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    ros::Duration(30).sleep();
+    //ros::Duration(30).sleep();
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    generateTrajectory(all_modes[3][3][2]);
+    //generateTrajectory(all_modes[3][3][2]);
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
@@ -1117,10 +1122,10 @@ int main(int argc, char** argv) {
                 //loop through auto_mode data 
                 //generate trajectories for all changed modes
                 for(int i = 0; i<4; i++) {
-                    if ((auto_mode_data.modes_[i] > 2) &&
+                    if ((auto_mode_data.modes_[i] > 3) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
-                        if(generateTrajectory(all_modes[i][auto_mode_data.modes_[i] - 3][auto_mode_data.start_pos_])) {
+                        if(generateTrajectory(all_modes[i][auto_mode_data.modes_[i] - 4][auto_mode_data.start_pos_])) {
                             generated_vect[i] = true;
                             auto_mode_vect[i] = auto_mode_data.modes_[i];
                             delays_vect[i] = auto_mode_data.delays_[i];
@@ -1134,7 +1139,7 @@ int main(int argc, char** argv) {
                             ROS_WARN("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                         }
                     }
-                    else if (auto_mode_data.modes_[i] <= 2 && (auto_mode_data.modes_[i] >= 0) &&
+                    else if (auto_mode_data.modes_[i] <= 3 && (auto_mode_data.modes_[i] >= 0) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
                         auto_mode_vect[i] = auto_mode_data.modes_[i];
@@ -1183,6 +1188,7 @@ int main(int argc, char** argv) {
                 auto_mode_vect[0] = 1; //default auto: cross baseline
                 generated_vect[0] = true;
                 match_data_received = true;
+                mode_buffered = true;
             }
             if(!in_auto) { //check for auto to start and set a start time
                 //ROS_INFO("Not in auto yet");
@@ -1204,7 +1210,7 @@ int main(int argc, char** argv) {
             if(match_data_received && !mode_buffered) { //if we have match data and haven't buffered yet, buffer
                 ROS_INFO("Match data received no auto buffered yet");
                 if(generated_vect[auto_mode]) {
-                    if(auto_mode_vect[auto_mode] > 2) {
+                    if(auto_mode_vect[auto_mode] > 3) {
                         if(bufferTrajectory(all_modes[auto_mode_vect[auto_mode]][auto_mode][start_pos].srv_msg.response)) {
                             ROS_WARN("Buffering Profiled auto mode");
                             mode_buffered = true;
