@@ -92,6 +92,7 @@
 /frcrobot/total_current
 /rosout
 /rosout_agg
+/scan
 /tf
 /tf_static
 "/>

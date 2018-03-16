@@ -171,7 +171,7 @@ bool stopIntake(void) {
 }
 bool releaseIntake(void) {
 	elevator_controller::Intake srv;
-    srv.request.spring_state = 1;
+    srv.request.spring_state = 1; //hard out
     srv.request.power = 0;
     if (!IntakeService.call(srv))
 	{
@@ -381,87 +381,10 @@ void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &m
 	if (!(msg->isAutonomous && msg->isEnabled))
 		exit_auto = true;
 
-    /*
-    if(in_auto && MatchData->isAutonomous == false) {
-        in_teleop = true;
-    }
-    if(MatchData->isEnabled && MatchData->isAutonomous && MatchData->allianceData != "") {
-        if(lower(MatchData->allianceData)=="rlr") {
-            auto_mode = 0;
-            layout = 1;
-        }
-        else if(lower(MatchData->allianceData)=="lrl") {
-        //ROS_WARN("auto entered");
-        //ROS_WARN("2");
-            auto_mode = 1;
-            layout = 1;
-        }
-        else if(lower(MatchData->allianceData)=="rrr") {
-            auto_mode = 2;
-            layout = 2;
-        }
-        else if(lower(MatchData->allianceData) =="lll") {
-        //ROS_WARN("auto entered");
-        //ROS_WARN("3");
-            auto_mode = 3;
-            layout = 2;
-        }
-        in_auto = true;
-        //run_auto(auto_mode);
-    }
-    else if (MatchData->allianceData != "") {
-        if(lower(MatchData->allianceData)=="rlr") {
-            auto_mode = 0;
-            layout = 1;
-        }
-        else if(lower(MatchData->allianceData)=="lrl") {
-    //ROS_WARN("auto entered");
-        //ROS_WARN("2");
-            auto_mode = 1;
-            layout = 1;
-        }
-        else if(lower(MatchData->allianceData)=="rrr") {
-            auto_mode = 2;
-            layout = 2;
-        }
-        else if(lower(MatchData->allianceData) =="lll") {
-    //ROS_WARN("auto entered");
-        //ROS_WARN("3");
-            auto_mode = 3;
-            layout = 2;
-        }
-		// TODO :: Check this - are we really in auto mode if in this else() block
-        match_data_received = true;
-        
-        //if(auto_mode_vect[auto_mode] > 2) {
-            //bufferTrajectory(auto_mode);
-	    //TODO WHAT IS THIS FOR???
-        //}
-    }
-    else {
-        in_auto = false;
-    }
-    */
 }
 
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
     autoMode.writeFromNonRT(AutoMode(msg->mode, msg->delays, msg->position));
-    /*
-	for(int i = 0; i<4; i++) {
-		if ((AutoMode->mode[i] > 2) &&
-			((AutoMode->mode[i] != auto_mode_vect[i]) || (AutoMode->position != start_pos)))
-		{
-			generateTrajectory(i, AutoMode->mode[i]-3, AutoMode->position);
-            generated_vect[i] = true;
-		}
-		{
-			std::lock_guard<std::mutex> l(auto_mode_delays_mutex);
-			auto_mode_vect[i] = AutoMode->mode[i];
-			delays_vect[i] = AutoMode->delays[i];
-		}
-	}
-	start_pos = AutoMode->position;
-    */
 }
 
 
@@ -471,85 +394,102 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
     ros::Rate r(10);
     double start_time = ros::Time::now().toSec();
 
-	// TODO : need some way to set in_auto based on callback
-	// results
     while(!exit_auto && ros::Time::now().toSec() < start_time + initial_delay) {
         r.sleep(); 
     }
     start_time = ros::Time::now().toSec();
 
+    /*-------------------- Basic Cross line cmd vel auto ---------------------*/
     if(auto_select == 1) {
-        while(!exit_auto) { // TODO - should this be looped?
-            ROS_WARN("Basic drive forward auto");
-            //basic drive forward cmd_vel
-            geometry_msgs::Twist vel;
-            vel.linear.z = 0;
-            vel.angular.x = 0;
-            vel.angular.y = 0;
-            vel.angular.z = 0;
+        ROS_WARN("Basic drive forward auto");
+        geometry_msgs::Twist vel;
+        vel.linear.z = 0;
+        vel.angular.x = 0;
+        vel.angular.y = 0;
+        vel.angular.z = 0;
 
-            switchConfig(); 
-            if(auto_mode == 1 || auto_mode == 3) { //if goal is on the right
-               if(start_pos == 0) {
-                   const double delay = 6; //TODO
-                    while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
-                        vel.linear.x = 1.05; //positive x a lot
-                        vel.linear.y = 0.12; //positive y a little bit
-                        VelPub.publish(vel);
-                        r.sleep();
-                    }
-               }
-               if(start_pos == 2) {
-                   const double delay = 6; //TODO
-                   while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
-                        vel.linear.x = 1.05; //positive x a lot
-                        vel.linear.y = -0.12; //negative y a little bit
-                        VelPub.publish(vel);
-                        r.sleep();
-                    }
+        switchConfig(); 
+
+        /*---------------------- Our Switch is on the Right ------------------------*/
+
+        if(auto_mode == 1 || auto_mode == 3) {
+
+           /* Starting on the left -> go to the left */
+           if(start_pos == 0) {
+               const double delay = 6; //TODO
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = 1.05; //positive x a lot
+                    vel.linear.y = 0.12; //positive y a little bit
+                    VelPub.publish(vel);
+                    r.sleep();
                 }
-                else {
-                    const double delay = 3.04; //TODO
-                    while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
-                        vel.linear.x = 0.875; //positive x some
-                        vel.linear.y = 0.5; //positive y some
-                        VelPub.publish(vel);
-                        r.sleep();
-                    }
+           }
+           
+           /* Starting on the right -> go to the right */
+           if(start_pos == 2) {
+               const double delay = 6; //TODO
+               while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = 1.05; //positive x a lot
+                    vel.linear.y = -0.12; //negative y a little bit
+                    VelPub.publish(vel);
+                    r.sleep();
                 }
             }
-            else if(auto_mode == 2 || auto_mode == 4) { //goal is on the left
-                if(start_pos == 0){
-                    const double delay = 6; 
-                    while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
-                        vel.linear.x = 1.05; //positive x a lot
-                        vel.linear.y = 0.12; //positive y a little bit
-                        VelPub.publish(vel);
-                        r.sleep();
-                    }
-                }
-                if(start_pos == 2) {
-                    const double delay = 6; //TODO
-                    while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
-                        vel.linear.x = 1.05; //positive x a lot
-                        vel.linear.y = -0.12; //negative y a little bit
-                        VelPub.publish(vel);
-                        r.sleep();
-                    }
-                }
-                else {
-                    const double delay = 3.04; //TODO
-                    while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
-                        vel.linear.x = 0.875; //positive x some
-                        vel.linear.y = -0.3; //negative y some
-                        VelPub.publish(vel);
-                        r.sleep();
-                    }
+
+            /* Starting in the middle -> go to the left */
+            else {
+                const double delay = 3.04; //TODO
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = 0.875; //positive x some
+                    vel.linear.y = 0.5; //positive y some
+                    VelPub.publish(vel);
+                    r.sleep();
                 }
             }
-			parkingConfig();
         }
+
+        /*------------------ Our Switch is on the Left -------------------------*/
+
+        else if(auto_mode == 2 || auto_mode == 4) { //goal is on the left
+
+            /* Starting on the left -> go to the left */
+            if(start_pos == 0){
+                const double delay = 6; 
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = 1.05; //positive x a lot
+                    vel.linear.y = 0.12; //positive y a little bit
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+            }
+
+            /* Starting on the right -> go to the right */
+            if(start_pos == 2) {
+                const double delay = 6; //TODO
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = 1.05; //positive x a lot
+                    vel.linear.y = -0.12; //negative y a little bit
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+            }
+
+            /* Starting in the middle -> go to the right */
+            else {
+                const double delay = 3.04; //TODO
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = 0.875; //positive x some
+                    vel.linear.y = -0.3; //negative y some
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+            }
+        }
+        parkingConfig();
     }
+
+    /*--------------------- Basic Switch Cmd Vel -------------------------*/
+
 	else if(auto_select == 2) {
         ROS_WARN("Basic switch auto mode");
         //basic switch cmd_vel
@@ -561,7 +501,9 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
         double start_time = ros::Time::now().toSec();
         switchConfig(); 
-        if(auto_mode == 1 || auto_mode == 3) { //if goal is on the right
+
+        /* Our switch is on the right */
+        if(auto_mode == 1 || auto_mode == 3) {
            if(start_pos == 0) {
                const double delay = 3.5; //TODO
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
@@ -580,7 +522,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     r.sleep();
                 }
            }
-            else {
+           else {
                 const double delay = 3; //TODO
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.75;
@@ -592,7 +534,9 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
             }
             releaseClamp();
         }
-        else if(auto_mode == 2 || auto_mode == 4) { //goal is on the left
+
+        /* Our switch is on the left */
+        else if(auto_mode == 2 || auto_mode == 4) {
             if(start_pos == 0){
                 const double delay = 3; 
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
@@ -626,6 +570,8 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 		parkingConfig();
     }
     
+    /*--------------------------- Profiled Single Scale auto mode ------------------------*/
+
 	else if(auto_select == 3) {
         ROS_WARN("Profiled Scale");
         while (!exit_auto && !runTrajectory())
@@ -709,7 +655,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         midScale(); 
         r.sleep() //TODO
 
-        IntakeSrv.request.spring_state = 2;
+        IntakeSrv.request.spring_state = 2; //soft in
         IndtakeService.call();
 
         //6: Time 5: release Clamp
@@ -1015,7 +961,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         ros::Duration(times[0]).sleep();
         switchConfig();
 
-        IntakeSrv.request.spring_state=2;
+        IntakeSrv.request.spring_state=2; //spring state
         IntakeService.call();
 
         //14: Time something: release clamp
@@ -1133,66 +1079,76 @@ int main(int argc, char** argv) {
 	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    ros::Duration(30).sleep();
+    ros::Duration(3).sleep();
     ROS_WARN("post sleep");
+    
+    /*---------------------------- JUST FOR TESTING ------------------------------------ */
     generateTrajectory(all_modes[3][3][2]);
+    /*---------------------------- JUST FOR TESTING ------------------------------------ */
 
     ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
 
-	// TODO : enclose all of this in a while(ros::ok()) loop,
-	// have something at the bottom of it which loops at a slow rate 
-	// waiting for mode != telelop, then loop back to the top
-	// and start all over
-	//
-	// List of stuff to reset before waiting for next auto run
-    double auto_start_time = DBL_MAX;
-	std::vector<bool> generated_vect = {false, false, false, false};
-	std::vector<int> auto_mode_vect = {-1, -1, -1, -1};
-	std::vector<double> delays_vect = {0, 0, 0, 0};
-	int start_pos = 0;
-	bool match_data_received = false;
-	int auto_mode = -1;
-	int layout = 0;
-	bool in_auto = false;
-	bool mode_buffered = false;
-	bool end_auto = false;
-	bool in_teleop = false;
+    while(ros::ok()) {
+        double auto_start_time = DBL_MAX;
+        std::vector<bool> generated_vect = {false, false, false, false};
+        std::vector<int> auto_mode_vect = {-1, -1, -1, -1};
+        std::vector<double> delays_vect = {0, 0, 0, 0};
+        int start_pos = 0;
+        bool match_data_received = false;
+        int auto_mode = -1;
+        int layout = 0;
+        bool in_auto = false;
+        bool mode_buffered = false;
+        bool end_auto = false;
+        bool in_teleop = false;
+        ROS_WARN("Start of auto loop");
+        while(!in_teleop && !end_auto) {
+            ROS_WARN("In auto loop");
 
-	// TODO : rethink this loop - neither flag is ever set
-	// so decide what should trigger an exit
-    while(!in_teleop && !end_auto) {
+            MatchData match_data = *(matchData.readFromRT());
+            AutoMode auto_mode_data = *(autoMode.readFromRT());
 
-        MatchData match_data = *(matchData.readFromRT());
-        AutoMode auto_mode_data = *(autoMode.readFromRT());
-
-        if(!match_data_received && !in_auto) { //accept changes to chosen auto_modes until we receive match data or auto starts
-            //loop through auto_mode data 
-            //generate trajectories for all changed modes
-            for(int i = 0; i<4; i++) {
-                if ((auto_mode_data.modes_[i] > 2) &&
-                    ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
-                {
-					// TODO : Check return code here 
-					//        if it is false don't set generated_vect and reset auto_mode_vect[i] == -1?
-                    generateTrajectory(all_modes[i][auto_mode_data.modes_[i] - 3][auto_mode_data.start_pos_]);
-                    generated_vect[i] = true;
+            if(!match_data_received && !in_auto) { //accept changes to chosen auto_modes until we receive match data or auto starts
+                ROS_INFO("No match data and not in auto");
+                //loop through auto_mode data 
+                //generate trajectories for all changed modes
+                for(int i = 0; i<4; i++) {
+                    if ((auto_mode_data.modes_[i] > 2) &&
+                        ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
+                    {
+                        if(generateTrajectory(all_modes[i][auto_mode_data.modes_[i] - 3][auto_mode_data.start_pos_])) {
+                            generated_vect[i] = true;
+                            auto_mode_vect[i] = auto_mode_data.modes_[i];
+                            delays_vect[i] = auto_mode_data.delays_[i];
+                            start_pos = auto_mode_data.start_pos_;
+                            ROS_WARN("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+                        }
+                        else {
+                            auto_mode_vect[i] = -1;
+                            start_pos = -1;
+                            generated_vect[i] = false;
+                            ROS_WARN("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+                        }
+                    }
+                    else if (auto_mode_data.modes_[i] <= 2 && (auto_mode_data.modes_[i] >= 0) &&
+                        ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
+                    {
+                        auto_mode_vect[i] = auto_mode_data.modes_[i];
+                        delays_vect[i] = auto_mode_data.delays_[i];
+                        start_pos = auto_mode_data.start_pos_;
+                        ROS_WARN("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+                    }
                 }
-				auto_mode_vect[i] = auto_mode_data.modes_[i];
-				delays_vect[i] = auto_mode_data.delays_[i];
             }
-            start_pos = auto_mode_data.start_pos_;
-        }
-		// TODO: Might not want to wrap this in !match_data_received
-		//       that way for testing we can reset match data
-		//       and have it take effect
-        if(!match_data_received) { //look for match data until we have it or have given up
-			// TODO : reset in_auto?
-			//        check for disabled?
+
             if(in_auto && match_data.isAutonomous_ == false) {
+                ROS_WARN("Leaving Autonomous to teleop");
                 in_teleop = true;
             }
             if (match_data.alliance_data_ != "") {
+                ROS_INFO("Receiving alliance data");
+                match_data_received = true;
                 if(lower(match_data.alliance_data_)=="rlr") {
                     auto_mode = 0;
                     layout = 1;
@@ -1209,58 +1165,91 @@ int main(int argc, char** argv) {
                     auto_mode = 3;
                     layout = 2;
                 } 
-				// TODO : add a final else and report an error and don't set match_data_received
-                // TODO :: Check this - are we really in auto mode if in this else() block
-                match_data_received = true;
-                
-                //if(auto_mode_vect[auto_mode] > 2) {
-                    //bufferTrajectory(auto_mode);
-                //TODO WHAT IS THIS FOR???
-                //}
+                else {
+                    ROS_ERROR("Invalid Alliance Data");
+                    match_data_received = false;
+                }
             }
             else {
+                ROS_INFO("No alliance data");
                 match_data_received = false;
             }
-        }
-        if(!match_data_received && ros::Time::now().toSec() > auto_start_time + 2) { //if match data isn't found after 2 seconds of auto starting run default auto
-            auto_mode = 0;
-            auto_mode_vect[0] = 1; //default auto: cross baseline
-            match_data_received = true;
-			// TODO - need to set mode_buffered?
-        }
-        if(!in_auto) { //check for auto to start and set a start time
-            if(match_data.isAutonomous_ && match_data.isEnabled_) {
-                in_auto = true;
-                auto_start_time = ros::Time::now().toSec();
+            if(!match_data_received && ros::Time::now().toSec() > auto_start_time + 2) { //if match data isn't found after 2 seconds of auto starting run default auto
+                ROS_INFO("In first two seconds of auto with no match data");
+                auto_mode = 0;
+                auto_mode_vect[0] = 1; //default auto: cross baseline
+                generated_vect[0] = true;
+                match_data_received = true;
             }
-        }
-        if(in_auto && mode_buffered) { //if in auto with a mode buffered run it
-			// TODO : be very sure auto_mode has to have a valid value
-			// here before using it
-            run_auto(auto_mode_vect[auto_mode], auto_mode, layout, start_pos, 
-					 delays_vect[auto_mode], all_modes[auto_mode][layout][start_pos].times);
-			// Auto finished, either by finishing the requested path
-			// or by match data reporting not in autonomous
-			in_auto = false;
+            if(!in_auto) { //check for auto to start and set a start time
+                ROS_INFO("Not in auto yet");
+                if(match_data.isAutonomous_ && match_data.isEnabled_) {
+                    ROS_WARN("Entering Auto");
+                    in_auto = true;
+                    auto_start_time = ros::Time::now().toSec();
+                }
+            }
+            if(in_auto) {
+                ROS_INFO("In auto");
+                if(!match_data.isAutonomous_ || !match_data.isEnabled_) {
+                    ROS_WARN("Disabled in Auto");
+                    in_auto = false;
+                    auto_start_time = DBL_MAX;
+                }
+            }
+
+            if(match_data_received && !mode_buffered) { //if we have match data and haven't buffered yet, buffer
+                ROS_INFO("Match data received no auto buffered yet");
+                if(generated_vect[auto_mode]) {
+                    if(auto_mode_vect[auto_mode] > 2) {
+                        if(bufferTrajectory(all_modes[auto_mode_vect[auto_mode]][auto_mode][start_pos].srv_msg.response)) {
+                            ROS_WARN("Buffering Profiled auto mode");
+                            mode_buffered = true;
+                        }
+                    }
+                    else {
+                        ROS_WARN("Fake buffering cmd_vel auto mode");
+                        mode_buffered = true;
+                    }
+                }
+                else {
+                    ROS_WARN("No path generated when match_data received");
+                }
+            }
+
+            if(in_auto && mode_buffered) { //if in auto with a mode buffered run it
+                ROS_INFO("Match data received and auto buffered");
+                run_auto(auto_mode_vect[auto_mode], auto_mode, layout, start_pos, 
+                         delays_vect[auto_mode], all_modes[auto_mode][layout][start_pos].times);
+                ROS_WARN("Running Auto");
+                // Auto finished, either by finishing the requested path
+                // or by match data reporting not in autonomous
+                in_auto = false;
+                end_auto = true;
+            }
+
+            r.sleep();
         }
 
-		// TODO : why not move this above run_auto code?
-        if(match_data_received && !mode_buffered) { //if we have match data and haven't buffered yet, buffer
-			// TODO : be very sure auto_mode has to have a valid value
-			// here before using it
-            if(generated_vect[auto_mode]) {
-                if(auto_mode_vect[auto_mode] > 2) {
-					// TODO : check return code of bufferTrajectory, only set mode_buffered
-					// if it was successful
-                    bufferTrajectory(all_modes[auto_mode_vect[auto_mode]][auto_mode][start_pos].srv_msg.response);
-                }
-                mode_buffered = true;
-            }
-            else {
-                ROS_WARN("No path generated when match_data received");
+        /* ------------- For testing wait until !in_teleop to loop back to beginning -----------------------*/
+        ros::Rate slow(.5);
+        ROS_WARN("Exited Auto loop");
+        while(end_auto) {
+            ROS_INFO("Between auto and teleop or robot disabled");
+            MatchData match_data = *(matchData.readFromRT());
+            if(!match_data.isAutonomous_ || !match_data.isEnabled_) {
+                end_auto = false;
+                in_teleop = !match_data.isAutonomous_;
             }
         }
-        r.sleep();
+        while(in_teleop) {
+            ROS_INFO("Exited auto into teleop");
+            MatchData match_data = *(matchData.readFromRT());
+            if(!match_data.isEnabled_ || match_data.isAutonomous_) {
+                in_teleop = false;
+            }
+            slow.sleep(); 
+        }
     }
     return 0;
 }

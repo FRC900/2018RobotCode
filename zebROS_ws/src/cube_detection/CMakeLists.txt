@@ -3,20 +3,7 @@ project(cube_detection)
 
 include ("../cmake_modules/CMakeOpt.cmake")
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
-
-# Don't cross build, also skip building
-# if the ZED SDK is missing
-unset(BUILD_ME CACHE)
 if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-  find_package(ZED)
-  if (ZED_FOUND)
-	  set (BUILD_ME_CUBE_DETECTION True)
-  endif()
-endif()
-
-if (BUILD_ME_CUBE_DETECTION)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -31,12 +18,6 @@ if (BUILD_ME_CUBE_DETECTION)
      )
   find_package(OpenCV REQUIRED)
   find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
-
-  link_directories(${ZED_LIBRARY_DIR})
-
-  ## System dependencies are found with CMake's conventions
-  # find_package(Boost REQUIRED COMPONENTS system)
-
 
   ## Uncomment this if the package has a setup.py. This macro ensures
   ## modules and global scripts declared therein get installed
@@ -185,7 +166,6 @@ generate_messages(
   target_link_libraries(cube_detection_node
      ${catkin_LIBRARIES}
      ${OpenCV_LIBS} 
-     ${ZED_LIBRARIES} 
      ${Boost_LIBRARIES} 
      ${LibTinyXML2} 
      #${PCL_LIBRARIES}
