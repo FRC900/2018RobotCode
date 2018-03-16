@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "vid_reader");
 	ros::NodeHandle nh("~");
 	int sub_rate = 5;
-	int pub_rate;
+	int pub_rate = 1;
 	nh.getParam("pub_rate", pub_rate);
 
 	ros::Publisher zms_pub;
@@ -57,12 +57,16 @@ int main(int argc, char **argv)
 	FrameTicker frameTicker;
 	while (cap->getFrame(image, depth))
 	{
+
+
 		frameTicker.mark();
 
 		vid_reader_node::VidReader vid_reader_msg;
 
 		sensor_msgs::Image depth_in;
 		sensor_msgs::Image rgb_in;
+		
+		//ROS_INFO_STREAM("Depth: " << 
 
 		vid_reader_msg.header.seq = 1;
 		vid_reader_msg.header.stamp = ros::Time::now();
@@ -70,7 +74,6 @@ int main(int argc, char **argv)
 
 		rgb_in.height = image.rows;
 		rgb_in.width = image.cols;
-
 		depth_in.height = depth.rows;
 		depth_in.width = depth.cols;
 
@@ -95,6 +98,7 @@ int main(int argc, char **argv)
 		stringstream ss;
 		ss << fixed << setprecision(2) << cap->FPS() << "C:" << frameTicker.getFPS() << "GD FPS";
 		putText(image, ss.str(), Point(image.cols - 15 * ss.str().length(), 50), FONT_HERSHEY_PLAIN, 1.5, Scalar(0,0,255));
+		ros::Duration(.1).sleep();
 
 		zms_pub = nh.advertise<sensor_msgs::Image>("/zed_goal/left/image_rect_color", pub_rate);
 		zms_pub1 = nh.advertise<sensor_msgs::Image>("/zed_goal/depth/depth_registered", pub_rate);

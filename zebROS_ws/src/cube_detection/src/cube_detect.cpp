@@ -34,12 +34,12 @@ using namespace sensor_msgs;
 using namespace message_filters;
 
 int hLo = 18;
-int sLo = 110;
+int sLo = 30;
 int vLo = 180;
 int hUp = 47;
 
 int maxTrans = 15900;
-int minTrans = 500;
+int minTrans = 2000;
 
 int pixelError = .06;
 
