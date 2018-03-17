@@ -920,7 +920,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				r.sleep();
 			}
 		}
-	    else {
+	    else if(start_pos != 1){
 	    //ROS_WARN("2 Scale 1 switch");
 		while(!exit_auto && !runTrajectory())
 			r.sleep();
@@ -964,6 +964,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				releaseClamp();
 				exit_auto = true;
 		    }
+		else {ROS_INFO_STREAM("Do nothing, start_pos = 1");}
 		last_time = curr_time;
 		r.sleep();
 		}
