@@ -441,6 +441,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			}
 		}
 		//ALast = 0; //Remove flag
+
 		/*Back button press(M2) - Just intake no arm*/
 		if (JoystickState->buttonBackPress == true)
 		{
@@ -902,7 +903,7 @@ For right now we will just go back out and then call "go to intake config"
 
 		}
 	}
-	/*------------------------Back Button - Hold Spin Out------------------------------------*/
+	/*------------------------Back Button(M2) - Hold Spin Out------------------------------------*/
 	if (JoystickState->buttonBackButton == true)
 	{
 		srvIntake.request.power = -1;

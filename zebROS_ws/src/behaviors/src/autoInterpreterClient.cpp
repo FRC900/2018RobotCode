@@ -5,6 +5,8 @@
 
 std::atomic<bool> exit_auto; // robot is disabled or teleop started during auto_loop
 
+std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
+
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
 
@@ -29,6 +31,9 @@ double intake_ready_to_drop_y;
 bool intake_ready_to_drop_up_or_down;
 double default_x;
 double default_y;
+double run_out_start;
+static bool default_up_or_down;
+
 
 struct MatchData {
     MatchData():
@@ -210,6 +215,19 @@ bool intakeOut(void) {
 	{
 		ROS_ERROR("Service call failed : IntakeService in intakeOut");
 	}
+    run_out_start = ros::Time::now().toSec();
+	return true;
+}
+
+bool intakeStop(void) {
+    elevator_controller::Intake srv;
+	srv.request.power = 0;
+	srv.request.spring_state = 2; //soft-in
+	if(!IntakeService.call(srv))
+	{
+		ROS_ERROR("Service call failed : IntakeService in intakeStop");
+	}
+    run_out_start = DBL_MAX;
 	return true;
 }
 
@@ -441,7 +459,6 @@ void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
 }
 
 
-std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
 void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay, const std::vector<double> &times) {
     //ROS_WARN("auto entered");
     exit_auto = false;
@@ -873,6 +890,8 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
     }*/
 /*--------------------------Either 2 scale 1 switch OR 3 scale 1 switch, depending------------------------------*/
     else if(auto_select == 5) {
+
+        behaviors::RobotGoal goal;
 	    if((auto_mode == 3 && start_pos == 2) || (auto_mode == 4 && start_pos == 0)) //if we are on the same side as both the switch and scale
 	    {
 			//ROS_WARN("3 Scale 1 switch");	
@@ -882,6 +901,8 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 			while(!exit_auto) {
 			//Profiled scale
 				const double curr_time = ros::Time::now().toSec();
+                
+
 				/** SCALE 1 **/
 				if(curr_time > times[0] && curr_time <= times[0] + (curr_time-last_time)) {
 					//ROS_WARN("Profiled Scale elevator to mid reached");
@@ -894,6 +915,19 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				if(curr_time > times[2] && curr_time <= times[2] + (curr_time-last_time)) {
 					//ROS_WARN("Intaking Cube and going to intake config");
 					//robot_goal.IntakeCube = true; 
+                    goal.IntakeCube = true;
+                    goal.MoveToIntakeConfig = false;
+                    goal.x = default_x;
+                    goal.y = default_y;
+                    goal.up_or_down = default_up_or_down;
+                    goal.override_pos_limits = false;
+                    goal.dist_tolerance = .5;
+                    goal.x_tolerance = .5;
+                    goal.y_tolerance = .5;
+                    goal.time_out = 7;
+
+                    ac->sendGoal(goal);
+                    
 				}
 				/** SCALE 2 **/
 				if(curr_time > times[3] && curr_time <= times[3] + (curr_time-last_time)) {
@@ -907,6 +941,18 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				if(curr_time > times[5] && curr_time <= times[5] + (curr_time-last_time)) {
 					//ROS_WARN("intaking cube and going to intake config");
 					//robot_goal.intakeCube = true;
+                    goal.IntakeCube = true;
+                    goal.MoveToIntakeConfig = false;
+                    goal.x = default_x;
+                    goal.y = default_y;
+                    goal.up_or_down = default_up_or_down;
+                    goal.override_pos_limits = false;
+                    goal.dist_tolerance = .5;
+                    goal.x_tolerance = .5;
+                    goal.y_tolerance = .5;
+                    goal.time_out = 7;
+
+                    ac->sendGoal(goal);
 				}
 				//scale 3
 				if(curr_time > times[6] && curr_time <= times[6] + (curr_time-last_time)) {
@@ -920,6 +966,18 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				if(curr_time > times[8] && curr_time <= times[8] + (curr_time-last_time)) {
 					//ROS_WARN("intaking cube and going to intake config");
 					//robot_goal.intakeCube = true; 
+                    goal.IntakeCube = true;
+                    goal.MoveToIntakeConfig = false;
+                    goal.x = default_x;
+                    goal.y = default_y;
+                    goal.up_or_down = default_up_or_down;
+                    goal.override_pos_limits = false;
+                    goal.dist_tolerance = .5;
+                    goal.x_tolerance = .5;
+                    goal.y_tolerance = .5;
+                    goal.time_out = 7;
+
+                    ac->sendGoal(goal);
 				}
 				/** SWITCH **/
 				if(curr_time > times[9] && curr_time <= times[9] + (curr_time-last_time)) {
@@ -956,6 +1014,18 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				if(curr_time > times[2] && curr_time <= times[2] + (curr_time-last_time)) {
 					//ROS_WARN("intaking cube and going to intake config");
 					//robot_goal.intakecube = true;
+                    goal.IntakeCube = true;
+                    goal.MoveToIntakeConfig = false;
+                    goal.x = default_x;
+                    goal.y = default_y;
+                    goal.up_or_down = default_up_or_down;
+                    goal.override_pos_limits = false;
+                    goal.dist_tolerance = .5;
+                    goal.x_tolerance = .5;
+                    goal.y_tolerance = .5;
+                    goal.time_out = 7;
+
+                    ac->sendGoal(goal);
 				}
 
 			   	 /** SCALE 1 **/
@@ -970,6 +1040,18 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				if(curr_time > times[5] && curr_time <= times[5] + (curr_time-last_time)) {
 					//ROS_WARN("Intaking Cube and going to intake config");
 					//robot_goal.IntakeCube = true;
+                    goal.IntakeCube = true;
+                    goal.MoveToIntakeConfig = false;
+                    goal.x = default_x;
+                    goal.y = default_y;
+                    goal.up_or_down = default_up_or_down;
+                    goal.override_pos_limits = false;
+                    goal.dist_tolerance = .5;
+                    goal.x_tolerance = .5;
+                    goal.y_tolerance = .5;
+                    goal.time_out = 7;
+
+                    ac->sendGoal(goal);
 				}
 				/** SCALE 2 **/
 				if(curr_time > times[6] && curr_time <= times[6] + (curr_time-last_time)) {
@@ -1008,6 +1090,18 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				if(curr_time > times[2] && curr_time <= times[2] + (curr_time-last_time)) {
 					//ROS_WARN("Intaking Cube and going to intake config");
 					//robot_goal.IntakeCube = true;
+                    goal.IntakeCube = true;
+                    goal.MoveToIntakeConfig = false;
+                    goal.x = default_x;
+                    goal.y = default_y;
+                    goal.up_or_down = default_up_or_down;
+                    goal.override_pos_limits = false;
+                    goal.dist_tolerance = .5;
+                    goal.x_tolerance = .5;
+                    goal.y_tolerance = .5;
+                    goal.time_out = 7;
+
+                    ac->sendGoal(goal);
 				}
 				/** SCALE 2 **/
 				if(curr_time > times[3] && curr_time <= times[3] + (curr_time-last_time)) {
@@ -1021,6 +1115,18 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				if(curr_time > times[5] && curr_time <= times[5] + (curr_time-last_time)) {
 					//ROS_WARN("intaking cube and going to intake config");
 					//robot_goal.intakecube = true;
+                    goal.IntakeCube = true;
+                    goal.MoveToIntakeConfig = false;
+                    goal.x = default_x;
+                    goal.y = default_y;
+                    goal.up_or_down = default_up_or_down;
+                    goal.override_pos_limits = false;
+                    goal.dist_tolerance = .5;
+                    goal.x_tolerance = .5;
+                    goal.y_tolerance = .5;
+                    goal.time_out = 7;
+
+                    ac->sendGoal(goal);
 				}
 				/** SWITCH **/
 				if(curr_time > times[6] && curr_time <= times[6] + (curr_time-last_time)) {
@@ -1043,12 +1149,19 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 	/***** 1 switch and 2 exchange *****/
 	else if (auto_select == 6) {
         //ROS_WARN("Profiled Scale");
+        behaviors::RobotGoal goal;
         while (!exit_auto && !runTrajectory())
 			r.sleep();
 		double last_time = 0;
         while (!exit_auto)
 		{
 			const double curr_time = ros::Time::now().toSec();
+
+            /** Exchange check **/
+            if(curr_time > run_out_start + 2) {
+                intakeStop();
+            }
+
 		    /** SWITCH 1 **/
 		    if (curr_time > times[0] && curr_time <= times[0] + (curr_time-last_time))
 			{
@@ -1061,7 +1174,18 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 			/** EXCHANGE 1 **/
 			if (curr_time > times[2] && curr_time <= times[2] + (curr_time - last_time))
 			{
-				intakeConfig();
+                goal.IntakeCube = true;
+                goal.MoveToIntakeConfig = false;
+                goal.x = default_x;
+                goal.y = default_y;
+                goal.up_or_down = default_up_or_down;
+                goal.override_pos_limits = false;
+                goal.dist_tolerance = .5;
+                goal.x_tolerance = .5;
+                goal.y_tolerance = .5;
+                goal.time_out = 7;
+
+                ac->sendGoal(goal);
 			}
 			if (curr_time > times[3] && curr_time <= times[3] + (curr_time - last_time))
 			{
@@ -1070,7 +1194,18 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 			/** EXCHANGE 2 **/
 			if (curr_time > times[4] && curr_time <= times[4] + (curr_time - last_time))
 			{
-				intakeConfig();
+                goal.IntakeCube = true;
+                goal.MoveToIntakeConfig = false;
+                goal.x = default_x;
+                goal.y = default_y;
+                goal.up_or_down = default_up_or_down;
+                goal.override_pos_limits = false;
+                goal.dist_tolerance = .5;
+                goal.x_tolerance = .5;
+                goal.y_tolerance = .5;
+                goal.time_out = 7;
+
+                ac->sendGoal(goal);
 			}
 			if (curr_time > times[5] && curr_time <= times[5] + (curr_time - last_time))
 			{
@@ -1087,6 +1222,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 	/***** 1 switch and 3 exchange *****/
 	else if (auto_select == 7) {
         //ROS_WARN("Profiled Scale and Exchange");
+        behaviors::RobotGoal goal;
         while (!exit_auto && !runTrajectory())
 			r.sleep();
 		double last_time = 0;
@@ -1105,7 +1241,18 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 			/** EXCHANGE 1 **/
 			if (curr_time > times[2] && curr_time <= times[2] + (curr_time - last_time))
 			{
-				intakeConfig();
+                goal.IntakeCube = true;
+                goal.MoveToIntakeConfig = false;
+                goal.x = default_x;
+                goal.y = default_y;
+                goal.up_or_down = default_up_or_down;
+                goal.override_pos_limits = false;
+                goal.dist_tolerance = .5;
+                goal.x_tolerance = .5;
+                goal.y_tolerance = .5;
+                goal.time_out = 7;
+
+                ac->sendGoal(goal);
 			}
 			if (curr_time > times[3] && curr_time <= times[3] + (curr_time - last_time))
 			{
@@ -1114,7 +1261,18 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 			/** EXCHANGE 2 **/
 			if (curr_time > times[4] && curr_time <= times[4] + (curr_time - last_time))
 			{
-				intakeConfig();
+                goal.IntakeCube = true;
+                goal.MoveToIntakeConfig = false;
+                goal.x = default_x;
+                goal.y = default_y;
+                goal.up_or_down = default_up_or_down;
+                goal.override_pos_limits = false;
+                goal.dist_tolerance = .5;
+                goal.x_tolerance = .5;
+                goal.y_tolerance = .5;
+                goal.time_out = 7;
+
+                ac->sendGoal(goal);
 			}
 			if (curr_time > times[5] && curr_time <= times[5] + (curr_time - last_time))
 			{
@@ -1123,7 +1281,18 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 			/** EXCHANGE 3 **/
 			if (curr_time > times[6] && curr_time <= times[6] + (curr_time - last_time))
 			{
-				intakeConfig();
+                goal.IntakeCube = true;
+                goal.MoveToIntakeConfig = false;
+                goal.x = default_x;
+                goal.y = default_y;
+                goal.up_or_down = default_up_or_down;
+                goal.override_pos_limits = false;
+                goal.dist_tolerance = .5;
+                goal.x_tolerance = .5;
+                goal.y_tolerance = .5;
+                goal.time_out = 7;
+
+                ac->sendGoal(goal);
 			}
 			if (curr_time > times[7] && curr_time <= times[7] + (curr_time - last_time))
 			{
@@ -1565,6 +1734,9 @@ int main(int argc, char** argv) {
 		ROS_ERROR("Didn't read param default_x in autoInterpreterClient");
     if (!n_params.getParam("default_y", default_y))
 		ROS_ERROR("Didn't read param default_y in autoInterpreterClient");
+	if (!n_params.getParam("default_up_or_down", default_up_or_down))
+		ROS_ERROR("Could not read default_up_or_down");
+
 
     int max_num_mode;
     int max_num_start;
