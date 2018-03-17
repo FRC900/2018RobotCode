@@ -1,6 +1,6 @@
 Header header
 
-int8 matchTimeRemaining
+int32 matchTimeRemaining
 
 string allianceData
 int8 allianceColor

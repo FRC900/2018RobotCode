@@ -695,10 +695,19 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
             /* Starting in the middle go to right switch */
             else {
-                const double delay = 3; //Goes 1/2 meter past leading edge of our switch
-                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
-                    vel.linear.x = -1.05;
-                    vel.linear.y = 0.45; 
+                const double delay_1 = 1.733; //Goes 1/2 meter past leading edge of our switch
+                const double delay_2 = 4.075;
+                double cur_time;
+                while(ros::Time::now().toSec() < start_time + delay_1 + delay_2 && !exit_auto) {
+                    cur_time = ros::Time::now().toSec();
+                    if(cur_time < start_time + delay_1) {
+                        vel.linear.x = 0;
+                        vel.linear.y = -0.75;
+                    }
+                    if(cur_time > start_time + delay_1 && cur_time < start_time + delay_1 + delay_2) {
+                        vel.linear.x = .75;
+                        vel.linear.y = 0;
+                    }
                     VelPub.publish(vel);
                     r.sleep();
                 }
@@ -734,10 +743,20 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
             /* Starting in the middle go to the left switch */
             else {
-                const double delay = 3; //Goes 1/2 meter past leading edge of our switch
-                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
-                    vel.linear.x = -1.5;
-                    vel.linear.y = -.75;
+                const double delay_1 = 2.267; //Goes 1/2 meter past leading edge of our switch
+                const double delay_2 = 4.075;
+                //.75 vel
+                double cur_time;
+                while(ros::Time::now().toSec() < start_time + delay_1+delay_2 && !exit_auto) {
+                    cur_time = ros::Time::now().toSec();
+                    if(cur_time < start_time + delay_1) {
+                        vel.linear.x = 0;
+                        vel.linear.y = 0.75;
+                    }
+                    if(cur_time > start_time + delay_1 && cur_time < start_time + delay_1 + delay_2) {
+                        vel.linear.x = .75;
+                        vel.linear.y = 0;
+                    }
                     VelPub.publish(vel);
                     r.sleep();
                 }

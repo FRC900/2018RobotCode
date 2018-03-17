@@ -775,6 +775,7 @@ bool ElevatorController::intakeService(elevator_controller::Intake::Request &com
 		}
 		else
 		{
+            ROS_WARN("intake called");
 			const IntakeCommand cur_intake_cmd = *(intake_command_.readFromRT());
 			intake_struct.up_command = cur_intake_cmd.up_command;
 			intake_struct.spring_command = cur_intake_cmd.spring_command;
