@@ -80,6 +80,8 @@ static double move_out_pos_y;
 static bool move_out_up_or_down;
 static double move_out_down_y;
 
+std::atomic<bool> intake_up;
+
 enum pos {high_scale, mid_scale, low_scale, switch_c, exchange, intake_ready_to_drop, intake, intake_low, climb_c, default_c, other};
 
 /*
@@ -145,6 +147,9 @@ void intakeGoToDefault()
 	srvIntake.request.up = false;
 	if (!IntakeSrv.call(srvIntake))
 		ROS_ERROR("IntakeSrv call failed in teleop go to default");
+    else {
+        intake_up = false;
+    }
 
 }
 void unToggle(const pos last_achieved_pos, const ElevatorPos &elevatorPosBefore, pos &achieved_pos, std::string &currentToggle)
@@ -290,6 +295,10 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		if (!IntakeSrv.call(srvIntake)) //Is it worth trying to clamp or run the intake slowly?
 			ROS_ERROR("IntakeSrv call failed in teleop joystick climb config");
 		*/
+        else {
+            intake_up = false;
+        }
+
 		if(!ElevatorSrv.call(srvElevator))
 		{
 			ROS_ERROR("Climb config srv call failed");
@@ -459,6 +468,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			srvIntake.request.up = false;
 			if (!IntakeSrv.call(srvIntake))
 				ROS_ERROR("IntakeSrv call failed in spit out cube");
+            else {
+                intake_up = false;
+            }
 			ROS_INFO("teleop : Intake with cube");
 
 		}
@@ -540,6 +552,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvIntake.request.up = false;
 		if (!IntakeSrv.call(srvIntake))
 			ROS_ERROR("IntakeSrv call failed in ready_to_spin_out_check");
+        else {
+            intake_up = false;
+        }
 		ROS_INFO("teleop : called IntakeSrv in ready_to_spin_out_check");
 		finish_spin_out_check = true;
 		ready_to_spin_out_check = false;
@@ -554,6 +569,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvIntake.request.up = false;
 		if (!IntakeSrv.call(srvIntake))
 			ROS_ERROR("IntakeSrv call failed in finish_spin_out_check");
+        else {
+            intake_up = false;
+        }
 		ROS_INFO("teleop : called IntakeSrv in finish_spin_out_check");
 		finish_spin_out_check = false;
 
@@ -671,6 +689,9 @@ For right now we will just go back out and then call "go to intake config"
 		srvIntake.request.up = false;
 		if (!IntakeSrv.call(srvIntake))
 			ROS_ERROR("IntakeSrv call failed in run_out");
+        else {
+            intake_up = false;
+        }
 		ROS_INFO("teleop : Intake run out finished");
 		run_out = false;
 	}
@@ -714,6 +735,9 @@ For right now we will just go back out and then call "go to intake config"
 				srvIntake.request.up = true; //
 				if (!IntakeSrv.call(srvIntake))
 					ROS_ERROR("IntakeSrv call failed in go to switch config");
+                else {
+                    intake_up = true;
+                }
 								
 
 				srvElevator.request.x = switch_config_x;
@@ -812,15 +836,22 @@ For right now we will just go back out and then call "go to intake config"
 			}
 		}
 	}
-	/*---------------------Right Button - Press Bring Up Intake-------------------*/
+	/*---------------------Right Button(M6) - Press Bring Up Intake-------------------*/
 	if (JoystickState->directionRightPress == true)
 	{
-		currentToggle = "right";
 		srvIntake.request.power = 0;
-		srvIntake.request.up = true;
 		srvIntake.request.spring_state = 1; //hard_out
+        if(intake_up) {
+            srvIntake.request.up = false;
+        }
+        else {
+            srvIntake.request.up = true;
+        }
 		if (!IntakeSrv.call(srvIntake))
 			ROS_ERROR("IntakeSrv call failed in direction right press");
+        else {
+            intake_up = !intake_up;
+        }
 		ROS_INFO("teleop : called IntakeSrv in direction right press");
 	}
 	/*-----------------------------------------Low/High Scale-----------------------------------------*/
@@ -911,6 +942,9 @@ For right now we will just go back out and then call "go to intake config"
 		srvIntake.request.spring_state = 2; //soft_in
 		if (!IntakeSrv.call(srvIntake))
 			ROS_ERROR("IntakeSrv call failed in back button");
+        else {
+            intake_up = false;
+        }
 		ROS_INFO("teleop : called IntakeSrv in BackButton press");
 	}
 	if (JoystickState->buttonBackRelease == true)
@@ -919,6 +953,9 @@ For right now we will just go back out and then call "go to intake config"
 		srvIntake.request.up = false;
 		if (!IntakeSrv.call(srvIntake))
 			ROS_ERROR("IntakeSrv call failed in back button released");
+        else {
+            intake_up = false;
+        }
 		ROS_INFO("teleop : called IntakeSrv in BackButton release");
 	}
 
