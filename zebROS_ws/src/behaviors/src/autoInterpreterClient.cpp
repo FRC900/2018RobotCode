@@ -234,13 +234,16 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 				if(auto_data.getParam(identifier, mode_xml))
 				{
 					//ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
-					const int num_splines = mode_xml.size();
+                    XmlRpc::XmlRpcValue coefs_xml = mode_xml["coefs"];
+                    XmlRpc::XmlRpcValue times_xml = mode_xml["times"];
+					const int num_splines = coefs_xml.size();
+                    const int num_times = times_xml.size();
 					for(int num = 0; num<num_splines; num++) {
-						XmlRpc::XmlRpcValue &spline = mode_xml[num];
+						XmlRpc::XmlRpcValue &spline = coefs_xml[num];
 						XmlRpc::XmlRpcValue &x = spline["x"];
 						XmlRpc::XmlRpcValue &y = spline["y"];
 						XmlRpc::XmlRpcValue &orient = spline["orient"];
-						XmlRpc::XmlRpcValue &time = spline["time"];
+						//XmlRpc::XmlRpcValue &time = spline["time"];
 
 						swerve_point_generator::Coefs x_coefs;
 						swerve_point_generator::Coefs y_coefs;
@@ -255,13 +258,17 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 						    y_coefs.spline.push_back(y_coef);
 						    orient_coefs.spline.push_back(orient_coef);
 						}
-						const double t = time;
-						all_modes[mode][layout][start_pos].times.push_back(t);
+						//const double t = time;
+						//all_modes[mode][layout][start_pos].times.push_back(t);
 						all_modes[mode][layout][start_pos].srv_msg.request.x_coefs.push_back(x_coefs);
 						all_modes[mode][layout][start_pos].srv_msg.request.y_coefs.push_back(y_coefs);
 						all_modes[mode][layout][start_pos].srv_msg.request.orient_coefs.push_back(orient_coefs);
 						all_modes[mode][layout][start_pos].srv_msg.request.end_points.push_back(num+1);
 					}
+                    for(int num = 0; num<num_times; num++) {
+                        const double t = times_xml[num];
+						all_modes[mode][layout][start_pos].times.push_back(t);
+                    }
 					all_modes[mode][layout][start_pos].srv_msg.request.initial_v = 0; 
 					all_modes[mode][layout][start_pos].srv_msg.request.final_v = 0; 
 					all_modes[mode][layout][start_pos].exists = true; 
