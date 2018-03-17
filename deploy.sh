@@ -16,6 +16,7 @@ UPDATE_LINKS_ONLY=0
 # Location of the code.
 LOCAL_CLONE_LOCATION=$HOME/2018RobotCode
 ROS_CODE_LOCATION=$LOCAL_CLONE_LOCATION/zebROS_ws
+RSYNC_OPTIONS=""
 
 usage() {
     echo "Usage: $0 [-d|-p]"
@@ -38,6 +39,10 @@ while [[ $# -gt 0 ]] ; do
         ;;
     -d|--dev)
         INSTALL_ENV=dev
+        shift
+        ;;
+    -o|--one-dir-sync)
+        RSYNC_OPTIONS="--delete"
         shift
         ;;
     -u|--update-links-only)
@@ -87,7 +92,7 @@ fi
 echo "Synchronizing local changes TO $INSTALL_ENV environment."
 scp $ROS_CODE_LOCATION/ROSJetsonMaster.sh $JETSON_ADDR:$JETSON_ROS_CODE_LOCATION
 scp $ROS_CODE_LOCATION/ROSJetsonMaster.sh $ROBORIO_ADDR:$RIO_ROS_CODE_LOCATION
-rsync -avzru --exclude '.git' --exclude 'zebROS_ws/build*' \
+rsync -avzru $RSYNC_OPTIONS --exclude '.git' --exclude 'zebROS_ws/build*' \
     --exclude 'zebROS_ws/devel*' --exclude 'zebROS_ws/install*' \
     $LOCAL_CLONE_LOCATION/ $JETSON_ADDR:$JETSON_ENV_LOCATION/
 if [ $? -ne 0 ]; then
@@ -95,13 +100,15 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 echo "Synchronization complete"
-echo "Synchronizing remote changes FROM $INSTALL_ENV environment."
-rsync -avzru --exclude '.git' --exclude 'zebROS_ws/build*' \
-    --exclude 'zebROS_ws/devel*' --exclude 'zebROS_ws/install*' \
-    $JETSON_ADDR:$JETSON_ENV_LOCATION/ $LOCAL_CLONE_LOCATION/
-if [ $? -ne 0 ]; then
-    echo "Failed to synchronize source code FROM $INSTALL_ENV on Jetson!"
-    exit 1
+if [ ${#RSYNC_OPTIONS} -eq 0 ] ; then
+    echo "Synchronizing remote changes FROM $INSTALL_ENV environment."
+    rsync -avzru --exclude '.git' --exclude 'zebROS_ws/build*' \
+        --exclude 'zebROS_ws/devel*' --exclude 'zebROS_ws/install*' \
+        $JETSON_ADDR:$JETSON_ENV_LOCATION/ $LOCAL_CLONE_LOCATION/
+    if [ $? -ne 0 ]; then
+        echo "Failed to synchronize source code FROM $INSTALL_ENV on Jetson!"
+        exit 1
+    fi
 fi
 echo "Synchronization complete"
 
