@@ -851,7 +851,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
             last_time = curr_time;
             r.sleep();
         }
-	parkingConfig();
+		parkingConfig();
     }
 /*--------------------------Either 2 scale 1 switch OR 3 scale 1 switch, depending------------------------------*/
     else if(auto_select == 5) {
@@ -920,55 +920,57 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				r.sleep();
 			}
 		}
-	    else if(start_pos != 1){
-	    //ROS_WARN("2 Scale 1 switch");
-		while(!exit_auto && !runTrajectory())
-			r.sleep();
-		double last_time = 0;
-		while(!exit_auto) {
-		//Profiled scale
-		    const double curr_time = ros::Time::now().toSec();
-		    /** SCALE 1 **/
-		    if(curr_time > times[0] && curr_time <= times[0] + (curr_time-last_time)) {
-				//ROS_WARN("Profiled Scale elevator to mid reached");
-				midScale();
-		    }
-		    if(curr_time > times[1] && curr_time <= times[1] + (curr_time-last_time)) {
-				//ROS_WARN("Profiled Scale release clamp reached");
-				releaseClamp();
-		    }
-		    if(curr_time > times[2] && curr_time <= times[2] + (curr_time-last_time)) {
-				//ROS_WARN("Intaking Cube and going to intake config");
-				//robot_goal.IntakeCube = true; 
-		    }
-		    /** SCALE 2 **/
-		    if(curr_time > times[0] && curr_time <= times[3] + (curr_time-last_time)) {
-				//ROS_WARN("profiled scale elevator to mid reached");
-				midScale();
-		    }
-		    if(curr_time > times[1] && curr_time <= times[4] + (curr_time-last_time)) {
-				//ROS_WARN("profiled scale release clamp reached");
-				releaseClamp();
-		    }
-		    if(curr_time > times[2] && curr_time <= times[5] + (curr_time-last_time)) {
-				//ROS_WARN("intaking cube and going to intake config");
-				//robot_goal.intakecube = true; 
-		    }
-		    /** SWITCH **/
-		    if(curr_time > times[0] && curr_time <= times[6] + (curr_time-last_time)) {
-				//ROS_WARN("Profiled Scale elevator to mid reached");
-				switchConfig();
-		    }
-		    if(curr_time > times[1] && curr_time <= times[7] + (curr_time-last_time)) {
-				//ROS_WARN("Profiled Scale release clamp reached");
-				releaseClamp();
-				exit_auto = true;
-		    }
-		else {ROS_INFO_STREAM("Do nothing, start_pos = 1");}
-		last_time = curr_time;
-		r.sleep();
+	    else if	(start_pos != 1)
+		{
+			//ROS_WARN("2 Scale 1 switch");
+			while (!exit_auto && !runTrajectory())
+				r.sleep();
+			double last_time = 0;
+			while(!exit_auto)
+			{
+				//Profiled scale
+				const double curr_time = ros::Time::now().toSec();
+			    /** SCALE 1 **/
+				if(curr_time > times[0] && curr_time <= times[0] + (curr_time-last_time)) {
+					//ROS_WARN("Profiled Scale elevator to mid reached");
+					midScale();
+				}
+				if(curr_time > times[1] && curr_time <= times[1] + (curr_time-last_time)) {
+					//ROS_WARN("Profiled Scale release clamp reached");
+					releaseClamp();
+				}
+				if(curr_time > times[2] && curr_time <= times[2] + (curr_time-last_time)) {
+					//ROS_WARN("Intaking Cube and going to intake config");
+					//robot_goal.IntakeCube = true;
+				}
+				/** SCALE 2 **/
+				if(curr_time > times[0] && curr_time <= times[3] + (curr_time-last_time)) {
+					//ROS_WARN("profiled scale elevator to mid reached");
+					midScale();
+				}
+				if(curr_time > times[1] && curr_time <= times[4] + (curr_time-last_time)) {
+					//ROS_WARN("profiled scale release clamp reached");
+					releaseClamp();
+				}
+				if(curr_time > times[2] && curr_time <= times[5] + (curr_time-last_time)) {
+					//ROS_WARN("intaking cube and going to intake config");
+					//robot_goal.intakecube = true; 
+				}
+				/** SWITCH **/
+				if(curr_time > times[0] && curr_time <= times[6] + (curr_time-last_time)) {
+					//ROS_WARN("Profiled Scale elevator to mid reached");
+					switchConfig();
+				}
+				if(curr_time > times[1] && curr_time <= times[7] + (curr_time-last_time)) {
+					//ROS_WARN("Profiled Scale release clamp reached");
+					releaseClamp();
+					exit_auto = true;
+				}
+				else ROS_INFO_STREAM("Do nothing, start_pos = 1");
+				last_time = curr_time;
+				r.sleep();
+			}
 		}
-            }
 	    parkingConfig();
 	}
 
