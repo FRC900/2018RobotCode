@@ -129,12 +129,12 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 		positions.push_back(i);
 		point_count++;
 		if (point_count % 100 == 0)
-			ROS_INFO_STREAM("num points: " << point_count );
+			//ROS_INFO_STREAM("num points: " << point_count );
 
 		//ROS_WARN("pre - even_now");
 		t_raw = spline(i);
 
-		//ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw);
+		ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw);
 		//ROS_WARN("even_now");
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, holder_point, end_points, dtds_for_spline, t_raw);
 
@@ -173,7 +173,7 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 
 		//ROS_INFO_STREAM("t: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i);
 		if (point_count % 100 == 0)
-			ROS_INFO_STREAM("num points: " << point_count );
+			//ROS_INFO_STREAM("num points: " << point_count );
 		//ROS_INFO_STREAM("t: " << t_raw << " t_raw: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i << "total_arc" << total_arc);
 		//Check these conversions
 		out_msg.points[point_count].positions.push_back(holder_point.pos[0]);
@@ -303,6 +303,10 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 }
 tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &x_splines_first_deriv, const std::vector<spline_coefs> &y_splines_first_deriv, std::vector<double> end_points, double &total_arc_length, std::vector<double> &dtds_by_spline)
 {
+	for( int i = 0; i < end_points.size(); i++)
+	{
+		ROS_WARN_STREAM("end: " << end_points[i]);
+	}
 	total_arc_length = 0;
 	double period_t = (end_points[0] - 0) / 100;
 	double start = 0;
@@ -373,6 +377,13 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 
 	//Spline fit of t interms of s (we input a t -> s)
 	tk::spline s;
+	for(int i = 0; i < t_vals.size(); i++)
+	{
+		ROS_INFO_STREAM("t_val = " << t_vals[i] << " s vals = " << s_vals[i]);
+
+
+
+	}
 	s.set_points(s_vals, t_vals);
 
 	return s;
@@ -454,7 +465,7 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 
 	if (fabs(holder_point.pos[0] > 100) || fabs(holder_point.pos[1]) > 100)
 	{
-		ROS_ERROR_STREAM("resonableness exceeded with x of: " << holder_point.pos[0] << " and y of: " << holder_point.pos[1] << " t: " << t);
+		//ROS_ERROR_STREAM("resonableness exceeded with x of: " << holder_point.pos[0] << " and y of: " << holder_point.pos[1] << " t: " << t);
 	}
 
 	holder_point.path_angle = atan2(first_deriv_y, first_deriv_x);  //Make sure this is what we want

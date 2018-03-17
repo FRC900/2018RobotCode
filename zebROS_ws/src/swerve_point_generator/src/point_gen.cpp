@@ -91,6 +91,7 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 		}
 		for (size_t i = priv_num; i < req.spline_groups[s]; i++)
 		{
+			ROS_INFO_STREAM("hrer: " << req.end_points[i] - shift_by<< " r_s: " <<  req.spline_groups[s] <<  " s: "<< s);
 			end_points_holder.push_back(req.end_points[i] - shift_by);
 			
 		}
