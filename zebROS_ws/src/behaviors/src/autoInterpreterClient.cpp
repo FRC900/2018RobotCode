@@ -487,7 +487,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
            /* Starting on the left -> go to the left */
            if(start_pos == 0) {
-               const double delay = 6; //Going 3/4 way towards scale
+               const double delay = 4; //Going 3/4 way towards scale
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.05; //positive x a lot
                     vel.linear.y = 0.1; //positive y a little bit
@@ -499,7 +499,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
            
            /* Starting on the right -> go to the right */
            if(start_pos == 2) {
-               const double delay = 6; //Going 3/4 way towards scale
+               const double delay = 4; //Going 3/4 way towards scale
                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.05; //positive x a lot
                     vel.linear.y = -0.1; //negative y a little bit
@@ -528,7 +528,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
             /* Starting on the left -> go to the left */
             if(start_pos == 0){
-                const double delay = 6; 
+                const double delay = 4; 
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.05; //positive x a lot
                     vel.linear.y = 0.1; //positive y a little bit
@@ -539,7 +539,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
             /* Starting on the right -> go to the right */
             if(start_pos == 2) {
-                const double delay = 6; //TODO
+                const double delay = 4; //TODO
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.05; //positive x a lot
                     vel.linear.y = -0.1; //negative y a little bit
