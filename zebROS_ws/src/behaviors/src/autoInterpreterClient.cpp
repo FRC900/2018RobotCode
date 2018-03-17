@@ -1020,7 +1020,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 			if (curr_time > times[0] && curr_time <= times[1] + (curr_time - last_time))
 			{
 				//ROS_WARN("Profiled Intake Config");
-				instakeConfig();
+				intakeConfig();
 			}
 			if (curr_time > times[0] && curr_time <= times[1] + (curr_time - last_time))
 			{
