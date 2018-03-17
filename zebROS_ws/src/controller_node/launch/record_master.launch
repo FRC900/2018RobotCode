@@ -95,8 +95,6 @@
 /scan
 /tf
 /tf_static
-/zed_goal/left/image_rect_color
-/zed_goal/depth/depth_registered
 "/>
 	
 </launch>

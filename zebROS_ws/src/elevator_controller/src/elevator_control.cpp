@@ -488,10 +488,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	
 	
 	elevator_controller::CubeState cube_msg;
-	cube_msg.has_cube = line_break_intake_high_.load(std::memory_order_relaxed) || line_break_intake_low_.load(std::memory_order_relaxed); //|| pivot_joint_.getForwardLimitSwitch();
+	cube_msg.has_cube = line_break_intake_high_.load(std::memory_order_relaxed) || line_break_intake_low_.load(std::memory_order_relaxed) || pivot_joint_.getForwardLimitSwitch();
 	cube_msg.intake_high = line_break_intake_high_.load(std::memory_order_relaxed);
 	cube_msg.intake_low = line_break_intake_low_.load(std::memory_order_relaxed);
-	cube_msg.clamp = false;//pivot_joint_.getForwardLimitSwitch();
+	cube_msg.clamp = pivot_joint_.getForwardLimitSwitch();
 	CubeState_.publish(cube_msg);
 
 	elevator_controller::ReturnElevatorCmd return_holder;

@@ -159,6 +159,20 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				realtime_pub_nt.msg_.delays[2] = (int)driveTable->GetNumber("delay_2", 0);
 				realtime_pub_nt.msg_.delays[3] = (int)driveTable->GetNumber("delay_3", 0);
 				realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
+				
+				
+				frc::SmartDashboard::PutNumber("auto_mode_0_ret", realtime_pub_nt.msg_.mode[0]);
+				frc::SmartDashboard::PutNumber("auto_mode_1_ret", realtime_pub_nt.msg_.mode[1]);
+				frc::SmartDashboard::PutNumber("auto_mode_2_ret", realtime_pub_nt.msg_.mode[2]);
+				frc::SmartDashboard::PutNumber("auto_mode_3_ret", realtime_pub_nt.msg_.mode[3]);
+				frc::SmartDashboard::PutNumber("delay_0_ret", realtime_pub_nt.msg_.delays[0]);
+				frc::SmartDashboard::PutNumber("delay_1_ret", realtime_pub_nt.msg_.delays[1]);
+				frc::SmartDashboard::PutNumber("delay_2_ret", realtime_pub_nt.msg_.delays[2]);
+				frc::SmartDashboard::PutNumber("delay_3_ret", realtime_pub_nt.msg_.delays[3]);
+				frc::SmartDashboard::PutNumber("robot_start_position_ret", realtime_pub_nt.msg_.position);
+
+
+
 				realtime_pub_nt.msg_.header.stamp = time_now_t;
 				realtime_pub_nt.unlockAndPublish();
 			}
