@@ -982,6 +982,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 		double last_time = 0;
         while (!exit_auto)
 		{
+			const double curr_time = ros::Time::now().toSec();
 		    /** SWITCH 1 **/
 		    if (curr_time > times[0] && curr_time <= times[1] + (curr_time-last_time))
 			{
@@ -997,7 +998,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 			if (curr_time > times[0] && curr_time <= times[1] + (curr_time - last_time))
 			{
 				//ROS_WARN("Profiled Intake Config");
-				instakeConfig();
+				intakeConfig();
 			}
 			if (curr_time > times[0] && curr_time <= times[1] + (curr_time - last_time))
 			{
