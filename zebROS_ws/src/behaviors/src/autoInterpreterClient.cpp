@@ -768,7 +768,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
     /*-------------------- Backward Basic Cross line cmd vel auto ---------------------*/
     if(auto_select == 4) {
-        //ROS_WARN("Basic drive forward auto");
+        //ROS_WARN("Basic drive backward auto");
         geometry_msgs::Twist vel;
         vel.linear.z = 0;
         vel.angular.x = 0;

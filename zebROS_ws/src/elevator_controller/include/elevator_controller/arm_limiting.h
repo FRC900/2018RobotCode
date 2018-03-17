@@ -733,6 +733,7 @@ class arm_limits
 			
 			quarter_circle_gen(arm_length_, max_extension_, 0, circle_point_count, top_circle_up, false);
 			quarter_circle_gen(arm_length_, max_extension_, 0, /*circle_point_count*/ 100, top_circle_up_top_back, true, true);
+			ROS_WARN("1");
 			quarter_circle_gen(arm_length_, safe_to_go_back_y_, 0, /*circle_point_count*/ 100, top_circle_up_bottom_back, false, true);
 			quarter_circle_gen(-arm_length_, max_extension_, 0, circle_point_count, top_circle_down, false);
 			quarter_circle_gen(arm_length_, min_extension_, 0, circle_point_count, bottom_circle_up, true);
@@ -749,6 +750,7 @@ class arm_limits
 			back_line_up.insert(back_line_up.end(), top_circle_up_bottom_back.begin(), top_circle_up_bottom_back.end());
 			back_line_up.push_back(back_line_up[0]);
 
+			ROS_WARN("2");
 
 			back_line_down.insert(back_line_down.end(), bottom_circle_down.begin(), bottom_circle_down.end());
 			back_line_down.insert(back_line_down.end(), front_line_down.begin(), front_line_down.end());
@@ -760,6 +762,7 @@ class arm_limits
 			
 			
 
+			ROS_WARN("3");
 			std::reverse(back_line_up.begin(), back_line_up.end());	
 			std::reverse(back_line_down.begin(), back_line_down.end());	
 			
@@ -781,6 +784,7 @@ class arm_limits
 
 
 			i = 0;
+			ROS_WARN("4");
 			BOOST_FOREACH(polygon_type const& p, output)
 			{
 				if(i == 0) {up_and_down_polygons[1] = p;
@@ -819,6 +823,7 @@ class arm_limits
 				temp_point.y(boost::geometry::get<1>(*it));
 				down_edges.push_back(temp_point);
 			}
+			ROS_WARN("5");
 			for(size_t i = 0; i < up_edges.size() - 1; i++)
 			{
 				linestring_type temp_line;
