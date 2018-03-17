@@ -789,7 +789,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
            /* Starting on the left -> go to the left */
            if(start_pos == 0) {
-               const double delay = 6; //Going 3/4 way towards scale
+               const double delay = 4; //Going 3/4 way towards scale
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = -1.05; //positive x a lot
                     vel.linear.y = -0.1; //positive y a little bit
@@ -801,7 +801,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
            
            /* Starting on the right -> go to the right */
            if(start_pos == 2) {
-               const double delay = 6; //Going 3/4 way towards scale
+               const double delay = 4; //Going 3/4 way towards scale
                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = -1.05; //positive x a lot
                     vel.linear.y = 0.1; //negative y a little bit
@@ -830,7 +830,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
             /* Starting on the left -> go to the left */
             if(start_pos == 0){
-                const double delay = 6; 
+                const double delay = 4; 
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = -1.05; //positive x a lot
                     vel.linear.y = -0.1; //positive y a little bit
@@ -841,7 +841,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
             /* Starting on the right -> go to the right */
             if(start_pos == 2) {
-                const double delay = 6; //TODO
+                const double delay = 4; //TODO
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = -1.05; //positive x a lot
                     vel.linear.y = 0.1; //negative y a little bit
@@ -1836,7 +1836,7 @@ int main(int argc, char** argv) {
             MatchData match_data = *(matchData.readFromRT());
             AutoMode auto_mode_data = *(autoMode.readFromRT());
 
-            if(!match_data_received && !in_auto) { //accept changes to chosen auto_modes until we receive match data or auto starts
+            if(!in_auto) { //accept changes to chosen auto_modes until we receive match data or auto starts
                 ////ROS_INFO("No match data and not in auto");
                 //loop through auto_mode data 
                 //generate trajectories for all changed modes
@@ -1905,7 +1905,7 @@ int main(int argc, char** argv) {
             if(!match_data_received && ros::Time::now().toSec() > auto_start_time + 2) { //if match data isn't found after 2 seconds of auto starting run default auto
                 //ROS_INFO("In first two seconds of auto with no match data");
                 auto_mode = 0;
-                auto_mode_vect[0] = 1; //default auto: cross baseline
+                auto_mode_vect[0] = 4; //default auto: cross baseline
                 generated_vect[0] = true;
                 match_data_received = true;
                 mode_buffered = true;
