@@ -280,16 +280,16 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		//if(!ac_intake->getState().isDone())
 			ac_intake->cancelAllGoals();
 		const ElevatorPos epos = *(elevatorPos.readFromRT());
-		srvElevator.request.x = epos.X_; //Consider changing x_pos + up/down to preassigned rather than curr pos
+		srvElevator.request.x = .1; //Consider changing x_pos + up/down to preassigned rather than curr pos
 		srvElevator.request.y = climb;
-		srvElevator.request.up_or_down = epos.UpOrDown_;
-		srvElevator.request.override_pos_limits = localDisableArmLimits;
-		srvIntake.request.power = 0;
+		srvElevator.request.up_or_down = true;
+		srvElevator.request.override_pos_limits = true;
+		/*srvIntake.request.power = 0;
 		srvIntake.request.spring_state = 1; //hard_out
 		srvIntake.request.up = false;
 		if (!IntakeSrv.call(srvIntake)) //Is it worth trying to clamp or run the intake slowly?
 			ROS_ERROR("IntakeSrv call failed in teleop joystick climb config");
-
+		*/
 		if(!ElevatorSrv.call(srvElevator))
 		{
 			ROS_ERROR("Climb config srv call failed");

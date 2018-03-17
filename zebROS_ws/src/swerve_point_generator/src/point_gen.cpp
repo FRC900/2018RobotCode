@@ -223,7 +223,6 @@ int main(int argc, char **argv)
 
 	ros::NodeHandle controller_nh(nh, "swerve_drive_controller");
 
-	ros::ServiceServer service = nh.advertiseService("/point_gen/command", full_gen);
 
 	//double wheel_radius;
 	swerveVar::driveModel model;
@@ -323,7 +322,6 @@ int main(int argc, char **argv)
 	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/visualize_profile", false, service_connection_header);
 	graph_swerve_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/visualize_swerve_profile", false, service_connection_header);
 
-	ros::service::waitForService("/frcrobot/swerve_drive_controller/wheel_pos");
 	get_pos = nh.serviceClient<talon_swerve_drive_controller::WheelPos>("/frcrobot/swerve_drive_controller/wheel_pos", false, service_connection_header);
 
 	ros::spin();
