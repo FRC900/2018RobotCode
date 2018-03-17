@@ -46,6 +46,7 @@ bool stopIntake(void);
 bool releaseClamp(void);
 bool clamp(void);
 bool releaseIntake(void);
+bool intakeOut(void);
 bool parkingConfig(void);
 bool generateTrajectory(full_mode &trajectory);
 bool bufferTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj);
