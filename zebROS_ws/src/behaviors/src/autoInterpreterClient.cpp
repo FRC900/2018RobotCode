@@ -1221,7 +1221,6 @@ int main(int argc, char** argv) {
 	ros::AsyncSpinner spinner(2);
 	spinner.start();
 	
-<<<<<<< HEAD
     ROS_WARN("Auto Client loaded");
     ros::Duration(20).sleep();
     ROS_WARN("post sleep");

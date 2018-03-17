@@ -21,6 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
   talon_interface
   message_generation
   pdp_state_controller
+  elevator_controller
 )
 
 add_message_files (
