@@ -202,6 +202,17 @@ bool clamp(void) {
 	return true;
 }
 
+bool intakeOut(void) {
+	elevator_controller::Intake srv;
+	srv.request.power = -1;
+	srv.request.spring_state = 2; //soft-in
+	if(!IntakeService.call(srv))
+	{
+		ROS_ERROR("Service call failed : IntakeService in intakeOut");
+	}
+	return true;
+}
+
 bool parkingConfig(void)
 {
 	std_srvs::Empty empty;
