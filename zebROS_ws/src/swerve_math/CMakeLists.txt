@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(swerve_math)
 
 include ("../cmake_modules/CMakeOpt.cmake")
+add_compile_options(-std=c++11 -fPIC)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
