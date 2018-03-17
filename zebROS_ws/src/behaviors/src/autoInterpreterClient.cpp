@@ -702,10 +702,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     cur_time = ros::Time::now().toSec();
                     if(cur_time < start_time + delay_1) {
                         vel.linear.x = 0;
-                        vel.linear.y = -0.75;
+                        vel.linear.y = 0.75;
                     }
                     if(cur_time > start_time + delay_1 && cur_time < start_time + delay_1 + delay_2) {
-                        vel.linear.x = .75;
+                        vel.linear.x = -0.75;
                         vel.linear.y = 0;
                     }
                     VelPub.publish(vel);
@@ -751,10 +751,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     cur_time = ros::Time::now().toSec();
                     if(cur_time < start_time + delay_1) {
                         vel.linear.x = 0;
-                        vel.linear.y = 0.75;
+                        vel.linear.y = -0.75;
                     }
                     if(cur_time > start_time + delay_1 && cur_time < start_time + delay_1 + delay_2) {
-                        vel.linear.x = .75;
+                        vel.linear.x = -0.75;
                         vel.linear.y = 0;
                     }
                     VelPub.publish(vel);
