@@ -295,14 +295,14 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		if (!IntakeSrv.call(srvIntake)) //Is it worth trying to clamp or run the intake slowly?
 			ROS_ERROR("IntakeSrv call failed in teleop joystick climb config");
 		*/
-        else {
-            intake_up = false;
-        }
 
 		if(!ElevatorSrv.call(srvElevator))
 		{
 			ROS_ERROR("Climb config srv call failed");
 		}
+        else {
+            intake_up = false;
+        }
 		ROS_WARN("Climb config");
 		achieved_pos = climb_c;
 	}
