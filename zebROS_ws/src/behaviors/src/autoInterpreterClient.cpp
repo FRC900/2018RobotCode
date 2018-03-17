@@ -696,6 +696,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
             /* Starting in the middle go to right switch */
             else {
                 const double delay_1 = 1.533; //Goes 1/2 meter past leading edge of our switch
+                const double delay_1_1 = .4;
                 const double delay_2 = 1.528;
                 double cur_time;
                 while(ros::Time::now().toSec() < start_time + delay_1 + delay_2 && !exit_auto) {
@@ -704,7 +705,11 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                         vel.linear.x = 0;
                         vel.linear.y = 0.75;
                     }
-                    if(cur_time > start_time + delay_1 && cur_time < start_time + delay_1 + delay_2) {
+                    if(cur_time>start_time + delay_1 && cur_time < start_time + delay_1_1 + delay_1) {
+                        vel.linear.x = -0.5;
+                        vel.linear.y = 0;
+                    }
+                    if(cur_time > start_time + delay_1_1 + delay_1 && cur_time < start_time + delay_1_1 + delay_1 + delay_2) {
                         vel.linear.x = -2;
                         vel.linear.y = 0;
                     }
@@ -743,23 +748,27 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
             /* Starting in the middle go to the left switch */
             else {
-                const double delay_0 = .2; //just move forward to avoid the exchange ramp
+                const double delay_0 = .4; //just move forward to avoid the exchange ramp
                 const double delay_1 = 2.067; //Goes 1/2 meter past leading edge of our switch
+                const double delay_1_1 = .4;
                 const double delay_2 = 1.528;
                 //.75 vel
                 double cur_time;
                 while(ros::Time::now().toSec() < start_time + delay_1+delay_2 + delay_0 && !exit_auto) {
                     cur_time = ros::Time::now().toSec();
                     if(cur_time < start_time + delay_0) {
-                        ROS_WARN("Pubigasd");
-                        vel.linear.x = -1.5;
+                        vel.linear.x = -0.75;
                         vel.linear.y = 0;
                     }
                     if(cur_time > start_time + delay_0 && cur_time < start_time + delay_1 + delay_0) {
                         vel.linear.x = 0;
                         vel.linear.y = -0.75;
                     }
-                    if(cur_time > start_time + delay_1 && cur_time < start_time + delay_1 + delay_2 + delay_0) {
+                    if(cur_time>start_time + delay_1 + delay_0 && cur_time < start_time + delay_1_1 + delay_1 + delay_0) {
+                        vel.linear.x = -0.5;
+                        vel.linear.y = 0;
+                    }
+                    if(cur_time > start_time + delay_1_1 + delay_1 + delay_0 && cur_time < start_time + delay_1_1 + delay_1 + delay_2 + delay_0) {
                         vel.linear.x = -2;
                         vel.linear.y = 0;
                     }
