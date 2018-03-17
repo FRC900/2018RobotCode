@@ -990,21 +990,33 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 		    }
 		    if (curr_time > times[1] && curr_time <= times[7] + (curr_time-last_time))
 			{
-				//ROS_WARN("Profiled Intake Config");
+				//ROS_WARN("Profiled Release Clamp");
 				releaseClamp();
-				exit_auto = true;
 		    }
 			/** EXCHANGE 1 **/
 			if (curr_time > times[0] && curr_time <= times[1] + (curr_time - last_time))
 			{
-				//ROS_WARN("Profiled Expel Cube");
+				//ROS_WARN("Profiled Intake Config");
 				instakeConfig();
 			}
 			if (curr_time > times[0] && curr_time <= times[1] + (curr_time - last_time))
 			{
 				//ROS_WARN("Profiled Expel Cube");
-				releaseIntake(); //TODO: Is this the right function?
+				intakeOut();
 			}
+			/** EXCHANGE 2 **/
+			if (curr_time > times[0] && curr_time <= times[1] + (curr_time - last_time))
+			{
+				//ROS_WARN("Profiled Intake Config");
+				instakeConfig();
+			}
+			if (curr_time > times[0] && curr_time <= times[1] + (curr_time - last_time))
+			{
+				//ROS_WARN("Profiled Expel Cube");
+				intakeOut();
+				exit_auto = true;
+			}
+
             last_time = curr_time;
             r.sleep();
         }
