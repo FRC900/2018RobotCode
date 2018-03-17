@@ -1804,7 +1804,7 @@ int main(int argc, char** argv) {
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    //generateTrajectory(all_modes[0][1][1]);
+    //generateTrajectory(all_modes[9][3][2]);
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");

@@ -646,6 +646,14 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
 		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
+
+		if(ts.getCANID() == 51)
+		{
+
+			auto sensor_collection = talon->GetSensorCollection();
+			ts.setForwardLimitSwitch(sensor_collection.IsFwdLimitSwitchClosed());
+			ts.setReverseLimitSwitch(sensor_collection.IsRevLimitSwitchClosed());
+		}
 		if(profile_is_live)
 		{
 			if(ts.getCANID() == 51 || ts.getCANID() == 41) //All we care about are the arm and lift
