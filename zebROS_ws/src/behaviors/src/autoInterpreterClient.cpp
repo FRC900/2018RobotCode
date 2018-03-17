@@ -876,6 +876,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 		    if(curr_time > times[2] && curr_time <= times[2] + (curr_time-last_time)) {
 			//ROS_WARN("Intaking Cube and going to intake config");
 			//robot_goal.IntakeCube = true; 
+			intakeConfig();
 		    }
 		    //scale 2
 		    if(curr_time > times[4] && curr_time <= times[4] + (curr_time-last_time)) { //TODO fix all times here
@@ -888,7 +889,8 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 		    }
 		    if(curr_time > times[6] && curr_time <= times[6] + (curr_time-last_time)) {
 			//ros_warn("intaking cube and going to intake config");
-			//robot_goal.intakeCube = true; 
+			//robot_goal.intakeCube = true;
+			intakeConfig();
 		    }
 		    //scale 3
 		    if(curr_time > times[7] && curr_time <= times[7] + (curr_time-last_time)) { //TODO fix all times here
@@ -902,6 +904,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 		    if(curr_time > times[9] && curr_time <= times[9] + (curr_time-last_time)) {
 			//ros_warn("intaking cube and going to intake config");
 			//robot_goal.intakeCube = true; 
+			intakeConfig();
 		    }
 		    //switch
 		    if(curr_time > times[10] && curr_time <= times[10] + (curr_time-last_time)) {
