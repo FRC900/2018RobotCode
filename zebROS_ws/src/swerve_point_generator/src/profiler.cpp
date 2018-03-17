@@ -134,7 +134,7 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 		//ROS_WARN("pre - even_now");
 		t_raw = spline(i);
 
-		ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw);
+		ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw << " also: " << spline(i));
 		//ROS_WARN("even_now");
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, holder_point, end_points, dtds_for_spline, t_raw);
 
@@ -166,6 +166,7 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 		i += curr_v * dt_;
 
 		t_raw = spline(i);
+		ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw);
 
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, holder_point, end_points, dtds_for_spline, t_raw);
 
@@ -377,14 +378,16 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 
 	//Spline fit of t interms of s (we input a t -> s)
 	tk::spline s;
+
+	s.set_points(s_vals, t_vals);
 	for(int i = 0; i < t_vals.size(); i++)
 	{
 		ROS_INFO_STREAM("t_val = " << t_vals[i] << " s vals = " << s_vals[i]);
+		ROS_INFO_STREAM("s_vale = " << s_vals[i] << " s vals = " << s(s_vals[i]));
 
 
 
 	}
-	s.set_points(s_vals, t_vals);
 
 	return s;
 }
