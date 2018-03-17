@@ -41,46 +41,46 @@ swerve_drive_controller:
     speed_joint_fl:
         joint: fl_drive #fix pid
         close_loop_values:
-            - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
+            - {p: 0.1, i: 0.0006, d: 1, f: 0.06145, i_zone: 500}
             - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 500}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
-        current_limit_continuous_amps: 60
+        current_limit_continuous_amps: 40
         current_limit_enable: True
     speed_joint_fr:
         joint: fr_drive #fix pid
         close_loop_values:
-            - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
+            - {p: 0.1, i: 0.0006, d: 1, f: 0.06145, i_zone: 500}
             - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 500}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
-        current_limit_continuous_amps: 60
+        current_limit_continuous_amps: 40
         current_limit_enable: True
     speed_joint_bl:
         joint: bl_drive #fix pid
         close_loop_values: 
-            - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
+            - {p: 0.1, i: 0.0006, d: 1, f: 0.06145, i_zone: 500}
             - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 500}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
-        current_limit_continuous_amps: 60
+        current_limit_continuous_amps: 40
         current_limit_enable: True
     speed_joint_br:
         joint: br_drive #fix pid
         close_loop_values:
-            - {p: 0.14, i: 0.0006, d: 2, f: 0.06145, i_zone: 500}
+            - {p: 0.1, i: 0.0006, d: 1, f: 0.06145, i_zone: 500}
             - {p: 0.15, i: 0.0015, d: 0.1, f: 0.06145, i_zone: 500}
         sensor_phase: True
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
-        current_limit_continuous_amps: 60
+        current_limit_continuous_amps: 40
         current_limit_enable: True
     steering_joint_fl:
         joint: fl_angle
