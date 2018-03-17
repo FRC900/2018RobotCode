@@ -671,12 +671,12 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         /* Our switch is on the right */
         if(auto_mode == 0 || auto_mode == 2) {
 
-            /* Starting on the left go to the right */ 
+            /* Starting on the left just cross line */ 
             if(start_pos == 0) {
-               const double delay = 3; //Goes 1/2 meter past leading edge of our switch
+               const double delay = 6; //Goes 1/2 meter past leading edge of our switch
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = -1.05;
-                    vel.linear.y = 1.5;
+                    vel.linear.y = -0.1;
                     VelPub.publish(vel);
                     r.sleep();
                 }
@@ -721,12 +721,12 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				parkingConfig();
             }
 
-            /* Starting on the right go to the left switch */
+            /* Starting on the righ just cross line */
             if(start_pos == 2) {
-                const double delay = 3.5; //Goes 1/2 meter past leading edge of our switch
+                const double delay = 6; //Goes 1/2 meter past leading edge of our switch
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = -1.05;
-                    vel.linear.y = -1.5;
+                    vel.linear.y = 0.1;
                     VelPub.publish(vel);
                     r.sleep();
                 }
@@ -892,8 +892,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
     else if(auto_select == 5) {
 
         behaviors::RobotGoal goal;
-	    if((auto_mode == 3 && start_pos == 2) || (auto_mode == 4 && start_pos == 0)) //if we are on the same side as both the switch and scale
+	    if((auto_mode == 2 && start_pos == 2) || (auto_mode == 3 && start_pos == 0)) //if we are on the same side as both the switch and scale
 	    {
+        
+        /* -------------------------- 3 Scale 1 Switch ------------------------- */
 			//ROS_WARN("3 Scale 1 switch");	
 			while(!exit_auto && !runTrajectory())
 				r.sleep();
@@ -993,7 +995,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				r.sleep();
 			}
 		}
-	    else if((auto_mode == 1 && start_pos == 2) || (auto_mode == 2 && start_pos == 0)){
+	    else if((auto_mode == 0 && start_pos == 2) || (auto_mode == 1 && start_pos == 0)){
 			//ROS_WARN("1 switch 2 Scale");
 			while (!exit_auto && !runTrajectory())
 				r.sleep();
