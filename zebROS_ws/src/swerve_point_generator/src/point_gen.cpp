@@ -136,6 +136,18 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 
 
 
+		// Bounds checking - not safe to proceed with setting up angle
+		// positions and velocities if data is not as expected.
+		if (srv_msg.points.size() < 2) {
+			ROS_ERROR("Need at least 2 points");
+			return false;
+		}
+		for (const auto point : srv_msg.points) {
+			if (point.positions.size() < 3) {
+				ROS_ERROR("Not enough positions in point");
+				return false;
+			}
+		}
 		std::array<Eigen::Vector2d, WHEELCOUNT> angles_positions  = swerve_math->motorOutputs({srv_msg.points[1].positions[0] - srv_msg.points[0].positions[0], srv_msg.points[1].positions[1] - srv_msg.points[0].positions[1]}, srv_msg.points[1].positions[2] - srv_msg.points[0].positions[2], srv_msg.points[1].positions[2], false, holder, false, curPos, false);
 		//TODO: angles on the velocity array below are superfluous, could remove
 		std::array<Eigen::Vector2d, WHEELCOUNT> angles_velocities  = swerve_math->motorOutputs({srv_msg.points[1].velocities[0], srv_msg.points[1].velocities[1]}, -srv_msg.points[1].velocities[2], srv_msg.points[1].positions[2], false, holder, false, curPos, false);
@@ -223,6 +235,9 @@ int main(int argc, char **argv)
 
 	ros::NodeHandle controller_nh(nh, "swerve_drive_controller");
 
+	ROS_ERROR("BEFORE advertiseService");
+	ros::ServiceServer service = nh.advertiseService("/point_gen/command", full_gen);
+	ROS_ERROR("AFTER advertiseService");
 
 	//double wheel_radius;
 	swerveVar::driveModel model;
@@ -322,6 +337,8 @@ int main(int argc, char **argv)
 	graph_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfile>("/visualize_profile", false, service_connection_header);
 	graph_swerve_prof = nh.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/visualize_swerve_profile", false, service_connection_header);
 
+	ros::service::waitForService("/frcrobot/swerve_drive_controller/wheel_pos");
+	ROS_ERROR("DONE WAITING FOR wheel_pos");
 	get_pos = nh.serviceClient<talon_swerve_drive_controller::WheelPos>("/frcrobot/swerve_drive_controller/wheel_pos", false, service_connection_header);
 
 	ros::spin();
