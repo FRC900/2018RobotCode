@@ -866,7 +866,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
     }
 /*--------------------------Either 2 scale 1 switch OR 3 scale 1 switch, depending------------------------------*/
     else if(auto_select == 5) {
-	    if((auto_mode == 3 && start_pos == 0) || (auto_mode == 2 && start_pos == 2)) //if we are on the same side as both the switch and scale
+	    if((auto_mode == 3 && start_pos == 2) || (auto_mode == 4 && start_pos == 0)) //if we are on the same side as both the switch and scale
 	    {
 			//ROS_WARN("3 Scale 1 switch");	
 			while(!exit_auto && !runTrajectory())
@@ -941,41 +941,43 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 				//Profiled scale
 				const double curr_time = ros::Time::now().toSec();
 				/** SWITCH **/
-				if(curr_time > times[0] && curr_time <= times[6] + (curr_time-last_time)) {
+				if(curr_time > times[0] && curr_time <= times[1] + (curr_time-last_time)) {
 					//ROS_WARN("Profiled Scale elevator to mid reached");
 					switchConfig();
 				}
-				if(curr_time > times[1] && curr_time <= times[7] + (curr_time-last_time)) {
+				if(curr_time > times[1] && curr_time <= times[2] + (curr_time-last_time)) {
 					//ROS_WARN("Profiled Scale release clamp reached");
 					releaseClamp();
-					exit_auto = true;
 				}
-				if(curr_time > times[2] && curr_time <= times[5] + (curr_time-last_time)) {
+				if(curr_time > times[2] && curr_time <= times[3] + (curr_time-last_time)) {
 					//ROS_WARN("intaking cube and going to intake config");
-					//robot_goal.intakecube = true; 
+					//robot_goal.intakecube = true;
+					intakeConfig(); 
 				}
 
 			   	 /** SCALE 1 **/
-				if(curr_time > times[0] && curr_time <= times[0] + (curr_time-last_time)) {
+				if(curr_time > times[3] && curr_time <= times[4] + (curr_time-last_time)) {
 					//ROS_WARN("Profiled Scale elevator to mid reached");
 					midScale();
 				}
-				if(curr_time > times[1] && curr_time <= times[1] + (curr_time-last_time)) {
+				if(curr_time > times[4] && curr_time <= times[5] + (curr_time-last_time)) {
 					//ROS_WARN("Profiled Scale release clamp reached");
 					releaseClamp();
 				}
-				if(curr_time > times[2] && curr_time <= times[2] + (curr_time-last_time)) {
+				if(curr_time > times[5] && curr_time <= times[6] + (curr_time-last_time)) {
 					//ROS_WARN("Intaking Cube and going to intake config");
 					//robot_goal.IntakeCube = true;
+					intakeConfig();
 				}
 				/** SCALE 2 **/
-				if(curr_time > times[0] && curr_time <= times[3] + (curr_time-last_time)) {
+				if(curr_time > times[6] && curr_time <= times[7] + (curr_time-last_time)) {
 					//ROS_WARN("profiled scale elevator to mid reached");
 					midScale();
 				}
-				if(curr_time > times[1] && curr_time <= times[4] + (curr_time-last_time)) {
+				if(curr_time > times[7] && curr_time <= times[8] + (curr_time-last_time)) {
 					//ROS_WARN("profiled scale release clamp reached");
 					releaseClamp();
+					exit_auto = true;
 				}
 				last_time = curr_time;
 				r.sleep();
