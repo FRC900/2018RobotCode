@@ -300,6 +300,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			ROS_ERROR("Climb config srv call failed");
 		}
+        else {
+            intake_up = false;
+        }
 		ROS_WARN("Climb config");
 		achieved_pos = climb_c;
 	}
@@ -506,6 +509,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			achieved_pos = other;
 			A_intake_time = ros::Time::now().toSec();	
 			A_toggle_on = true;
+            intake_up = false;
 		}
 	}
 
@@ -529,6 +533,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             goal_intake.IntakeCube = true;
             goal_intake.time_out = 15;
             ac_intake->sendGoal(goal_intake);
+            intake_up = false;
             ROS_INFO("teleop : Intake No Lift");
 		}
 	}

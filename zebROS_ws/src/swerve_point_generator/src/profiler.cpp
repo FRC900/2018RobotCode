@@ -22,7 +22,12 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 {
 	t_shift_ = t_shift;
 	flip_dirc_ = flip_dirc;
-	t_total_ = end_points[end_points.size()] - end_points[0];
+	// Bounds checking. Not safe to proceed if end_points is empty.
+	if (end_points.empty()) {
+		ROS_ERROR("Endpoints should never be empty!");
+		return false;
+	}
+	t_total_ = end_points[end_points.size()-1] - end_points[0];
 	tk::spline spline;
 	double total_arc;
 
@@ -139,7 +144,7 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, holder_point, end_points, dtds_for_spline, t_raw2);
 
 
-		//ROS_INFO_STREAM("t: " << t_raw << " t_raw: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i << "total_arc" << total_arc);
+		ROS_INFO_STREAM("t: " << t_raw << " t_raw: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i << "total_arc" << total_arc);
 
 
 		if (!solve_for_next_V(holder_point, total_arc, curr_v, i, max_wheel_brake_accel_))
@@ -173,10 +178,10 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 
 		//TODO: CHECK CONVERSIONS
 
-		//ROS_INFO_STREAM("t: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i);
+		ROS_INFO_STREAM("t: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i);
 		if (point_count % 100 == 0)
-			//ROS_INFO_STREAM("num points: " << point_count );
-		//ROS_INFO_STREAM("t: " << t_raw << " t_raw: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i << "total_arc" << total_arc);
+			ROS_INFO_STREAM("num points: " << point_count );
+		ROS_INFO_STREAM("t: " << t_raw << " t_raw: " << t_raw << " pos: " << holder_point.pos << " curr_v: " << curr_v << " arc_len: " << i << "total_arc" << total_arc);
 		//Check these conversions
 		out_msg.points[point_count].positions.push_back(holder_point.pos[0]);
 		out_msg.points[point_count].positions.push_back(holder_point.pos[1]);

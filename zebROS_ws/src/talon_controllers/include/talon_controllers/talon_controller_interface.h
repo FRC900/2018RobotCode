@@ -981,6 +981,16 @@ class TalonControllerInterface
 		{
 			return talon_.state()->getPosition();
 		}
+
+		bool getForwardLimitSwitch(void) const
+		{
+			return talon_.state()->getForwardLimitSwitch();
+		}
+		bool getReverseLimitSwitch(void) const
+		{
+			return talon_.state()->getReverseLimitSwitch();
+		}
+
 		void setPeakOutputForward(double peak)
 		{
 			if (peak == params_.peak_output_forward_)
