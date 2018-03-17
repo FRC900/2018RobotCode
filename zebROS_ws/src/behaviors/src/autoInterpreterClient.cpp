@@ -233,9 +233,9 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 
 				if(auto_data.getParam(identifier, mode_xml))
 				{
-					//ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
-                    XmlRpc::XmlRpcValue coefs_xml = mode_xml["coefs"];
-                    XmlRpc::XmlRpcValue times_xml = mode_xml["times"];
+					ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
+                    XmlRpc::XmlRpcValue &coefs_xml = mode_xml["coefs"];
+                    XmlRpc::XmlRpcValue &times_xml = mode_xml["times"];
 					const int num_splines = coefs_xml.size();
                     const int num_times = times_xml.size();
 					for(int num = 0; num<num_splines; num++) {
