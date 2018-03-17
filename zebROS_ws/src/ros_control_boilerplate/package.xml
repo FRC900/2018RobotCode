@@ -36,6 +36,7 @@
   <depend>talon_interface</depend>
   <depend>pdp_state_controller</depend>
   <depend>message_runtime</depend>
+  <depend>elevator_controller</depend>
 
   <export>
   </export>

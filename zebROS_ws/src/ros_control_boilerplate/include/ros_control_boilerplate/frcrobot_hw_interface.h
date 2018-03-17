@@ -200,7 +200,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::atomic<bool> cube_state_;
 		void cubeCallback(const elevator_controller::CubeState &cube)
 		{
-			cube_state_.store(cube.data, std::memory_order_relaxed);
+			cube_state_.store(cube.has_cube, std::memory_order_relaxed);
 		}
 		ros::Subscriber cube_state_sub_;	
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;

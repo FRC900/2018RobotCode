@@ -441,7 +441,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			}
 		}
 		//ALast = 0; //Remove flag
-		/*Back button press(M2) - Just Go Out*/
+		/*Back button press(M2) - Just intake no arm*/
 		if (JoystickState->buttonBackPress == true)
 		{
 			//Consider changing this functionallity
@@ -498,8 +498,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			A_toggle_on = true;
 		}
 	}
-	/*------------------ Start Button No Cube - Intake No Lift --------------*/
 
+	/*------------------ Start Button(M1) No Cube - spin out for two seconds --------------*/
+    
 	else if(JoystickState->buttonStartPress) {
 
 		
@@ -511,16 +512,14 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 		else
 		{
-
-	
-		//if(!ac->getState().isDone())
-			ac->cancelAllGoals();
-		start_toggle_on = true;
-		buttonStartStart = timeSecs;
-		goal_intake.IntakeCube = true;
-		goal_intake.time_out = 15;
-		ac_intake->sendGoal(goal_intake);
-		ROS_INFO("teleop : Intake No Lift");
+            //if(!ac->getState().isDone())
+            ac->cancelAllGoals();
+            start_toggle_on = true;
+            buttonStartStart = timeSecs;
+            goal_intake.IntakeCube = true;
+            goal_intake.time_out = 15;
+            ac_intake->sendGoal(goal_intake);
+            ROS_INFO("teleop : Intake No Lift");
 		}
 	}
 

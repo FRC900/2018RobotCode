@@ -452,10 +452,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
            /* Starting on the left -> go to the left */
            if(start_pos == 0) {
-               const double delay = 6; //TODO
+               const double delay = 6; //Going 3/4 way towards scale
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.05; //positive x a lot
-                    vel.linear.y = 0.12; //positive y a little bit
+                    vel.linear.y = 0.1; //positive y a little bit
                     VelPub.publish(vel);
                     //ROS_INFO("Here");
                     r.sleep();
@@ -464,10 +464,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
            
            /* Starting on the right -> go to the right */
            if(start_pos == 2) {
-               const double delay = 6; //TODO
+               const double delay = 6; //Going 3/4 way towards scale
                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.05; //positive x a lot
-                    vel.linear.y = -0.12; //negative y a little bit
+                    vel.linear.y = -0.1; //negative y a little bit
                     VelPub.publish(vel);
                     //ROS_INFO("Here");
                     r.sleep();
@@ -476,7 +476,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
             /* Starting in the middle -> go to the left */
             else {
-                const double delay = 3.04; //TODO
+                const double delay = 3.5; //Going exactly to the switch that is not ours
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 0.875; //positive x some
                     vel.linear.y = 0.5; //positive y some
@@ -496,7 +496,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                 const double delay = 6; 
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.05; //positive x a lot
-                    vel.linear.y = 0.12; //positive y a little bit
+                    vel.linear.y = 0.1; //positive y a little bit
                     VelPub.publish(vel);
                     r.sleep();
                 }
@@ -507,7 +507,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                 const double delay = 6; //TODO
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.05; //positive x a lot
-                    vel.linear.y = -0.12; //negative y a little bit
+                    vel.linear.y = -0.1; //negative y a little bit
                     VelPub.publish(vel);
                     r.sleep();
                 }
@@ -515,7 +515,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
             /* Starting in the middle -> go to the right */
             else {
-                const double delay = 3.04; //TODO
+                const double delay = 3.5; //TODO
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 0.875; //positive x some
                     vel.linear.y = -0.3; //negative y some
@@ -543,8 +543,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
         /* Our switch is on the right */
         if(auto_mode == 0 || auto_mode == 2) {
-           if(start_pos == 0) {
-               const double delay = 3.5; //TODO
+
+            /* Starting on the left go to the right */ 
+            if(start_pos == 0) {
+               const double delay = 3; //Goes 1/2 meter past leading edge of our switch
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.05;
                     vel.linear.y = -1.5;
@@ -552,20 +554,24 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     r.sleep();
                 }
             }
-           if(start_pos == 2) {
-            const double delay = 3; //TODO
-               while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+
+            /* Starting on the Right go to right switch */
+            if(start_pos == 2) {
+                const double delay = 2.58; //Goes 1/2 meter past leading edge of our switch
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.2;
                     vel.linear.y = .53;
                     VelPub.publish(vel);
                     r.sleep();
                 }
-           }
-           else {
-                const double delay = 3; //TODO
+            }
+
+            /* Starting in the middle go to right switch */
+            else {
+                const double delay = 3; //Goes 1/2 meter past leading edge of our switch
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
-                    vel.linear.x = 1.75;
-                    vel.linear.y = -0.7; 
+                    vel.linear.x = 1.05;
+                    vel.linear.y = -0.45; 
                     VelPub.publish(vel);
                     r.sleep();
                 }
@@ -576,8 +582,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
         /* Our switch is on the left */
         else if(auto_mode == 1 || auto_mode == 3) {
+            
+            /* Starting on the left go to the left switch */
             if(start_pos == 0){
-                const double delay = 3; 
+                const double delay = 2.58; //Going 1/2 meter past leading edge of our switch 
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.2;
                     vel.linear.y = -.53;
@@ -586,20 +594,24 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                 }
 				parkingConfig();
             }
+
+            /* Starting on the right go to the left switch */
             if(start_pos == 2) {
-                const double delay = 3.5; //TODO
+                const double delay = 3; //Going 1/2 meter past leading edge of our switch 
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = 1.05;
-                    vel.linear.y = 1.5;
+                    vel.linear.y = -1.5;
                     VelPub.publish(vel);
                     r.sleep();
                 }
             }
+
+            /* Starting in the middle go to the left switch */
             else {
-                const double delay = 3; //TODO
+                const double delay = 2.76; //Going 1/2 meter past leading edge of our switch 
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
-                    vel.linear.x = 1.5;
-                    vel.linear.y = .75;
+                    vel.linear.x = 1.125;
+                    vel.linear.y = .675;
                     VelPub.publish(vel);
                     r.sleep();
                 }
@@ -623,8 +635,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
 
         /* Our switch is on the right */
         if(auto_mode == 0 || auto_mode == 2) {
-           if(start_pos == 0) {
-               const double delay = 3.5; //TODO
+
+            /* Starting on the left go to the right */ 
+            if(start_pos == 0) {
+               const double delay = 3; //Goes 1/2 meter past leading edge of our switch
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = -1.05;
                     vel.linear.y = 1.5;
@@ -632,31 +646,37 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     r.sleep();
                 }
             }
-           if(start_pos == 2) {
-            const double delay = 3; //TODO
-               while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+
+            /* Starting on the Right go to right switch */
+            if(start_pos == 2) {
+                const double delay = 2.58; //Goes 1/2 meter past leading edge of our switch
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = -1.2;
                     vel.linear.y = -.53;
                     VelPub.publish(vel);
                     r.sleep();
                 }
-           }
-           else {
-                const double delay = 3; //TODO
+            }
+
+            /* Starting in the middle go to right switch */
+            else {
+                const double delay = 3; //Goes 1/2 meter past leading edge of our switch
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
-                    vel.linear.x = -1.75;
-                    vel.linear.y = 0.7; 
+                    vel.linear.x = -1.05;
+                    vel.linear.y = 0.45; 
                     VelPub.publish(vel);
                     r.sleep();
                 }
-		parkingConfig();
             }
+            parkingConfig();
         }
 
         /* Our switch is on the left */
         else if(auto_mode == 1 || auto_mode == 3) {
+
+            /* Starting on the left go to the left switch */
             if(start_pos == 0){
-                const double delay = 3; 
+                const double delay = 3; //Goes 1/2 meter past leading edge of our switch
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = -1.2;
                     vel.linear.y = .53;
@@ -665,8 +685,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                 }
 				parkingConfig();
             }
+
+            /* Starting on the right go to the left switch */
             if(start_pos == 2) {
-                const double delay = 3.5; //TODO
+                const double delay = 3.5; //Goes 1/2 meter past leading edge of our switch
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = -1.05;
                     vel.linear.y = -1.5;
@@ -674,8 +696,10 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                     r.sleep();
                 }
             }
+
+            /* Starting in the middle go to the left switch */
             else {
-                const double delay = 3; //TODO
+                const double delay = 3; //Goes 1/2 meter past leading edge of our switch
                 while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
                     vel.linear.x = -1.5;
                     vel.linear.y = -.75;
@@ -686,9 +710,103 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         }
 		parkingConfig();
     }
+
+
+    /*-------------------- Backward Basic Cross line cmd vel auto ---------------------*/
+    if(auto_select == 4) {
+        //ROS_WARN("Basic drive forward auto");
+        geometry_msgs::Twist vel;
+        vel.linear.z = 0;
+        vel.angular.x = 0;
+        vel.angular.y = 0;
+        vel.angular.z = 0;
+
+        switchConfig(); 
+
+        /*---------------------- Our Switch is on the Right ------------------------*/
+
+        if(auto_mode == 0 || auto_mode == 2) {
+
+           /* Starting on the left -> go to the left */
+           if(start_pos == 0) {
+               const double delay = 6; //Going 3/4 way towards scale
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -1.05; //positive x a lot
+                    vel.linear.y = -0.1; //positive y a little bit
+                    VelPub.publish(vel);
+                    //ROS_INFO("Here");
+                    r.sleep();
+                }
+           }
+           
+           /* Starting on the right -> go to the right */
+           if(start_pos == 2) {
+               const double delay = 6; //Going 3/4 way towards scale
+               while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -1.05; //positive x a lot
+                    vel.linear.y = 0.1; //negative y a little bit
+                    VelPub.publish(vel);
+                    //ROS_INFO("Here");
+                    r.sleep();
+                }
+            }
+
+            /* Starting in the middle -> go to the left */
+            else {
+                const double delay = 3.5; //Going exactly to the switch that is not ours
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -0.875; //positive x some
+                    vel.linear.y = -0.5; //positive y some
+                    VelPub.publish(vel);
+                    //ROS_INFO("Here");
+                    r.sleep();
+                }
+            }
+        }
+
+        /*------------------ Our Switch is on the Left -------------------------*/
+
+        else if(auto_mode == 1 || auto_mode == 3) { //goal is on the left
+
+            /* Starting on the left -> go to the left */
+            if(start_pos == 0){
+                const double delay = 6; 
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -1.05; //positive x a lot
+                    vel.linear.y = -0.1; //positive y a little bit
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+            }
+
+            /* Starting on the right -> go to the right */
+            if(start_pos == 2) {
+                const double delay = 6; //TODO
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -1.05; //positive x a lot
+                    vel.linear.y = 0.1; //negative y a little bit
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+            }
+
+            /* Starting in the middle -> go to the right */
+            else {
+                const double delay = 3.5; //TODO
+                while(ros::Time::now().toSec() < start_time + delay && !exit_auto) {
+                    vel.linear.x = -0.875; //positive x some
+                    vel.linear.y = 0.3; //negative y some
+                    VelPub.publish(vel);
+                    r.sleep();
+                }
+            }
+        }
+        parkingConfig();
+    }
+
     /*--------------------------- Profiled Single Scale auto mode ------------------------*/
 
-	else if(auto_select == 4) {
+	else if(auto_select == 5) {
         //ROS_WARN("Profiled Scale");
         while (!exit_auto && !runTrajectory())
 			r.sleep();
@@ -710,7 +828,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         }
 		parkingConfig();
     }
-	else if(auto_select == 5) {
+	else if(auto_select == 6) {
         //ROS_WARN("Profiled Scale");
         while (!exit_auto && !runTrajectory())
 			r.sleep();
@@ -1197,13 +1315,12 @@ int main(int argc, char** argv) {
 	ros::AsyncSpinner spinner(2);
 	spinner.start();
 	
-<<<<<<< HEAD
     ROS_WARN("Auto Client loaded");
-    ros::Duration(20).sleep();
+    //ros::Duration(20).sleep();
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    generateTrajectory(all_modes[4][3][2]);
+    //generateTrajectory(all_modes[4][3][2]);
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
@@ -1240,10 +1357,10 @@ int main(int argc, char** argv) {
                 //loop through auto_mode data 
                 //generate trajectories for all changed modes
                 for(int i = 0; i<4; i++) {
-                    if ((auto_mode_data.modes_[i] > 3) &&
+                    if ((auto_mode_data.modes_[i] > 4) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
-                        if(generateTrajectory(all_modes[i][auto_mode_data.modes_[i] - 4][auto_mode_data.start_pos_])) {
+                        if(generateTrajectory(all_modes[i][auto_mode_data.modes_[i] - 5][auto_mode_data.start_pos_])) {
                             generated_vect[i] = true;
                             auto_mode_vect[i] = auto_mode_data.modes_[i];
                             delays_vect[i] = auto_mode_data.delays_[i];
@@ -1257,7 +1374,7 @@ int main(int argc, char** argv) {
                             //ROS_WARN("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                         }
                     }
-                    else if (auto_mode_data.modes_[i] <= 3 && (auto_mode_data.modes_[i] >= 0) &&
+                    else if (auto_mode_data.modes_[i] <= 4 && (auto_mode_data.modes_[i] >= 0) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
                         auto_mode_vect[i] = auto_mode_data.modes_[i];
@@ -1329,7 +1446,7 @@ int main(int argc, char** argv) {
             if(match_data_received && !mode_buffered) { //if we have match data and haven't buffered yet, buffer
                 //ROS_INFO("Match data received no auto buffered yet");
                 if(generated_vect[auto_mode]) {
-                    if(auto_mode_vect[auto_mode] > 3) {
+                    if(auto_mode_vect[auto_mode] > 4) {
                         if(bufferTrajectory(all_modes[auto_mode_vect[auto_mode]][auto_mode][start_pos].srv_msg.response)) {
                             //ROS_WARN("Buffering Profiled auto mode");
                             mode_buffered = true;

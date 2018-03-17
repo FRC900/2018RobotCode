@@ -19,7 +19,8 @@
   <arg name="pub_rate" default="1" />
 
   <arg name="file_path" default="../../../../../media/hanskhatri/5522-557D/PalmettoVideos/cap17_2.zms"/>  
-  <!--
+
+
   <group ns="$(arg name)">
     <include file="$(find zed_wrapper)/launch/zed_camera.launch">
       <arg name="zed_name" value="$(arg name)" />
@@ -35,7 +36,6 @@
       <arg name="whitebalance" value="$(arg whitebalance)" />
     </include>
 </group>
-  -->
   
   <node name="cube_detection_node" pkg="cube_detection" type="cube_detection_node" output= "screen">
   	<param name="down_sample" value="$(arg down_sample)" />
@@ -43,9 +43,11 @@
   	<param name="pub_rate" value="$(arg pub_rate)" />
   </node>
 
+<!--
   <node name="vid_reader_node" pkg="vid_reader_node" type="vid_reader_node" output= "screen">
 	<param name="file_path" value="$(arg file_path)"/>
 	<param name="pub_rate" value="$(arg pub_rate)"/>
   </node>
+-->
 
 </launch>
