@@ -181,11 +181,13 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			{
 				override_compressor_limits.msg_.data = (bool)driveTable->GetBoolean("disable_reg", 0);		
 				override_compressor_limits.unlockAndPublish();
+				frc::SmartDashboard::PutBoolean("disable_reg_ret", override_compressor_limits.msg_.data);
 			}
 			if (override_arm.trylock())
 			{
 				override_arm.msg_.data = (bool)driveTable->GetBoolean("disable_arm_limits", 0);		
 				override_arm.unlockAndPublish();
+				frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm.msg_.data );
 			}
 			if (stop_arm.trylock())
 			{

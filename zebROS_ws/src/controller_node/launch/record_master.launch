@@ -29,7 +29,7 @@
 			/frcrobot/AutoServer/goal
 			/frcrobot/AutoServer/result
 			/frcrobot/AutoServer/status
-			/frcrobot/Autonomous_Mode
+			/frcrobot/autonomous_mode
 			/frcrobot/auto_interpreter_server/cancel
 			/frcrobot/auto_interpreter_server/feedback
 			/frcrobot/auto_interpreter_server/goal
