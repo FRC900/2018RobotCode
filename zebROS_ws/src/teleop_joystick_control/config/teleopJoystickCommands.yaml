@@ -13,7 +13,7 @@ teleop_params:
     switch_config_up_or_down: true
     #exchange should probably be the same as intake
     exchange_config_x: .215
-    exchange_config_y: .5
+    exchange_config_y: .75 #check this
     exchange_config_up_or_down: false
     intake_ready_to_drop_x: .315
     intake_ready_to_drop_y: 1.0 #1.075 - y pos arm relative
