@@ -253,7 +253,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	/*-----------------Up Double Press End Deploy------------------------------*/
 
-	if (JoystickState->directionUpPress && matchTimeRemaining.load(std::memory_order_relaxed) < 30 )
+	if (JoystickState->directionUpPress && matchTimeRemaining.load(std::memory_order_relaxed) < 60 )
 	{
 
 		//if(!ac->getState().isDone())
