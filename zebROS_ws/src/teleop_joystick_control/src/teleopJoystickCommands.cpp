@@ -216,7 +216,7 @@ void match_data_callback(const ros_control_boilerplate::MatchSpecificData::Const
 //
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState)
 {
-    ROS_WARN("nope");
+    ROS_WARN("nop");
 	/*std_msgs::Header first_header;
 	  first_header.stamp = JoystickState->header.stamp;
 	  first_header.seq = 0;
@@ -568,7 +568,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	}
 
 	/*-If just spun out, place and Run Intake Out-*/
-	if (finish_spin_out_check && (timeSecs - time_start_spin) > 2.0 && !start_toggle_on)
+	if (finish_spin_out_check && (timeSecs - time_start_spin) > 2.0)
 	{
 		srvIntake.request.power = 0;
 		srvIntake.request.spring_state = 2; //soft_in
