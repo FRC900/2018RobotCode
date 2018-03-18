@@ -24,49 +24,21 @@
 
   <node name="rosbag_record_node" pkg="rosbag" type="record"
 	  args="record -o /mnt/900_2/ --lz4 --buffsize=0
-		/frcrobot/auto_interpreter_server/cancel
-		/frcrobot/auto_interpreter_server/feedback
-		/frcrobot/auto_interpreter_server/goal
-		/frcrobot/auto_interpreter_server/result
-		/frcrobot/auto_interpreter_server/status
-		/frcrobot/auto_interpreter_server_intake/cancel
-		/frcrobot/auto_interpreter_server_intake/feedback
-		/frcrobot/auto_interpreter_server_intake/goal
-		/frcrobot/auto_interpreter_server_intake/result
-		/frcrobot/auto_interpreter_server_intake/status
-		/frcrobot/auto_interpreter_server_lift/cancel
-		/frcrobot/auto_interpreter_server_lift/feedback
-		/frcrobot/auto_interpreter_server_lift/goal
-		/frcrobot/auto_interpreter_server_lift/result
-		/frcrobot/auto_interpreter_server_lift/status
 		/frcrobot/autonomous_mode
 		/frcrobot/clamp_controller/command
 		/frcrobot/compressor_controller/command
 		/frcrobot/elevator_controller/cmd_pos
-		/frcrobot/elevator_controller/cube_state
-		/frcrobot/elevator_controller/high_cube
 		/frcrobot/elevator_controller/odom
-		/frcrobot/elevator_controller/return_cmd_pos
-		/frcrobot/elevator_controller/stop_arm
 		/frcrobot/end_game_deploy_controller/command
-		/frcrobot/frcrobot/override_arm_limits
-		/frcrobot/intake_spring_hard_controller/command
-		/frcrobot/intake_spring_soft_controller/command
-		/frcrobot/intake_up_controller/command
 		/frcrobot/joint_states
 		/frcrobot/joystick_states
 		/frcrobot/match_data
 		/frcrobot/navx_controller/command
 		/frcrobot/navx_mxp
-		/frcrobot/override_arm_limits
 		/frcrobot/pdp_states
-		/frcrobot/regulate_compressor/disable
-		/frcrobot/rumble_controller/command
-		/frcrobot/shift_controller/command
 		/frcrobot/swerve_drive_controller/cmd_vel
 		/frcrobot/swerve_drive_controller/odom
 		/frcrobot/talon_states
-		/frcrobot/test_header
 		/rosout
 		/rosout_agg
 		/scan
