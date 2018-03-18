@@ -839,7 +839,7 @@ class TalonControllerInterface
 			talon_->setPeakCurrentDuration(params_.current_limit_peak_msec_);
 		}
 
-		virtual void setContinouousCurrentLimit(int amps)
+		virtual void setContinuousCurrentLimit(int amps)
 		{
 			if (amps == params_.current_limit_continuous_amps_)
 				return;

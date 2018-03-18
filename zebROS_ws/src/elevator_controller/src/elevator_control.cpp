@@ -119,6 +119,26 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		return false;
 	}
 
+	
+	if (!controller_nh.getParam("intake_power_diff_multiplier", intake_power_diff_multiplier_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read intake_power_diff_multiplier");
+		return false;
+	}
+
+
+	
+	if (!controller_nh.getParam("norm_cur_lim", norm_cur_lim_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read norm_cur_lim");
+		return false;
+	}
+	if (!controller_nh.getParam("climb_cur_lim", climb_cur_lim_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read climb_cur_lim");
+		return false;
+	}
+
 	std::string node_name;
 	//Offset for lift should be lift sensor pos when all the way down + height of carriage pivot point
 	//when all the way down
@@ -325,6 +345,15 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	before_shift_max_vel_ = lift_joint_.getMotionCruiseVelocity();
 	before_shift_max_accel_ = lift_joint_.getMotionAcceleration();
 
+	
+	lift_joint_.setMotionAcceleration(before_shift_max_accel_);
+	lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
+	lift_joint_.setPIDFSlot(0);
+	
+			
+	lift_joint_.setContinuousCurrentLimit(norm_cur_lim_);
+
+
 	return true;
 }
 
@@ -399,6 +428,9 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 			shifted_ = true;
 			lift_joint_.setMotionAcceleration(after_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(after_shift_max_vel_);
+			
+			lift_joint_.setContinuousCurrentLimit(climb_cur_lim_);
+			
 			lift_joint_.setPIDFSlot(1);
 			//lift_joint_.setF(f_lift_low_);
 		}
@@ -414,6 +446,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 			lift_joint_.setMotionAcceleration(before_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
 			lift_joint_.setPIDFSlot(0);
+			
+					
+			lift_joint_.setContinuousCurrentLimit(norm_cur_lim_);
+
 			//lift_joint_.setF(f_lift_high_);
 		}
 	}

@@ -148,6 +148,10 @@ class ElevatorController
 
 		double last_tar_l;
 		double last_tar_p;
+
+		double norm_cur_lim_;
+		double climb_cur_lim_;
+
 		std::atomic<bool> stop_arm_;	
 
 		//Something for getting the soft limit bounding boxes
