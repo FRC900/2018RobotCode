@@ -216,6 +216,7 @@ void match_data_callback(const ros_control_boilerplate::MatchSpecificData::Const
 //
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState)
 {
+    ROS_WARN("nope");
 	/*std_msgs::Header first_header;
 	  first_header.stamp = JoystickState->header.stamp;
 	  first_header.seq = 0;
@@ -451,7 +452,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 		//ALast = 0; //Remove flag
 
-		/*Back button press(M2) - Just intake no arm*/
+		/*Back button press(M1) - Just intake no arm*/
 		if (JoystickState->buttonBackPress == true)
 		{
 			//Consider changing this functionallity
@@ -489,6 +490,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			//if(!ac_intake->getState().isDone())
 				ac_intake->cancelAllGoals();
 			A_toggle_on = false;
+            start_toggle_on = false;
 		}
 		else
 		{
@@ -509,6 +511,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			achieved_pos = other;
 			A_intake_time = ros::Time::now().toSec();	
 			A_toggle_on = true;
+            start_toggle_on = true;
             intake_up = false;
 		}
 	}
@@ -564,7 +567,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	}
 
 	/*-If just spun out, place and Run Intake Out-*/
-	if (finish_spin_out_check && (timeSecs - time_start_spin) > 2.0)
+	if (finish_spin_out_check && (timeSecs - time_start_spin) > 2.0 && !start_toggle_on)
 	{
 		srvIntake.request.power = 0;
 		srvIntake.request.spring_state = 2; //soft_in
@@ -684,7 +687,7 @@ For right now we will just go back out and then call "go to intake config"
 
 	/*When we get the cube, slow the intake and grip hard*/
 
-	if (run_out && (timeSecs > buttonBackStart + 2))
+	if (run_out && (timeSecs > buttonBackStart + 2) && !start_toggle_on)
 	{
 		srvIntake.request.power = 0;
 		srvIntake.request.spring_state = 2; //soft_in
@@ -949,7 +952,7 @@ For right now we will just go back out and then call "go to intake config"
         }
 		ROS_INFO("teleop : called IntakeSrv in BackButton press");
 	}
-	if (JoystickState->buttonBackRelease == true)
+	/*if (JoystickState->buttonBackRelease == true)
 	{
 		srvIntake.request.power = 0;
 		srvIntake.request.up = false;
@@ -959,7 +962,7 @@ For right now we will just go back out and then call "go to intake config"
             intake_up = false;
         }
 		ROS_INFO("teleop : called IntakeSrv in BackButton release");
-	}
+	}*/
 
 	//}
 
