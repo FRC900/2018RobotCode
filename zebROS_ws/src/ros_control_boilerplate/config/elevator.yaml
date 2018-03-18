@@ -25,8 +25,6 @@ elevator_controller:
     hook_min_height: 1.2 #FIX
     hook_max_height: 1.35 #FIX
     
-    climb_volt_lim: = 1.0
-    norm_volt_lim: = .5
     climb_cur_lim: = 60
     norm_cur_lim: = 15
 	
@@ -43,8 +41,8 @@ elevator_controller:
     lift_joint:
         joint: lift
         close_loop_values:
-            - {p: .4, i: 0.0005, d: 0.2, f: 0.1669, i_zone: 750} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
-            - {p: .5, i: 0.0005, d: 7.5, f: 0.0235389351901052, i_zone: 750} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500} 
+            - {p: .4, i: 0.0005, d: 0.2, f: 0.1669, i_zone: 750, closed_loop_peak_output: .5} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+            - {p: .5, i: 0.0005, d: 7.5, f: 0.0235389351901052, i_zone: 750, closed_loop_peak_output: 1.0} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500} 
         invert_output: True
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
