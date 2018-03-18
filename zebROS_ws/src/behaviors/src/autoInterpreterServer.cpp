@@ -213,7 +213,7 @@ class autoAction
 					goal_l.up_or_down = intake_low_up_or_down;
 					goal_l.override_pos_limits = false;
 					goal_l.dist_tolerance = 0.1; //Tolerances are intentionally large, will require testing
-					goal_l.y_tolerance = 0.04;
+					goal_l.y_tolerance = 0.1;
 					goal_l.x_tolerance = 0.1;
 					al->sendGoal(goal_l);
 					while (!aborted && !timed_out)
@@ -251,7 +251,7 @@ class autoAction
 					goal_l.up_or_down = intake_high_up_or_down;
 					goal_l.override_pos_limits = false;
 					goal_l.dist_tolerance = 0.1; //Tolerances are intentionally large, will require testing
-					goal_l.y_tolerance = 0.04;
+					goal_l.y_tolerance = 0.1;
 					goal_l.x_tolerance = 0.1;
 					al->sendGoal(goal_l);
 					while (!aborted && !timed_out)
@@ -519,6 +519,8 @@ int main(int argc, char **argv)
 		ROS_ERROR("Could not read intake_low_y");
 	if (!n_params.getParam("wait_open_before_drop", wait_open_before_drop))
 		ROS_ERROR("Could not read wait_open_before_drop");
+	if (!n_params.getParam("drop_x_tolerance", drop_x_tolerance))
+		ROS_ERROR("Could not read drop_x_tolerance");
 
 	ros::spin();
 
