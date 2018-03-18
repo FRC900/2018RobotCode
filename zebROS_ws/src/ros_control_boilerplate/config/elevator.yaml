@@ -25,8 +25,11 @@ elevator_controller:
     hook_min_height: 1.2 #FIX
     hook_max_height: 1.35 #FIX
     
-
-
+	climb_volt_lim: = 1.0
+	norm_volt_lim: = .5
+	climb_cur_lim: = 60
+	norm_cur_lim: = 15
+	
     drop_down_pos: .4 #FIX
     drop_down_tolerance: .06 #FIX
     safe_to_go_back_y: 1.9 #FIX
@@ -50,7 +53,6 @@ elevator_controller:
         motion_acceleration: 0.5
         current_limit_continuous_amps: 60
         current_limit_enable: True
-
     lift_follower1_joint:
         joint: lift_follower1 
         invert_output: True
