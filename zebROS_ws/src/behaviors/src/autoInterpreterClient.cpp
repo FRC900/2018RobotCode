@@ -1741,7 +1741,7 @@ int main(int argc, char** argv) {
 	// start
 	mode_list all_modes = load_all_trajectories(max_num_mode, max_num_start, n_params_behaviors);
 
-    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server", true);
+    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
     ac->waitForServer(); 
 
 	std::map<std::string, std::string> service_connection_header;
