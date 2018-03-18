@@ -216,7 +216,6 @@ void match_data_callback(const ros_control_boilerplate::MatchSpecificData::Const
 //
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState)
 {
-    ROS_WARN("nop");
 	/*std_msgs::Header first_header;
 	  first_header.stamp = JoystickState->header.stamp;
 	  first_header.seq = 0;
@@ -407,6 +406,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	static double place_start = 0;
 	static double ADoubleStart = 0;
 	static double buttonBackStart = 0;
+    ROS_WARN("buttonBackStart: %f", buttonBackStart);
 	static double buttonStartStart = 0;
 	static bool placed_delay_check = false;
 	static bool manage_intaking;
@@ -414,6 +414,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	static double A_intake_time = 0;
 	static bool A_toggle_on = false;
 	static bool start_toggle_on = false;
+    if(start_toggle_on) {
+        ROS_WARN("start_toggle_on ON");
+    }
+    else {
+        ROS_WARN("start_toggle_on OFF");
+    }
 	if (localHasCube)
 	{
 		/*----------------Single Press------------------*/
