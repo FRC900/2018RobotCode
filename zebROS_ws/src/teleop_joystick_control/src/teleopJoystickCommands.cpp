@@ -892,9 +892,9 @@ For right now we will just go back out and then call "go to intake config"
 				intakeGoToDefault();
 
 
-				srvElevator.request.x = low_scale_config_x;
-				srvElevator.request.y = low_scale_config_y;
-				srvElevator.request.up_or_down = low_scale_config_up_or_down;
+				srvElevator.request.x = .1;
+				srvElevator.request.y = climb;
+				srvElevator.request.up_or_down = true;
 				srvElevator.request.override_pos_limits = localDisableArmLimits;
 				achieved_pos = low_scale;
 

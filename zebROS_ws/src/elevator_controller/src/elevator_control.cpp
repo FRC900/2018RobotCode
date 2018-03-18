@@ -534,7 +534,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	elevator_controller::ReturnElevatorCmd odom_holder;
 
 	const double lift_position =  /*last_tar_l - lift_offset_;*/ lift_joint_.getPosition()  - lift_offset_;
-	double pivot_angle   =  /*last_tar_p - pivot_offset_;*/ pivot_joint_.getPosition() - pivot_offset_;
+	const double pivot_angle   =  /*last_tar_p - pivot_offset_;*/ pivot_joint_.getPosition() - pivot_offset_;
 
 		
 
@@ -620,13 +620,29 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	const double pivot_target = acos(curr_cmd.lin[0]/arm_length_) * ((curr_cmd.up_or_down) ? 1 : -1);
 	
 	//ROS_INFO_STREAM("up_or_down: " << curr_cmd.up_or_down << "lin pos target" << curr_cmd.lin << " lift pos tar: " << curr_cmd.lin[1] - arm_length_ * sin(pivot_target));	
-
-	pivot_joint_.setCommand(pivot_target + pivot_offset_);
-
 	double pivot_custom_f = cos(pivot_angle) * f_arm_mass_ +f_arm_fric_;
-	//pivot_joint_.setF(pivot_custom_f);
 
-	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
+	
+	if(enabled_.load(std::memory_order_relaxed))
+	{
+
+		pivot_joint_.setCommand(pivot_target + pivot_offset_);
+
+		//pivot_joint_.setF(pivot_custom_f);
+
+		lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
+	}
+	else
+	{
+
+		pivot_joint_.setCommand(pivot_angle + pivot_offset_);
+		pivot_joint_.setIntegralAccumulator(0);
+		//pivot_joint_.setF(pivot_custom_f);
+
+		lift_joint_.setCommand(lift_position + lift_offset_);
+		lift_joint_.setIntegralAccumulator(0);
+
+	}
 	last_tar_l = curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_;
 	last_tar_p = (pivot_target + pivot_offset_);
 }
@@ -657,6 +673,17 @@ void ElevatorController::stopCallback(const std_msgs::Bool &command)
 	if(isRunning())
 	{
 		stop_arm_.store(command.data, std::memory_order_relaxed);
+	}
+	else
+	{
+		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+	}
+}
+void ElevatorController::enabledCallback(const ros_control_boilerplate::MatchSpecificData &data)
+{
+	if(isRunning())
+	{
+		enabled_.store(data.isEnabled, std::memory_order_relaxed);
 	}
 	else
 	{

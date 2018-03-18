@@ -226,11 +226,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 			realtime_pub_joystick.msg_.leftTrigger = joystick.GetRawAxis(2);
 			realtime_pub_joystick.msg_.rightTrigger = joystick.GetRawAxis(3);
-            /*
 			realtime_pub_joystick.msg_.buttonXButton = joystick.GetRawButton(3);
 			realtime_pub_joystick.msg_.buttonXPress = joystick.GetRawButtonPressed(3);
 			realtime_pub_joystick.msg_.buttonXRelease = joystick.GetRawButtonReleased(3);
-            */
 			realtime_pub_joystick.msg_.buttonYButton = joystick.GetRawButton(4);
 			realtime_pub_joystick.msg_.buttonYPress = joystick.GetRawButtonPressed(4);
 			realtime_pub_joystick.msg_.buttonYRelease = joystick.GetRawButtonReleased(4);
@@ -251,15 +249,12 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_joystick.msg_.stickRightPress = joystick.GetRawButtonPressed(10);
 			realtime_pub_joystick.msg_.stickRightRelease = joystick.GetRawButtonReleased(10);
 
-            /*
 			realtime_pub_joystick.msg_.buttonAButton = joystick.GetRawButton(1);
 			realtime_pub_joystick.msg_.buttonAPress = joystick.GetRawButtonPressed(1);
 			realtime_pub_joystick.msg_.buttonARelease = joystick.GetRawButtonReleased(1);
-            */
 			realtime_pub_joystick.msg_.buttonBButton = joystick.GetRawButton(2);
 			realtime_pub_joystick.msg_.buttonBPress = joystick.GetRawButtonPressed(2);
 			realtime_pub_joystick.msg_.buttonBRelease = joystick.GetRawButtonReleased(2);
-            /*
 			realtime_pub_joystick.msg_.buttonBackButton = joystick.GetRawButton(7);
 			realtime_pub_joystick.msg_.buttonBackPress = joystick.GetRawButtonPressed(7);
 			realtime_pub_joystick.msg_.buttonBackRelease = joystick.GetRawButtonReleased(7);
@@ -267,7 +262,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_joystick.msg_.buttonStartButton = joystick.GetRawButton(8);
 			realtime_pub_joystick.msg_.buttonStartPress = joystick.GetRawButtonPressed(8);
 			realtime_pub_joystick.msg_.buttonStartRelease = joystick.GetRawButtonReleased(8);
-            */
             
             /*-----------------------------------------------------------------------------*/
             /*-----------------------------------------------------------------------------*/
@@ -280,7 +274,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
             /*-----------------------------------------------------------------------------*/
             /*-----------------------------------------------------------------------------*/
             /*-----------------------------------------------------------------------------*/
-
+			/*
 			realtime_pub_joystick.msg_.buttonAButton = joystick.GetRawButton(8);
 			realtime_pub_joystick.msg_.buttonAPress = joystick.GetRawButtonPressed(8);
 			realtime_pub_joystick.msg_.buttonARelease = joystick.GetRawButtonReleased(8);
@@ -296,7 +290,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_joystick.msg_.buttonStartButton = joystick.GetRawButton(1);
 			realtime_pub_joystick.msg_.buttonStartPress = joystick.GetRawButtonPressed(1);
 			realtime_pub_joystick.msg_.buttonStartRelease = joystick.GetRawButtonReleased(1);
-
+			*/
 		
 			switch (joystick.GetPOV(0))
 			{

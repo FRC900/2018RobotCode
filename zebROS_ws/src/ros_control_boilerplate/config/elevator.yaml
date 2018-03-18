@@ -28,15 +28,15 @@ elevator_controller:
     climb_cur_lim: 60
     norm_cur_lim: 15
 
-    drop_down_pos: .4 #FIX
-    drop_down_tolerance: .06 #FIX
+    drop_down_pos: .3 #FIX
+    drop_down_tolerance: .1 #FIX
     safe_to_go_back_y: 1.9 #FIX
     cut_off_x_line: .17 #FIX
-    cut_off_y_line: .4 #FIX
+    cut_off_y_line: .6 #FIX
     
     #Fix below remove poly points 
-    polygon_points_down: [-2.0, -1.0, -2.0, 3.0, -0.155, 3.0, -0.155, -1.0, 0.0, -1.0, 0.0, 2.355, .17, 2.355, .17, 0.93, 0.34, 0.93, 0.34, 0.5, 1.0, 0.5, 1.0, -1.1, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
-    polygon_points_up: [-2.0, -1.0, -2.0, 3.0, -0.155, 3.0, -0.155, -1.0, 0.0, -1.0, 0.0, 2.355, .17, 2.355, .17, 0.93, 1.0, .93, 1.0, -1.1, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
+    polygon_points_down: [-2.0, -1.0, -2.0, 3.0, -0.155, 3.0, -0.155, -1.0, 0.0, -1.0, 0.0, 2.355, .17, 2.355, .17, 0.6, 0.3, 0.6, 0.3, 0.3, 1.0, 0.3, 1.0, -1.1, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
+    polygon_points_up: [-2.0, -1.0, -2.0, 3.0, -0.155, 3.0, -0.155, -1.0, 0.0, -1.0, 0.0, 2.355, .17, 2.355, .17, 0.6, 1.0, .6, 1.0, -1.1, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
     cut_off_line: .93 
     lift_joint:
         joint: lift

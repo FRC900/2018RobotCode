@@ -15,6 +15,7 @@
 #include <elevator_controller/ReturnElevatorCmd.h>
 #include <elevator_controller/CubeState.h>
 #include <elevator_controller/arm_limiting.h>
+#include <ros_control_boilerplate/MatchSpecificData.h>
 
 #include <nav_msgs/Odometry.h>
 #include <atomic>
@@ -54,6 +55,7 @@ class ElevatorController
 		std::atomic<bool> shift_cmd_;
 		bool shifted_;
 		std::atomic<double> clamp_cmd_;
+		std::atomic<bool> enabled_;
 		double climb_height_;
 		std::atomic<bool> end_game_deploy_cmd_;
 		bool end_game_deploy_t1_;
@@ -98,6 +100,7 @@ class ElevatorController
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		ros::Subscriber sub_command_;
+		ros::Subscriber sub_enabled_;
 		ros::Subscriber sub_stop_arm_;
 		ros::Subscriber sub_joint_state_;
 		ros::ServiceServer service_command_;
@@ -127,6 +130,7 @@ class ElevatorController
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
 		void stopCallback(const std_msgs::Bool& command);
+		void enabledCallback(const ros_control_boilerplate::MatchSpecificData& enabled);
 		void lineBreakCallback(const sensor_msgs::JointState&);
 		bool cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res);
 		bool intakeService(elevator_controller::Intake::Request &command, elevator_controller::Intake::Response &res);

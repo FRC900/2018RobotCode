@@ -1,33 +1,33 @@
 teleop_params:
-    high_scale_config_x: .41586
-    high_scale_config_y: 2.15
+    high_scale_config_x: .36
+    high_scale_config_y: 2.27
     high_scale_config_up_or_down: true
-    mid_scale_config_x: .41586
-    mid_scale_config_y: 1.85
+    mid_scale_config_x: .36
+    mid_scale_config_y: 2.06
     mid_scale_config_up_or_down: true
-    low_scale_config_x: .41586
-    low_scale_config_y: 1.575
+    low_scale_config_x: .36
+    low_scale_config_y: 1.83
     low_scale_config_up_or_down: true
     switch_config_x: .41586
     switch_config_y: .93345
     switch_config_up_or_down: true
     #exchange should probably be the same as intake
-    exchange_config_x: .215
-    exchange_config_y: .75 #check this
+    exchange_config_x: .235
+    exchange_config_y: .433 #check this
     exchange_config_up_or_down: false
-    intake_ready_to_drop_x: .315
-    intake_ready_to_drop_y: 1.0 #1.075 - y pos arm relative
+    intake_ready_to_drop_x: .235
+    intake_ready_to_drop_y: .8 #1.075 - y pos arm relative
 
     intake_ready_to_drop_up_or_down: false
-    intake_high_x: .25
-    intake_high_y: .5
+    intake_high_x: .235
+    intake_high_y: .433
     
     drop_x_tolerance: .1
 
 
     intake_high_up_or_down: false
-    intake_low_x: .25
-    intake_low_y: .45
+    intake_low_x: .235
+    intake_low_y: .376
     
 
 
@@ -41,7 +41,6 @@ teleop_params:
     move_out_down_y: -1.0 
     default_x: .2
     default_y: 1.0
-    default_y: .7
     default_up_or_down: true
     high_return_intake_x: .1 
     high_return_intake_y: 1
