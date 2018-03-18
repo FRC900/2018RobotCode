@@ -64,13 +64,18 @@ class autoAction {
                 srv_elevator.request.override_pos_limits = goal->override_pos_limits;
                 if(!ElevatorSrv.call(srv_elevator)) ROS_ERROR("Srv elevator call failed from auto server lift");;
                 ros::spinOnce();
-		while(!aborted && !timed_out)
+		while(!aborted && !timed_out && !success)
 		{
 		    success = sqrt((goal->x - odom_x) * (goal->x - odom_x) + (goal->y - odom_y) * 
 		    (goal->y - odom_y)) < goal->dist_tolerance && (odom_up_or_down == goal->up_or_down  
 		    || (arm_length_ - goal->x)/2 < goal->dist_tolerance) && fabs(goal->x - odom_x) < goal->
 		    x_tolerance &&  fabs(goal->y - odom_y) < goal->y_tolerance;
-		    if(as_.isPreemptRequested() || !ros::ok()) {
+		    
+			ROS_INFO_STREAM("goal x: " << goal->x << " goal y: " << goal->y << " goal up_or_down: " << goal->up_or_down);
+
+
+
+			if(as_.isPreemptRequested() || !ros::ok()) {
 			ROS_WARN("%s: Preempted", action_name_.c_str());
 			as_.setPreempted();
 			aborted = true;
