@@ -353,6 +353,18 @@ function loadGraphVals(calculator, vals)
 	calculator.setExpression({id:'num_splines0', latex:'n_{splines} =' + vals[0].toString()});
 	calculator.setExpression({id:'scale_point_y0', latex:'y_{show} = ' +7.31746 });
 	calculator.setExpression({id:'scale_point_x0', latex:'x_{show} =' + 2.17});
+
+
+	
+	calculator.setExpression({id:'switch_point_y0', latex:'y_{switch}=3.556-22.3\\cdot\\frac{2.54}{100}'});
+	calculator.setExpression({id:'switch_point_x0', latex:'x_{switch}=1.4'});
+
+	
+	
+	calculator.setExpression({id:'exchange_point_y0', latex:'y_{exchange}=17.5\\cdot\\frac{2.54}{100}'});
+	calculator.setExpression({id:'exchange_point_x0', latex:'x_{exchange}=-0.9145'});
+
+
 	calculator.setExpression({id:'field1', latex:'y=0\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', domain:{min:'-d_1+d_2', max:'d_1-d_2'}, color: '#000000'});
 	calculator.setExpression({id:'field2', latex:'d_1=\\frac{27}{2}\\cdot12\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field3', latex:'d_2=26.69\\cdot\\frac{2.54}{100}'});
@@ -416,6 +428,30 @@ function loadGraphVals(calculator, vals)
 	calculator.setExpression({id:'field61', latex:'y=\\frac{d_3}{2}-d_{17}-d_{19}-\\frac{23.75}{2}\\cdot\\frac{2.54}{100}\\left\\{\\frac{-d_{18}}{2}-d_{19}-\\frac{23.75}{2}\\cdot\\frac{2.54}{100}<x<\\frac{d_{18}}{2}+d_{19}+\\frac{23.75}{2}\\cdot\\frac{2.54}{100}\\right\\}', color: '#c74440', style: Desmos.Styles.DASHED});
 	calculator.setExpression({id:'field62', latex:'x=\\frac{-d_{18}}{2}-d_{19}-\\frac{23.75}{2}\\cdot\\frac{2.54}{100}\\left\\{\\frac{d_3}{2}-d_{17}-d_{19}-\\frac{23.75}{2}\\cdot\\frac{2.54}{100}<y<\\frac{d_3}{2}\\right\\}', color: '#c74440', style: Desmos.Styles.DASHED});
 	calculator.setExpression({id:'field63', latex:'x=\\frac{d_{18}}{2}+d_{19}+\\frac{23.75}{2}\\cdot\\frac{2.54}{100}\\left\\{\\frac{d_3}{2}-d_{17}-d_{19}-\\frac{23.75}{2}\\cdot\\frac{2.54}{100}<y<\\frac{d_3}{2}\\right\\}', color: '#c74440', style: Desmos.Styles.DASHED});
+
+
+
+
+   calculator.setExpression({id:'field100', latex:'d_{20}=30\\cdot\\frac{2.54}{100}'});
+   calculator.setExpression({id:'field64', latex:'x\ =\ \\left(\\frac{13}{2}+13\\right)\\cdot\\frac{2.54}{100}\\left\{d_5-13\\cdot\\frac{2.54}{100}<y<d_5\\right\\}'});
+   calculator.setExpression({id:'field65', latex:'x\ =\ -\\left(13\\right)\\cdot\\frac{2.54}{100}\\left\\{d_5-2\\cdot13\\cdot\\frac{2.54}{100}<y<d_5-13\\cdot\\frac{2.54}{100}\\right\\}'});
+   calculator.setExpression({id:'field66', latex:'x\ =\ \\left(13\\right)\\cdot\\frac{2.54}{100}\\left\{d_5-2\\cdot13\\cdot\\frac{2.54}{100}<y<d_5-13\\cdot\\frac{2.54}{100}\\right\}'});
+   calculator.setExpression({id:'field67', latex:'x\ =\ \\left(13\\right)\\cdot\\frac{2.54}{100}\\left\\{d_5-2\\cdot13\\cdot\\frac{2.54}{100}<y<d_5-13\\cdot\\frac{2.54}{100}\\right\\}'});
+   calculator.setExpression({id:'field68', latex:'x\ =\ \\left(\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}\\left\{d_5-3\\cdot13\\cdot\\frac{2.54}{100}<y<d_5-13\\cdot2\\cdot\\frac{2.54}{100}\\right\\}'});
+   calculator.setExpression({id:'field69', latex:'x\ =\ -\\left(\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}\\left\\{d_5-3\\cdot13\\cdot\\frac{2.54}{100}<y<d_5-13\\cdot2\\cdot\\frac{2.54}{100}\\right\\}'});
+	 
+   calculator.setExpression({id:'field70', latex:'\\left(y+\\left(13\\cdot2+\\frac{13}{2}\\right)\cdot\\frac{2.54}{100}-d_5\\right)^2+\\left(x\\right)^2=d_{20}^2'});
+   calculator.setExpression({id:'field64', latex:'\\left(0,\ d_5-\\left(13\\cdot2+\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}\\right)'});
+   calculator.setExpression({id:'field71', latex:'\\left(\\frac{13}{2}\\cdot\\frac{2.54}{100},\ d_5-\\left(13\\cdot1+\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}\\right)'});
+   calculator.setExpression({id:'field72', latex:'\\left(\\frac{-13}{2}\\cdot\\frac{2.54}{100},\ d_5-\\left(13\\cdot1+\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}\\right)'});
+   calculator.setExpression({id:'field73', latex:'\left(y+\\left(13\\cdot1+\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}-d_5\\right)^2+\\left(x+\\frac{13}{2}\\cdot\\frac{2.54}{100}\\right)^2=d_{20}^2'});
+   calculator.setExpression({id:'field74', latex:'\\left(y+\\left(13\\cdot1+\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}-d_5\\right)^2+\\left(x-\\frac{13}{2}\\cdot\\frac{2.54}{100}\\right)^2=d_{20}^2'});
+
+
+
+
+
+
 
 	// POSITIONS
 	calculator.setExpression({id:'position64', latex:'x=1'});
@@ -780,8 +816,23 @@ function loadGraph(calculator)
 {
 	// FIELD
 	calculator.setExpression({id:'num_splines0', latex:'n_{splines} = 5'});
-	calculator.setExpression({id:'scale_point_y0', latex:'y_{show} = ' +7.31746 });
-	calculator.setExpression({id:'scale_point_x0', latex:'x_{show} =' + 2.17});
+	calculator.setExpression({id:'scale_point_y0', latex:'y_{scale} = ' +7.31746 });
+	calculator.setExpression({id:'scale_point_x0', latex:'x_{scale} =' + 2.17});
+	
+	calculator.setExpression({id:'switch_point_y0', latex:'y_{switch}=3.556-22.3\\cdot\\frac{2.54}{100}'});
+	calculator.setExpression({id:'switch_point_x0', latex:'x_{switch}=1.4'});
+
+	
+	
+	calculator.setExpression({id:'exchange_point_y0', latex:'y_{exchange}=17.5\\cdot\\frac{2.54}{100}'});
+	calculator.setExpression({id:'exchange_point_x0', latex:'x_{exchange}=-0.9145'});
+
+
+
+
+
+
+
 	calculator.setExpression({id:'field1', latex:'y=0\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', domain:{min:'-d_1+d_2', max:'d_1-d_2'}, color: '#000000'});
 	calculator.setExpression({id:'field2', latex:'d_1=\\frac{27}{2}\\cdot12\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field3', latex:'d_2=26.69\\cdot\\frac{2.54}{100}'});
@@ -845,6 +896,30 @@ function loadGraph(calculator)
 	calculator.setExpression({id:'field61', latex:'y=\\frac{d_3}{2}-d_{17}-d_{19}-\\frac{23.75}{2}\\cdot\\frac{2.54}{100}\\left\\{\\frac{-d_{18}}{2}-d_{19}-\\frac{23.75}{2}\\cdot\\frac{2.54}{100}<x<\\frac{d_{18}}{2}+d_{19}+\\frac{23.75}{2}\\cdot\\frac{2.54}{100}\\right\\}', color: '#c74440', style: Desmos.Styles.DASHED});
 	calculator.setExpression({id:'field62', latex:'x=\\frac{-d_{18}}{2}-d_{19}-\\frac{23.75}{2}\\cdot\\frac{2.54}{100}\\left\\{\\frac{d_3}{2}-d_{17}-d_{19}-\\frac{23.75}{2}\\cdot\\frac{2.54}{100}<y<\\frac{d_3}{2}\\right\\}', color: '#c74440', style: Desmos.Styles.DASHED});
 	calculator.setExpression({id:'field63', latex:'x=\\frac{d_{18}}{2}+d_{19}+\\frac{23.75}{2}\\cdot\\frac{2.54}{100}\\left\\{\\frac{d_3}{2}-d_{17}-d_{19}-\\frac{23.75}{2}\\cdot\\frac{2.54}{100}<y<\\frac{d_3}{2}\\right\\}', color: '#c74440', style: Desmos.Styles.DASHED});
+
+
+
+
+
+
+
+
+
+   calculator.setExpression({id:'field100', latex:'d_{20}=30\\cdot\\frac{2.54}{100}'});
+   calculator.setExpression({id:'field64', latex:'x\ =\ \\left(\\frac{13}{2}+13\\right)\\cdot\\frac{2.54}{100}\\left\{d_5-13\\cdot\\frac{2.54}{100}<y<d_5\\right\\}'});
+   calculator.setExpression({id:'field65', latex:'x\ =\ -\\left(13\\right)\\cdot\\frac{2.54}{100}\\left\\{d_5-2\\cdot13\\cdot\\frac{2.54}{100}<y<d_5-13\\cdot\\frac{2.54}{100}\\right\\}'});
+   calculator.setExpression({id:'field66', latex:'x\ =\ \\left(13\\right)\\cdot\\frac{2.54}{100}\\left\{d_5-2\\cdot13\\cdot\\frac{2.54}{100}<y<d_5-13\\cdot\\frac{2.54}{100}\\right\\}'});
+   calculator.setExpression({id:'field67', latex:'x\ =\ \\left(13\\right)\\cdot\\frac{2.54}{100}\\left\\{d_5-2\\cdot13\\cdot\\frac{2.54}{100}<y<d_5-13\\cdot\\frac{2.54}{100}\\right\\}'});
+   calculator.setExpression({id:'field68', latex:'x\ =\ \\left(\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}\\left\{d_5-3\\cdot13\\cdot\\frac{2.54}{100}<y<d_5-13\\cdot2\\cdot\\frac{2.54}{100}\\right\\}'});
+   calculator.setExpression({id:'field69', latex:'x\ =\ -\\left(\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}\\left\\{d_5-3\\cdot13\\cdot\\frac{2.54}{100}<y<d_5-13\\cdot2\\cdot\\frac{2.54}{100}\\right\\}'});
+	 
+   calculator.setExpression({id:'field70', latex:'\\left(y+\\left(13\\cdot2+\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}-d_5\\right)^2+\\left(x\\right)^2=d_{20}^2'});
+   calculator.setExpression({id:'field64', latex:'\\left(0,\ d_5-\\left(13\\cdot2+\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}\\right)'});
+   calculator.setExpression({id:'field71', latex:'\\left(\\frac{13}{2}\\cdot\\frac{2.54}{100},\ d_5-\\left(13\\cdot1+\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}\\right)'});
+   calculator.setExpression({id:'field72', latex:'\\left(\\frac{-13}{2}\\cdot\\frac{2.54}{100},\ d_5-\\left(13\\cdot1+\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}\\right)'});
+   calculator.setExpression({id:'field73', latex:'\\left(y+\\left(13\\cdot1+\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}-d_5\\right)^2+\\left(x+\\frac{13}{2}\\cdot\\frac{2.54}{100}\\right)^2=d_{20}^2'});
+   calculator.setExpression({id:'field74', latex:'\\left(y+\\left(13\\cdot1+\\frac{13}{2}\\right)\\cdot\\frac{2.54}{100}-d_5\\right)^2+\\left(x-\\frac{13}{2}\\cdot\\frac{2.54}{100}\\right)^2=d_{20}^2'});
+
 
 	// POSITIONS
 	//calculator.setExpression({id:'position64', latex:'x=1'});
