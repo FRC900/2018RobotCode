@@ -472,6 +472,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             else {
                 intake_up = false;
             }
+			start_toggle_on = false;
 			ROS_INFO("teleop : Intake with cube");
 
 		}
@@ -518,17 +519,17 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	/*------------------ Start Button(M1) No Cube - spin out for two seconds --------------*/
     
-	else if(JoystickState->buttonStartPress) {
+	if(JoystickState->buttonStartPress) {
 
 		
-		if(ros::Time::now().toSec() - buttonStartStart < 15 && !ac_intake->getState().isDone() && start_toggle_on)
+		/*if(ros::Time::now().toSec() - buttonStartStart < 15 && !ac_intake->getState().isDone() && start_toggle_on)
 		{
 			ac_intake->cancelAllGoals();
 
 			start_toggle_on = false;
-		}
-		else
-		{
+		}*/
+		//else
+		//{
             //if(!ac->getState().isDone())
             ac->cancelAllGoals();
             start_toggle_on = true;
@@ -538,7 +539,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             ac_intake->sendGoal(goal_intake);
             intake_up = false;
             ROS_INFO("teleop : Intake No Lift");
-		}
+		//}
 	}
 
 	/*-If in Exchange - Place and Run Intake Out-*/
@@ -950,7 +951,9 @@ For right now we will just go back out and then call "go to intake config"
         else {
             intake_up = false;
         }
+		start_toggle_on = false;
 		ROS_INFO("teleop : called IntakeSrv in BackButton press");
+		buttonBackStart = timeSecs;
 	}
 	/*if (JoystickState->buttonBackRelease == true)
 	{
