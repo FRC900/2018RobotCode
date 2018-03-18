@@ -269,6 +269,7 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 					const int num_splines = coefs_xml.size();
                     const int num_times = times_xml.size();
 					for(int num = 0; num<num_splines; num++) {
+					    ROS_INFO_STREAM("her: "<< num);
 						XmlRpc::XmlRpcValue &spline = coefs_xml[num];
 						XmlRpc::XmlRpcValue &x = spline["x"];
 						XmlRpc::XmlRpcValue &y = spline["y"];
@@ -295,6 +296,7 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 						all_modes[mode][layout][start_pos].srv_msg.request.orient_coefs.push_back(orient_coefs);
 						all_modes[mode][layout][start_pos].srv_msg.request.end_points.push_back(num+1);
 					}
+					ROS_INFO_STREAM("here");
                     for(int num = 0; num<num_times; num++) {
                         const double t = times_xml[num];
 						all_modes[mode][layout][start_pos].times.push_back(t);
@@ -1741,8 +1743,9 @@ int main(int argc, char** argv) {
 	// start
 	mode_list all_modes = load_all_trajectories(max_num_mode, max_num_start, n_params_behaviors);
 
-    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server", true);
-    ac->waitForServer(); 
+    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
+    ROS_WARN("here 567890");
+	ac->waitForServer(); 
 
 	std::map<std::string, std::string> service_connection_header;
 	service_connection_header["tcp_nodelay"] = "1";
@@ -1768,7 +1771,7 @@ int main(int argc, char** argv) {
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    //generateTrajectory(all_modes[9][3][2]);
+    //generateTrajectory(all_modes[6][1][1]);
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
@@ -1781,6 +1784,7 @@ int main(int argc, char** argv) {
     ros::Rate r(10);
 
     while(ros::ok()) {
+        ROS_WARN("running");
         double auto_start_time = DBL_MAX;
         std::vector<bool> generated_vect = {false, false, false, false};
         std::vector<int> auto_mode_vect = {-1, -1, -1, -1};
