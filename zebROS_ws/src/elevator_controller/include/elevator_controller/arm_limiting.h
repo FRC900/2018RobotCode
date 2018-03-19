@@ -296,7 +296,7 @@ class arm_limits
 			{
 				
 				//ROS_WARN("0");	
-				ROS_WARN("HOOK LIMITED");
+				//ROS_WARN("HOOK LIMITED");
 				//up_or_down = cur_up_or_down;
 				if(cmd.x() < hook_depth_ && !enforced_hook_x_limit)
 				{
