@@ -38,6 +38,7 @@ For a more detailed simulation example, see sim_hw_interface.cpp
 */
 
 #include <ros_control_boilerplate/frcrobot_sim_interface.h>
+#include <ros_control_boilerplate/nextVelocity.h>
 
 namespace frcrobot_control
 {
@@ -346,6 +347,10 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				ts.setMotionCruiseVelocity(motion_cruise_velocity);
 				ts.setMotionAcceleration(motion_acceleration);
 			}
+
+
+
+
 			// Do this before rest of motion profile stuff
 			// so it takes effect before starting a buffer?
 			int motion_control_frame_period;
@@ -395,6 +400,32 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 
 			ts.setPosition(ts.getPosition() + speed * elapsed_time.toSec());
 			ts.setSpeed(speed);
+		}
+		else if(ts.getTalonMode() == hardware_interface::TalonMode_MotionMagic)
+		{
+			double setpoint;
+		
+			if (tc.commandChanged(setpoint))
+				ts.setSetpoint(setpoint);
+
+			double position = ts.getSetpoint();
+
+			double velocity = ts.getSpeed();
+			
+			double dt = elapsed_time.toSec();
+
+
+			double next_pos = nextVelocity(ts.getPosition(), position, velocity, ts.getMotionCruiseVelocity(), ts.getMotionAcceleration(), dt);
+
+			if(ts.getPosition() <= position < next_pos || ts.getPosition() >= position > next_pos)
+			{
+				position = position;
+				velocity = 0;
+				//Talons don't allow overshoot, the profiling algorithm above does
+			}
+			ts.setPosition(next_pos);
+			ts.setSpeed(velocity);
+
 		}
 		if (tc.clearStickyFaultsChanged())
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");

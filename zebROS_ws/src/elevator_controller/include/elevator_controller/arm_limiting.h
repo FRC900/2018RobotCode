@@ -258,7 +258,7 @@ class arm_limits
 				enforced_hook_x_limit = cur_pos.y() < cut_off_y_line_;
 				up_or_down = false;
 			}
-			if(!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_ && !orig_up_or_down) && !bottom_limit && cmd.y() < cut_off_y_line_)
+			if(!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit && cmd.y() < cut_off_y_line_)
 			{
 				cmd.y(cut_off_y_line_);
 			}
@@ -296,7 +296,7 @@ class arm_limits
 			{
 				
 				//ROS_WARN("0");	
-				//ROS_WARN("HOOK LIMITED");
+				ROS_WARN("HOOK LIMITED");
 				//up_or_down = cur_up_or_down;
 				if(cmd.x() < hook_depth_ && !enforced_hook_x_limit)
 				{
