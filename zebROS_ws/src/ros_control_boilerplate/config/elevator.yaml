@@ -24,7 +24,7 @@ elevator_controller:
     hook_depth: 0.314706  #FIX
     hook_min_height: 1.2 #FIX
     hook_max_height: 1.35 #FIX
-    
+ 
     climb_cur_lim: 60
     norm_cur_lim: 15
 
@@ -38,7 +38,6 @@ elevator_controller:
     #right now, over the back is disabled 
     polygon_points_down: [-2.0, -1.0, -2.0, 3.0, .17, 3.0, .17, 0.6, 0.225, 0.6, 0.225, 0.3, 1.0, 0.3, 1.0, -1.1, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
     polygon_points_up: [-2.0, -1.0, -2.0, 3.0, .17, 3.0, .17, 0.6, 1.0, .6, 1.0, -1.1, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
-    cut_off_line: .93 
     lift_joint:
         joint: lift
         close_loop_values:

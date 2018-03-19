@@ -27,8 +27,7 @@ ElevatorController::ElevatorController():
 	hook_max_height_(0.0),
 	arm_length_(0.0),
 	pivot_offset_(0.0),
-	lift_offset_(0.0),
-	cut_off_line_(0.0)
+	lift_offset_(0.0)
 {
 }
 
@@ -106,11 +105,6 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 	if (!controller_nh.getParam("climb_height", climb_height_))
 	{
 		ROS_ERROR_NAMED(name_, "Can not read climb_height");
-		return false;
-	}
-	if (!controller_nh.getParam("cut_off_line", cut_off_line_))
-	{
-		ROS_ERROR_NAMED(name_, "Can not read cut_off_line");
 		return false;
 	}
 	if (!controller_nh.getParam("intake_power_diff_multiplier", intake_power_diff_multiplier_))
@@ -579,10 +573,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	{
 
 		arm_limiting::point_type cmd_point(curr_cmd.lin[0], curr_cmd.lin[1]);
-		/*if(cur_pos.y() < cut_off_line_)
-		{
-			cmd_point.x(cur_pos.x()); //Don't smack stuff	
-		}*/
 
 		bool reassignment_holder;
 
