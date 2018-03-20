@@ -659,6 +659,7 @@ void ElevatorController::stopCallback(const std_msgs::Bool &command)
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
 	}
 }
+#if 0
 void ElevatorController::enabledCallback(const ros_control_boilerplate::MatchSpecificData &data)
 {
 	if(isRunning())
@@ -670,6 +671,7 @@ void ElevatorController::enabledCallback(const ros_control_boilerplate::MatchSpe
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
 	}
 }
+#endif
 
 void ElevatorController::lineBreakCallback(const sensor_msgs::JointState &msg)
 {

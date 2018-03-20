@@ -15,7 +15,7 @@
 #include <elevator_controller/ReturnElevatorCmd.h>
 #include <elevator_controller/CubeState.h>
 #include <elevator_controller/arm_limiting.h>
-#include <ros_control_boilerplate/MatchSpecificData.h>
+//#include <ros_control_boilerplate/MatchSpecificData.h>
 
 #include <nav_msgs/Odometry.h>
 #include <atomic>
@@ -130,7 +130,7 @@ class ElevatorController
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
 		void stopCallback(const std_msgs::Bool& command);
-		void enabledCallback(const ros_control_boilerplate::MatchSpecificData& enabled);
+		//void enabledCallback(const ros_control_boilerplate::MatchSpecificData& enabled);
 		void lineBreakCallback(const sensor_msgs::JointState&);
 		bool cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res);
 		bool intakeService(elevator_controller::Intake::Request &command, elevator_controller::Intake::Response &res);
