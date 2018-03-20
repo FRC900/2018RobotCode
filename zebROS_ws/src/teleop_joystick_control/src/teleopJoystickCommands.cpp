@@ -1151,6 +1151,42 @@ if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 		sendRobotZero = false;
 	}
 
+	//dummy code to make better
+	if(JoystickState->bumperLeftButton == true)
+	{
+		sendRobotZero = false;
+		const double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
+		const double least_dist_angle = round(angle/(M_PI/2))*angle;
+		geometry_msgs::Twist vel;
+
+		if(angle - least_dist_angle > M_PI/12)
+		{
+			vel.linear.x = 0;
+			vel.linear.y = 0;
+			vel.linear.z = 0;
+
+			vel.angular.x = 0;
+			vel.angular.y = 0;
+			vel.angular.z = -1;
+		}
+		else if(angle - least_dist_angle < M_PI/12)
+		{
+			vel.linear.x = 0;
+			vel.linear.y = 0;
+			vel.linear.z = 0;
+
+			vel.angular.x = 0;
+			vel.angular.y = 0;
+			vel.angular.z = 1;
+		}
+		else
+		{
+			sendRobotZero = true;
+		}
+
+		JoystickRobotVel.publish(vel);
+	}
+
 	if (rightStickX != 0 || rightStickY != 0)
 	{
 		double dt = timeSecs - lastTimeSecs;
