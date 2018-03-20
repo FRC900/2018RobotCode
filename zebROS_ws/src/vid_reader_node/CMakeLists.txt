@@ -21,10 +21,8 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(OpenCV REQUIRED)
 find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io)
-message(" **************** Found PCL")
 add_definitions(${PCL_DEFINITIONS})
 find_library (LibTinyXML2 tinyxml2)
-message(" **************** PCL_INCLUDE_DIRS = ${PCL_INCLUDE_DIRS}")
 include_directories(
 	${PCL_INCLUDE_DIRS}
 	include
