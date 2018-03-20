@@ -484,7 +484,7 @@ class TalonHWCommand
 			value = demand1_value_;
 			if (!demand1_changed_)
 				return false;
-			demand1_changed_ = true;
+			demand1_changed_ = false;
 			return true;
 		}
 
