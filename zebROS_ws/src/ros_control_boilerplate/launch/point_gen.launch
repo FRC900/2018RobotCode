@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+	<arg name="debug" default="false" />
+	<arg unless="$(arg debug)" name="launch_prefix" value="" />
+	<arg     if="$(arg debug)" name="launch_prefix" value="valgrind" />
+	<rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
+
+	<node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="screen" launch-prefix="$(arg launch_prefix)" />
+
+</launch>

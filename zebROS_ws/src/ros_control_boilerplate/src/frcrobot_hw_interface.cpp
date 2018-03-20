@@ -1576,31 +1576,59 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		const bool b1 = tc.newMode(in_mode);
 		const bool b2 = tc.commandChanged(command);
 
-		if ((b1 || b2) && convertControlMode(in_mode, out_mode))
+		hardware_interface::DemandType demand1_type_internal;
+		double demand1_value;
+		const bool b3 = tc.demand1Changed(demand1_type_internal, demand1_value);
+
+		if (b1 || b2 || b3)
 		{
-			ts.setTalonMode(in_mode);
-			ts.setSetpoint(command);
-			
-			ts.setNeutralOutput(false); // maybe make this a part of setSetpoint?
-
-			switch (out_mode)
+			if ((b1 || b2) && convertControlMode(in_mode, out_mode))
 			{
-				case ctre::phoenix::motorcontrol::ControlMode::Velocity:
-					command /= radians_per_second_scale;
-					break;
-				case ctre::phoenix::motorcontrol::ControlMode::Position:
-					command /= radians_scale;
-					break;
-				case ctre::phoenix::motorcontrol::ControlMode::MotionMagic:
-					command /= radians_scale;
-					break;
-			}
-			
-			(*can_talons_mp_running_)[joint_id].store(out_mode == ctre::phoenix::motorcontrol::ControlMode::MotionProfile && command == 1, std::memory_order_relaxed);
+				ts.setTalonMode(in_mode);
+				ts.setSetpoint(command);
 
-			//ROS_INFO_STREAM("in mode: " << in_mode);
-			talon->Set(out_mode, command);
-			safeTalonCall(talon->GetLastError(), "Set");
+				ts.setNeutralOutput(false); // maybe make this a part of setSetpoint?
+
+				switch (out_mode)
+				{
+					case ctre::phoenix::motorcontrol::ControlMode::Velocity:
+						command /= radians_per_second_scale;
+						break;
+					case ctre::phoenix::motorcontrol::ControlMode::Position:
+						command /= radians_scale;
+						break;
+					case ctre::phoenix::motorcontrol::ControlMode::MotionMagic:
+						command /= radians_scale;
+						break;
+				}
+			
+				(*can_talons_mp_running_)[joint_id].store(out_mode == ctre::phoenix::motorcontrol::ControlMode::MotionProfile && command == 1, std::memory_order_relaxed);
+			}
+
+			ts.setDemand1Type(demand1_type_internal);
+			ts.setDemand1Value(demand1_value);
+
+			//ROS_INFO_STREAM c("in mode: " << in_mode);
+			if (b3 &&
+				(demand1_type_internal > hardware_interface::DemandType::DemandType_Neutral) &&
+			    (demand1_type_internal < hardware_interface::DemandType::DemandType_Last) )
+			{
+				ctre::phoenix::motorcontrol::DemandType demand1_type_phoenix;
+				switch (demand1_type_internal)
+				{
+					case hardware_interface::DemandType::DemandType_AuxPID:
+						demand1_type_phoenix = ctre::phoenix::motorcontrol::DemandType::DemandType_AuxPID;
+						break;
+					case hardware_interface::DemandType::DemandType_ArbitraryFeedForward:
+						demand1_type_phoenix = ctre::phoenix::motorcontrol::DemandType::DemandType_ArbitraryFeedForward;
+						break;
+				}
+
+				talon->Set(out_mode, command, demand1_type_phoenix, demand1_value);
+			}
+			else
+				talon->Set(out_mode, command);
+
 			//ROS_WARN_STREAM("set at: " << ts.getCANID() << " new mode: " << b1 << " command_changed: " << b2 << " cmd: " << command);
 		}
 

@@ -409,11 +409,8 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				ts.setSetpoint(setpoint);
 
 			double position = ts.getSetpoint();
-
 			double velocity = ts.getSpeed();
-			
 			double dt = elapsed_time.toSec();
-
 
 			double next_pos = nextVelocity(ts.getPosition(), position, velocity, ts.getMotionCruiseVelocity(), ts.getMotionAcceleration(), dt);
 
@@ -425,8 +422,18 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			}
 			ts.setPosition(next_pos);
 			ts.setSpeed(velocity);
-
 		}
+
+		hardware_interface::DemandType demand1_type_internal;
+		double demand1_value;
+		if (tc.demand1Changed(demand1_type_internal, demand1_value))
+		{
+			ts.setDemand1Type(demand1_type_internal);
+			ts.setDemand1Value(demand1_value);
+
+			ROS_INFO_STREAM("Set joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" demand1 type / value");
+		}
+
 		if (tc.clearStickyFaultsChanged())
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");
 	}

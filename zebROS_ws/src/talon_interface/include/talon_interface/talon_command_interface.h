@@ -73,6 +73,9 @@ class TalonHWCommand
 			command_changed_(true),
 			mode_(TalonMode_Uninitialized),
 			mode_changed_(false),
+			demand1_type_(DemandType_Neutral),
+			demand1_value_(0.0),
+			demand1_changed_(true),
 			pidf_slot_(0),
 			pidf_slot_changed_(true),
 			iaccum_(0.0),
@@ -442,6 +445,47 @@ class TalonHWCommand
 				mode_         = mode;
 				mode_changed_ = true;
 			}
+		}
+
+		void setDemand1Type(DemandType demand_type)
+		{
+			if ((demand_type <  DemandType_Neutral) ||
+				(demand_type >= DemandType_Last))
+			{
+				ROS_WARN("Invalid mode passed to TalonHWCommand::setDemand1Type()");
+				return;
+			}
+			if (demand1_type_ != demand_type)
+			{
+				demand1_type_    = demand_type;
+				demand1_changed_ = true;
+			}
+		}
+		DemandType getDemand1Type(void) const
+		{
+			return demand1_type_;
+		}
+
+		void setDemand1Value(double demand_value)
+		{
+			if (demand1_value_ != demand_value)
+			{
+				demand1_value_   = demand_value;
+				demand1_changed_ = true;
+			}
+		}
+		double getDemand1Value(void) const
+		{
+			return demand1_value_;
+		}
+		bool demand1Changed(DemandType &type, double &value)
+		{
+			type  = demand1_type_;
+			value = demand1_value_;
+			if (!demand1_changed_)
+				return false;
+			demand1_changed_ = true;
+			return true;
 		}
 
 		void setNeutralMode(NeutralMode neutral_mode)
@@ -1262,6 +1306,9 @@ class TalonHWCommand
 		bool      command_changed_;
 		TalonMode mode_;         // talon mode - % vbus, close loop, motion profile, etc
 		bool      mode_changed_; // set if mode needs to be updated on the talon hw
+		DemandType demand1_type_;
+		double    demand1_value_;
+		bool      demand1_changed_;
 		//RG: shouldn't there be a variable for the peak voltage limits?
 		int       pidf_slot_; // index 0 or 1 of the active PIDF slot
 		bool      pidf_slot_changed_; // set to true to trigger a write to PIDF select on Talon

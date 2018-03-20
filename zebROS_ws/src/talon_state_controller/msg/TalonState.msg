@@ -24,6 +24,8 @@ Header header
 
 string[] name
 string[] talon_mode
+string[] demand1_type
+float64[] demand1_value
 float64[] position
 float64[] speed
 float64[] output_voltage

@@ -25,6 +25,14 @@ enum TalonMode
 	TalonMode_Last
 };
 
+enum DemandType
+{
+	DemandType_Neutral,
+	DemandType_AuxPID,
+	DemandType_ArbitraryFeedForward,
+	DemandType_Last
+};
+
 enum NeutralMode
 {
 	NeutralMode_Uninitialized,
@@ -175,6 +183,8 @@ class TalonHWState
 			forward_softlimit_hit_(false),
 			reverse_softlimit_hit_(false),
 			talon_mode_(TalonMode_Uninitialized),
+			demand1_type_(DemandType_Neutral),
+			demand1_value_(0),
 			can_id_(can_id),
 			slot_(0),
 			invert_(false),
@@ -422,7 +432,14 @@ class TalonHWState
 		{
 			return talon_mode_;
 		}
-
+		DemandType getDemand1Type(void) const
+		{
+			return demand1_type_;
+		}
+		double getDemand1Value(void) const
+		{
+			return demand1_value_;
+		}
 		int  getSlot(void) const
 		{
 			return slot_;
@@ -435,7 +452,6 @@ class TalonHWState
 		{
 			return sensor_phase_;
 		}
-
 		NeutralMode getNeutralMode(void) const
 		{
 			return neutral_mode_;
@@ -893,7 +909,19 @@ class TalonHWState
 				(talon_mode_ <  TalonMode_Last) )
 				talon_mode_ = talon_mode;
 			else
-				ROS_WARN_STREAM("Invalid talon mode requested");
+				ROS_WARN("Invalid talon mode requested");
+		}
+		void setDemand1Type(DemandType demand_type)
+		{
+			if ((demand_type >= DemandType_Neutral) &&
+				(demand_type < DemandType_Last))
+				demand1_type_ = demand_type;
+			else
+				ROS_WARN("Invalid demand 1 type requested");
+		}
+		void setDemand1Value(double value)
+		{
+			demand1_value_ = value;
 		}
 		void setSlot(int slot)
 		{
@@ -976,6 +1004,8 @@ class TalonHWState
 		bool forward_softlimit_hit_;
 		bool reverse_softlimit_hit_;
 		TalonMode talon_mode_;
+		DemandType demand1_type_;
+		double demand1_value_;
 
 		int can_id_;
 
