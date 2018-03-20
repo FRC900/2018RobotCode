@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<launch>
+
+	<param name="use_sim_time" value="true" />
+	
+	<!-- retrieve data from rosbag -->
+	<arg name="rosbag_data" doc="input the rosbag data as a file" />
+	<arg name="" />
+	<!-- set parameters of the rqt_plot to input from rosbag data -->
+
+	<!-- Output the rqt_plot from the rosbag data -->
+	<node name="ros_plot_run" pkg="rqt_plot" type="output_data" respawn="false" output="screen" cwd="ROS_HOME">
+
+	</node>
+</launch>
