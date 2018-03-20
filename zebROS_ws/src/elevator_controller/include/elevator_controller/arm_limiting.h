@@ -40,6 +40,11 @@ class arm_limits
 		double hook_min_height, double hook_max_height )
 		{
 
+			ros::init(/*argc*/, /*argv*/, "points_and_lines");
+			ros::NodeHandle n;
+
+			ros::Publisher arm_marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+
 			
 			cut_off_y_line_ = cut_off_y_line;
 			cut_off_x_line_ = cut_off_x_line;
@@ -177,7 +182,32 @@ class arm_limits
 			polygon_type t_hook_box;
 			boost::geometry::transform(hook_box_, t_hook_box, translate);
 
+			visualization_msgs::Marker top_polygon, bottom_polygon, arm_line;
+			top_polygon.type = visualization_msgs::Marker::LINE_STRIP;
+			bottom_polygon.type = visualization_msgs::Marker::LINE_STRIP;
+			arm_line.type = visualization_msgs::Marker::LINE_LIST;
 
+			top_polygon.action = visualization_msgs::Marker::DELETE_ALL;
+            bottom_polygon.action = visualization_msgs::Marker::ADD;
+            arm_line.type = visualization_msgs::Marker::ADD;
+
+			top_polygon.id = 0;
+			bottom_polygon.id = 1;
+			arm_line.id = 2;
+		
+			top_polygon.header.frame_id = "/arm_viz"; 
+		    bottom_polygon.header.frame_id = "/arm_viz"; 
+			arm_line.header.frame_id = "/arm_viz"; 
+
+			top_polygon.color.g = 1.0f;
+			top_polygon.color.a = 1.0;
+	
+			bottom_polygon.color.b = 1.0;
+			bottom_polygon.color.a = 1.0;
+		
+
+			arm_line.color.r = 1.0;
+			arm_line.color.a = 1.0;
 
 			for(int k = 0; k < saved_polygons_no_hook_.size(); k++)
 			{
@@ -198,8 +228,25 @@ class arm_limits
 				}
 				//ROS_INFO_STREAM("Poly: " << k << "    " << boost::geometry::wkt(saved_polygons_[k]));
 			}
-
+			for(auto it = boost::begin(boost::geometry::exterior_ring(saved_polygons[0])); it != boost::end(boost::geometry::exterior_ring(saved_polygons[0])); ++it)
+			{
+				geometry_msgs::Point p;	
+				p.x = bg::get<0>(*it);
+				p.y = bg::get<1>(*it);
+				p.z = 0;
+				top_polygon.points.push_back(p)
+			}
+			for(auto it = boost::begin(boost::geometry::exterior_ring(saved_polygons[1])); it != boost::end(boost::geometry::exterior_ring(saved_polygons[1])); ++it)
+			{
+				geometry_msgs::Point p;	
+				p.x = bg::get<0>(*it);
+				p.y = bg::get<1>(*it);
+				p.z = 0;
+				bottom_polygon.points.push_back(p)
+			}
 			
+			arm_marker_pub.publish(top_polygon);	
+			arm_marker_pub.publish(bottom_polygon);	
 
 	
 			//Note: uses heuristics only applicable to our robot
@@ -238,7 +285,20 @@ class arm_limits
 			//cur_up_or_down = false;	
 			const double cur_lift_height = cur_pos.y() - sin(acos(cur_pos.x()/arm_length_))*arm_length_
 			*(cur_up_or_down ? 1 : -1); 
+		
+			geometry_msgs::Point p;	
+			p.x = 0 
+			p.y = cur_lift_hight
+			p.z = 0;
+			arm_line.points.push_back(p);
 			
+			p.x = 0 
+			p.y = cur_lift_hight
+			p.z = 0;
+			arm_line.points.push_back(p);
+			
+			marker_pub.publish(arm_line);	
+	
 			double isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
 			//Could switch above to using circle func instead of trig func	
