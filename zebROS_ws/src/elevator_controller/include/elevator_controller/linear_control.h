@@ -127,6 +127,7 @@ class ElevatorController
 		ros::Publisher IntakeSoftSpring_; 
 
 		ros::Publisher ReturnCmd_; 
+		ros::Publisher ReturnTrueSetpoint_; 
 
 		ros::Publisher Odom_; 
 

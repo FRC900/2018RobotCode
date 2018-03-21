@@ -331,6 +331,9 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	IntakeSoftSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_soft_controller/command", 1);
 	IntakeHardSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_hard_controller/command", 1);
 	ReturnCmd_        = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);
+	ReturnTrueSetpoint_ = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_true_setpoint", 1);
+
+
 	Odom_             = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("odom", 1);
 
 	before_shift_max_vel_ = lift_joint_.getMotionCruiseVelocity();
@@ -513,6 +516,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	CubeState_.publish(cube_msg);
 
 	elevator_controller::ReturnElevatorCmd return_holder;
+	elevator_controller::ReturnElevatorCmd final_cmd_holder;
 	elevator_controller::ReturnElevatorCmd odom_holder;
 
 	const double lift_position =  /*last_tar_l - lift_offset_*/lift_joint_.getPosition()  - lift_offset_;
@@ -591,6 +595,12 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		//if target is beyond dist, will bring arm all the way up or down to go around
 		//this is relatively low priority
 	}
+
+	final_cmd_holder.x = curr_cmd.lin[0];
+	final_cmd_holder.y = curr_cmd.lin[1];
+	final_cmd_holder.up_or_down = curr_cmd.up_or_down;
+
+	ReturnTrueSetpoint_.publish(final_cmd_holder);
 	//ROS_INFO_STREAM("cmd: " << curr_cmd.lin << " up/down: " << curr_cmd.up_or_down);
 	const double pivot_target = acos(curr_cmd.lin[0]/arm_length_) * ((curr_cmd.up_or_down) ? 1 : -1);
 	

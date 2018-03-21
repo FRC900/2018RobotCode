@@ -28,8 +28,8 @@ elevator_controller:
     climb_cur_lim: 60
     norm_cur_lim: 15
 
-    drop_down_pos: .4 #FIX
-    drop_down_tolerance: .09 #FIX
+    drop_down_pos: .235 #FIX
+    drop_down_tolerance: .05 #FIX
     safe_to_go_back_y: 1.9 #FIX
     cut_off_x_line: .17 #FIX
     cut_off_y_line: .6 #FIX
@@ -70,17 +70,17 @@ elevator_controller:
             - {p: 1, i: 0.0002, d: 2.0, f: .6, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
         invert_output: True
         sensor_phase: False
-        peak_output_forward: 0.5
-        peak_output_reverse: -0.5
+        peak_output_forward: 0.7
+        peak_output_reverse: -0.7
         nominal_output_forward: 0.0
         nominal_output_reverse: 0.0
         motion_cruise_velocity: 1
         motion_acceleration: 2
         voltage_compensation_enable: true
-        softlimit_forward_threshold: 0
+        softlimit_reverse_threshold: 0
         softlimit_forward_threshold: 1
         conversion_factor: 1 #FIX
-        current_limit_continuous_amps: 15
+        current_limit_continuous_amps: 25
         current_limit_enable: True
 
     intake1_joint:
