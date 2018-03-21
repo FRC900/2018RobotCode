@@ -37,30 +37,25 @@ class arm_limits
 		arm_limits() {};
 
 		arm_limits(double min_extension, double max_extension, double x_back, double arm_length, 
-		const polygon_type &remove_zone_down, const polygon_type &remove_zone_up, int circle_point_count, double cut_off_y_line, 
-		double cut_off_x_line, double safe_to_go_back_y, double drop_down_tolerance, double drop_down_pos, double hook_depth, 
-		double hook_min_height, double hook_max_height, ros::NodeHandle &n)
+				const polygon_type &remove_zone_down, const polygon_type &remove_zone_up, int circle_point_count, double cut_off_y_line, 
+				double cut_off_x_line, double safe_to_go_back_y, double drop_down_tolerance, double drop_down_pos, double hook_depth, 
+				double hook_min_height, double hook_max_height, ros::NodeHandle &n) :
+			min_extension_(min_extension),
+			max_extension_(max_extension),
+			arm_length_(arm_length),
+			cut_off_y_line_(cut_off_y_line),
+			cut_off_x_line_(cut_off_x_line),
+			safe_to_go_back_y_(safe_to_go_back_y),
+			drop_down_tolerance_( drop_down_tolerance),
+			drop_down_pos_(drop_down_pos),
+			hook_min_height_(hook_min_height),
+			hook_max_height_(hook_max_height),
+			hook_depth_(hook_depth),
+			saved_polygons_(arm_limitation_polygon(x_back, remove_zone_down, remove_zone_up, circle_point_count))
 		{
 			top_poly_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("top_poly_visualize", 10);
 			bottom_poly_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("bottom_poly_visualize", 10);
 			arm_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("arm_visualize", 10);
-
-			
-			cut_off_y_line_ = cut_off_y_line;
-			cut_off_x_line_ = cut_off_x_line;
-			safe_to_go_back_y_ = safe_to_go_back_y;
-			drop_down_tolerance_ =  drop_down_tolerance; 
-			drop_down_pos_ = drop_down_pos;
-
-			hook_min_height_ = hook_min_height;
-			hook_max_height_ = hook_max_height;
-			hook_depth_ = hook_depth;
-
-
-			max_extension_ = max_extension;
-			min_extension_ = min_extension;
-				
-			arm_length_ = arm_length;
 			point_type top(-.00001, arm_length_+ 0.00001);
 			point_type bottom(-.00001, -arm_length_ + 0.00001);
 			//the -.01 is for some edge case
@@ -73,7 +68,6 @@ class arm_limits
 			top_pivot_circle.push_back(top);
 			top_pivot_circle.push_back(top_pivot_circle[0]);
 			
-
 			polygon_edges hook_box_edges;
 			hook_box_edges.push_back(point_type(0.0, hook_min_height_));
 			hook_box_edges.push_back(point_type(0.0, hook_max_height_));
@@ -81,10 +75,7 @@ class arm_limits
 			hook_box_edges.push_back(point_type(hook_depth_, hook_min_height_));
 			hook_box_edges.push_back(point_type(0.0, hook_min_height_));
 
-			
-			saved_polygons_ =  arm_limitation_polygon(x_back, remove_zone_down, remove_zone_up, circle_point_count);
 			saved_polygons_no_hook_ =  saved_polygons_;
-			
 				
 			boost::geometry::assign_points(pivot_circle, top_pivot_circle);
 			boost::geometry::assign_points(hook_box_, hook_box_edges);
@@ -175,7 +166,7 @@ class arm_limits
 		bool &cur_up_or_down, point_type &cmd_return, bool &up_or_down_return, bool bottom_limit)
 		{
 			auto orig_pos = cur_pos;
-			bool orig_up_or_down = cur_up_or_down;
+			//bool orig_up_or_down = cur_up_or_down;
 			
 			
 			boost::geometry::strategy::transform::translate_transformer<double, 2, 2> translate(0, (orig_pos.y() - min_extension_)/2);
@@ -253,7 +244,7 @@ class arm_limits
 			up_or_down_return = up_or_down;
 
 
-			bool pos_works = check_if_possible(cur_pos, cur_up_or_down, 0);
+			//bool pos_works = check_if_possible(cur_pos, cur_up_or_down, 0);
 			if(cur_pos.x() - arm_length_ > -.00002)
 			{	
 				cur_pos.x(-.00002 + arm_length_);
@@ -691,11 +682,10 @@ class arm_limits
 				boost::geometry::intersection(up_line, saved_polygons_[id_up_down], output);
 				
 				double min_dist  = std::numeric_limits<double>::max();
-				double temp_dist;
 				int closest_point = 0;
 				for(size_t i = 0; i < output.size(); i++)
 				{
-					temp_dist = boost::geometry::comparable_distance(cmd, output[i]);
+					const double temp_dist = boost::geometry::comparable_distance(cmd, output[i]);
 					if(temp_dist < min_dist)
 					{
 						min_dist = temp_dist;

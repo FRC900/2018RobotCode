@@ -50,7 +50,7 @@ class ElevatorController
 	private:
 		double after_shift_max_accel_;		
 		double after_shift_max_vel_;		
-		double cut_off_line_;
+		//double cut_off_line_;
 		double before_shift_max_accel_;		
 		double before_shift_max_vel_;		
 
@@ -81,8 +81,7 @@ class ElevatorController
 			int32_t spring_command;
 			double power;
 			double down_time;
-			IntakeCommand() : up_command(-1.0), spring_command(0.0), power(0.0) {}
-
+			IntakeCommand() : up_command(-1.0), spring_command(0.0), power(0.0), down_time(0.0) {}
 		};
 
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface lift_joint_;
