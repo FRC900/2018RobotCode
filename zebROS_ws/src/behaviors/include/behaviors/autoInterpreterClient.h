@@ -25,11 +25,18 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <XmlRpcValue.h>
 #include <vector>
+enum Action {deploy_intake, undeploy_intake, intake_cube, exchange_cube, default_config, intake_config, exchange_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, release_clamp};
+
+typedef struct action
+{
+    double time;
+    std::vector<Action> actions;
+} action_struct;
 
 struct full_mode
 {
 	swerve_point_generator::FullGenCoefs srv_msg;
-	std::vector<double> times;
+	std::vector<action_struct> actions;
 	bool exists;
 
 	full_mode(void): exists(false) {}
@@ -53,7 +60,7 @@ bool bufferTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj
 bool runTrajectory(void);
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode);
 void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData);
-void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay, const std::vector<double> &times);
+void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay, const std::vector<Action> &times);
 
 
 mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data);

@@ -4,6 +4,9 @@
 #include <behaviors/IntakeAction.h>
 #include <realtime_tools/realtime_buffer.h>
 
+
+//enum Action {deploy_intake, undeploy_intake, intake_cube, exchange_cube, default_config, intake_config, exchange_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, release_clamp};
+
 std::atomic<bool> exit_auto; // robot is disabled or teleop started during auto_loop
 
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac;
@@ -247,6 +250,7 @@ bool parkingConfig(void)
 mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data)
 {
 	XmlRpc::XmlRpcValue mode_xml;
+	XmlRpc::XmlRpcValue actions_xml;
 	mode_list all_modes;
 	all_modes.resize(max_mode_num + 1);
 	for(int mode = 0; mode <= max_mode_num; mode++)
@@ -260,8 +264,8 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 				
 				std::string identifier("mode_"+std::to_string(mode)+"_layout_"+
 				std::to_string(layout)+"_start_"+std::to_string(start_pos));
-
-				if(auto_data.getParam(identifier, mode_xml))
+                
+                if(auto_data.getParam(identifier, mode_xml))
 				{
 					ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
                     XmlRpc::XmlRpcValue &coefs_xml = mode_xml["coefs"];
@@ -297,10 +301,6 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 						all_modes[mode][layout][start_pos].srv_msg.request.end_points.push_back(num+1);
 					}
 					ROS_INFO_STREAM("here");
-                    for(int num = 0; num<num_times; num++) {
-                        const double t = times_xml[num];
-						all_modes[mode][layout][start_pos].times.push_back(t);
-                    }
 					all_modes[mode][layout][start_pos].srv_msg.request.initial_v = 0; 
 					all_modes[mode][layout][start_pos].srv_msg.request.final_v = 0; 
 					all_modes[mode][layout][start_pos].exists = true; 
@@ -368,6 +368,69 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 							all_modes[mode][layout][start_pos].srv_msg.request.spline_groups.push_back(num_splines);
 							all_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(.16);
 							all_modes[mode][layout][start_pos].srv_msg.request.t_shift.push_back(0);
+					}
+				}
+
+
+				if(auto_data.getParam(identifier+ "_actions", actions_xml))
+				{
+					ROS_INFO_STREAM("Auto mode actions with identifier: " << identifier+"_actions" << " found");
+					const int num_actions = actions_xml.size();
+                    all_modes[mode][layout][start_pos].actions.resize(num_actions);
+					for(int num = 0; num<num_actions; num++) {
+					    ROS_INFO_STREAM("her: "<< num);
+						XmlRpc::XmlRpcValue &action = actions_xml[num];
+						XmlRpc::XmlRpcValue &time = action["time"];
+						XmlRpc::XmlRpcValue &actions = action["actions"];
+						//XmlRpc::XmlRpcValue &time = spline["time"];
+                        const double num_actions_now = actions.size();
+						for(int i = 0; i<num_actions_now; i++) {
+                            const std::string action_now = actions[num];
+                            //all_modes[mode][layout][start_pos].actions[num].actions.push_back(action_now);
+                            if(action_now == "deploy_intake") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(deploy_intake);
+                            }
+                            else if(action_now == "undeploy_intake") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(undeploy_intake);
+                            }
+                            else if(action_now == "intake_cube") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(intake_cube);
+                            }
+                            else if(action_now == "exchange_cube") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(exchange_cube);
+                            }
+                            else if(action_now == "default_config") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(default_config);
+                            }
+                            else if(action_now == "intake_config") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(intake_config);
+                            }
+                            else if(action_now == "exchange_config") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(exchange_config);
+                            }
+                            else if(action_now == "switch_config") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(switch_config);
+                            }
+                            else if(action_now == "low_scale_config") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(low_scale_config);
+                            }
+                            else if(action_now == "mid_scale_config") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(mid_scale_config);
+                            }
+                            else if(action_now == "high_scale_config") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(high_scale_config);
+                            }
+                            else if(action_now == "over_back_config") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(over_back_config);
+                            }
+                            else if(action_now == "release_clamp") {
+                                all_modes[mode][layout][start_pos].actions[num].actions.push_back(release_clamp);
+                            }
+						}
+                        const double time_now = time;
+                        all_modes[mode][layout][start_pos].actions[num].time = time_now;
+						//const double t = time;
+						//all_modes[mode][layout][start_pos].times.push_back(t);
 					}
 				}
 			}
@@ -462,7 +525,7 @@ void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
 }
 
 
-void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay, const std::vector<double> &times) {
+void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay, const std::vector<action_struct> &actions) {
     //ROS_WARN("auto entered");
     exit_auto = false;
     ros::Rate r(10);
@@ -472,7 +535,6 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
         r.sleep(); 
     }
     start_time = ros::Time::now().toSec();
-
     /*-------------------- Basic Cross line cmd vel auto ---------------------*/
     if(auto_select == 1) {
         //ROS_WARN("Basic drive forward auto");
@@ -1917,7 +1979,7 @@ int main(int argc, char** argv) {
             if(in_auto && mode_buffered) { //if in auto with a mode buffered run it
                 //ROS_INFO("Match data received and auto buffered");
                 run_auto(auto_mode_vect[auto_mode], auto_mode, layout, start_pos, 
-                         delays_vect[auto_mode], all_modes[auto_mode][layout][start_pos].times);
+                         delays_vect[auto_mode], all_modes[auto_mode][layout][start_pos].actions);
                 //ROS_WARN("Running Auto");
                 // Auto finished, either by finishing the requested path
                 // or by match data reporting not in autonomous
