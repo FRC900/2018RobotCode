@@ -402,7 +402,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.matchNumber = DriverStation::GetInstance().GetMatchNumber();
 			realtime_pub_match_data.msg_.matchType = DriverStation::GetInstance().GetMatchType(); //returns int that corresponds to a DriverStation matchType enum
 
-			realtime_pub_match_data.msg_.isEnabled = DriverStation::GetInstance().IsEnabled();
+			const bool isEnabled = DriverStation::GetInstance().IsEnabled();
+			realtime_pub_match_data.msg_.isEnabled = isEnabled;
+			match_data_enabled_.store(isEnabled, std::memory_order_relaxed);
+
 			realtime_pub_match_data.msg_.isDisabled = DriverStation::GetInstance().IsDisabled();
 			realtime_pub_match_data.msg_.isAutonomous = DriverStation::GetInstance().IsAutonomous();
 
@@ -1314,11 +1317,16 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ROS_INFO_STREAM("Set joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" neutral output");
 		}
 
+		// Force I accumulator to zero so the robot isn't enabled
+		// with a huge I term driving the controlled motor
+		if (!match_data_enabled_.load(std::memory_order_relaxed))
+			safeTalonCall(talon->SetIntegralAccumulator(0, pidIdx, timeoutMs), "SetIntegralAccumulator");
+
 		double iaccum;
 		if (close_loop_mode && tc.integralAccumulatorChanged(iaccum))
 		{
 			//ROS_WARN("iaccum");
-			safeTalonCall(talon->SetIntegralAccumulator(iaccum / closed_loop_scale, pidIdx, timeoutMs),"SetIntegralAccumulator");
+			safeTalonCall(talon->SetIntegralAccumulator(iaccum / closed_loop_scale, pidIdx, timeoutMs), "SetIntegralAccumulator");
 			// Do not set talon state - this changes
 			// dynamically so read it in read() above instead
 			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" integral accumulator");
