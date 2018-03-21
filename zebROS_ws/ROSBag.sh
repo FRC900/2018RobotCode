@@ -6,16 +6,13 @@ source ~/2018RobotCode/zebROS_ws/devel/setup.bash
 
 export ROS_MASTER_URI=http://localhost:11311
 
-sleep 3
-
 #open roscore session
 roscore&
 
 sleep 5
 #data output
-rostopic echo /frcrobot/pdp_states/temperature&
-rqt_plot /frcrobot/pdp_states/temperature&
+rqt_plot /frcrobot/$2 /frcrobot/$3 /frcrobot/$4 /frcrobot/$5 /frcrobot/$6 /frcrobot/$7 /frcrobot/$8 /frcrobot/$9 /frcrobot/$10&
 
 #play the rosbag to link topic(s)
 cd
-gnome-terminal -- rosbag play --clock Downloads/pembrooke_2018-03-16-18-38-47.bag.active
+gnome-terminal -- rosbag play --clock Downloads/$1
