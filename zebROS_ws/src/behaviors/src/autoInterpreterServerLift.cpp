@@ -32,7 +32,7 @@ class autoAction {
 	bool timed_out;
 	behaviors::LiftResult result_;
     public:
-        autoAction(std::string name) :
+        autoAction(const std::string &name) :
             as_(nh_, name, boost::bind(&autoAction::executeCB, this, _1), false),
             action_name_(name)
         {

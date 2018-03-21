@@ -4,10 +4,15 @@
 source /opt/ros/kinetic/setup.bash
 source ~/2018RobotCode/zebROS_ws/devel/setup.bash
 
-roscore
+export ROS_MASTER_URI=http://localhost:11311
 
-rosrun rqt_plot
+#open roscore session
+roscore&
 
-roslaunch controller_node rosbag_rqt_graphing.launch rosbag_data:=pembrooke_2018-03-16-18-38-47.bag.active data data1:= data2:= x-axis:= 
+sleep 5
+#data output
+rqt_plot /frcrobot/$2 /frcrobot/$3 /frcrobot/$4 /frcrobot/$5 /frcrobot/$6 /frcrobot/$7 /frcrobot/$8 /frcrobot/$9 /frcrobot/$10&
 
-exec"$@"
+#play the rosbag to link topic(s)
+cd
+gnome-terminal -- rosbag play --clock Downloads/$1

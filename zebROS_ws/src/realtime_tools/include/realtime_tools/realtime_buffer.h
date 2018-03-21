@@ -62,7 +62,8 @@ class RealtimeBuffer
    * a default constructor
    * @param data The object to use as default value
    */
-  RealtimeBuffer(const T& data)
+  RealtimeBuffer(const T& data) :
+	  new_data_available_(true)
   {
     // allocate memory
     non_realtime_data_ = new T(data);
