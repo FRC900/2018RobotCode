@@ -35,8 +35,8 @@ teleop_params:
 
     intake_low_up_or_down: false
     climb: 0.87
-    move_out_pos_x: .1
-    move_out_pos_y: .6
+    move_out_pos_x: -0.25
+    move_out_pos_y: 0.6
     move_out_up_or_down: true
     move_out_down_y: -1.0 
     default_x: .2

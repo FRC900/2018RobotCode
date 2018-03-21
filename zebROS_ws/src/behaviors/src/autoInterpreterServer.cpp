@@ -44,17 +44,12 @@ class autoAction
 		std::string action_name_;
 		behaviors::RobotFeedback feedback_;
 		behaviors::RobotResult result_;
-		ros::ServiceClient IntakeSrv;
-		ros::ServiceClient ElevatorSrv;
-		ros::ServiceClient ClampSrv;
-		std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ai;
-		std::shared_ptr<actionlib::SimpleActionClient<behaviors::LiftAction>> al;
-		std::atomic<bool> success;
-		std::atomic<bool> aborted;
-		std::atomic<bool> high_cube;
-		elevator_controller::Intake srvIntake;
-		behaviors::IntakeGoal goal_i;
-		behaviors::LiftGoal goal_l;
+		ros::ServiceClient IntakeSrv_;
+		ros::ServiceClient ElevatorSrv_;
+		ros::ServiceClient ClampSrv_;
+		std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ai_;
+		std::shared_ptr<actionlib::SimpleActionClient<behaviors::LiftAction>> al_;
+		std::atomic<bool> high_cube_;
 
 		// Elevator odometry. Make this a struct so that
 		// reads from it get data which is consistent - avoid
@@ -81,7 +76,7 @@ class autoAction
 		};
 		realtime_tools::RealtimeBuffer<ElevatorPos> elevator_odom;
 
-		bool timed_out;
+		ros::Subscriber HighCube_;
 
 	public:
 		// TODO : pass in nh via the constructor -
@@ -92,16 +87,15 @@ class autoAction
 		{
 			std::map<std::string, std::string> service_connection_header;
 			service_connection_header["tcp_nodelay"] = "1";
-			ElevatorSrv = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
-			IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
-			ClampSrv = nh_.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
-			HighCube = nh_.subscribe("/frcrobot/elevator_controller/high_cube", 1, &autoAction::highCubeCallback, this);
-			al = std::make_shared<actionlib::SimpleActionClient<behaviors::LiftAction>>("auto_interpreter_server_lift", true);
-			ai = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
+			ElevatorSrv_ = nh_.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
+			IntakeSrv_ = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
+			ClampSrv_ = nh_.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
+			HighCube_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &autoAction::cubeStateCallback, this);
+			al_ = std::make_shared<actionlib::SimpleActionClient<behaviors::LiftAction>>("auto_interpreter_server_lift", true);
+			ai_ = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
 			as_.start();
 		}
 
-		ros::Subscriber HighCube;
 		~autoAction(void)
 		{
 		}
@@ -110,14 +104,14 @@ class autoAction
 		{
 			ros::Rate r(10);
 			const double startTime = ros::Time::now().toSec();
-			aborted = false;
-			success = false;
+			bool aborted = false;
+			bool success = false;
 			bool timed_out = false;
 
-			//if(!al->getState().isDone())
-				//al->cancelAllGoals();
-			//if(!ai->getState().isDone())
-				//ai->cancelAllGoals();
+			//if(!al_->getState().isDone())
+				//al_->cancelAllGoals();
+			//if(!ai_->getState().isDone())
+				//ai_->cancelAllGoals();
 
 			const double odom_x = elevator_odom.readFromRT()->X_;
 			if (goal->IntakeCube)
@@ -125,12 +119,14 @@ class autoAction
 				ROS_INFO("start of pickup cube");
 				std_srvs::SetBool srv_clamp;
 				ros::spinOnce();
+				behaviors::IntakeGoal goal_i;
 				goal_i.IntakeCube = true;
 				goal_i.time_out = 15;
-				ai->sendGoal(goal_i);
+				ai_->sendGoal(goal_i);
 				srv_clamp.request.data = false;
-				if (!ClampSrv.call(srv_clamp)) ROS_ERROR("Srv clamp call failed");
+				if (!ClampSrv_.call(srv_clamp)) ROS_ERROR("Srv_ clamp call failed");
 				//If we aren't yet ready to drop, go to where we can drop
+				behaviors::LiftGoal goal_l;
 				goal_l.time_out = 5; //This honestly doesn't need to be an action lib
 				goal_l.GoToPos = true;
 				goal_l.x = intake_ready_to_drop_x;
@@ -141,7 +137,7 @@ class autoAction
 				goal_l.y_tolerance = 1.0;
 				goal_l.x_tolerance = drop_x_tolerance;
 
-				al->sendGoal(goal_l);
+				al_->sendGoal(goal_l);
 				//loop till we get to where we can drop
 				while (!aborted && !timed_out)
 				{
@@ -159,25 +155,25 @@ class autoAction
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 						//time_out if the action times out
-						if (ai->getState().isDone())
+						if (ai_->getState().isDone())
 						{
-							timed_out = timed_out || (ai->getResult()->timed_out);
-							
+							timed_out = timed_out || ai_->getResult()->timed_out;
 							break;
 						}
-						if (al->getState().isDone())
+						if (al_->getState().isDone())
 						{
-							timed_out = timed_out || (al->getResult()->timed_out);
+							timed_out = timed_out || al_->getResult()->timed_out;
 						}
 					}
 				}
 				double t_before_move_intake = 0;
 				if (!aborted && !timed_out)
 				{
+					elevator_controller::Intake srvIntake;
 					srvIntake.request.power = 0;
 					srvIntake.request.up = true;
 					srvIntake.request.spring_state = 1; //hard_out
-					if (!IntakeSrv.call(srvIntake)) ROS_ERROR("Srv intake call failed");;
+					if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
 					t_before_move_intake = ros::Time::now().toSec();
 				}
 
@@ -196,16 +192,17 @@ class autoAction
 						r.sleep();
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
-						if (al->getState().isDone())
+						if (al_->getState().isDone())
 						{
-							timed_out = timed_out || (al->getResult()->timed_out);
+							timed_out = timed_out || (al_->getResult()->timed_out);
 							if(ros::Time::now().toSec() - t_before_move_intake > delay_after_move_intake)
 								break;
 						}
 					}
 				}
-				if (!aborted && !timed_out && !high_cube)
+				if (!aborted && !timed_out && !high_cube_)
 				{
+					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5;
 					goal_l.GoToPos = true;
 					goal_l.x = intake_low_x;
@@ -215,7 +212,7 @@ class autoAction
 					goal_l.dist_tolerance = 0.1; //Tolerances are intentionally large, will require testing
 					goal_l.y_tolerance = 0.1;
 					goal_l.x_tolerance = 0.1;
-					al->sendGoal(goal_l);
+					al_->sendGoal(goal_l);
 					while (!aborted && !timed_out)
 					{
 						ROS_INFO("start of pickup cube 3");
@@ -232,10 +229,10 @@ class autoAction
 							ros::spinOnce();
 							timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 
-							if (al->getState().isDone())
+							if (al_->getState().isDone())
 							{
 								//time_out if the action times out
-								timed_out = timed_out || (al->getResult()->timed_out);
+								timed_out = timed_out || (al_->getResult()->timed_out);
 								break;
 							}
 
@@ -244,6 +241,7 @@ class autoAction
 				}
 				else if (!aborted && !timed_out)
 				{
+					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5;
 					goal_l.GoToPos = true;
 					goal_l.x = intake_high_x;
@@ -253,7 +251,7 @@ class autoAction
 					goal_l.dist_tolerance = 0.1; //Tolerances are intentionally large, will require testing
 					goal_l.y_tolerance = 0.1;
 					goal_l.x_tolerance = 0.1;
-					al->sendGoal(goal_l);
+					al_->sendGoal(goal_l);
 					while (!aborted && !timed_out)
 					{
 						ROS_INFO("start of pickup cube 4");
@@ -270,10 +268,10 @@ class autoAction
 							ros::spinOnce();
 							timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 
-							if (al->getState().isDone())
+							if (al_->getState().isDone())
 							{
 								//time_out if the action times out
-								timed_out = timed_out || (al->getResult()->timed_out);
+								timed_out = timed_out || (al_->getResult()->timed_out);
 								break;
 							}
 
@@ -286,7 +284,7 @@ class autoAction
 				{
 					srv_clamp.request.data = true;
 					clamp_time = ros::Time::now().toSec();
-					if (!ClampSrv.call(srv_clamp)) ROS_ERROR("Srv clamp call failed");;
+					if (!ClampSrv_.call(srv_clamp)) ROS_ERROR("Srv_ clamp call failed");;
 
 				}
 				while (!aborted && !timed_out)
@@ -301,6 +299,7 @@ class autoAction
 					}
 					if (ros::Time::now().toSec() - clamp_time > wait_after_clamp)
 					{
+						behaviors::LiftGoal goal_l;
 						goal_l.time_out = 5;
 						goal_l.GoToPos = true;
 						//go to specified after position
@@ -311,7 +310,7 @@ class autoAction
 						goal_l.dist_tolerance = goal->dist_tolerance;
 						goal_l.y_tolerance = goal->y_tolerance;
 						goal_l.x_tolerance = goal->x_tolerance;
-						al->sendGoal(goal_l);
+						al_->sendGoal(goal_l);
 						break;
 					}
 					if (!aborted)
@@ -337,10 +336,10 @@ class autoAction
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 
-						if (al->getState().isDone())
+						if (al_->getState().isDone())
 						{
 							//time_out if the action times out
-							timed_out = timed_out || (al->getResult()->timed_out);
+							timed_out = timed_out || (al_->getResult()->timed_out);
 							break;
 						}
 
@@ -349,8 +348,9 @@ class autoAction
 			}
 			if (goal->MoveToIntakeConfig)
 			{
-				ai->cancelAllGoals();
+				ai_->cancelAllGoals();
 				ROS_INFO("start of go to intake config with cube");
+				behaviors::LiftGoal goal_l;
 				goal_l.time_out = 5; //This honestly doesn't need to be an action lib
 				goal_l.GoToPos = true;
 				goal_l.x = intake_ready_to_drop_x;
@@ -361,13 +361,14 @@ class autoAction
 				goal_l.y_tolerance = 1.0;
 				goal_l.x_tolerance = drop_x_tolerance;
 
-				al->sendGoal(goal_l);
+				al_->sendGoal(goal_l);
 				
 				double t_before_move_intake = 0;
+				elevator_controller::Intake srvIntake;
 				srvIntake.request.power = 0;
 				srvIntake.request.up = true;
 				srvIntake.request.spring_state = 1; //hard_out
-				if (!IntakeSrv.call(srvIntake)) ROS_ERROR("Srv intake call failed");;
+				if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
 				t_before_move_intake = ros::Time::now().toSec();
 				
 				//loop till we get to where we can drop
@@ -390,14 +391,15 @@ class autoAction
 						{
 							break;
 						}
-						if (al->getState().isDone())
+						if (al_->getState().isDone())
 						{
-							timed_out = timed_out || (al->getResult()->timed_out);
+							timed_out = timed_out || al_->getResult()->timed_out;
 						}
 					}
 				}
 				if(!aborted && !timed_out)
 				{
+					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5; 
 					goal_l.GoToPos = true;
 					goal_l.x = intake_high_x;
@@ -408,12 +410,13 @@ class autoAction
 					goal_l.y_tolerance = 0.1;
 					goal_l.x_tolerance = 0.1;
 
-					al->sendGoal(goal_l);
+					al_->sendGoal(goal_l);
 					
+					elevator_controller::Intake srvIntake;
 					srvIntake.request.power = .15; //hold dat cube
 					srvIntake.request.up = false;
 					srvIntake.request.spring_state = 3; //hard_in
-					if (!IntakeSrv.call(srvIntake)) ROS_ERROR("Srv intake call failed");;
+					if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
 					
 				}
 				while (!aborted && !timed_out)
@@ -431,9 +434,9 @@ class autoAction
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 						//time_out if the action times out
-						if (al->getState().isDone())
+						if (al_->getState().isDone())
 						{
-							timed_out = timed_out || (al->getResult()->timed_out);
+							timed_out = timed_out || al_->getResult()->timed_out;
 							break;
 						}
 					}
@@ -451,33 +454,22 @@ class autoAction
 			{
 				ROS_INFO("%s: Aborted", action_name_.c_str());
 			}
-			//if(!al->getState().isDone())
-				al->cancelAllGoals();
-			//if(!ai->getState().isDone())
-				ai->cancelAllGoals();
+			//if(!al_->getState().isDone())
+				al_->cancelAllGoals();
+			//if(!ai_->getState().isDone())
+				ai_->cancelAllGoals();
 			result_.timed_out = timed_out;
 			as_.setSucceeded(result_);
 
 			return;
 		}
-		// TODO : verfiy debounce code copied here from
-		// cubeCallback works
-		void highCubeCallback(const elevator_controller::CubeState  &msg)
+
+		// TODO : debounce code?
+		void cubeStateCallback(const elevator_controller::CubeState &msg)
 		{
-			high_cube = msg.intake_high;
+			high_cube_ = msg.intake_high;
 		}
-		/*
-		void evaluateCubeState(std_msgs::Bool &cube, std_msgs::Bool &high_cube) {
-		    const bool cube_state = cube.data;
-		    const bool high_cube_state = high_cube.data;
-		    if(cube_state && high_cube_state) {
-		        high.store(true, std::memory_order_relaxed);
-		    }
-		    else if(cube_state) {
-		        low.store(true, std::memory_order_relaxed);
-		    }
-		    */
-		//}
+
 		void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
 		{
 			elevator_odom.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down));
