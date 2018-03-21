@@ -61,7 +61,6 @@ class ElevatorController
 		std::atomic<bool> shift_cmd_;
 		bool shifted_;
 		std::atomic<double> clamp_cmd_;
-		std::atomic<bool> enabled_;
 		double climb_height_;
 		std::atomic<bool> end_game_deploy_cmd_;
 		bool end_game_deploy_t1_;
@@ -85,8 +84,6 @@ class ElevatorController
 			IntakeCommand() : up_command(-1.0), spring_command(0.0), power(0.0) {}
 
 		};
-		//ros::Publisher RobotStatePub;
-		//elevator_controller::RobotState RobotStateMsg;
 
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface lift_joint_;
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface pivot_joint_;
@@ -106,7 +103,6 @@ class ElevatorController
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		ros::Subscriber sub_command_;
-		ros::Subscriber sub_enabled_;
 		ros::Subscriber sub_stop_arm_;
 		ros::ServiceServer service_command_;
 		realtime_tools::RealtimeBuffer<IntakeCommand> intake_command_;
