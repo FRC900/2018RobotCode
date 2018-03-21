@@ -247,11 +247,16 @@ bool parkingConfig(void)
 	return true;
 }
 
-mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data)
+mode_list load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_start_pos_num, ros::NodeHandle &auto_data, ros::NodeHandle &cmd_vel_data)
 {
 	XmlRpc::XmlRpcValue mode_xml;
 	XmlRpc::XmlRpcValue actions_xml;
+
+	XmlRpc::XmlRpcValue cmd_vel_xml;
+
 	mode_list all_modes;
+    cmd_vel_list cmd_vel_modes;
+
 	all_modes.resize(max_mode_num + 1);
 	for(int mode = 0; mode <= max_mode_num; mode++)
 	{
@@ -438,6 +443,37 @@ mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::No
 		}
 
 	}
+
+	for(int mode = 0; mode <= max_mode_cmd_vel; mode++)
+	{
+		cmd_vel_modes[mode].resize(4);
+		for(int layout = 0; layout <= 1; layout++)
+		{
+			cmd_vel_modes[mode][layout].resize(max_start_pos_num + 1);
+			for(int start_pos = 0; start_pos <= max_start_pos_num; start_pos++)
+			{
+				std::string identifier("mode_"+std::to_string(mode)+"_layout_"+std::to_string(layout)+"_"+std::to_string(layout_2)+"_start_"+std::to_string(start_pos));
+                
+                if(auto_data.getParam(identifier, cmd_vel_xml))
+				{
+					ROS_INFO_STREAM("cmd vel mode actions with identifier: " << identifier+"_actions" << " found cmd vel")
+					const int num_segments = cmd_vel_xml.size();
+                    cmd_vel_modes[mode][layout][start_pos].segments.resize(num_segments);
+					for(int num = 0; num<num_segments; num++) {
+					    ROS_INFO_STREAM("her: "<< num);
+						XmlRpc::XmlRpcValue &segment = cmd_vel_xml[num];
+						const double x = segment["x"];
+						const double y = segment["y"];
+						const double duration = segment["duration"];
+                        cmd_vel_modes[mode][layout][start_pos].segments[num].x = x;
+                        cmd_vel_modes[mode][layout][start_pos].segments[num].y = y;
+                        cmd_vel_modes[mode][layout][start_pos].segments[num].duration = duration;
+                    }
+                    
+                }
+            }
+        }
+    }
 	return all_modes;
 }
 
@@ -1760,6 +1796,7 @@ int main(int argc, char** argv) {
     ros::NodeHandle n_params(n, "teleop_params");
 
     ros::NodeHandle n_params_behaviors(n, "auto_params");
+    ros::NodeHandle n_params_cmd_vel(n, "cmd_vel_params");
    
     if (!n_params.getParam("high_scale_config_y", high_scale_config_y))
 		ROS_ERROR("Didn't read param high_scale_config_y in autoInterpreterClient");
@@ -1800,10 +1837,12 @@ int main(int argc, char** argv) {
 		ROS_ERROR("Didn't read param max_num_mode in autoInterpreterClient");
     if (!n_params_behaviors.getParam("max_num_start", max_num_start))
 		ROS_ERROR("Didn't read param max_num_start in autoInterpreterClient");
-
+    
+    if (!n_params_cmd_vel.getParam("max_num_start", max_num_cmd_vel))
+		ROS_ERROR("Didn't read cmd_vel param max_num_start in autoInterpreterClient");
 	// Load trajectories before callbacks which use them can
 	// start
-	mode_list all_modes = load_all_trajectories(max_num_mode, max_num_start, n_params_behaviors);
+	mode_list all_modes = load_all_trajectories(max_num_mode, max_num_cmd_vel, max_num_start, n_params_behaviors, n_params_cmd_vel);
 
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
     ROS_WARN("here 567890");

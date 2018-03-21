@@ -208,60 +208,60 @@ auto_params:
 
              
 cmd_vel_params:
-    max_num_mode: 6
+    max_num_mode: 4
     mode_1_layout_0_2_start_0:
-            [{x: 1.05, y: 0.1, time: 4}]
+            [{x: 1.05, y: 0.1, duration: 4}]
     mode_1_layout_0_2_start_1:
-            [{x: 0.875, y: 0.5, time: 3.5}]
+            [{x: 0.875, y: 0.5, duration: 3.5}]
     mode_1_layout_0_2_start_2:
-            [{x: 1.05, y: -0.1, time: 4}]
+            [{x: 1.05, y: -0.1, duration: 4}]
     mode_1_layout_1_3_start_0:
-            [{x: 1.05, y: 0.1, time: 4}]
+            [{x: 1.05, y: 0.1, duration: 4}]
     mode_1_layout_1_3_start_1:
-            [{x: 0.875, y: -0.3, time: 3.5}]
+            [{x: 0.875, y: -0.3, duration: 3.5}]
     mode_1_layout_1_3_start_2:
-            [{x: 1.05, y: -0.1, time: 4}]
+            [{x: 1.05, y: -0.1, duration: 4}]
     mode_2_layout_0_2_start_0:
-            [{x: 1.05, y: -1.5, time: 3}]
+            [{x: 1.05, y: -1.5, duration: 3}]
     mode_2_layout_0_2_start_1:
-            [{x: 1.05, y: -0.45, time: 3}]
+            [{x: 1.05, y: -0.45, duration: 3}]
     mode_2_layout_0_2_start_2:
-            [{x: 1.2, y: 0.53, time: 2.58}]
+            [{x: 1.2, y: 0.53, duration: 2.58}]
     mode_2_layout_1_3_start_0:
-            [{x: 1.2, y: -0.53, time: 2.58}]
+            [{x: 1.2, y: -0.53, duration: 2.58}]
     mode_2_layout_1_3_start_1:
-            [{x: 1.125, y: 0.675, time: 2.76}]
+            [{x: 1.125, y: 0.675, duration: 2.76}]
     mode_2_layout_1_3_start_2:
-            [{x: 1.05, y: -1.5, time: 3}]
+            [{x: 1.05, y: -1.5, duration: 3}]
     mode_3_layout_0_2_start_0:
-            [{x: -1.05, y: -0.1, time: 6}]
+            [{x: -1.05, y: -0.1, duration: 6}]
     mode_3_layout_0_2_start_1:
-            [{x: 0.0, y: 0.75, time: 1.533}, 
-             {x: -0.5, y: 0.0, time: 0.4},
-             {x: -1.5, y: 0.0, time: 2.0}]
+            [{x: 0.0, y: 0.75, duration: 1.533}, 
+             {x: -0.5, y: 0.0, duration: 0.4},
+             {x: -1.5, y: 0.0, duration: 2.0}]
     mode_3_layout_0_2_start_2:
-            [{x: -1.2, y: -0.53, time: 2.58}]
+            [{x: -1.2, y: -0.53, duration: 2.58}]
     mode_3_layout_1_3_start_0:
-            [{x: -1.2, y: 0.53, time: 3}]
+            [{x: -1.2, y: 0.53, duration: 3}]
     mode_3_layout_1_3_start_1:
-            [{x: -0.75, y: 0.0, time: 0.8}, 
-             {x:  0.0, y: -0.75, time: 2.067},
-             {x: -0.5, y: 0.0, time: 0.4},
-             {x: -1.5, y: 0.0, time: 2.0}]
+            [{x: -0.75, y: 0.0, duration: 0.8}, 
+             {x:  0.0, y: -0.75, duration: 2.067},
+             {x: -0.5, y: 0.0, duration: 0.4},
+             {x: -1.5, y: 0.0, duration: 2.0}]
     mode_3_layout_1_3_start_2:
-            [{x: -1.05, y: 0.1, time: 6}]
+            [{x: -1.05, y: 0.1, duration: 6}]
     mode_4_layout_0_2_start_0:
-            [{x: -1.05, y: -0.1, time: 4}]
+            [{x: -1.05, y: -0.1, duration: 4}]
     mode_4_layout_0_2_start_1:
-            [{x: -0.875, y: -0.5, time: 3.5}]
+            [{x: -0.875, y: -0.5, duration: 3.5}]
     mode_4_layout_0_2_start_2:
-            [{x: -1.05, y: 0.1, time: 4}]
+            [{x: -1.05, y: 0.1, duration: 4}]
     mode_4_layout_1_3_start_0:
-            [{x: -1.05, y: -0.1, time: 4}]
+            [{x: -1.05, y: -0.1, duration: 4}]
     mode_4_layout_1_3_start_1:
-            [{x: -0.875, y: 0.3, time: 3.5}]
+            [{x: -0.875, y: 0.3, duration: 3.5}]
     mode_4_layout_1_3_start_2:
-            [{x: -1.05, y: 0.1, time: 4}]
+            [{x: -1.05, y: 0.1, duration: 4}]
 
 #above is for s:r ll
 #####################################################

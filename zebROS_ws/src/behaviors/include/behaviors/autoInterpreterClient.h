@@ -33,6 +33,13 @@ typedef struct action
     std::vector<Action> actions;
 } action_struct;
 
+typedef struct cmd_vel
+{
+    double duration;
+    double x;
+    double y;
+} cmd_vel_struct;
+
 struct full_mode
 {
 	swerve_point_generator::FullGenCoefs srv_msg;
@@ -41,7 +48,13 @@ struct full_mode
 
 	full_mode(void): exists(false) {}
 };
+
+struct cmd_vel_mode
+{
+    std::vector<cmd_vel_struct> segments;
+};
 typedef std::vector<std::vector<std::vector<full_mode>>> mode_list;
+typedef std::vector<std::vector<std::vector<cmd_vel_mode>>> cmd_vel_list;
 
 bool defaultConfig(void);
 bool intakeConfig(void);
