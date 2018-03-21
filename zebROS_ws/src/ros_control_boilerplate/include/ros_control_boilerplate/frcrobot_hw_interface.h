@@ -80,6 +80,7 @@ class ROSIterativeRobot : public frc::IterativeRobotBase
 				HAL_Report(HALUsageReporting::kResourceType_NidecBrushless, 900);
 #endif
 			HAL_Report(HALUsageReporting::kResourceType_NidecBrushless, 900);
+			// HAL_Report(HALUsageReporting::kResourceType_Language, 900, 0, "C++/Python/CMake/PERL/JavaScript");
 		}
 
 		void StartCompetition(void) override
