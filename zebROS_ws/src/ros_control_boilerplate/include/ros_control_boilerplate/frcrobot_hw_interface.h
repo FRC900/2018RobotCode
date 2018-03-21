@@ -74,6 +74,11 @@ class ROSIterativeRobot : public frc::IterativeRobotBase
 		ROSIterativeRobot(void)
 		{
 			HAL_Report(HALUsageReporting::kResourceType_Framework, 900, 0, "https://www.ros.org");
+#if 0
+			for (int i = 0; i < 900; i++)
+				HAL_Report(HALUsageReporting::kResourceType_NidecBrushless, 900);
+#endif
+			HAL_Report(HALUsageReporting::kResourceType_NidecBrushless, 900);
 		}
 
 		void StartCompetition(void) override
