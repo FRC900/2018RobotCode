@@ -21,6 +21,8 @@
 #include <boost/geometry/geometries/point_xy.hpp>
 #include <boost/geometry/geometries/polygon.hpp>
 #include <boost/geometry/io/dsv/write.hpp>
+#include <geometry_msgs/Point32.h>
+#include <geometry_msgs/PolygonStamped.h>
 
 namespace arm_limiting
 {
@@ -37,13 +39,11 @@ class arm_limits
 		arm_limits(double min_extension, double max_extension, double x_back, double arm_length, 
 		const polygon_type &remove_zone_down, const polygon_type &remove_zone_up, int circle_point_count, double cut_off_y_line, 
 		double cut_off_x_line, double safe_to_go_back_y, double drop_down_tolerance, double drop_down_pos, double hook_depth, 
-		double hook_min_height, double hook_max_height )
+		double hook_min_height, double hook_max_height, ros::NodeHandle &n)
 		{
-
-			ros::init(/*argc*/, /*argv*/, "points_and_lines");
-			ros::NodeHandle n;
-
-			ros::Publisher arm_marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 10);
+			top_poly_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("top_poly_visualize", 10);
+			bottom_poly_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("bottom_poly_visualize", 10);
+			arm_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("arm_visualize", 10);
 
 			
 			cut_off_y_line_ = cut_off_y_line;
@@ -182,32 +182,19 @@ class arm_limits
 			polygon_type t_hook_box;
 			boost::geometry::transform(hook_box_, t_hook_box, translate);
 
-			visualization_msgs::Marker top_polygon, bottom_polygon, arm_line;
-			top_polygon.type = visualization_msgs::Marker::LINE_STRIP;
-			bottom_polygon.type = visualization_msgs::Marker::LINE_STRIP;
-			arm_line.type = visualization_msgs::Marker::LINE_LIST;
+			geometry_msgs::PolygonStamped top_polygon, bottom_polygon, arm_line;
 
-			top_polygon.action = visualization_msgs::Marker::DELETE_ALL;
-            bottom_polygon.action = visualization_msgs::Marker::ADD;
-            arm_line.type = visualization_msgs::Marker::ADD;
-
-			top_polygon.id = 0;
-			bottom_polygon.id = 1;
-			arm_line.id = 2;
 		
 			top_polygon.header.frame_id = "/arm_viz"; 
 		    bottom_polygon.header.frame_id = "/arm_viz"; 
 			arm_line.header.frame_id = "/arm_viz"; 
 
-			top_polygon.color.g = 1.0f;
-			top_polygon.color.a = 1.0;
-	
-			bottom_polygon.color.b = 1.0;
-			bottom_polygon.color.a = 1.0;
-		
 
-			arm_line.color.r = 1.0;
-			arm_line.color.a = 1.0;
+			top_polygon.header.stamp =  
+		    bottom_polygon.header.stamp =  
+			arm_line.header.stamp = ros::Time::now(); 
+
+
 
 			for(int k = 0; k < saved_polygons_no_hook_.size(); k++)
 			{
@@ -228,25 +215,24 @@ class arm_limits
 				}
 				//ROS_INFO_STREAM("Poly: " << k << "    " << boost::geometry::wkt(saved_polygons_[k]));
 			}
-			for(auto it = boost::begin(boost::geometry::exterior_ring(saved_polygons[0])); it != boost::end(boost::geometry::exterior_ring(saved_polygons[0])); ++it)
+			for(auto it = boost::begin(boost::geometry::exterior_ring(saved_polygons_[0])); it != boost::end(boost::geometry::exterior_ring(saved_polygons_[0])); ++it)
 			{
-				geometry_msgs::Point p;	
-				p.x = bg::get<0>(*it);
-				p.y = bg::get<1>(*it);
+				geometry_msgs::Point32 p;	
+				p.x = boost::geometry::get<0>(*it);
+				p.y = boost::geometry::get<1>(*it);
 				p.z = 0;
-				top_polygon.points.push_back(p)
+				top_polygon.polygon.points.push_back(p);
 			}
-			for(auto it = boost::begin(boost::geometry::exterior_ring(saved_polygons[1])); it != boost::end(boost::geometry::exterior_ring(saved_polygons[1])); ++it)
+			for(auto it = boost::begin(boost::geometry::exterior_ring(saved_polygons_[1])); it != boost::end(boost::geometry::exterior_ring(saved_polygons_[1])); ++it)
 			{
-				geometry_msgs::Point p;	
-				p.x = bg::get<0>(*it);
-				p.y = bg::get<1>(*it);
+				geometry_msgs::Point32 p;	
+				p.x = boost::geometry::get<0>(*it);
+				p.y = boost::geometry::get<1>(*it);
 				p.z = 0;
-				bottom_polygon.points.push_back(p)
+				bottom_polygon.polygon.points.push_back(p);
 			}
-			
-			arm_marker_pub.publish(top_polygon);	
-			arm_marker_pub.publish(bottom_polygon);	
+			top_poly_marker_pub.publish(top_polygon);	
+			bottom_poly_marker_pub.publish(bottom_polygon);	
 
 	
 			//Note: uses heuristics only applicable to our robot
@@ -286,18 +272,22 @@ class arm_limits
 			const double cur_lift_height = cur_pos.y() - sin(acos(cur_pos.x()/arm_length_))*arm_length_
 			*(cur_up_or_down ? 1 : -1); 
 		
-			geometry_msgs::Point p;	
-			p.x = 0 
-			p.y = cur_lift_hight
+			geometry_msgs::Point32 p;	
+			p.x = 0;
+			p.y = cur_lift_height;
 			p.z = 0;
-			arm_line.points.push_back(p);
+			arm_line.polygon.points.push_back(p);
 			
-			p.x = 0 
-			p.y = cur_lift_hight
+			p.x = cur_pos.x();
+			p.y = cur_pos.y();
 			p.z = 0;
-			arm_line.points.push_back(p);
-			
-			marker_pub.publish(arm_line);	
+			arm_line.polygon.points.push_back(p);
+		
+			//ROS_INFO_STREAM(cur_lift_height);
+			//ROS_WARN_STREAM(orig_pos.x());
+			//ROS_WARN_STREAM(orig_pos.y());
+	
+			arm_marker_pub.publish(arm_line);	
 	
 			double isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
@@ -543,7 +533,10 @@ class arm_limits
 		double hook_depth_;
 		double hook_min_height_; 
 		double hook_max_height_;	
-
+		
+		ros::Publisher top_poly_marker_pub;
+		ros::Publisher bottom_poly_marker_pub;
+		ros::Publisher arm_marker_pub;
 
 		std::array<std::vector<linestring_type>, 2> poly_lines;
 		polygon_type pivot_circle;
