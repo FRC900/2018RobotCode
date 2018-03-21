@@ -643,19 +643,6 @@ void ElevatorController::stopCallback(const std_msgs::Bool &command)
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
 	}
 }
-#if 0
-void ElevatorController::enabledCallback(const ros_control_boilerplate::MatchSpecificData &data)
-{
-	if(isRunning())
-	{
-		enabled_.store(data.isEnabled, std::memory_order_relaxed);
-	}
-	else
-	{
-		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
-	}
-}
-#endif
 
 bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &/*res*/)
 {
