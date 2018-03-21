@@ -7,15 +7,7 @@ sudo rosdep init
 rosdep update
 mkdir ~/catkin_arm_cross_ws
 cd ~/catkin_arm_cross_ws
-rosinstall_generator ros ros_comm robot control_toolbox angles serial robot_localization controller_interface controller_manager combined_robot_hw ros_control ros_controllers tf2_tools tf2_eigen tf2_sensor_msgs rosparam_shortcuts rqt_controller_manager actionlib_tutorials image_transport --rosdistro kinetic --deps --wet-only > kinetic-ros_comm-wet.rosinstall
-
-# geometry2
-# geodesy
-# geographic_info
-# geometry2
-# unique_id
-# unique_identifier
-# urdf_geometry_parser
+rosinstall_generator ros ros_comm robot angles serial robot_localization controller_interface controller_manager combined_robot_hw ros_control tf2_tools tf2_eigen tf2_sensor_msgs rosparam_shortcuts rqt_controller_manager actionlib_tutorials image_transport --rosdistro kinetic --deps --wet-only > kinetic-ros_comm-wet.rosinstall
 
 mkdir -p ~/catkin_arm_cross_ws/src
 cd ~/catkin_arm_cross_ws/src
@@ -53,24 +45,18 @@ cd ~/catkin_arm_cross_ws
 
 wstool init -j8 src kinetic-ros_comm-wet.rosinstall
 
-# Remove some packages which don't build (and luckily aren't needed)
-cd src
-find . -name collada_urdf  | xargs rm -rf
-find . -name tf2_bullet | xargs rm -rf
-find . -name diagnostic_aggregator | xargs rm -rf
-rm -rf robot_model/joint_state_publisher
-cd ..
+add "<depend>urdfdom_headers</depend>" to src/urdf/urdf_parser_plugin/package.xml
+
+edit src/ros_control/controller_manager/package.xml, remove ref to realtime_tools
+edit src/ros_control/controller_manager/CMakeLists.txt, remove ref to realtime_tools
+edit src/ros_control/ros_control/package.xml, remove ref to realtime_tools
+
+# Do a fresh build - kill off any lingering dependencies
+rm -rf /usr/arm-frc-linux-gnueabi/opt/ros/kinetic devel_isolated build_isolated
 
 ./src/catkin/bin/catkin_make_isolated --install --use-ninja -DCMAKE_INSTALL_PREFIX=/usr/arm-frc-linux-gnueabi/opt/ros/kinetic -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2018RobotCode/zebROS_ws/rostoolchain.cmake -DCATKIN_ENABLE_TESTING=OFF
 
 # I needed to add "-DYAML_CPP_INCLUDE_DIRS=/usr/arm-frc-linux-gnueabi/include
 # -DYAML_CPP_LIBRARIES=/usr/arm-frc-linux-gnueabi/lib/libyaml-cpp.a" to
 # catkin_make_isolated to get it to find yaml-cpp
-
-Add 2 lines to the bottom of /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/share/urdf/cmake/urdfConfig.cmake
-/home/ubuntu/catkin_arm_cross_ws/devel_isolated/urdf/share/urdf/cmake/urdfConfig.cmake
-/home/ubuntu/catkin_arm_cross_ws/build_isolated/urdf/catkin_generated/installspace/urdfConfig.cmake :
-
-set(CMAKE_INSTALL_RPATH "/usr/arm-frc-linux-gnueabi/opt/ros/kinetic/lib")
-set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 

@@ -1,39 +1,45 @@
 #pragma once
+#include <array>
+#include <atomic>
+#include <memory>
+
 #include "ros/ros.h"
-#include <controller_interface/controller.h>
-#include <talon_controllers/talon_controller_interface.h>
-#include <pluginlib/class_list_macros.h>
 #include "ros/console.h"
-#include "std_msgs/Float64.h"
+
+#include <controller_interface/multi_interface_controller.h>
+#include <hardware_interface/joint_state_interface.h>
+#include <nav_msgs/Odometry.h>
+#include <pluginlib/class_list_macros.h>
+#include <realtime_tools/realtime_buffer.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/Float64.h>
+#include <std_srvs/SetBool.h>
+#include <std_srvs/Empty.h>
+
+#include <elevator_controller/arm_limiting.h>
+#include <elevator_controller/CubeState.h>
 #include <elevator_controller/ElevatorControl.h>
 #include <elevator_controller/ElevatorControlS.h>
 #include <elevator_controller/Intake.h>
-#include <std_srvs/SetBool.h>
-#include <std_srvs/Empty.h>
 #include <elevator_controller/ReturnElevatorCmd.h>
-#include <elevator_controller/CubeState.h>
-#include <elevator_controller/arm_limiting.h>
-#include <ros_control_boilerplate/MatchSpecificData.h>
 
-#include <nav_msgs/Odometry.h>
-#include <atomic>
-#include <realtime_tools/realtime_buffer.h>
+#include <talon_controllers/talon_controller_interface.h>
 
-#include <array>
-#include <memory>
+//#include <ros_control_boilerplate/MatchSpecificData.h>
+
 #include <Eigen/Dense>
 
 namespace elevator_controller
 {
 
 class ElevatorController
-        : public controller_interface::Controller<hardware_interface::TalonCommandInterface>
+        : public controller_interface::MultiInterfaceController<hardware_interface::TalonCommandInterface,
+																hardware_interface::JointStateInterface>
 {
 	public:
 		ElevatorController();
-		bool init(hardware_interface::TalonCommandInterface *hw,
+		bool init(hardware_interface::RobotHW *hw,
 				ros::NodeHandle &root_nh,
 				ros::NodeHandle &controller_nh);
 
@@ -49,9 +55,9 @@ class ElevatorController
 		double before_shift_max_vel_;		
 
 		std::string name_;
-		std::atomic<bool> line_break_intake_high_;
-		std::atomic<bool> line_break_intake_low_;
-		std::atomic<bool> line_break_clamp_;
+		hardware_interface::JointStateHandle line_break_intake_high_;
+		hardware_interface::JointStateHandle line_break_intake_low_;
+		hardware_interface::JointStateHandle line_break_clamp_;
 		std::atomic<bool> shift_cmd_;
 		bool shifted_;
 		std::atomic<double> clamp_cmd_;
@@ -102,7 +108,6 @@ class ElevatorController
 		ros::Subscriber sub_command_;
 		ros::Subscriber sub_enabled_;
 		ros::Subscriber sub_stop_arm_;
-		ros::Subscriber sub_joint_state_;
 		ros::ServiceServer service_command_;
 		realtime_tools::RealtimeBuffer<IntakeCommand> intake_command_;
 		ros::ServiceServer service_intake_;
@@ -130,7 +135,7 @@ class ElevatorController
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
 		void stopCallback(const std_msgs::Bool& command);
-		void enabledCallback(const ros_control_boilerplate::MatchSpecificData& enabled);
+		//void enabledCallback(const ros_control_boilerplate::MatchSpecificData& enabled);
 		void lineBreakCallback(const sensor_msgs::JointState&);
 		bool cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res);
 		bool intakeService(elevator_controller::Intake::Request &command, elevator_controller::Intake::Response &res);
