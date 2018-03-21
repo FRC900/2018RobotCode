@@ -74,6 +74,7 @@ class ROSIterativeRobot : public frc::IterativeRobotBase
 		ROSIterativeRobot(void)
 		{
 			HAL_Report(HALUsageReporting::kResourceType_Framework, 900, 0, "https://www.ros.org");
+			HAL_Report(HALUsageReporting::kResourceType_RobotDrive, 900, 0, "field centric swerve");
 #if 0
 			for (int i = 0; i < 900; i++)
 				HAL_Report(HALUsageReporting::kResourceType_NidecBrushless, 900);
