@@ -441,9 +441,10 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 				// Only write to non-follow, non-disabled talons that
 				// have points to write from their top-level buffer
 				//ROS_INFO_STREAM("top count: " << can_talons_[i]->GetMotionProfileTopLevelBufferCount());
-				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
-				/*can_talons_[i]->GetMotionProfileTopLevelBufferCount()*/ (mp_status.topBufferCnt 
-				&& mp_status.btmBufferCnt < 127) ||  
+				//ROS_WARN_STREAM("id: " << i << " top size: " << mp_status.topBufferCnt << " running: " << (*can_talons_mp_running_)[i].load(std::memory_order_relaxed));
+				if (((talon_mode != hardware_interface::TalonMode_Follower) &&
+				 /*can_talons_[i]->GetMotionProfileTopLevelBufferCount()*/ (mp_status.topBufferCnt 
+				&& mp_status.btmBufferCnt < 127)) ||  
 				(*can_talons_mp_running_)[i].load(std::memory_order_relaxed))
 				{
 					if (!set_frame_period[i])
@@ -606,7 +607,7 @@ void FRCRobotHWInterface::init(void)
 	pdp_joint_.ClearStickyFaults();
 	pdp_joint_.ResetTotalEnergy();
 
-	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 100.);
+	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 50.);
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 
@@ -736,7 +737,34 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.timeDurMs = talon_status.timeDurMs;
 			ts.setMotionProfileStatus(internal_status);
 			continue;
-		}	
+		}
+		else if(ts.getCANID() < 30)
+		{
+			
+			ctre::phoenix::motion::MotionProfileStatus talon_status;
+			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+
+			hardware_interface::MotionProfileStatus internal_status;
+			internal_status.topBufferRem = talon_status.topBufferRem;
+			internal_status.topBufferCnt = talon_status.topBufferCnt;
+			internal_status.btmBufferCnt = talon_status.btmBufferCnt;
+			internal_status.hasUnderrun = talon_status.hasUnderrun;
+			internal_status.isUnderrun = talon_status.isUnderrun;
+			internal_status.activePointValid = talon_status.activePointValid;
+			internal_status.isLast = talon_status.isLast;
+			internal_status.profileSlotSelect0 = talon_status.profileSlotSelect0;
+			internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
+			internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
+			internal_status.timeDurMs = talon_status.timeDurMs;
+			ts.setMotionProfileStatus(internal_status);
+
+
+
+
+
+
+
+		}  	
 		const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
 		ts.setPosition(position);
@@ -1544,36 +1572,46 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			// before writing, communicate how many have been written
 			// - and thus should be cleared - from the talon_command
 			// list of requests.
-			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
-			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
-			{
-				//ROS_INFO_STREAM("Pre buffer");
-				//ROS_WARN("point_buffer");
-				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
-				{
-					ctre::phoenix::motion::TrajectoryPoint pt;
-					pt.position = it->position / radians_scale;
-					pt.velocity = it->velocity / radians_per_second_scale;
-					pt.headingDeg = it->headingRad * 180. / M_PI;
-					pt.auxiliaryPos = it->auxiliaryPos; // TODO : unit conversion?
-					pt.profileSlotSelect0 = it->profileSlotSelect0;
-					pt.profileSlotSelect1 = it->profileSlotSelect1;
-					pt.isLastPoint = it->isLastPoint;
-					pt.zeroPos = it->zeroPos;
-					pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
-					safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
-				}
-				//ROS_INFO_STREAM("Post buffer");
-				// Copy the 1st profile trajectory point from
-				// the top level buffer to the talon
-				// Subsequent points will be copied by
-				// the process_motion_profile_buffer_thread code
-				talon->ProcessMotionProfileBuffer();
-				(*can_talons_mp_written_)[joint_id].store(true, std::memory_order_relaxed);
 
-				ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
-			}
 		}
+
+
+		std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
+		if (tc.motionProfileTrajectoriesChanged(trajectory_points))
+		{
+			//ROS_INFO_STREAM("Pre buffer");
+			//ROS_WARN("point_buffer");
+			int i = 0;
+			for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
+			{
+				
+
+				ctre::phoenix::motion::TrajectoryPoint pt;
+				pt.position = it->position / radians_scale;
+				pt.velocity = it->velocity / radians_per_second_scale;
+				pt.headingDeg = it->headingRad * 180. / M_PI;
+				pt.auxiliaryPos = it->auxiliaryPos; // TODO : unit conversion?
+				pt.profileSlotSelect0 = it->profileSlotSelect0;
+				pt.profileSlotSelect1 = it->profileSlotSelect1;
+				pt.isLastPoint = it->isLastPoint;
+				pt.zeroPos = it->zeroPos;
+				pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
+				safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
+				ROS_INFO_STREAM("id: " << joint_id << " pos: " << pt.position << " i: " << i);
+				i++;
+			}
+			//ROS_INFO_STREAM("Post buffer");
+			// Copy the 1st profile trajectory point from
+			// the top level buffer to the talon
+			// Subsequent points will be copied by
+			// the process_motion_profile_buffer_thread code
+			//talon->ProcessMotionProfileBuffer();
+			(*can_talons_mp_written_)[joint_id].store(true, std::memory_order_relaxed);
+
+			ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
+		}
+
+
 
 		// Set new motor setpoint if either the mode or
 		// the setpoint has been changed
