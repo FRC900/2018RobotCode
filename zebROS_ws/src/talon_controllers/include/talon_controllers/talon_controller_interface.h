@@ -81,7 +81,7 @@ class TalonCIParams
 			motion_cruise_velocity_(0), // No idea at a guess
 			motion_acceleration_(0),
 			motion_control_frame_period_(20), // Guess at 50Hz default?
-			motion_profile_trajectory_period_(0),
+			motion_profile_trajectory_period_(/*20*/0),
 			
 			conversion_factor_(1.0)
 		{
