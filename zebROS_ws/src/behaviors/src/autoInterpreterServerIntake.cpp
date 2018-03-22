@@ -4,7 +4,6 @@
 #include "elevator_controller/Intake.h"
 #include "elevator_controller/CubeState.h"
 #include "std_msgs/Bool.h"
-#include <cstdlib>
 #include <atomic>
 #include <ros/console.h>
 
@@ -18,13 +17,10 @@ class autoAction {
 
         actionlib::SimpleActionServer<behaviors::IntakeAction> as_;
         std::string action_name_;
-        ros::ServiceClient IntakeSrv;
-	std::atomic<double> time_out;
+        ros::ServiceClient IntakeSrv_;
 	std::atomic<int> cube_state_true;
-	std::atomic<bool> success;
-	std::atomic<bool> aborted;
-	bool timed_out;
 	behaviors::IntakeResult result_;
+	ros::Subscriber CubeState_;
     public:
         autoAction(const std::string &name) :
             as_(nh_, name, boost::bind(&autoAction::executeCB, this, _1), false),
@@ -33,10 +29,9 @@ class autoAction {
             as_.start();
 			std::map<std::string, std::string> service_connection_header;
 			service_connection_header["tcp_nodelay"] = "1";
-            IntakeSrv = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
-            CubeState = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &autoAction::cubeCallback, this);
+            IntakeSrv_ = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
+            CubeState_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &autoAction::cubeCallback, this);
 	}
-	ros::Subscriber CubeState;
 
     ~autoAction(void) 
     {
@@ -45,9 +40,9 @@ class autoAction {
     void executeCB(const behaviors::IntakeGoalConstPtr &goal) {
         ros::Rate r(10);
         double startTime = ros::Time::now().toSec();
-        success = false;
-        timed_out = false;
-        aborted = false;
+        bool success = false;
+        bool timed_out = false;
+        bool aborted = false;
         if(goal->IntakeCube) {
 			ROS_INFO("start of intake cube");
             cube_state_true = 0;
@@ -56,7 +51,7 @@ class autoAction {
             srv.request.just_override_power = false;
             srv.request.spring_state = 2; //soft in
             srv.request.up = false;
-            if(!IntakeSrv.call(srv)) 
+            if(!IntakeSrv_.call(srv)) 
                 ROS_ERROR("Srv intake call failed in auto interpreter server intake");
             else
                 ROS_INFO("Srv intake call OK in auto interpreter server intake");
@@ -80,7 +75,7 @@ class autoAction {
                 srv.request.power = -intake_hold_power;
                 srv.request.spring_state = 3; //hard in
                 srv.request.up = false;
-                        if(!IntakeSrv.call(srv)) ROS_ERROR("Srv intake call failed in auto interpreter server intake");;
+                        if(!IntakeSrv_.call(srv)) ROS_ERROR("Srv intake call failed in auto interpreter server intake");;
             }
             */		    
             }
@@ -88,7 +83,7 @@ class autoAction {
             srv.request.spring_state = 3; //soft in
             srv.request.up = false;
             srv.request.just_override_power = !success;
-            if(!IntakeSrv.call(srv)) 
+            if(!IntakeSrv_.call(srv)) 
                 ROS_ERROR("Srv intake call failed in auto interpreter server intake");
             else
                 ROS_INFO("Srv intake call OK in auto interpreter server intake");
@@ -129,8 +124,11 @@ int main(int argc, char** argv) {
     ros::NodeHandle n;
     ros::NodeHandle n_params(n, "teleop_params");
 
-    n_params.getParam("intake_power", intake_power);
-    n_params.getParam("intake_hold_power", intake_hold_power);
+    if (!n_params.getParam("intake_power", intake_power))
+		ROS_ERROR("Could not read intake_power in autoInterpreterServerIntake");
+
+    if (!n_params.getParam("intake_hold_power", intake_hold_power))
+		ROS_ERROR("Could not read intake_hold_power in autoInterpreterServerIntake");
 
 
     ros::spin();
