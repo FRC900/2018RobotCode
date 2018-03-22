@@ -54,6 +54,10 @@ class ElevatorController
 		double before_shift_max_accel_;		
 		double before_shift_max_vel_;		
 
+		
+		bool intake_up_last_;
+		double transition_time_;
+
 		std::string name_;
 		hardware_interface::JointStateHandle line_break_intake_high_;
 		hardware_interface::JointStateHandle line_break_intake_low_;

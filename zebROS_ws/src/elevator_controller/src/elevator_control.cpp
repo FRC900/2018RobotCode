@@ -313,7 +313,68 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	}
 	boost::geometry::assign_points(remove_zone_poly_up, point_vector_up);
 
-	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, remove_zone_poly_up, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos, hook_depth_, hook_min_height_, hook_max_height_, controller_nh);
+	
+
+	
+	arm_limiting::polygon_type intake_up_box;
+	std::vector<arm_limiting::point_type> point_vector_intake_up;
+	XmlRpc::XmlRpcValue poly_points_intake_up;
+	if (!controller_nh.getParam("polygon_points_intake_up", poly_points_intake_up))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read polygon_points_intake_up");
+		return false;
+	}
+	point_vector_intake_up.resize(poly_points_intake_up.size()/2);
+	//ROS_ERROR_NAMED(name_, "hypothetical errors");
+	ROS_INFO_STREAM("Poly_points intake_up" << std::endl << poly_points_intake_up.size());
+	for (int i = 0; i < poly_points_intake_up.size()/2; ++i)
+	{
+		point_vector_intake_up[i].x(static_cast<double>(poly_points_intake_up[2*i]));
+		point_vector_intake_up[i].y(static_cast<double>(poly_points_intake_up[2*i + 1]));
+		ROS_INFO_STREAM("point from remove zone up: " << boost::geometry::wkt(point_vector_intake_up[i]));
+	}
+	boost::geometry::assign_points(intake_up_box, point_vector_intake_up);
+
+
+	arm_limiting::polygon_type intake_down_box;
+	std::vector<arm_limiting::point_type> point_vector_intake_down;
+	XmlRpc::XmlRpcValue poly_points_intake_down;
+	if (!controller_nh.getParam("polygon_points_intake_down", poly_points_intake_down))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read polygon_points_intake_down");
+		return false;
+	}
+	point_vector_intake_down.resize(poly_points_intake_down.size()/2);
+	//ROS_ERROR_NAMED(name_, "hypothetical errors");
+	ROS_INFO_STREAM("Poly_points intake_down" << std::endl << poly_points_intake_down.size());
+	for (int i = 0; i < poly_points_intake_down.size()/2; ++i)
+	{
+		point_vector_intake_down[i].x(static_cast<double>(poly_points_intake_down[2*i]));
+		point_vector_intake_down[i].y(static_cast<double>(poly_points_intake_down[2*i + 1]));
+		ROS_INFO_STREAM("point from remove zone down: " << boost::geometry::wkt(point_vector_intake_down[i]));
+	}
+	boost::geometry::assign_points(intake_down_box, point_vector_intake_down);
+
+	arm_limiting::polygon_type intake_in_transition_box;
+	std::vector<arm_limiting::point_type> point_vector_intake_in_transition;
+	XmlRpc::XmlRpcValue poly_points_intake_in_transition;
+	if (!controller_nh.getParam("polygon_points_intake_in_transition", poly_points_intake_in_transition))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read polygon_points_intake_in_transition");
+		return false;
+	}
+	point_vector_intake_in_transition.resize(poly_points_intake_in_transition.size()/2);
+	//ROS_ERROR_NAMED(name_, "hypothetical errors");
+	ROS_INFO_STREAM("Poly_points intake_in_transition" << std::endl << poly_points_intake_in_transition.size());
+	for (int i = 0; i < poly_points_intake_in_transition.size()/2; ++i)
+	{
+		point_vector_intake_in_transition[i].x(static_cast<double>(poly_points_intake_in_transition[2*i]));
+		point_vector_intake_in_transition[i].y(static_cast<double>(poly_points_intake_in_transition[2*i + 1]));
+		ROS_INFO_STREAM("point from remove zone in_transition: " << boost::geometry::wkt(point_vector_intake_in_transition[i]));
+	}
+	boost::geometry::assign_points(intake_in_transition_box, point_vector_intake_in_transition);
+
+	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, remove_zone_poly_up, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos, hook_depth_, hook_min_height_, hook_max_height_, controller_nh, intake_up_box, intake_down_box, intake_in_transition_box);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
 	sub_stop_arm_ = controller_nh.subscribe("stop_arm", 1, &ElevatorController::stopCallback, this);
@@ -364,6 +425,8 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		climb_intake_cmd.power = 0;
 		
 		intake_command_.writeFromNonRT(climb_intake_cmd); //Not really sure how bad this is
+
+		
 
 		command_struct_.lin[0] = .1;
                 command_struct_.lin[1] = min_extension_ + cos(asin(.1 / arm_length_))*arm_length_;
@@ -460,29 +523,15 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		intake2_joint_.setCommand(cur_intake_cmd.power);
 
 	}
-	if(cur_intake_cmd.up_command < 0)
+	bool intake_up = cur_intake_cmd.up_command < 0;
+
+	if(intake_up_last_ != intake_up)
 	{
-		std_msgs::Float64 msg;
-		msg.data = -1.0;
-		IntakeUp_.publish(msg);
-		intake_down_time_.store(ros::Time::now().toSec(), std::memory_order_relaxed);
+		transition_time_ = ros::Time::now().toSec();
 	}
-	else
-	{
-		//if((ros::Time::now().toSec() - intake_down_time_.load(std::memory_order_relaxed)) < 1.5) //1.5 is super arbitary
-		//{
-			std_msgs::Float64 msg;
-			msg.data = 1.0;
-			IntakeUp_.publish(msg);
-		//}
-		/*else
-		{
-			std_msgs::Float64 msg;
-			msg.data = 0;
-			IntakeUp_.publish(msg);
-		}*/
-	}
-	//Delay stuff maybe?
+	bool in_transition = ros::Time::now().toSec() - transition_time_ < .5; //Consider making this 
+																		   //check enable/disable 
+
 
 	std_msgs::Float64 intake_soft_msg;
 	std_msgs::Float64 intake_hard_msg;
@@ -565,6 +614,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		lift_joint_.setPeakOutputReverse(-1);
 
 	}
+	bool safe_to_move_intake;
 	if(!curr_cmd.override_pos_limits)
 	{
 
@@ -575,7 +625,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		arm_limiting::point_type return_cmd;
 		bool return_up_or_down;
 		bool bottom_limit = false; //TODO FIX THIS
-		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit);
+		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit, intake_up, in_transition, safe_to_move_intake);
 
 		return_holder.x = return_cmd.x();
 		return_holder.y = return_cmd.y();
@@ -591,7 +641,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		return_holder.x = curr_cmd.lin[0];
 		return_holder.y = curr_cmd.lin[1];
 		return_holder.up_or_down = curr_cmd.up_or_down;
-
+		safe_to_move_intake = true;
 	}
 	ReturnCmd_.publish(return_holder);
 
@@ -602,6 +652,40 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		//if target is beyond dist, will bring arm all the way up or down to go around
 		//this is relatively low priority
 	}
+
+	if(safe_to_move_intake)
+	{
+		intake_up_last_ = intake_up;
+	}
+	else
+	{
+		intake_up = intake_up_last_;
+	}
+	if(intake_up)
+	{
+		std_msgs::Float64 msg;
+		msg.data = -1.0;
+		IntakeUp_.publish(msg);
+		intake_down_time_.store(ros::Time::now().toSec(), std::memory_order_relaxed);
+	}
+	else
+	{
+		//if((ros::Time::now().toSec() - intake_down_time_.load(std::memory_order_relaxed)) < 1.5) //1.5 is super arbitary
+		//{
+			std_msgs::Float64 msg;
+			msg.data = 1.0;
+			IntakeUp_.publish(msg);
+		//}
+		/*else
+		{
+			std_msgs::Float64 msg;
+			msg.data = 0;
+			IntakeUp_.publish(msg);
+		}*/
+	}
+	//Delay stuff maybe?
+
+
 
 	final_cmd_holder.x = curr_cmd.lin[0];
 	final_cmd_holder.y = curr_cmd.lin[1];

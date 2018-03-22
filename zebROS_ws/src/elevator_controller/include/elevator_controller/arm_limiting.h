@@ -39,11 +39,15 @@ class arm_limits
 		arm_limits(double min_extension, double max_extension, double x_back, double arm_length, 
 		const polygon_type &remove_zone_down, const polygon_type &remove_zone_up, int circle_point_count, double cut_off_y_line, 
 		double cut_off_x_line, double safe_to_go_back_y, double drop_down_tolerance, double drop_down_pos, double hook_depth, 
-		double hook_min_height, double hook_max_height, ros::NodeHandle &n)
+		double hook_min_height, double hook_max_height, ros::NodeHandle &n, const polygon_type &intake_up_box, const polygon_type &intake_down_box, const polygon_type &intake_in_transition_box)
 		{
 			top_poly_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("top_poly_visualize", 10);
 			bottom_poly_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("bottom_poly_visualize", 10);
 			arm_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("arm_visualize", 10);
+
+			intake_up_box_ = intake_up_box;
+			intake_down_box_ = intake_down_box;
+			intake_in_transition_box_ = intake_in_transition_box;
 
 			
 			cut_off_y_line_ = cut_off_y_line;
@@ -172,7 +176,8 @@ class arm_limits
 			}
 		}
 		bool safe_cmd(point_type &cmd, bool &up_or_down, bool &cmd_works, point_type &cur_pos, 
-		bool &cur_up_or_down, point_type &cmd_return, bool &up_or_down_return, bool bottom_limit)
+		bool &cur_up_or_down, point_type &cmd_return, bool &up_or_down_return, bool bottom_limit, 
+		bool intake_up, bool in_transition, bool &safe_to_move_intake)
 		{
 			auto orig_pos = cur_pos;
 			bool orig_up_or_down = cur_up_or_down;
@@ -203,6 +208,7 @@ class arm_limits
 				int i = 0;	
 				
 				boost::geometry::difference(saved_polygons_no_hook_[k], t_hook_box, output);
+				
 
 
 				BOOST_FOREACH(polygon_type const& p, output)
@@ -214,7 +220,49 @@ class arm_limits
 					i++;
 				}
 				//ROS_INFO_STREAM("Poly: " << k << "    " << boost::geometry::wkt(saved_polygons_[k]));
+				output.clear();			
+				i = 0;	
+				if(in_transition)
+				{
+					boost::geometry::difference(saved_polygons_[k], intake_in_transition_box_, output);
+					
+				}
+				else if(intake_up)
+				{
+					boost::geometry::difference(saved_polygons_[k], intake_up_box_, output);
+				}
+				else
+				{
+					boost::geometry::difference(saved_polygons_[k], intake_down_box_, output);
+				}
+				
+				BOOST_FOREACH(polygon_type const& p, output)
+				{
+					if(i == 0) {saved_polygons_[k] = p;
+					
+					}
+					else{ROS_ERROR("Bad intake box, REINSTALL WINDOWS?");}
+					i++;
+				}
+			
+
 			}
+
+			if(in_transition)
+			{
+				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_in_transition_box_);
+				
+			}
+			else if(intake_up)
+			{
+				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_up_box_);
+			}
+			else
+			{
+				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_down_box_);
+			}
+
+
 			for(auto it = boost::begin(boost::geometry::exterior_ring(saved_polygons_[0])); it != boost::end(boost::geometry::exterior_ring(saved_polygons_[0])); ++it)
 			{
 				geometry_msgs::Point32 p;	
@@ -271,8 +319,25 @@ class arm_limits
 			//cur_up_or_down = false;	
 			const double cur_lift_height = cur_pos.y() - sin(acos(cur_pos.x()/arm_length_))*arm_length_
 			*(cur_up_or_down ? 1 : -1); 
-		
+
+			
+			const double cur_lift_height_orig = orig_pos.y() - sin(acos(orig_pos.x()/arm_length_))*arm_length_
+			*(orig_up_or_down ? 1 : -1); 
+
+			//Display both?
+	
 			geometry_msgs::Point32 p;	
+			p.x = 0;
+			p.y = cur_lift_height_orig;
+			p.z = 0;
+			arm_line.polygon.points.push_back(p);
+			
+			p.x = orig_pos.x();
+			p.y = orig_pos.y();
+			p.z = 0;
+			arm_line.polygon.points.push_back(p);
+	
+
 			p.x = 0;
 			p.y = cur_lift_height;
 			p.z = 0;
@@ -282,7 +347,10 @@ class arm_limits
 			p.y = cur_pos.y();
 			p.z = 0;
 			arm_line.polygon.points.push_back(p);
-		
+
+				
+
+	
 			//ROS_INFO_STREAM(cur_lift_height);
 			//ROS_WARN_STREAM(orig_pos.x());
 			//ROS_WARN_STREAM(orig_pos.y());
@@ -541,6 +609,12 @@ class arm_limits
 		std::array<std::vector<linestring_type>, 2> poly_lines;
 		polygon_type pivot_circle;
 		polygon_type hook_box_;
+		
+		polygon_type intake_up_box_;
+        polygon_type intake_down_box_;
+        polygon_type intake_in_transition_box_;
+	
+
 		std::array<polygon_type, 2> saved_polygons_;
 		std::array<polygon_type, 2> saved_polygons_no_hook_;
 		void find_nearest_point(point_type &cmd, bool &up_or_down, int check_type, double lift_height = 0)
