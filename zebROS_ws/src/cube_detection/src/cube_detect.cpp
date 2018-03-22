@@ -13,6 +13,7 @@
 #include "cube_detection/CubeDetection.h"
 
 #include <sstream>
+#include <vector>
 
 #include "track3d.hpp"
 #include "objtype.hpp"
@@ -39,7 +40,7 @@ int vLo = 180;
 int hUp = 47;
 
 int maxTrans = 15900;
-int minTrans = 2000;
+int minTrans = 500;
 
 int pixelError = .06;
 
@@ -65,6 +66,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	// the downsampled data, depending on the down_sample flag
 	const Mat *framePtr = &cvFrame->image;
 	const Mat *depthPtr = &cvDepth->image;
+	
 
 	// To hold downsampled images, if necessary
 	Mat frame;
@@ -81,8 +83,8 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 
 		framePtr = &frame;
 		depthPtr = &depth;
+		
 	}
-
 	Mat hsv;
 	Mat threshold;
 	Mat contour;
@@ -132,15 +134,22 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 		vector<float> depth_sample;
 		for(size_t idx = boundRect[i].width/3; idx < (boundRect[i].width/3)*2; idx++){
 			for(size_t idy = boundRect[i].height/3; idy < (boundRect[i].height/3)*2; idy++){
-				depth_sample.push_back(depthPtr->at<float>(boundRect[i].y + idy, boundRect[i].x + idx));			
+				float depthAtPixel = depthPtr->at<float>(boundRect[i].y + idy, boundRect[i].x + idx);
+				depth_sample.push_back(depthAtPixel);			
 			}
 		}
 		float depth_sum;
+		for(size_t ind = 0; ind < depth_sample.size(); ind++){
+			if(isnan(depth_sample[ind]) == true) {
+				depth_sample.erase(depth_sample.begin() + (ind - 1));
+			}
+		}
+		
 		for(size_t id = 0; id < depth_sample.size(); id++){
 			depth_sum = depth_sum + depth_sample[id];
 		}
 		contourDepth.push_back(depth_sum/depth_sample.size());
-	}
+	}		
 	
 	
 		cd_msg.header.seq = frameMsg->header.seq;
@@ -178,13 +187,13 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 			world_location_in.z = world_location.z;
 			cd_msg.location.push_back(world_location_in);
 			//objType(obj_type_in);
-
 		}
 	}
 
-	imshow("threshold",threshold); 
+	//imshow("threshold",threshold); 
 	//imshow("hsv",hsv);
 	imshow("drawing",drawing); 
+	imshow("image", *framePtr);
 	//imshow("depth", *depthPtr);
 	pub.publish(cd_msg);
 	waitKey(5);

@@ -57,25 +57,15 @@ int main(int argc, char **argv)
 	FrameTicker frameTicker;
 	while (cap->getFrame(image, depth))
 	{
-
-
 		frameTicker.mark();
 
 		vid_reader_node::VidReader vid_reader_msg;
-
-		sensor_msgs::Image depth_in;
-		sensor_msgs::Image rgb_in;
 		
-		//ROS_INFO_STREAM("Depth: " << 
+		//ROS_INFO_STREAM("Depth: " << depth << endl);
 
 		vid_reader_msg.header.seq = 1;
 		vid_reader_msg.header.stamp = ros::Time::now();
 		vid_reader_msg.header.frame_id;
-
-		rgb_in.height = image.rows;
-		rgb_in.width = image.cols;
-		depth_in.height = depth.rows;
-		depth_in.width = depth.cols;
 
 		cv_bridge::CvImage rgb_out;
 
@@ -106,8 +96,8 @@ int main(int argc, char **argv)
 		zms_pub.publish(rgb_out.toImageMsg());
 		zms_pub1.publish(depth_out.toImageMsg());
 
-		imshow ("Image", image);
-		imshow ("Depth", depth);
+		//imshow ("Image", image);
+		//imshow ("Depth", depth);
 
 		if ((uchar)waitKey(5) == 27)
 			break;
