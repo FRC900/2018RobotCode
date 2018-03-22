@@ -663,6 +663,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			holder_points_[i][0].trajectoryDuration = curr_cmd.dt;
 			holder_points_[i][1].trajectoryDuration = curr_cmd.dt;
 
+			ROS_INFO_STREAM("id: " << i << " steer position: " << holder_points_[i][1].position);
+
 			speed_joints_[i].pushMotionProfileTrajectory(holder_points_[i][0]);
 			steering_joints_[i].pushMotionProfileTrajectory(holder_points_[i][1]);
 			holder_points_[i][0].zeroPos = false;
@@ -679,6 +681,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				holder_points_[k][0].position = curr_cmd.drive_pos[i][k];
 				holder_points_[k][1].position = curr_cmd.steer_pos[i][k];
 				holder_points_[k][0].velocity = curr_cmd.drive_vel[i][k];
+				ROS_INFO_STREAM("id: " << k << " steer position: " << holder_points_[k][1].position);
 				
 				//ROS_INFO_STREAM("speed. Pos: " << holder_points_[k][0].position << " vel: " << holder_points_[k][0].velocity);
 				//ROS_INFO_STREAM("steering. Pos: " << holder_points_[k][1].position << " vel: " << holder_points_[k][1].velocity);
@@ -693,6 +696,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			holder_points_[k][0].position = curr_cmd.drive_pos[point_count - 1][k];
 			holder_points_[k][1].position = curr_cmd.steer_pos[point_count - 1][k];
 			holder_points_[k][0].velocity = curr_cmd.drive_vel[point_count - 1][k];
+			ROS_INFO_STREAM("id: " << k << " steer position: " << holder_points_[k][1].position);
 
 			holder_points_[k][0].isLastPoint = true;
 			holder_points_[k][1].isLastPoint = true;
