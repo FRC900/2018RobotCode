@@ -81,7 +81,7 @@ class autoAction
 	public:
 		// TODO : pass in nh via the constructor -
 		// use n from main()?
-		autoAction(std::string name) :
+		autoAction(const std::string &name) :
 			as_(nh_, name, boost::bind(&autoAction::executeCB, this, _1), false),
 			action_name_(name)
 		{

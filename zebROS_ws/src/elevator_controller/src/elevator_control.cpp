@@ -24,7 +24,10 @@ ElevatorController::ElevatorController():
 	hook_max_height_(0.0),
 	arm_length_(0.0),
 	pivot_offset_(0.0),
-	lift_offset_(0.0)
+	lift_offset_(0.0),
+	intake_power_diff_multiplier_(1.0),
+	f_arm_fric_(0.0)
+
 {
 }
 
@@ -228,6 +231,12 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	{
 		ROS_ERROR_NAMED(name_, "Can not read arm mass");
 		return false;
+	}
+	if (!controller_nh.getParam("custom_f_arm_fric", f_arm_fric_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read arm friction");
+		// TODO :: uncomment me as soon as I'm in a yaml file
+		//return false;
 	}
 	
 	double cut_off_y_line, cut_off_x_line, safe_to_go_back_y, drop_down_tolerance, drop_down_pos;

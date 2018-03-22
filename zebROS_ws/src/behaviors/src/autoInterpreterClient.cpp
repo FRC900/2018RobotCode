@@ -44,7 +44,7 @@ struct MatchData {
     {
     }
     
-    MatchData(bool isEnabled, bool isAutonomous, std::string alliance_data):
+    MatchData(bool isEnabled, bool isAutonomous, const std::string &alliance_data):
         isEnabled_(isEnabled),
         isAutonomous_(isAutonomous),
         alliance_data_(alliance_data)
@@ -64,7 +64,7 @@ struct AutoMode {
     {
     }
     
-    AutoMode(std::vector<int> modes, std::vector<double> delays, int start_pos):
+    AutoMode(const std::vector<int> &modes, const std::vector<double> &delays, int start_pos):
         modes_(modes),
         delays_(delays),
         start_pos_(start_pos)
@@ -701,9 +701,8 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                 const double delay_1 = 1.533; //Goes 1/2 meter past leading edge of our switch
                 const double delay_1_1 = .4;
                 const double delay_2 = 2.0;
-                double cur_time;
                 while(ros::Time::now().toSec() < start_time + delay_1 + delay_2 && !exit_auto) {
-                    cur_time = ros::Time::now().toSec();
+                    const double cur_time = ros::Time::now().toSec();
                     if(cur_time < start_time + delay_1) {
                         vel.linear.x = 0;
                         vel.linear.y = 0.75;
@@ -756,9 +755,8 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
                 const double delay_1_1 = .4;
                 const double delay_2 = 2.0;
                 //.75 vel
-                double cur_time;
                 while(ros::Time::now().toSec() < start_time + delay_1+delay_2 + delay_0 && !exit_auto) {
-                    cur_time = ros::Time::now().toSec();
+                    const double cur_time = ros::Time::now().toSec();
                     if(cur_time < start_time + delay_0) {
                         vel.linear.x = -0.75;
                         vel.linear.y = 0;
