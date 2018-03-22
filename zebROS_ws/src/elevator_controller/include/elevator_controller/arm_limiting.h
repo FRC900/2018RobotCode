@@ -328,20 +328,16 @@ class arm_limits
 			p.y = orig_pos.y();
 			p.z = 0;
 			arm_line.polygon.points.push_back(p);
-	
-
-			p.x = 0;
-			p.y = cur_lift_height;
-			p.z = 0;
-			arm_line.polygon.points.push_back(p);
-			
+		
 			p.x = cur_pos.x();
 			p.y = cur_pos.y();
 			p.z = 0;
 			arm_line.polygon.points.push_back(p);
 
-				
-
+			p.x = 0;
+			p.y = cur_lift_height;
+			p.z = 0;
+			arm_line.polygon.points.push_back(p);
 	
 			//ROS_INFO_STREAM(cur_lift_height);
 			//ROS_WARN_STREAM(orig_pos.x());
