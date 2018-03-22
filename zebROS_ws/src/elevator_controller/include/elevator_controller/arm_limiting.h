@@ -53,9 +53,9 @@ class arm_limits
 			hook_depth_(hook_depth),
 			saved_polygons_(arm_limitation_polygon(x_back, remove_zone_down, remove_zone_up, circle_point_count))
 		{
-			top_poly_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("top_poly_visualize", 10);
-			bottom_poly_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("bottom_poly_visualize", 10);
-			arm_marker_pub = n.advertise<geometry_msgs::PolygonStamped>("arm_visualize", 10);
+			top_poly_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("top_poly_visualize", 10);
+			bottom_poly_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("bottom_poly_visualize", 10);
+			arm_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("arm_visualize", 10);
 			point_type top(-.00001, arm_length_+ 0.00001);
 			point_type bottom(-.00001, -arm_length_ + 0.00001);
 			//the -.01 is for some edge case
@@ -77,7 +77,7 @@ class arm_limits
 
 			saved_polygons_no_hook_ =  saved_polygons_;
 				
-			boost::geometry::assign_points(pivot_circle, top_pivot_circle);
+			boost::geometry::assign_points(pivot_circle_, top_pivot_circle);
 			boost::geometry::assign_points(hook_box_, hook_box_edges);
 			//dis be contructor
 			//TODO: make better
@@ -222,8 +222,8 @@ class arm_limits
 				p.z = 0;
 				bottom_polygon.polygon.points.push_back(p);
 			}
-			top_poly_marker_pub.publish(top_polygon);	
-			bottom_poly_marker_pub.publish(bottom_polygon);	
+			top_poly_marker_pub_.publish(top_polygon);	
+			bottom_poly_marker_pub_.publish(bottom_polygon);	
 
 	
 			//Note: uses heuristics only applicable to our robot
@@ -278,7 +278,7 @@ class arm_limits
 			//ROS_WARN_STREAM(orig_pos.x());
 			//ROS_WARN_STREAM(orig_pos.y());
 	
-			arm_marker_pub.publish(arm_line);	
+			arm_marker_pub_.publish(arm_line);	
 	
 			double isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
@@ -525,12 +525,12 @@ class arm_limits
 		double hook_min_height_; 
 		double hook_max_height_;	
 		
-		ros::Publisher top_poly_marker_pub;
-		ros::Publisher bottom_poly_marker_pub;
-		ros::Publisher arm_marker_pub;
+		ros::Publisher top_poly_marker_pub_;
+		ros::Publisher bottom_poly_marker_pub_;
+		ros::Publisher arm_marker_pub_;
 
-		std::array<std::vector<linestring_type>, 2> poly_lines;
-		polygon_type pivot_circle;
+		std::array<std::vector<linestring_type>, 2> poly_lines_;
+		polygon_type pivot_circle_;
 		polygon_type hook_box_;
 		std::array<polygon_type, 2> saved_polygons_;
 		std::array<polygon_type, 2> saved_polygons_no_hook_;
@@ -545,9 +545,9 @@ class arm_limits
 				int closest_point_up = 0;
 				int closest_point_down = 0;
 				bool closer_up_or_down = true;
-				for(size_t i = 0; i < poly_lines[0].size(); i++)
+				for(size_t i = 0; i < poly_lines_[0].size(); i++)
 				{
-					temp_dist = boost::geometry::comparable_distance(cmd, poly_lines[0][i]);
+					temp_dist = boost::geometry::comparable_distance(cmd, poly_lines_[0][i]);
 					if(temp_dist < min_dist_up)
 					{
 						min_dist_up = temp_dist;
@@ -556,10 +556,10 @@ class arm_limits
 					//ROS_INFO_STREAM("current line: " << boost::geometry::wkt(poly_lines[0][i]) << " dist: " << temp_dist <<" up");
 
 				}	
-				for(size_t i = 0; i < poly_lines[1].size(); i++)
+				for(size_t i = 0; i < poly_lines_[1].size(); i++)
 				{
 					
-					temp_dist = boost::geometry::comparable_distance(cmd, poly_lines[1][i]);
+					temp_dist = boost::geometry::comparable_distance(cmd, poly_lines_[1][i]);
 					if(temp_dist < min_dist_down)
 					{
 						min_dist_down = temp_dist;
@@ -581,19 +581,19 @@ class arm_limits
 				if(closer_up_or_down)
 				{
 					//ROS_INFO_STREAM("closest line is: " << boost::geometry::wkt(poly_lines[0][closest_point_up]) << " up");
-					cmd =  find_closest_point_to_line(cmd, poly_lines[0][closest_point_up]);
+					cmd =  find_closest_point_to_line(cmd, poly_lines_[0][closest_point_up]);
 				}	
 				else
 				{							
 					//ROS_INFO_STREAM("closest line is: " << boost::geometry::wkt(poly_lines[1][closest_point_down]) << " down");
-					cmd = find_closest_point_to_line(cmd, poly_lines[1][closest_point_down]);
+					cmd = find_closest_point_to_line(cmd, poly_lines_[1][closest_point_down]);
 				}	
 			}
 			else if(check_type == 1)
 			{
 				boost::geometry::strategy::transform::translate_transformer<double, 2, 2> translate(0, lift_height);
 				polygon_type new_pivot_circle;
-				boost::geometry::transform(pivot_circle, new_pivot_circle, translate);
+				boost::geometry::transform(pivot_circle_, new_pivot_circle, translate);
 				std::vector<point_type> output_up;
 				boost::geometry::intersection(new_pivot_circle, saved_polygons_[0], output_up);
 				std::vector<point_type> output_down;
@@ -872,14 +872,14 @@ class arm_limits
 				linestring_type temp_line;
 				temp_line.push_back(up_edges[i]);
 				temp_line.push_back(up_edges[i+1]);
-				poly_lines[0].push_back(temp_line);
+				poly_lines_[0].push_back(temp_line);
 			} 
 			for(size_t i = 0; i < down_edges.size() - 1; i++)
 			{
 				linestring_type temp_line;
 				temp_line.push_back(down_edges[i]);
 				temp_line.push_back(down_edges[i+1]);
-				poly_lines[1].push_back(temp_line);
+				poly_lines_[1].push_back(temp_line);
 			} 
 	
 			ROS_INFO_STREAM("remove_zone: " << boost::geometry::wkt(remove_zone_down));
