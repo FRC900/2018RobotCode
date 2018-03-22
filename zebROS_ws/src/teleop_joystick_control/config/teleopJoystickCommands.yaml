@@ -15,6 +15,8 @@ teleop_params:
     exchange_config_x: .235
     exchange_config_y: .433 #check this
     exchange_config_up_or_down: false
+    over_back_x: -0.3
+    over_back_y: 2.27
     intake_ready_to_drop_x: .235
     intake_ready_to_drop_y: .8 #1.075 - y pos arm relative
 

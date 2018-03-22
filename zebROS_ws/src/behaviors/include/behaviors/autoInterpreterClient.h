@@ -52,9 +52,17 @@ struct full_mode
 struct cmd_vel_mode
 {
     std::vector<cmd_vel_struct> segments;
+    bool exists;
 };
 typedef std::vector<std::vector<std::vector<full_mode>>> mode_list;
 typedef std::vector<std::vector<std::vector<cmd_vel_mode>>> cmd_vel_list;
+
+
+typedef struct mode
+{
+    mode_list profiled_modes;
+    cmd_vel_list cmd_vel_modes;
+} Modes;
 
 bool defaultConfig(void);
 bool intakeConfig(void);
