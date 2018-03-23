@@ -695,7 +695,7 @@ bool call_action(int action) {
 }
 
 
-void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay, const std::vector<cmd_vel_struct> &segments) {
+void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<cmd_vel_struct> &segments) {
     //ROS_WARN("auto entered");
     exit_auto = false;
     ros::Rate r(10);
@@ -736,7 +736,7 @@ void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double 
     parkingConfig();
 }
 
-void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay, const std::vector<action_struct> &actions) {
+void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<action_struct> &actions) {
     //ROS_WARN("auto entered");
     exit_auto = false;
     ros::Rate r(10);
@@ -775,7 +775,14 @@ int main(int argc, char** argv) {
 
     ros::NodeHandle n_params_behaviors(n, "auto_params");
     ros::NodeHandle n_params_cmd_vel(n, "cmd_vel_params");
+    
+    int wait_for_match_data;
+    int num_cmd_vel_modes;
    
+    if (!n_params.getParam("wait_for_match_data", wait_for_match_data))
+		ROS_ERROR("Didn't read param wait_match_data in autoInterpreterClient");
+    if (!n_params.getParam("num_cmd_vel_modes", num_cmd_vel_modes))
+		ROS_ERROR("Didn't read param num_cmd_vel_modes in autoInterpreterClient");
     if (!n_params.getParam("high_scale_config_y", high_scale_config_y))
 		ROS_ERROR("Didn't read param high_scale_config_y in autoInterpreterClient");
     if (!n_params.getParam("mid_scale_config_x", mid_scale_config_x))
@@ -897,10 +904,10 @@ int main(int argc, char** argv) {
                 //loop through auto_mode data 
                 //generate trajectories for all changed modes
                 for(int i = 0; i<4; i++) {
-                    if ((auto_mode_data.modes_[i] > 4) &&
+                    if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
-                        if(generateTrajectory(profiled_modes[i][auto_mode_data.modes_[i] - 5][auto_mode_data.start_pos_])) {
+                        if(generateTrajectory(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_])) {
                             generated_vect[i] = true;
                             auto_mode_vect[i] = auto_mode_data.modes_[i];
                             delays_vect[i] = auto_mode_data.delays_[i];
@@ -914,10 +921,10 @@ int main(int argc, char** argv) {
                             //ROS_WARN("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                         }
                     }
-                    else if (auto_mode_data.modes_[i] <= 4 && (auto_mode_data.modes_[i] >= 0) &&
+                    else if (auto_mode_data.modes_[i] <= num_cmd_vel_modes-1 && (auto_mode_data.modes_[i] >= 0) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
-                        if(generateTrajectory(cmd_vel_modes[i][auto_mode_data.modes_[i]][auto_mode_data.start_pos_])) {
+                        if(generateTrajectory(cmd_vel_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_])) {
                             auto_mode_vect[i] = auto_mode_data.modes_[i];
                             delays_vect[i] = auto_mode_data.delays_[i];
                             start_pos = auto_mode_data.start_pos_;
@@ -942,20 +949,16 @@ int main(int argc, char** argv) {
                 //ROS_INFO("Receiving alliance data");
                 match_data_received = true;
                 if(lower(match_data.alliance_data_)=="rlr") {
-                    auto_mode = 0;
-                    layout = 1;
+                    layout = 0;
                 }
                 else if(lower(match_data.alliance_data_)=="lrl") {
-                    auto_mode = 1;
                     layout = 1;
                 }
                 else if(lower(match_data.alliance_data_)=="rrr") {
-                    auto_mode = 2;
                     layout = 2;
                 }
                 else if(lower(match_data.alliance_data_) =="lll") {
-                    auto_mode = 3;
-                    layout = 2;
+                    layout = 3;
                 } 
                 else {
                     ROS_ERROR("Invalid Alliance Data");
@@ -966,11 +969,11 @@ int main(int argc, char** argv) {
                 ////ROS_INFO("No alliance data");
                 match_data_received = false;
             }
-            if(!match_data_received && ros::Time::now().toSec() > auto_start_time + 2) { //if match data isn't found after 2 seconds of auto starting run default auto
+            if(!match_data_received && ros::Time::now().toSec() > auto_start_time + wait_for_match_data) { //if match data isn't found after 2 seconds of auto starting run default auto
                 //ROS_INFO("In first two seconds of auto with no match data");
-                auto_mode = 0;
-                auto_mode_vect[0] = 4; //default auto: cross baseline
-                generated_vect[0] = true;
+                layout = 0;
+                auto_mode_vect[layout] = 1; //default auto: cross baseline forward
+                generated_vect[layout] = true;
                 match_data_received = true;
                 mode_buffered = true;
             }
@@ -993,32 +996,32 @@ int main(int argc, char** argv) {
 
             if(match_data_received && !mode_buffered) { //if we have match data and haven't buffered yet, buffer
                 //ROS_INFO("Match data received no auto buffered yet");
-                if(generated_vect[auto_mode]) {
-                    if(auto_mode_vect[auto_mode] > 4) {
-                        if(bufferTrajectory(profiled_modes[auto_mode_vect[auto_mode]][auto_mode][start_pos].srv_msg.response)) {
+                if(generated_vect[layout]) {
+                    if(auto_mode_vect[layout] > num_cmd_vel_modes-1) {
+                        if(bufferTrajectory(profiled_modes[auto_mode_vect[layout]][layout][start_pos].srv_msg.response)) {
                             //ROS_WARN("Buffering Profiled auto mode");
                             mode_buffered = true;
                         }
                     }
-                    else if(auto_mode_vect[auto_mode] > 0) {
+                    else if(auto_mode_vect[layout] > 0) {
                         //ROS_WARN("Fake buffering cmd_vel auto mode");
                         mode_buffered = true;
                     }
                 }
                 else {
-                    //ROS_WARN("No path generated when match_data received, Auto Mode: [%d]", auto_mode);
+                    //ROS_WARN("No path generated when match_data received, Layout: [%d]", layout);
                 }
             }
 
             if(in_auto && mode_buffered) { //if in auto with mode buffered run it
                 //ROS_INFO("Match data received and auto buffered");
-                if(auto_mode_vect[auto_mode] > 4) {
-                    run_auto(auto_mode_vect[auto_mode], auto_mode, layout, start_pos, 
-                             delays_vect[auto_mode], profiled_modes[auto_mode][layout][start_pos].actions);
+                if(auto_mode_vect[layout] > num_cmd_vel_modes-1) {
+                    run_auto(auto_mode_vect[layout], layout, start_pos, 
+                             delays_vect[layout], profiled_modes[auto_mode_vect[layout]][layout][start_pos].actions);
                 }
-                else if(auto_mode_vect[auto_mode] >= 0) {
-                    run_auto(auto_mode_vect[auto_mode], auto_mode, layout, start_pos, 
-                             delays_vect[auto_mode], cmd_vel_modes[auto_mode][layout][start_pos].segments);
+                else if(auto_mode_vect[layout] >= 0) {
+                    run_auto(auto_mode_vect[layout], layout, start_pos, 
+                             delays_vect[layout], cmd_vel_modes[auto_mode_vect[layout]][layout][start_pos].segments);
                     
                 }
                 //ROS_WARN("Running Auto");
