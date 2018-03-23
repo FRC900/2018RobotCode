@@ -62,7 +62,7 @@ class autoAction {
                 ROS_INFO("Srv intake call OK in auto interpreter server intake");
             ros::spinOnce();
             while(!success && !timed_out && !aborted) {
-                success = cube_state_true > 2; 
+                success = cube_state_true > 11; 
                 if(as_.isPreemptRequested() || !ros::ok()) {
                     ROS_WARN("%s: Preempted", action_name_.c_str());
                     as_.setPreempted();

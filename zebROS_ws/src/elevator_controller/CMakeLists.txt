@@ -36,6 +36,14 @@ generate_messages(
 
 catkin_package(
   CATKIN_DEPENDS
+	roscpp
+	actionlib
+	controller_interface
+    talon_interface
+    talon_controllers
+    message_runtime
+    std_msgs
+    std_srvs
   INCLUDE_DIRS include
   #LIBRARIES ${PROJECT_NAME}
   DEPENDS Eigen

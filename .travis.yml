@@ -33,7 +33,6 @@ script:
      git checkout $TRAVIS_COMMIT &&
      git log -n1 &&
      git submodule update --init --recursive &&
-     git submodule update &&
      cd zebROS_ws &&
      wstool update -t src &&
      source /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/setup.bash &&

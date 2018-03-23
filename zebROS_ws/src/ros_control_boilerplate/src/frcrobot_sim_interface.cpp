@@ -38,7 +38,7 @@ For a more detailed simulation example, see sim_hw_interface.cpp
 */
 
 #include <ros_control_boilerplate/frcrobot_sim_interface.h>
-//#include <ros_control_boilerplate/nextVelocity.h>
+#include <ros_control_boilerplate/nextVelocity.h>
 
 namespace frcrobot_control
 {
@@ -415,16 +415,18 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			double dt = elapsed_time.toSec();
 
 			//change the nextVelocity call to non existent as it does not work and throws an error from a non-existent package
-			double next_pos = 0;//nextVelocity(ts.getPosition(), position, velocity, ts.getMotionCruiseVelocity(), ts.getMotionAcceleration(), dt);
+			double next_pos = nextVelocity(ts.getPosition(), position, velocity, ts.getMotionCruiseVelocity(), ts.getMotionAcceleration(), dt);
+			//ROS_WARN_STREAM("max vel: " <<ts.getMotionCruiseVelocity()<< " max accel: " << ts.getMotionAcceleration());
 
-			if(ts.getPosition() <= position < next_pos || ts.getPosition() >= position > next_pos)
+			if((ts.getPosition() <=  position &&  position < next_pos) ||( ts.getPosition() >= position && position > next_pos))
 			{
-				position = position;
+				next_pos = position;
 				velocity = 0;
 				//Talons don't allow overshoot, the profiling algorithm above does
 			}
 			ts.setPosition(next_pos);
 			ts.setSpeed(velocity);
+
 
 		}
 		if (tc.clearStickyFaultsChanged())

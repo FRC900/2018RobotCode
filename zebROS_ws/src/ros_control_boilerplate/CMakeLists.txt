@@ -5,6 +5,7 @@ include ("../cmake_modules/CMakeOpt.cmake")
 
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
+  realtime_tools
   hardware_interface
   controller_manager
   roscpp
@@ -12,9 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
   actionlib
   urdf
-  joint_limits_interface
-  transmission_interface
-  control_toolbox
   std_msgs
   sensor_msgs
   rosparam_shortcuts
@@ -47,19 +45,19 @@ catkin_package(
   INCLUDE_DIRS
     include
   CATKIN_DEPENDS
-    hardware_interface
-    controller_manager
-    roscpp
-    control_msgs
-    trajectory_msgs
-    urdf
-    joint_limits_interface
-    transmission_interface
-    control_toolbox
-    std_msgs
-    sensor_msgs
-    rosparam_shortcuts
-    message_runtime
+	hardware_interface
+	controller_manager
+	control_msgs
+	trajectory_msgs
+	actionlib
+	urdf
+	std_msgs
+	sensor_msgs
+	rosparam_shortcuts
+	talon_interface
+	pdp_state_controller
+	elevator_controller
+	message_runtime
   LIBRARIES
 )
 
