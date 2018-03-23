@@ -16,7 +16,7 @@ teleop_params:
     exchange_config_y: .433 #check this
     exchange_config_up_or_down: false
     intake_ready_to_drop_x: .235
-    intake_ready_to_drop_y: .8 #1.075 - y pos arm relative
+    intake_ready_to_drop_y: 1.0 #1.075 - y pos arm relative
 
     intake_ready_to_drop_up_or_down: false
     intake_high_x: .235
@@ -50,5 +50,5 @@ teleop_params:
     intake_power: 1.0
     intake_hold_power: 0.15
     wait_after_clamp: 1.0
-    wait_open_before_drop: 1.0
+    wait_open_before_drop: 8.0
     delay_after_move_intake: 1.0

@@ -610,7 +610,7 @@ void FRCRobotHWInterface::init(void)
 	pdp_joint_.ClearStickyFaults();
 	pdp_joint_.ResetTotalEnergy();
 
-	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 50.);
+	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 100.);
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
 

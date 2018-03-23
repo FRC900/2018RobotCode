@@ -112,19 +112,22 @@ struct ElevatorPos
     ElevatorPos():
         X_(0),
         Y_(0),
-        UpOrDown_(false)
-    {
+        UpOrDown_(false),
+		Time_(0)
+	{
     }
-    ElevatorPos(double X, double Y, bool UpOrDown) :
+    ElevatorPos(double X, double Y, bool UpOrDown, double Time = 0) :
         X_(X),
         Y_(Y),
-        UpOrDown_(UpOrDown)
+        UpOrDown_(UpOrDown),
+		Time_(Time)
     {
     }
 
     double X_;
     double Y_;
     bool   UpOrDown_;
+	double Time_;
 };
 // Use a realtime buffer to store the odom callback data
 // The main teleop code isn't technically realtime but we
@@ -132,7 +135,6 @@ struct ElevatorPos
 // pretend that is the realtime side of the code
 realtime_tools::RealtimeBuffer<ElevatorPos> elevatorPos;
 realtime_tools::RealtimeBuffer<ElevatorPos> elevatorCmd;
-realtime_tools::RealtimeBuffer<bool> return_callback_called;
 
 std::atomic<bool> disableArmLimits;
 std::atomic<double> navX_angle;
@@ -224,7 +226,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     elevator_controller::ElevatorControlS srvElevator;
     std_srvs::SetBool srvClamp;
     elevator_controller::Intake srvIntake;
-    static ElevatorPos elevatorPosBefore;
+    srvIntake.request.just_override_power = false;
+	static ElevatorPos elevatorPosBefore;
 
 	static bool run_out = false;
 	static bool run_in = false;
@@ -284,7 +287,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			ac_lift->cancelAllGoals();
 		//if(!ac_intake->getState().isDone())
 			ac_intake->cancelAllGoals();
-		const ElevatorPos epos = *(elevatorPos.readFromRT());
 		srvElevator.request.x = .1; //Consider changing x_pos + up/down to preassigned rather than curr pos
 		srvElevator.request.y = climb;
 		srvElevator.request.up_or_down = true;
@@ -619,9 +621,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*If some time has passed since place, start arm move back*/
 	if (placed_delay_check && (timeSecs - place_start) > .5)
 	{
-		const ElevatorPos epos = *(elevatorPos.readFromRT());
-		srvElevator.request.x = epos.X_ + move_out_pos_x;
-		srvElevator.request.y = epos.Y_ + move_out_pos_y;
+		const ElevatorPos epos_r = *(elevatorPos.readFromRT());
+		srvElevator.request.x = epos_r.X_ + move_out_pos_x;
+		srvElevator.request.y = epos_r.Y_ + move_out_pos_y;
 		srvElevator.request.up_or_down = move_out_up_or_down;
 		srvElevator.request.override_pos_limits = localDisableArmLimits;
 		if(!ElevatorSrv.call(srvElevator))
@@ -791,7 +793,31 @@ For right now we will just go back out and then call "go to intake config"
 		}
 	}
 
+	
+	if (JoystickState->bumperLeftPress == true)
+	{
+
+		ElevatorPos epos_swap = *(elevatorPos.readFromRT());
+		srvElevator.request.x = epos_swap.X_;
+		srvElevator.request.y = epos_swap.Y_;
+		srvElevator.request.up_or_down = !epos_swap.UpOrDown_;
+		srvElevator.request.override_pos_limits = localDisableArmLimits;
+		if (ElevatorSrv.call(srvElevator))
+		{
+			ROS_WARN("Toggled to up/down");
+		}
+		else
+		{
+			ROS_ERROR("Failed to toggle to up/down");
+		}
+		
+
+	}
+
 	/*----------------------------Right Bumper - Press Untoggle-----------------------------*/
+	
+
+
 	if (JoystickState->bumperRightPress == true)
 	{
 		currentToggle = "bumperRight";
@@ -1060,23 +1086,24 @@ else // X or Y or rotation != 0 so tell the drive base to move
 	sendRobotZero = false;
 }
 
-static ElevatorPos epos;
-
-if(*(return_callback_called.readFromRT()))
-{
-	epos = *(elevatorCmd.readFromRT());
-	return_callback_called.writeFromNonRT(false); //Oh Great and Powerful Kevin, Save me from my own pitiful attempts at thread safety
-}
+static ElevatorPos epos_old;
 
 
 if (rightStickX != 0 || rightStickY != 0)
 {
-	epos.X_ += (timeSecs - lastTimeSecs) * rightStickX;		
-	epos.Y_ += (timeSecs - lastTimeSecs) * rightStickY;		
+	double dt = timeSecs - lastTimeSecs;
+	const ElevatorPos epos_new = *(elevatorCmd.readFromRT());
+	if(epos_new.Time_ != epos_old.Time_) //This should be a safe equality comparision between doubles
+	{
+		epos_old = epos_new;
+		dt = timeSecs - epos_old.Time_;		
+	}
+	epos_old.X_ += dt * rightStickX;		
+	epos_old.Y_ += dt * rightStickY;		
 
-	elevatorMsg.x = epos.X_;
-	elevatorMsg.y = epos.Y_;
-	elevatorMsg.up_or_down = epos.UpOrDown_;
+	elevatorMsg.x = epos_old.X_;
+	elevatorMsg.y = epos_old.Y_;
+	elevatorMsg.up_or_down = epos_old.UpOrDown_;
 	elevatorMsg.override_pos_limits = localDisableArmLimits;
 	JoystickElevatorPos.publish(elevatorMsg);
 	//ROS_INFO("teleop : Joystive elevator pos");
@@ -1092,8 +1119,7 @@ void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
 }
 void elevCmdCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
 {
-    elevatorCmd.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down));
-	return_callback_called.writeFromNonRT(true);
+    elevatorCmd.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down, msg->header.stamp.toSec()));
 }
 /*
    void evaluateState(const teleop_joystick_control::RobotState::ConstPtr &RobotState) {
