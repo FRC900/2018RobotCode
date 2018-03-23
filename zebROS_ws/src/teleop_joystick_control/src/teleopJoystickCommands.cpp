@@ -799,6 +799,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 				ac->sendGoal(goal);
 				achieved_pos = intake;
+				ROS_INFO("sendGoal() stickRight moveToIntakeConfig");
 			}
 		}
 	}
