@@ -1236,7 +1236,7 @@ int main(int argc, char **argv)
 	ros::Subscriber elevator_odom = n.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
 	ros::Subscriber elevator_cmd = n.subscribe("/frcrobot/elevator_controller/return_cmd_pos", 1, &elevCmdCallback);
 	ros::Subscriber cube_state    = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
-	ros::Subscriber disable_arm_limits_sub = n.subscribe("frcrobot/override_arm_limits", 1, &overrideCallback);
+	ros::Subscriber disable_arm_limits_sub = n.subscribe("/frcrobot/override_arm_limits", 1, &overrideCallback);
 
 	disableArmLimits = false;
 	navX_angle = M_PI / 2;
