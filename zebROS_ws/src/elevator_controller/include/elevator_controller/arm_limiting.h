@@ -169,7 +169,7 @@ class arm_limits
 		}
 		bool safe_cmd(point_type &cmd, bool &up_or_down, bool &cmd_works, point_type &cur_pos, 
 		bool &cur_up_or_down, point_type &cmd_return, bool &up_or_down_return, bool bottom_limit, 
-		bool intake_up, bool in_transition, bool &safe_to_move_intake)
+		bool intake_up, bool in_transition, bool &safe_to_move_intake, bool cube_in_clamp, bool intake_open)
 		{
 			auto orig_pos = cur_pos;
 			bool orig_up_or_down = cur_up_or_down;
@@ -213,7 +213,8 @@ class arm_limits
 				}
 				//ROS_INFO_STREAM("Poly: " << k << "    " << boost::geometry::wkt(saved_polygons_[k]));
 				output.clear();			
-				i = 0;	
+				i = 0;
+				/*	
 				if(in_transition)
 				{
 					boost::geometry::difference(saved_polygons_[k], intake_in_transition_box_, output);
@@ -236,10 +237,10 @@ class arm_limits
 					else{ROS_ERROR("Bad intake box, REINSTALL WINDOWS?");}
 					i++;
 				}
-			
+				*/
 
 			}
-
+			/*
 			if(in_transition)
 			{
 				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_in_transition_box_);
@@ -253,7 +254,8 @@ class arm_limits
 			{
 				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_down_box_);
 			}
-
+			*/
+			safe_to_move_intake = true;
 
 			for(auto it = boost::begin(boost::geometry::exterior_ring(saved_polygons_[0])); it != boost::end(boost::geometry::exterior_ring(saved_polygons_[0])); ++it)
 			{
@@ -364,7 +366,7 @@ class arm_limits
 				enforced_hook_x_limit = cur_pos.y() < cut_off_y_line_;
 				up_or_down = false;
 			}
-			if(!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit && cmd.y() < cut_off_y_line_)
+			if((!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit) /*|| (cube_in_clamp && !intake_open )*/&& cmd.y() < cut_off_y_line_)
 			{
 				cmd.y(cut_off_y_line_);
 			}

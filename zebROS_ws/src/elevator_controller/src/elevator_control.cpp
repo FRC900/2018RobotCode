@@ -544,6 +544,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 	std_msgs::Float64 intake_soft_msg;
 	std_msgs::Float64 intake_hard_msg;
+	bool intake_open = false;
 	switch(cur_intake_cmd.spring_command)
 	{
 		default:
@@ -553,6 +554,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		case 1:
 			intake_soft_msg.data = 1.0;
 			intake_hard_msg.data = -1.0;
+			intake_open = true;
 			break;
 		case 3:
 			intake_soft_msg.data = 0.0;
@@ -564,13 +566,18 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 	std_msgs::Float64 clamp_msg;
 	clamp_msg.data = clamp_cmd_.load(std::memory_order_relaxed);
-	Clamp_.publish(std_msgs::Float64(clamp_msg));
-	
+
+	bool cube_in_clamp;	
+
 	elevator_controller::CubeState cube_msg;
 	cube_msg.intake_high = line_break_intake_high_.getPosition() != 0;
 	cube_msg.intake_low = line_break_intake_low_.getPosition() != 0;
 	cube_msg.has_cube = cube_msg.intake_high || cube_msg.intake_low || pivot_joint_.getForwardLimitSwitch();
 	cube_msg.clamp = pivot_joint_.getForwardLimitSwitch();
+	
+	cube_in_clamp = cube_msg.clamp && clamp_msg.data;
+	
+	Clamp_.publish(std_msgs::Float64(clamp_msg));
 	CubeState_.publish(cube_msg);
 
 	elevator_controller::ReturnElevatorCmd return_holder;
@@ -634,7 +641,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		arm_limiting::point_type return_cmd;
 		bool return_up_or_down;
 		bool bottom_limit = false; //TODO FIX THIS
-		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit, intake_up, in_transition, safe_to_move_intake);
+		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit, intake_up, in_transition, safe_to_move_intake, cube_in_clamp, intake_open);
 
 		return_holder.x = return_cmd.x();
 		return_holder.y = return_cmd.y();
@@ -652,6 +659,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		return_holder.up_or_down = curr_cmd.up_or_down;
 		safe_to_move_intake = true;
 	}
+	return_holder.header.stamp = ros::Time::now();
 	ReturnCmd_.publish(return_holder);
 
 	if(!curr_cmd.override_sensor_limits)

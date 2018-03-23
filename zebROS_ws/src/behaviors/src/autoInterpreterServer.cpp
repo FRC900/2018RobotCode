@@ -172,6 +172,7 @@ class autoAction
 					elevator_controller::Intake srvIntake;
 					srvIntake.request.power = 0;
 					srvIntake.request.up = true;
+					srvIntake.request.just_override_power = false;
 					srvIntake.request.spring_state = 1; //hard_out
 					if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
 					t_before_move_intake = ros::Time::now().toSec();
@@ -366,7 +367,8 @@ class autoAction
 				double t_before_move_intake = 0;
 				elevator_controller::Intake srvIntake;
 				srvIntake.request.power = 0;
-				srvIntake.request.up = true;
+				srvIntake.request.up = false;
+				srvIntake.request.just_override_power = false;
 				srvIntake.request.spring_state = 1; //hard_out
 				if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
 				t_before_move_intake = ros::Time::now().toSec();
@@ -374,6 +376,7 @@ class autoAction
 				//loop till we get to where we can drop
 				while (!aborted && !timed_out)
 				{
+					ROS_WARN("brief wait before close");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -412,11 +415,7 @@ class autoAction
 
 					al_->sendGoal(goal_l);
 					
-					elevator_controller::Intake srvIntake;
-					srvIntake.request.power = .15; //hold dat cube
-					srvIntake.request.up = false;
-					srvIntake.request.spring_state = 3; //hard_in
-					if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
+
 					
 				}
 				while (!aborted && !timed_out)
@@ -440,6 +439,22 @@ class autoAction
 							break;
 						}
 					}
+				}
+				if(!aborted && !timed_out)
+				{
+					
+					elevator_controller::Intake srvIntake;
+					srvIntake.request.power = .15; //hold dat cube
+					srvIntake.request.up = false;
+					srvIntake.request.spring_state = 3; //hard_in
+					srvIntake.request.just_override_power = false;
+					if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
+					
+					std_srvs::SetBool srv_clamp;
+					srv_clamp.request.data = false;
+					if (!ClampSrv_.call(srv_clamp)) ROS_ERROR("Srv_ clamp call failed");
+
+
 				}
 			}
 			if (timed_out)

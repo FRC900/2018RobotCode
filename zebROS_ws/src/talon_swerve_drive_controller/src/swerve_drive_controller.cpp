@@ -612,11 +612,11 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	{
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
-			steering_joints_[i].clearMotionProfileTrajectories();
-			speed_joints_[i].clearMotionProfileTrajectories();
+			//steering_joints_[i].clearMotionProfileTrajectories();
+			//speed_joints_[i].clearMotionProfileTrajectories();
 
-			steering_joints_[i].clearMotionProfileHasUnderrun();
-			speed_joints_[i].clearMotionProfileHasUnderrun();
+			//steering_joints_[i].clearMotionProfileHasUnderrun();
+			//speed_joints_[i].clearMotionProfileHasUnderrun();
 		}
 		// This is a bad hack, but we need a way to clear out
 		// the clear flag from inside the RT-ish update loop
@@ -638,11 +638,11 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
 
-			steering_joints_[i].clearMotionProfileTrajectories();
-			speed_joints_[i].clearMotionProfileTrajectories();
+			//steering_joints_[i].clearMotionProfileTrajectories();
+			//speed_joints_[i].clearMotionProfileTrajectories();
 
-			steering_joints_[i].clearMotionProfileHasUnderrun();
-			speed_joints_[i].clearMotionProfileHasUnderrun();
+			//steering_joints_[i].clearMotionProfileHasUnderrun();
+			//speed_joints_[i].clearMotionProfileHasUnderrun();
 
 			//steering_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
                         //speed_joints_[i].setMotionControlFramePeriod(curr_cmd.half_dt);
