@@ -7,3 +7,4 @@ px-ros-pkg
 px_ros_pkg
 ros_controllers
 control_toolbox
+*.plist
