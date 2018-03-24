@@ -166,7 +166,8 @@ class autoAction
 						}
 					}
 				}
-				double t_before_move_intake = 0;
+				/*double t_before_move_intake = 0;
+				ROS_ERROR("COMMENTED OUTJHGFVBHJHGFVCBNV");
 				if (!aborted && !timed_out)
 				{
 					elevator_controller::Intake srvIntake;
@@ -177,9 +178,9 @@ class autoAction
 					if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
 					t_before_move_intake = ros::Time::now().toSec();
 				}
-
 				while (!aborted && !timed_out)
 				{
+					ROS_ERROR("COMMENTED OUTJHGFVBHJHGFVCBNV");
 					ROS_INFO("start of pickup cube 2");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
@@ -201,6 +202,7 @@ class autoAction
 						}
 					}
 				}
+				*/
 				if (!aborted && !timed_out && !high_cube_)
 				{
 					behaviors::LiftGoal goal_l;
@@ -287,6 +289,15 @@ class autoAction
 					clamp_time = ros::Time::now().toSec();
 					if (!ClampSrv_.call(srv_clamp)) ROS_ERROR("Srv_ clamp call failed");;
 
+				}
+				if (!aborted && !timed_out)
+				{
+					elevator_controller::Intake srvIntake;
+					srvIntake.request.power = 0.0;
+					srvIntake.request.up = false;
+					srvIntake.request.just_override_power = false;
+					srvIntake.request.spring_state = 1; //hard_out
+					if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
 				}
 				while (!aborted && !timed_out)
 				{

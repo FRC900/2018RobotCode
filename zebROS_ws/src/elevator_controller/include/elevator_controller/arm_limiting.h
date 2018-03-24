@@ -68,11 +68,20 @@ class arm_limits
 			quarter_circle_gen(arm_length_, 0, 0, 30, top_pivot_circle, true);
 			polygon_edges bottom_pivot_circle;
 			quarter_circle_gen(-arm_length_, 0, 0, 30, bottom_pivot_circle, false);
-			top_pivot_circle.insert(top_pivot_circle.end(), bottom_pivot_circle.begin(), bottom_pivot_circle.end());
-			top_pivot_circle.push_back(bottom);	
+
+			top_pivot_circle.push_back(point_type(arm_length, 0));	
+			top_pivot_circle.push_back(point_type(0, 0));	
 			top_pivot_circle.push_back(top);
 			top_pivot_circle.push_back(top_pivot_circle[0]);
-			
+		
+				
+			bottom_pivot_circle.push_back(bottom);
+			bottom_pivot_circle.push_back(point_type(0, 0));	
+			bottom_pivot_circle.push_back(point_type(arm_length, 0));	
+			bottom_pivot_circle.push_back(bottom_pivot_circle[0]);
+
+
+	
 			polygon_edges hook_box_edges;
 			hook_box_edges.push_back(point_type(0.0, hook_min_height_));
 			hook_box_edges.push_back(point_type(0.0, hook_max_height_));
@@ -81,8 +90,11 @@ class arm_limits
 			hook_box_edges.push_back(point_type(0.0, hook_min_height_));
 
 			saved_polygons_no_hook_ =  saved_polygons_;
+			
 				
-			boost::geometry::assign_points(pivot_circle_, top_pivot_circle);
+			boost::geometry::assign_points(top_pivot_circle_, top_pivot_circle);
+			boost::geometry::assign_points(bottom_pivot_circle_, bottom_pivot_circle);
+
 			boost::geometry::assign_points(hook_box_, hook_box_edges);
 			//dis be contructor
 			//TODO: make better
@@ -214,7 +226,7 @@ class arm_limits
 				//ROS_INFO_STREAM("Poly: " << k << "    " << boost::geometry::wkt(saved_polygons_[k]));
 				output.clear();			
 				i = 0;
-				/*	
+					
 				if(in_transition)
 				{
 					boost::geometry::difference(saved_polygons_[k], intake_in_transition_box_, output);
@@ -237,10 +249,10 @@ class arm_limits
 					else{ROS_ERROR("Bad intake box, REINSTALL WINDOWS?");}
 					i++;
 				}
-				*/
+				
 
 			}
-			/*
+	
 			if(in_transition)
 			{
 				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_in_transition_box_);
@@ -254,25 +266,66 @@ class arm_limits
 			{
 				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_down_box_);
 			}
-			*/
+			
 			safe_to_move_intake = true;
 
+
+
+
+
+
+
+
+			polygon_edges up_edges;
+			polygon_edges down_edges;
+			
+			poly_lines_[0].clear();
+			poly_lines_[0].reserve(200);
+			poly_lines_[1].clear();
+			poly_lines_[1].reserve(200);
+
+			
 			for(auto it = boost::begin(boost::geometry::exterior_ring(saved_polygons_[0])); it != boost::end(boost::geometry::exterior_ring(saved_polygons_[0])); ++it)
 			{
 				geometry_msgs::Point32 p;	
+				point_type temp_point;
 				p.x = boost::geometry::get<0>(*it);
 				p.y = boost::geometry::get<1>(*it);
 				p.z = 0;
+				temp_point.x(p.x);
+				temp_point.y(p.y);
 				top_polygon.polygon.points.push_back(p);
+				up_edges.push_back(temp_point);
 			}
 			for(auto it = boost::begin(boost::geometry::exterior_ring(saved_polygons_[1])); it != boost::end(boost::geometry::exterior_ring(saved_polygons_[1])); ++it)
 			{
+				point_type temp_point;
 				geometry_msgs::Point32 p;	
 				p.x = boost::geometry::get<0>(*it);
 				p.y = boost::geometry::get<1>(*it);
 				p.z = 0;
 				bottom_polygon.polygon.points.push_back(p);
+				temp_point.x(p.x);
+				temp_point.y(p.y);
+				down_edges.push_back(temp_point);
 			}
+
+			for(size_t i = 0; i < up_edges.size() - 1; i++)
+			{
+				linestring_type temp_line;
+				temp_line.push_back(up_edges[i]);
+				temp_line.push_back(up_edges[i+1]);
+				poly_lines_[0].push_back(temp_line);
+			} 
+			for(size_t i = 0; i < down_edges.size() - 1; i++)
+			{
+				linestring_type temp_line;
+				temp_line.push_back(down_edges[i]);
+				temp_line.push_back(down_edges[i+1]);
+				poly_lines_[1].push_back(temp_line);
+			} 
+
+
 			top_poly_marker_pub_.publish(top_polygon);	
 			bottom_poly_marker_pub_.publish(bottom_polygon);	
 
@@ -281,6 +334,10 @@ class arm_limits
 
 			//ROS_INFO_STREAM("cmd base check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 			cmd_works = check_if_possible(cmd, up_or_down, 0);
+			
+			
+
+
 			if(cmd.x() - arm_length_ > -.00002)
 			{	
 				cmd.x(-.00002 + arm_length_);
@@ -294,8 +351,9 @@ class arm_limits
 			cmd_return = cmd;
 			up_or_down_return = up_or_down;
 
-
-			//bool pos_works = check_if_possible(cur_pos, cur_up_or_down, 0);
+			//ROS_WARN_STREAM("up/down: " << cur_up_or_down);
+			cur_pos.y(cur_pos.y() + .001);
+			/*bool pos_works = */check_if_possible(cur_pos, cur_up_or_down, 0);
 			if(cur_pos.x() - arm_length_ > -.00002)
 			{	
 				cur_pos.x(-.00002 + arm_length_);
@@ -304,7 +362,9 @@ class arm_limits
 			{	
 				cur_pos.x(cut_off_x_line_ +   .00002);
 			}
-			
+			//ROS_WARN_STREAM("up/down post: " << cur_up_or_down);
+
+
 			//ROS_INFO_STREAM("cur_pos check");
 
 			//ROS_INFO_STREAM(" Cmd: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
@@ -366,7 +426,7 @@ class arm_limits
 				enforced_hook_x_limit = cur_pos.y() < cut_off_y_line_;
 				up_or_down = false;
 			}
-			if((!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit) /*|| (cube_in_clamp && !intake_open )*/&& cmd.y() < cut_off_y_line_)
+			if(((!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit) && cmd.y() < cut_off_y_line_) || (cube_in_clamp && !intake_open ) && cmd.y() < cut_off_y_line_  && cur_pos.y() > cut_off_y_line_-.1)  
 			{
 				cmd.y(cut_off_y_line_);
 			}
@@ -404,7 +464,7 @@ class arm_limits
 			{
 				
 				//ROS_WARN("0");	
-				//ROS_WARN("HOOK LIMITED");
+				ROS_WARN("HOOK LIMITED");
 				//up_or_down = cur_up_or_down;
 				if(cmd.x() < hook_depth_ && !enforced_hook_x_limit)
 				{
@@ -462,7 +522,7 @@ class arm_limits
 							}
 							else
 							{
-								//ROS_WARN("9");	
+								//ROS_WARN_STREAM("9" << " x_pos " << cur_pos.x() << " x_tar: " << cmd.x());	
 								//ROS_WARN("here6");	
 								cmd.y(cur_lift_height + isolated_lift_delta_y 
 								+ sin(acos((hook_depth_+.05)/arm_length_))*arm_length_
@@ -548,24 +608,37 @@ class arm_limits
 			isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
 			//Could switch above to using circle func instead of trig func	
-			point_type test_pivot_cmd(cmd.x(), isolated_pivot_y);
+			point_type test_pivot_cmd(cmd.x()+.00001, isolated_pivot_y + .00001);
 	
 			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
 			//ROS_INFO_STREAM("c: " << isolated_lift_delta_y + cur_lift_height);
-			
+		
+			double prior_ang = acos(cmd.x()/arm_length_);
+	
 			//ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
 			
 			if(!check_if_possible(test_pivot_cmd, up_or_down, 1, cur_lift_height))
 			{
+				//double new_ang = acos(test_pivot_cmd.x()/arm_length_) * up_or_down ? 1 : -1;
+
+				//double inv_sign_delta = (prior_ang - new_ang) > 0 ? 1 : ((prior_ang - new_ang) < 0 ? -1 : 0);
+
+				//new_ang += inv_sign_delta * .05;
+			
+				
+	
 				cmd.x(test_pivot_cmd.x());
-				cmd.y(isolated_lift_delta_y + test_pivot_cmd.y());
+				cmd.y(isolated_lift_delta_y + sin(acos(test_pivot_cmd.x() / arm_length_))*arm_length_ + cur_lift_height);
+
+				
+
 				//ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 				return false;				
 			}
 			else
 			{
 				point_type test_lift_cmd(cur_pos.x(), cur_pos.y() + isolated_lift_delta_y);
-				//ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
+				//ROS_INO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
 				if(!check_if_possible(test_lift_cmd, cur_up_or_down, 2))
 				{
 					cmd.y(test_lift_cmd.y() - cur_pos.y() + isolated_pivot_y);
@@ -597,7 +670,8 @@ class arm_limits
 		ros::Publisher arm_marker_pub_;
 
 		std::array<std::vector<linestring_type>, 2> poly_lines_;
-		polygon_type pivot_circle_;
+		polygon_type top_pivot_circle_;
+		polygon_type bottom_pivot_circle_;
 		polygon_type hook_box_;
 		
 		polygon_type intake_up_box_;
@@ -641,13 +715,14 @@ class arm_limits
 					//ROS_INFO_STREAM("current line: " << boost::geometry::wkt(poly_lines[1][i]) << " dist: " << temp_dist <<" down");
 
 				}	
-				if(fabs(min_dist_down - min_dist_up) < .001)
+				if(fabs(min_dist_down - min_dist_up) < .02)
 				{
 					closer_up_or_down = up_or_down;
 
 				}
 				else
 				{
+					//ROS_WARN("HARD CORRECTION");
 					closer_up_or_down = min_dist_up < min_dist_down;
 					up_or_down = closer_up_or_down;
 				}
@@ -665,12 +740,14 @@ class arm_limits
 			else if(check_type == 1)
 			{
 				boost::geometry::strategy::transform::translate_transformer<double, 2, 2> translate(0, lift_height);
-				polygon_type new_pivot_circle;
-				boost::geometry::transform(pivot_circle_, new_pivot_circle, translate);
+				polygon_type top_new_pivot_circle;
+				polygon_type bottom_new_pivot_circle;
+				boost::geometry::transform(top_pivot_circle_, top_new_pivot_circle, translate);
+				boost::geometry::transform(bottom_pivot_circle_, bottom_new_pivot_circle, translate);
 				std::vector<point_type> output_up;
-				boost::geometry::intersection(new_pivot_circle, saved_polygons_[0], output_up);
+				boost::geometry::intersection(top_new_pivot_circle, saved_polygons_[0], output_up);
 				std::vector<point_type> output_down;
-				boost::geometry::intersection(new_pivot_circle, saved_polygons_[1], output_down);
+				boost::geometry::intersection(bottom_new_pivot_circle, saved_polygons_[1], output_down);
 
 				//ROS_INFO_STREAM("circle: " << boost::geometry::wkt(new_pivot_circle));
 				
@@ -849,7 +926,7 @@ class arm_limits
 			
 			quarter_circle_gen(arm_length_, max_extension_, 0, circle_point_count, top_circle_up, false);
 			quarter_circle_gen(arm_length_, max_extension_, 0, /*circle_point_count*/ 100, top_circle_up_top_back, true, true);
-			ROS_WARN("1");
+			//ROS_WARN("1");
 			quarter_circle_gen(arm_length_, safe_to_go_back_y_, 0, /*circle_point_count*/ 100, top_circle_up_bottom_back, false, true);
 			quarter_circle_gen(-arm_length_, max_extension_, 0, circle_point_count, top_circle_down, false);
 			quarter_circle_gen(arm_length_, min_extension_, 0, circle_point_count, bottom_circle_up, true);
@@ -866,7 +943,7 @@ class arm_limits
 			back_line_up.insert(back_line_up.end(), top_circle_up_bottom_back.begin(), top_circle_up_bottom_back.end());
 			back_line_up.push_back(back_line_up[0]);
 
-			ROS_WARN("2");
+			//ROS_WARN("2");
 
 			back_line_down.insert(back_line_down.end(), bottom_circle_down.begin(), bottom_circle_down.end());
 			back_line_down.insert(back_line_down.end(), front_line_down.begin(), front_line_down.end());
@@ -878,7 +955,7 @@ class arm_limits
 			
 			
 
-			ROS_WARN("3");
+			//ROS_WARN("3");
 			std::reverse(back_line_up.begin(), back_line_up.end());	
 			std::reverse(back_line_down.begin(), back_line_down.end());	
 			
@@ -921,39 +998,7 @@ class arm_limits
 				else{ROS_ERROR("Bad Remove Zone, REINSTALL WINDOWS?");}
 				i++;
 			}
-			output.clear();		
-			
-			polygon_edges up_edges;
-			polygon_edges down_edges;
-			for(auto it = boost::begin(boost::geometry::exterior_ring(up_and_down_polygons[0])); it != boost::end(boost::geometry::exterior_ring(up_and_down_polygons[0])); ++it)	
-			{
-				point_type temp_point;
-				temp_point.x(boost::geometry::get<0>(*it));
-				temp_point.y(boost::geometry::get<1>(*it));
-				up_edges.push_back(temp_point);
-			}
-			for(auto it = boost::begin(boost::geometry::exterior_ring(up_and_down_polygons[1])); it != boost::end(boost::geometry::exterior_ring(up_and_down_polygons[1])); ++it)	
-			{
-				point_type temp_point;
-				temp_point.x(boost::geometry::get<0>(*it));
-				temp_point.y(boost::geometry::get<1>(*it));
-				down_edges.push_back(temp_point);
-			}
-			ROS_WARN("5");
-			for(size_t i = 0; i < up_edges.size() - 1; i++)
-			{
-				linestring_type temp_line;
-				temp_line.push_back(up_edges[i]);
-				temp_line.push_back(up_edges[i+1]);
-				poly_lines_[0].push_back(temp_line);
-			} 
-			for(size_t i = 0; i < down_edges.size() - 1; i++)
-			{
-				linestring_type temp_line;
-				temp_line.push_back(down_edges[i]);
-				temp_line.push_back(down_edges[i+1]);
-				poly_lines_[1].push_back(temp_line);
-			} 
+
 	
 			ROS_INFO_STREAM("remove_zone: " << boost::geometry::wkt(remove_zone_down));
 			ROS_INFO_STREAM("poly up: " << boost::geometry::wkt(up_and_down_polygons[0]));

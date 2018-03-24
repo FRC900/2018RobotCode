@@ -1600,7 +1600,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				pt.zeroPos = it->zeroPos;
 				pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
 				safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
-				ROS_INFO_STREAM("id: " << joint_id << " pos: " << pt.position << " i: " << i);
+				//ROS_INFO_STREAM("id: " << joint_id << " pos: " << pt.position << " i: " << i);
 				i++;
 			}
 			//ROS_INFO_STREAM("Post buffer");
