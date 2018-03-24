@@ -25,7 +25,6 @@
   <arg name="name" default="zed_goal" />
 
   <arg name="record" default="False" />  <!-- otherwise does not record unless run by master.sh -->
-  <arg name="down_sample" default="False" />
   <arg name="sub_rate" default="10" />
   <arg name="pub_rate" default="1" />
 
@@ -70,9 +69,7 @@
 	<!-- end stuff added from record_slave -->
 	<!--
   <node name="navx_publisher_node" pkg="navx_publisher" type="navx_publisher_node" respawn="true" /> -->
-  <include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)">
-    <arg name="down_sample" value="$(arg down_sample)" />
-</include>
+  <include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)"/>
 
   <machine name="roboRIO" address="10.9.0.2" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
 
