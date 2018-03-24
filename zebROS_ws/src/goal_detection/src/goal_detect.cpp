@@ -54,6 +54,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	if (down_sample)
 	{
 		pyrDown(*framePtr, frame);
+
 		pyrDown(*depthPtr, depth);
 
 		// And update pointers to use the downsampled

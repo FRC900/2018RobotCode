@@ -25,7 +25,6 @@
   <arg name="name" default="zed_goal" />
 
   <arg name="record" default="False" />  <!-- otherwise does not record unless run by master.sh -->
-  <arg name="down_sample" default="False" />
   <arg name="sub_rate" default="10" />
   <arg name="pub_rate" default="1" />
 
@@ -42,20 +41,20 @@
       <arg name="gain" value="$(arg gain)" />
       <arg name="exposure" value="$(arg exposure)" />
       <arg name="whitebalance" value="$(arg whitebalance)" />
+	  <arg name="publish_tf" value="False" />
     </include>
 </group>
 
 <!--
   <node name="goal_detection_node" pkg="goal_detection" type="goal_detection_node" respawn="true" output="screen">
-  	<param name="down_sample" value="$(arg down_sample)" />
   	<param name="sub_rate" value="$(arg sub_rate)" />
   	<param name="pub_rate" value="$(arg pub_rate)" />
   </node>
 -->
 
-	<!--stuff added from record_slave-->
-
+<!--
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_navx" args="-0.2914015 -0.072263 0.0244348 0 0 0 base_link navx" />
+-->
 
   <!--<include file="$(find controller_node)/launch/fuse_odom.launch"/>-->
 
@@ -70,9 +69,7 @@
 	<!-- end stuff added from record_slave -->
 	<!--
   <node name="navx_publisher_node" pkg="navx_publisher" type="navx_publisher_node" respawn="true" /> -->
-  <include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)">
-    <arg name="down_sample" value="$(arg down_sample)" />
-</include>
+  <include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)"/>
 
   <machine name="roboRIO" address="10.9.0.2" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
 
@@ -82,10 +79,6 @@
   <arg name="hw_or_sim" default="hw" />
 
   <group ns="frcrobot">
-
-<!-- Load hardware interface -->
-   <node machine="roboRIO" name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
-			output="screen" launch-prefix="$(arg launch_prefix)"> </node>
 
   <!-- Load controller settings -->
   <rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
@@ -99,6 +92,10 @@
   <rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
   <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
 
+<!-- Load hardware interface -->
+   <node machine="roboRIO" name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
+			output="screen" launch-prefix="$(arg launch_prefix)"> </node>
+
   <!-- Load controller manager -->
   <node machine="roboRIO" name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
 			output="screen" args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller rumble_controller intake_up_controller shift_controller clamp_controller intake_spring_soft_controller intake_spring_hard_controller end_game_deploy_controller imu_sensor_controller navx_controller compressor_controller robot_code_ready_controller"/>
@@ -110,7 +107,6 @@
 			output="screen" >
 			<remap from="/frcrobot/cmd_vel" to="/frcrobot/swerve_drive_controller/cmd_vel"/> 
 		</node>
-
 		
 		<node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="screen" >
 		</node>
@@ -122,7 +118,6 @@
 		</node>
 		<node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="screen" >
 		</node>
-
 
 		<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="screen" >
 		</node>
