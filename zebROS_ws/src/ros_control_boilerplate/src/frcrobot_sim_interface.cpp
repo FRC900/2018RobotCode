@@ -310,7 +310,7 @@ class TeleopJointsKeyboard
 				default:
                     ROS_WARN("FaileD");
 					std::cout << "CODE: "  << c << std::endl;
-					dirty = false;
+					dirty = true;
 				}
                 
                 if(cmd_last_.buttonAButton && !cmd_.buttonAButton) {
