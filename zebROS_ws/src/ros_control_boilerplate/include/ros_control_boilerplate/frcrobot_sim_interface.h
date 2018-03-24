@@ -40,6 +40,7 @@
 #pragma once
 
 #include <ros_control_boilerplate/frc_robot_interface.h>
+#include <thread>
 
 namespace frcrobot_control
 {
@@ -53,6 +54,7 @@ class FRCRobotSimInterface : public ros_control_boilerplate::FRCRobotInterface
 		 * \param nh - Node handle for topics.
 		 */
 		FRCRobotSimInterface(ros::NodeHandle &nh, urdf::Model *urdf_model = NULL);
+		~FRCRobotSimInterface();
 
 		virtual void init(void) override;
 
@@ -63,7 +65,8 @@ class FRCRobotSimInterface : public ros_control_boilerplate::FRCRobotInterface
 		virtual void write(ros::Duration &elapsed_time) override;
 
 	private:
-
+		void loop_joy(void);
+		std::thread sim_joy_thread_;
 };  // class
 
 }  // namespace
