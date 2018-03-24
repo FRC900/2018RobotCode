@@ -335,24 +335,14 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	/*-------------------------------------X------------------------------------*/
 
-	/*---------w/ Cube Single Press Toggle Mid Scale------*/
+	/*---------w/ Cube Single Press Place Mid Scale------*/
 	if (JoystickState->buttonXPress)
 	{
-		static double clamp_time;
-		static bool clamped;
-		if (localCubeState.hasCubeClamp_ && (!clamped || timeSecs - clamp_time > 10))
+		static bool clamped = true;
+		if (localCubeState.hasCubeClamp_)
 		{
-			currentToggle = "X";
-			if (lastToggle == " ")
-			{
-				setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
-			}
-			if (currentToggle == lastToggle)
-			{
-				unToggle(last_achieved_pos, elevatorPosBefore, achieved_pos, currentToggle);
-			}
-			else
-			{
+		
+			
 				//if(!ac->getState().isDone())
 				ac->cancelAllGoals();
 				//if(!ac_lift->getState().isDone())
@@ -360,20 +350,14 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				//if(!ac_intake->getState().isDone())
 				ac_intake->cancelAllGoals();
 				intakeGoToDefault(intake_up);
-				srvElevator.request.x = mid_scale_config_x;
-				srvElevator.request.y = mid_scale_config_y;
-				srvElevator.request.up_or_down = mid_scale_config_up_or_down;
-				srvElevator.request.override_pos_limits = localDisableArmLimits;
-				achieved_pos = mid_scale;
-				if (ElevatorSrv.call(srvElevator))
-				{
-					ROS_WARN("Toggled to mid level scale height");
-				}
-				else
-				{
-					ROS_ERROR("Failed to toggle to mid level scale height");
-				}
-			}
+				srvClamp.request.data = false;
+				if (!ClampSrv.call(srvClamp))
+					ROS_ERROR("ClampSrv call failed in clamp with cube");
+				ROS_INFO("teleop : Clamp with cube");
+				placed_delay_check = true; //Kick off placing
+				place_start = ros::Time::now().toSec();
+
+
 		}
 		/*------------No Cube Single Press Toggle Clamp------*/
 		else
@@ -431,109 +415,60 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	{
 		//ROS_WARN("start_toggle_on OFF");
 	}
-	if (localCubeState.hasCube_)
+
+	/*Back button press(M1) - outtake for 2 seconds*/
+	if (JoystickState->buttonBackPress == true)
 	{
-		/*----------------Single Press------------------*/
-		/*-If in Exchange - Place and Run Intake Out-*/
+		//TODO make this bring the cube to exchange config etc if not there already. 
 
-		if (JoystickState->buttonAPress == true)
+		//Consider changing this functionallity
+		//if(!ac->getState().isDone())
+		ac->cancelAllGoals();
+		//if(!ac_lift->getState().isDone())
+		ac_lift->cancelAllGoals();
+		//if(!ac_intake->getState().isDone())
+		ac_intake->cancelAllGoals();
+		buttonBackStart = timeSecs;
+		run_out = true;
+		srvIntake.request.power = -1;
+		srvIntake.request.spring_state = 2; //soft_in
+		srvIntake.request.up = false;
+		if (!IntakeSrv.call(srvIntake))
+			ROS_ERROR("IntakeSrv call failed in spit out cube");
+		else
 		{
-			if (localCubeState.hasCubeLow_)
-			{
-				//if(!ac->getState().isDone())
-				ac->cancelAllGoals();
-				//if(!ac_lift->getState().isDone())
-				ac_lift->cancelAllGoals();
-				//if(!ac_intake->getState().isDone())
-				ac_intake->cancelAllGoals();
-
-				ready_to_spin_out_check = true; //Kick off ready to drop
-			}
-			/*-Else - Place and Then Move Arm Back-*/
-			else
-			{
-				//if(!ac->getState().isDone())
-				ac->cancelAllGoals();
-				//if(!ac_lift->getState().isDone())
-				ac_lift->cancelAllGoals();
-				//if(!ac_intake->getState().isDone())
-				ac_intake->cancelAllGoals();
-				intakeGoToDefault(intake_up);
-				srvClamp.request.data = false;
-				if (!ClampSrv.call(srvClamp))
-					ROS_ERROR("ClampSrv call failed in clamp with cube");
-				ROS_INFO("teleop : Clamp with cube");
-				placed_delay_check = true; //Kick off placing
-				place_start = ros::Time::now().toSec();
-			}
+			intake_up = false;
 		}
-		//ALast = 0; //Remove flag
+		start_toggle_on = false;
+		ROS_INFO("teleop : RELEASE THE coob");
 
-		/*Back button press(M1) - Just intake no arm*/
-		if (JoystickState->buttonBackPress == true)
-		{
-			//Consider changing this functionallity
-			//if(!ac->getState().isDone())
-			ac->cancelAllGoals();
-			//if(!ac_lift->getState().isDone())
-			ac_lift->cancelAllGoals();
-			//if(!ac_intake->getState().isDone())
-			ac_intake->cancelAllGoals();
-			buttonBackStart = timeSecs;
-			run_out = true;
-			srvIntake.request.power = -1;
-			srvIntake.request.spring_state = 2; //soft_in
-			srvIntake.request.up = false;
-			if (!IntakeSrv.call(srvIntake))
-				ROS_ERROR("IntakeSrv call failed in spit out cube");
-			else
-			{
-				intake_up = false;
-			}
-			start_toggle_on = false;
-			ROS_INFO("teleop : Intake with cube");
-
-		}
 	}
 	/*------------------No Cube - Single Press Intake-------------------*/
 
-	else if (JoystickState->buttonAPress == true)
+	if (JoystickState->buttonAPress == true && !(localCubeState.hasCubeClamp_ && local_clamped))
 	{
-		if (ros::Time::now().toSec() - A_intake_time  < 15 && !ac->getState().isDone() && A_toggle_on)
-		{
-			//if(!ac->getState().isDone())
-			ac->cancelAllGoals();
-			//if(!ac_lift->getState().isDone())
-			ac_lift->cancelAllGoals();
-			//if(!ac_intake->getState().isDone())
-			ac_intake->cancelAllGoals();
-			A_toggle_on = false;
-			start_toggle_on = false;
-		}
-		else
-		{
-			ROS_WARN("intaking cube");
-			goal.IntakeCube = true;
-			goal.MoveToIntakeConfig = false;
-			goal.x = default_x;
-			goal.y = default_y;
-			goal.up_or_down = default_up_or_down;
-			goal.override_pos_limits = false;
-			goal.dist_tolerance = .5;
-			goal.x_tolerance = .5;
-			goal.y_tolerance = .5;
-			goal.time_out = 15;
 
-			ac->sendGoal(goal);
-			achieved_pos = other;
-			A_intake_time = ros::Time::now().toSec();
-			A_toggle_on = true;
-			start_toggle_on = true;
-			intake_up = false;
-		}
+		//Make more robust????
+		ROS_WARN("intaking cube");
+		goal.IntakeCube = true;
+		goal.MoveToIntakeConfig = false;
+		goal.x = default_x;
+		goal.y = default_y;
+		goal.up_or_down = default_up_or_down;
+		goal.override_pos_limits = false;
+		goal.dist_tolerance = .5;
+		goal.x_tolerance = .5;
+		goal.y_tolerance = .5;
+		goal.time_out = 15;
+
+		ac->sendGoal(goal);
+		achieved_pos = other;
+		A_intake_time = ros::Time::now().toSec();
+		start_toggle_on = true;
+		intake_up = false;
 	}
 
-	/*------------------ Start Button(M1) No Cube - spin out for two seconds --------------*/
+	/*------------------ Start Button(M2) No Cube - intake without clampe --------------*/
 
 	if (JoystickState->buttonStartPress)
 	{
@@ -907,7 +842,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	{
 		if (JoystickState->buttonYPress)
 		{
-			/*--------------------Y Single Press - Low Scale ---------------------*/
+			/*--------------------Y Single Press - High Scale ---------------------*/
 			currentToggle = "Y";
 			if (lastToggle == " ")
 			{
@@ -927,11 +862,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				ac_intake->cancelAllGoals();
 				intakeGoToDefault(intake_up);
 
-				srvElevator.request.x = .1;
-				srvElevator.request.y = climb;
-				srvElevator.request.up_or_down = true;
+				srvElevator.request.x = high_scale_config_x;
+				srvElevator.request.y = high_scale_config_y;
+				srvElevator.request.up_or_down = high_scale_up_or_down;
 				srvElevator.request.override_pos_limits = localDisableArmLimits;
-				achieved_pos = low_scale;
+				achieved_pos = high_scale;
 
 				if (ElevatorSrv.call(srvElevator))
 				{
@@ -947,6 +882,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		if (JoystickState->buttonBPress == true)
 		{
 			currentToggle = "B";
+			
 			if (lastToggle == " ")
 			{
 				setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
@@ -964,20 +900,23 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				//if(!ac_intake->getState().isDone())
 				ac_intake->cancelAllGoals();
 				intakeGoToDefault(intake_up);
-				srvElevator.request.x = high_scale_config_x;
-				srvElevator.request.y = high_scale_config_y;
-				srvElevator.request.up_or_down = high_scale_config_up_or_down;
+				srvElevator.request.x = mid_scale_config_x;
+				srvElevator.request.y = mid_scale_config_y;
+				srvElevator.request.up_or_down = mid_scale_config_up_or_down;
 				srvElevator.request.override_pos_limits = localDisableArmLimits;
-				achieved_pos = high_scale;
+				achieved_pos = mid_scale;
 				if (ElevatorSrv.call(srvElevator))
 				{
-					ROS_WARN("Toggled to high level scale");
+					ROS_WARN("Toggled to mid level scale height");
 				}
 				else
 				{
-					ROS_ERROR("Failed to toggle to high level scale");
+					ROS_ERROR("Failed to toggle to mid level scale height");
 				}
 			}
+
+
+
 
 		}
 	}

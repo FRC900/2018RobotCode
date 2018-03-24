@@ -5,7 +5,10 @@ teleop_params:
     mid_scale_config_x: .36
     mid_scale_config_y: 2.06
     mid_scale_config_up_or_down: true
-    low_scale_config_x: .36
+    
+	#low scale currently not used
+
+	low_scale_config_x: .36
     low_scale_config_y: 1.83
     low_scale_config_up_or_down: true
     switch_config_x: .41586
