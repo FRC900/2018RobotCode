@@ -152,6 +152,7 @@ struct CubeState
 realtime_tools::RealtimeBuffer<CubeState> cubeState;
 
 std::atomic<bool> disableArmLimits;
+std::atomic<bool> clamped_c;
 std::atomic<double> navX_angle;
 std::atomic<double> matchTimeRemaining;
 
@@ -265,6 +266,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	behaviors::IntakeGoal goal_intake;
 	static bool intake_up;
 
+	const bool local_clamped = clamped_c.load(std::memory_order_relaxed);
 	const bool localDisableArmLimits = disableArmLimits.load(std::memory_order_relaxed);
 
 	static pos achieved_pos = other; //Not all neccesarily set after achieving, only if needed
@@ -335,7 +337,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	/*-------------------------------------X------------------------------------*/
 
-	/*---------w/ Cube Single Press Place Mid Scale------*/
+	static bool placed_delay_check = false;
+	static double place_start = 0;
+	/*---------w/ Cube Single Press Place------*/
 	if (JoystickState->buttonXPress)
 	{
 		static bool clamped = true;
@@ -369,7 +373,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				{
 					ROS_WARN("Clamped");
 					clamped = true;
-					clamp_time = timeSecs;
 				}
 				else
 				{
@@ -396,12 +399,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	/*---------------------w/ Cube------------------------------*/
 	static bool ready_to_spin_out_check = false;
-	static double place_start = 0;
+
 	static double ADoubleStart = 0;
 	static double buttonBackStart = 0;
 	//ROS_WARN("buttonBackStart: %f", buttonBackStart);
 	static double buttonStartStart = 0;
-	static bool placed_delay_check = false;
 	static bool manage_intaking;
 	static double ALast = 0;
 	static double A_intake_time = 0;
@@ -864,7 +866,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 				srvElevator.request.x = high_scale_config_x;
 				srvElevator.request.y = high_scale_config_y;
-				srvElevator.request.up_or_down = high_scale_up_or_down;
+				srvElevator.request.up_or_down = high_scale_config_up_or_down;
 				srvElevator.request.override_pos_limits = localDisableArmLimits;
 				achieved_pos = high_scale;
 
@@ -1209,6 +1211,12 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 void cubeCallback(const elevator_controller::CubeState &cube)
 {
 	cubeState.writeFromNonRT(CubeState(cube.has_cube, cube.clamp, cube.intake_low));
+}
+
+
+void clampedCallback(const std_msgs::Float64 &clamp)
+{
+	clamped_c.store(clamp.data <= 0, std::memory_order_relaxed);
 }
 
 void overrideCallback(const std_msgs::Bool &override_lim)

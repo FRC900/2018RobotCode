@@ -6,9 +6,8 @@ teleop_params:
     mid_scale_config_y: 2.06
     mid_scale_config_up_or_down: true
     
-	#low scale currently not used
-
-	low_scale_config_x: .36
+    #low scale currently not used
+    low_scale_config_x: .36
     low_scale_config_y: 1.83
     low_scale_config_up_or_down: true
     switch_config_x: .41586
@@ -55,3 +54,8 @@ teleop_params:
     wait_after_clamp: 1.0
     wait_open_before_drop: 8.0
     delay_after_move_intake: 1.0
+    wait_for_match_data: 2.0
+    num_cmd_vel_modes: 10 #fix
+
+    over_back_x: -0.15
+    over_back_y: 2.4

@@ -239,7 +239,8 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 		//return false;
 	}
 	
-	double cut_off_y_line, cut_off_x_line, safe_to_go_back_y, drop_down_tolerance, drop_down_pos;
+	double cut_off_y_line, cut_off_x_line, safe_to_go_back_y, drop_down_tolerance, drop_down_pos,
+	dist_to_front_cube, dist_to_front_clamp;
 
 	if (!controller_nh.getParam("cut_off_y_line", cut_off_y_line))
 	{
@@ -264,6 +265,16 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	if (!controller_nh.getParam("drop_down_pos", drop_down_pos))
 	{
 		ROS_ERROR_NAMED(name_, "Can not read drop_down_pos");
+		return false;
+	}
+	if (!controller_nh.getParam("dist_to_front_cube", dist_to_front_cube))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read dist_to_front_cube");
+		return false;
+	}
+	if (!controller_nh.getParam("dist_to_front_clamp", dist_to_front_clamp))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read dist_to_front_clamp");
 		return false;
 	}
 	
@@ -383,7 +394,7 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	}
 	boost::geometry::assign_points(intake_in_transition_box, point_vector_intake_in_transition);
 
-	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, remove_zone_poly_up, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos, hook_depth_, hook_min_height_, hook_max_height_, controller_nh, intake_up_box, intake_down_box, intake_in_transition_box);
+	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, remove_zone_poly_up, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos, hook_depth_, hook_min_height_, hook_max_height_, controller_nh, intake_up_box, intake_down_box, intake_in_transition_box, dist_to_front_cube, dist_to_front_clamp);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
 	sub_stop_arm_ = controller_nh.subscribe("stop_arm", 1, &ElevatorController::stopCallback, this);
