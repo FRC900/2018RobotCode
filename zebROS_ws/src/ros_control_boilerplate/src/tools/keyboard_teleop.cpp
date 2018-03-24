@@ -214,6 +214,7 @@ class TeleopJointsKeyboard
 					break;
 
 				default:
+                    ROS_WARN("FaileD");
 					std::cout << "CODE: "  << c << std::endl;
 					dirty = false;
 				}
@@ -222,15 +223,15 @@ class TeleopJointsKeyboard
 				if (dirty)
 				{
 					// Important safety feature
-					if (!has_recieved_joints_)
-					{
-						ROS_ERROR_STREAM_NAMED("joint_teleop", "Unable to send joint commands because robot state is invalid");
-					}
-					else
-					{
+					//if (!has_recieved_joints_)
+					//{
+					//	ROS_ERROR_STREAM_NAMED("joint_teleop", "Unable to send joint commands because robot state is invalid");
+					//}
+					//else
+					//{
 						std::cout << ".";
 						joints_pub_.publish(cmd_);
-					}
+					//}
 				}
 			}
 		}
