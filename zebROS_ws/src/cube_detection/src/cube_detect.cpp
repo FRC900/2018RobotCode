@@ -35,7 +35,7 @@ using namespace sensor_msgs;
 using namespace message_filters;
 
 int hLo = 22;
-int sLo = 50;
+int sLo = 45;
 int vLo = 45;
 int hUp = 47;
 

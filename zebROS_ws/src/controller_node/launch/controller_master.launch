@@ -10,7 +10,6 @@
 	-->
 
   <!-- Code for starting slave code on rio -->
-
   
   <arg name="resolution" default="3" />
   <arg name="frame_rate" default="60" />
@@ -66,9 +65,6 @@
   <!--<remap from="/cmd_vel" to="frcrobot/swerve_drive_controller/cmd_vel"/>
   <include file="$(find controller_node)/launch/move_base.launch"/>-->
 
-	<!-- end stuff added from record_slave -->
-	<!--
-  <node name="navx_publisher_node" pkg="navx_publisher" type="navx_publisher_node" respawn="true" /> -->
   <include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)"/>
 
   <machine name="roboRIO" address="10.9.0.2" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
@@ -80,50 +76,36 @@
 
   <group ns="frcrobot">
 
-  <!-- Load controller settings -->
-  <rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
-  <rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
-  <rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
-  <rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets1.yaml" command="load"/>
-  <rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
-  <rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
-  <rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
-  <rosparam file="$(find teleop_joystick_control)/config/teleopJoystickCommands.yaml" command="load"/>
-  <rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
-  <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
+    <!-- Load controller settings -->
+    <rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
+    <rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
+    <rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
+    <rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets1.yaml" command="load"/>
+    <rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
+    <rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
+    <rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
+    <rosparam file="$(find teleop_joystick_control)/config/teleopJoystickCommands.yaml" command="load"/>
+    <rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
+    <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
 
-<!-- Load hardware interface -->
-   <node machine="roboRIO" name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
-			output="screen" launch-prefix="$(arg launch_prefix)"> </node>
+	<!-- Load hardware interface -->
+	<node machine="roboRIO" name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main" launch-prefix="$(arg launch_prefix)"> </node>
 
-  <!-- Load controller manager -->
-  <node machine="roboRIO" name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller rumble_controller intake_up_controller shift_controller clamp_controller intake_spring_soft_controller intake_spring_hard_controller end_game_deploy_controller imu_sensor_controller navx_controller compressor_controller robot_code_ready_controller"/>
+    <!-- Load controller manager -->
+    <node machine="roboRIO" name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
+	   args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller rumble_controller intake_up_controller shift_controller clamp_controller intake_spring_soft_controller intake_spring_hard_controller end_game_deploy_controller imu_sensor_controller navx_controller compressor_controller robot_code_ready_controller"/>
 
-		<!-- <node machine="roboRIO" name="joystickSubscriber" pkg="teleop_joystick_control" type="joystickSubscriber"
-			output="screen" >
-		</node> -->
-		<node machine="roboRIO" name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands"
-			output="screen" >
-			<remap from="/frcrobot/cmd_vel" to="/frcrobot/swerve_drive_controller/cmd_vel"/> 
-		</node>
-		
-		<node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="screen" >
-		</node>
+    <node machine="roboRIO" name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands" >
+      <remap from="/frcrobot/cmd_vel" to="/frcrobot/swerve_drive_controller/cmd_vel"/>
+    </node>
 
-		<node name="autoInterpreterServerLift" pkg="behaviors" type="autoInterpreterServerLift" output="screen" >
-		</node>
+    <node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" />
+    <node name="autoInterpreterServerLift" pkg="behaviors" type="autoInterpreterServerLift" />
+    <node name="autoInterpreterServerIntake" pkg="behaviors" type="autoInterpreterServerIntake" />
+    <node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" />
+    <node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor"  />
+    <node name="point_gen" pkg="swerve_point_generator" type="point_gen" />
 
-		<node name="autoInterpreterServerIntake" pkg="behaviors" type="autoInterpreterServerIntake" output="screen" >
-		</node>
-		<node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="screen" >
-		</node>
+  </group>
 
-		<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="screen" >
-		</node>
-		<node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="screen" >
-		</node>
-
-	</group>
-    
 </launch>

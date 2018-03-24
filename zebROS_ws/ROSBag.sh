@@ -9,10 +9,22 @@ export ROS_MASTER_URI=http://localhost:11311
 #open roscore session
 roscore&
 
-sleep 5
-#data output
-rqt_plot /frcrobot/$2 /frcrobot/$3 /frcrobot/$4 /frcrobot/$5 /frcrobot/$6 /frcrobot/$7 /frcrobot/$8 /frcrobot/$9 /frcrobot/$10&
+sleep 4
 
+######## data output ########
+#data output if $2 -eq 0
+#if [$2 -eq 0] then
+rqt_plot /frcrobot/$3 /frcrobot/$4 /frcrobot/$5 /frcrobot/$6 /frcrobot/$7 /frcrobot/$8 /frcrobot/$9 /frcrobot/$10&
+	
+#data output if $2 != 0
+#if [$2 -eq 1]
+#for i in {3..10}
+#do
+#rqt_plot /frcrobot/$i
+#done
+#fi
+
+######## rosbag input ########
 #play the rosbag to link topic(s)
 cd
 gnome-terminal -- rosbag play --clock Downloads/$1
