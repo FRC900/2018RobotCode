@@ -12,7 +12,6 @@ std::atomic<bool> exit_auto; // robot is disabled or teleop started during auto_
 
 //std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac;
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
-std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac_intake;
 
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
@@ -838,7 +837,7 @@ int main(int argc, char** argv) {
     mode_list profiled_modes = all_modes.profiled_modes;
     cmd_vel_list cmd_vel_modes = all_modes.cmd_vel_modes;
 
-    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server_robot", true);
+    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
     ROS_WARN("here 567890");
 	ac->waitForServer(); 
 
@@ -872,7 +871,7 @@ int main(int argc, char** argv) {
     //ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    //generateTrajectory(profiled_modes[3][3][2]);
+    generateTrajectory(profiled_modes[3][3][2]);
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
 
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");

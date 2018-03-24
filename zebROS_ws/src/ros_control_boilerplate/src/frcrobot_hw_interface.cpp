@@ -68,7 +68,7 @@
 namespace frcrobot_control
 {
 const int pidIdx = 0; //0 for primary closed-loop, 1 for cascaded closed-loop
-const int timeoutMs = 0; //If nonzero, function will wait for config success and report an error if it times out. If zero, no blocking or checking is performed
+const int timeoutMs = 10; //If nonzero, function will wait for config success and report an error if it times out. If zero, no blocking or checking is performed
 
 FRCRobotHWInterface::FRCRobotHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_model)
 	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model)

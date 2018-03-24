@@ -79,6 +79,10 @@ static double move_out_pos_y;
 static bool move_out_up_or_down;
 static double move_out_down_y;
 
+static bool run_out = false;
+static bool finish_spin_out_check = false;
+static bool ready_to_spin_out_check = false;
+
 enum pos {high_scale, mid_scale, low_scale, switch_c, exchange, intake_ready_to_drop, intake, intake_low, climb_c, default_c, other};
 
 /*
@@ -171,17 +175,27 @@ void intakeGoToDefault(bool &intake_up)
 		intake_up = false;
 	}
 }
-
+static bool placed_delay_check = false;
+void teleop_cancel(void)
+{
+	
+	placed_delay_check = false;
+    run_out = false;
+	finish_spin_out_check = false;
+	ready_to_spin_out_check = false;
+	
+}
 void unToggle(const pos last_achieved_pos, const ElevatorPos &elevatorPosBefore, pos &achieved_pos, std::string &currentToggle)
 {
 	currentToggle = " ";
-	//TOGGLING BACK TO INTAKE/EXCHANGE CONFIG WON'T FULLY WORK
 	elevator_controller::ElevatorControlS srvElevator;
 
 	//if(!ac->getState().isDone())
 	ac->cancelAllGoals();
 	//if(!ac_lift->getState().isDone())
 	ac_lift->cancelAllGoals();
+
+	teleop_cancel();
 
 	srvElevator.request.x = elevatorPosBefore.X_;
 	srvElevator.request.y = elevatorPosBefore.Y_;
@@ -248,7 +262,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     srvIntake.request.just_override_power = false;
 	static ElevatorPos elevatorPosBefore;
 
-	static bool run_out = false;
+
 	const double timeSecs = ros::Time::now().toSec();
 	static double lastTimeSecs = 0;
 
@@ -279,12 +293,15 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	if (JoystickState->directionUpPress && matchTimeRemaining.load(std::memory_order_relaxed) < 60)
 	{
+		teleop_cancel();
 		//if(!ac->getState().isDone())
 		ac->cancelAllGoals();
 		//if(!ac_lift->getState().isDone())
 		ac_lift->cancelAllGoals();
 		//if(!ac_intake->getState().isDone())
 		ac_intake->cancelAllGoals();
+
+		//teleop_cancel();
 
 		static double directionUpLast = 0;
 		if (timeSecs - directionUpLast < 1.0)
@@ -300,6 +317,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*-----------------Down Press Climb to Correct height----------------------*/
 	if (JoystickState->directionDownPress)
 	{
+		teleop_cancel();
 		//if(!ac->getState().isDone())
 			ac->cancelAllGoals();
 		//if(!ac_lift->getState().isDone())
@@ -337,16 +355,18 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	/*-------------------------------------X------------------------------------*/
 
-	static bool placed_delay_check = false;
+
 	static double place_start = 0;
 	/*---------w/ Cube Single Press Place------*/
 	if (JoystickState->buttonXPress)
 	{
 		static bool clamped = true;
-		if (localCubeState.hasCubeClamp_)
+		if (localCubeState.hasCubeClamp_ && local_clamped)
 		{
 		
 			
+				currentToggle = " ";
+				teleop_cancel();
 				//if(!ac->getState().isDone())
 				ac->cancelAllGoals();
 				//if(!ac_lift->getState().isDone())
@@ -398,7 +418,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*------------------------------------A/Back button(M2)------------------------------------*/
 
 	/*---------------------w/ Cube------------------------------*/
-	static bool ready_to_spin_out_check = false;
+
 
 	static double ADoubleStart = 0;
 	static double buttonBackStart = 0;
@@ -425,6 +445,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 		//Consider changing this functionallity
 		//if(!ac->getState().isDone())
+		
+		teleop_cancel();	
+
 		ac->cancelAllGoals();
 		//if(!ac_lift->getState().isDone())
 		ac_lift->cancelAllGoals();
@@ -447,9 +470,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	}
 	/*------------------No Cube - Single Press Intake-------------------*/
 
-	if (JoystickState->buttonAPress == true && !(localCubeState.hasCubeClamp_ && local_clamped))
+	if (JoystickState->buttonAPress == true && !(localCubeState.hasCubeClamp_ && local_clamped) && (timeSecs - place_start) > 1.0  )
 	{
+		teleop_cancel();	
 
+		currentToggle = " ";
 		//Make more robust????
 		ROS_WARN("intaking cube");
 		goal.IntakeCube = true;
@@ -567,9 +592,19 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	if (placed_delay_check && (timeSecs - place_start) > .5)
 	{
 		const ElevatorPos epos_r = *(elevatorPos.readFromRT());
-		srvElevator.request.x = epos_r.X_ + move_out_pos_x;
+		
+		if(epos_r.Y_ < 1.4)
+		{
+			srvElevator.request.x = epos_r.X_;
+			srvElevator.request.up_or_down = epos_r.UpOrDown_;
+		}
+		else
+		{
+			srvElevator.request.x = /*epos_r.X_ + move_out_pos_x*/ 0.20;
+			srvElevator.request.up_or_down = move_out_up_or_down;
+		}
 		srvElevator.request.y = epos_r.Y_ + move_out_pos_y;
-		srvElevator.request.up_or_down = move_out_up_or_down;
+
 		srvElevator.request.override_pos_limits = localDisableArmLimits;
 		if (!ElevatorSrv.call(srvElevator))
 		{
@@ -583,7 +618,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		achieved_pos = other;
 	}
 
-	if (return_to_intake_from_high && timeSecs - return_to_intake_start > 2)
+	if (return_to_intake_from_high && timeSecs - return_to_intake_start > 4)
 	{
 		/*
 		TODO: Long term plan is to have intake return from high and intake return from low go up and then down and then drop after ~2 sec delay
@@ -611,7 +646,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		// TODO : need to call /set goal?
 	}
 
-	if (return_to_intake_from_low && timeSecs - return_to_intake_start > 2)
+	if (return_to_intake_from_low && timeSecs - return_to_intake_start > 4)
 	{
 		/*
 		TODO: Long term plan is to have intake return from high and intake return from low go up and then down and then drop after ~2 sec delay
@@ -683,6 +718,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			}
 			else
 			{
+				teleop_cancel();	
 				//if(!ac->getState().isDone())
 				ac->cancelAllGoals();
 				//if(!ac_lift->getState().isDone())
@@ -967,10 +1003,13 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	leftStickX =  pow(leftStickX, joystick_scale) * max_speed;
 	leftStickY = -pow(leftStickY, joystick_scale) * max_speed;
 
+	
+	
+
 	rightStickX =  pow(rightStickX, joystick_scale);
 	rightStickY = -pow(rightStickY, joystick_scale);
 
-	double rotation = (JoystickState->leftTrigger - JoystickState->rightTrigger) * max_rot;
+	double rotation = (pow(JoystickState->leftTrigger, joystick_scale) - pow(JoystickState->rightTrigger, joystick_scale)) * max_rot;
 
 	if (JoystickState->bumperLeftButton == true)
 	{

@@ -13,7 +13,7 @@ hardware_interface:
        - {name: lift, type: can_talon_srx, can_id: 41}
        - {name: lift_follower1, type: can_talon_srx, can_id: 42}
        - {name: lift_follower2, type: can_talon_srx, can_id: 43}
-       - {name: pivot, type: can_talon_srx, can_id: 51}
+       #- {name: pivot, type: can_talon_srx, can_id: 51}
        - {name: intake1, type: can_talon_srx, can_id: 31}
        - {name: intake2, type: can_talon_srx, can_id: 32}
        - {name: clamp, type: solenoid, pcm: 0, id: 1} #correct

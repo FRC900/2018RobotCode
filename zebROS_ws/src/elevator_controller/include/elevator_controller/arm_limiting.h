@@ -64,6 +64,7 @@ class arm_limits
 			bottom_poly_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("bottom_poly_visualize", 10);
 			arm_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("arm_visualize", 10);
 			arm_true_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("arm_true_visualize", 10);
+			hook_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("hook_visualize", 10);
 			point_type top(-.00001, arm_length_+ 0.00001);
 			point_type bottom(-.00001, -arm_length_ + 0.00001);
 			//the -.01 is for some edge case
@@ -190,19 +191,21 @@ class arm_limits
 			bool orig_up_or_down = cur_up_or_down;
 			
 			
-			geometry_msgs::PolygonStamped top_polygon, bottom_polygon, arm_line, arm_line_true;
+			geometry_msgs::PolygonStamped top_polygon, bottom_polygon, arm_line, arm_line_true, hook_line;
 
 		
 			top_polygon.header.frame_id = "/arm_viz"; 
 		    bottom_polygon.header.frame_id = "/arm_viz"; 
 			arm_line.header.frame_id = "/arm_viz"; 
 			arm_line_true.header.frame_id = "/arm_viz"; 
+			hook_line.header.frame_id = "/arm_viz"; 
 
 
 			top_polygon.header.stamp =  
 		    bottom_polygon.header.stamp =  
 			arm_line.header.stamp =  
-			arm_line_true.header.stamp = ros::Time::now(); 
+			arm_line_true.header.stamp = 
+			hook_line.header.stamp = ros::Time::now(); 
 
 
 			int offset = cube_in_clamp ? 2 : 0;
@@ -437,22 +440,66 @@ class arm_limits
 			*( up_or_down ? 1 : -1) + cur_lift_height;
 
 			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
-			
-			double y_low_hook_corner =  2 * (hook_min_height_) - min_extension_ - sin(acos((hook_depth_ + 0.05)/arm_length_))*arm_length_*(up_or_down ? 1 : -1);
-			double y_high_hook_corner = 2 * (hook_max_height_) - min_extension_ - sin(acos((hook_depth_ + 0.05)/arm_length_))*arm_length_*(up_or_down ? 1 : -1);
+		
+			double static_offset_high;
+			double static_offset_low;
+			if(up_or_down)
+			{
+				if(cube_in_clamp)
+				{
+					static_offset_high = 0;
+					static_offset_low = -dist_to_front_cube_;
+				}
+				else
+				{
+					static_offset_high = 0;
+					static_offset_low = -dist_to_front_clamp_;
+				}
+			}
+			else
+			{
+				if(cube_in_clamp)
+				{
+					static_offset_high = dist_to_front_cube_;
+					static_offset_low = 0;
+	
+				}
+				else
+				{
+					static_offset_high = dist_to_front_clamp_;
+					static_offset_low = 0;
+				}
+			}
+	
+			double y_low_hook_corner =  2 * (hook_min_height_) - min_extension_ - sin(acos((hook_depth_ + 0.05)/arm_length_))*arm_length_*(up_or_down ? 1 : -1)  + static_offset_low;
+			double y_high_hook_corner = 2 * (hook_max_height_) - min_extension_ - sin(acos((hook_depth_ + 0.05)/arm_length_))*arm_length_*(up_or_down ? 1 : -1) + static_offset_high;
 
 			double hook_cmd_height_delta = (isolated_lift_delta_y)/2 + hook_current_height_delta;
+		
+
 			
+			p.x = hook_depth_;
+			p.y = hook_current_height_delta + hook_min_height_ + static_offset_low;
+			p.z = 0;
+			hook_line.polygon.points.push_back(p);
+			
+			p.x = hook_depth_;
+			p.y = hook_current_height_delta + hook_max_height_ + static_offset_high;
+			p.z = 0;
+			hook_line.polygon.points.push_back(p);
+
+	
+			hook_marker_pub_.publish(hook_line);	
 			//hook_heights are for when arm is all the way down
 			if((cmd.x() < hook_depth_ || cur_pos.x() < hook_depth_) && 
-			((cur_pos.y() > hook_current_height_delta + hook_min_height_  
-			&& cmd.y() < hook_max_height_ + hook_cmd_height_delta) || 
-			(cmd.y() > hook_min_height_ + hook_cmd_height_delta 
-			&& cur_pos.y() < hook_current_height_delta +  hook_max_height_)))
+			((cur_pos.y() > hook_current_height_delta + hook_min_height_  + static_offset_low
+			&& cmd.y() < hook_max_height_ + hook_cmd_height_delta+ static_offset_high) || 
+			(cmd.y() > hook_min_height_ + hook_cmd_height_delta + static_offset_low
+			&& cur_pos.y() < hook_current_height_delta +  hook_max_height_+ static_offset_high)))
 			{
 				
 				//ROS_WARN("0");	
-				//ROS_WARN("HOOK LIMITED");
+				ROS_WARN("HOOK LIMITED");
 				//up_or_down = cur_up_or_down;
 				if(cmd.x() < hook_depth_ && !enforced_hook_x_limit)
 				{
@@ -461,7 +508,7 @@ class arm_limits
 					//ROS_WARN("1");	
 					if(recalc_due_to_lim)
 					{					
-						//ROS_WARN("2");	
+						ROS_WARN("2");	
 						//ROS_WARN("here to check");	
 						cmd.y(safe_to_go_back_y_+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
 						isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
@@ -474,7 +521,7 @@ class arm_limits
 					
 						if(cmd.y() < hook_max_height_ + hook_cmd_height_delta)
 						{
-							//ROS_WARN("3");	
+							ROS_WARN("3");	
 							cmd.y(y_high_hook_corner);
 							if(cmd.y() - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_ )
 							{	
@@ -488,20 +535,20 @@ class arm_limits
 					}
 					else
 					{
-						//ROS_WARN("5");	
+						ROS_WARN("5");	
 						//ROS_WARN("here2");	
 						
 						if(cur_pos.y() < hook_min_height_ + hook_cmd_height_delta)
 						{
-							//ROS_WARN("6");	
+							ROS_WARN("6");	
 							//ROS_WARN("here3");	
 							if(cur_pos.x() < hook_depth_)
 							{
-								//ROS_WARN("7");	
+								ROS_WARN("7");	
 								cmd.y(y_low_hook_corner);
 								if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
 								{	
-									//ROS_WARN("8");	
+									ROS_WARN("8");	
 									const double theta_new = asin((hook_min_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
 									up_or_down  = theta_new > 0;
 									cmd.x(cos(theta_new) * arm_length_);
@@ -510,7 +557,7 @@ class arm_limits
 							}
 							else
 							{
-								//ROS_WARN_STREAM("9" << " x_pos " << cur_pos.x() << " x_tar: " << cmd.x());	
+								ROS_WARN_STREAM("9" << " x_pos " << cur_pos.x() << " x_tar: " << cmd.x());	
 								//ROS_WARN("here6");	
 								cmd.y(cur_lift_height + isolated_lift_delta_y 
 								+ sin(acos((hook_depth_+.05)/arm_length_))*arm_length_
@@ -522,7 +569,7 @@ class arm_limits
 							//ROS_WARN("here");
 							if(cur_pos.x() < hook_depth_)
 							{
-								//ROS_WARN("10");	
+								ROS_WARN("10");	
 								cmd.y(y_high_hook_corner);
 								if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
 								{	
@@ -536,7 +583,7 @@ class arm_limits
 							}
 							else
 							{
-								//ROS_WARN("12");	
+								ROS_WARN("12");	
 								cmd.y(cur_lift_height + isolated_lift_delta_y 
 								+ sin(acos((hook_depth_+.05)/arm_length_))*arm_length_
 								*(up_or_down ? 1 : -1));
@@ -661,6 +708,7 @@ class arm_limits
 		ros::Publisher bottom_poly_marker_pub_;
 		ros::Publisher arm_marker_pub_;
 		ros::Publisher arm_true_marker_pub_;
+		ros::Publisher hook_marker_pub_;
 
 		std::array<std::vector<linestring_type>, 2> poly_lines_;
 		polygon_type top_pivot_circle_;
@@ -969,14 +1017,14 @@ class arm_limits
 			
 			//ROS_WARN("3");
 
-			quarter_circle_gen(-arm_length_, 2 * hook_max_height_ - min_extension_, 0, circle_point_count, top_hook_up_circle, true);
-			quarter_circle_gen(-arm_length_  , 2 * hook_min_height_ - min_extension_ - dist_to_front_clamp_, 0, circle_point_count, bottom_hook_up_circle, false);
-			quarter_circle_gen(-arm_length_, 2 * hook_min_height_ - min_extension_ - dist_to_front_cube_ , 0, circle_point_count, bottom_hook_up_circle_cube, false);
+			quarter_circle_gen(arm_length_, 2 * hook_max_height_ - min_extension_    - 2 *sqrt(arm_length_ * arm_length_ - hook_depth_ * hook_depth_), 0, circle_point_count, top_hook_up_circle, true);
+			quarter_circle_gen(-arm_length_  , 2 * hook_min_height_ - min_extension_ - 2*dist_to_front_clamp_, 0, circle_point_count, bottom_hook_up_circle, false);
+			quarter_circle_gen(-arm_length_, 2 * hook_min_height_ - min_extension_ - 2*dist_to_front_cube_ , 0, circle_point_count, bottom_hook_up_circle_cube, false);
 
 			
 			quarter_circle_gen(arm_length_, 2 * hook_min_height_ - min_extension_, 0, circle_point_count, bottom_hook_down_circle, false);
-			quarter_circle_gen(arm_length_  , 2 * hook_max_height_ - min_extension_ + dist_to_front_clamp_, 0, circle_point_count, top_hook_down_circle, true);
-			quarter_circle_gen(arm_length_, 2 * hook_max_height_ - min_extension_ + dist_to_front_cube_ , 0, circle_point_count, top_hook_down_circle_cube, true);
+			quarter_circle_gen(-arm_length_  , 2 * hook_max_height_ - min_extension_ + 2*dist_to_front_clamp_ + 2 *sqrt(arm_length_ * arm_length_ - hook_depth_ * hook_depth_), 0, circle_point_count, top_hook_down_circle, true);
+			quarter_circle_gen(-arm_length_, 2 * hook_max_height_ - min_extension_ + 2* dist_to_front_cube_  + 2 *sqrt(arm_length_ * arm_length_ - hook_depth_ * hook_depth_), 0, circle_point_count, top_hook_down_circle_cube, true);
 
 			
 			polygon_edges top_hook_up_circle_cube = top_hook_up_circle;
