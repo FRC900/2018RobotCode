@@ -39,6 +39,8 @@
 #include <ros_control_boilerplate/generic_hw_control_loop.h>
 #include <ros_control_boilerplate/frcrobot_sim_interface.h>
 
+
+
 int main(int argc, char **argv)
 {
 	ros::init(argc, argv, "frcrobot_hw_interface");
@@ -48,7 +50,6 @@ int main(int argc, char **argv)
 	// as service callbacks to load controllers can block the (main) control loop
 	ros::AsyncSpinner spinner(2);
 	spinner.start();
-
 	// Create the hardware interface specific to your robot
 	boost::shared_ptr<frcrobot_control::FRCRobotSimInterface> frcrobot_sim_interface
 	(new frcrobot_control::FRCRobotSimInterface(nh));

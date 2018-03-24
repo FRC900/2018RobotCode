@@ -13,6 +13,7 @@
 #include "cube_detection/CubeDetection.h"
 
 #include <sstream>
+#include <vector>
 
 #include "track3d.hpp"
 #include "objtype.hpp"
@@ -33,13 +34,13 @@ using namespace std;
 using namespace sensor_msgs;
 using namespace message_filters;
 
-int hLo = 18;
-int sLo = 30;
-int vLo = 180;
+int hLo = 22;
+int sLo = 50;
+int vLo = 45;
 int hUp = 47;
 
 int maxTrans = 15900;
-int minTrans = 2000;
+int minTrans = 1000;
 
 int pixelError = .06;
 
@@ -65,6 +66,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	// the downsampled data, depending on the down_sample flag
 	const Mat *framePtr = &cvFrame->image;
 	const Mat *depthPtr = &cvDepth->image;
+	
 
 	// To hold downsampled images, if necessary
 	Mat frame;
@@ -81,8 +83,8 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 
 		framePtr = &frame;
 		depthPtr = &depth;
+		
 	}
-
 	Mat hsv;
 	Mat threshold;
 	Mat contour;
@@ -132,15 +134,24 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 		vector<float> depth_sample;
 		for(size_t idx = boundRect[i].width/3; idx < (boundRect[i].width/3)*2; idx++){
 			for(size_t idy = boundRect[i].height/3; idy < (boundRect[i].height/3)*2; idy++){
-				depth_sample.push_back(depthPtr->at<float>(boundRect[i].y + idy, boundRect[i].x + idx));			
+				float depthAtPixel = depthPtr->at<float>(boundRect[i].y + idy, boundRect[i].x + idx);
+				depth_sample.push_back(depthAtPixel);			
 			}
 		}
 		float depth_sum;
+		
 		for(size_t id = 0; id < depth_sample.size(); id++){
 			depth_sum = depth_sum + depth_sample[id];
+
 		}
-		contourDepth.push_back(depth_sum/depth_sample.size());
-	}
+		for(size_t ind = 0; ind < depth_sample.size(); ind++){
+			if(isnan(depth_sample[ind]) == 0) {
+				contourDepth.push_back(depth_sum/depth_sample.size());
+				//ROS_INFO_STREAM(depth_sum/depth_sample.size() << endl);
+			}
+		}
+
+	}		
 	
 	
 		cd_msg.header.seq = frameMsg->header.seq;
@@ -163,6 +174,8 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 			continue;
 		} else if (abs((boundRect[i].width/boundRect[i].height)) > 2.5) {
 			continue;
+		} else if (contours_poly[i].size() < 4) {
+			continue;
 		} else {
 			//contoursOfIntrigue.push_back(contours[i]);
 			putText(drawing, to_string(contourDepth[i]), Point(boundRect[i].x, boundRect[i].y 		- 15), FONT_HERSHEY_SIMPLEX, 0.45, (0,0,255), 1);
@@ -178,13 +191,13 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 			world_location_in.z = world_location.z;
 			cd_msg.location.push_back(world_location_in);
 			//objType(obj_type_in);
-
 		}
 	}
 
-	imshow("threshold",threshold); 
+	//imshow("threshold",threshold); 
 	//imshow("hsv",hsv);
 	imshow("drawing",drawing); 
+	imshow("image", *framePtr);
 	//imshow("depth", *depthPtr);
 	pub.publish(cd_msg);
 	waitKey(5);

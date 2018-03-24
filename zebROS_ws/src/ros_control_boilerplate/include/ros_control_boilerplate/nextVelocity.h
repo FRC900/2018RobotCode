@@ -20,7 +20,6 @@ double nextVelocity(double v, double vt, double &a, double am, double jm, double
 	double diffv = vt - v;
 	int signDiffV = sign(diffv);
 	int signA = sign(a);
-	
 	double nV;
 	bool finish;
 	if(pow(a, 2)/jm >= diffv*signA) //Fix tendency to overshoot?

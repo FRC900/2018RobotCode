@@ -5,6 +5,8 @@ teleop_params:
     mid_scale_config_x: .36
     mid_scale_config_y: 2.06
     mid_scale_config_up_or_down: true
+    
+    #low scale currently not used
     low_scale_config_x: .36
     low_scale_config_y: 1.83
     low_scale_config_up_or_down: true
@@ -12,21 +14,21 @@ teleop_params:
     switch_config_y: .93345
     switch_config_up_or_down: true
     #exchange should probably be the same as intake
-    exchange_config_x: .235
+    exchange_config_x: .215
     exchange_config_y: .433 #check this
     exchange_config_up_or_down: false
-    intake_ready_to_drop_x: .235
-    intake_ready_to_drop_y: .8 #1.075 - y pos arm relative
+    intake_ready_to_drop_x: .215
+    intake_ready_to_drop_y: 0.5 #1.075 - y pos arm relative
 
     intake_ready_to_drop_up_or_down: false
-    intake_high_x: .235
+    intake_high_x: .215
     intake_high_y: .433
     
     drop_x_tolerance: .1
 
 
     intake_high_up_or_down: false
-    intake_low_x: .235
+    intake_low_x: .215
     intake_low_y: .376
     
 
@@ -35,8 +37,8 @@ teleop_params:
 
     intake_low_up_or_down: false
     climb: 0.87
-    move_out_pos_x: .1
-    move_out_pos_y: .6
+    move_out_pos_x: -0.35
+    move_out_pos_y: 0.6
     move_out_up_or_down: true
     move_out_down_y: -1.0 
     default_x: .2
@@ -50,5 +52,10 @@ teleop_params:
     intake_power: 1.0
     intake_hold_power: 0.15
     wait_after_clamp: 1.0
-    wait_open_before_drop: 1.0
+    wait_open_before_drop: 8.0
     delay_after_move_intake: 1.0
+    wait_for_match_data: 2.0
+    num_cmd_vel_modes: 10 #fix
+
+    over_back_x: -0.15
+    over_back_y: 2.4

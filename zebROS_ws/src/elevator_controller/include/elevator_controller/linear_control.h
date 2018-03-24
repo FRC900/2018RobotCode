@@ -50,9 +50,13 @@ class ElevatorController
 	private:
 		double after_shift_max_accel_;		
 		double after_shift_max_vel_;		
-		double cut_off_line_;
+		//double cut_off_line_;
 		double before_shift_max_accel_;		
 		double before_shift_max_vel_;		
+
+		
+		bool intake_up_last_;
+		double transition_time_;
 
 		std::string name_;
 		hardware_interface::JointStateHandle line_break_intake_high_;
@@ -61,7 +65,6 @@ class ElevatorController
 		std::atomic<bool> shift_cmd_;
 		bool shifted_;
 		std::atomic<double> clamp_cmd_;
-		std::atomic<bool> enabled_;
 		double climb_height_;
 		std::atomic<bool> end_game_deploy_cmd_;
 		bool end_game_deploy_t1_;
@@ -82,11 +85,8 @@ class ElevatorController
 			int32_t spring_command;
 			double power;
 			double down_time;
-			IntakeCommand() : up_command(-1.0), spring_command(0.0), power(0.0) {}
-
+			IntakeCommand() : up_command(-1.0), spring_command(0.0), power(0.0), down_time(0.0) {}
 		};
-		//ros::Publisher RobotStatePub;
-		//elevator_controller::RobotState RobotStateMsg;
 
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface lift_joint_;
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface pivot_joint_;
@@ -106,7 +106,6 @@ class ElevatorController
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		ros::Subscriber sub_command_;
-		ros::Subscriber sub_enabled_;
 		ros::Subscriber sub_stop_arm_;
 		ros::ServiceServer service_command_;
 		realtime_tools::RealtimeBuffer<IntakeCommand> intake_command_;
@@ -127,6 +126,7 @@ class ElevatorController
 		ros::Publisher IntakeSoftSpring_; 
 
 		ros::Publisher ReturnCmd_; 
+		ros::Publisher ReturnTrueSetpoint_; 
 
 		ros::Publisher Odom_; 
 

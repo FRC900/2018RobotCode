@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>visualize_profile</name>
+  <name>rosbag_scripts</name>
   <version>0.0.0</version>
-  <description>The visualize_profile package</description>
+  <description>The rosbag_scripts package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
-  <maintainer email="ryan@todo.todo">ryan</maintainer>
+  <maintainer email="ofugikawa@todo.todo">ofugikawa</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/visualize_profile</url> -->
+  <!-- <url type="website">http://wiki.ros.org/rosbag_scripts</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -49,23 +49,17 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>matplotlib</build_depend>
-  <build_depend>rospy</build_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>trajectory_msgs</build_depend>
-  <build_export_depend>matplotlib</build_export_depend>
-  <build_export_depend>rospy</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
-  <build_export_depend>trajectory_msgs</build_export_depend>
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
-  <exec_depend>matplotlib</exec_depend>
-  <exec_depend>rospy</exec_depend>
   <exec_depend>roscpp</exec_depend>
+  <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>trajectory_msgs</exec_depend>
+  <depend>ros_control_boilerplate</depend>
+  <depend>rosbag</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

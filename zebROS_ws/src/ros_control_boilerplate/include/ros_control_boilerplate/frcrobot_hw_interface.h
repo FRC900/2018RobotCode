@@ -74,6 +74,13 @@ class ROSIterativeRobot : public frc::IterativeRobotBase
 		ROSIterativeRobot(void)
 		{
 			HAL_Report(HALUsageReporting::kResourceType_Framework, 900, 0, "https://www.ros.org");
+			HAL_Report(HALUsageReporting::kResourceType_RobotDrive, 900, 0, "field centric swerve");
+#if 0
+			for (int i = 0; i < 900; i++)
+				HAL_Report(HALUsageReporting::kResourceType_NidecBrushless, 900);
+#endif
+			HAL_Report(HALUsageReporting::kResourceType_NidecBrushless, 900);
+			// HAL_Report(HALUsageReporting::kResourceType_Language, 900, 0, "C++/Python/CMake/PERL/JavaScript");
 		}
 
 		void StartCompetition(void) override
@@ -173,7 +180,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 	private:
 		void hal_keepalive_thread(void);
 		void process_motion_profile_buffer_thread(double hz);
-		/** Get conversion factor for position, velocity, and closed-loop stuff */
+		/* Get conversion factor for position, velocity, and closed-loop stuff */
 
 		double getConversionFactor(int encoder_cycle_per_revolution, hardware_interface::FeedbackDevice encoder_feedback, hardware_interface::TalonMode talon_mode, int joint_id);
 
@@ -216,6 +223,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<AHRS>> navXs_;
 		std::atomic<double> navX_angle_;
 		std::atomic<double> pressure_;
+		std::atomic<bool> match_data_enabled_;
 		std::vector<std::shared_ptr<frc::AnalogInput>> analog_inputs_;
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;

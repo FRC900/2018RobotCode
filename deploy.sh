@@ -76,17 +76,36 @@ update_links() {
     echo "Symlinks updated."
 }
 
+check_clockdiff() {
+    #read -r -a TIMEDIFF <<< `clockdiff $1`
+    #if [[ ${#TIMEDIFF[@]} -ge 3 ]]; then
+    #    echo "${TIMEDIFF[1]} msec diff"
+    #else
+    #    echo "Could not parse clockdiff output!"
+    #    exit 1
+    #fi
+    LOCALDATE=`date +%s`
+    REMOTEDATE=`ssh $1 date +%s`
+    let TIMEDIFF=$LOCALDATE-$REMOTEDATE
+    TIMEDIFF=${TIMEDIFF#-}
+    if [[ $TIMEDIFF -ge 600 ]]; then
+        REMOTE_TIME=`ssh $1 date`
+        echo "Clock difference greater than 10 minutes."
+        echo "    Local time: `date`"
+        echo "    Time on $2: $REMOTE_TIME"
+        exit 1
+    fi
+}
+
 update_links
 if [ $UPDATE_LINKS_ONLY -ne 0 ]; then
     exit 0
 fi
 
-echo "Checking NTP synchronization."
-ntp-wait -n 60 -s 1 -v
-if [ $? -ne 0 ]; then
-    echo "NTP not synchronized. Check NTP configuration and try again."
-    exit 1
-fi
+echo "Checking time synchronization..."
+check_clockdiff "$ROBORIO_ADDR" "roboRIO"
+check_clockdiff "$JETSON_ADDR" "Jetson"
+echo "Time synchronized."
 
 # Bidirectional synchronization of the selected environment.
 echo "Synchronizing local changes TO $INSTALL_ENV environment."
@@ -94,6 +113,7 @@ scp $ROS_CODE_LOCATION/ROSJetsonMaster.sh $JETSON_ADDR:$JETSON_ROS_CODE_LOCATION
 scp $ROS_CODE_LOCATION/ROSJetsonMaster.sh $ROBORIO_ADDR:$RIO_ROS_CODE_LOCATION
 rsync -avzru $RSYNC_OPTIONS --exclude '.git' --exclude 'zebROS_ws/build*' \
     --exclude 'zebROS_ws/devel*' --exclude 'zebROS_ws/install*' \
+    --exclude '*~' --exclude '*.sw[op]' \
     $LOCAL_CLONE_LOCATION/ $JETSON_ADDR:$JETSON_ENV_LOCATION/
 if [ $? -ne 0 ]; then
     echo "Failed to synchronize source code TO $INSTALL_ENV on Jetson!"
@@ -104,6 +124,7 @@ if [ ${#RSYNC_OPTIONS} -eq 0 ] ; then
     echo "Synchronizing remote changes FROM $INSTALL_ENV environment."
     rsync -avzru --exclude '.git' --exclude 'zebROS_ws/build*' \
         --exclude 'zebROS_ws/devel*' --exclude 'zebROS_ws/install*' \
+        --exclude '*~' --exclude '*.sw[op]' \
         $JETSON_ADDR:$JETSON_ENV_LOCATION/ $LOCAL_CLONE_LOCATION/
     if [ $? -ne 0 ]; then
         echo "Failed to synchronize source code FROM $INSTALL_ENV on Jetson!"

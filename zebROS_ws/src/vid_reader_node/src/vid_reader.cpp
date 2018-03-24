@@ -24,6 +24,8 @@ using namespace sensor_msgs;
 
 int main(int argc, char **argv)
 {
+
+
 	ros::init(argc, argv, "vid_reader");
 	ros::NodeHandle nh("~");
 	int sub_rate = 5;
@@ -57,25 +59,15 @@ int main(int argc, char **argv)
 	FrameTicker frameTicker;
 	while (cap->getFrame(image, depth))
 	{
-
-
 		frameTicker.mark();
 
 		vid_reader_node::VidReader vid_reader_msg;
-
-		sensor_msgs::Image depth_in;
-		sensor_msgs::Image rgb_in;
 		
-		//ROS_INFO_STREAM("Depth: " << 
+		//ROS_INFO_STREAM("Depth: " << depth << endl);
 
 		vid_reader_msg.header.seq = 1;
 		vid_reader_msg.header.stamp = ros::Time::now();
 		vid_reader_msg.header.frame_id;
-
-		rgb_in.height = image.rows;
-		rgb_in.width = image.cols;
-		depth_in.height = depth.rows;
-		depth_in.width = depth.cols;
 
 		cv_bridge::CvImage rgb_out;
 
@@ -88,9 +80,18 @@ int main(int argc, char **argv)
 
 		cv_bridge::CvImage depth_out;
 
+
 		try {
 			depth_out.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
 			depth_out.image = depth;
+			for(size_t idx = 0; idx < depth.cols; idx++){
+				for(size_t idy = 0; idy < depth.rows; idy++){
+					float depthAtPixel = depth.at<float>(idy,idx);
+					//ROS_INFO_STREAM(depthAtPixel << endl);
+					//ROS_INFO_STREAM(depth_out << endl);
+			}
+		}
+			
 		} catch (cv_bridge::Exception& e) {
 			ROS_ERROR("cv_bridge exception: %s", e.what());
 		}
@@ -106,8 +107,8 @@ int main(int argc, char **argv)
 		zms_pub.publish(rgb_out.toImageMsg());
 		zms_pub1.publish(depth_out.toImageMsg());
 
-		imshow ("Image", image);
-		imshow ("Depth", depth);
+		//imshow ("Image", image);
+		//imshow ("Depth", depth);
 
 		if ((uchar)waitKey(5) == 27)
 			break;
