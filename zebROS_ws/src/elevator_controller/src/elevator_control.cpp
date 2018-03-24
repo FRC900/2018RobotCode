@@ -8,6 +8,8 @@ ElevatorController::ElevatorController():
 	after_shift_max_vel_(0),
 	before_shift_max_accel_(0),
 	before_shift_max_vel_(0),
+	intake_up_last_(true),
+	transition_time_(0.0),
 	shift_cmd_(false),
 	shifted_(false),
 	clamp_cmd_(0.0),
@@ -27,7 +29,6 @@ ElevatorController::ElevatorController():
 	lift_offset_(0.0),
 	intake_power_diff_multiplier_(1.0),
 	f_arm_fric_(0.0)
-
 {
 }
 
@@ -332,9 +333,6 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 		ROS_INFO_STREAM("point from remove zone up: " << boost::geometry::wkt(point_vector_up[i]));
 	}
 	boost::geometry::assign_points(remove_zone_poly_up, point_vector_up);
-
-	
-
 	
 	arm_limiting::polygon_type intake_up_box;
 	std::vector<arm_limiting::point_type> point_vector_intake_up;
@@ -413,7 +411,6 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	IntakeHardSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_hard_controller/command", 1);
 	ReturnCmd_        = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);
 	ReturnTrueSetpoint_ = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_true_setpoint", 1);
-
 
 	Odom_             = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("odom", 1);
 

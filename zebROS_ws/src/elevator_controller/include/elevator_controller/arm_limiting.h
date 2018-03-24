@@ -1050,10 +1050,6 @@ class arm_limits
 				i++;
 			}
 
-
-
-			i = 0;	
-			
 			output.clear();			
 			
 			//ROS_WARN("10.1");
@@ -1072,15 +1068,11 @@ class arm_limits
 			}
 
 
-			i = 0;	
-			
 			output.clear();			
-			
 
 			//ROS_WARN("10.2");
 
 			boost::geometry::difference(down_hook_cube, cut_hook_poly, output);
-
 
 			i = 0;
 			BOOST_FOREACH(polygon_type const& p, output)
@@ -1092,14 +1084,10 @@ class arm_limits
 				i++;
 			}
 
-			i = 0;	
-			
 			output.clear();			
-			
 
 			//ROS_WARN("10.3");
 			boost::geometry::difference(up_hook_cube, cut_hook_poly, output);
-
 
 			i = 0;
 			BOOST_FOREACH(polygon_type const& p, output)
