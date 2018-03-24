@@ -32,6 +32,7 @@ add_message_files (
 generate_messages(
   DEPENDENCIES
   std_msgs
+  ros_control_boilerplate
 )
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
@@ -87,6 +88,21 @@ add_executable(frcrobot_sim_main
 
 target_link_libraries(frcrobot_sim_main
 	${catkin_LIBRARIES}
+)
+
+# Forces messages to be generated before
+# the target which uses them
+add_dependencies(frcrobot_sim_main
+	${${PROJECT_NAME}_EXPORTED_TARGETS}
+	${catkin_EXPORTED_TARGETS}
+)
+
+# Install executable on the off chance you'd ever
+# want to run sim on the RoboRIO
+install(TARGETS
+  frcrobot_sim_main
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 if (DEFINED CMAKE_TOOLCHAIN_FILE)
