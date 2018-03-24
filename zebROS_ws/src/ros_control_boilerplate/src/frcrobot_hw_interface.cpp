@@ -1358,6 +1358,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		{
 			//ROS_WARN("iaccum");
 			safeTalonCall(talon->SetIntegralAccumulator(iaccum / closed_loop_scale, pidIdx, timeoutMs), "SetIntegralAccumulator");
+			//The units on this aren't really right
+
 			// Do not set talon state - this changes
 			// dynamically so read it in read() above instead
 			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" integral accumulator");
