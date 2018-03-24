@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 			temp_file << static_cast<int>(s->allianceColor) << std::endl;
 			temp_file << static_cast<int>(s->matchType) << std::endl;
 			temp_file << static_cast<int>(s->driverStationLocation) << std::endl;
-			temp_file << static_cast<bool>(s->matchNumber) << std::endl;
+			temp_file << static_cast<int>(s->matchNumber) << std::endl;
 			temp_file << static_cast<bool>(s->isEnabled) << std::endl;
 			temp_file << static_cast<bool>(s->isDisabled) << std::endl;
 			temp_file << static_cast<bool>(s->isAutonomous) << std::endl;
