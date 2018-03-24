@@ -412,12 +412,9 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	IntakeSoftSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_soft_controller/command", 1);
 	IntakeHardSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_hard_controller/command", 1);
 	ReturnCmd_        = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);
-<<<<<<< HEAD
-=======
 	ReturnTrueSetpoint_ = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_true_setpoint", 1);
 
 
->>>>>>> master
 	Odom_             = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("odom", 1);
 
 	before_shift_max_vel_ = lift_joint_.getMotionCruiseVelocity();
@@ -449,11 +446,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		
 		intake_command_.writeFromNonRT(climb_intake_cmd); //Not really sure how bad this is
 
-<<<<<<< HEAD
-=======
-		
-
->>>>>>> master
 		command_struct_.lin[0] = .1;
                 command_struct_.lin[1] = min_extension_ + cos(asin(.1 / arm_length_))*arm_length_;
                 command_struct_.up_or_down = true;
@@ -583,14 +575,9 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 	std_msgs::Float64 clamp_msg;
 	clamp_msg.data = clamp_cmd_.load(std::memory_order_relaxed);
-<<<<<<< HEAD
-	Clamp_.publish(std_msgs::Float64(clamp_msg));
-	
-=======
 
 	bool cube_in_clamp;	
 
->>>>>>> master
 	elevator_controller::CubeState cube_msg;
 	cube_msg.intake_high = line_break_intake_high_.getPosition() != 0;
 	cube_msg.intake_low = line_break_intake_low_.getPosition() != 0;
@@ -607,23 +594,11 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	elevator_controller::ReturnElevatorCmd odom_holder;
 
 	const double lift_position =  /*last_tar_l - lift_offset_*/lift_joint_.getPosition()  - lift_offset_;
-<<<<<<< HEAD
-	const double pivot_angle   =  /*last_tar_p - pivot_offset_; */pivot_joint_.getPosition() - pivot_offset_;
-
-	//BELOW IS TOTAL HACK
-	//if(fabs(pivot_angle) < .0025)
-	//{
-	//	pivot_angle +=.005;
-	//
-	//}
-	//ROS_INFO_STREAM("lift_pos: " << lift_position);
-=======
 	double raw_pivot_angle   =  pivot_joint_.getPosition();
 	
 	double offset_last = pivot_offset_;
 
 	pivot_offset_ = raw_pivot_angle + M_PI - fmod(raw_pivot_angle - pivot_offset_ + M_PI, 2*M_PI);
->>>>>>> master
 
 	double pivot_angle   =  pivot_joint_.getPosition() - pivot_offset_;
 	if(fabs(offset_last - pivot_offset_) > .1) //Offset will jump by intervals of 2 * pi, 
@@ -749,16 +724,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//ROS_INFO_STREAM("up_or_down: " << curr_cmd.up_or_down << "lin pos target" << curr_cmd.lin << " lift pos tar: " << curr_cmd.lin[1] - arm_length_ * sin(pivot_target));	
 	double pivot_custom_f = cos(pivot_angle) * f_arm_mass_ +f_arm_fric_;
 
-<<<<<<< HEAD
-	
-	if(!enabled_.load(std::memory_order_relaxed))
-	{
-
-		pivot_joint_.setIntegralAccumulator(0);
-		lift_joint_.setIntegralAccumulator(0);
-	}
-=======
->>>>>>> master
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
 	
@@ -798,22 +763,6 @@ void ElevatorController::stopCallback(const std_msgs::Bool &command)
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
 	}
 }
-<<<<<<< HEAD
-#if 0
-void ElevatorController::enabledCallback(const ros_control_boilerplate::MatchSpecificData &data)
-{
-	if(isRunning())
-	{
-		enabled_.store(data.isEnabled, std::memory_order_relaxed);
-	}
-	else
-	{
-		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
-	}
-}
-#endif
-=======
->>>>>>> master
 
 bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &/*res*/)
 {
