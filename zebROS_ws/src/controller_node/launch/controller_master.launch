@@ -10,7 +10,6 @@
 	-->
 
   <!-- Code for starting slave code on rio -->
-
   
   <arg name="resolution" default="3" />
   <arg name="frame_rate" default="60" />
