@@ -34,13 +34,13 @@ using namespace std;
 using namespace sensor_msgs;
 using namespace message_filters;
 
-int hLo = 18;
-int sLo = 30;
-int vLo = 180;
+int hLo = 22;
+int sLo = 50;
+int vLo = 45;
 int hUp = 47;
 
 int maxTrans = 15900;
-int minTrans = 500;
+int minTrans = 1000;
 
 int pixelError = .06;
 
@@ -139,16 +139,18 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 			}
 		}
 		float depth_sum;
-		for(size_t ind = 0; ind < depth_sample.size(); ind++){
-			if(isnan(depth_sample[ind]) == true) {
-				depth_sample.erase(depth_sample.begin() + (ind - 1));
-			}
-		}
 		
 		for(size_t id = 0; id < depth_sample.size(); id++){
 			depth_sum = depth_sum + depth_sample[id];
+
 		}
-		contourDepth.push_back(depth_sum/depth_sample.size());
+		for(size_t ind = 0; ind < depth_sample.size(); ind++){
+			if(isnan(depth_sample[ind]) == 0) {
+				contourDepth.push_back(depth_sum/depth_sample.size());
+				//ROS_INFO_STREAM(depth_sum/depth_sample.size() << endl);
+			}
+		}
+
 	}		
 	
 	
@@ -171,6 +173,8 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 		} else if (abs((boundRect[i].height/boundRect[i].width)) > 2.5) {
 			continue;
 		} else if (abs((boundRect[i].width/boundRect[i].height)) > 2.5) {
+			continue;
+		} else if (contours_poly[i].size() < 4) {
 			continue;
 		} else {
 			//contoursOfIntrigue.push_back(contours[i]);
