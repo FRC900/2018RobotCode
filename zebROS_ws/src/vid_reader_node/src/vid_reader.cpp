@@ -24,6 +24,8 @@ using namespace sensor_msgs;
 
 int main(int argc, char **argv)
 {
+
+
 	ros::init(argc, argv, "vid_reader");
 	ros::NodeHandle nh("~");
 	int sub_rate = 5;
@@ -78,9 +80,18 @@ int main(int argc, char **argv)
 
 		cv_bridge::CvImage depth_out;
 
+
 		try {
 			depth_out.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
 			depth_out.image = depth;
+			for(size_t idx = 0; idx < depth.cols; idx++){
+				for(size_t idy = 0; idy < depth.rows; idy++){
+					float depthAtPixel = depth.at<float>(idy,idx);
+					//ROS_INFO_STREAM(depthAtPixel << endl);
+					//ROS_INFO_STREAM(depth_out << endl);
+			}
+		}
+			
 		} catch (cv_bridge::Exception& e) {
 			ROS_ERROR("cv_bridge exception: %s", e.what());
 		}
