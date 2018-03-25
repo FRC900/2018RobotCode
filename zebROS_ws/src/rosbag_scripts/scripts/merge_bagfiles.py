@@ -34,8 +34,8 @@ def main():
     start_times = []
     for ifile in args.inputbag:
         info_dict = yaml.load(Bag(ifile, 'r')._get_yaml_info())
-        start_times.append((ifile,info_dict["start"]))
-    #reorganize based on info
+        start_times.append((info_dict["start"], ifile))
+        start_times.sort()
     print(start_times)
      
     total_included_count = 0
@@ -46,7 +46,7 @@ def main():
         print("Matching topics against patters: '%s'" % ' '.join(topics))
 
     with Bag(args.outputbag, 'w') as o: 
-        for ifile in args.inputbag:
+        for start, ifile in start_times:
             matchedtopics = []
             included_count = 0
             skipped_count = 0

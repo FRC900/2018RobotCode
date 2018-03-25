@@ -1,5 +1,9 @@
 source /opt/ros/kinetic/setup.bash
 
+if [ $# -eq 0 ]
+then
+	echo Input a bag file
+fi
 
 for var in "$@"
 do
@@ -26,7 +30,7 @@ do
 		if [[ -e $bag_name ]]
 		then 
 			echo This match already has a bag file... merging
-			#cat $var >> $bag_name 
+			~/2018RobotCode/zebROS_ws/src/rosbag_scripts/scripts/merge_bagfiles.py $bagname $var $bag_name -v 
 		else 
 			echo Renaming bag file
 			cp $var $bag_name
