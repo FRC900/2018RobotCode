@@ -544,7 +544,6 @@ void FRCRobotHWInterface::custom_profile_set_talon(bool posMode, double setpoint
 }
 void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 {
-	//TODO: Unit conversion and reset stuff if the selected slot flips, but run is left on
 
 	//I wonder how inefficient it is to have all of these threads 
 	//running at the specified hz just copying to the status
@@ -1426,7 +1425,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		auto &ts = talon_state_[joint_id];
 		auto &tc = talon_command_[joint_id];
 		
-		if(talon_command_[joint_id].getCustomProfileRun())
+		if(tc.getCustomProfileRun())
 			continue; //Don't mess with talons running in custom profile mode
 
 		hardware_interface::FeedbackDevice internal_feedback_device;

@@ -67,6 +67,10 @@ class FRCRobotSimInterface : public ros_control_boilerplate::FRCRobotInterface
 	private:
 		void loop_joy(void);
 		std::thread sim_joy_thread_;
+		void custom_profile_set_talon(bool posMode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double &pos_offset);
+		void custom_profile_thread(int joint_id);
+		std::vector<std::thread> custom_profile_threads_;
+
 };  // class
 
 }  // namespace
