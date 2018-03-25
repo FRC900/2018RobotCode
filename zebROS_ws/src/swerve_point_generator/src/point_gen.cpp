@@ -28,6 +28,7 @@ double f_s_s;
 double f_s_v;
 
 
+swerveVar::driveModel model;
 
 bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_generator::FullGenCoefs::Response &res)
 {
@@ -225,7 +226,7 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 				else
 				{
 					int sign_v = angles_velocities[k][0] < 0 ? -1 : angles_velocities[k][0] > 0 ? 1 : 0; 
-					res.points[i + n + prev_point_count].drive_f.push_back(angles_velocities[k][0] * f_v + sign_v * f_s + f_a * (angles_velocities[k][0] - prev_vels[k]) / defined_dt);
+					res.points[i + n + prev_point_count].drive_f.push_back(angles_velocities[k][0] * f_v + sign_v * f_s + f_a /* / ( -fabs(angles_velocities[k][0]) / (model.maxSpeed * 1.2) + 1.05 ) */ * (angles_velocities[k][0] - prev_vels[k]) / defined_dt);
 					prev_vels[k] = angles_velocities[k][0];
 				
 									
@@ -265,7 +266,6 @@ int main(int argc, char **argv)
 	ROS_ERROR("AFTER advertiseService");
 
 	//double wheel_radius;
-	swerveVar::driveModel model;
 	bool invert_wheel_angle;
 	swerveVar::ratios drive_ratios;
 	swerveVar::encoderUnits units;

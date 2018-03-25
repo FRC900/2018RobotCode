@@ -15,12 +15,12 @@ swerve_drive_controller:
     ang_accel_conv: 0.741176471
     
     f_s: .12
-    f_a: .03 #use torque curve instead? TODO: FIX
-    f_v: .25
+    f_a: 0.005 #0.005 #use torque curve instead? TODO: FIX
+    f_v: 0.00315528
 
     #TODO: FIX BELOW!!!!	
     f_s_s: .05
-    f_s_v: .1
+    f_s_v: .03
    
     #consider adding stuff for the steering wheels too 
     mass: 70
