@@ -5,6 +5,9 @@ source ~/2018RobotCode/zebROS_ws/devel/setup.bash
 
 export ROS_MASTER_URI=http://localhost:11311
 
+#sim time (x-axis problem fix)
+rosparam set use_sim_time true
+
 #open roscore session
 roscore&
 sleep 4
