@@ -1421,8 +1421,13 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		if (!talon) // skip unintialized Talons
 			continue;
 
+
+
 		auto &ts = talon_state_[joint_id];
 		auto &tc = talon_command_[joint_id];
+		
+		if(talon_command_[joint_id].getCustomProfileRun())
+			continue; //Don't mess with talons running in custom profile mode
 
 		hardware_interface::FeedbackDevice internal_feedback_device;
 		double feedback_coefficient;

@@ -607,9 +607,8 @@ bool bufferTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj
     swerve_control_srv.request.points = traj.points;
     swerve_control_srv.request.dt = traj.dt;
     swerve_control_srv.request.buffer = true;
-    swerve_control_srv.request.clear  = true;
     swerve_control_srv.request.run    = false;
-    swerve_control_srv.request.mode   = true;
+    swerve_control_srv.request.slot   = 0; //TODO fix
     
     if (!swerve_control.call(swerve_control_srv))
 	{
@@ -623,9 +622,8 @@ bool runTrajectory(void) {
     //ROS_WARN("Run trajectory");
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.buffer = false;
-    swerve_control_srv.request.clear  = false;
     swerve_control_srv.request.run    = true;
-    swerve_control_srv.request.mode   = true;
+    swerve_control_srv.request.slot   = 0; //TODO fix
     
     if (!swerve_control.call(swerve_control_srv))
 	{

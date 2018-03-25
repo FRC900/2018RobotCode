@@ -21,6 +21,14 @@ ros::ServiceClient get_pos;
 ros::ServiceClient graph_swerve_prof;
 double defined_dt;
 
+double f_v;
+double f_s;
+double f_a;
+double f_s_s;
+double f_s_v;
+
+
+
 bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_generator::FullGenCoefs::Response &res)
 {
 	ROS_WARN("running");
@@ -172,14 +180,21 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 				}
 				//ROS_WARN("re");
 
-				res.points[i].drive_vel.push_back(0);
+				res.points[i].drive_f.push_back(0);
 				vel_sum[k] = 0;
 
 				res.points[i].steer_pos.push_back(angles_positions[k][1]);
+				res.points[i].steer_f.push_back(0); 
 				//ROS_INFO_STREAM(" hhhh" << "drive_pos: " << res.points[i+1].drive_pos[k] << "drive_vel: " << res.points[i+1].drive_vel[k] << "steer_pos: " << res.points[i+1].steer_pos[i]);
 			}
 		}
-
+		std::array<double, WHEELCOUNT> prev_vels;
+		std::array<double, WHEELCOUNT> prev_steer_pos;
+		for (size_t k = 0; k < WHEELCOUNT; k++)
+		{
+			prev_vels[k] = 0;
+			prev_steer_pos[k] = angles_positions[k][1]; 
+		}		
 		for (int i = 0; i < point_count - k_p; i++)
 		{
 			std::array<Eigen::Vector2d, WHEELCOUNT> angles_positions  = swerve_math->motorOutputs({srv_msg.points[i + 1].positions[0] - srv_msg.points[i].positions[0], srv_msg.points[i + 1].positions[1] - srv_msg.points[i].positions[1]}, srv_msg.points[i + 1].positions[2] - srv_msg.points[i].positions[2], srv_msg.points[i + 1].positions[2], false, holder, false, curPos, false);
@@ -205,15 +220,25 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 				{
 					ROS_INFO_STREAM("final pos" << angles_positions[k][0] + res.points[i + n - 1 + prev_point_count].drive_pos[k]);
 					ROS_INFO_STREAM("vel sum" << vel_sum[k]);
-					res.points[i + n + prev_point_count].drive_vel.push_back(0);
+					res.points[i + n + prev_point_count].drive_f.push_back(0);
 				}
 				else
 				{
-					res.points[i + n + prev_point_count].drive_vel.push_back(angles_velocities[k][0]);
+					int sign_v = angles_velocities[k][0] < 0 ? -1 : angles_velocities[k][0] > 0 ? 1 : 0; 
+					res.points[i + n + prev_point_count].drive_f.push_back(angles_velocities[k][0] * f_v + sign_v * f_s + f_a * (angles_velocities[k][0] - prev_vels[k]) / defined_dt);
+					prev_vels[k] = angles_velocities[k][0];
+				
+									
+
 					vel_sum[k] += angles_velocities[k][0];
 				}
-
+				double steer_v = (angles_positions[k][1] - prev_steer_pos[k]) / defined_dt;
+				int sign_steer_v = steer_v < 0 ? -1 : steer_v > 0 ? 1 : 0; 
 				res.points[i + n + prev_point_count].steer_pos.push_back(angles_positions[k][1]);
+				res.points[i + n + prev_point_count].steer_f.push_back(steer_v * f_s_v + sign_steer_v * f_s_s);
+				
+				prev_steer_pos[k] = angles_positions[k][1]; 
+				
 				//ROS_INFO_STREAM(" hhhh" << "drive_pos: " << res.points[i+1].drive_pos[k] << "drive_vel: " << res.points[i+1].drive_vel[k] << "steer_pos: " << res.points[i+1].steer_pos[i]);
 			}
 		}	
@@ -247,6 +272,23 @@ int main(int argc, char **argv)
 	double max_accel;
 	double max_brake_accel;
 	double ang_accel_conv;
+
+
+	
+	if (!controller_nh.getParam("f_s", f_s))
+		ROS_ERROR("Could not read f_s in point gen");
+	if (!controller_nh.getParam("f_a", f_a))
+		ROS_ERROR("Could not read f_a in point gen");
+	if (!controller_nh.getParam("f_v", f_v))
+		ROS_ERROR("Could not read f_v in point gen");
+	if (!controller_nh.getParam("f_s_v", f_s_v))
+		ROS_ERROR("Could not read f_s_v in point gen");
+	if (!controller_nh.getParam("f_s_s", f_s_s))
+		ROS_ERROR("Could not read f_s_s in point gen");
+
+
+
+
 
 	if (!controller_nh.getParam("wheel_radius", model.wheelRadius))
 		ROS_ERROR("Could not read wheel_radius in point_gen");
