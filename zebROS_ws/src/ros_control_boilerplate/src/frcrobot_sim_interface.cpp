@@ -457,7 +457,7 @@ void FRCRobotSimInterface::custom_profile_set_talon(bool posMode, double setpoin
 {
     const hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
    
-	ROS_INFO_STREAM("id: " << joint_id << " set: " << setpoint << " f: " << fTerm);
+	//ROS_INFO_STREAM("id: " << joint_id << " set: " << setpoint << " f: " << fTerm);
 
  
     if(zeroPos)
