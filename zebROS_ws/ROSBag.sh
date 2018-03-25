@@ -12,10 +12,11 @@ rosparam set use_sim_time true
 roscore&
 sleep 4
 
+##############################
 ######## data output ########
 #data output if $2 -eq 0
 #if [$2 -eq 0] then
-rqt_plot /frcrobot/$2 /frcrobot/$3 /frcrobot/$4 /frcrobot/$5 /frcrobot/$6 /frcrobot/$7 /frcrobot/$8 /frcrobot/$9&
+#rqt_plot /frcrobot/$2 /frcrobot/$3 /frcrobot/$4 /frcrobot/$5 /frcrobot/$6 /frcrobot/$7 /frcrobot/$8 /frcrobot/$9&
 
 #data output if $2 != 0
 #if [$2 -eq 1]
@@ -25,10 +26,14 @@ rqt_plot /frcrobot/$2 /frcrobot/$3 /frcrobot/$4 /frcrobot/$5 /frcrobot/$6 /frcro
 #done
 #fi
 
+##############################
+
 ######## rosbag input ########
 #play the rosbag to link topic(s)
 cd
 gnome-terminal -- rosbag play --clock Downloads/$1
-rqt_bag Downloads/$1
+#rqt_bag Downloads/$1
+cd ../2018RobotCode/zebROS_ws
+rosrun plotjuggler PlotJuggler
 cd
 sleep 3
