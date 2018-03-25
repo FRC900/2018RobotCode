@@ -160,7 +160,6 @@ class TalonSwerveDriveController
 			std::vector<std::vector<double>> drive_f;
 			std::vector<std::vector<double>> steer_pos;
 			std::vector<std::vector<double>> steer_f;
-			int slot;
 			double dt;
 		};
 		
@@ -188,6 +187,7 @@ class TalonSwerveDriveController
 
 	
 		realtime_tools::RealtimeBuffer<bool> run_;
+		realtime_tools::RealtimeBuffer<int> slot_;		
 
 		hardware_interface::TalonMode motion_profile = hardware_interface::TalonMode::TalonMode_MotionProfile;
 		hardware_interface::TalonMode velocity_mode = hardware_interface::TalonMode::TalonMode_Velocity;

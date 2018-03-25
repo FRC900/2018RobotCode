@@ -608,6 +608,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	// Retreive current velocity command and time step:
 
 	//ROS_INFO_STREAM("mode: " << *(mode_.readFromRT())); 
+	int slot_local = *(slot_.readFromRT());
 	if(*(buffer_.readFromRT()))
 	{
 		buffer_.writeFromNonRT(false);
@@ -636,7 +637,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 			holder_points_[i][0].duration = curr_cmd.dt;
 			holder_points_[i][1].duration = curr_cmd.dt;
-			
+		
+	
 			holder_points_[i][0].zeroPos = true;
 			holder_points_[i][1].zeroPos = false;
 			
@@ -665,8 +667,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				holder_points_[k][1].fTerm = curr_cmd.steer_f[i][k];
 			
 
-				full_profile_[k][0].push_back(holder_points_[i][0]); //Rather than buffering like this we should write directly to full profile at some point
-				full_profile_[k][1].push_back(holder_points_[i][1]); //Rather than buffering like this we should write directly to full profile at some point
+				full_profile_[k][0].push_back(holder_points_[k][0]); //Rather than buffering like this we should write directly to full profile at some point
+				full_profile_[k][1].push_back(holder_points_[k][1]); //Rather than buffering like this we should write directly to full profile at some point
 
 
 				
@@ -676,8 +678,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		for(size_t k = 0; k < WHEELCOUNT; k++)
 		{
 
-			speed_joints_[k].overwriteCustomProfilePoints(full_profile_[k][0], curr_cmd.slot);
-			steering_joints_[k].overwriteCustomProfilePoints(full_profile_[k][1], curr_cmd.slot);
+			speed_joints_[k].overwriteCustomProfilePoints(full_profile_[k][0], slot_local);
+			steering_joints_[k].overwriteCustomProfilePoints(full_profile_[k][1], slot_local);
 		}	
 
 		ROS_WARN("done");
@@ -776,6 +778,12 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		{
 			steering_joints_[i].setCustomProfileRun(true);
 			speed_joints_[i].setCustomProfileRun(true);
+
+			//ROS_ERROR_STREAM(slot_local);		
+	
+			steering_joints_[i].setCustomProfileSlot(slot_local);
+			speed_joints_[i].setCustomProfileSlot(slot_local);
+
 		}
 
 	}
@@ -890,10 +898,11 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 		*/		
 
 		ROS_WARN("serv points called");
+		slot_.writeFromNonRT(req.slot);
 		if(req.buffer)
 		{
 			points_struct_.dt = req.dt;
-			points_struct_.slot = req.slot;
+
 
 			points_struct_.drive_pos.resize(req.points.size());
 			points_struct_.drive_f.resize(req.points.size());
@@ -913,6 +922,10 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 			ROS_INFO_STREAM("buffering status: " << req.buffer);
 		buffer_.writeFromNonRT(req.buffer);
 		mode_.writeFromNonRT(!(req.run));
+		if(!req.run)
+			ROS_WARN_STREAM("Hypothetically shouldn't run?");
+
+		
 		
 		return true;
 	}

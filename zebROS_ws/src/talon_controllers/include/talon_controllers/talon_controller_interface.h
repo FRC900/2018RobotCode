@@ -1272,6 +1272,10 @@ class TalonControllerInterface
 
 			talon->setConversionFactor(params.conversion_factor_);
 
+			talon->setCustomProfileRun(params.custom_profile_run_);
+			talon->setCustomProfileHz(params.custom_profile_hz_);
+			talon->setCustomProfileSlot(params.custom_profile_slot_);
+
 			// Save copy of params written to HW
 			// so they can be queried later?
 			if (update_params)

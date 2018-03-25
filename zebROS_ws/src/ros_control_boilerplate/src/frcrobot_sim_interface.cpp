@@ -70,7 +70,7 @@ For a more detailed simulation example, see sim_hw_interface.cpp
 #define KEYCODE_q 0x71
 #define KEYCODE_r 0x72
 #define KEYCODE_s 0x73
-#define KEYCODE_t 0x74
+#define KEYCODE_t 0x7
 #define KEYCODE_u 0x75
 #define KEYCODE_v 0x76
 #define KEYCODE_w 0x77
@@ -510,7 +510,8 @@ void FRCRobotSimInterface::custom_profile_set_talon(bool posMode, double setpoin
 
 void FRCRobotSimInterface::custom_profile_thread(int joint_id)
 {
-
+	
+	//ros::Duration(3).sleep();	
     //I wonder how inefficient it is to have all of these threads 
     //running at the specified hz just copying to the status
 
@@ -566,6 +567,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
                 //Potentially add more things to do if this exception is caught
                 //Like maybe set talon to neutral mode or something
                 fail_flag++;
+				rate.sleep();
                 continue;
             }
 
@@ -635,16 +637,29 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
             if(i == status.slotRunning)
             {
                 status.remainingPoints[i] = talon_command_[joint_id].getCustomProfileCount(i) - points_run;
-                status.remainingTime = talon_command_[joint_id].getCustomProfileTime(i).back() - (ros::Time::now().toSec() - time_start);
+                if(talon_command_[joint_id].getCustomProfileTime(i).size() != 0)
+				{
+					status.remainingTime = talon_command_[joint_id].getCustomProfileTime(i).back() - (ros::Time::now().toSec() - time_start);
+					//ROS_ERROR_STREAM("right ghjkl");
+				}
+				else
+				{
+					status.remainingTime = 0.0;
+				}
+				//ROS_ERROR_STREAM("rem time: " << status.remainingTime);
             }
             else
             {
                 status.remainingPoints[i] = talon_command_[joint_id].getCustomProfileCount(i);
             }
+			//ROS_INFO_STREAM("points left in "  << i << ": " << status.remainingPoints[i]);
         }
+		//ROS_INFO_STREAM("time remaining in active profile: "  << status.remainingTime);
+		//ROS_INFO_STREAM("active profile: "  << status.slotRunning);
         status.running = run;
-        talon_state_[joint_id].setCustomProfileStatus(status);
-        rate.sleep();
+        //ROS_INFO_STREAM("running? " << run);
+		talon_state_[joint_id].setCustomProfileStatus(status);
+		rate.sleep();
     }
 }
 
@@ -658,6 +673,7 @@ void FRCRobotSimInterface::init(void)
 
 	sim_joy_thread_ = std::thread(&FRCRobotSimInterface::loop_joy, this);
 	
+	ROS_WARN("fails here?1");
 	// Loop through the list of joint names
 	// specified as params for the hardware_interface.
 	// For each of them, create a Talon object. This
@@ -673,8 +689,13 @@ void FRCRobotSimInterface::init(void)
 							  "Loading joint " << i << "=" << can_talon_srx_names_[i] <<
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
 		
-		custom_profile_threads_[i] = std::thread(&FRCRobotSimInterface::custom_profile_thread, this, i);
+		ROS_WARN_STREAM("fails here? 56789: " << i);
+	// Loop through the list of joint names
+		
+		custom_profile_threads_.push_back(std::thread(&FRCRobotSimInterface::custom_profile_thread, this, i));
+		ROS_WARN("post and stuff");
 	}
+		ROS_WARN_STREAM("fails here? ~");
 	// TODO : assert nidec_brushles_names_.size() == nidec_brushles_xxx_channels_.size()
 	for (size_t i = 0; i < nidec_brushless_names_.size(); i++)
 		ROS_INFO_STREAM_NAMED("frcrobot_sim_interface",

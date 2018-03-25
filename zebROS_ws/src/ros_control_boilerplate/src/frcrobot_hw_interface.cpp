@@ -668,14 +668,22 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 		for(int i = 0; i < num_slots; i++)
 		{
 			if(i == status.slotRunning)
-			{ 
-				status.remainingPoints[i] = talon_command_[joint_id].getCustomProfileCount(i) - points_run;
-				status.remainingTime = talon_command_[joint_id].getCustomProfileTime(i).back() - (ros::Time::now().toSec() - time_start);
-			}
-			else
-			{
-				status.remainingPoints[i] = talon_command_[joint_id].getCustomProfileCount(i);
-			}
+            {
+                status.remainingPoints[i] = talon_command_[joint_id].getCustomProfileCount(i) - points_run;
+                if(talon_command_[joint_id].getCustomProfileTime(i).size() != 0)
+                {
+                    status.remainingTime = talon_command_[joint_id].getCustomProfileTime(i).back() - (ros::Time::now().toSec() - time_start);
+                }
+                else
+                {
+                    status.remainingTime = 0.0;
+                }
+            }
+            else
+            {
+                status.remainingPoints[i] = talon_command_[joint_id].getCustomProfileCount(i);
+            }
+
 		}
 		status.running = run; 
 		talon_state_[joint_id].setCustomProfileStatus(status);
@@ -700,6 +708,7 @@ void FRCRobotHWInterface::init(void)
 	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	can_talons_mp_writing_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	can_talons_mp_running_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
+	custom_profile_threads_.resize(num_can_talon_srxs_);
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 	{
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
