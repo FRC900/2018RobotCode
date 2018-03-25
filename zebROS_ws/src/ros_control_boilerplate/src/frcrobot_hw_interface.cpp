@@ -429,6 +429,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
+	return;
 	ros::Duration(3).sleep();	
 	bool set_frame_period[num_can_talon_srxs_];
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
@@ -475,9 +476,19 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 void FRCRobotHWInterface::custom_profile_set_talon(bool posMode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double &pos_offset)
 {
 
+
+	
+	const hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
+	const int encoder_ticks_per_rotation = talon_state_[joint_id].getEncoderTicksPerRotation();
+	const double conversion_factor = talon_state_[joint_id].getConversionFactor();
+
+	const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
+	const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
+	
 	if(zeroPos)
 	{
-		pos_offset = can_talons_[joint_id]->GetSelectedSensorPosition(pidIdx);
+		pos_offset = can_talons_[joint_id]->GetSelectedSensorPosition(pidIdx) * radians_scale;
+		talon_state_[joint_id].setPosition(pos_offset);
 	}
 	//set talon
 	ctre::phoenix::motorcontrol::ControlMode mode;
@@ -487,12 +498,14 @@ void FRCRobotHWInterface::custom_profile_set_talon(bool posMode, double setpoint
 	{
 		mode = ctre::phoenix::motorcontrol::ControlMode::Position;
 		mode_i = hardware_interface::TalonMode_Position;
+		setpoint /= radians_scale; 
 		setpoint += pos_offset;
 	}
 	else
 	{
 		mode = ctre::phoenix::motorcontrol::ControlMode::Velocity;
 		mode_i = hardware_interface::TalonMode_Velocity;
+		setpoint /= radians_per_second_scale; 
 	}				
 	can_talons_[joint_id]->Set(mode, setpoint, ctre::phoenix::motorcontrol::DemandType::DemandType_ArbitraryFeedForward, fTerm); //TODO: unit conversion
 
@@ -560,8 +573,21 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 		{
 			time_start = ros::Time::now().toSec();
 		}
-		status.slotRunning = talon_command_[joint_id].getCustomProfileSlot();
-		
+		int slot = talon_command_[joint_id].getCustomProfileSlot();
+	
+		if(slot != status.slotRunning && run && status.running)
+		{
+			ROS_WARN("transitioned between two profile slots without any break between. Intended?");
+			std::vector<hardware_interface::CustomProfilePoint> empty_points;
+			talon_command_[joint_id].overwriteCustomProfilePoints(empty_points, status.slotRunning);	
+			//Right now we wipe everything if the slots are flipped
+			//Should try to be analagous to having a break between
+			points_run = 0;
+			pos_offset = 0;
+			
+
+		}
+		status.slotRunning =  slot;	
 		if(run)
 		{
 			auto profile = talon_command_[joint_id].getCustomProfilePoints(status.slotRunning);
