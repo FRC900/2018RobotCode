@@ -53,6 +53,8 @@ struct cmd_vel_mode
 {
     std::vector<cmd_vel_struct> segments;
     bool exists;
+
+	cmd_vel_mode(void): exists(false) {}
 };
 typedef std::vector<std::vector<std::vector<full_mode>>> mode_list;
 typedef std::vector<std::vector<std::vector<cmd_vel_mode>>> cmd_vel_list;
