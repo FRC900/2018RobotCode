@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 		stringstream ss;
 		ss << fixed << setprecision(2) << cap->FPS() << "C:" << frameTicker.getFPS() << "GD FPS";
 		putText(image, ss.str(), Point(image.cols - 15 * ss.str().length(), 50), FONT_HERSHEY_PLAIN, 1.5, Scalar(0,0,255));
-		ros::Duration(.1).sleep();
+		ros::Duration(.15).sleep();
 
 		zms_pub = nh.advertise<sensor_msgs::Image>("/zed_goal/left/image_rect_color", pub_rate);
 		zms_pub1 = nh.advertise<sensor_msgs::Image>("/zed_goal/depth/depth_registered", pub_rate);

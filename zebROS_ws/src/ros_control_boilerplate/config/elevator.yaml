@@ -78,8 +78,8 @@ elevator_controller:
         joint: pivot
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
-            - {p: 1, i: 0.0002, d: 2.0, f: .6, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
-            - {p: 1, i: 0.0002, d: 2.0, f: .6, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+            - {p: 3, i: 0.001, d: 4.0, f: 7, i_zone: 700} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+            - {p: 3, i: 0.001, d: 4.0, f: 7, i_zone: 700} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
         invert_output: True
         sensor_phase: False
         peak_output_forward: 1.0

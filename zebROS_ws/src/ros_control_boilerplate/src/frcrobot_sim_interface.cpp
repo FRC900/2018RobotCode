@@ -77,6 +77,10 @@ For a more detailed simulation example, see sim_hw_interface.cpp
 #define KEYCODE_x 0x78
 #define KEYCODE_y 0x79
 #define KEYCODE_z 0x7a
+#define KEYCODE_A 0x41
+#define KEYCODE_B 0x42
+#define KEYCODE_C 0x43
+#define KEYCODE_D 0x44
 #define KEYCODE_MINUS 0x2D
 #define KEYCODE_EQUALS 0x3D
 #define KEYCODE_ONE 0x1
@@ -190,6 +194,23 @@ class TeleopJointsKeyboard
                 cmd_.buttonStartButton = false;
                 cmd_.buttonStartPress = false;
                 cmd_.buttonStartRelease = false;
+
+                cmd_.directionUpButton = false;
+                cmd_.directionUpPress = false;
+                cmd_.directionUpRelease = false;
+
+                cmd_.directionDownButton = false;
+                cmd_.directionDownPress = false;
+                cmd_.directionDownRelease = false;
+
+                cmd_.directionRightButton = false;
+                cmd_.directionRightPress = false;
+                cmd_.directionRightRelease = false;
+
+                cmd_.directionLeftButton = false;
+                cmd_.directionLeftPress = false;
+                cmd_.directionLeftRelease = false;
+
 				bool dirty = true;
 				switch (c)
 				{
@@ -228,6 +249,30 @@ class TeleopJointsKeyboard
                         cmd_.buttonYPress = true; // radians
                     }
 					cmd_.buttonYButton = true; // radians
+					break;
+				case KEYCODE_j:
+					cmd_.leftTrigger = .5; // radians
+					break;
+				case KEYCODE_l:
+					cmd_.rightTrigger = .5; // radians
+					break;
+				case KEYCODE_i:
+                    if(cmd_last_.stickLeftButton) {
+                        cmd_.stickLeftPress = false; // radians
+                    }
+                    else {
+                        cmd_.stickLeftPress = true; // radians
+                    }
+					cmd_.stickLeftButton = true; // radians
+					break;
+				case KEYCODE_k:
+                    if(cmd_last_.stickRightButton) {
+                        cmd_.stickRightPress = false; // radians
+                    }
+                    else {
+                        cmd_.stickRightPress = true; // radians
+                    }
+					cmd_.stickRightButton = true; // radians
 					break;
 				case KEYCODE_ONE:
                     if(cmd_last_.buttonBackButton) {
@@ -275,43 +320,55 @@ class TeleopJointsKeyboard
                     }
                     switch (c)
                     {
-                        case KEYCODE_b:
-                            if(cmd_last_.stickLeftButton) {
-                                cmd_.stickLeftPress = false; // radians
+                        case KEYCODE_B:
+                            if(cmd_last_.directionDownButton) {
+                                cmd_.directionDownPress = false; // radians
                             }
                             else {
-                                cmd_.stickLeftPress = true; // radians
+                                cmd_.directionDownPress = true; // radians
                             }
-                            cmd_.stickLeftButton = true;
+                            cmd_.directionDownButton = true;
                             break;
-                        case KEYCODE_a:
-                            if(cmd_last_.stickRightButton) {
-                                cmd_.stickRightPress = false; // radians
+                        case KEYCODE_A:
+                            if(cmd_last_.directionUpButton) {
+                                cmd_.directionUpPress = false; // radians
                             }
                             else {
-                                cmd_.stickRightPress = true; // radians
+                                cmd_.directionUpPress = true; // radians
                             }
-                            cmd_.stickRightButton = true;
+                            cmd_.directionUpButton = true;
                             break;
-                        case KEYCODE_d:
-                            cmd_.leftTrigger = .5;
+                        case KEYCODE_D:
+                            if(cmd_last_.directionLeftButton) {
+                                cmd_.directionLeftPress = false; // radians
+                            }
+                            else {
+                                cmd_.directionLeftPress = true; // radians
+                            }
+                            cmd_.directionLeftButton = true;
                             break;
-                        case KEYCODE_c:
-                            cmd_.rightTrigger = .5;
+                        case KEYCODE_C:
+                            if(cmd_last_.directionRightButton) {
+                                cmd_.directionRightPress = false; // radians
+                            }
+                            else {
+                                cmd_.directionRightPress = true; // radians
+                            }
+                            cmd_.directionRightButton = true;
                             break;
-            
                     }
 					break;
 
 				case  KEYCODE_ESCAPE:
-					std::cout << std::endl;
-					std::cout << "Exiting " << std::endl;
-					quit(0);
+					//std::cout << std::endl;
+					//std::cout << "Exiting " << std::endl;
+					//quit(0);
+                    dirty = false;
 					break;
 				default:
                     ROS_WARN("FaileD");
 					std::cout << "CODE: "  << c << std::endl;
-					dirty = false;
+					dirty = true;
 				}
                 
                 if(cmd_last_.buttonAButton && !cmd_.buttonAButton) {
@@ -343,6 +400,18 @@ class TeleopJointsKeyboard
                 }
                 if(cmd_last_.bumperRightButton && !cmd_.bumperRightButton) {
                     cmd_.bumperRightRelease = true;
+                }
+                if(cmd_last_.directionRightButton && !cmd_.directionRightButton) {
+                    cmd_.directionRightRelease = true;
+                }
+                if(cmd_last_.directionLeftButton && !cmd_.directionLeftButton) {
+                    cmd_.directionLeftRelease = true;
+                }
+                if(cmd_last_.directionUpButton && !cmd_.directionUpButton) {
+                    cmd_.directionUpRelease = true;
+                }
+                if(cmd_last_.directionDownButton && !cmd_.directionDownButton) {
+                    cmd_.directionDownRelease = true;
                 }
 				// Publish command
 				if (dirty)
