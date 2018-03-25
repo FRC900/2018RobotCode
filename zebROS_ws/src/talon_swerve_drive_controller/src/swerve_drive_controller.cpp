@@ -621,7 +621,6 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		for(size_t i = 0; i < WHEELCOUNT; i++)
 		{
 
-
 			holder_points_[i][0].positionMode = true;
 			holder_points_[i][1].positionMode = true;
 			
@@ -666,13 +665,14 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				holder_points_[k][1].fTerm = curr_cmd.steer_f[i][k];
 			
 
-				full_profile_[i][0].push_back(holder_points_[i][0]); //Rather than buffering like this we should write directly to full profile at some point
-				full_profile_[i][1].push_back(holder_points_[i][1]); //Rather than buffering like this we should write directly to full profile at some point
+				full_profile_[k][0].push_back(holder_points_[i][0]); //Rather than buffering like this we should write directly to full profile at some point
+				full_profile_[k][1].push_back(holder_points_[i][1]); //Rather than buffering like this we should write directly to full profile at some point
 
 
 				
 			}
 		}
+		ROS_WARN("done1");
 		for(size_t k = 0; k < WHEELCOUNT; k++)
 		{
 
@@ -904,7 +904,7 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 				points_struct_.drive_pos[i] = req.points[i].drive_pos;
 				points_struct_.drive_f[i] = req.points[i].drive_f;
 				points_struct_.steer_pos[i] = req.points[i].steer_pos;
-				points_struct_.steer_pos[i] = req.points[i].steer_f;
+				points_struct_.steer_f[i] = req.points[i].steer_f;
 			}
 			command_points_.writeFromNonRT(points_struct_);
 
@@ -933,6 +933,8 @@ bool TalonSwerveDriveController::brakeService(std_srvs::Empty::Request &/*req*/,
 		brake_struct_.stamp = ros::Time::now();
 		ROS_WARN("called in controller");
 		command_.writeFromNonRT(brake_struct_);
+
+		
 
 		return true;
 	}
