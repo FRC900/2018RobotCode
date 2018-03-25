@@ -363,7 +363,6 @@ class TeleopJointsKeyboard
 					//std::cout << std::endl;
 					//std::cout << "Exiting " << std::endl;
 					//quit(0);
-                    dirty = false;
 					break;
 				default:
                     ROS_WARN("FaileD");

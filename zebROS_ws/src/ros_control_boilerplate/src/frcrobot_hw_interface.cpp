@@ -470,6 +470,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 
 void FRCRobotHWInterface::init(void)
 {
+    ROS_ERROR("IN INIT");
 	// Do base class init. This loads common interface info
 	// used by both the real and sim interfaces
 	FRCRobotInterface::init();

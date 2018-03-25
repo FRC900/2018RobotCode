@@ -1249,7 +1249,14 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 
 void cubeCallback(const elevator_controller::CubeState &cube)
 {
+	uint16_t leftRumble = 0, rightRumble = 0;
 	cubeState.writeFromNonRT(CubeState(cube.has_cube, cube.clamp, cube.intake_low));
+    if(cube.has_cube)
+	{
+		leftRumble = 0;
+		rightRumble = 65535;
+        rumbleTypeConverterPublish(leftRumble, rightRumble);
+	}
 }
 
 
