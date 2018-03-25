@@ -342,7 +342,6 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 					const int num_splines = mode_xml.size();
                     //const int num_times = times_xml.size();
 					for(int num = 0; num<num_splines; num++) {
-					    ROS_INFO_STREAM("her: "<< num);
 						XmlRpc::XmlRpcValue &spline = mode_xml[num];
 						XmlRpc::XmlRpcValue &x = spline["x"];
 						XmlRpc::XmlRpcValue &y = spline["y"];
@@ -369,7 +368,6 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						profiled_modes[mode][layout][start_pos].srv_msg.request.orient_coefs.push_back(orient_coefs);
 						profiled_modes[mode][layout][start_pos].srv_msg.request.end_points.push_back(num+1);
 					}
-					ROS_INFO_STREAM("here");
 					profiled_modes[mode][layout][start_pos].srv_msg.request.initial_v = 0; 
 					profiled_modes[mode][layout][start_pos].srv_msg.request.final_v = 0; 
 					profiled_modes[mode][layout][start_pos].exists = true; 
@@ -447,7 +445,6 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 					const int num_actions = actions_xml.size();
                     profiled_modes[mode][layout][start_pos].actions.resize(num_actions);
 					for(int num = 0; num<num_actions; num++) {
-					    ROS_INFO_STREAM("her: "<< num);
 						XmlRpc::XmlRpcValue &action = actions_xml[num];
 						XmlRpc::XmlRpcValue &time = action["time"];
 						XmlRpc::XmlRpcValue &actions = action["actions"];
@@ -515,18 +512,19 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 		cmd_vel_modes[mode].resize(4);
 		for(int layout = 0; layout <= 1; layout++)
 		{
+            cmd_vel_modes[mode][layout+2].resize(max_start_pos_num + 1);
 			cmd_vel_modes[mode][layout].resize(max_start_pos_num + 1);
 			for(int start_pos = 0; start_pos <= max_start_pos_num; start_pos++)
 			{
 				std::string identifier("mode_"+std::to_string(mode)+"_layout_"+std::to_string(layout)+"_"+std::to_string(layout + 2)+"_start_"+std::to_string(start_pos));
                 
-                if(auto_data.getParam(identifier, cmd_vel_xml))
+                if(cmd_vel_data.getParam(identifier, cmd_vel_xml))
 				{
-					ROS_INFO_STREAM("cmd vel mode actions with identifier: " << identifier+"_actions" << " found cmd vel");
+					ROS_INFO_STREAM("cmd vel mode with identifier: " << identifier << " found cmd vel");
 					const int num_segments = cmd_vel_xml.size();
                     cmd_vel_modes[mode][layout][start_pos].segments.resize(num_segments);
+                    cmd_vel_modes[mode][layout+2][start_pos].segments.resize(num_segments);
 					for(int num = 0; num<num_segments; num++) {
-					    ROS_INFO_STREAM("her: "<< num);
 						XmlRpc::XmlRpcValue &segment = cmd_vel_xml[num];
 						const double x = segment["x"];
 						const double y = segment["y"];
@@ -534,8 +532,13 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
                         cmd_vel_modes[mode][layout][start_pos].segments[num].x = x;
                         cmd_vel_modes[mode][layout][start_pos].segments[num].y = y;
                         cmd_vel_modes[mode][layout][start_pos].segments[num].duration = duration;
-                        cmd_vel_modes[mode][layout][start_pos].exists = true; 
+                        
+                        cmd_vel_modes[mode][layout+2][start_pos].segments[num].x = x;
+                        cmd_vel_modes[mode][layout+2][start_pos].segments[num].y = y;
+                        cmd_vel_modes[mode][layout+2][start_pos].segments[num].duration = duration;
                     }
+                    cmd_vel_modes[mode][layout][start_pos].exists = true; 
+                    cmd_vel_modes[mode][layout+2][start_pos].exists = true; 
                     
                 }
             }
@@ -549,6 +552,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 
 bool generateTrajectory(full_mode &trajectory) 
 {
+
 	if(!trajectory.exists)
 	{
 		//TODO MAKE LIGHT GO RED ON DRIVERSTATION
@@ -574,7 +578,7 @@ bool generateTrajectory(cmd_vel_mode &segments)
 	if(!segments.exists)
 	{
 		//TODO MAKE LIGHT GO RED ON DRIVERSTATION
-		ROS_ERROR("auto mode/layout/start selected which wasn't found in the yaml");
+		ROS_ERROR("auto cmd_vel mode/layout/start selected which wasn't found in the yaml");
 		return false;
 	}
     
@@ -590,9 +594,9 @@ bool generateCmdVel(cmd_vel_mode &mode) {
 
 std::string lower(const std::string &str) {
     std::string new_string;
-    for(int i = 0; i<str.size(); i++) {
+    for(int i = 0; i<str.size(); i++) 
        new_string += tolower(str[i]); 
-    }
+  
     return new_string;
 }
 
@@ -696,7 +700,7 @@ bool call_action(int action) {
 
 
 void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<cmd_vel_struct> &segments) {
-    //ROS_WARN("auto entered");
+    ROS_WARN("auto entered");
     exit_auto = false;
     ros::Rate r(10);
     double start_time = ros::Time::now().toSec();
@@ -719,6 +723,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     vel.angular.z = 0;
 
     for(int num = 0; num<num_segments; num++) {
+        ROS_WARN("auto segment entered");
         double segment_start_time = ros::Time::now().toSec();
         double curr_time = ros::Time::now().toSec();
         while(curr_time < segment_start_time + segments[num].duration) {
@@ -838,7 +843,7 @@ int main(int argc, char** argv) {
     mode_list profiled_modes = all_modes.profiled_modes;
     cmd_vel_list cmd_vel_modes = all_modes.cmd_vel_modes;
 
-    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server_robot", true);
+    ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
     ROS_WARN("here 567890");
 	ac->waitForServer(); 
 
