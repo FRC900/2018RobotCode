@@ -10,8 +10,8 @@ teleop_params:
     low_scale_config_x: .36
     low_scale_config_y: 1.83
     low_scale_config_up_or_down: true
-    switch_config_x: .41586
-    switch_config_y: .93345
+    switch_config_x: .425
+    switch_config_y: 1.2
     switch_config_up_or_down: true
     #exchange should probably be the same as intake
     exchange_config_x: .215
@@ -49,7 +49,7 @@ teleop_params:
     high_return_intake_up_or_down: true
     timeout: 15
     exchange_delay: 0.5
-    intake_power: 1.0
+    intake_power: 0.8
     intake_hold_power: 0.15
     wait_after_clamp: 1.0
     wait_open_before_drop: 8.0

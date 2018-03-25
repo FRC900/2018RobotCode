@@ -280,8 +280,8 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	}
 	
 	//Set soft limits using offsets here
-	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_);
-	lift_joint_.setReverseSoftLimitThreshold(min_extension_ + lift_offset_);
+	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_ + .03);
+	lift_joint_.setReverseSoftLimitThreshold(min_extension_ + lift_offset_- .03);
 	lift_joint_.setForwardSoftLimitEnable(true);
 	lift_joint_.setReverseSoftLimitEnable(true);
 
@@ -597,8 +597,15 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	
 	double offset_last = pivot_offset_;
 
-	pivot_offset_ = raw_pivot_angle + M_PI - fmod(raw_pivot_angle - pivot_offset_ + M_PI, 2*M_PI);
-
+	
+	if(raw_pivot_angle - pivot_offset_ > 0)
+	{
+		pivot_offset_ = raw_pivot_angle + M_PI - fmod(raw_pivot_angle - pivot_offset_ + M_PI, 2*M_PI);
+	}
+	else
+	{
+		pivot_offset_ = raw_pivot_angle - M_PI - fmod(raw_pivot_angle - pivot_offset_ - M_PI, 2*M_PI);
+	}
 	double pivot_angle   =  pivot_joint_.getPosition() - pivot_offset_;
 	if(fabs(offset_last - pivot_offset_) > .1) //Offset will jump by intervals of 2 * pi, 
 												//don't reset soft limits if change is just due to floating
