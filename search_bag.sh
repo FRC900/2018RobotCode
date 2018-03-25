@@ -8,10 +8,16 @@ fi
 for var in "$@"
 do
 	echo check for reindex
-	if [[ $var == *.active ]]
+	if [[ $var == *bag.active ]]
 	then 
 		echo Reindexing
 		rosbag reindex $var 
+	fi
+
+	if [[ $var == *.orig.active ]]
+	then
+		echo orig.active found -- skipping
+		continue
 	fi
 
 	match='match'
@@ -26,6 +32,11 @@ do
 	then
 		echo This has match data
 		matchNumber=$(sed -n 10p temp_file.txt)
+		if [ $matchNumber = 0 ]
+		then
+			echo Match number is zero -- skipping
+			continue
+		fi
 		bag_name=$match$matchNumber$bag
 		if [[ -e $bag_name ]]
 		then 
@@ -38,7 +49,7 @@ do
 	else
 		echo This does not have match data.
 	fi
-	#rm temp_file.txt
+	rm temp_file.txt
 done
 
 
