@@ -141,14 +141,17 @@ struct CustomProfileStatus
 {
 	bool running;
 	int slotRunning;
-	int remainingPoints;
-	double remainingTime;	//Should this be a ROS duration?
+	std::vector<int> remainingPoints;
+	double remainingTime;	//Should this be a ROS duration? 
+							//Note: will be set based on slotRunning
+	bool outOfPoints;
 	CustomProfileStatus():
 		running(false),
 		slotRunning(0),
-		remainingPoints(0),
-		remainingTime(0.0)
+		remainingTime(0.0),
+		outOfPoints(false)
 	{
+		remainingPoints.resize(4); //Needs to be the same as the talon command interface
 	}
 };
 

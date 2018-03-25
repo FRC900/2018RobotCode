@@ -28,7 +28,8 @@ struct CustomProfilePoint
 		pidSlot(0),
 		setpoint(0.0),
 		fTerm(0),
-		duration(0)
+		duration(0),
+		zeroPos(false)
 	{
 	}
 	bool positionMode;
@@ -36,6 +37,7 @@ struct CustomProfilePoint
 	double setpoint;
 	double fTerm;
 	double duration;
+	bool zeroPos;
 };
 
 	
@@ -196,6 +198,7 @@ class TalonHWCommand
 
 		{
 			custom_profile_points_.resize(4); //change as needed
+			custom_profile_total_time_.resize(4); 		
 		}
 		// This gets the requested setpoint, not the
 		// status actually read from the controller
@@ -1354,20 +1357,59 @@ class TalonHWCommand
 		void pushCustomProfilePoint(const CustomProfilePoint &point, int slot)
 		{
 			custom_profile_points_[slot].push_back(point);
+			if(custom_profile_points_[slot].size() != 0)
+			{
+				custom_profile_total_time_[slot].push_back(custom_profile_total_time_[slot].back() + point.duration);
+			}
+			else
+			{
+				custom_profile_total_time_[slot].push_back(point.duration);
+			}
 		} 
 		void pushCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
+			int prev_size = custom_profile_points_.size();
 			custom_profile_points_[slot].insert(custom_profile_points_[slot].end(), points.begin(), points.end());
+			for(; prev_size <custom_profile_points_.size(); prev_size++)
+			{
+				if(prev_size != 0)
+				{
+					custom_profile_total_time_[slot].push_back(points[prev_size].duration + custom_profile_total_time_[slot][prev_size - 1]);
+				}
+				else
+				{
+					custom_profile_total_time_[slot].push_back(points[prev_size].duration);	
+				}
+			}	
 		}
 		void overwriteCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
 			custom_profile_points_[slot] = points;
+			custom_profile_total_time_[slot].resize(points.size());
+			for(size_t i = 0; i < points.size(); i++)
+			{
+				if(i != 0)
+				{
+					custom_profile_total_time_[slot][i] = points[i].duration + custom_profile_total_time_[slot][i-1];
+				}
+				else
+				{
+					custom_profile_total_time_[slot][i] = points[i].duration;
+				}
+			}	
 		}
 		std::vector<CustomProfilePoint> getCustomProfilePoints(int slot) /*const*/ //TODO, can be const?
 		{
 			return custom_profile_points_[slot];
-		} 
-		
+		}
+		std::vector<double> getCustomProfileTime(int slot)  /*const*/ //TODO, can be const?
+		{
+			return custom_profile_total_time_[slot];
+		}
+		int getCustomProfileCount(int slot)  /*const*/ //TODO, can be const?
+		{
+			return custom_profile_points_[slot].size();
+		}
 
 	private:
 		double    command_; // motor setpoint - % vbus, velocity, position, etc
@@ -1480,6 +1522,8 @@ class TalonHWCommand
 		int custom_profile_slot_;
 		double custom_profile_hz_;
 		std::vector<std::vector<CustomProfilePoint>> custom_profile_points_;
+		std::vector<std::vector<double>> custom_profile_total_time_;
+
 };
 
 // Handle - used by each controller to get, by name of the
