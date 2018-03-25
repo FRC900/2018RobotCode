@@ -139,7 +139,7 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 		//ROS_WARN("pre - even_now");
 		t_raw2 = spline(i);
 
-		ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw2 << " also: " << spline(i));
+		//ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw2 << " also: " << spline(i));
 		//ROS_WARN("even_now");
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, holder_point, end_points, dtds_for_spline, t_raw2);
 
@@ -171,7 +171,7 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 		i += curr_v * dt_;
 
 		t_raw3 = spline(i);
-		ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw3);
+		//ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw3);
 
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, holder_point, end_points, dtds_for_spline, t_raw3);
 
@@ -383,14 +383,14 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 	tk::spline s;
 
 	s.set_points(s_vals, t_vals);
-	for(int i = 0; i < t_vals.size(); i++)
+	/*for(int i = 0; i < t_vals.size(); i++)
 	{
 		ROS_INFO_STREAM("t_val = " << t_vals[i] << " s vals = " << s_vals[i]);
 		ROS_INFO_STREAM("s_vale = " << s_vals[i] << " s vals = " << s(s_vals[i]));
 
 
 
-	}
+	}*/
 
 	return s;
 }
@@ -453,7 +453,7 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 	calc_point(orient_splines_second_deriv[which_spline], t, second_deriv_orient);
 
 	//if(fow)
-	ROS_INFO_STREAM("which spline: " << which_spline << " t_raw: "<< t << " x: " << holder_point.pos[0] << " y: " << holder_point.pos[1] << " a: " << x_splines[which_spline].a <<" b: " << x_splines[which_spline].b <<" c: " << x_splines[which_spline].c <<" d: " << x_splines[which_spline].d <<" e: " << x_splines[which_spline].e <<" f: " << x_splines[which_spline].f);
+	//ROS_INFO_STREAM("which spline: " << which_spline << " t_raw: "<< t << " x: " << holder_point.pos[0] << " y: " << holder_point.pos[1] << " a: " << x_splines[which_spline].a <<" b: " << x_splines[which_spline].b <<" c: " << x_splines[which_spline].c <<" d: " << x_splines[which_spline].d <<" e: " << x_splines[which_spline].e <<" f: " << x_splines[which_spline].f);
 
 	//Radius = (x'^2 + y'^2)^(3/2) / (x' * y'' - y' * x'')
 

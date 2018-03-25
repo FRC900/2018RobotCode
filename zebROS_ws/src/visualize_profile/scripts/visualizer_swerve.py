@@ -23,10 +23,10 @@ def create_plot(req):
 	brp = []
 
 
-	flv = []
-	frv = []
-	blv = []
-	brv = []
+	flf = []
+	frf = []
+	blf = []
+	brf = []
 
 
 	fls = []
@@ -34,6 +34,10 @@ def create_plot(req):
 	bls = []
 	brs = []
 
+	flsf = []
+	frsf = []
+	blsf = []
+	brsf = []
 
 	index = []
 	
@@ -45,14 +49,18 @@ def create_plot(req):
 		frp.append(i.drive_pos[1])
 		blp.append(i.drive_pos[2])
 		brp.append(i.drive_pos[3])
-		flv.append(i.drive_vel[0])
-		frv.append(i.drive_vel[1])
-		blv.append(i.drive_vel[2])
-		brv.append(i.drive_vel[3])
+		flf.append(i.drive_f[0])
+		frf.append(i.drive_f[1])
+		blf.append(i.drive_f[2])
+		brf.append(i.drive_f[3])
 		fls.append(i.steer_pos[0])
 		frs.append(i.steer_pos[1])
 		bls.append(i.steer_pos[2])
 		brs.append(i.steer_pos[3])
+		flsf.append(i.steer_f[0])
+		frsf.append(i.steer_f[1])
+		blsf.append(i.steer_f[2])
+		brsf.append(i.steer_f[3])
 		index.append(count)
 		count+=1
 	plt.scatter(index, flp, s=0.2)
@@ -68,17 +76,17 @@ def create_plot(req):
 	plt.ylabel("Brp")
 	plt.show()
 
-	plt.scatter(index, flv, s=0.2)
-	plt.ylabel("Flv")
+	plt.scatter(index, flf, s=0.2)
+	plt.ylabel("Flf")
 	plt.show()
-	plt.scatter(index, frv, s=0.2)
-	plt.ylabel("Frv")
+	plt.scatter(index, frf, s=0.2)
+	plt.ylabel("Frf")
 	plt.show()
-	plt.scatter(index, blv, s=0.2)
-	plt.ylabel("Blv")
+	plt.scatter(index, blf, s=0.2)
+	plt.ylabel("Blf")
 	plt.show()
-	plt.scatter(index, brv, s=0.2)
-	plt.ylabel("Brv")
+	plt.scatter(index, brf, s=0.2)
+	plt.ylabel("Brf")
 	plt.show()
 
 
@@ -94,6 +102,21 @@ def create_plot(req):
 	plt.scatter(index, brs, s=0.2)
 	plt.ylabel("Brs")
 	plt.show()
+
+
+	plt.scatter(index, flsf, s=0.2)
+	plt.ylabel("Flsf")
+	plt.show()
+	plt.scatter(index, frsf, s=0.2)
+	plt.ylabel("Frsf")
+	plt.show()
+	plt.scatter(index, blsf, s=0.2)
+	plt.ylabel("Blsf")
+	plt.show()
+	plt.scatter(index, brsf, s=0.2)
+	plt.ylabel("Brsf")
+	plt.show()
+
 
 	return MotionProfilePointsResponse()
 
