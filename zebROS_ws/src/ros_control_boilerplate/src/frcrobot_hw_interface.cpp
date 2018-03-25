@@ -741,7 +741,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			ts.setMotionProfileStatus(internal_status);
 			continue;
 		}
-		else if(ts.getCANID() < 30)
+		else if(ts.getCANID() < 30 && (*can_talons_mp_written_)[joint_id].load(std::memory_order_relaxed))
 		{
 			
 			ctre::phoenix::motion::MotionProfileStatus talon_status;

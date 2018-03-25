@@ -871,7 +871,7 @@ int main(int argc, char** argv) {
     //ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    generateTrajectory(profiled_modes[3][3][2]);
+    //generateTrajectory(profiled_modes[3][3][2]);
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
 
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
