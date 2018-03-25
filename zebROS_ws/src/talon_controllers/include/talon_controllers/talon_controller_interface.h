@@ -1068,27 +1068,40 @@ class TalonControllerInterface
 		{
 			talon_->setDemand1Value(value);
 		}
-		void setCustomProfileHz(const double &hz)
+		virtual void setCustomProfileHz(const double &hz)
 		{
-			params_.custom_profile_hz_ = hz;
+			
+			if (hz == params_.custom_profile_hz_)
+                return;
+            params_.custom_profile_hz_ = hz;
+
+            syncDynamicReconfigure();	
 			talon_->setCustomProfileHz(params_.custom_profile_hz_);
 		}
 		double getCustomProfileHz(void) const
 		{
 			return params_.custom_profile_hz_;
 		}
-		void setCustomProfileRun(const bool &run)
+		virtual void setCustomProfileRun(const bool &run)
         {
-			params_.custom_profile_run_ = run;
-            talon_->setCustomProfileRun(run);
+			
+			if (run == params_.custom_profile_run_)
+                return;
+            params_.custom_profile_run_ = run;
+
+            syncDynamicReconfigure();	
+			talon_->setCustomProfileRun(params_.custom_profile_run_);
         }
-        bool getCustomProfileRun(void) const
+        bool getCustomProfileRun(void)
         {
-            return params_.custom_profile_run_;
+			return params_.custom_profile_run_;
         }
-        void setCustomProfileSlot(const int &slot)
+        virtual void setCustomProfileSlot(const int &slot)
         {
+			if (slot == params_.custom_profile_slot_)
+                return;
 			params_.custom_profile_slot_ = slot;
+            syncDynamicReconfigure();	
             talon_->setCustomProfileSlot(params_.custom_profile_slot_);
         }
         int getCustomProfileSlot(void) const

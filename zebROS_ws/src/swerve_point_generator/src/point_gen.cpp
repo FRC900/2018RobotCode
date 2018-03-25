@@ -222,21 +222,22 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 					ROS_INFO_STREAM("final pos" << angles_positions[k][0] + res.points[i + n - 1 + prev_point_count].drive_pos[k]);
 					ROS_INFO_STREAM("vel sum" << vel_sum[k]);
 					res.points[i + n + prev_point_count].drive_f.push_back(0);
+					res.points[i + n + prev_point_count].steer_f.push_back(0);
 				}
 				else
 				{
 					int sign_v = angles_velocities[k][0] < 0 ? -1 : angles_velocities[k][0] > 0 ? 1 : 0; 
 					res.points[i + n + prev_point_count].drive_f.push_back(angles_velocities[k][0] * f_v + sign_v * f_s + f_a /* / ( -fabs(angles_velocities[k][0]) / (model.maxSpeed * 1.2) + 1.05 ) */ * (angles_velocities[k][0] - prev_vels[k]) / defined_dt);
 					prev_vels[k] = angles_velocities[k][0];
-				
-									
-
 					vel_sum[k] += angles_velocities[k][0];
+		
+					
+					double steer_v = (angles_positions[k][1] - prev_steer_pos[k]) / defined_dt;
+					int sign_steer_v = steer_v < 0 ? -1 : steer_v > 0 ? 1 : 0; 
+					res.points[i + n + prev_point_count].steer_f.push_back(steer_v * f_s_v + sign_steer_v * f_s_s);
 				}
-				double steer_v = (angles_positions[k][1] - prev_steer_pos[k]) / defined_dt;
-				int sign_steer_v = steer_v < 0 ? -1 : steer_v > 0 ? 1 : 0; 
+
 				res.points[i + n + prev_point_count].steer_pos.push_back(angles_positions[k][1]);
-				res.points[i + n + prev_point_count].steer_f.push_back(steer_v * f_s_v + sign_steer_v * f_s_s);
 				
 				prev_steer_pos[k] = angles_positions[k][1]; 
 				

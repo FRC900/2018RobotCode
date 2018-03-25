@@ -1342,7 +1342,7 @@ class TalonHWCommand
 		{
 			custom_profile_run_ = run;
 		}
-		bool getCustomProfileRun(void) const
+		bool getCustomProfileRun(void) 
 		{
 			return custom_profile_run_;
 		}
@@ -1384,10 +1384,13 @@ class TalonHWCommand
 		}
 		void overwriteCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
+			
 			custom_profile_points_[slot] = points;
 			custom_profile_total_time_[slot].resize(points.size());
+			
 			for(size_t i = 0; i < points.size(); i++)
 			{
+
 				if(i != 0)
 				{
 					custom_profile_total_time_[slot][i] = points[i].duration + custom_profile_total_time_[slot][i-1];
@@ -1400,6 +1403,8 @@ class TalonHWCommand
 		}
 		std::vector<CustomProfilePoint> getCustomProfilePoints(int slot) /*const*/ //TODO, can be const?
 		{
+			
+
 			return custom_profile_points_[slot];
 		}
 		std::vector<double> getCustomProfileTime(int slot)  /*const*/ //TODO, can be const?

@@ -558,7 +558,7 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 		ros::Rate rate(talon_command_[joint_id].getCustomProfileHz());
 		bool run = talon_command_[joint_id].getCustomProfileRun();
 		
-		if(status.running < run)
+		if(status.running > run)
 		{		
 			std::vector<hardware_interface::CustomProfilePoint> empty_points;
 			talon_command_[joint_id].overwriteCustomProfilePoints(empty_points, status.slotRunning);	
@@ -619,6 +619,7 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 				{
 					status.outOfPoints = false;
 					end = start;
+					break;
 				}
 			}
 			points_run = end -1;	

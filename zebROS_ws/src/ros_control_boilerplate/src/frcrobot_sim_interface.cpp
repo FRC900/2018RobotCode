@@ -456,7 +456,10 @@ void FRCRobotSimInterface::loop_joy(void)
 void FRCRobotSimInterface::custom_profile_set_talon(bool posMode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double &pos_offset)
 {
     const hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
-    
+   
+	ROS_INFO_STREAM("id: " << joint_id << " set: " << setpoint << " f: " << fTerm);
+
+ 
     if(zeroPos)
     {
     }
@@ -525,7 +528,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
         ros::Rate rate(talon_command_[joint_id].getCustomProfileHz());
         bool run = talon_command_[joint_id].getCustomProfileRun();
 
-        if(status.running < run)
+        if(status.running > run)
         {
             std::vector<hardware_interface::CustomProfilePoint> empty_points;
             talon_command_[joint_id].overwriteCustomProfilePoints(empty_points, status.slotRunning);
@@ -556,8 +559,12 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
         status.slotRunning =  slot;
         if(run)
         {
-            auto profile = talon_command_[joint_id].getCustomProfilePoints(status.slotRunning);
-            static int fail_flag = 0;
+            std::vector<hardware_interface::CustomProfilePoint> profile = talon_command_[joint_id].getCustomProfilePoints(status.slotRunning);
+
+
+
+
+			static int fail_flag = 0;
             if(profile.size() == 0)
             {
                 if(fail_flag % 100 == 0)
@@ -586,7 +593,8 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
                 {
                     status.outOfPoints = false;
                     end = start;
-                }
+					break;
+				}
             }
             points_run = end -1;
             if(points_run < 0) points_run = 0;
@@ -622,7 +630,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
                     double fTerm = profile[end - 1].fTerm + (profile[end].fTerm - profile[end - 1].fTerm) /
                     (times_by_point[end] - times_by_point[end-1]) * (time_since_start - times_by_point[end-1]);
 
-                    custom_profile_set_talon(profile[end].positionMode, setpoint, fTerm, joint_id, profile[end].pidSlot, profile[end-1].zeroPos, pos_offset);
+					custom_profile_set_talon(profile[end].positionMode, setpoint, fTerm, joint_id, profile[end].pidSlot, profile[end-1].zeroPos, pos_offset);
 
                 }
 
