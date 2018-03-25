@@ -8,6 +8,8 @@ ElevatorController::ElevatorController():
 	after_shift_max_vel_(0),
 	before_shift_max_accel_(0),
 	before_shift_max_vel_(0),
+	intake_up_last_(true),
+	transition_time_(0.0),
 	shift_cmd_(false),
 	shifted_(false),
 	clamp_cmd_(0.0),
@@ -27,7 +29,6 @@ ElevatorController::ElevatorController():
 	lift_offset_(0.0),
 	intake_power_diff_multiplier_(1.0),
 	f_arm_fric_(0.0)
-
 {
 }
 
@@ -279,8 +280,8 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	}
 	
 	//Set soft limits using offsets here
-	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_);
-	lift_joint_.setReverseSoftLimitThreshold(min_extension_ + lift_offset_);
+	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_ + .03);
+	lift_joint_.setReverseSoftLimitThreshold(min_extension_ + lift_offset_- .03);
 	lift_joint_.setForwardSoftLimitEnable(true);
 	lift_joint_.setReverseSoftLimitEnable(true);
 
@@ -332,9 +333,6 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 		ROS_INFO_STREAM("point from remove zone up: " << boost::geometry::wkt(point_vector_up[i]));
 	}
 	boost::geometry::assign_points(remove_zone_poly_up, point_vector_up);
-
-	
-
 	
 	arm_limiting::polygon_type intake_up_box;
 	std::vector<arm_limiting::point_type> point_vector_intake_up;
@@ -413,7 +411,6 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	IntakeHardSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_hard_controller/command", 1);
 	ReturnCmd_        = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);
 	ReturnTrueSetpoint_ = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_true_setpoint", 1);
-
 
 	Odom_             = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("odom", 1);
 
@@ -600,8 +597,15 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	
 	double offset_last = pivot_offset_;
 
-	pivot_offset_ = raw_pivot_angle + M_PI - fmod(raw_pivot_angle - pivot_offset_ + M_PI, 2*M_PI);
-
+	
+	if(raw_pivot_angle - pivot_offset_ > 0)
+	{
+		pivot_offset_ = raw_pivot_angle + M_PI - fmod(raw_pivot_angle - pivot_offset_ + M_PI, 2*M_PI);
+	}
+	else
+	{
+		pivot_offset_ = raw_pivot_angle - M_PI - fmod(raw_pivot_angle - pivot_offset_ - M_PI, 2*M_PI);
+	}
 	double pivot_angle   =  pivot_joint_.getPosition() - pivot_offset_;
 	if(fabs(offset_last - pivot_offset_) > .1) //Offset will jump by intervals of 2 * pi, 
 												//don't reset soft limits if change is just due to floating

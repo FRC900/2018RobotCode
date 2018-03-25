@@ -68,7 +68,7 @@
 namespace frcrobot_control
 {
 const int pidIdx = 0; //0 for primary closed-loop, 1 for cascaded closed-loop
-const int timeoutMs = 0; //If nonzero, function will wait for config success and report an error if it times out. If zero, no blocking or checking is performed
+const int timeoutMs = 10; //If nonzero, function will wait for config success and report an error if it times out. If zero, no blocking or checking is performed
 
 FRCRobotHWInterface::FRCRobotHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_model)
 	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model)
@@ -1560,7 +1560,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				//ROS_WARN("clear points");
 				safeTalonCall(talon->ClearMotionProfileTrajectories(), "ClearMotionProfileTrajectories");
 				(*can_talons_mp_written_)[joint_id].store(false, std::memory_order_relaxed);
-
 				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 			}
 
@@ -1569,27 +1568,22 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				//ROS_WARN("clear underrun");
 				safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
 				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile underrun changed");
-
 			}
 
 			// TODO : check that Talon motion buffer is not full
 			// before writing, communicate how many have been written
 			// - and thus should be cleared - from the talon_command
 			// list of requests.
-
 		}
-
 
 		std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
 		if (tc.motionProfileTrajectoriesChanged(trajectory_points))
 		{
 			//ROS_INFO_STREAM("Pre buffer");
 			//ROS_WARN("point_buffer");
-			int i = 0;
+			//int i = 0;
 			for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
 			{
-				
-
 				ctre::phoenix::motion::TrajectoryPoint pt;
 				pt.position = it->position / radians_scale;
 				pt.velocity = it->velocity / radians_per_second_scale;
@@ -1601,8 +1595,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				pt.zeroPos = it->zeroPos;
 				pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
 				safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
-				//ROS_INFO_STREAM("id: " << joint_id << " pos: " << pt.position << " i: " << i);
-				i++;
+				//ROS_INFO_STREAM("id: " << joint_id << " pos: " << pt.position << " i: " << i++);
 			}
 			//ROS_INFO_STREAM("Post buffer");
 			// Copy the 1st profile trajectory point from
@@ -1614,7 +1607,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 			ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 		}
-
 
 
 		// Set new motor setpoint if either the mode or
