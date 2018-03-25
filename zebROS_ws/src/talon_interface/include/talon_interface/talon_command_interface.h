@@ -17,6 +17,27 @@ enum TrajectoryDuration
 	TrajectoryDuration_50ms = 50,
 	TrajectoryDuration_100ms = 100,
 };
+
+//Below struct contains all the info we want for our profile
+//Later it might include some more complex settings (current limits?, peak output limits?, 
+//some f params to calc on the fly based on sensor data?)
+struct CustomProfilePoint
+{
+	CustomProfilePoint() :
+		positionMode(true), //versus velocity mode
+		pidSlot(0),
+		setpoint(0.0),
+		fTerm(0),
+		duration(0)
+	{
+	}
+	bool positionMode;
+	int pidSlot;
+	double setpoint;
+	double fTerm;
+	double duration;
+};
+
 	
 struct TrajectoryPoint
 {
@@ -167,8 +188,14 @@ class TalonHWCommand
 			pidf_changed_{true, true},
 
 			conversion_factor_(1.0),
-			conversion_factor_changed_(true)
+			conversion_factor_changed_(true),
+			
+			custom_profile_run_(false),
+			custom_profile_slot_(0),
+			custom_profile_hz_(20.0)
+
 		{
+			custom_profile_points_.resize(4); //change as needed
 		}
 		// This gets the requested setpoint, not the
 		// status actually read from the controller
@@ -1300,6 +1327,47 @@ class TalonHWCommand
 			conversion_factor_changed_ = false;
 			return true;
 		}
+		void setCustomProfileHz(const double &hz)
+		{
+			custom_profile_hz_ = hz;
+		}
+		double getCustomProfileHz(void) const
+		{
+			return custom_profile_hz_;
+		}
+		void setCustomProfileRun(const bool &run)
+		{
+			custom_profile_run_ = run;
+		}
+		bool getCustomProfileRun(void) const
+		{
+			return custom_profile_run_;
+		}
+		void setCustomProfileSlot(const int &slot)
+		{
+			custom_profile_slot_ = slot;
+		}
+		int getCustomProfileSlot(void) const
+		{
+			return custom_profile_slot_;
+		}
+		void pushCustomProfilePoint(const CustomProfilePoint &point, int slot)
+		{
+			custom_profile_points_[slot].push_back(point);
+		} 
+		void pushCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
+		{
+			custom_profile_points_[slot].insert(custom_profile_points_[slot].end(), points.begin(), points.end());
+		}
+		void overwriteCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
+		{
+			custom_profile_points_[slot] = points;
+		}
+		std::vector<CustomProfilePoint> getCustomProfilePoints(int slot) /*const*/ //TODO, can be const?
+		{
+			return custom_profile_points_[slot];
+		} 
+		
 
 	private:
 		double    command_; // motor setpoint - % vbus, velocity, position, etc
@@ -1407,6 +1475,11 @@ class TalonHWCommand
 
 		double conversion_factor_;
 		bool   conversion_factor_changed_;
+		
+		bool custom_profile_run_;
+		int custom_profile_slot_;
+		double custom_profile_hz_;
+		std::vector<std::vector<CustomProfilePoint>> custom_profile_points_;
 };
 
 // Handle - used by each controller to get, by name of the

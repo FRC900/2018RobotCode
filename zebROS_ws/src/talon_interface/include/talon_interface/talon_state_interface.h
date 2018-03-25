@@ -87,6 +87,8 @@ enum LimitSwitchNormal
 	LimitSwitchNormal_Last
 };
 
+
+
 enum VelocityMeasurementPeriod {
 	Period_1Ms = 1,
 	Period_2Ms = 2,
@@ -133,6 +135,21 @@ struct MotionProfileStatus
 	{
 	}
 
+};
+
+struct CustomProfileStatus
+{
+	bool running;
+	int slotRunning;
+	int remainingPoints;
+	double remainingTime;	//Should this be a ROS duration?
+	CustomProfileStatus():
+		running(false),
+		slotRunning(0),
+		remainingPoints(0),
+		remainingTime(0.0)
+	{
+	}
 };
 
 // Class which contains state information
@@ -789,7 +806,14 @@ class TalonHWState
 		{
 			return motion_profile_trajectory_period_;
 		}
-
+		CustomProfileStatus getCustomProfileStatus(void) const
+		{
+			return custom_profile_status_;
+		}
+		void setCustomProfileStatus(const CustomProfileStatus &status) 
+		{
+			custom_profile_status_ = status;
+		}		
 		void setPidfP(double pidf_p, size_t index)
 		{
 			if ((index == 0) || (index == 1))
@@ -1069,6 +1093,7 @@ class TalonHWState
 		int motion_profile_top_level_buffer_count_;
 		bool motion_profile_top_level_buffer_full_;
 		MotionProfileStatus motion_profile_status_;
+		CustomProfileStatus custom_profile_status_;
 		int motion_control_frame_period_;
 		int motion_profile_trajectory_period_;
 

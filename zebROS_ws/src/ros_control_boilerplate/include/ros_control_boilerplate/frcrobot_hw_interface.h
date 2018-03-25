@@ -180,6 +180,8 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 	private:
 		void hal_keepalive_thread(void);
 		void process_motion_profile_buffer_thread(double hz);
+		void custom_profile_thread(int joint_id);
+
 		/* Get conversion factor for position, velocity, and closed-loop stuff */
 
 		double getConversionFactor(int encoder_cycle_per_revolution, hardware_interface::FeedbackDevice encoder_feedback, hardware_interface::TalonMode talon_mode, int joint_id);
@@ -228,6 +230,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;
 		std::thread motion_profile_thread_;
+		std::vector<std::thread> custom_profile_threads_;
 
 		PowerDistributionPanel pdp_joint_;
 

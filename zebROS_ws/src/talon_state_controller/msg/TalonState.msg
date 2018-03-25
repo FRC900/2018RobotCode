@@ -119,3 +119,5 @@ string[]  faults
 string[]  sticky_faults
 float64[] conversion_factor
 bool[]    water_game
+
+#TODO: add custom profile status struct by breaking it up etc.
