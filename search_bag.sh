@@ -1,5 +1,8 @@
 source /opt/ros/kinetic/setup.bash
 
+IFS='
+'
+
 if [ $# -eq 0 ]
 then
 	echo Input a bag file
@@ -25,6 +28,7 @@ do
 
 	echo Writing data to file
 	zebROS_ws/devel/lib/rosbag_scripts/rosbag_scripts_node $var
+	filename=$(basename $var)
 
 	echo Is this a match?
 	any_data=$(rosbag info $var | grep /frcrobot/match_data)
@@ -47,7 +51,8 @@ do
 			cp $var $bag_name
 		fi
 	else
-		echo This does not have match data.
+		echo This does not have match data -- renaming
+		mv $var /mnt/900_2/practice$(basename $var)
 	fi
 	rm temp_file.txt
 done
