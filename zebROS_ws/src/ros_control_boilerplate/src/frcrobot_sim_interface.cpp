@@ -94,6 +94,7 @@ For a more detailed simulation example, see sim_hw_interface.cpp
 #define KEYCODE_LEFT_BRACKET 0x5B
 #define KEYCODE_ESCAPE  0x1B
 
+
 namespace frcrobot_control
 {
 
@@ -128,7 +129,6 @@ class TeleopJointsKeyboard
 			std::cout << "init " << std::endl;
 			// TODO: make this robot agonistic
 			joints_pub_ = nh_.advertise<ros_control_boilerplate::JoystickState>("/frcrobot/joystick_states", 1);
-            //cube_state_sub = nh_.subscribe<elevator_controller:CubeState>("/frcrobot/cube_state_sim", cube_state_cb);
 		}
 
 		~TeleopJointsKeyboard()
@@ -464,7 +464,6 @@ class TeleopJointsKeyboard
 
 		ros::NodeHandle nh_;
 		ros::Publisher joints_pub_;
-		//ros::Subscriber cube_state_sub_;
 		ros_control_boilerplate::JoystickState cmd_;
 		ros_control_boilerplate::JoystickState cmd_last_;
 		bool has_recieved_joints_;
@@ -478,13 +477,23 @@ void FRCRobotSimInterface::loop_joy(void)
     TeleopJointsKeyboard teleop;
     teleop.keyboardLoop();
 }
+void FRCRobotSimInterface::cube_state_callback(const elevator_controller::CubeState &cube) {
+    ROS_WARN("HI");
+    ROS_WARN("Clamp %d", cube.clamp);
+    clamp = cube.clamp;
+    intake_high = cube.intake_high;
+    intake_low = cube.intake_low;
+    has_cube = cube.has_cube;
+}
 void FRCRobotSimInterface::init(void)
 {
 	// Do base class init. This loads common interface info
 	// used by both the real and sim interfaces
 	FRCRobotInterface::init();
+    ros::NodeHandle nh_;
 
 	sim_joy_thread_ = std::thread(&FRCRobotSimInterface::loop_joy, this);
+    cube_state_sub_ = nh_.subscribe("/frcrobot/cube_state_sim", 1, &FRCRobotSimInterface::cube_state_callback, this);
 	
 	// Loop through the list of joint names
 	// specified as params for the hardware_interface.
@@ -564,12 +573,31 @@ void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
         auto &ts = talon_state_[joint_id];
-
-        
-        if(ts.getCANID() == 51)
-            ts.setForwardLimitSwitch(true);
+        if(ts.getCANID() == 51) {
+            if(clamp) {
+                ROS_WARN("Here");
+                ts.setForwardLimitSwitch(true);
+            }
+            else {
+                ROS_WARN("Also here");
+                ts.setForwardLimitSwitch(false);
+            }
+        }
         
     }
+    for (size_t i = 0; i < num_digital_inputs_; i++) 
+        {    
+            //State should really be a bool - but we're stuck using
+            //ROS control code which thinks everything to and from
+            //hardware are doubles
+            if(digital_input_names_[i] == "intake_line_break_high") {
+                digital_input_state_[i] = (intake_high) ? 1 : 0; 
+            }
+            if(digital_input_names_[i] == "intake_line_break_low") {
+                digital_input_state_[i] = (intake_low) ? 1 : 0; 
+            }
+        }    
+
     // Simulated state is updated in write, so just
 	// display it here for debugging
 
@@ -580,6 +608,7 @@ void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 		ROS_WARN("ROBOT CODE READY!");
 		printed_robot_code_ready = true;
 	}
+    ros::spinOnce();
 }
 
 void FRCRobotSimInterface::write(ros::Duration &elapsed_time)

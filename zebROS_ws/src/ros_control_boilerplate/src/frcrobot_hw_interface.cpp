@@ -865,11 +865,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 			//ctre::phoenix::motorcontrol::StickyFaults sticky_faults;
 			//safeTalonCall(talon->GetStickyFaults(sticky_faults), "GetStickyFaults");
-			//ts.setStickyFaults(sticky_faults.ToBitfield());
+			//ts.setStickyFAults(sticky_faults.ToBitfield());
 		}
 	}
 		
-	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
+	For (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
 		brushless_vel_[i] = nidec_brushlesses_[i]->Get();
 	}
