@@ -124,6 +124,7 @@ class ElevatorController
 		hardware_interface::JointHandle IntakeSoftSpring_;
 
 		ros::Publisher CubeState_; 
+		hardware_interface::JointHandle CubeStateJoint_;
 
 		ros::Publisher ReturnCmd_; 
 		ros::Publisher ReturnTrueSetpoint_; 

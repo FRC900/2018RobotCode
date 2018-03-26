@@ -480,9 +480,6 @@ void FRCRobotHWInterface::init(void)
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
 
-
-	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
-
 	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	can_talons_mp_writing_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	can_talons_mp_running_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
@@ -647,7 +644,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		{
 			profile_is_live = true;
 			break;	
-
 		} 
 	}
 	for(std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
@@ -656,7 +652,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		{
 			writing_points = true;
 			break;	
-
 		} 
 	}
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
@@ -697,7 +692,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 		if(ts.getCANID() == 51)
 		{
-
 			auto sensor_collection = talon->GetSensorCollection();
 			ts.setForwardLimitSwitch(sensor_collection.IsFwdLimitSwitchClosed());
 			ts.setReverseLimitSwitch(sensor_collection.IsRevLimitSwitchClosed());
@@ -761,13 +755,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
 			internal_status.timeDurMs = talon_status.timeDurMs;
 			ts.setMotionProfileStatus(internal_status);
-
-
-
-
-
-
-
 		}  	
 		const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
@@ -777,12 +764,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 		ts.setSpeed(speed);
 
-
-			
-
-
-
-		
 		//top level buffer has capacity of 4096
 		//ROS_INFO_STREAM("num rem : " << talon_status.topBufferRem);
 
@@ -1751,6 +1732,26 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			compressors_[i]->SetClosedLoopControl(setpoint);
 			last_compressor_command_[i] = compressor_command_[i];
 		}
+	}
+	for (size_t i = 0; i < num_dummy_joints_; i++)
+	{
+		dummy_joint_effort_[i] = 0;
+		//if (dummy_joint_names_[i].substr(2, std::string::npos) == "_angle")
+		{
+			// position mode
+			dummy_joint_velocity_[i] = (dummy_joint_command_[i] - dummy_joint_position_[i]) / elapsed_time.toSec();
+			dummy_joint_position_[i] = dummy_joint_command_[i];
+		}
+#if 0
+		else if (dummy_joint_names_[i].substr(2, std::string::npos) == "_drive")
+		{
+			// velocity mode
+			dummy_joint_position_[i] += dummy_joint_command_[i] * elapsed_time.toSec();
+			dummy_joint_velocity_[i] = dummy_joint_command_[i];
+		}
+#endif
+		if (dummy_joint_names_[i] == "cube_state")
+			cube_state_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
 	}
 }
 

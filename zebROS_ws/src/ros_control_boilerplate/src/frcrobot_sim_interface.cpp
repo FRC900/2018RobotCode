@@ -564,7 +564,6 @@ void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
         auto &ts = talon_state_[joint_id];
-
         
         if(ts.getCANID() == 51)
             ts.setForwardLimitSwitch(true);
