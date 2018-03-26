@@ -80,7 +80,6 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	// TODO : make these names params?
 	line_break_intake_high_ = joint_state_iface->getHandle("intake_line_break_high");
 	line_break_intake_low_ = joint_state_iface->getHandle("intake_line_break_low");
-	line_break_clamp_ = joint_state_iface->getHandle("clamp_line_break");
 
 	XmlRpc::XmlRpcValue lift_params;
 	if (!controller_nh.getParam("lift", lift_params))
