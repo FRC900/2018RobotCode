@@ -109,7 +109,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 1);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
-	realtime_tools::RealtimePublisher<std_msgs::Float64> zero_navX(nh_, "/frcrobot/navx_controller/command", 1); //Kinda dirty
 
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_arm(nh_, "/frcrobot/override_arm_limits", 1);	
@@ -160,7 +159,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				realtime_pub_nt.msg_.delays[3] = (int)driveTable->GetNumber("delay_3", 0);
 				realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
 				
-				
 				frc::SmartDashboard::PutNumber("auto_mode_0_ret", realtime_pub_nt.msg_.mode[0]);
 				frc::SmartDashboard::PutNumber("auto_mode_1_ret", realtime_pub_nt.msg_.mode[1]);
 				frc::SmartDashboard::PutNumber("auto_mode_2_ret", realtime_pub_nt.msg_.mode[2]);
@@ -170,8 +168,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				frc::SmartDashboard::PutNumber("delay_2_ret", realtime_pub_nt.msg_.delays[2]);
 				frc::SmartDashboard::PutNumber("delay_3_ret", realtime_pub_nt.msg_.delays[3]);
 				frc::SmartDashboard::PutNumber("robot_start_position_ret", realtime_pub_nt.msg_.position);
-
-
 
 				realtime_pub_nt.msg_.header.stamp = time_now_t;
 				realtime_pub_nt.unlockAndPublish();
@@ -195,20 +191,17 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				stop_arm.unlockAndPublish();
 
 			}
-			if (zero_navX.trylock())
+
+			double zero_angle;
+			if(driveTable->GetBoolean("zero_navX", 0) != 0)
 			{
-				double zero_angle;
-				if(driveTable->GetBoolean("zero_navX", 0) != 0)
-				{
-					zero_angle = (double)driveTable->GetNumber("zero_angle", 0);	
-				}
-				else
-				{
-					zero_angle = -10000;
-				}
-				zero_navX.msg_.data = zero_angle;
-				zero_navX.unlockAndPublish();
+				zero_angle = (double)driveTable->GetNumber("zero_angle", 0);
 			}
+			else
+			{
+				zero_angle = -10000;
+			}
+			navX_zero_.store(zero_angle, std::memory_order_relaxed);
 
 			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
 		}
@@ -597,6 +590,8 @@ void FRCRobotHWInterface::init(void)
 		compressors_.push_back(std::make_shared<frc::Compressor>(compressor_pcm_ids_[i]));
 	}
 
+	navX_zero_ = -10000;
+
 	for(size_t i = 0; i < num_dummy_joints_; i++)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
@@ -924,12 +919,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		tf2::Quaternion tempQ;
 		if(i == 0)
 		{
-			if(navX_command_[i] != -10000)
-			{
-				offset_navX_[i] = navX_command_[i] - navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI;
-			}
+			const double navX_zero = navX_zero_.load(std::memory_order_relaxed);
+			if(navX_zero != -10000)
+				offset_navX_[i] = navX_zero - navXs_[i]->GetFusedHeading() / 360. * 2. * M_PI;
 
-			navX_angle_.store(navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i], std::memory_order_relaxed);
+			navX_angle_.store(navXs_[i]->GetFusedHeading() / 360. * 2. * M_PI + offset_navX_[i], std::memory_order_relaxed);
 		}
 		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i]  );
 

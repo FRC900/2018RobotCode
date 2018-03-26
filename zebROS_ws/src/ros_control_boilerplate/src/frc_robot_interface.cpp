@@ -552,7 +552,6 @@ void FRCRobotInterface::init()
 	imu_angular_velocity_covariances_.resize(num_navX_);
 	imu_linear_accelerations_.resize(num_navX_);
 	imu_linear_acceleration_covariances_.resize(num_navX_);
-	navX_command_.resize(num_navX_);
 	navX_state_.resize(num_navX_);
 	offset_navX_.resize(num_navX_);
 
@@ -581,8 +580,7 @@ void FRCRobotInterface::init()
 		hardware_interface::JointStateHandle nxsh(navX_names_[i], &navX_state_[i], &navX_state_[i], &navX_state_[i]);
 		joint_state_interface_.registerHandle(nxsh);
 
-		hardware_interface::JointHandle nxh(nxsh, &navX_command_[i]);
-		joint_position_interface_.registerHandle(nxh);
+		offset_navX_[i] = 0;
 	}
 
 	num_analog_inputs_ = analog_input_names_.size();

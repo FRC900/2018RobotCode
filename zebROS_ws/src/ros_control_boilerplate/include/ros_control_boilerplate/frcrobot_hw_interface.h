@@ -217,6 +217,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Solenoid>> solenoids_;
 		std::vector<std::shared_ptr<frc::DoubleSolenoid>> double_solenoids_;
 		std::vector<std::shared_ptr<AHRS>> navXs_;
+		std::atomic<double> navX_zero_;
 		std::atomic<double> navX_angle_;
 		std::atomic<double> pressure_;
 		std::atomic<bool> match_data_enabled_;
