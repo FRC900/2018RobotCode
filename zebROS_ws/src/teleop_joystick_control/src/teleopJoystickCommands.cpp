@@ -79,7 +79,6 @@ static double move_out_pos_y;
 static bool move_out_up_or_down;
 static double move_out_down_y;
 
-
 enum pos {high_scale, mid_scale, low_scale, switch_c, exchange, intake_ready_to_drop, intake, intake_low, climb_c, default_c, other};
 
 /*
@@ -1179,7 +1178,7 @@ int main(int argc, char **argv)
 	ros::Subscriber elevator_odom = n.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
 	ros::Subscriber elevator_cmd  = n.subscribe("/frcrobot/elevator_controller/return_cmd_pos", 1, &elevCmdCallback);
 	ros::Subscriber cube_state    = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
-	ros::Subscriber disable_arm_limits_sub = n.subscribe("/frcrobot/override_arm_limits", 1, &overrideCallback);
+	ros::Subscriber joint_states_sub = n.subscribe("/frcrobot/joint_states", 1, &jointStateCallback);
 
 	disableArmLimits = false;
 	navX_angle = M_PI / 2;
@@ -1209,6 +1208,7 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 	tf2::Matrix3x3(navQuat).getRPY(roll, pitch, yaw);
 	navX_angle.store(yaw, std::memory_order_relaxed);
 }
+
 void cube_rumble(bool has_cube) {
     static double start_has_cube = DBL_MAX;
     if(has_cube && start_has_cube > ros::Time::now().toSec()) {
@@ -1233,13 +1233,26 @@ void cubeCallback(const elevator_controller::CubeState &cube)
     cube_rumble(cube.has_cube);
 }
 
-// TODO : convert to joint_state callback
-void clampedCallback(const std_msgs::Float64 &clamp)
+// Grab various info from hw_interface using
+// dummy joint position values
+void jointStateCallback(const sensor_msgs::JointState &joint_state)
 {
-	clamped_c.store(clamp.data <= 0, std::memory_order_relaxed);
+	static size_t clamp_idx               = std::numeric_limits<size_t>::max();
+	static size_t override_arm_limits_idx = std::numeric_limits<size_t>::max();
+	if ((clamp_idx               >= joint_state.name.size()) ||
+	    (override_arm_limits_idx >= joint_state.name.size() ))
+	{
+		for (size_t i = 0; i < joint_state.name.size(); i++)
+		{
+			if (joint_state.name[i] == "clamp")
+				clamp_idx = i;
+			else if (joint_state.name[i] == "override_arm_limits")
+				override_arm_limits_idx = i;
+		}
+	}
+	if (clamp_idx < joint_state.position.size())
+		clamped_c.store(joint_state.position[clamp_idx] <= 0, std::memory_order_relaxed);
+	if (override_arm_limits_idx < joint_state.position.size())
+		disableArmLimits.store(joint_state.position[override_arm_limits_idx], std::memory_order_relaxed);
 }
 
-void overrideCallback(const std_msgs::Bool &override_lim)
-{
-	disableArmLimits.store(override_lim.data, std::memory_order_relaxed);
-}

@@ -205,6 +205,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 				const std::string &talon_method_name);
 
 		std::atomic<bool> stop_arm_;
+		std::atomic<bool> override_arm_limits_;
 		std::atomic<bool> cube_state_;
 
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;

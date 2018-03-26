@@ -111,7 +111,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
 
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
-	realtime_tools::RealtimePublisher<std_msgs::Bool> override_arm(nh_, "/frcrobot/override_arm_limits", 1);	
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -122,7 +121,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
     realtime_pub_nt.msg_.delays.resize(4);
     ros::Time time_now_t;
 	ros::Time last_nt_publish_time;
-	ros::Time last_joystick_publish_time;
+	//ros::Time last_joystick_publish_time;
 	ros::Time last_match_data_publish_time;
 
 	const double nt_publish_rate = 1.1;
@@ -178,12 +177,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				override_compressor_limits.unlockAndPublish();
 				frc::SmartDashboard::PutBoolean("disable_reg_ret", override_compressor_limits.msg_.data);
 			}
-			if (override_arm.trylock())
-			{
-				override_arm.msg_.data = (bool)driveTable->GetBoolean("disable_arm_limits", 0);		
-				override_arm.unlockAndPublish();
-				frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm.msg_.data );
-			}
+
+			override_arm_limits_.store((bool)driveTable->GetBoolean("disable_arm_limits", 0), std::memory_order_relaxed);
+			frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm_limits_.load(std::memory_order_relaxed));
 
 			stop_arm_.store((bool)driveTable->GetBoolean("stop_arm", 0), std::memory_order_relaxed);
 
@@ -408,7 +404,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
-	ros::Duration(3).sleep();	
+	ros::Duration(3).sleep();
 	bool set_frame_period[num_can_talon_srxs_];
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		set_frame_period[i] = false;
@@ -582,6 +578,7 @@ void FRCRobotHWInterface::init(void)
 	}
 
 	stop_arm_  = false;
+	override_arm_limits_ = false;
 	navX_zero_ = -10000;
 
 	for(size_t i = 0; i < num_dummy_joints_; i++)
@@ -1742,6 +1739,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			cube_state_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
 		else if (dummy_joint_names_[i] == "stop_arm")
 			dummy_joint_position_[i] = stop_arm_.load(std::memory_order_relaxed) ? 1 : 0;
+		else if (dummy_joint_names_[i] == "override_arm_limits")
+			dummy_joint_position_[i] = override_arm_limits_.load(std::memory_order_relaxed) ? 1 : 0;
 	}
 }
 
