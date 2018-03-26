@@ -366,7 +366,7 @@ class arm_limits
 
 			//ROS_INFO_STREAM("cur_pos check");
 
-			//ROS_INFO_STREAM(" Cmd: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
+			ROS_INFO_STREAM(" Cur pos: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
 			//cur_pos.x(.05);
 			//cur_pos.y(.5);
 			//cur_up_or_down = false;	
@@ -408,6 +408,7 @@ class arm_limits
 			arm_true_marker_pub_.publish(arm_line_true);
 
 	
+			ROS_WARN_STREAM(" Cur pos: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
 			double isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
 			//Could switch above to using circle func instead of trig func	
@@ -421,19 +422,22 @@ class arm_limits
 
 			bool enforced_hook_x_limit = false;
 
-			if(cmd.y() < cut_off_y_line_ || cur_pos.y() < cut_off_y_line_)
+			if(cmd.y() < cut_off_y_line_ || cur_pos.y() < cut_off_y_line_ - .1)
 			{
 				cmd.x(drop_down_pos_);
 				enforced_hook_x_limit = cur_pos.y() < cut_off_y_line_;
 				up_or_down = false;
+				ROS_ERROR("Here -  2");
 			}
 			if(((!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit) && cmd.y() < cut_off_y_line_) || (cube_in_clamp && !intake_open ) && cmd.y() < cut_off_y_line_  && cur_pos.y() > cut_off_y_line_-.1)  
 			{
 				cmd.y(cut_off_y_line_);
+				ROS_ERROR("Here");
 			}
 			bool recalc_due_to_lim = false; 	
 			if(cmd.x() < cut_off_x_line_ - .001   && cur_lift_height < safe_to_go_back_y_)
 			{
+				ROS_ERROR("Here22");
 				cmd.x(cut_off_x_line_);
 				up_or_down = true;
 				cmd.y(isolated_lift_delta_y + cur_lift_height+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
@@ -444,12 +448,13 @@ class arm_limits
 			{	
 				recalc_due_to_lim = true;
 				cmd.y(safe_to_go_back_y_+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
-				//ROS_WARN_STREAM("making it safe to go down by setting: " << cmd.y()); 
+				ROS_WARN_STREAM("making it safe to go down by setting: " << cmd.y()); 
 			}
 			isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
 
 			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
+			ROS_INFO_STREAM(" Cmd changed?: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 		
 			double static_offset_high;
 			double static_offset_low;
@@ -662,7 +667,7 @@ class arm_limits
 		
 			//double prior_ang = acos(cmd.x()/arm_length_);
 	
-			//ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
+			ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
 			
 			if(!check_if_possible(test_pivot_cmd, up_or_down, 1, cur_lift_height))
 			{
@@ -679,22 +684,22 @@ class arm_limits
 
 				
 
-				//ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+				ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd) << " up_or_down: " << up_or_down);
 				return false;				
 			}
 			else
 			{
 				point_type test_lift_cmd(cur_pos.x(), cur_pos.y() + isolated_lift_delta_y);
-				//ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
+				ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
 				if(!check_if_possible(test_lift_cmd, cur_up_or_down, 2))
 				{
 					cmd.y(test_lift_cmd.y() - cur_pos.y() + isolated_pivot_y);
-					//ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+					ROS_INFO_STREAM("new elev: " << boost::geometry::wkt(test_lift_cmd) << " cmd: " << boost::geometry::wkt(cmd));
 					return false;
 				}
 				else
 				{
-					//ROS_INFO_STREAM("cmd final check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
+					ROS_INFO_STREAM("cmd final check. Cmd: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 					return true;
 				}
 			} 
