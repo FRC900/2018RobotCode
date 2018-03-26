@@ -217,32 +217,10 @@ void setHeight(const pos achieved_pos, pos &last_achieved_pos, ElevatorPos &elev
 
 void match_data_callback(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData)
 {
-	uint16_t leftRumble = 0, rightRumble = 0;
 	//Joystick Rumble
 	const double localMatchTimeRemaining = MatchData->matchTimeRemaining;
 	matchTimeRemaining.store(localMatchTimeRemaining, std::memory_order_relaxed);
 
-	if ((localMatchTimeRemaining < 91 && localMatchTimeRemaining > 90.8) || ( localMatchTimeRemaining < 90.7 && localMatchTimeRemaining > 90.5) || (localMatchTimeRemaining < 90.4 && localMatchTimeRemaining > 90.2) || ( localMatchTimeRemaining < 90.1 && localMatchTimeRemaining > 89.9) )
-	{
-		leftRumble = 30000;
-		rightRumble = 0;
-	}
-	if ((localMatchTimeRemaining < 61 && localMatchTimeRemaining > 60.8) || ( localMatchTimeRemaining < 60.7 && localMatchTimeRemaining > 60.5) || (localMatchTimeRemaining < 60.4 && localMatchTimeRemaining > 60.2))
-	{
-		leftRumble = 65535;
-		rightRumble = 0;
-	}
-	if ((localMatchTimeRemaining < 31 && localMatchTimeRemaining > 30.8) || ( localMatchTimeRemaining < 30.7 && localMatchTimeRemaining > 30.5))
-	{
-		leftRumble = 0;
-		rightRumble = 30000;
-	}
-	if ((localMatchTimeRemaining < 11 && localMatchTimeRemaining > 10.8))
-	{
-		leftRumble = 0;
-		rightRumble = 65535;
-	}
-	rumbleTypeConverterPublish(leftRumble, rightRumble);
 }
 
 //TODO: Overrides
