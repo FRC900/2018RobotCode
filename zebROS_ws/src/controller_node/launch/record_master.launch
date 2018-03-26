@@ -41,12 +41,10 @@
 		/frcrobot/elevator_controller/odom
 		/frcrobot/elevator_controller/return_cmd_pos
 		/frcrobot/elevator_controller/return_true_setpoint
-		/frcrobot/elevator_controller/stop_arm
 		/frcrobot/elevator_controller/top_poly_visualize
 		/frcrobot/joint_states
 		/frcrobot/joystick_states
 		/frcrobot/match_data
-		/frcrobot/navx_controller/command
 		/frcrobot/navx_mxp
 		/frcrobot/override_arm_limits
 		/frcrobot/pdp_states
