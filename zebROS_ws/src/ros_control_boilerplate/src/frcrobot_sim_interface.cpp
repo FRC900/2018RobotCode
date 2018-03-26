@@ -85,6 +85,12 @@ For a more detailed simulation example, see sim_hw_interface.cpp
 #define KEYCODE_EQUALS 0x3D
 #define KEYCODE_ONE 0x1
 #define KEYCODE_TWO 0x2
+#define KEYCODE_THREE 0x3
+#define KEYCODE_FOUR 0x4
+#define KEYCODE_FIVE 0x5
+#define KEYCODE_SIX 0x6
+#define KEYCODE_SEVEN 0x7
+#define KEYCODE_EIGHT 0x8
 #define KEYCODE_LEFT_BRACKET 0x5B
 #define KEYCODE_ESCAPE  0x1B
 
@@ -122,6 +128,7 @@ class TeleopJointsKeyboard
 			std::cout << "init " << std::endl;
 			// TODO: make this robot agonistic
 			joints_pub_ = nh_.advertise<ros_control_boilerplate::JoystickState>("/frcrobot/joystick_states", 1);
+            //cube_state_sub = nh_.subscribe<elevator_controller:CubeState>("/frcrobot/cube_state_sim", cube_state_cb);
 		}
 
 		~TeleopJointsKeyboard()
@@ -153,6 +160,7 @@ class TeleopJointsKeyboard
 
                 cmd_.rightStickY = 0;
                 cmd_.rightStickX = 0;
+
                 cmd_.leftStickY = 0;
                 cmd_.leftStickX = 0;
 
@@ -214,7 +222,33 @@ class TeleopJointsKeyboard
 				bool dirty = true;
 				switch (c)
 				{
-				case KEYCODE_a:
+
+                case KEYCODE_i:
+                    cmd_.rightStickY += .5;
+                    break;
+                case KEYCODE_k:
+                    cmd_.rightStickY -= .5;
+                    break;
+                case KEYCODE_j:
+                    cmd_.rightStickX += .5;
+                    break;
+                case KEYCODE_l:
+                    cmd_.rightStickX -= .5;
+                    break;
+
+                case KEYCODE_d:
+                    cmd_.leftStickY += .5;
+                    break;
+                case KEYCODE_a:
+                    cmd_.leftStickY -= .5;
+                    break;
+                case KEYCODE_w:
+                    cmd_.leftStickX += .5;
+                    break;
+                case KEYCODE_s:
+                    cmd_.leftStickX -= .5;
+                    break;
+				case KEYCODE_ONE:
                     if(cmd_last_.buttonAButton) {
                         cmd_.buttonAPress = false; // radians
                     }
@@ -223,7 +257,7 @@ class TeleopJointsKeyboard
                     }
 					cmd_.buttonAButton = true; // radians
 					break;
-				case KEYCODE_b:
+				case KEYCODE_TWO:
                     if(cmd_last_.buttonBButton) {
                         cmd_.buttonBPress = false; // radians
                     }
@@ -232,7 +266,7 @@ class TeleopJointsKeyboard
                     }
 					cmd_.buttonBButton = true; // radians
 					break;
-				case KEYCODE_x:
+				case KEYCODE_THREE:
                     if(cmd_last_.buttonXButton) {
                         cmd_.buttonXPress = false; // radians
                     }
@@ -241,7 +275,7 @@ class TeleopJointsKeyboard
                     }
 					cmd_.buttonXButton = true; // radians
 					break;
-				case KEYCODE_y:
+				case KEYCODE_FOUR:
                     if(cmd_last_.buttonYButton) {
                         cmd_.buttonYPress = false; // radians
                     }
@@ -250,13 +284,13 @@ class TeleopJointsKeyboard
                     }
 					cmd_.buttonYButton = true; // radians
 					break;
-				case KEYCODE_j:
+				case KEYCODE_q:
 					cmd_.leftTrigger = .5; // radians
 					break;
-				case KEYCODE_l:
+				case KEYCODE_e:
 					cmd_.rightTrigger = .5; // radians
 					break;
-				case KEYCODE_i:
+				case KEYCODE_SEVEN:
                     if(cmd_last_.stickLeftButton) {
                         cmd_.stickLeftPress = false; // radians
                     }
@@ -265,7 +299,7 @@ class TeleopJointsKeyboard
                     }
 					cmd_.stickLeftButton = true; // radians
 					break;
-				case KEYCODE_k:
+				case KEYCODE_EIGHT:
                     if(cmd_last_.stickRightButton) {
                         cmd_.stickRightPress = false; // radians
                     }
@@ -274,7 +308,7 @@ class TeleopJointsKeyboard
                     }
 					cmd_.stickRightButton = true; // radians
 					break;
-				case KEYCODE_ONE:
+				case KEYCODE_FIVE:
                     if(cmd_last_.buttonBackButton) {
                         cmd_.buttonBackPress = false; // radians
                     }
@@ -283,7 +317,7 @@ class TeleopJointsKeyboard
                     }
 					cmd_.buttonBackButton = true; // radians
 					break;
-				case KEYCODE_TWO:
+				case KEYCODE_SIX:
                     if(cmd_last_.buttonStartButton) {
                         cmd_.buttonStartPress = false; // radians
                     }
@@ -364,11 +398,6 @@ class TeleopJointsKeyboard
 					//std::cout << "Exiting " << std::endl;
 					//quit(0);
 					break;
-				default:
-                    ROS_WARN("FaileD");
-					std::cout << "CODE: "  << c << std::endl;
-					dirty = true;
-				}
                 
                 if(cmd_last_.buttonAButton && !cmd_.buttonAButton) {
                     cmd_.buttonARelease = true;
@@ -429,12 +458,13 @@ class TeleopJointsKeyboard
 				}
 			}
 		}
+    }
 
 	private:
 
 		ros::NodeHandle nh_;
 		ros::Publisher joints_pub_;
-		ros::Subscriber joints_sub_;
+		//ros::Subscriber cube_state_sub_;
 		ros_control_boilerplate::JoystickState cmd_;
 		ros_control_boilerplate::JoystickState cmd_last_;
 		bool has_recieved_joints_;
@@ -530,7 +560,16 @@ void FRCRobotSimInterface::init(void)
 
 void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 {
-	// Simulated state is updated in write, so just
+	
+	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
+	{
+        auto &ts = talon_state_[joint_id];
+        
+        if(ts.getCANID() == 51)
+            ts.setForwardLimitSwitch(true);
+        
+    }
+    // Simulated state is updated in write, so just
 	// display it here for debugging
 
 	//printState();
@@ -888,10 +927,10 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				") right rumble = " << std::dec << right_rumble << "(" << std::hex << right_rumble <<  ")" << std::dec);
 #endif
 	}
-	std::stringstream s;
+	//std::stringstream s;
 	for (size_t i = 0; i < num_dummy_joints_; i++)
 	{
-		s << dummy_joint_command_[i] << " ";
+		//s << dummy_joint_command_[i] << " ";
 		dummy_joint_effort_[i] = 0;
 		//if (dummy_joint_names_[i].substr(2, std::string::npos) == "_angle")
 		{
@@ -906,7 +945,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			//dummy_joint_velocity_[i] = dummy_joint_command_[i];
 		}
 	}
-	ROS_INFO_STREAM_THROTTLE(1, s.str());
+	//ROS_INFO_STREAM_THROTTLE(1, s.str());
 }
 
 }  // namespace

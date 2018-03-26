@@ -7,13 +7,12 @@
 #include "ros/console.h"
 
 #include <controller_interface/multi_interface_controller.h>
-#include <hardware_interface/joint_state_interface.h>
+#include <hardware_interface/joint_command_interface.h>
 #include <nav_msgs/Odometry.h>
 #include <pluginlib/class_list_macros.h>
 #include <realtime_tools/realtime_buffer.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Bool.h>
-#include <std_msgs/Float64.h>
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Empty.h>
 
@@ -35,7 +34,8 @@ namespace elevator_controller
 
 class ElevatorController
         : public controller_interface::MultiInterfaceController<hardware_interface::TalonCommandInterface,
-																hardware_interface::JointStateInterface>
+																hardware_interface::JointStateInterface,
+																hardware_interface::PositionJointInterface>
 {
 	public:
 		ElevatorController();
@@ -106,7 +106,7 @@ class ElevatorController
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		ros::Subscriber sub_command_;
-		ros::Subscriber sub_stop_arm_;
+		hardware_interface::JointStateHandle stop_arm_;
 		ros::ServiceServer service_command_;
 		realtime_tools::RealtimeBuffer<IntakeCommand> intake_command_;
 		ros::ServiceServer service_intake_;
@@ -115,15 +115,16 @@ class ElevatorController
 		ros::ServiceServer service_end_game_deploy_;
 		//TODO: considering adding x offset?
 
-		ros::Publisher Clamp_; 
-		ros::Publisher EndGameDeploy_; 
-		ros::Publisher Shift_; 
+		hardware_interface::JointHandle Clamp_;
+		hardware_interface::JointHandle Shift_;
+		hardware_interface::JointHandle EndGameDeploy_;
+
+		hardware_interface::JointHandle IntakeUp_;
+		hardware_interface::JointHandle IntakeHardSpring_;
+		hardware_interface::JointHandle IntakeSoftSpring_;
 
 		ros::Publisher CubeState_; 
-
-		ros::Publisher IntakeUp_; 
-		ros::Publisher IntakeHardSpring_; 
-		ros::Publisher IntakeSoftSpring_; 
+		hardware_interface::JointHandle CubeStateJoint_;
 
 		ros::Publisher ReturnCmd_; 
 		ros::Publisher ReturnTrueSetpoint_; 
@@ -134,7 +135,6 @@ class ElevatorController
 		double pivot_offset_;
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
-		void stopCallback(const std_msgs::Bool& command);
 		//void enabledCallback(const ros_control_boilerplate::MatchSpecificData& enabled);
 		void lineBreakCallback(const sensor_msgs::JointState&);
 		bool cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res);
@@ -160,8 +160,6 @@ class ElevatorController
 
 		double norm_cur_lim_;
 		double climb_cur_lim_;
-
-		std::atomic<bool> stop_arm_;	
 
 		//Something for getting the soft limit bounding boxes
 		//some function for making limits based on soft limit bounding box

@@ -71,6 +71,7 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 {
 	hardware_interface::TalonCommandInterface *const talon_command_iface = hw->get<hardware_interface::TalonCommandInterface>();
 	hardware_interface::JointStateInterface *const joint_state_iface = hw->get<hardware_interface::JointStateInterface>();
+	hardware_interface::PositionJointInterface *const pos_joint_iface = hw->get<hardware_interface::PositionJointInterface>();
 
 	const std::string complete_ns = controller_nh.getNamespace();
 	std::size_t id = complete_ns.find_last_of("/");
@@ -395,20 +396,25 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, remove_zone_poly_up, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos, hook_depth_, hook_min_height_, hook_max_height_, controller_nh, intake_up_box, intake_down_box, intake_in_transition_box, dist_to_front_cube, dist_to_front_clamp);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
-	sub_stop_arm_ = controller_nh.subscribe("stop_arm", 1, &ElevatorController::stopCallback, this);
+
+	stop_arm_ = joint_state_iface->getHandle("stop_arm");
+
 	service_command_ = controller_nh.advertiseService("cmd_posS", &ElevatorController::cmdPosService, this);
 	service_intake_ = controller_nh.advertiseService("intake", &ElevatorController::intakeService, this);
 	service_clamp_ = controller_nh.advertiseService("clamp", &ElevatorController::clampService, this);
 	service_shift_ = controller_nh.advertiseService("shift", &ElevatorController::shiftService, this);
 	service_end_game_deploy_ = controller_nh.advertiseService("end_game_deploy", &ElevatorController::endGameDeployService, this);
 
-	Clamp_     	      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);
-	Shift_     	      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/shift_controller/command", 1);
-	EndGameDeploy_    = controller_nh.advertise<std_msgs::Float64>("/frcrobot/end_game_deploy_controller/command", 1);
+	Clamp_            = pos_joint_iface->getHandle("clamp");
+	Shift_            = pos_joint_iface->getHandle("shift");
+	EndGameDeploy_    = pos_joint_iface->getHandle("end_game_deploy");
+	IntakeUp_         = pos_joint_iface->getHandle("intake_up");
+	IntakeSoftSpring_ = pos_joint_iface->getHandle("intake_spring_soft");
+	IntakeHardSpring_ = pos_joint_iface->getHandle("intake_spring_hard");
+
 	CubeState_        = controller_nh.advertise<elevator_controller::CubeState>("cube_state", 1);
-	IntakeUp_         = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_up_controller/command", 1);
-	IntakeSoftSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_soft_controller/command", 1);
-	IntakeHardSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_hard_controller/command", 1);
+	CubeStateJoint_   = pos_joint_iface->getHandle("cube_state");
+
 	ReturnCmd_        = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);
 	ReturnTrueSetpoint_ = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_true_setpoint", 1);
 
@@ -434,7 +440,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	const bool end_game_deploy_cmd = end_game_deploy_cmd_.load(std::memory_order_relaxed);
 	if(end_game_deploy_cmd && !end_game_deploy_t1_)
 	{
-		
 		//ROS_INFO("part 1");
 		IntakeCommand climb_intake_cmd;
 		climb_intake_cmd.up_command = -1;
@@ -469,15 +474,11 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > .5)
 	{	
 		//ROS_INFO("dropping");
-		std_msgs::Float64 msg;
-		msg.data = 1.0;
-		EndGameDeploy_.publish(msg);
+		EndGameDeploy_.setCommand(1.0);
 	}
 	else
 	{
-		std_msgs::Float64 msg;
-		msg.data = 0.0;
-		EndGameDeploy_.publish(msg);
+		EndGameDeploy_.setCommand(0.0);
 	}
 	bool local_shift_cmd = shift_cmd_.load(std::memory_order_relaxed);
 	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
@@ -487,9 +488,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	} 
 	if(local_shift_cmd)
 	{	
-		std_msgs::Float64 msg;
-		msg.data = 1.0;
-		Shift_.publish(msg);
+		Shift_.setCommand(1.0);
 		if(!shifted_)
 		{
 			shifted_ = true;
@@ -504,19 +503,16 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	else
 	{
-		std_msgs::Float64 msg;
-		msg.data = -1.0;
-		Shift_.publish(msg);
+		Shift_.setCommand(-1.0);
 		if(shifted_)
 		{
 			shifted_ = false;
 			lift_joint_.setMotionAcceleration(before_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
-			lift_joint_.setPIDFSlot(0);
 			
-					
 			lift_joint_.setContinuousCurrentLimit(norm_cur_lim_);
 
+			lift_joint_.setPIDFSlot(0);
 			//lift_joint_.setF(f_lift_high_);
 		}
 	}
@@ -527,7 +523,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 	//ROS_INFO_STREAM("Intake power: " << cur_intake_cmd.power << " up?: " << cur_intake_cmd.up_command << " in state: " <<  cur_intake_cmd.spring_command);
 	
-
 	intake1_joint_.setCommand(cur_intake_cmd.power);
 	if(cur_intake_cmd.power > .5)
 	{
@@ -547,86 +542,70 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	bool in_transition = ros::Time::now().toSec() - transition_time_ < .5; //Consider making this 
 																		   //check enable/disable 
 
-
-	std_msgs::Float64 intake_soft_msg;
-	std_msgs::Float64 intake_hard_msg;
+	double intake_soft_msg;
+	double intake_hard_msg;
 	bool intake_open = false;
 	switch(cur_intake_cmd.spring_command)
 	{
 		default:
-			intake_soft_msg.data = 1.0;
-			intake_hard_msg.data = 1.0;
+			intake_soft_msg = 1.0;
+			intake_hard_msg = 1.0;
 			break;
 		case 1:
-			intake_soft_msg.data = 1.0;
-			intake_hard_msg.data = -1.0;
+			intake_soft_msg = 1.0;
+			intake_hard_msg = -1.0;
 			intake_open = true;
 			break;
 		case 3:
-			intake_soft_msg.data = 0.0;
-			intake_hard_msg.data = 1.0;
+			intake_soft_msg = 0.0;
+			intake_hard_msg = 1.0;
 			break;
 	}	
-	IntakeSoftSpring_.publish(intake_soft_msg);
-	IntakeHardSpring_.publish(intake_hard_msg);
-
-	std_msgs::Float64 clamp_msg;
-	clamp_msg.data = clamp_cmd_.load(std::memory_order_relaxed);
-
-	bool cube_in_clamp;	
+	IntakeSoftSpring_.setCommand(intake_soft_msg);
+	IntakeHardSpring_.setCommand(intake_hard_msg);
 
 	elevator_controller::CubeState cube_msg;
 	cube_msg.intake_high = line_break_intake_high_.getPosition() != 0;
 	cube_msg.intake_low = line_break_intake_low_.getPosition() != 0;
-	cube_msg.has_cube = cube_msg.intake_high || cube_msg.intake_low || pivot_joint_.getForwardLimitSwitch();
 	cube_msg.clamp = pivot_joint_.getForwardLimitSwitch();
-	
-	cube_in_clamp = cube_msg.clamp && clamp_msg.data;
-	
-	Clamp_.publish(std_msgs::Float64(clamp_msg));
+	cube_msg.has_cube = cube_msg.intake_high || cube_msg.intake_low || cube_msg.clamp;
 	CubeState_.publish(cube_msg);
-
-	elevator_controller::ReturnElevatorCmd return_holder;
-	elevator_controller::ReturnElevatorCmd final_cmd_holder;
-	elevator_controller::ReturnElevatorCmd odom_holder;
+	CubeStateJoint_.setCommand(cube_msg.has_cube ? 1.0 : 0.0);
+	
+	const double clamp_cmd = clamp_cmd_.load(std::memory_order_relaxed);
+	
+	Clamp_.setCommand(clamp_cmd);
 
 	const double lift_position =  /*last_tar_l - lift_offset_*/lift_joint_.getPosition()  - lift_offset_;
-	double raw_pivot_angle   =  pivot_joint_.getPosition();
+	const double raw_pivot_angle   =  pivot_joint_.getPosition();
 	
-	double offset_last = pivot_offset_;
-
-	
-	if(raw_pivot_angle - pivot_offset_ > 0)
+	const double adder = floor(((raw_pivot_angle - pivot_offset_) + M_PI) / (2.0 * M_PI)) * 2.0 * M_PI;
+	if(fabs(adder) > .1)    //Offset will jump by intervals of 2 * pi, 
+							//don't reset soft limits if change is just due to floating
+							//point error
 	{
-		pivot_offset_ = raw_pivot_angle + M_PI - fmod(raw_pivot_angle - pivot_offset_ + M_PI, 2*M_PI);
-	}
-	else
-	{
-		pivot_offset_ = raw_pivot_angle - M_PI - fmod(raw_pivot_angle - pivot_offset_ - M_PI, 2*M_PI);
-	}
-	double pivot_angle   =  pivot_joint_.getPosition() - pivot_offset_;
-	if(fabs(offset_last - pivot_offset_) > .1) //Offset will jump by intervals of 2 * pi, 
-												//don't reset soft limits if change is just due to floating
-												//point error
-	{
+		pivot_offset_ += adder;
 		pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.05 + pivot_offset_);
 		pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
 		ROS_WARN("Pivot encoder discontinuouity detected and accounted for");
 	
 	}
+	const double pivot_angle = raw_pivot_angle - pivot_offset_;
+
 	//TODO: put in similar checks for the lift using limit switches
 	bool cur_up_or_down = pivot_angle > 0;
 
 	arm_limiting::point_type cur_pos(cos(pivot_angle)*arm_length_, lift_position +
 			sin(pivot_angle)*arm_length_);
 
+	elevator_controller::ReturnElevatorCmd odom_holder;
 	odom_holder.x = cur_pos.x();
 	odom_holder.y = cur_pos.y();
 	odom_holder.up_or_down = cur_up_or_down;
 
 	Odom_.publish(odom_holder);
 	
-	if(stop_arm_.load(std::memory_order_relaxed))
+	if(stop_arm_.getPosition())
 	{	
 		pivot_joint_.setPeakOutputForward(0);
 		pivot_joint_.setPeakOutputReverse(0);
@@ -641,12 +620,11 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 		lift_joint_.setPeakOutputForward(1);
 		lift_joint_.setPeakOutputReverse(-1);
-
 	}
 	bool safe_to_move_intake;
+	elevator_controller::ReturnElevatorCmd return_holder;
 	if(!curr_cmd.override_pos_limits)
 	{
-
 		arm_limiting::point_type cmd_point(curr_cmd.lin[0], curr_cmd.lin[1]);
 
 		bool reassignment_holder;
@@ -654,6 +632,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		arm_limiting::point_type return_cmd;
 		bool return_up_or_down;
 		bool bottom_limit = false; //TODO FIX THIS
+		const bool cube_in_clamp = cube_msg.clamp && (clamp_cmd != 0);
 		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit, intake_up, in_transition, safe_to_move_intake, cube_in_clamp, intake_open);
 
 		return_holder.x = return_cmd.x();
@@ -693,30 +672,23 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	if(intake_up)
 	{
-		std_msgs::Float64 msg;
-		msg.data = -1.0;
-		IntakeUp_.publish(msg);
+		IntakeUp_.setCommand(-1.0);
 		intake_down_time_.store(ros::Time::now().toSec(), std::memory_order_relaxed);
 	}
 	else
 	{
 		//if((ros::Time::now().toSec() - intake_down_time_.load(std::memory_order_relaxed)) < 1.5) //1.5 is super arbitary
 		//{
-			std_msgs::Float64 msg;
-			msg.data = 1.0;
-			IntakeUp_.publish(msg);
+			IntakeUp_.setCommand(1.0);
 		//}
 		/*else
 		{
-			std_msgs::Float64 msg;
-			msg.data = 0;
-			IntakeUp_.publish(msg);
+			IntakeUp_.setCommand(0);
 		}*/
 	}
 	//Delay stuff maybe?
 
-
-
+	elevator_controller::ReturnElevatorCmd final_cmd_holder;
 	final_cmd_holder.x = curr_cmd.lin[0];
 	final_cmd_holder.y = curr_cmd.lin[1];
 	final_cmd_holder.up_or_down = curr_cmd.up_or_down;
@@ -750,17 +722,6 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 
 		command_struct_.stamp = ros::Time::now();
 		command_.writeFromNonRT(command_struct_);
-	}
-	else
-	{
-		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
-	}
-}
-void ElevatorController::stopCallback(const std_msgs::Bool &command)
-{
-	if(isRunning())
-	{
-		stop_arm_.store(command.data, std::memory_order_relaxed);
 	}
 	else
 	{
