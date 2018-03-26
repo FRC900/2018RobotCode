@@ -552,7 +552,6 @@ void FRCRobotInterface::init()
 	imu_angular_velocity_covariances_.resize(num_navX_);
 	imu_linear_accelerations_.resize(num_navX_);
 	imu_linear_acceleration_covariances_.resize(num_navX_);
-	navX_command_.resize(num_navX_);
 	navX_state_.resize(num_navX_);
 	offset_navX_.resize(num_navX_);
 
@@ -581,8 +580,7 @@ void FRCRobotInterface::init()
 		hardware_interface::JointStateHandle nxsh(navX_names_[i], &navX_state_[i], &navX_state_[i], &navX_state_[i]);
 		joint_state_interface_.registerHandle(nxsh);
 
-		hardware_interface::JointHandle nxh(nxsh, &navX_command_[i]);
-		joint_position_interface_.registerHandle(nxh);
+		offset_navX_[i] = 0;
 	}
 
 	num_analog_inputs_ = analog_input_names_.size();
@@ -606,6 +604,7 @@ void FRCRobotInterface::init()
 
 		last_compressor_command_[i] = std::numeric_limits<double>::max();
 		compressor_command_[i] = 0;
+		compressor_state_[i] = 0;
 
 		hardware_interface::JointStateHandle csh(compressor_names_[i], &compressor_state_[i], &compressor_state_[i], &compressor_state_[i]);
 		joint_state_interface_.registerHandle(csh);
@@ -624,6 +623,9 @@ void FRCRobotInterface::init()
 		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for dummy joint : " << dummy_joint_names_[i]);
 
 		dummy_joint_command_[i] = 0;
+		dummy_joint_position_[i] = 0;
+		dummy_joint_velocity_[i] = 0;
+		dummy_joint_effort_[i] = 0;
 
 		hardware_interface::JointStateHandle dsh(dummy_joint_names_[i], &dummy_joint_position_[i],&dummy_joint_velocity_[i], &dummy_joint_effort_[i]);
 		joint_state_interface_.registerHandle(dsh);

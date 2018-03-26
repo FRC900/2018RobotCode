@@ -16,8 +16,8 @@ hardware_interface:
        - {name: pivot_joint, type: can_talon_srx, can_id: 51}  
        - {name: lift_follower1, type: can_talon_srx, can_id: 42}
        - {name: lift_follower2, type: can_talon_srx, can_id: 43}
-       - {name: intake, type: can_talon_srx, can_id: 31}
-       - {name: intake_follower1, type: can_talon_srx, can_id: 32}
+       #- {name: intake, type: can_talon_srx, can_id: 31}
+       #- {name: intake_follower1, type: can_talon_srx, can_id: 32}
        - {name: shift, type: double_solenoid, pcm: 0, forward_id: 5, reverse_id: 2} #doesn't work as far as I can tell
        #- {name: talon_3, type: can_talon_srx, can_id: 3}
        #- {name: talon_4, type: can_talon_srx, can_id: 4}
@@ -57,7 +57,7 @@ shift_controller:
     joint: shift
 
 pivot_joint_controller:
-    type: talon_controllers/TalonMotionMagicCloseLoopController
+    type: talon_controllers/TalonPercentOutputController
     joint: pivot_joint
     feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
@@ -78,7 +78,7 @@ intake_joint_controller:
     type: talon_controllers/TalonPercentOutputController
     joint: intake
 lift_joint_controller:
-    type: talon_controllers/TalonMotionMagicCloseLoopController
+    type: talon_controllers/TalonPercentOutputController
     joint: lift_joint
     feedback_type: CTRE_MagEncoder_Absolute
     close_loop_values:
@@ -101,14 +101,6 @@ lift_follower1_controller:
     joint: lift_follower1
     follow_joint: lift_joint
     invert_output: true
-
-
-intake_follower1_controller:
-    type: talon_controllers/TalonFollowerController
-    joint: intake_follower1
-    follow_joint: intake
-    invert_output: true
-#hypothetically might have inverts
 
 lift_follower2_controller:
     type: talon_controllers/TalonFollowerController
