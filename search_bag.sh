@@ -1,13 +1,23 @@
 source /opt/ros/kinetic/setup.bash
 
+if [ $# -eq 0 ]
+then
+	echo Input a bag file
+fi
 
 for var in "$@"
 do
 	echo check for reindex
-	if [[ $var == *.active ]]
+	if [[ $var == *bag.active ]]
 	then 
 		echo Reindexing
 		rosbag reindex $var 
+	fi
+
+	if [[ $var == *.orig.active ]]
+	then
+		echo orig.active found -- skipping
+		continue
 	fi
 
 	match='match'
@@ -22,11 +32,16 @@ do
 	then
 		echo This has match data
 		matchNumber=$(sed -n 10p temp_file.txt)
+		if [ $matchNumber = 0 ]
+		then
+			echo Match number is zero -- skipping
+			continue
+		fi
 		bag_name=$match$matchNumber$bag
 		if [[ -e $bag_name ]]
 		then 
 			echo This match already has a bag file... merging
-			#cat $var >> $bag_name 
+			~/2018RobotCode/zebROS_ws/src/rosbag_scripts/scripts/merge_bagfiles.py $bagname $var $bag_name -v 
 		else 
 			echo Renaming bag file
 			cp $var $bag_name
@@ -34,7 +49,7 @@ do
 	else
 		echo This does not have match data.
 	fi
-	#rm temp_file.txt
+	rm temp_file.txt
 done
 
 
