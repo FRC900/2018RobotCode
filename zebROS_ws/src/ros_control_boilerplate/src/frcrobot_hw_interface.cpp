@@ -1270,7 +1270,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				//ROS_WARN("slot");
 				ROS_INFO_STREAM("Updated joint " << joint_id << " PIDF slot to " << slot << std::endl);
 
-				safeTalonCall(talon->SelectProfileSlot(slot, timeoutMs),"SelectProfileSlot");
+				safeTalonCall(talon->SelectProfileSlot(slot, pidIdx),"SelectProfileSlot");
 				ts.setSlot(slot);
 			}
 		}
@@ -1303,7 +1303,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 		if (tc.neutralOutputChanged())
 		{
-		
 			//ROS_WARN("neutral");
 			talon->NeutralOutput();
 			safeTalonCall(talon->GetLastError(), "NeutralOutput");
