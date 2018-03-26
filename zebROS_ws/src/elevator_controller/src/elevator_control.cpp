@@ -396,7 +396,9 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, remove_zone_poly_up, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos, hook_depth_, hook_min_height_, hook_max_height_, controller_nh, intake_up_box, intake_down_box, intake_in_transition_box, dist_to_front_cube, dist_to_front_clamp);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
-	sub_stop_arm_ = controller_nh.subscribe("stop_arm", 1, &ElevatorController::stopCallback, this);
+
+	stop_arm_ = joint_state_iface->getHandle("stop_arm");
+
 	service_command_ = controller_nh.advertiseService("cmd_posS", &ElevatorController::cmdPosService, this);
 	service_intake_ = controller_nh.advertiseService("intake", &ElevatorController::intakeService, this);
 	service_clamp_ = controller_nh.advertiseService("clamp", &ElevatorController::clampService, this);
@@ -603,7 +605,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 	Odom_.publish(odom_holder);
 	
-	if(stop_arm_.load(std::memory_order_relaxed))
+	if(stop_arm_.getPosition())
 	{	
 		pivot_joint_.setPeakOutputForward(0);
 		pivot_joint_.setPeakOutputReverse(0);
@@ -618,7 +620,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 		lift_joint_.setPeakOutputForward(1);
 		lift_joint_.setPeakOutputReverse(-1);
-
 	}
 	bool safe_to_move_intake;
 	elevator_controller::ReturnElevatorCmd return_holder;
@@ -721,17 +722,6 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 
 		command_struct_.stamp = ros::Time::now();
 		command_.writeFromNonRT(command_struct_);
-	}
-	else
-	{
-		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
-	}
-}
-void ElevatorController::stopCallback(const std_msgs::Bool &command)
-{
-	if(isRunning())
-	{
-		stop_arm_.store(command.data, std::memory_order_relaxed);
 	}
 	else
 	{

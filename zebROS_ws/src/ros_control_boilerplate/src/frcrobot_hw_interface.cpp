@@ -112,7 +112,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_arm(nh_, "/frcrobot/override_arm_limits", 1);	
-	realtime_tools::RealtimePublisher<std_msgs::Bool> stop_arm(nh_, "/frcrobot/elevator_controller/stop_arm", 1);	
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -185,22 +184,14 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				override_arm.unlockAndPublish();
 				frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm.msg_.data );
 			}
-			if (stop_arm.trylock())
-			{
-				stop_arm.msg_.data = (bool)driveTable->GetBoolean("stop_arm", 0);
-				stop_arm.unlockAndPublish();
 
-			}
+			stop_arm_.store((bool)driveTable->GetBoolean("stop_arm", 0), std::memory_order_relaxed);
 
 			double zero_angle;
 			if(driveTable->GetBoolean("zero_navX", 0) != 0)
-			{
 				zero_angle = (double)driveTable->GetNumber("zero_angle", 0);
-			}
 			else
-			{
 				zero_angle = -10000;
-			}
 			navX_zero_.store(zero_angle, std::memory_order_relaxed);
 
 			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
@@ -590,6 +581,7 @@ void FRCRobotHWInterface::init(void)
 		compressors_.push_back(std::make_shared<frc::Compressor>(compressor_pcm_ids_[i]));
 	}
 
+	stop_arm_  = false;
 	navX_zero_ = -10000;
 
 	for(size_t i = 0; i < num_dummy_joints_; i++)
@@ -1744,8 +1736,12 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			dummy_joint_velocity_[i] = dummy_joint_command_[i];
 		}
 #endif
+		// Use dummy joints to communicate info between
+		// various controllers and driver station smartdash vars
 		if (dummy_joint_names_[i] == "cube_state")
 			cube_state_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
+		else if (dummy_joint_names_[i] == "stop_arm")
+			dummy_joint_position_[i] = stop_arm_.load(std::memory_order_relaxed) ? 1 : 0;
 	}
 }
 

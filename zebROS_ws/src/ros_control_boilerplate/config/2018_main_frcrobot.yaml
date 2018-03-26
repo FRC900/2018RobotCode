@@ -38,6 +38,7 @@ hardware_interface:
        - {name: compressor1, type: compressor, pcm_id: 0}
        - {name: joystick_rumble, type: rumble, rumble_port: 0}
        - {name: cube_state, type: dummy}
+       - {name: stop_arm, type: dummy}
 
 # Create controllers for each joint
 #
