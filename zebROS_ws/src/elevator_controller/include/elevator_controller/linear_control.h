@@ -13,7 +13,6 @@
 #include <realtime_tools/realtime_buffer.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Bool.h>
-#include <std_msgs/Float64.h>
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Empty.h>
 
