@@ -41,6 +41,7 @@
 
 #include <ros_control_boilerplate/frc_robot_interface.h>
 #include <thread>
+#include <elevator_controller/CubeState.h>
 
 namespace frcrobot_control
 {
@@ -65,12 +66,19 @@ class FRCRobotSimInterface : public ros_control_boilerplate::FRCRobotInterface
 		virtual void write(ros::Duration &elapsed_time) override;
 
 	private:
+        bool clamp; 
+        bool intake_high; 
+        bool intake_low; 
+        bool has_cube; 
+        
+        ros::Subscriber cube_state_sub_;
 		void loop_joy(void);
 		std::thread sim_joy_thread_;
 		void custom_profile_set_talon(bool posMode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double &pos_offset);
 		void custom_profile_thread(int joint_id);
 		std::vector<std::thread> custom_profile_threads_;
 
+        void cube_state_callback(const elevator_controller::CubeState &cube);
 };  // class
 
 }  // namespace
