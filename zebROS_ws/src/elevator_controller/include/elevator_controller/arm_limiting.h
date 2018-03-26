@@ -187,6 +187,16 @@ class arm_limits
 		bool &cur_up_or_down, point_type &cmd_return, bool &up_or_down_return, bool bottom_limit, 
 		bool intake_up, bool in_transition, bool &safe_to_move_intake, bool cube_in_clamp, bool intake_open)
 		{
+			
+			//TODO:::::: TESTING
+			
+			//cube_in_clamp = true;
+
+			//TODO:::::: TESTING
+	
+
+
+
 			auto orig_pos = cur_pos;
 			bool orig_up_or_down = cur_up_or_down;
 			

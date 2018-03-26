@@ -41,7 +41,7 @@ teleop_params:
     move_out_pos_y: 0.6
     move_out_up_or_down: true
     move_out_down_y: -1.0 
-    default_x: .2
+    default_x: .35
     default_y: 1.0
     default_up_or_down: true
     high_return_intake_x: .1 
