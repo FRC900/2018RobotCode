@@ -50,8 +50,6 @@
 #include "ros_control_boilerplate/PDPData.h"
 
 #include <geometry_msgs/Twist.h>
-#include <std_msgs/String.h>
-#include <std_msgs/Float64.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 
 //HAL / wpilib includes
