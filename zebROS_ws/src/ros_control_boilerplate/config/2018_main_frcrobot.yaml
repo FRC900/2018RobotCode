@@ -95,10 +95,6 @@ imu_sensor_controller:
    type:         imu_sensor_controller/ImuSensorController
    publish_rate: 20
 
-navx_controller:
-   type: position_controllers/JointPositionController
-   joint: navx_mxp
-
 pdp_state_controller:
    type:         pdp_state_controller/PDPStateController
    publish_rate: 20
