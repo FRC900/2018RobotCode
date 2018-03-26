@@ -46,9 +46,7 @@
 		/frcrobot/joystick_states
 		/frcrobot/match_data
 		/frcrobot/navx_mxp
-		/frcrobot/override_arm_limits
 		/frcrobot/pdp_states
-		/frcrobot/regulate_compressor/disable
 		/frcrobot/rumble_controller/command
 		/frcrobot/swerve_drive_controller/cmd_vel
 		/frcrobot/swerve_drive_controller/odom
