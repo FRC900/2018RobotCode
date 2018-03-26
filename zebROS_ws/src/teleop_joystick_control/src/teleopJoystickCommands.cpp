@@ -420,14 +420,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*---------------------w/ Cube------------------------------*/
 
 
-	static double ADoubleStart = 0;
 	static double buttonBackStart = 0;
 	//ROS_WARN("buttonBackStart: %f", buttonBackStart);
-	static double buttonStartStart = 0;
-	static bool manage_intaking;
-	static double ALast = 0;
-	static double A_intake_time = 0;
-	static bool A_toggle_on = false;
 	static bool start_toggle_on = false;
 	if (start_toggle_on)
 	{
@@ -490,7 +484,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 		ac->sendGoal(goal);
 		achieved_pos = other;
-		A_intake_time = ros::Time::now().toSec();
 		start_toggle_on = true;
 		intake_up = false;
 	}
@@ -499,7 +492,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	if (JoystickState->buttonStartPress)
 	{
-		/*if(ros::Time::now().toSec() - buttonStartStart < 15 && !ac_intake->getState().isDone() && start_toggle_on)
+		/*
+		 static double buttonStartStart = 0;
+		 if(ros::Time::now().toSec() - buttonStartStart < 15 && !ac_intake->getState().isDone() && start_toggle_on)
 		{
 			ac_intake->cancelAllGoals();
 
@@ -510,7 +505,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		//if(!ac->getState().isDone())
 		ac->cancelAllGoals();
 		start_toggle_on = true;
-		buttonStartStart = timeSecs;
+		//buttonStartStart = timeSecs;
 		goal_intake.IntakeCube = true;
 		goal_intake.time_out = 15;
 		ac_intake->sendGoal(goal_intake);
@@ -1249,16 +1244,14 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 
 void cubeCallback(const elevator_controller::CubeState &cube)
 {
-	uint16_t leftRumble = 0, rightRumble = 0;
 	cubeState.writeFromNonRT(CubeState(cube.has_cube, cube.clamp, cube.intake_low));
     if(cube.has_cube)
 	{
-		leftRumble = 0;
-		rightRumble = 65535;
+		const uint16_t leftRumble = 0;
+		const uint16_t rightRumble = 65535;
         rumbleTypeConverterPublish(leftRumble, rightRumble);
 	}
 }
-
 
 void clampedCallback(const std_msgs::Float64 &clamp)
 {
