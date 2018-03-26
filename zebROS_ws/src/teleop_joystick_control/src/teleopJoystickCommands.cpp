@@ -41,7 +41,7 @@ const double delay_after_single_tap = .31;
 const double max_delay_after_single_tap = .45;
 
 static ros::Publisher JoystickRobotVel;
-static ros::Publisher JoystickTestVel;
+//static ros::Publisher JoystickTestVel;
 static ros::Publisher JoystickElevatorPos;
 static ros::Publisher JoystickRumble;
 static ros::ServiceClient EndGameDeploy;
@@ -79,9 +79,6 @@ static double move_out_pos_y;
 static bool move_out_up_or_down;
 static double move_out_down_y;
 
-static bool run_out = false;
-static bool finish_spin_out_check = false;
-static bool ready_to_spin_out_check = false;
 
 enum pos {high_scale, mid_scale, low_scale, switch_c, exchange, intake_ready_to_drop, intake, intake_low, climb_c, default_c, other};
 
@@ -176,9 +173,11 @@ void intakeGoToDefault(bool &intake_up)
 	}
 }
 static bool placed_delay_check = false;
+static bool run_out = false;
+static bool finish_spin_out_check = false;
+static bool ready_to_spin_out_check = false;
 void teleop_cancel(void)
 {
-	
 	placed_delay_check = false;
     run_out = false;
 	finish_spin_out_check = false;
@@ -220,7 +219,6 @@ void match_data_callback(const ros_control_boilerplate::MatchSpecificData::Const
 	//Joystick Rumble
 	const double localMatchTimeRemaining = MatchData->matchTimeRemaining;
 	matchTimeRemaining.store(localMatchTimeRemaining, std::memory_order_relaxed);
-
 }
 
 //TODO: Overrides
@@ -239,7 +237,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     elevator_controller::Intake srvIntake;
     srvIntake.request.just_override_power = false;
 	static ElevatorPos elevatorPosBefore;
-
 
 	const double timeSecs = ros::Time::now().toSec();
 	static double lastTimeSecs = 0;
@@ -341,8 +338,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		static bool clamped = true;
 		if (localCubeState.hasCubeClamp_ && local_clamped)
 		{
-		
-			
 				currentToggle = " ";
 				teleop_cancel();
 				//if(!ac->getState().isDone())
@@ -358,8 +353,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				ROS_INFO("teleop : Clamp with cube");
 				placed_delay_check = true; //Kick off placing
 				place_start = ros::Time::now().toSec();
-
-
 		}
 		/*------------No Cube Single Press Toggle Clamp------*/
 		else
@@ -396,7 +389,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*------------------------------------A/Back button(M2)------------------------------------*/
 
 	/*---------------------w/ Cube------------------------------*/
-
 
 	static double buttonBackStart = 0;
 	//ROS_WARN("buttonBackStart: %f", buttonBackStart);
@@ -493,8 +485,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	}
 
 	/*-If in Exchange - Place and Run Intake Out-*/
-
-	static bool finish_spin_out_check = false;
 	static double time_start_spin = 0;
 	if (ready_to_spin_out_check)
 	{
@@ -1170,7 +1160,7 @@ int main(int argc, char **argv)
 	ac_lift = std::make_shared<actionlib::SimpleActionClient<behaviors::LiftAction>> ("auto_interpreter_server_lift", true);
 
 	JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
-	JoystickTestVel = n.advertise<std_msgs::Header>("test_header", 3);
+	//JoystickTestVel = n.advertise<std_msgs::Header>("test_header", 3);
 	JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
 	JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
 
@@ -1187,7 +1177,7 @@ int main(int argc, char **argv)
 
 	ros::Subscriber navX_heading  = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
 	ros::Subscriber elevator_odom = n.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
-	ros::Subscriber elevator_cmd = n.subscribe("/frcrobot/elevator_controller/return_cmd_pos", 1, &elevCmdCallback);
+	ros::Subscriber elevator_cmd  = n.subscribe("/frcrobot/elevator_controller/return_cmd_pos", 1, &elevCmdCallback);
 	ros::Subscriber cube_state    = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
 	ros::Subscriber disable_arm_limits_sub = n.subscribe("/frcrobot/override_arm_limits", 1, &overrideCallback);
 
@@ -1236,12 +1226,14 @@ void cube_rumble(bool has_cube) {
         rumbleTypeConverterPublish(leftRumble, rightRumble);
     }
 }
+
 void cubeCallback(const elevator_controller::CubeState &cube)
 {
 	cubeState.writeFromNonRT(CubeState(cube.has_cube, cube.clamp, cube.intake_low));
     cube_rumble(cube.has_cube);
 }
 
+// TODO : convert to joint_state callback
 void clampedCallback(const std_msgs::Float64 &clamp)
 {
 	clamped_c.store(clamp.data <= 0, std::memory_order_relaxed);
