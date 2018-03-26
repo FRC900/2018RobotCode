@@ -65,6 +65,8 @@ class arm_limits
 			arm_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("arm_visualize", 10);
 			arm_true_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("arm_true_visualize", 10);
 			hook_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("hook_visualize", 10);
+			top_pivot_pub_ = n.advertise<geometry_msgs::PolygonStamped>("pivot_top_viz", 10);
+			bottom_pivot_pub_ = n.advertise<geometry_msgs::PolygonStamped>("pivot_bot_viz", 10);
 			point_type top(-.00001, arm_length_+ 0.00001);
 			point_type bottom(-.00001, -arm_length_ + 0.00001);
 			//the -.01 is for some edge case
@@ -105,7 +107,7 @@ class arm_limits
 		}
 		bool check_if_possible(point_type &cmd, bool &up_or_down, int check_type, double lift_height = 0)
 		{		
-			if(check_type < 2)
+			if(check_type == 0)
 			{
 				if(up_or_down)
 				{
@@ -116,7 +118,6 @@ class arm_limits
 					}
 					else if(boost::geometry::within(cmd, saved_polygons_[1]))
 					{
-						//ROS_WARN("up to down");
 						up_or_down = false;
 						return false;
 					}
@@ -140,6 +141,38 @@ class arm_limits
 						//ROS_WARN("down to up");
 						up_or_down = true;
 						return false;
+					}
+					else
+					{
+						//ROS_WARN("FAIL");
+						find_nearest_point(cmd, up_or_down, check_type, lift_height);
+						return false;
+					}
+				}
+			}
+			else if(check_type == 1)
+			{
+				if(up_or_down)
+				{
+					if(boost::geometry::within(cmd, saved_polygons_[0]))
+					{
+						//ROS_WARN("success");
+						return true;
+					}
+					else
+					{
+						//ROS_WARN("FAIL");
+
+						find_nearest_point(cmd, up_or_down, check_type, lift_height);
+						return false;
+					}
+				}
+				else
+				{
+					if(boost::geometry::within(cmd, saved_polygons_[1]))
+					{
+						//ROS_WARN("success");	
+						return true;
 					}
 					else
 					{
@@ -209,12 +242,16 @@ class arm_limits
 			arm_line.header.frame_id = "/arm_viz"; 
 			arm_line_true.header.frame_id = "/arm_viz"; 
 			hook_line.header.frame_id = "/arm_viz"; 
+			pivot_top_circ.header.frame_id = "/arm_viz"; 
+			pivot_bottom_circ.header.frame_id = "/arm_viz"; 
 
 
 			top_polygon.header.stamp =  
 		    bottom_polygon.header.stamp =  
 			arm_line.header.stamp =  
 			arm_line_true.header.stamp = 
+			pivot_top_circ.header.stamp = 
+			pivot_bottom_circ.header.stamp = 
 			hook_line.header.stamp = ros::Time::now(); 
 
 
@@ -705,6 +742,9 @@ class arm_limits
 			} 
 		}
 	private:
+		
+		geometry_msgs::PolygonStamped pivot_top_circ, pivot_bottom_circ;
+
 		double min_extension_;
 		double max_extension_;	
 		double arm_length_;
@@ -724,6 +764,8 @@ class arm_limits
 		ros::Publisher arm_marker_pub_;
 		ros::Publisher arm_true_marker_pub_;
 		ros::Publisher hook_marker_pub_;
+		ros::Publisher top_pivot_pub_;
+		ros::Publisher bottom_pivot_pub_;
 
 		std::array<std::vector<linestring_type>, 2> poly_lines_;
 		polygon_type top_pivot_circle_;
@@ -805,9 +847,32 @@ class arm_limits
 				std::vector<point_type> output_down;
 				boost::geometry::intersection(bottom_new_pivot_circle, saved_polygons_[1], output_down);
 
-				//ROS_INFO_STREAM("circle: " << boost::geometry::wkt(new_pivot_circle));
+				ROS_INFO_STREAM("circle: " << boost::geometry::wkt(top_new_pivot_circle));
 				
-			
+						
+				for(auto it = boost::begin(boost::geometry::exterior_ring(top_new_pivot_circle)); it != boost::end(boost::geometry::exterior_ring(top_new_pivot_circle)); ++it)
+				{
+					geometry_msgs::Point32 p;	
+					p.x = boost::geometry::get<0>(*it);
+					p.y = boost::geometry::get<1>(*it);
+					p.z = 0;
+					pivot_top_circ.polygon.points.push_back(p);
+				}
+				for(auto it = boost::begin(boost::geometry::exterior_ring(bottom_new_pivot_circle)); it != boost::end(boost::geometry::exterior_ring(bottom_new_pivot_circle)); ++it)
+				{
+					geometry_msgs::Point32 p;	
+					p.x = boost::geometry::get<0>(*it);
+					p.y = boost::geometry::get<1>(*it);
+					p.z = 0;
+					pivot_bottom_circ.polygon.points.push_back(p);
+				}
+
+				top_pivot_pub_.publish(pivot_top_circ);
+				bottom_pivot_pub_.publish(pivot_bottom_circ);
+
+
+
+	
 				double min_dist_up  = std::numeric_limits<double>::max();
 				double min_dist_down  = std::numeric_limits<double>::max();
 				double temp_dist;
