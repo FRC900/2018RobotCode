@@ -478,8 +478,6 @@ void FRCRobotSimInterface::loop_joy(void)
     teleop.keyboardLoop();
 }
 void FRCRobotSimInterface::cube_state_callback(const elevator_controller::CubeState &cube) {
-    ROS_WARN("HI");
-    ROS_WARN("Clamp %d", cube.clamp);
     clamp = cube.clamp;
     intake_high = cube.intake_high;
     intake_low = cube.intake_low;
@@ -575,11 +573,9 @@ void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
         auto &ts = talon_state_[joint_id];
         if(ts.getCANID() == 51) {
             if(clamp) {
-                ROS_WARN("Here");
                 ts.setForwardLimitSwitch(true);
             }
             else {
-                ROS_WARN("Also here");
                 ts.setForwardLimitSwitch(false);
             }
         }
