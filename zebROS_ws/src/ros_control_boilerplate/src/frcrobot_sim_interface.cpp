@@ -559,7 +559,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
         status.slotRunning =  slot;
         if(run)
         {
-            std::vector<hardware_interface::CustomProfilePoint> profile = talon_command_[joint_id].getCustomProfilePoints(status.slotRunning);
+            auto profile = talon_command_[joint_id].getCustomProfilePoints(status.slotRunning);
 
 
 
