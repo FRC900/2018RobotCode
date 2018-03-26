@@ -606,6 +606,7 @@ void FRCRobotInterface::init()
 
 		last_compressor_command_[i] = std::numeric_limits<double>::max();
 		compressor_command_[i] = 0;
+		compressor_state_[i] = 0;
 
 		hardware_interface::JointStateHandle csh(compressor_names_[i], &compressor_state_[i], &compressor_state_[i], &compressor_state_[i]);
 		joint_state_interface_.registerHandle(csh);
@@ -624,6 +625,9 @@ void FRCRobotInterface::init()
 		ROS_INFO_STREAM_NAMED(name_, "FRCRobotHWInterface: Registering interface for dummy joint : " << dummy_joint_names_[i]);
 
 		dummy_joint_command_[i] = 0;
+		dummy_joint_position_[i] = 0;
+		dummy_joint_velocity_[i] = 0;
+		dummy_joint_effort_[i] = 0;
 
 		hardware_interface::JointStateHandle dsh(dummy_joint_names_[i], &dummy_joint_position_[i],&dummy_joint_velocity_[i], &dummy_joint_effort_[i]);
 		joint_state_interface_.registerHandle(dsh);
