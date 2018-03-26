@@ -61,7 +61,6 @@ class ElevatorController
 		std::string name_;
 		hardware_interface::JointStateHandle line_break_intake_high_;
 		hardware_interface::JointStateHandle line_break_intake_low_;
-		hardware_interface::JointStateHandle line_break_clamp_;
 		std::atomic<bool> shift_cmd_;
 		bool shifted_;
 		std::atomic<double> clamp_cmd_;
