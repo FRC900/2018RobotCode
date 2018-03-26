@@ -1210,8 +1210,8 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 }
 
 void cube_rumble(bool has_cube) {
-    static double start_has_cube = DBL_MAX;
-    if(has_cube && start_has_cube > ros::Time::now().toSec()) {
+    static double start_has_cube = 0;
+    if(has_cube && start_has_cube < ros::Time::now().toSec()) {
         start_has_cube = ros::Time::now().toSec();
     }
     if(has_cube && ros::Time::now().toSec() < start_has_cube + 1) {
@@ -1220,10 +1220,12 @@ void cube_rumble(bool has_cube) {
         rumbleTypeConverterPublish(leftRumble, rightRumble);
     }
     else {
-        start_has_cube = DBL_MAX;
         const uint16_t leftRumble = 0;
         const uint16_t rightRumble = 0;
         rumbleTypeConverterPublish(leftRumble, rightRumble);
+    }
+    if(!has_cube) {
+        start_has_cube = 0;
     }
 }
 
