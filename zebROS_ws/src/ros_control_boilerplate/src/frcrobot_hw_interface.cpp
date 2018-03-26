@@ -123,7 +123,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	//ros::Time last_joystick_publish_time = ros::Time::now();
 	ros::Time last_match_data_publish_time = ros::Time::now();
 
-	const double nt_publish_rate = 5;
+	const double nt_publish_rate = 10;
 	//const double joystick_publish_rate = 20;
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
@@ -132,20 +132,19 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	{
 		robot_.OneIteration();
 		const ros::Time time_now_t = ros::Time::now();
-		std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
 		//ROS_INFO("%f", ros::Time::now().toSec());
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
 		//subTable->PutString("Auto Selector", "Select Auto");
-		if (driveTable && 
-			((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t))
+		if ((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t)
 		{
 			// SmartDashboard works!
 			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_.load(std::memory_order_relaxed));
 			frc::SmartDashboard::PutNumber("Pressure", pressure_.load(std::memory_order_relaxed));
 			frc::SmartDashboard::PutBoolean("cube_state", cube_state_.load(std::memory_order_relaxed));
 
-			if (realtime_pub_nt.trylock()) 
+			std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
+			if (driveTable && realtime_pub_nt.trylock()) 
 			{
 				realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
 				realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
@@ -171,20 +170,23 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				realtime_pub_nt.unlockAndPublish();
 			}
 
-			disable_compressor_.store((bool)driveTable->GetBoolean("disable_reg", 0), std::memory_order_relaxed);
-			frc::SmartDashboard::PutBoolean("disable_reg_ret", disable_compressor_.load(std::memory_order_relaxed));
+			if (driveTable)
+			{
+				disable_compressor_.store((bool)driveTable->GetBoolean("disable_reg", 0), std::memory_order_relaxed);
+				frc::SmartDashboard::PutBoolean("disable_reg_ret", disable_compressor_.load(std::memory_order_relaxed));
 
-			override_arm_limits_.store((bool)driveTable->GetBoolean("disable_arm_limits", 0), std::memory_order_relaxed);
-			frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm_limits_.load(std::memory_order_relaxed));
+				override_arm_limits_.store((bool)driveTable->GetBoolean("disable_arm_limits", 0), std::memory_order_relaxed);
+				frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm_limits_.load(std::memory_order_relaxed));
 
-			stop_arm_.store((bool)driveTable->GetBoolean("stop_arm", 0), std::memory_order_relaxed);
+				stop_arm_.store((bool)driveTable->GetBoolean("stop_arm", 0), std::memory_order_relaxed);
 
-			double zero_angle;
-			if(driveTable->GetBoolean("zero_navX", 0) != 0)
-				zero_angle = (double)driveTable->GetNumber("zero_angle", 0);
-			else
-				zero_angle = -10000;
-			navX_zero_.store(zero_angle, std::memory_order_relaxed);
+				double zero_angle;
+				if(driveTable->GetBoolean("zero_navX", 0) != 0)
+					zero_angle = (double)driveTable->GetNumber("zero_angle", 0);
+				else
+					zero_angle = -10000;
+				navX_zero_.store(zero_angle, std::memory_order_relaxed);
+			}
 
 			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
 		}
@@ -1501,7 +1503,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				//ROS_WARN("slot");
 				ROS_INFO_STREAM("Updated joint " << joint_id << " PIDF slot to " << slot << std::endl);
 
-				safeTalonCall(talon->SelectProfileSlot(slot, timeoutMs),"SelectProfileSlot");
+				safeTalonCall(talon->SelectProfileSlot(slot, pidIdx),"SelectProfileSlot");
 				ts.setSlot(slot);
 			}
 		}
@@ -1534,7 +1536,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 		if (tc.neutralOutputChanged())
 		{
-		
 			//ROS_WARN("neutral");
 			talon->NeutralOutput();
 			safeTalonCall(talon->GetLastError(), "NeutralOutput");
