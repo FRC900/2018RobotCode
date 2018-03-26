@@ -34,7 +34,7 @@ elevator_controller:
     cut_off_x_line: .17 #FIX
     cut_off_y_line: .7 #FIX
 
-    dist_to_front_cube: .381
+    dist_to_front_cube: .34
     dist_to_front_clamp: .075
 
 

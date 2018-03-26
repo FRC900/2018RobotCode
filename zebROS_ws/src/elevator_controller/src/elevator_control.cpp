@@ -593,27 +593,19 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	const double lift_position =  /*last_tar_l - lift_offset_*/lift_joint_.getPosition()  - lift_offset_;
 	double raw_pivot_angle   =  pivot_joint_.getPosition();
 	
-	double offset_last = pivot_offset_;
-
-	
-	if(raw_pivot_angle - pivot_offset_ > 0)
+	double adder = floor(((raw_pivot_angle - pivot_offset_) + M_PI) / (2.0 * M_PI)) * 2.0 * M_PI;
+	if(fabs(adder) > .1)    //Offset will jump by intervals of 2 * pi, 
+							//don't reset soft limits if change is just due to floating
+							//point error
 	{
-		pivot_offset_ = raw_pivot_angle + M_PI - fmod(raw_pivot_angle - pivot_offset_ + M_PI, 2*M_PI);
-	}
-	else
-	{
-		pivot_offset_ = raw_pivot_angle - M_PI - fmod(raw_pivot_angle - pivot_offset_ - M_PI, 2*M_PI);
-	}
-	double pivot_angle   =  pivot_joint_.getPosition() - pivot_offset_;
-	if(fabs(offset_last - pivot_offset_) > .1) //Offset will jump by intervals of 2 * pi, 
-												//don't reset soft limits if change is just due to floating
-												//point error
-	{
+		pivot_offset_ += adder;
 		pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.05 + pivot_offset_);
 		pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
 		ROS_WARN("Pivot encoder discontinuouity detected and accounted for");
 	
 	}
+	double pivot_angle = raw_pivot_angle - pivot_offset_;
+
 	//TODO: put in similar checks for the lift using limit switches
 	bool cur_up_or_down = pivot_angle > 0;
 
