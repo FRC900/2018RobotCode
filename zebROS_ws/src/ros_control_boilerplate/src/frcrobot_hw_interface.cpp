@@ -123,7 +123,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	//ros::Time last_joystick_publish_time = ros::Time::now();
 	ros::Time last_match_data_publish_time = ros::Time::now();
 
-	const double nt_publish_rate = 1.1;
+	const double nt_publish_rate = 5;
 	//const double joystick_publish_rate = 20;
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
@@ -1950,7 +1950,10 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		// Use dummy joints to communicate info between
 		// various controllers and driver station smartdash vars
 		if (dummy_joint_names_[i] == "cube_state")
+		{
+			dummy_joint_position_[i] = dummy_joint_command_[i];
 			cube_state_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
+		}
 		else if (dummy_joint_names_[i] == "stop_arm")
 			dummy_joint_position_[i] = stop_arm_.load(std::memory_order_relaxed) ? 1 : 0;
 		else if (dummy_joint_names_[i] == "override_arm_limits")
