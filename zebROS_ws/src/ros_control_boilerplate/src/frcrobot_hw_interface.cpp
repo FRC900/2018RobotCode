@@ -109,11 +109,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 1);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
-	realtime_tools::RealtimePublisher<std_msgs::Float64> zero_navX(nh_, "/frcrobot/navx_controller/command", 1); //Kinda dirty
 
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
 	realtime_tools::RealtimePublisher<std_msgs::Bool> override_arm(nh_, "/frcrobot/override_arm_limits", 1);	
-	realtime_tools::RealtimePublisher<std_msgs::Bool> stop_arm(nh_, "/frcrobot/elevator_controller/stop_arm", 1);	
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -160,7 +158,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				realtime_pub_nt.msg_.delays[3] = (int)driveTable->GetNumber("delay_3", 0);
 				realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
 				
-				
 				frc::SmartDashboard::PutNumber("auto_mode_0_ret", realtime_pub_nt.msg_.mode[0]);
 				frc::SmartDashboard::PutNumber("auto_mode_1_ret", realtime_pub_nt.msg_.mode[1]);
 				frc::SmartDashboard::PutNumber("auto_mode_2_ret", realtime_pub_nt.msg_.mode[2]);
@@ -170,8 +167,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				frc::SmartDashboard::PutNumber("delay_2_ret", realtime_pub_nt.msg_.delays[2]);
 				frc::SmartDashboard::PutNumber("delay_3_ret", realtime_pub_nt.msg_.delays[3]);
 				frc::SmartDashboard::PutNumber("robot_start_position_ret", realtime_pub_nt.msg_.position);
-
-
 
 				realtime_pub_nt.msg_.header.stamp = time_now_t;
 				realtime_pub_nt.unlockAndPublish();
@@ -189,26 +184,15 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				override_arm.unlockAndPublish();
 				frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm.msg_.data );
 			}
-			if (stop_arm.trylock())
-			{
-				stop_arm.msg_.data = (bool)driveTable->GetBoolean("stop_arm", 0);
-				stop_arm.unlockAndPublish();
 
-			}
-			if (zero_navX.trylock())
-			{
-				double zero_angle;
-				if(driveTable->GetBoolean("zero_navX", 0) != 0)
-				{
-					zero_angle = (double)driveTable->GetNumber("zero_angle", 0);	
-				}
-				else
-				{
-					zero_angle = -10000;
-				}
-				zero_navX.msg_.data = zero_angle;
-				zero_navX.unlockAndPublish();
-			}
+			stop_arm_.store((bool)driveTable->GetBoolean("stop_arm", 0), std::memory_order_relaxed);
+
+			double zero_angle;
+			if(driveTable->GetBoolean("zero_navX", 0) != 0)
+				zero_angle = (double)driveTable->GetNumber("zero_angle", 0);
+			else
+				zero_angle = -10000;
+			navX_zero_.store(zero_angle, std::memory_order_relaxed);
 
 			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
 		}
@@ -480,9 +464,6 @@ void FRCRobotHWInterface::init(void)
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
 
-
-	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
-
 	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	can_talons_mp_writing_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	can_talons_mp_running_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
@@ -600,6 +581,9 @@ void FRCRobotHWInterface::init(void)
 		compressors_.push_back(std::make_shared<frc::Compressor>(compressor_pcm_ids_[i]));
 	}
 
+	stop_arm_  = false;
+	navX_zero_ = -10000;
+
 	for(size_t i = 0; i < num_dummy_joints_; i++)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
@@ -647,7 +631,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		{
 			profile_is_live = true;
 			break;	
-
 		} 
 	}
 	for(std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
@@ -656,7 +639,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		{
 			writing_points = true;
 			break;	
-
 		} 
 	}
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
@@ -697,7 +679,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 		if(ts.getCANID() == 51)
 		{
-
 			auto sensor_collection = talon->GetSensorCollection();
 			ts.setForwardLimitSwitch(sensor_collection.IsFwdLimitSwitchClosed());
 			ts.setReverseLimitSwitch(sensor_collection.IsRevLimitSwitchClosed());
@@ -761,13 +742,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
 			internal_status.timeDurMs = talon_status.timeDurMs;
 			ts.setMotionProfileStatus(internal_status);
-
-
-
-
-
-
-
 		}  	
 		const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
@@ -777,12 +751,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 		ts.setSpeed(speed);
 
-
-			
-
-
-
-		
 		//top level buffer has capacity of 4096
 		//ROS_INFO_STREAM("num rem : " << talon_status.topBufferRem);
 
@@ -943,12 +911,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		tf2::Quaternion tempQ;
 		if(i == 0)
 		{
-			if(navX_command_[i] != -10000)
-			{
-				offset_navX_[i] = navX_command_[i] - navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI;
-			}
+			const double navX_zero = navX_zero_.load(std::memory_order_relaxed);
+			if(navX_zero != -10000)
+				offset_navX_[i] = navX_zero - navXs_[i]->GetFusedHeading() / 360. * 2. * M_PI;
 
-			navX_angle_.store(navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i], std::memory_order_relaxed);
+			navX_angle_.store(navXs_[i]->GetFusedHeading() / 360. * 2. * M_PI + offset_navX_[i], std::memory_order_relaxed);
 		}
 		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i]  );
 
@@ -1751,6 +1718,30 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			compressors_[i]->SetClosedLoopControl(setpoint);
 			last_compressor_command_[i] = compressor_command_[i];
 		}
+	}
+	for (size_t i = 0; i < num_dummy_joints_; i++)
+	{
+		dummy_joint_effort_[i] = 0;
+		//if (dummy_joint_names_[i].substr(2, std::string::npos) == "_angle")
+		{
+			// position mode
+			dummy_joint_velocity_[i] = (dummy_joint_command_[i] - dummy_joint_position_[i]) / elapsed_time.toSec();
+			dummy_joint_position_[i] = dummy_joint_command_[i];
+		}
+#if 0
+		else if (dummy_joint_names_[i].substr(2, std::string::npos) == "_drive")
+		{
+			// velocity mode
+			dummy_joint_position_[i] += dummy_joint_command_[i] * elapsed_time.toSec();
+			dummy_joint_velocity_[i] = dummy_joint_command_[i];
+		}
+#endif
+		// Use dummy joints to communicate info between
+		// various controllers and driver station smartdash vars
+		if (dummy_joint_names_[i] == "cube_state")
+			cube_state_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
+		else if (dummy_joint_names_[i] == "stop_arm")
+			dummy_joint_position_[i] = stop_arm_.load(std::memory_order_relaxed) ? 1 : 0;
 	}
 }
 
