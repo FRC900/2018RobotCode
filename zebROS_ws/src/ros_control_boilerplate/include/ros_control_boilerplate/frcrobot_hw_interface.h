@@ -207,6 +207,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::atomic<bool> stop_arm_;
 		std::atomic<bool> override_arm_limits_;
 		std::atomic<bool> cube_state_;
+		std::atomic<bool> disable_compressor_;
 
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;
 		std::shared_ptr<std::vector<std::atomic<bool>>> can_talons_mp_written_;

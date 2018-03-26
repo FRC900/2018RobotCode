@@ -110,8 +110,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 1);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
 
-	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
-
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
 	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
@@ -171,12 +169,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				realtime_pub_nt.unlockAndPublish();
 			}
 
-			if (override_compressor_limits.trylock())
-			{
-				override_compressor_limits.msg_.data = (bool)driveTable->GetBoolean("disable_reg", 0);		
-				override_compressor_limits.unlockAndPublish();
-				frc::SmartDashboard::PutBoolean("disable_reg_ret", override_compressor_limits.msg_.data);
-			}
+			disable_compressor_.store((bool)driveTable->GetBoolean("disable_reg", 0), std::memory_order_relaxed);
+			frc::SmartDashboard::PutBoolean("disable_reg_ret", disable_compressor_.load(std::memory_order_relaxed));
 
 			override_arm_limits_.store((bool)driveTable->GetBoolean("disable_arm_limits", 0), std::memory_order_relaxed);
 			frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm_limits_.load(std::memory_order_relaxed));
@@ -579,6 +573,7 @@ void FRCRobotHWInterface::init(void)
 
 	stop_arm_  = false;
 	override_arm_limits_ = false;
+	disable_compressor_ = false;
 	navX_zero_ = -10000;
 
 	for(size_t i = 0; i < num_dummy_joints_; i++)
@@ -1718,21 +1713,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 	}
 	for (size_t i = 0; i < num_dummy_joints_; i++)
 	{
-		dummy_joint_effort_[i] = 0;
-		//if (dummy_joint_names_[i].substr(2, std::string::npos) == "_angle")
-		{
-			// position mode
-			dummy_joint_velocity_[i] = (dummy_joint_command_[i] - dummy_joint_position_[i]) / elapsed_time.toSec();
-			dummy_joint_position_[i] = dummy_joint_command_[i];
-		}
-#if 0
-		else if (dummy_joint_names_[i].substr(2, std::string::npos) == "_drive")
-		{
-			// velocity mode
-			dummy_joint_position_[i] += dummy_joint_command_[i] * elapsed_time.toSec();
-			dummy_joint_velocity_[i] = dummy_joint_command_[i];
-		}
-#endif
 		// Use dummy joints to communicate info between
 		// various controllers and driver station smartdash vars
 		if (dummy_joint_names_[i] == "cube_state")
@@ -1741,6 +1721,26 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			dummy_joint_position_[i] = stop_arm_.load(std::memory_order_relaxed) ? 1 : 0;
 		else if (dummy_joint_names_[i] == "override_arm_limits")
 			dummy_joint_position_[i] = override_arm_limits_.load(std::memory_order_relaxed) ? 1 : 0;
+		else if (dummy_joint_names_[i] == "disable_compressor")
+			dummy_joint_position_[i] = disable_compressor_.load(std::memory_order_relaxed) ? 1 : 0;
+		else
+		{
+			dummy_joint_effort_[i] = 0;
+			//if (dummy_joint_names_[i].substr(2, std::string::npos) == "_angle")
+			{
+				// position mode
+				dummy_joint_velocity_[i] = (dummy_joint_command_[i] - dummy_joint_position_[i]) / elapsed_time.toSec();
+				dummy_joint_position_[i] = dummy_joint_command_[i];
+			}
+#if 0
+			else if (dummy_joint_names_[i].substr(2, std::string::npos) == "_drive")
+			{
+				// velocity mode
+				dummy_joint_position_[i] += dummy_joint_command_[i] * elapsed_time.toSec();
+				dummy_joint_velocity_[i] = dummy_joint_command_[i];
+			}
+#endif
+		}
 	}
 }
 
