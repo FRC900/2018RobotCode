@@ -50,8 +50,6 @@
 #include "ros_control_boilerplate/PDPData.h"
 
 #include <geometry_msgs/Twist.h>
-#include <std_msgs/String.h>
-#include <std_msgs/Float64.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 
 //HAL / wpilib includes
@@ -114,18 +112,16 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 1);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "autonomous_mode", 4);
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
-	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
-	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "autonomous_mode", 4);
+	//std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
     realtime_pub_nt.msg_.mode.resize(4);
     realtime_pub_nt.msg_.delays.resize(4);
-    ros::Time time_now_t;
-	ros::Time last_nt_publish_time;
-	//ros::Time last_joystick_publish_time;
-	ros::Time last_match_data_publish_time;
+	ros::Time last_nt_publish_time = ros::Time::now();
+	//ros::Time last_joystick_publish_time = ros::Time::now();
+	ros::Time last_match_data_publish_time = ros::Time::now();
 
 	const double nt_publish_rate = 1.1;
 	//const double joystick_publish_rate = 20;
@@ -135,7 +131,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	while (ros::ok())
 	{
 		robot_.OneIteration();
-		time_now_t = ros::Time::now();
+		const ros::Time time_now_t = ros::Time::now();
+		std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
 		//ROS_INFO("%f", ros::Time::now().toSec());
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
@@ -392,11 +389,15 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.unlockAndPublish();
 
 			if (realtime_pub_match_data.msg_.isEnabled && (game_specific_message.length() > 0))
+			{
 				game_specific_message_seen = true;
+				last_match_data_publish_time += ros::Duration(1.0 / match_data_publish_rate);
+			}
 			else
+			{
+				last_match_data_publish_time = ros::Time::now();
 				game_specific_message_seen = false;
-
-			last_match_data_publish_time += ros::Duration(1.0 / match_data_publish_rate);
+			}
 		}
 	}
 }
@@ -688,7 +689,7 @@ void FRCRobotHWInterface::init(void)
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
 		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i]));
 		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 50); // Make sure motor is stopped, use a long timeout just in case
-		can_talons_[i]->SetStatusFramePeriod(ctre::phoenix::motorcontrol::StatusFrameEnhanced::Status_10_MotionMagic, 20, 50); //Check with 50 hz? 
+		can_talons_[i]->SetStatusFramePeriod(ctre::phoenix::motorcontrol::StatusFrameEnhanced::Status_10_MotionMagic, 10, 50); 
 		//TODO: test above sketchy change
 		// Make sure motor is stopped, use a long timeout just in case
 		//safeTalonCall(can_talons_[i]->GetLastError(), "Initial Set(Disabled, 0)");
@@ -1057,7 +1058,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		}
 	}
 		
-	For (size_t i = 0; i < num_nidec_brushlesses_; i++)
+	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
 		brushless_vel_[i] = nidec_brushlesses_[i]->Get();
 	}
