@@ -128,6 +128,7 @@ class TeleopJointsKeyboard
 			std::cout << "init " << std::endl;
 			// TODO: make this robot agonistic
 			joints_pub_ = nh_.advertise<ros_control_boilerplate::JoystickState>("/frcrobot/joystick_states", 1);
+            //cube_state_sub = nh_.subscribe<elevator_controller:CubeState>("/frcrobot/cube_state_sim", cube_state_cb);
 		}
 
 		~TeleopJointsKeyboard()
@@ -463,7 +464,7 @@ class TeleopJointsKeyboard
 
 		ros::NodeHandle nh_;
 		ros::Publisher joints_pub_;
-		ros::Subscriber joints_sub_;
+		//ros::Subscriber cube_state_sub_;
 		ros_control_boilerplate::JoystickState cmd_;
 		ros_control_boilerplate::JoystickState cmd_last_;
 		bool has_recieved_joints_;

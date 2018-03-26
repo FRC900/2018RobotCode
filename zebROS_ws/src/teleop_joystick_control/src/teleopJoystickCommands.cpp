@@ -1219,16 +1219,27 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 	tf2::Matrix3x3(navQuat).getRPY(roll, pitch, yaw);
 	navX_angle.store(yaw, std::memory_order_relaxed);
 }
-
+void cube_rumble(bool has_cube) {
+    static double start_has_cube = DBL_MAX;
+    if(has_cube && start_has_cube > ros::Time::now().toSec()) {
+        start_has_cube = ros::Time::now().toSec();
+    }
+    if(has_cube && ros::Time::now().toSec() > start_has_cube + 1) {
+        const uint16_t leftRumble = 0;
+        const uint16_t rightRumble = 65535;
+        rumbleTypeConverterPublish(leftRumble, rightRumble);
+    }
+    else {
+        start_has_cube = DBL_MAX;
+        const uint16_t leftRumble = 0;
+        const uint16_t rightRumble = 0;
+        rumbleTypeConverterPublish(leftRumble, rightRumble);
+    }
+}
 void cubeCallback(const elevator_controller::CubeState &cube)
 {
 	cubeState.writeFromNonRT(CubeState(cube.has_cube, cube.clamp, cube.intake_low));
-    if(cube.has_cube)
-	{
-		const uint16_t leftRumble = 0;
-		const uint16_t rightRumble = 65535;
-        rumbleTypeConverterPublish(leftRumble, rightRumble);
-	}
+    cube_rumble(cube.has_cube);
 }
 
 void clampedCallback(const std_msgs::Float64 &clamp)
