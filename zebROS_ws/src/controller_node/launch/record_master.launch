@@ -31,7 +31,6 @@
 		/frcrobot/auto_interpreter_server_lift/result
 		/frcrobot/auto_interpreter_server_lift/status
 		/frcrobot/autonomous_mode
-		/frcrobot/clamp_controller/command
 		/frcrobot/compressor_controller/command
 		/frcrobot/elevator_controller/arm_true_visualize
 		/frcrobot/elevator_controller/arm_visualize
@@ -44,10 +43,6 @@
 		/frcrobot/elevator_controller/return_true_setpoint
 		/frcrobot/elevator_controller/stop_arm
 		/frcrobot/elevator_controller/top_poly_visualize
-		/frcrobot/end_game_deploy_controller/command
-		/frcrobot/intake_spring_hard_controller/command
-		/frcrobot/intake_spring_soft_controller/command
-		/frcrobot/intake_up_controller/command
 		/frcrobot/joint_states
 		/frcrobot/joystick_states
 		/frcrobot/match_data
@@ -57,7 +52,6 @@
 		/frcrobot/pdp_states
 		/frcrobot/regulate_compressor/disable
 		/frcrobot/rumble_controller/command
-		/frcrobot/shift_controller/command
 		/frcrobot/swerve_drive_controller/cmd_vel
 		/frcrobot/swerve_drive_controller/odom
 		/frcrobot/talon_states

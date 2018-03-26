@@ -7,7 +7,7 @@
 #include "ros/console.h"
 
 #include <controller_interface/multi_interface_controller.h>
-#include <hardware_interface/joint_state_interface.h>
+#include <hardware_interface/joint_command_interface.h>
 #include <nav_msgs/Odometry.h>
 #include <pluginlib/class_list_macros.h>
 #include <realtime_tools/realtime_buffer.h>
@@ -35,7 +35,8 @@ namespace elevator_controller
 
 class ElevatorController
         : public controller_interface::MultiInterfaceController<hardware_interface::TalonCommandInterface,
-																hardware_interface::JointStateInterface>
+																hardware_interface::JointStateInterface,
+																hardware_interface::PositionJointInterface>
 {
 	public:
 		ElevatorController();
@@ -115,15 +116,15 @@ class ElevatorController
 		ros::ServiceServer service_end_game_deploy_;
 		//TODO: considering adding x offset?
 
-		ros::Publisher Clamp_; 
-		ros::Publisher EndGameDeploy_; 
-		ros::Publisher Shift_; 
+		hardware_interface::JointHandle Clamp_;
+		hardware_interface::JointHandle Shift_;
+		hardware_interface::JointHandle EndGameDeploy_;
+
+		hardware_interface::JointHandle IntakeUp_;
+		hardware_interface::JointHandle IntakeHardSpring_;
+		hardware_interface::JointHandle IntakeSoftSpring_;
 
 		ros::Publisher CubeState_; 
-
-		ros::Publisher IntakeUp_; 
-		ros::Publisher IntakeHardSpring_; 
-		ros::Publisher IntakeSoftSpring_; 
 
 		ros::Publisher ReturnCmd_; 
 		ros::Publisher ReturnTrueSetpoint_; 
