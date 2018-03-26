@@ -957,10 +957,10 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				") right rumble = " << std::dec << right_rumble << "(" << std::hex << right_rumble <<  ")" << std::dec);
 #endif
 	}
-	std::stringstream s;
+	//std::stringstream s;
 	for (size_t i = 0; i < num_dummy_joints_; i++)
 	{
-		s << dummy_joint_command_[i] << " ";
+		//s << dummy_joint_command_[i] << " ";
 		dummy_joint_effort_[i] = 0;
 		//if (dummy_joint_names_[i].substr(2, std::string::npos) == "_angle")
 		{
@@ -975,7 +975,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			//dummy_joint_velocity_[i] = dummy_joint_command_[i];
 		}
 	}
-	ROS_INFO_STREAM_THROTTLE(1, s.str());
+	//ROS_INFO_STREAM_THROTTLE(1, s.str());
 }
 
 }  // namespace

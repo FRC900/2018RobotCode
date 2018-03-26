@@ -65,6 +65,8 @@ class arm_limits
 			arm_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("arm_visualize", 10);
 			arm_true_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("arm_true_visualize", 10);
 			hook_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("hook_visualize", 10);
+			top_pivot_pub_ = n.advertise<geometry_msgs::PolygonStamped>("pivot_top_viz", 10);
+			bottom_pivot_pub_ = n.advertise<geometry_msgs::PolygonStamped>("pivot_bot_viz", 10);
 			point_type top(-.00001, arm_length_+ 0.00001);
 			point_type bottom(-.00001, -arm_length_ + 0.00001);
 			//the -.01 is for some edge case
@@ -105,7 +107,7 @@ class arm_limits
 		}
 		bool check_if_possible(point_type &cmd, bool &up_or_down, int check_type, double lift_height = 0)
 		{		
-			if(check_type < 2)
+			if(check_type == 0)
 			{
 				if(up_or_down)
 				{
@@ -116,7 +118,6 @@ class arm_limits
 					}
 					else if(boost::geometry::within(cmd, saved_polygons_[1]))
 					{
-						//ROS_WARN("up to down");
 						up_or_down = false;
 						return false;
 					}
@@ -140,6 +141,38 @@ class arm_limits
 						//ROS_WARN("down to up");
 						up_or_down = true;
 						return false;
+					}
+					else
+					{
+						//ROS_WARN("FAIL");
+						find_nearest_point(cmd, up_or_down, check_type, lift_height);
+						return false;
+					}
+				}
+			}
+			else if(check_type == 1)
+			{
+				if(up_or_down)
+				{
+					if(boost::geometry::within(cmd, saved_polygons_[0]))
+					{
+						//ROS_WARN("success");
+						return true;
+					}
+					else
+					{
+						//ROS_WARN("FAIL");
+
+						find_nearest_point(cmd, up_or_down, check_type, lift_height);
+						return false;
+					}
+				}
+				else
+				{
+					if(boost::geometry::within(cmd, saved_polygons_[1]))
+					{
+						//ROS_WARN("success");	
+						return true;
 					}
 					else
 					{
@@ -188,6 +221,8 @@ class arm_limits
 		bool intake_up, bool in_transition, bool &safe_to_move_intake, bool cube_in_clamp, bool intake_open)
 		{
 			
+			pivot_top_circ.polygon.points.clear();	
+			pivot_bottom_circ.polygon.points.clear();
 			//TODO:::::: TESTING
 			
 			//cube_in_clamp = true;
@@ -209,12 +244,16 @@ class arm_limits
 			arm_line.header.frame_id = "/arm_viz"; 
 			arm_line_true.header.frame_id = "/arm_viz"; 
 			hook_line.header.frame_id = "/arm_viz"; 
+			pivot_top_circ.header.frame_id = "/arm_viz"; 
+			pivot_bottom_circ.header.frame_id = "/arm_viz"; 
 
 
 			top_polygon.header.stamp =  
 		    bottom_polygon.header.stamp =  
 			arm_line.header.stamp =  
 			arm_line_true.header.stamp = 
+			pivot_top_circ.header.stamp = 
+			pivot_bottom_circ.header.stamp = 
 			hook_line.header.stamp = ros::Time::now(); 
 
 
@@ -366,7 +405,7 @@ class arm_limits
 
 			//ROS_INFO_STREAM("cur_pos check");
 
-			//ROS_INFO_STREAM(" Cmd: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
+			//ROS_INFO_STREAM(" Cur pos: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
 			//cur_pos.x(.05);
 			//cur_pos.y(.5);
 			//cur_up_or_down = false;	
@@ -408,6 +447,7 @@ class arm_limits
 			arm_true_marker_pub_.publish(arm_line_true);
 
 	
+			//ROS_WARN_STREAM(" Cur pos: " << boost::geometry::wkt(cur_pos) << " up/down :" << cur_up_or_down);
 			double isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
 			//Could switch above to using circle func instead of trig func	
@@ -421,19 +461,22 @@ class arm_limits
 
 			bool enforced_hook_x_limit = false;
 
-			if(cmd.y() < cut_off_y_line_ || cur_pos.y() < cut_off_y_line_)
+			if(cmd.y() < cut_off_y_line_ || cur_pos.y() < cut_off_y_line_ - .1)
 			{
 				cmd.x(drop_down_pos_);
 				enforced_hook_x_limit = cur_pos.y() < cut_off_y_line_;
 				up_or_down = false;
+				//ROS_ERROR("Here -  2");
 			}
 			if(((!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit) && cmd.y() < cut_off_y_line_) || (cube_in_clamp && !intake_open ) && cmd.y() < cut_off_y_line_  && cur_pos.y() > cut_off_y_line_-.1)  
 			{
 				cmd.y(cut_off_y_line_);
+				//ROS_ERROR("Here");
 			}
 			bool recalc_due_to_lim = false; 	
 			if(cmd.x() < cut_off_x_line_ - .001   && cur_lift_height < safe_to_go_back_y_)
 			{
+				//ROS_ERROR("Here22");
 				cmd.x(cut_off_x_line_);
 				up_or_down = true;
 				cmd.y(isolated_lift_delta_y + cur_lift_height+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
@@ -450,6 +493,7 @@ class arm_limits
 			*( up_or_down ? 1 : -1) + cur_lift_height;
 
 			isolated_lift_delta_y = cmd.y() - isolated_pivot_y;
+			//ROS_INFO_STREAM(" Cmd changed?: " << boost::geometry::wkt(cmd) << " up/down :" << up_or_down);
 		
 			double static_offset_high;
 			double static_offset_low;
@@ -509,7 +553,7 @@ class arm_limits
 			{
 				
 				//ROS_WARN("0");	
-				ROS_WARN("HOOK LIMITED");
+				//ROS_WARN("HOOK LIMITED");
 				//up_or_down = cur_up_or_down;
 				if(cmd.x() < hook_depth_ && !enforced_hook_x_limit)
 				{
@@ -518,7 +562,7 @@ class arm_limits
 					//ROS_WARN("1");	
 					if(recalc_due_to_lim)
 					{					
-						ROS_WARN("2");	
+						//ROS_WARN("2");	
 						//ROS_WARN("here to check");	
 						cmd.y(safe_to_go_back_y_+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
 						isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
@@ -531,7 +575,7 @@ class arm_limits
 					
 						if(cmd.y() < hook_max_height_ + hook_cmd_height_delta)
 						{
-							ROS_WARN("3");	
+							//ROS_WARN("3");	
 							cmd.y(y_high_hook_corner);
 							if(cmd.y() - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_ )
 							{	
@@ -545,20 +589,20 @@ class arm_limits
 					}
 					else
 					{
-						ROS_WARN("5");	
+						//ROS_WARN("5");	
 						//ROS_WARN("here2");	
 						
 						if(cur_pos.y() < hook_min_height_ + hook_cmd_height_delta)
 						{
-							ROS_WARN("6");	
+							//ROS_WARN("6");	
 							//ROS_WARN("here3");	
 							if(cur_pos.x() < hook_depth_)
 							{
-								ROS_WARN("7");	
+								//ROS_WARN("7");	
 								cmd.y(y_low_hook_corner);
 								if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
 								{	
-									ROS_WARN("8");	
+									//ROS_WARN("8");	
 									const double theta_new = asin((hook_min_height_ - (max_extension_ + min_extension_)/2) / arm_length_);
 									up_or_down  = theta_new > 0;
 									cmd.x(cos(theta_new) * arm_length_);
@@ -567,7 +611,7 @@ class arm_limits
 							}
 							else
 							{
-								ROS_WARN_STREAM("9" << " x_pos " << cur_pos.x() << " x_tar: " << cmd.x());	
+								//ROS_WARN_STREAM("9" << " x_pos " << cur_pos.x() << " x_tar: " << cmd.x());	
 								//ROS_WARN("here6");	
 								cmd.y(cur_lift_height + isolated_lift_delta_y 
 								+ sin(acos((hook_depth_+.05)/arm_length_))*arm_length_
@@ -579,7 +623,7 @@ class arm_limits
 							//ROS_WARN("here");
 							if(cur_pos.x() < hook_depth_)
 							{
-								ROS_WARN("10");	
+								//ROS_WARN("10");	
 								cmd.y(y_high_hook_corner);
 								if(cmd.y()  - sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1)> max_extension_)
 								{	
@@ -593,7 +637,7 @@ class arm_limits
 							}
 							else
 							{
-								ROS_WARN("12");	
+								//ROS_WARN("12");	
 								cmd.y(cur_lift_height + isolated_lift_delta_y 
 								+ sin(acos((hook_depth_+.05)/arm_length_))*arm_length_
 								*(up_or_down ? 1 : -1));
@@ -661,6 +705,7 @@ class arm_limits
 			//ROS_INFO_STREAM("prior setpoint: " << cmd.x() << " " << cmd.y());
 		
 			//double prior_ang = acos(cmd.x()/arm_length_);
+
 	
 			//ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
 			
@@ -679,11 +724,15 @@ class arm_limits
 
 				
 
-				//ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd));
+				//ROS_INFO_STREAM("new pivot: " << boost::geometry::wkt(test_pivot_cmd) << " cmd: " << boost::geometry::wkt(cmd) << " up_or_down: " << up_or_down);
+				top_pivot_pub_.publish(pivot_top_circ);
+				bottom_pivot_pub_.publish(pivot_bottom_circ);
 				return false;				
 			}
 			else
 			{
+				top_pivot_pub_.publish(pivot_top_circ);
+				bottom_pivot_pub_.publish(pivot_bottom_circ);
 				point_type test_lift_cmd(cur_pos.x(), cur_pos.y() + isolated_lift_delta_y);
 				//ROS_INFO_STREAM("elevator check. Cmd: " << boost::geometry::wkt(test_lift_cmd) << " up/down :" << cur_up_or_down);
 				if(!check_if_possible(test_lift_cmd, cur_up_or_down, 2))
@@ -700,6 +749,9 @@ class arm_limits
 			} 
 		}
 	private:
+		
+		geometry_msgs::PolygonStamped pivot_top_circ, pivot_bottom_circ;
+
 		double min_extension_;
 		double max_extension_;	
 		double arm_length_;
@@ -719,6 +771,8 @@ class arm_limits
 		ros::Publisher arm_marker_pub_;
 		ros::Publisher arm_true_marker_pub_;
 		ros::Publisher hook_marker_pub_;
+		ros::Publisher top_pivot_pub_;
+		ros::Publisher bottom_pivot_pub_;
 
 		std::array<std::vector<linestring_type>, 2> poly_lines_;
 		polygon_type top_pivot_circle_;
@@ -800,9 +854,32 @@ class arm_limits
 				std::vector<point_type> output_down;
 				boost::geometry::intersection(bottom_new_pivot_circle, saved_polygons_[1], output_down);
 
-				//ROS_INFO_STREAM("circle: " << boost::geometry::wkt(new_pivot_circle));
-				
+				//ROS_INFO_STREAM("circle: " << boost::geometry::wkt(top_new_pivot_circle));
 			
+
+						
+				for(auto it = boost::begin(boost::geometry::exterior_ring(top_new_pivot_circle)); it != boost::end(boost::geometry::exterior_ring(top_new_pivot_circle)); ++it)
+				{
+					geometry_msgs::Point32 p;	
+					p.x = boost::geometry::get<0>(*it);
+					p.y = boost::geometry::get<1>(*it);
+					p.z = 0;
+					pivot_top_circ.polygon.points.push_back(p);
+				}
+				for(auto it = boost::begin(boost::geometry::exterior_ring(bottom_new_pivot_circle)); it != boost::end(boost::geometry::exterior_ring(bottom_new_pivot_circle)); ++it)
+				{
+					geometry_msgs::Point32 p;	
+					p.x = boost::geometry::get<0>(*it);
+					p.y = boost::geometry::get<1>(*it);
+					p.z = 0;
+					pivot_bottom_circ.polygon.points.push_back(p);
+				}
+
+
+
+
+
+	
 				double min_dist_up  = std::numeric_limits<double>::max();
 				double min_dist_down  = std::numeric_limits<double>::max();
 				double temp_dist;

@@ -34,7 +34,7 @@
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller imu_sensor_controller navx_controller pdp_state_controller compressor_controller swerve_drive_controller elevator_controller rumble_controller robot_code_ready_controller"/>
+			output="screen" args="spawn joint_state_controller talon_state_controller imu_sensor_controller pdp_state_controller compressor_controller swerve_drive_controller elevator_controller rumble_controller robot_code_ready_controller"/>
 
         <!-- launch joystick subscriber-->
 		

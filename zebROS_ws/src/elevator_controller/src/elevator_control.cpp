@@ -396,7 +396,9 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, remove_zone_poly_up, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos, hook_depth_, hook_min_height_, hook_max_height_, controller_nh, intake_up_box, intake_down_box, intake_in_transition_box, dist_to_front_cube, dist_to_front_clamp);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
-	sub_stop_arm_ = controller_nh.subscribe("stop_arm", 1, &ElevatorController::stopCallback, this);
+
+	stop_arm_ = joint_state_iface->getHandle("stop_arm");
+
 	service_command_ = controller_nh.advertiseService("cmd_posS", &ElevatorController::cmdPosService, this);
 	service_intake_ = controller_nh.advertiseService("intake", &ElevatorController::intakeService, this);
 	service_clamp_ = controller_nh.advertiseService("clamp", &ElevatorController::clampService, this);
@@ -411,6 +413,8 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	IntakeHardSpring_ = pos_joint_iface->getHandle("intake_spring_hard");
 
 	CubeState_        = controller_nh.advertise<elevator_controller::CubeState>("cube_state", 1);
+	CubeStateJoint_   = pos_joint_iface->getHandle("cube_state");
+
 	ReturnCmd_        = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);
 	ReturnTrueSetpoint_ = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_true_setpoint", 1);
 
@@ -563,17 +567,17 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	elevator_controller::CubeState cube_msg;
 	cube_msg.intake_high = line_break_intake_high_.getPosition() != 0;
 	cube_msg.intake_low = line_break_intake_low_.getPosition() != 0;
-	cube_msg.has_cube = cube_msg.intake_high || cube_msg.intake_low || pivot_joint_.getForwardLimitSwitch();
 	cube_msg.clamp = pivot_joint_.getForwardLimitSwitch();
+	cube_msg.has_cube = cube_msg.intake_high || cube_msg.intake_low || cube_msg.clamp;
 	CubeState_.publish(cube_msg);
+	CubeStateJoint_.setCommand(cube_msg.has_cube ? 1.0 : 0.0);
 	
 	const double clamp_cmd = clamp_cmd_.load(std::memory_order_relaxed);
-	const bool cube_in_clamp = cube_msg.clamp && (clamp_cmd != 0);
 	
 	Clamp_.setCommand(clamp_cmd);
 
 	const double lift_position =  /*last_tar_l - lift_offset_*/lift_joint_.getPosition()  - lift_offset_;
-	double raw_pivot_angle   =  pivot_joint_.getPosition();
+	const double raw_pivot_angle   =  pivot_joint_.getPosition();
 	
 	const double adder = floor(((raw_pivot_angle - pivot_offset_) + M_PI) / (2.0 * M_PI)) * 2.0 * M_PI;
 	if(fabs(adder) > .1)    //Offset will jump by intervals of 2 * pi, 
@@ -586,7 +590,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		ROS_WARN("Pivot encoder discontinuouity detected and accounted for");
 	
 	}
-	double pivot_angle = raw_pivot_angle - pivot_offset_;
+	const double pivot_angle = raw_pivot_angle - pivot_offset_;
 
 	//TODO: put in similar checks for the lift using limit switches
 	bool cur_up_or_down = pivot_angle > 0;
@@ -601,7 +605,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 	Odom_.publish(odom_holder);
 	
-	if(stop_arm_.load(std::memory_order_relaxed))
+	if(stop_arm_.getPosition())
 	{	
 		pivot_joint_.setPeakOutputForward(0);
 		pivot_joint_.setPeakOutputReverse(0);
@@ -616,7 +620,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 		lift_joint_.setPeakOutputForward(1);
 		lift_joint_.setPeakOutputReverse(-1);
-
 	}
 	bool safe_to_move_intake;
 	elevator_controller::ReturnElevatorCmd return_holder;
@@ -629,6 +632,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		arm_limiting::point_type return_cmd;
 		bool return_up_or_down;
 		bool bottom_limit = false; //TODO FIX THIS
+		const bool cube_in_clamp = cube_msg.clamp && (clamp_cmd != 0);
 		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit, intake_up, in_transition, safe_to_move_intake, cube_in_clamp, intake_open);
 
 		return_holder.x = return_cmd.x();
@@ -718,17 +722,6 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 
 		command_struct_.stamp = ros::Time::now();
 		command_.writeFromNonRT(command_struct_);
-	}
-	else
-	{
-		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
-	}
-}
-void ElevatorController::stopCallback(const std_msgs::Bool &command)
-{
-	if(isRunning())
-	{
-		stop_arm_.store(command.data, std::memory_order_relaxed);
 	}
 	else
 	{

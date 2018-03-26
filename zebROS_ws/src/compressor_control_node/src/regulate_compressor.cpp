@@ -50,8 +50,6 @@ int main(int argc, char **argv) {
 	ros::Subscriber pressure_sub_ = n.subscribe("/frcrobot/joint_states", 1, &pressureCallback);
 	ros::Subscriber current_sub_ = n.subscribe("/frcrobot/pdp_states",60, &currentCallback);
 	ros::Subscriber match_data_sub_ = n.subscribe("/frcrobot/match_data", 1, &matchDataCallback);
-	ros::Subscriber disable_sub_ = n.subscribe("/frcrobot/regulate_compressor/disable", 5, &disableCallback);
-	//TODO FIX ABOVE topic names
 
 	pressure_ = 120;
 	match_time_ = 0;
@@ -60,7 +58,7 @@ int main(int argc, char **argv) {
 	disable_ = false;
 
 	ros::Rate r(1); //1 hz
-	bool run_last_tick;
+	bool run_last_tick; // TODO : initialize me
 	while(ros::ok())
 	{
 		ros::spinOnce();
@@ -134,15 +132,22 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-void pressureCallback(const sensor_msgs::JointState &pressure)
+void pressureCallback(const sensor_msgs::JointState &joint_state)
 {
-	static int pressure_sensor_index = -1;
-	for(size_t i = 0; (pressure_sensor_index < 0) && (i < pressure.name.size()); i++)
-		if(pressure.name[i] == "analog_pressure")
+	static size_t pressure_sensor_index = std::numeric_limits<size_t>::max();
+	static size_t disable_index = std::numeric_limits<size_t>::max();
+	for(size_t i = 0; ((pressure_sensor_index >= joint_state.name.size()) || disable_index >= joint_state.name.size()) && (i < joint_state.name.size()); i++)
+	{
+		if(joint_state.name[i] == "analog_pressure")
 			pressure_sensor_index = i;
+		else if(joint_state.name[i] == "disable_compressor")
+			disable_index = i;
+	}
 
-	if(pressure_sensor_index >= 0)
-		pressure_.store(pressure.position[pressure_sensor_index], std::memory_order_relaxed);
+	if(pressure_sensor_index < joint_state.position.size())
+		pressure_.store(joint_state.position[pressure_sensor_index], std::memory_order_relaxed);
+	if(disable_index < joint_state.position.size())
+		disable_.store(joint_state.position[disable_index], std::memory_order_relaxed);
 }
 
 void matchDataCallback(const ros_control_boilerplate::MatchSpecificData &MatchData)
@@ -171,7 +176,3 @@ void currentCallback(const pdp_state_controller::PDPData &msg)
 	weighted_average_current_.store(temp_weighted_average_current, std::memory_order_relaxed);
 }
 
-void disableCallback(const std_msgs::Bool &disable)
-{
-	disable_.store(disable.data, std::memory_order_relaxed);
-}

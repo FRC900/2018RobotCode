@@ -36,6 +36,10 @@ hardware_interface:
        - {name: analog_pressure_sensor, type: analog_input, analog_channel: 0, analog_a: .0633897, analog_b: -24.9}
        - {name: compressor1, type: compressor, pcm_id: 0}
        - {name: joystick_rumble, type: rumble, rumble_port: 0}
+       - {name: cube_state, type: dummy}
+       - {name: stop_arm, type: dummy}
+       - {name: override_arm_limits, type: dummy}
+       - {name: disable_compressor, type: dummy}
 
 # Create controllers for each joint
 #
@@ -92,10 +96,6 @@ end_game_deploy_controller:
 imu_sensor_controller:
    type:         imu_sensor_controller/ImuSensorController
    publish_rate: 20
-
-navx_controller:
-   type: position_controllers/JointPositionController
-   joint: navx_mxp
 
 pdp_state_controller:
    type:         pdp_state_controller/PDPStateController
