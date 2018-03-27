@@ -50,8 +50,6 @@
 #include "ros_control_boilerplate/PDPData.h"
 
 #include <geometry_msgs/Twist.h>
-#include <std_msgs/String.h>
-#include <std_msgs/Float64.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 
 //HAL / wpilib includes
@@ -68,7 +66,7 @@
 namespace frcrobot_control
 {
 const int pidIdx = 0; //0 for primary closed-loop, 1 for cascaded closed-loop
-const int timeoutMs = 10; //If nonzero, function will wait for config success and report an error if it times out. If zero, no blocking or checking is performed
+const int timeoutMs = 0; //If nonzero, function will wait for config success and report an error if it times out. If zero, no blocking or checking is performed
 
 FRCRobotHWInterface::FRCRobotHWInterface(ros::NodeHandle &nh, urdf::Model *urdf_model)
 	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model)
@@ -109,20 +107,18 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 1);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "autonomous_mode", 4);
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
-	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
-	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "autonomous_mode", 4);
+	//std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
     realtime_pub_nt.msg_.mode.resize(4);
     realtime_pub_nt.msg_.delays.resize(4);
-    ros::Time time_now_t;
-	ros::Time last_nt_publish_time;
-	//ros::Time last_joystick_publish_time;
-	ros::Time last_match_data_publish_time;
+	ros::Time last_nt_publish_time = ros::Time::now();
+	//ros::Time last_joystick_publish_time = ros::Time::now();
+	ros::Time last_match_data_publish_time = ros::Time::now();
 
-	const double nt_publish_rate = 1.1;
+	const double nt_publish_rate = 10;
 	//const double joystick_publish_rate = 20;
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
@@ -130,20 +126,20 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	while (ros::ok())
 	{
 		robot_.OneIteration();
-		time_now_t = ros::Time::now();
+		const ros::Time time_now_t = ros::Time::now();
 		//ROS_INFO("%f", ros::Time::now().toSec());
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
 		//subTable->PutString("Auto Selector", "Select Auto");
-		if (driveTable && 
-			((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t))
+		if ((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t)
 		{
 			// SmartDashboard works!
 			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_.load(std::memory_order_relaxed));
 			frc::SmartDashboard::PutNumber("Pressure", pressure_.load(std::memory_order_relaxed));
 			frc::SmartDashboard::PutBoolean("cube_state", cube_state_.load(std::memory_order_relaxed));
 
-			if (realtime_pub_nt.trylock()) 
+			std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
+			if (driveTable && realtime_pub_nt.trylock()) 
 			{
 				realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
 				realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
@@ -169,20 +165,23 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				realtime_pub_nt.unlockAndPublish();
 			}
 
-			disable_compressor_.store((bool)driveTable->GetBoolean("disable_reg", 0), std::memory_order_relaxed);
-			frc::SmartDashboard::PutBoolean("disable_reg_ret", disable_compressor_.load(std::memory_order_relaxed));
+			if (driveTable)
+			{
+				disable_compressor_.store((bool)driveTable->GetBoolean("disable_reg", 0), std::memory_order_relaxed);
+				frc::SmartDashboard::PutBoolean("disable_reg_ret", disable_compressor_.load(std::memory_order_relaxed));
 
-			override_arm_limits_.store((bool)driveTable->GetBoolean("disable_arm_limits", 0), std::memory_order_relaxed);
-			frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm_limits_.load(std::memory_order_relaxed));
+				override_arm_limits_.store((bool)driveTable->GetBoolean("disable_arm_limits", 0), std::memory_order_relaxed);
+				frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm_limits_.load(std::memory_order_relaxed));
 
-			stop_arm_.store((bool)driveTable->GetBoolean("stop_arm", 0), std::memory_order_relaxed);
+				stop_arm_.store((bool)driveTable->GetBoolean("stop_arm", 0), std::memory_order_relaxed);
 
-			double zero_angle;
-			if(driveTable->GetBoolean("zero_navX", 0) != 0)
-				zero_angle = (double)driveTable->GetNumber("zero_angle", 0);
-			else
-				zero_angle = -10000;
-			navX_zero_.store(zero_angle, std::memory_order_relaxed);
+				double zero_angle;
+				if(driveTable->GetBoolean("zero_navX", 0) != 0)
+					zero_angle = (double)driveTable->GetNumber("zero_angle", 0);
+				else
+					zero_angle = -10000;
+				navX_zero_.store(zero_angle, std::memory_order_relaxed);
+			}
 
 			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
 		}
@@ -387,11 +386,15 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.unlockAndPublish();
 
 			if (realtime_pub_match_data.msg_.isEnabled && (game_specific_message.length() > 0))
+			{
 				game_specific_message_seen = true;
+				last_match_data_publish_time += ros::Duration(1.0 / match_data_publish_rate);
+			}
 			else
+			{
+				last_match_data_publish_time = ros::Time::now();
 				game_specific_message_seen = false;
-
-			last_match_data_publish_time += ros::Duration(1.0 / match_data_publish_rate);
+			}
 		}
 	}
 }
@@ -573,8 +576,12 @@ void FRCRobotHWInterface::init(void)
 
 	stop_arm_  = false;
 	override_arm_limits_ = false;
+	cube_state_ = false;
 	disable_compressor_ = false;
 	navX_zero_ = -10000;
+	navX_angle_ = 0;
+	pressure_ = 0;
+	match_data_enabled_ = false;
 
 	for(size_t i = 0; i < num_dummy_joints_; i++)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
@@ -829,7 +836,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		}
 	}
 		
-	For (size_t i = 0; i < num_nidec_brushlesses_; i++)
+	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
 		brushless_vel_[i] = nidec_brushlesses_[i]->Get();
 	}
@@ -1267,7 +1274,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				//ROS_WARN("slot");
 				ROS_INFO_STREAM("Updated joint " << joint_id << " PIDF slot to " << slot << std::endl);
 
-				safeTalonCall(talon->SelectProfileSlot(slot, timeoutMs),"SelectProfileSlot");
+				safeTalonCall(talon->SelectProfileSlot(slot, pidIdx),"SelectProfileSlot");
 				ts.setSlot(slot);
 			}
 		}
@@ -1300,7 +1307,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 		if (tc.neutralOutputChanged())
 		{
-		
 			//ROS_WARN("neutral");
 			talon->NeutralOutput();
 			safeTalonCall(talon->GetLastError(), "NeutralOutput");
@@ -1716,7 +1722,10 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		// Use dummy joints to communicate info between
 		// various controllers and driver station smartdash vars
 		if (dummy_joint_names_[i] == "cube_state")
+		{
+			dummy_joint_position_[i] = dummy_joint_command_[i];
 			cube_state_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
+		}
 		else if (dummy_joint_names_[i] == "stop_arm")
 			dummy_joint_position_[i] = stop_arm_.load(std::memory_order_relaxed) ? 1 : 0;
 		else if (dummy_joint_names_[i] == "override_arm_limits")

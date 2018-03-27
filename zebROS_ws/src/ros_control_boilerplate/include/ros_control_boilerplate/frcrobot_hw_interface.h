@@ -208,6 +208,10 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::atomic<bool> override_arm_limits_;
 		std::atomic<bool> cube_state_;
 		std::atomic<bool> disable_compressor_;
+		std::atomic<double> navX_zero_;
+		std::atomic<double> navX_angle_;
+		std::atomic<double> pressure_;
+		std::atomic<bool> match_data_enabled_;
 
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;
 		std::shared_ptr<std::vector<std::atomic<bool>>> can_talons_mp_written_;
@@ -220,10 +224,6 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Solenoid>> solenoids_;
 		std::vector<std::shared_ptr<frc::DoubleSolenoid>> double_solenoids_;
 		std::vector<std::shared_ptr<AHRS>> navXs_;
-		std::atomic<double> navX_zero_;
-		std::atomic<double> navX_angle_;
-		std::atomic<double> pressure_;
-		std::atomic<bool> match_data_enabled_;
 		std::vector<std::shared_ptr<frc::AnalogInput>> analog_inputs_;
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;
