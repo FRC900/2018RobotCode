@@ -4,9 +4,7 @@
 #include <ros/ros.h>
 #include <ros/console.h>
 
-static const double pi = M_PI; // TODO : why? just use M_PI
 using namespace std;
-
 
 // TODO : use intializer list
 // Make arg const &
@@ -20,7 +18,7 @@ swerveDriveMath::swerveDriveMath(array<Eigen::Vector2d, WHEELCOUNT> wheelCoordin
 }
 
 //used for varying center of rotation and must be run once for initialization
-array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(Eigen::Vector2d rotationCenter)
+array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(const Eigen::Vector2d &rotationCenter)
 {
 	array<double, WHEELCOUNT> wheelAngles;
 	array<double, WHEELCOUNT> wheelMultipliers;
@@ -30,10 +28,10 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(Eigen::Ve
 		double x = wheelCoordinate_[i][0] - rotationCenter[0];
 		double y = wheelCoordinate_[i][1] - rotationCenter[1];
 		wheelMultipliers[i] = -1;//-sqrt(x * x + y * y); // TODO : use hypot function
-		wheelAngles[i] = (atan2(x, y) + .5 * pi);
+		wheelAngles[i] = atan2(x, y) + .5 * M_PI;
 	}
-	array<Eigen::Vector2d, WHEELCOUNT> multipliersXY;
 	wheelMultipliers = normalize(wheelMultipliers);
+	array<Eigen::Vector2d, WHEELCOUNT> multipliersXY;
 	for (int i = 0; i < WHEELCOUNT; i++)
 	{
 		multipliersXY[i][0] = wheelMultipliers[i] * cos(wheelAngles[i]);
@@ -47,7 +45,7 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(Eigen::Ve
 //In radians, 0 is horizontal, increases counterclockwise
 //For non field centric set angle to pi/2
 // TODO : pass array as const & argument
-array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eigen::Vector2d, WHEELCOUNT> wheelMultipliersXY, Eigen::Vector2d velocityVector, double rotation, double angle, bool norm) const
+array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(const array<Eigen::Vector2d, WHEELCOUNT> &wheelMultipliersXY, const Eigen::Vector2d &velocityVector, double rotation, double angle, bool norm) const
 {
 	/*if (rotation == 0 && velocityVector[0] == 0 && velocityVector[1] == 0)
 	{
@@ -71,11 +69,11 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eige
 	{
 		//int inverterD = (i%2==0) ? -1 : 1;
 		//Only the rotation of the robot differently effects each wheel
-		double x = wheelMultipliersXY[i][0] * rotation + rotatedVelocity[0];
-		double y = wheelMultipliersXY[i][1] * rotation - rotatedVelocity[1];
+		const double x = wheelMultipliersXY[i][0] * rotation + rotatedVelocity[0];
+		const double y = wheelMultipliersXY[i][1] * rotation - rotatedVelocity[1];
 		//ROS_INFO_STREAM("rot: " << rotation << " wheel_multipliers_x: " << wheelMultipliersXY[i][0]<< " wheel_multipliers_y " << wheelMultipliersXY[i][1]);
 		angles[i] = atan2(x, y);
-		speeds[i] = sqrt(x * x + y * y); // TODO : Use hypot func?
+		speeds[i] = hypot(x, y);
 	}
 	if(norm)
 	{
@@ -85,7 +83,6 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(array<Eige
 	array<Eigen::Vector2d, WHEELCOUNT> speedsAngles;
 	for (int i = 0; i < WHEELCOUNT; i++)
 	{
-
 		speedsAngles[i][0] = speeds[i];
 		speedsAngles[i][1] = angles[i];
 	}
@@ -106,7 +103,7 @@ array<double, WHEELCOUNT> swerveDriveMath::parkingAngles(void) const
 // a new array.  Change input to & arg, return type to void,
 // modfiy input rather than normalzied in the last loop,
 // remove the else statement
-array<double, WHEELCOUNT> swerveDriveMath::normalize( array<double, WHEELCOUNT> input) const
+array<double, WHEELCOUNT> swerveDriveMath::normalize(const array<double, WHEELCOUNT> &input) const
 {
 	//Note that this function only works on arrays of size WHEELCOUNT
 	double maxi = *max_element(input.begin(), input.end());
@@ -125,7 +122,7 @@ array<double, WHEELCOUNT> swerveDriveMath::normalize( array<double, WHEELCOUNT> 
 		array<double, WHEELCOUNT> normalized;
 		for (size_t i = 0; i < input.size(); i++)
 		{
-			normalized[i] = (input[i] / absoluteMax);
+			normalized[i] = input[i] / absoluteMax;
 		}
 		return normalized;
 	}
