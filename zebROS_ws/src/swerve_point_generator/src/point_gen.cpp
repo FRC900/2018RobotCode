@@ -262,10 +262,6 @@ int main(int argc, char **argv)
 
 	ros::NodeHandle controller_nh(nh, "swerve_drive_controller");
 
-	ROS_ERROR("BEFORE advertiseService");
-	ros::ServiceServer service = nh.advertiseService("/point_gen/command", full_gen);
-	ROS_ERROR("AFTER advertiseService");
-
 	//double wheel_radius;
 	bool invert_wheel_angle;
 	swerveVar::ratios drive_ratios;
@@ -286,10 +282,6 @@ int main(int argc, char **argv)
 		ROS_ERROR("Could not read f_s_v in point gen");
 	if (!controller_nh.getParam("f_s_s", f_s_s))
 		ROS_ERROR("Could not read f_s_s in point gen");
-
-
-
-
 
 	if (!controller_nh.getParam("wheel_radius", model.wheelRadius))
 		ROS_ERROR("Could not read wheel_radius in point_gen");
@@ -372,7 +364,7 @@ int main(int argc, char **argv)
 
 	swerve_math = std::make_shared<swerve>(wheel_coords, offsets, invert_wheel_angle, drive_ratios, units, model);
 	defined_dt = .02;
-	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(sqrt(wheel_coords[0][0] * wheel_coords[0][0] + wheel_coords[0][1] * wheel_coords[0][1]), max_accel, model.maxSpeed, 1, 1, defined_dt, ang_accel_conv, max_brake_accel); //Fix last val
+	profile_gen = std::make_shared<swerve_profile::swerve_profiler>(hypot(wheel_coords[0][0], wheel_coords[0][1]), max_accel, model.maxSpeed, 1, 1, defined_dt, ang_accel_conv, max_brake_accel); //Fix last val
 	//Something to get intial wheel position
 
 	std::map<std::string, std::string> service_connection_header;
@@ -383,6 +375,12 @@ int main(int argc, char **argv)
 	ros::service::waitForService("/frcrobot/swerve_drive_controller/wheel_pos");
 	ROS_ERROR("DONE WAITING FOR wheel_pos");
 	get_pos = nh.serviceClient<talon_swerve_drive_controller::WheelPos>("/frcrobot/swerve_drive_controller/wheel_pos", false, service_connection_header);
+
+	// Once everything this node needs is available, open
+	// it up to connections from the outside
+	ROS_ERROR("BEFORE advertiseService");
+	ros::ServiceServer service = nh.advertiseService("/point_gen/command", full_gen);
+	ROS_ERROR("AFTER advertiseService");
 
 	ros::spin();
 }

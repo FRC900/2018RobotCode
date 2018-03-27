@@ -1019,44 +1019,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	double rotation = (pow(JoystickState->leftTrigger, joystick_scale) - pow(JoystickState->rightTrigger, joystick_scale)) * max_rot;
 
-	if (JoystickState->bumperLeftButton == true)
-	{
-		leftStickX *= slow_mode;
-		leftStickY *= slow_mode;
-
-		rightStickX *= slow_mode;
-		rightStickY *= slow_mode;
-
-		rotation *= slow_mode;
-	}
-}
-else // X or Y or rotation != 0 so tell the drive base to move
-{
-	sendRobotZero = false;
-	//Publish drivetrain messages and elevator/pivot
-	Eigen::Vector2d joyVector;
-	joyVector[0] = leftStickX; //intentionally flipped
-	joyVector[1] = -leftStickY;
-	Eigen::Rotation2Dd r(-navX_angle.load(std::memory_order_relaxed) - M_PI / 2);
-	Eigen::Vector2d rotatedJoyVector = r.toRotationMatrix() * joyVector;
-
-	geometry_msgs::Twist vel;
-	vel.linear.x = rotatedJoyVector[1];
-	vel.linear.y = rotatedJoyVector[0];
-	vel.linear.z = 0;
-
-	vel.angular.x = 0;
-	vel.angular.y = 0;
-	vel.angular.z = rotation;
-
-	JoystickRobotVel.publish(vel);
-	/*std_msgs::Header test_header;
-	  test_header.stamp = JoystickState->header.stamp;
-	  test_header.seq = 1;
-	  JoystickTestVel.publish(test_header);*/
-	sendRobotZero = false;
-}
-
 if(JoystickState->bumperLeftButton == true)
 {
 	//check to see if it's already running
@@ -1075,6 +1037,45 @@ if(JoystickState->bumperLeftButton == true)
 	
 	runTrajectory(&traj);
 }
+	static bool sendRobotZero = false;
+	// No motion? Tell the drive base to stop
+	if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
+	{
+		if (!sendRobotZero)
+		{
+			std_srvs::Empty empty;
+			if (!BrakeSrv.call(empty))
+				ROS_ERROR("BrakeSrv call failed in sendRobotZero");
+			ROS_INFO("BrakeSrv called");
+			sendRobotZero = true;
+		}
+	}
+	else // X or Y or rotation != 0 so tell the drive base to move
+	{
+		sendRobotZero = false;
+		//Publish drivetrain messages and elevator/pivot
+		Eigen::Vector2d joyVector;
+		joyVector[0] = leftStickX; //intentionally flipped
+		joyVector[1] = -leftStickY;
+		Eigen::Rotation2Dd r(-navX_angle.load(std::memory_order_relaxed) - M_PI / 2);
+		Eigen::Vector2d rotatedJoyVector = r.toRotationMatrix() * joyVector;
+
+		geometry_msgs::Twist vel;
+		vel.linear.x = rotatedJoyVector[1];
+		vel.linear.y = rotatedJoyVector[0];
+		vel.linear.z = 0;
+
+		vel.angular.x = 0;
+		vel.angular.y = 0;
+		vel.angular.z = rotation;
+
+		JoystickRobotVel.publish(vel);
+		/*std_msgs::Header test_header;
+		  test_header.stamp = JoystickState->header.stamp;
+		  test_header.seq = 1;
+		  JoystickTestVel.publish(test_header);*/
+		sendRobotZero = false;
+	}
 
 	if (rightStickX != 0 || rightStickY != 0)
 	{

@@ -12,7 +12,7 @@ std::atomic<bool> exit_auto; // robot is disabled or teleop started during auto_
 
 //std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac;
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
-std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac_intake;
+std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac_intake;
 
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
@@ -155,13 +155,13 @@ bool intakeCube(void) {
     
 }
 bool intakeNoArm(void) {
-	behaviors::RobotGoal goal;
+	behaviors::IntakeGoal goal;
 
     ROS_WARN("intaking cube");
     goal.IntakeCube = true;
     goal.time_out = 10; //TODO config this
 
-    ac->sendGoal(goal);
+    ac_intake->sendGoal(goal);
     
 }
 bool switchConfig(void) {
@@ -876,7 +876,7 @@ int main(int argc, char** argv) {
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    generateTrajectory(profiled_modes[3][3][2]);
+    //generateTrajectory(profiled_modes[3][3][2]);
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
@@ -1008,7 +1008,7 @@ int main(int argc, char** argv) {
                 //ROS_INFO("Match data received no auto buffered yet");
                 if(generated_vect[layout]) {
                     if(auto_mode_vect[layout] > num_cmd_vel_modes-1) {
-                        if(bufferTrajectory(profiled_modes[auto_mode_vect[layout]][layout][start_pos].srv_msg.response)) {
+                        if(bufferTrajectory(profiled_modes[auto_mode_vect[layout]-num_cmd_vel_modes][layout][start_pos].srv_msg.response)) {
                             //ROS_WARN("Buffering Profiled auto mode");
                             mode_buffered = true;
                         }
@@ -1027,7 +1027,7 @@ int main(int argc, char** argv) {
                 //ROS_INFO("Match data received and auto buffered");
                 if(auto_mode_vect[layout] > num_cmd_vel_modes-1) {
                     run_auto(auto_mode_vect[layout], layout, start_pos, 
-                             delays_vect[layout], profiled_modes[auto_mode_vect[layout]][layout][start_pos].actions);
+                             delays_vect[layout], profiled_modes[auto_mode_vect[layout]-num_cmd_vel_modes][layout][start_pos].actions);
                 }
                 else if(auto_mode_vect[layout] >= 0) {
                     run_auto(auto_mode_vect[layout], layout, start_pos, 
