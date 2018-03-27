@@ -1016,7 +1016,7 @@ if(JoystickState->bumperLeftButton == true)
 {
 	sendRobotZero = false;
 	double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
-	least_dist_angle = round(angle/(M_PI/2))*angle;
+	least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
 	geometry_msgs::Twist vel;
 	
 	if(angle - least_dist_angle > M_PI/12)
