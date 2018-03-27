@@ -1111,18 +1111,18 @@ rightStickY = -pow(rightStickY, joystick_scale);
 
 double rotation = ( pow(JoystickState->leftTrigger, rotation_scale) - pow(JoystickState->rightTrigger, rotation_scale)) * max_rot;
 
-static bool sendRobotZero = false;
-// No motion? Tell the drive base to stop
-if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
-{
-    if (!sendRobotZero)
-    {
-        std_srvs::Empty empty;
-        if (!BrakeSrv.call(empty))
-            ROS_ERROR("BrakeSrv call failed in sendRobotZero");
-        ROS_INFO("BrakeSrv called");
-        sendRobotZero = true;
-    }
+	static bool sendRobotZero = false;
+	// No motion? Tell the drive base to stop
+	if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
+	{
+		if (!sendRobotZero)
+		{
+			std_srvs::Empty empty;
+			if (!BrakeSrv.call(empty))
+				ROS_ERROR("BrakeSrv call failed in sendRobotZero");
+			ROS_INFO("BrakeSrv called");
+			sendRobotZero = true;
+		}
 	}
 	else // X or Y or rotation != 0 so tell the drive base to move
 	{
