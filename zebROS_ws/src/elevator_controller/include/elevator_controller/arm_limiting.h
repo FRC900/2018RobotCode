@@ -41,7 +41,9 @@ class arm_limits
 		double cut_off_y_line, double cut_off_x_line, double safe_to_go_back_y, double drop_down_tolerance, 
 		double drop_down_pos, double hook_depth, double hook_min_height, double hook_max_height, 
 		ros::NodeHandle &n, const polygon_type &intake_up_box, const polygon_type &intake_down_box, 
-		const polygon_type &intake_in_transition_box, double dist_to_front_cube, double dist_to_front_clamp) :
+		const polygon_type &intake_in_transition_box, double dist_to_front_cube, double dist_to_front_clamp,
+		double ready_to_go_into_intake_with_cube_x, double ready_to_go_into_intake_with_cube_y, 
+		double top_intake_cut_off_line_for_put_in_intake) :
 			intake_up_box_(intake_up_box),
 			intake_down_box_(intake_down_box),
 			intake_in_transition_box_(intake_in_transition_box),
@@ -58,6 +60,9 @@ class arm_limits
 			hook_depth_(hook_depth),
 			dist_to_front_cube_(dist_to_front_cube),
 			dist_to_front_clamp_(dist_to_front_clamp),
+			ready_to_go_into_intake_with_cube_x_(ready_to_go_into_intake_with_cube_x),
+			ready_to_go_into_intake_with_cube_y_(ready_to_go_into_intake_with_cube_y), 
+			top_intake_cut_off_line_for_put_in_intake_(top_intake_cut_off_line_for_put_in_intake),
 			saved_polygons_(arm_limitation_polygon(x_back, remove_zone_down, remove_zone_up, circle_point_count))
 		{
 			top_poly_marker_pub_ = n.advertise<geometry_msgs::PolygonStamped>("top_poly_visualize", 10);
@@ -233,7 +238,8 @@ class arm_limits
 		}
 		bool safe_cmd(point_type &cmd, bool &up_or_down, bool &cmd_works, point_type &cur_pos, 
 		bool &cur_up_or_down, point_type &cmd_return, bool &up_or_down_return, bool bottom_limit, 
-		bool intake_up, bool in_transition, bool &safe_to_move_intake, bool cube_in_clamp, bool intake_open)
+		bool intake_up, bool in_transition, bool &safe_to_move_intake, bool cube_in_clamp, bool intake_open,
+		bool put_cube_in_intake)
 		{
 			
 			pivot_top_circ.polygon.points.clear();	
@@ -432,27 +438,33 @@ class arm_limits
 			*(orig_up_or_down ? 1 : -1); 
 
 			//Display both?
-	
+
+
 			geometry_msgs::Point32 p;	
-			p.x = 0;
-			p.y = cur_lift_height_orig;
-			p.z = 0;
-			arm_line.polygon.points.push_back(p);
 			
 			p.x = orig_pos.x();
 			p.y = orig_pos.y();
 			p.z = 0;
-			arm_line.polygon.points.push_back(p);
+			arm_line_true.polygon.points.push_back(p);
+
+	
+
+			p.x = 0;
+			p.y = cur_lift_height_orig;
+			p.z = 0;
+			arm_line_true.polygon.points.push_back(p);
+			
+
 		
 			p.x = cur_pos.x();
 			p.y = cur_pos.y();
 			p.z = 0;
-			arm_line_true.polygon.points.push_back(p);
+			arm_line.polygon.points.push_back(p);
 
 			p.x = 0;
 			p.y = cur_lift_height;
 			p.z = 0;
-			arm_line_true.polygon.points.push_back(p);
+			arm_line.polygon.points.push_back(p);
 	
 			//ROS_INFO_STREAM(cur_lift_height);
 			//ROS_WARN_STREAM(orig_pos.x());
@@ -475,18 +487,48 @@ class arm_limits
 
 
 			bool enforced_hook_x_limit = false;
-
-			if(cmd.y() < cut_off_y_line_ || cur_pos.y() < cut_off_y_line_ - .1)
+			//ROS_WARN_STREAM("intake open" << intake_open << "cub to in" << put_cube_in_intake);
+			if(!cube_in_clamp || !put_cube_in_intake) 
 			{
-				cmd.x(drop_down_pos_);
-				enforced_hook_x_limit = cur_pos.y() < cut_off_y_line_;
-				up_or_down = false;
-				//ROS_ERROR("Here -  2");
+				if(cmd.y() < cut_off_y_line_ || cur_pos.y() < cut_off_y_line_ - .1)
+				{
+					cmd.x(drop_down_pos_);
+					enforced_hook_x_limit = cur_pos.y() < cut_off_y_line_;
+					up_or_down = false;
+					//ROS_ERROR("Here -  2");
+				}
+				if(((!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_ && !cur_up_or_down) && !bottom_limit ) && cmd.y() < cut_off_y_line_) )  
+				{
+					cmd.y(cut_off_y_line_);
+					//ROS_ERROR("Here");
+				}
+				
 			}
-			if(((!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_) && !bottom_limit) && cmd.y() < cut_off_y_line_) || (cube_in_clamp && !intake_open ) && cmd.y() < cut_off_y_line_  && cur_pos.y() > cut_off_y_line_-.1)  
+			else
 			{
-				cmd.y(cut_off_y_line_);
-				//ROS_ERROR("Here");
+				if(cmd.y() < ready_to_go_into_intake_with_cube_y_ && (cur_lift_height > ready_to_go_into_intake_with_cube_y_ + sin(acos(ready_to_go_into_intake_with_cube_x_/arm_length_))*arm_length_ + .1 || !intake_open))
+				{
+					//ROS_WARN("Waiting before bring cube");
+					cmd.x(ready_to_go_into_intake_with_cube_x_);
+					cmd.y(ready_to_go_into_intake_with_cube_y_);
+					up_or_down = false;
+				}
+				else if(cmd.y() < ready_to_go_into_intake_with_cube_y_)
+				{
+					//ROS_WARN("bring cube");
+					up_or_down = false;
+					
+					cmd.x(drop_down_pos_);
+					if(cmd.y() < top_intake_cut_off_line_for_put_in_intake_)
+					{
+						cmd.y(top_intake_cut_off_line_for_put_in_intake_);				
+					}
+				}
+				else
+				{
+					//ROS_WARN("fell th");
+
+				}
 			}
 			bool recalc_due_to_lim = false; 	
 			if(cmd.x() < cut_off_x_line_ - .001   && cur_lift_height < safe_to_go_back_y_)
@@ -780,7 +822,12 @@ class arm_limits
 		double hook_max_height_;	
 		double dist_to_front_cube_;
 		double dist_to_front_clamp_;
-		
+	
+		double  ready_to_go_into_intake_with_cube_x_;
+		double  ready_to_go_into_intake_with_cube_y_;
+		double  top_intake_cut_off_line_for_put_in_intake_;
+
+	
 		ros::Publisher top_poly_marker_pub_;
 		ros::Publisher bottom_poly_marker_pub_;
 		ros::Publisher arm_marker_pub_;
