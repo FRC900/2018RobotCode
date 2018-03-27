@@ -86,6 +86,21 @@ class arm_limits
 			bottom_pivot_circle.push_back(point_type(arm_length, 0));	
 			bottom_pivot_circle.push_back(bottom_pivot_circle[0]);
 
+			
+			intake_up_box_transformed_ = (intake_up_box);
+			intake_down_box_transformed_ = (intake_down_box);
+			intake_in_transition_box_transformed_ = (intake_in_transition_box);
+
+
+			
+			boost::geometry::strategy::transform::translate_transformer<double, 2, 2> translate(0, -.1);
+			boost::geometry::transform(intake_up_box, intake_up_box_transformed_, translate);
+			boost::geometry::transform(intake_down_box, intake_down_box_transformed_, translate);
+			boost::geometry::transform(intake_in_transition_box, intake_in_transition_box_transformed_, translate);
+
+
+
+
 
 	
 			polygon_edges hook_box_edges;
@@ -293,19 +308,19 @@ class arm_limits
 	
 			if(in_transition)
 			{
-				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_in_transition_box_);
+				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_in_transition_box_transformed_);
 				
 			}
 			else if(intake_up)
 			{
-				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_up_box_);
+				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_up_box_transformed_);
 			}
 			else
 			{
-				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_down_box_);
+				safe_to_move_intake = !boost::geometry::within(orig_pos, intake_down_box_transformed_);
 			}
 			
-			safe_to_move_intake = true;
+			//safe_to_move_intake = true;
 
 
 
@@ -782,7 +797,11 @@ class arm_limits
 		polygon_type intake_up_box_;
         polygon_type intake_down_box_;
         polygon_type intake_in_transition_box_;
+
 	
+		polygon_type intake_up_box_transformed_;
+        polygon_type intake_down_box_transformed_;
+        polygon_type intake_in_transition_box_transformed_;
 
 		std::array<polygon_type, 4> saved_polygons_;
 		std::array<polygon_type, 4> saved_polygons_no_intake_;
