@@ -52,7 +52,7 @@ class swerve
 	public:
 		swerve(std::array<Eigen::Vector2d, WHEELCOUNT> wheelCoordinates, std::vector<double> offsets, bool wheelAngleInvert, swerveVar::ratios ratio, swerveVar::encoderUnits units, swerveVar::driveModel drive);
 
-		std::array<Eigen::Vector2d, WHEELCOUNT> motorOutputs(Eigen::Vector2d velocityVector, double rotation, double angle, bool forceRead, std::array<bool, WHEELCOUNT> &reverses, bool park, std::array<double, WHEELCOUNT> positionsNew, bool norm, size_t rotationCenterID = 0);
+		std::array<Eigen::Vector2d, WHEELCOUNT> motorOutputs(Eigen::Vector2d velocityVector, double rotation, double angle, bool forceRead, std::array<bool, WHEELCOUNT> &reverses, bool park, const std::array<double, WHEELCOUNT> &positionsNew, bool norm, size_t rotationCenterID = 0);
 		//for non field centric drive set angle = pi/2
 		//if rotationCenterID == 0 we will use the base center of rotation
 		void saveNewOffsets(bool useVals, std::array<double, WHEELCOUNT> newOffsets, std::array<double, WHEELCOUNT> newPosition); //should these be doubles?
@@ -68,12 +68,11 @@ class swerve
 	private:
 		//should we get them together instead?
 		//the angle it passes out isn't normalized
-		double furthestWheel(Eigen::Vector2d centerOfRotation) const;
+		double furthestWheel(const Eigen::Vector2d &centerOfRotation) const;
 
 		void setCenterOfRotation(size_t ID, const Eigen::Vector2d &centerOfRotation);
 
-		std::array<double, WHEELCOUNT> encoderPosition_;
-		std::array<double, WHEELCOUNT> offsets_; //Should these be doubles?
+		std::array<double, WHEELCOUNT> offsets_;
 		//Second piece of data is here just for physics/modeling
 
 		//std::array<double, WHEELCOUNT> savedEncoderVals_;

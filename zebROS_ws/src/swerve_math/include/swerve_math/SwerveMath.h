@@ -15,11 +15,9 @@ class swerveDriveMath
 	public:
 		swerveDriveMath(std::array<Eigen::Vector2d, WHEELCOUNT> wheelCoordinate);
 		swerveDriveMath() {};
-		std::array<Eigen::Vector2d, WHEELCOUNT> wheelMultipliersXY(Eigen::Vector2d rotationCenter);
+		std::array<Eigen::Vector2d, WHEELCOUNT> wheelMultipliersXY(const Eigen::Vector2d &rotationCenter);
 
-
-		std::array<Eigen::Vector2d, WHEELCOUNT> wheelSpeedsAngles(std::array<Eigen::Vector2d, WHEELCOUNT> wheelMultipliersXY, Eigen::Vector2d velocityVector, double rotation, double angle, bool norm) const; //for non field centric set angle to pi/2
-
+		std::array<Eigen::Vector2d, WHEELCOUNT> wheelSpeedsAngles(const std::array<Eigen::Vector2d, WHEELCOUNT> &wheelMultipliersXY, const Eigen::Vector2d &velocityVector, double rotation, double angle, bool norm) const; //for non field centric set angle to pi/2
 
 		//Variables which need to be used externally
 		std::array<double, WHEELCOUNT> parkingAngle_;
@@ -34,13 +32,11 @@ class swerveDriveMath
 
 		//All variables here which don't need to be accessed externally
 		std::array<Eigen::Vector2d, WHEELCOUNT> wheelCoordinate_;
-		std::array<double, WHEELCOUNT> normalize(std::array<double, WHEELCOUNT> input) const;
+		void normalize(std::array<double, WHEELCOUNT> &input) const;
 		struct movement
 		{
 			Eigen::Vector2d translation;
 			double rotation;
 		};
-
-
 };
 #endif
