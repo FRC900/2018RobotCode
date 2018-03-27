@@ -199,6 +199,8 @@ void unToggle(const pos last_achieved_pos, const ElevatorPos &elevatorPosBefore,
 	srvElevator.request.y = elevatorPosBefore.Y_;
 	srvElevator.request.up_or_down = elevatorPosBefore.UpOrDown_;
 	srvElevator.request.override_pos_limits = disableArmLimits.load(std::memory_order_relaxed);
+	srvElevator.request.put_cube_in_intake = false;
+
 	if (!ElevatorSrv.call(srvElevator))
 	{
 		ROS_ERROR("Untoggle srv call failed");
@@ -235,6 +237,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
     std_srvs::SetBool srvClamp;
     elevator_controller::Intake srvIntake;
     srvIntake.request.just_override_power = false;
+	srvElevator.request.put_cube_in_intake = false;
 	static ElevatorPos elevatorPosBefore;
 
 	const double timeSecs = ros::Time::now().toSec();
@@ -1106,6 +1109,7 @@ if(JoystickState->bumperLeftButton == true)
 		elevatorMsg.y = epos_old.Y_;
 		elevatorMsg.up_or_down = epos_old.UpOrDown_;
 		elevatorMsg.override_pos_limits = localDisableArmLimits;
+		elevatorMsg.put_cube_in_intake = false;
 		JoystickElevatorPos.publish(elevatorMsg);
 		//ROS_INFO("teleop : Joystive elevator pos");
 	}

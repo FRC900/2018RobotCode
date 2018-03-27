@@ -96,6 +96,7 @@ bool defaultConfig(void) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in defaultConfig");
@@ -110,6 +111,7 @@ bool intakeConfig(void) {
     srv.request.up_or_down = intake_ready_to_drop_up_or_down;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -125,6 +127,7 @@ bool overBack(void) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -156,7 +159,7 @@ bool intakeNoArm(void) {
 
     ROS_WARN("intaking cube");
     goal.IntakeCube = true;
-    goal.time_out = 3; //TODO config this
+    goal.time_out = 10; //TODO config this
 
     ac->sendGoal(goal);
     
@@ -167,6 +170,7 @@ bool switchConfig(void) {
     srv.request.y = switch_config_y;
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
+    srv.request.put_cube_in_intake = false;
     srv.request.override_sensor_limits = false;
     if (!ElevatorService.call(srv))
 	{
@@ -182,6 +186,7 @@ bool highScale(void) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in highScale");
@@ -196,6 +201,7 @@ bool midScale(void) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in midScale");
@@ -210,6 +216,7 @@ bool lowScale(void) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in lowScale");
@@ -607,9 +614,8 @@ bool bufferTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj
     swerve_control_srv.request.points = traj.points;
     swerve_control_srv.request.dt = traj.dt;
     swerve_control_srv.request.buffer = true;
-    swerve_control_srv.request.clear  = true;
     swerve_control_srv.request.run    = false;
-    swerve_control_srv.request.mode   = true;
+    swerve_control_srv.request.slot   = 0; //TODO fix
     
     if (!swerve_control.call(swerve_control_srv))
 	{
@@ -623,9 +629,8 @@ bool runTrajectory(void) {
     //ROS_WARN("Run trajectory");
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.buffer = false;
-    swerve_control_srv.request.clear  = false;
     swerve_control_srv.request.run    = true;
-    swerve_control_srv.request.mode   = true;
+    swerve_control_srv.request.slot   = 0; //TODO fix
     
     if (!swerve_control.call(swerve_control_srv))
 	{
@@ -867,11 +872,11 @@ int main(int argc, char** argv) {
 	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    //ros::Duration(20).sleep();
+    ros::Duration(20).sleep();
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    //generateTrajectory(profiled_modes[6][1][1]);
+    generateTrajectory(profiled_modes[3][3][2]);
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");

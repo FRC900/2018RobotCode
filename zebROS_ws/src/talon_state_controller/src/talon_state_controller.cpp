@@ -518,6 +518,7 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 					m.sticky_faults[i] = str;
 				}
 				m.conversion_factor[i] = ts->getConversionFactor();
+				//Add custom profile status
 			}
 			realtime_pub_->unlockAndPublish();
 		}

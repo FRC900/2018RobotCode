@@ -77,6 +77,7 @@ class autoAction {
 	    srv_elevator.request.x = goal->x;
 	    srv_elevator.request.y = goal->y;
 	    srv_elevator.request.up_or_down = goal->up_or_down;
+	    srv_elevator.request.put_cube_in_intake = goal->put_cube_in_intake;
 	    srv_elevator.request.override_pos_limits = goal->override_pos_limits;
 	    if(!ElevatorSrv_.call(srv_elevator)) ROS_ERROR("Srv elevator call failed from auto server lift");;
 	    ros::spinOnce();

@@ -83,7 +83,11 @@ class TalonCIParams
 			motion_control_frame_period_(20), // Guess at 50Hz default?
 			motion_profile_trajectory_period_(0),
 			
-			conversion_factor_(1.0)
+			conversion_factor_(1.0),
+			
+			custom_profile_hz_(20.0)	
+					
+			
 		{
 		}
 
@@ -153,6 +157,8 @@ class TalonCIParams
 			motion_profile_trajectory_period_ = config.motion_profile_trajectory_period;
 		
 			conversion_factor_ = config.conversion_factor;
+		
+			custom_profile_hz_ = config.custom_profile_hz;
 		}
 
 		// Copy from internal state to TalonConfigConfig state
@@ -215,6 +221,7 @@ class TalonCIParams
 			config.motion_control_frame_period = motion_control_frame_period_;
 			config.motion_profile_trajectory_period = motion_profile_trajectory_period_;
 			config.conversion_factor = conversion_factor_;
+			config.custom_profile_hz =   custom_profile_hz_;
 			return config;
 		}
 
@@ -468,6 +475,12 @@ class TalonCIParams
 			n.getParam("motion_profile_trajectory_period", motion_profile_trajectory_period_);
 			return true;
 		}
+	
+		bool readCustomProfile(ros::NodeHandle &n)
+		{
+			n.getParam("custom_profile_hz", custom_profile_hz_);
+			return true;
+		}
 
 		// TODO : Keep adding config items here
 		std::string joint_name_;
@@ -521,6 +534,9 @@ class TalonCIParams
 		int    motion_profile_trajectory_period_;
 		
 		double conversion_factor_;
+
+		double custom_profile_hz_;
+
 	private:
 		// Read a double named <param_type> from the array/map
 		// in params
@@ -630,7 +646,8 @@ class TalonControllerInterface
 				   params.readLimitSwitches(n) &&
 				   params.readSoftLimits(n) &&
 				   params.readCurrentLimits(n) &&
-				   params.readMotionControl(n);
+				   params.readMotionControl(n) &&
+				   params.readCustomProfile(n);
 		}
 
 		// Read params from config file and use them to
@@ -1040,6 +1057,57 @@ class TalonControllerInterface
 		{
 			talon_->setDemand1Value(value);
 		}
+		virtual void setCustomProfileHz(const double &hz)
+		{
+			
+			if (hz == params_.custom_profile_hz_)
+                return;
+            params_.custom_profile_hz_ = hz;
+
+            syncDynamicReconfigure();	
+			talon_->setCustomProfileHz(params_.custom_profile_hz_);
+		}
+		double getCustomProfileHz(void) const
+		{
+			return params_.custom_profile_hz_;
+		}
+		virtual void setCustomProfileRun(const bool &run)
+        {	
+			talon_->setCustomProfileRun(run);
+        }
+        bool getCustomProfileRun(void)
+        {
+			return talon_->getCustomProfileRun();
+        }
+        virtual void setCustomProfileSlot(const int &slot)
+        {
+            talon_->setCustomProfileSlot(slot);
+        }
+        int getCustomProfileSlot(void)
+        {
+			return talon_->getCustomProfileSlot();
+        }
+        void pushCustomProfilePoint(const hardware_interface::CustomProfilePoint &point, int slot)
+        {
+            talon_->pushCustomProfilePoint(point, slot);
+        }
+        void pushCustomProfilePoints(const std::vector<hardware_interface::CustomProfilePoint> &points, int slot)
+        {
+            talon_->pushCustomProfilePoints(points, slot);
+        }
+        void overwriteCustomProfilePoints(const std::vector<hardware_interface::CustomProfilePoint> &points, int slot)
+        {
+            talon_->overwriteCustomProfilePoints(points, slot);
+        }
+		//Does the below function need to be accessable?
+		#if 0
+        std::vector<hardware_interface::CustomProfilePoints> getCustomProfilePoints(int slot) /*const*/ //TODO, can be const?
+        {
+            return talon_.state()->getCustomProfilePoints(slot);
+        }	
+		#endif
+
+
 
 	protected:
 		hardware_interface::TalonCommandHandle                          talon_;
@@ -1195,6 +1263,8 @@ class TalonControllerInterface
 			talon->setMotionProfileTrajectoryPeriod(params.motion_profile_trajectory_period_);
 
 			talon->setConversionFactor(params.conversion_factor_);
+
+			talon->setCustomProfileHz(params.custom_profile_hz_);
 
 			// Save copy of params written to HW
 			// so they can be queried later?

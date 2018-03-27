@@ -157,10 +157,10 @@ class TalonSwerveDriveController
 		struct cmd_points
 		{	
 			std::vector<std::vector<double>> drive_pos;
-			std::vector<std::vector<double>> drive_vel;
+			std::vector<std::vector<double>> drive_f;
 			std::vector<std::vector<double>> steer_pos;
-			hardware_interface::TrajectoryDuration dt;
-			int half_dt;
+			std::vector<std::vector<double>> steer_f;
+			double dt;
 		};
 		
 		realtime_tools::RealtimeBuffer<bool> mode_;
@@ -181,10 +181,13 @@ class TalonSwerveDriveController
 		ros::ServiceServer wheel_pos_serv_;
 	
 		
-		std::array<std::array<hardware_interface::TrajectoryPoint, 2>, WHEELCOUNT> holder_points_;
+		std::array<std::array<hardware_interface::CustomProfilePoint, 2>, WHEELCOUNT> holder_points_;
+		std::array<std::array<std::vector<hardware_interface::CustomProfilePoint>, 2>, WHEELCOUNT> full_profile_;
+
 
 	
 		realtime_tools::RealtimeBuffer<bool> run_;
+		realtime_tools::RealtimeBuffer<int> slot_;		
 
 		hardware_interface::TalonMode motion_profile = hardware_interface::TalonMode::TalonMode_MotionProfile;
 		hardware_interface::TalonMode velocity_mode = hardware_interface::TalonMode::TalonMode_Velocity;
