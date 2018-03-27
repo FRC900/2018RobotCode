@@ -667,7 +667,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 
 				holder_points_[k][0].fTerm = cur_cmd_points.drive_f[i][k];
 				holder_points_[k][1].fTerm = cur_cmd_points.steer_f[i][k];
-				ROS_INFO_STREAM("f: " << 	holder_points_[k][0].fTerm); 	
+				//ROS_INFO_STREAM("f: " << 	holder_points_[k][0].fTerm); 	
 
 	
 
