@@ -576,8 +576,12 @@ void FRCRobotHWInterface::init(void)
 
 	stop_arm_  = false;
 	override_arm_limits_ = false;
+	cube_state_ = false;
 	disable_compressor_ = false;
 	navX_zero_ = -10000;
+	navX_angle_ = 0;
+	pressure_ = 0;
+	match_data_enabled_ = false;
 
 	for(size_t i = 0; i < num_dummy_joints_; i++)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
