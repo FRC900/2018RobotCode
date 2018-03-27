@@ -869,7 +869,7 @@ int main(int argc, char** argv) {
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    generateTrajectory(profiled_modes[3][3][2]);
+    //generateTrajectory(profiled_modes[3][3][2]);
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
@@ -953,24 +953,19 @@ int main(int argc, char** argv) {
                 match_data_received = true;
                 if(lower(match_data.alliance_data_)=="rlr") {
                     layout = 0;
-                    mode_buffered = false;
                 }
                 else if(lower(match_data.alliance_data_)=="lrl") {
                     layout = 1;
-                    mode_buffered = false;
                 }
                 else if(lower(match_data.alliance_data_)=="rrr") {
                     layout = 2;
-                    mode_buffered = false;
                 }
                 else if(lower(match_data.alliance_data_) =="lll") {
                     layout = 3;
-                    mode_buffered = false;
                 } 
                 else {
                     ROS_ERROR("Invalid Alliance Data");
                     match_data_received = false;
-                    mode_buffered = false;
                 }
             }
             else {
@@ -1006,7 +1001,7 @@ int main(int argc, char** argv) {
                 //ROS_INFO("Match data received no auto buffered yet");
                 if(generated_vect[layout]) {
                     if(auto_mode_vect[layout] > num_cmd_vel_modes-1) {
-                        if(bufferTrajectory(profiled_modes[auto_mode_vect[layout]][layout][start_pos].srv_msg.response)) {
+                        if(bufferTrajectory(profiled_modes[auto_mode_vect[layout]-num_cmd_vel_modes][layout][start_pos].srv_msg.response)) {
                             //ROS_WARN("Buffering Profiled auto mode");
                             mode_buffered = true;
                         }
@@ -1025,7 +1020,7 @@ int main(int argc, char** argv) {
                 //ROS_INFO("Match data received and auto buffered");
                 if(auto_mode_vect[layout] > num_cmd_vel_modes-1) {
                     run_auto(auto_mode_vect[layout], layout, start_pos, 
-                             delays_vect[layout], profiled_modes[auto_mode_vect[layout]][layout][start_pos].actions);
+                             delays_vect[layout], profiled_modes[auto_mode_vect[layout]-num_cmd_vel_modes][layout][start_pos].actions);
                 }
                 else if(auto_mode_vect[layout] >= 0) {
                     run_auto(auto_mode_vect[layout], layout, start_pos, 
