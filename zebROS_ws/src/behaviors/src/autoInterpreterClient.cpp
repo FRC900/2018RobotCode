@@ -12,7 +12,7 @@ std::atomic<bool> exit_auto; // robot is disabled or teleop started during auto_
 
 //std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac;
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
-std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac_intake;
+std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac_intake;
 
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
@@ -152,13 +152,13 @@ bool intakeCube(void) {
     
 }
 bool intakeNoArm(void) {
-	behaviors::RobotGoal goal;
+	behaviors::IntakeGoal goal;
 
     ROS_WARN("intaking cube");
     goal.IntakeCube = true;
     goal.time_out = 3; //TODO config this
 
-    ac->sendGoal(goal);
+    ac_intake->sendGoal(goal);
     
 }
 bool switchConfig(void) {
@@ -953,19 +953,24 @@ int main(int argc, char** argv) {
                 match_data_received = true;
                 if(lower(match_data.alliance_data_)=="rlr") {
                     layout = 0;
+                    mode_buffered = false;
                 }
                 else if(lower(match_data.alliance_data_)=="lrl") {
                     layout = 1;
+                    mode_buffered = false;
                 }
                 else if(lower(match_data.alliance_data_)=="rrr") {
                     layout = 2;
+                    mode_buffered = false;
                 }
                 else if(lower(match_data.alliance_data_) =="lll") {
                     layout = 3;
+                    mode_buffered = false;
                 } 
                 else {
                     ROS_ERROR("Invalid Alliance Data");
                     match_data_received = false;
+                    mode_buffered = false;
                 }
             }
             else {
