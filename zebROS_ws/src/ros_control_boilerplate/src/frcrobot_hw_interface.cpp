@@ -1671,7 +1671,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		PWMs_[i]->SetSpeed(pwm_command_[i]*inverter);
 	}
 	
-	for (size_t i = 0; i< num_solenoids_; i++)
+	for (size_t i = 0; i < num_solenoids_; i++)
 	{
 		const bool setpoint = solenoid_command_[i] > 0;
 		if (solenoid_state_[i] != setpoint)
@@ -1681,7 +1681,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		}
 	}
 
-	for (size_t i = 0; i< num_double_solenoids_; i++)
+	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
 		DoubleSolenoid::Value setpoint = DoubleSolenoid::Value::kOff;
 		if (double_solenoid_command_[i] >= 1.0)
@@ -1689,10 +1689,10 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		else if (double_solenoid_command_[i] <= -1.0)
 			setpoint = DoubleSolenoid::Value::kReverse;
 
-		if (double_solenoid_state_[i] != setpoint)
+		if (double_solenoid_state_[i] != double_solenoid_command_[i])
 		{
 			double_solenoids_[i]->Set(setpoint);
-			double_solenoid_state_[i] = setpoint;
+			double_solenoid_state_[i] = double_solenoid_command_[i];
 		}
 	}
 	
