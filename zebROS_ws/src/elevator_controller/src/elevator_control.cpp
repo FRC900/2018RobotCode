@@ -285,7 +285,7 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	lift_joint_.setForwardSoftLimitEnable(true);
 	lift_joint_.setReverseSoftLimitEnable(true);
 
-	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.05 + pivot_offset_);
+	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.15 + pivot_offset_);
 	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
 	
 	//TODO: something is broke with these soft limits
@@ -584,12 +584,14 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 							//point error
 	{
 		pivot_offset_ += adder;
-		pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.05 + pivot_offset_);
+		pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.15 + pivot_offset_);
 		pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
 		ROS_WARN("Pivot encoder discontinuouity detected and accounted for");
 	
 	}
 	const double pivot_angle = raw_pivot_angle - pivot_offset_;
+
+	//ROS_WARN_STREAM("ang: " << pivot_angle << " add " << adder);
 
 	//TODO: put in similar checks for the lift using limit switches
 	bool cur_up_or_down = pivot_angle > 0;
@@ -698,6 +700,8 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	
 	//ROS_INFO_STREAM("up_or_down: " << curr_cmd.up_or_down << "lin pos target" << curr_cmd.lin << " lift pos tar: " << curr_cmd.lin[1] - arm_length_ * sin(pivot_target));	
 	double pivot_custom_f = cos(pivot_angle) * f_arm_mass_ +f_arm_fric_;
+
+	//ROS_WARN_STREAM("setting: " << pivot_target << " actual: " << pivot_target + pivot_offset_);
 
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);

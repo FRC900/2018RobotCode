@@ -869,7 +869,7 @@ int main(int argc, char** argv) {
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    generateTrajectory(profiled_modes[6][1][1]);
+    generateTrajectory(profiled_modes[3][3][2]);
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
