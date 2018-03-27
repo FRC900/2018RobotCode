@@ -1923,13 +1923,15 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		else if (double_solenoid_command_[i] <= -1.0)
 			setpoint = DoubleSolenoid::Value::kReverse;
 
+		// Not sure if it makes sense to store command values
+		// in state or wpilib enum values
 		if (double_solenoid_state_[i] != double_solenoid_command_[i])
 		{
 			double_solenoids_[i]->Set(setpoint);
 			double_solenoid_state_[i] = double_solenoid_command_[i];
 		}
 	}
-	
+
 	for (size_t i = 0; i < num_rumble_; i++)
 	{
 		if (rumble_state_[i] != rumble_command_[i])
