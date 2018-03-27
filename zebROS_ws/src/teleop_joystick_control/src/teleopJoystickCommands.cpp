@@ -51,6 +51,9 @@ static ros::ServiceClient ClampSrv;
 static ros::ServiceClient IntakeSrv;
 static ros::ServiceClient BrakeSrv;
 
+ros::ServiceClient point_gen;
+ros::ServiceClient swerve_control;
+
 static double high_scale_config_x;
 static double high_scale_config_y;
 static bool high_scale_config_up_or_down;
@@ -78,6 +81,7 @@ static double move_out_pos_x;
 static double move_out_pos_y;
 static bool move_out_up_or_down;
 static double move_out_down_y;
+static double wheel_radius;
 
 enum pos {high_scale, mid_scale, low_scale, switch_c, exchange, intake_ready_to_drop, intake, intake_low, climb_c, default_c, other};
 
@@ -214,6 +218,45 @@ void setHeight(const pos achieved_pos, pos &last_achieved_pos, ElevatorPos &elev
 	elevatorPosBefore = *(elevatorPos.readFromRT());
 	last_achieved_pos = achieved_pos;
 }
+/*
+void setMotionProfile(talon_swerve_drive_controller::SwervePoint points)
+{
+	TalonSwerveDriveController::motionProfileService srvMotionProfile;
+	
+	srvMotionProfile.request.points[] = points;
+	srvMotionProfile.request.dt = 20;
+	srvMotionProfile.request.buffer = false;
+	srvMotionProfile.request.run = true;
+	srvMotionProfile.request.slot = 0;
+
+	if (!MotionProfileSrv.call(srvMotionProfile))
+	{
+		ROS_ERROR("Motion profile srv call failed.");
+	}
+}
+*/
+void generateTrajectory(basically a list of coefficients loaded from kevin's code)
+{
+	if (!trajectory.exists)
+		ROS_ERROR("trajectory does not exist");
+	if(!point_gen.call(trajectory.srv_msg))
+		ROS_ERROR("point_gen failed");
+	if (!bufferTrajectory(trajectory.srv_msg.response))
+		ROS_ERROR("bufferTrajectory failed");
+}
+
+void runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
+{
+    talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
+    swerve_control_srv.request.points = traj.points;
+    swerve_control_srv.request.dt = traj.dt;
+    swerve_control_srv.request.buffer = true;
+    swerve_control_srv.request.run = true;
+    swerve_control_srv.request.slot = 0;
+    
+    if (!swerve_control.call(swerve_control_srv))
+		ROS_ERROR("swerve_control call() failed in autoInterpreterClient bufferTrajectory()");
+}
 
 void match_data_callback(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData)
 {
@@ -224,7 +267,7 @@ void match_data_callback(const ros_control_boilerplate::MatchSpecificData::Const
 
 //TODO: Overrides
 //Only allow going to various buttons based on cube state
-//Actually organize code so it can be debuged
+//Actually organize code so it can be debugged
 //
 void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &JoystickState)
 {
@@ -1014,82 +1057,24 @@ else // X or Y or rotation != 0 so tell the drive base to move
 	sendRobotZero = false;
 }
 
-//dummy code to make better
 if(JoystickState->bumperLeftButton == true)
 {
+	//check to see if it's already running
 	sendRobotZero = false;
 	double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
-	least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
-	geometry_msgs::Twist vel;
+	static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
+
+	swerve_radius = sqrt(pow(wheel_coords1x, 2) + pow(wheel_coords1y, 2))
+	distanceToBeTravelled = (least_dist_angle - angle) * swerve_radius / wheel_radius;
+
+	load values from kevin
+
+	//get robot dimensions (distance from wheels to center of the robot)
+	//rotate wheels to be at 45 degree angles
+	//set target wheel position to the distance of the angle to be travelled times radius of robot (etc etc)
 	
-	if(angle - least_dist_angle > M_PI/12)
-	{
-		vel.linear.x = 0;
-		vel.linear.y = 0;
-		vel.linear.z = 0;
-
-		vel.angular.x = 0;
-		vel.angular.y = 0;
-		vel.angular.z = -1;
-	}
-	else if(angle - least_dist_angle < M_PI/12)
-	{
-		vel.linear.x = 0;
-		vel.linear.y = 0;
-		vel.linear.z = 0;
-
-		vel.angular.x = 0;
-		vel.angular.y = 0;
-		vel.angular.z = 1;
-	}
-	else
-	{
-		sendRobotZero = true;
-	}
-
-	JoystickRobotVel.publish(vel);
+	runTrajectory(&traj);
 }
-
-
-	static bool sendRobotZero = false;
-	// No motion? Tell the drive base to stop
-	if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
-	{
-		if (!sendRobotZero)
-		{
-			std_srvs::Empty empty;
-			if (!BrakeSrv.call(empty))
-				ROS_ERROR("BrakeSrv call failed in sendRobotZero");
-			ROS_INFO("BrakeSrv called");
-			sendRobotZero = true;
-		}
-	}
-	else // X or Y or rotation != 0 so tell the drive base to move
-	{
-		sendRobotZero = false;
-		//Publish drivetrain messages and elevator/pivot
-		Eigen::Vector2d joyVector;
-		joyVector[0] = leftStickX; //intentionally flipped
-		joyVector[1] = -leftStickY;
-		Eigen::Rotation2Dd r(-navX_angle.load(std::memory_order_relaxed) - M_PI / 2);
-		Eigen::Vector2d rotatedJoyVector = r.toRotationMatrix() * joyVector;
-
-		geometry_msgs::Twist vel;
-		vel.linear.x = rotatedJoyVector[1];
-		vel.linear.y = rotatedJoyVector[0];
-		vel.linear.z = 0;
-
-		vel.angular.x = 0;
-		vel.angular.y = 0;
-		vel.angular.z = rotation;
-
-		JoystickRobotVel.publish(vel);
-		/*std_msgs::Header test_header;
-		  test_header.stamp = JoystickState->header.stamp;
-		  test_header.seq = 1;
-		  JoystickTestVel.publish(test_header);*/
-		sendRobotZero = false;
-	}
 
 	if (rightStickX != 0 || rightStickY != 0)
 	{
@@ -1219,6 +1204,8 @@ int main(int argc, char **argv)
 		ROS_ERROR("Could not read default_up_or_down");
 	if (!n_params.getParam("exchange_delay", exchange_delay))
 		ROS_ERROR("Could not read exchange_delay");
+	if (!n_params.getParam("wheel_radius", wheel_radius))
+		ROS_ERROR("Could not read wheel_radius");
 
 	ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
 
@@ -1238,6 +1225,7 @@ int main(int argc, char **argv)
 	ClampSrv = n.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
 	IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
 	BrakeSrv = n.serviceClient<std_srvs::Empty>("/frcrobot/swerve_drive_controller/brake", false, service_connection_header);
+	point_gen = n.serviceClient<swerve_point_generator::FullGenCoefs>("/point_gen/command", false, service_connection_header);
 
 	ros::Subscriber joystick_sub  = n.subscribe("joystick_states", 1, &evaluateCommands);
 	ros::Subscriber match_data    = n.subscribe("match_data", 1, &match_data_callback);
