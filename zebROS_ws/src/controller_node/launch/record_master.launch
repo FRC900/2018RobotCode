@@ -9,33 +9,45 @@
   * A few other misc topics
   -->
 
-  <arg name="down_sample" default="false" />
-
-  <!-- Remove spaces between - - args when reenabling rosbag
-  <node name="rosbag_record_node" pkg="rosbag" type="record"
-  	args="-o /mnt/900_2/ - -buffsize=0 - -split - -duration=30 
-	/zed_goal/left/image_rect_color /zed_goal/right/image_rect_color /zed_goal/depth/depth_registered
-	/goal_detect_msg /navx/imu /navx/time /navx/raw /navx/odom
-	/diagnostics /tf /tf_static /rosout /rosout_agg"/>
-  <node name="zms_writer_node" pkg="zms_writer" type="zms_writer_node" respawn="true">
-  	<param name="down_sample" value="$(arg down_sample)" />
-  </node>
+  <!-- Hopefully rosbag will work for zed images & depth
+  <node name="zms_writer_node" pkg="zms_writer" type="zms_writer_node" respawn="true"/>
   -->
 
   <node name="rosbag_record_node" pkg="rosbag" type="record"
-	  args="record -o /home/ubuntu/ --lz4 --buffsize=0
+	  args="record -o /mnt/900_2/ --lz4 --split --duration=30 --buffsize=0
+		/frcrobot/auto_interpreter_server/cancel
+		/frcrobot/auto_interpreter_server/feedback
+		/frcrobot/auto_interpreter_server/goal
+		/frcrobot/auto_interpreter_server/result
+		/frcrobot/auto_interpreter_server/status
+		/frcrobot/auto_interpreter_server_intake/cancel
+		/frcrobot/auto_interpreter_server_intake/feedback
+		/frcrobot/auto_interpreter_server_intake/goal
+		/frcrobot/auto_interpreter_server_intake/result
+		/frcrobot/auto_interpreter_server_intake/status
+		/frcrobot/auto_interpreter_server_lift/cancel
+		/frcrobot/auto_interpreter_server_lift/feedback
+		/frcrobot/auto_interpreter_server_lift/goal
+		/frcrobot/auto_interpreter_server_lift/result
+		/frcrobot/auto_interpreter_server_lift/status
 		/frcrobot/autonomous_mode
-		/frcrobot/clamp_controller/command
 		/frcrobot/compressor_controller/command
+		/frcrobot/elevator_controller/arm_true_visualize
+		/frcrobot/elevator_controller/arm_visualize
+		/frcrobot/elevator_controller/bottom_poly_visualize
 		/frcrobot/elevator_controller/cmd_pos
+		/frcrobot/elevator_controller/cube_state
+		/frcrobot/elevator_controller/hook_visualize
 		/frcrobot/elevator_controller/odom
-		/frcrobot/end_game_deploy_controller/command
+		/frcrobot/elevator_controller/return_cmd_pos
+		/frcrobot/elevator_controller/return_true_setpoint
+		/frcrobot/elevator_controller/top_poly_visualize
 		/frcrobot/joint_states
 		/frcrobot/joystick_states
 		/frcrobot/match_data
-		/frcrobot/navx_controller/command
 		/frcrobot/navx_mxp
 		/frcrobot/pdp_states
+		/frcrobot/rumble_controller/command
 		/frcrobot/swerve_drive_controller/cmd_vel
 		/frcrobot/swerve_drive_controller/odom
 		/frcrobot/talon_states
@@ -44,5 +56,7 @@
 		/scan
 		/tf
 		/tf_static
+		/zed_goal/left/image_rect_color
+		/zed_goal/depth/depth_registered
 		" />
 </launch>

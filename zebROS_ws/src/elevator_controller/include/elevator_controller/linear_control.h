@@ -1,39 +1,45 @@
 #pragma once
+#include <array>
+#include <atomic>
+#include <memory>
+
 #include "ros/ros.h"
-#include <controller_interface/controller.h>
-#include <talon_controllers/talon_controller_interface.h>
-#include <pluginlib/class_list_macros.h>
 #include "ros/console.h"
-#include "std_msgs/Float64.h"
+
+#include <controller_interface/multi_interface_controller.h>
+#include <hardware_interface/joint_command_interface.h>
+#include <nav_msgs/Odometry.h>
+#include <pluginlib/class_list_macros.h>
+#include <realtime_tools/realtime_buffer.h>
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Bool.h>
+#include <std_srvs/SetBool.h>
+#include <std_srvs/Empty.h>
+
+#include <elevator_controller/arm_limiting.h>
+#include <elevator_controller/CubeState.h>
 #include <elevator_controller/ElevatorControl.h>
 #include <elevator_controller/ElevatorControlS.h>
 #include <elevator_controller/Intake.h>
-#include <std_srvs/SetBool.h>
-#include <std_srvs/Empty.h>
 #include <elevator_controller/ReturnElevatorCmd.h>
-#include <elevator_controller/CubeState.h>
-#include <elevator_controller/arm_limiting.h>
-#include <ros_control_boilerplate/MatchSpecificData.h>
 
-#include <nav_msgs/Odometry.h>
-#include <atomic>
-#include <realtime_tools/realtime_buffer.h>
+#include <talon_controllers/talon_controller_interface.h>
 
-#include <array>
-#include <memory>
+//#include <ros_control_boilerplate/MatchSpecificData.h>
+
 #include <Eigen/Dense>
 
 namespace elevator_controller
 {
 
 class ElevatorController
-        : public controller_interface::Controller<hardware_interface::TalonCommandInterface>
+        : public controller_interface::MultiInterfaceController<hardware_interface::TalonCommandInterface,
+																hardware_interface::JointStateInterface,
+																hardware_interface::PositionJointInterface>
 {
 	public:
 		ElevatorController();
-		bool init(hardware_interface::TalonCommandInterface *hw,
+		bool init(hardware_interface::RobotHW *hw,
 				ros::NodeHandle &root_nh,
 				ros::NodeHandle &controller_nh);
 
@@ -44,18 +50,20 @@ class ElevatorController
 	private:
 		double after_shift_max_accel_;		
 		double after_shift_max_vel_;		
-		double cut_off_line_;
+		//double cut_off_line_;
 		double before_shift_max_accel_;		
 		double before_shift_max_vel_;		
 
+		
+		bool intake_up_last_;
+		double transition_time_;
+
 		std::string name_;
-		std::atomic<bool> line_break_intake_high_;
-		std::atomic<bool> line_break_intake_low_;
-		std::atomic<bool> line_break_clamp_;
+		hardware_interface::JointStateHandle line_break_intake_high_;
+		hardware_interface::JointStateHandle line_break_intake_low_;
 		std::atomic<bool> shift_cmd_;
 		bool shifted_;
 		std::atomic<double> clamp_cmd_;
-		std::atomic<bool> enabled_;
 		double climb_height_;
 		std::atomic<bool> end_game_deploy_cmd_;
 		bool end_game_deploy_t1_;
@@ -76,11 +84,8 @@ class ElevatorController
 			int32_t spring_command;
 			double power;
 			double down_time;
-			IntakeCommand() : up_command(-1.0), spring_command(0.0), power(0.0) {}
-
+			IntakeCommand() : up_command(-1.0), spring_command(0.0), power(0.0), down_time(0.0) {}
 		};
-		//ros::Publisher RobotStatePub;
-		//elevator_controller::RobotState RobotStateMsg;
 
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface lift_joint_;
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface pivot_joint_;
@@ -100,9 +105,7 @@ class ElevatorController
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		ros::Subscriber sub_command_;
-		ros::Subscriber sub_enabled_;
-		ros::Subscriber sub_stop_arm_;
-		ros::Subscriber sub_joint_state_;
+		hardware_interface::JointStateHandle stop_arm_;
 		ros::ServiceServer service_command_;
 		realtime_tools::RealtimeBuffer<IntakeCommand> intake_command_;
 		ros::ServiceServer service_intake_;
@@ -111,17 +114,19 @@ class ElevatorController
 		ros::ServiceServer service_end_game_deploy_;
 		//TODO: considering adding x offset?
 
-		ros::Publisher Clamp_; 
-		ros::Publisher EndGameDeploy_; 
-		ros::Publisher Shift_; 
+		hardware_interface::JointHandle Clamp_;
+		hardware_interface::JointHandle Shift_;
+		hardware_interface::JointHandle EndGameDeploy_;
+
+		hardware_interface::JointHandle IntakeUp_;
+		hardware_interface::JointHandle IntakeHardSpring_;
+		hardware_interface::JointHandle IntakeSoftSpring_;
 
 		ros::Publisher CubeState_; 
-
-		ros::Publisher IntakeUp_; 
-		ros::Publisher IntakeHardSpring_; 
-		ros::Publisher IntakeSoftSpring_; 
+		hardware_interface::JointHandle CubeStateJoint_;
 
 		ros::Publisher ReturnCmd_; 
+		ros::Publisher ReturnTrueSetpoint_; 
 
 		ros::Publisher Odom_; 
 
@@ -129,8 +134,7 @@ class ElevatorController
 		double pivot_offset_;
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
-		void stopCallback(const std_msgs::Bool& command);
-		void enabledCallback(const ros_control_boilerplate::MatchSpecificData& enabled);
+		//void enabledCallback(const ros_control_boilerplate::MatchSpecificData& enabled);
 		void lineBreakCallback(const sensor_msgs::JointState&);
 		bool cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res);
 		bool intakeService(elevator_controller::Intake::Request &command, elevator_controller::Intake::Response &res);
@@ -155,8 +159,6 @@ class ElevatorController
 
 		double norm_cur_lim_;
 		double climb_cur_lim_;
-
-		std::atomic<bool> stop_arm_;	
 
 		//Something for getting the soft limit bounding boxes
 		//some function for making limits based on soft limit bounding box

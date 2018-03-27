@@ -97,7 +97,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES visualize_profile
-#  CATKIN_DEPENDS matplotlib ros_py roscpp std_msgs trajectory_msgs
+#  CATKIN_DEPENDS matplotlib rospy roscpp std_msgs trajectory_msgs
 #  DEPENDS system_lib
 )
 

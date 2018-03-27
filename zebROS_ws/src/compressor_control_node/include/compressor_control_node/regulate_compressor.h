@@ -3,7 +3,6 @@
 #include "ros/ros.h"
 #include "ros/console.h"
 #include "std_msgs/Float64.h"
-#include "std_msgs/Bool.h"
 #include "ros/time.h"
 #include "message_filters/subscriber.h"
 #include "message_filters/synchronizer.h"
@@ -17,8 +16,7 @@
 
 //BE WARNED. THIS NODE USES IMPERIAL UNITS..........
 
-void pressureCallback(const sensor_msgs::JointState &pressure);
+void pressureCallback(const sensor_msgs::JointState &joint_state);
 void matchDataCallback(const ros_control_boilerplate::MatchSpecificData &MatchData);
 void currentCallback(const pdp_state_controller::PDPData &current);
-void disableCallback(const std_msgs::Bool &disable);
 

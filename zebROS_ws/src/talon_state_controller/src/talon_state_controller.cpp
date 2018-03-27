@@ -66,6 +66,8 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 	{
 		m.name.push_back(joint_names[i]);
 		m.talon_mode.push_back("");
+		m.demand1_type.push_back("");
+		m.demand1_value.push_back(0);
 		m.position.push_back(0.0);
 		m.speed.push_back(0.0);
 		m.output_voltage.push_back(0.0);
@@ -366,6 +368,23 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 						m.talon_mode[i] = "Unknown";
 						break;
 				}
+				hardware_interface::DemandType demand1Type = ts->getDemand1Type();
+				switch (demand1Type)
+				{
+					case hardware_interface::DemandType_Neutral:
+						m.demand1_type[i] = "Neutral";
+						break;
+					case hardware_interface::DemandType_AuxPID:
+						m.demand1_type[i] = "AuxPID";
+						break;
+					case hardware_interface::DemandType_ArbitraryFeedForward:
+						m.demand1_type[i] = "ArbitraryFeedForward";
+						break;
+					default:
+						m.demand1_type[i] = "Unknown";
+						break;
+				}
+				m.demand1_value[i] = ts->getDemand1Value();
 				switch (ts->getNeutralMode())
 				{
 					case hardware_interface::NeutralMode_Uninitialized:

@@ -8,9 +8,8 @@ ElevatorController::ElevatorController():
 	after_shift_max_vel_(0),
 	before_shift_max_accel_(0),
 	before_shift_max_vel_(0),
-	line_break_intake_low_(false),
-	line_break_intake_high_(false),
-	line_break_clamp_(false),
+	intake_up_last_(true),
+	transition_time_(0.0),
 	shift_cmd_(false),
 	shifted_(false),
 	clamp_cmd_(0.0),
@@ -28,7 +27,8 @@ ElevatorController::ElevatorController():
 	arm_length_(0.0),
 	pivot_offset_(0.0),
 	lift_offset_(0.0),
-	cut_off_line_(0.0)
+	intake_power_diff_multiplier_(1.0),
+	f_arm_fric_(0.0)
 {
 }
 
@@ -65,13 +65,21 @@ bool ElevatorController::getFirstString(XmlRpc::XmlRpcValue value, std::string &
 	return true;
 }
 
-bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
+bool ElevatorController::init(hardware_interface::RobotHW *hw,
                 			  ros::NodeHandle &/*root_nh*/,
              	              ros::NodeHandle &controller_nh)
 {
+	hardware_interface::TalonCommandInterface *const talon_command_iface = hw->get<hardware_interface::TalonCommandInterface>();
+	hardware_interface::JointStateInterface *const joint_state_iface = hw->get<hardware_interface::JointStateInterface>();
+	hardware_interface::PositionJointInterface *const pos_joint_iface = hw->get<hardware_interface::PositionJointInterface>();
+
 	const std::string complete_ns = controller_nh.getNamespace();
 	std::size_t id = complete_ns.find_last_of("/");
 	name_ = complete_ns.substr(id + 1);
+
+	// TODO : make these names params?
+	line_break_intake_high_ = joint_state_iface->getHandle("intake_line_break_high");
+	line_break_intake_low_ = joint_state_iface->getHandle("intake_line_break_low");
 
 	XmlRpc::XmlRpcValue lift_params;
 	if (!controller_nh.getParam("lift", lift_params))
@@ -108,26 +116,18 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read climb_height");
 		return false;
 	}
-	if (!controller_nh.getParam("cut_off_line", cut_off_line_))
-	{
-		ROS_ERROR_NAMED(name_, "Can not read cut_off_line");
-		return false;
-	}
 	if (!controller_nh.getParam("intake_power_diff_multiplier", intake_power_diff_multiplier_))
 	{
 		ROS_ERROR_NAMED(name_, "Can not read intake_power_diff_multiplier");
 		return false;
 	}
 
-	
 	if (!controller_nh.getParam("intake_power_diff_multiplier", intake_power_diff_multiplier_))
 	{
 		ROS_ERROR_NAMED(name_, "Can not read intake_power_diff_multiplier");
 		return false;
 	}
 
-
-	
 	if (!controller_nh.getParam("norm_cur_lim", norm_cur_lim_))
 	{
 		ROS_ERROR_NAMED(name_, "Can not read norm_cur_lim");
@@ -159,23 +159,23 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		return false;
 	}
 	
-	if (!pivot_joint_.initWithNode(hw, nullptr, controller_nh, pivot_params))
+	if (!pivot_joint_.initWithNode(talon_command_iface, nullptr, controller_nh, pivot_params))
 	{
 		ROS_ERROR("Can not initialize pivot joint(s)");
 		return false;
 	}
 
-	if (!lift_joint_.initWithNode(hw, nullptr, controller_nh, lift_params))
+	if (!lift_joint_.initWithNode(talon_command_iface, nullptr, controller_nh, lift_params))
 	{
 		ROS_ERROR("Can not initialize lift joint(s)");
 		return false;
 	}
-	if (!intake1_joint_.initWithNode(hw, nullptr, controller_nh, intake1_params))
+	if (!intake1_joint_.initWithNode(talon_command_iface, nullptr, controller_nh, intake1_params))
 	{
 		ROS_ERROR("Can not initialize intake1 joint(s)");
 		return false;
 	}
-	if (!intake2_joint_.initWithNode(hw, nullptr, controller_nh, intake2_params))
+	if (!intake2_joint_.initWithNode(talon_command_iface, nullptr, controller_nh, intake2_params))
 	{
 		ROS_ERROR("Can not initialize intake2 joint(s)");
 		return false;
@@ -233,10 +233,15 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read arm mass");
 		return false;
 	}
+	if (!controller_nh.getParam("custom_f_arm_fric", f_arm_fric_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read arm friction");
+		// TODO :: uncomment me as soon as I'm in a yaml file
+		//return false;
+	}
 	
-
-	double cut_off_y_line, cut_off_x_line, safe_to_go_back_y, drop_down_tolerance, drop_down_pos;
-
+	double cut_off_y_line, cut_off_x_line, safe_to_go_back_y, drop_down_tolerance, drop_down_pos,
+	dist_to_front_cube, dist_to_front_clamp;
 
 	if (!controller_nh.getParam("cut_off_y_line", cut_off_y_line))
 	{
@@ -263,10 +268,20 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_ERROR_NAMED(name_, "Can not read drop_down_pos");
 		return false;
 	}
+	if (!controller_nh.getParam("dist_to_front_cube", dist_to_front_cube))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read dist_to_front_cube");
+		return false;
+	}
+	if (!controller_nh.getParam("dist_to_front_clamp", dist_to_front_clamp))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read dist_to_front_clamp");
+		return false;
+	}
 	
 	//Set soft limits using offsets here
-	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_);
-	lift_joint_.setReverseSoftLimitThreshold(min_extension_ + lift_offset_);
+	lift_joint_.setForwardSoftLimitThreshold(max_extension_ + lift_offset_ + .03);
+	lift_joint_.setReverseSoftLimitThreshold(min_extension_ + lift_offset_- .03);
 	lift_joint_.setForwardSoftLimitEnable(true);
 	lift_joint_.setReverseSoftLimitEnable(true);
 
@@ -299,7 +314,6 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_INFO_STREAM("point from remove zone up: " << boost::geometry::wkt(point_vector_down[i]));
 	}
 	boost::geometry::assign_points(remove_zone_poly_down, point_vector_down);
-
 	
 	arm_limiting::polygon_type remove_zone_poly_up;
 	std::vector<arm_limiting::point_type> point_vector_up;
@@ -319,40 +333,100 @@ bool ElevatorController::init(hardware_interface::TalonCommandInterface *hw,
 		ROS_INFO_STREAM("point from remove zone up: " << boost::geometry::wkt(point_vector_up[i]));
 	}
 	boost::geometry::assign_points(remove_zone_poly_up, point_vector_up);
+	
+	arm_limiting::polygon_type intake_up_box;
+	std::vector<arm_limiting::point_type> point_vector_intake_up;
+	XmlRpc::XmlRpcValue poly_points_intake_up;
+	if (!controller_nh.getParam("polygon_points_intake_up", poly_points_intake_up))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read polygon_points_intake_up");
+		return false;
+	}
+	point_vector_intake_up.resize(poly_points_intake_up.size()/2);
+	//ROS_ERROR_NAMED(name_, "hypothetical errors");
+	ROS_INFO_STREAM("Poly_points intake_up" << std::endl << poly_points_intake_up.size());
+	for (int i = 0; i < poly_points_intake_up.size()/2; ++i)
+	{
+		point_vector_intake_up[i].x(static_cast<double>(poly_points_intake_up[2*i]));
+		point_vector_intake_up[i].y(static_cast<double>(poly_points_intake_up[2*i + 1]));
+		ROS_INFO_STREAM("point from remove zone up: " << boost::geometry::wkt(point_vector_intake_up[i]));
+	}
+	boost::geometry::assign_points(intake_up_box, point_vector_intake_up);
 
 
-	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, remove_zone_poly_up, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos, hook_depth_, hook_min_height_, hook_max_height_);
+	arm_limiting::polygon_type intake_down_box;
+	std::vector<arm_limiting::point_type> point_vector_intake_down;
+	XmlRpc::XmlRpcValue poly_points_intake_down;
+	if (!controller_nh.getParam("polygon_points_intake_down", poly_points_intake_down))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read polygon_points_intake_down");
+		return false;
+	}
+	point_vector_intake_down.resize(poly_points_intake_down.size()/2);
+	//ROS_ERROR_NAMED(name_, "hypothetical errors");
+	ROS_INFO_STREAM("Poly_points intake_down" << std::endl << poly_points_intake_down.size());
+	for (int i = 0; i < poly_points_intake_down.size()/2; ++i)
+	{
+		point_vector_intake_down[i].x(static_cast<double>(poly_points_intake_down[2*i]));
+		point_vector_intake_down[i].y(static_cast<double>(poly_points_intake_down[2*i + 1]));
+		ROS_INFO_STREAM("point from remove zone down: " << boost::geometry::wkt(point_vector_intake_down[i]));
+	}
+	boost::geometry::assign_points(intake_down_box, point_vector_intake_down);
+
+	arm_limiting::polygon_type intake_in_transition_box;
+	std::vector<arm_limiting::point_type> point_vector_intake_in_transition;
+	XmlRpc::XmlRpcValue poly_points_intake_in_transition;
+	if (!controller_nh.getParam("polygon_points_intake_in_transition", poly_points_intake_in_transition))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read polygon_points_intake_in_transition");
+		return false;
+	}
+	point_vector_intake_in_transition.resize(poly_points_intake_in_transition.size()/2);
+	//ROS_ERROR_NAMED(name_, "hypothetical errors");
+	ROS_INFO_STREAM("Poly_points intake_in_transition" << std::endl << poly_points_intake_in_transition.size());
+	for (int i = 0; i < poly_points_intake_in_transition.size()/2; ++i)
+	{
+		point_vector_intake_in_transition[i].x(static_cast<double>(poly_points_intake_in_transition[2*i]));
+		point_vector_intake_in_transition[i].y(static_cast<double>(poly_points_intake_in_transition[2*i + 1]));
+		ROS_INFO_STREAM("point from remove zone in_transition: " << boost::geometry::wkt(point_vector_intake_in_transition[i]));
+	}
+	boost::geometry::assign_points(intake_in_transition_box, point_vector_intake_in_transition);
+
+	arm_limiter_ = std::make_shared<arm_limiting::arm_limits>(min_extension_, max_extension_, 0.0, arm_length_, remove_zone_poly_down, remove_zone_poly_up, 15, cut_off_y_line, cut_off_x_line,  safe_to_go_back_y,  drop_down_tolerance,  drop_down_pos, hook_depth_, hook_min_height_, hook_max_height_, controller_nh, intake_up_box, intake_down_box, intake_in_transition_box, dist_to_front_cube, dist_to_front_clamp);
 
 	sub_command_ = controller_nh.subscribe("cmd_pos", 1, &ElevatorController::cmdPosCallback, this);
-	sub_stop_arm_ = controller_nh.subscribe("stop_arm", 1, &ElevatorController::stopCallback, this);
-	sub_joint_state_ = controller_nh.subscribe("/frcrobot/joint_states", 1, &ElevatorController::lineBreakCallback, this);
+
+	stop_arm_ = joint_state_iface->getHandle("stop_arm");
+
 	service_command_ = controller_nh.advertiseService("cmd_posS", &ElevatorController::cmdPosService, this);
 	service_intake_ = controller_nh.advertiseService("intake", &ElevatorController::intakeService, this);
 	service_clamp_ = controller_nh.advertiseService("clamp", &ElevatorController::clampService, this);
 	service_shift_ = controller_nh.advertiseService("shift", &ElevatorController::shiftService, this);
 	service_end_game_deploy_ = controller_nh.advertiseService("end_game_deploy", &ElevatorController::endGameDeployService, this);
 
-	Clamp_     	      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/clamp_controller/command", 1);
-	Shift_     	      = controller_nh.advertise<std_msgs::Float64>("/frcrobot/shift_controller/command", 1);
-	EndGameDeploy_    = controller_nh.advertise<std_msgs::Float64>("/frcrobot/end_game_deploy_controller/command", 1);
+	Clamp_            = pos_joint_iface->getHandle("clamp");
+	Shift_            = pos_joint_iface->getHandle("shift");
+	EndGameDeploy_    = pos_joint_iface->getHandle("end_game_deploy");
+	IntakeUp_         = pos_joint_iface->getHandle("intake_up");
+	IntakeSoftSpring_ = pos_joint_iface->getHandle("intake_spring_soft");
+	IntakeHardSpring_ = pos_joint_iface->getHandle("intake_spring_hard");
+
 	CubeState_        = controller_nh.advertise<elevator_controller::CubeState>("cube_state", 1);
-	IntakeUp_         = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_up_controller/command", 1);
-	IntakeSoftSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_soft_controller/command", 1);
-	IntakeHardSpring_ = controller_nh.advertise<std_msgs::Float64>("/frcrobot/intake_spring_hard_controller/command", 1);
+	CubeStateJoint_   = pos_joint_iface->getHandle("cube_state");
+
 	ReturnCmd_        = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_cmd_pos", 1);
+	ReturnTrueSetpoint_ = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("return_true_setpoint", 1);
 
 	Odom_             = controller_nh.advertise<elevator_controller::ReturnElevatorCmd>("odom", 1);
+
 	before_shift_max_vel_ = lift_joint_.getMotionCruiseVelocity();
 	before_shift_max_accel_ = lift_joint_.getMotionAcceleration();
-
 	
 	lift_joint_.setMotionAcceleration(before_shift_max_accel_);
 	lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
 	lift_joint_.setPIDFSlot(0);
 	
-			
 	lift_joint_.setContinuousCurrentLimit(norm_cur_lim_);
-
 
 	return true;
 }
@@ -365,7 +439,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	const bool end_game_deploy_cmd = end_game_deploy_cmd_.load(std::memory_order_relaxed);
 	if(end_game_deploy_cmd && !end_game_deploy_t1_)
 	{
-		
 		//ROS_INFO("part 1");
 		IntakeCommand climb_intake_cmd;
 		climb_intake_cmd.up_command = -1;
@@ -373,8 +446,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		climb_intake_cmd.power = 0;
 		
 		intake_command_.writeFromNonRT(climb_intake_cmd); //Not really sure how bad this is
-
-
 
 		command_struct_.lin[0] = .1;
                 command_struct_.lin[1] = min_extension_ + cos(asin(.1 / arm_length_))*arm_length_;
@@ -402,15 +473,11 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > .5)
 	{	
 		//ROS_INFO("dropping");
-		std_msgs::Float64 msg;
-		msg.data = 1.0;
-		EndGameDeploy_.publish(msg);
+		EndGameDeploy_.setCommand(1.0);
 	}
 	else
 	{
-		std_msgs::Float64 msg;
-		msg.data = 0.0;
-		EndGameDeploy_.publish(msg);
+		EndGameDeploy_.setCommand(0.0);
 	}
 	bool local_shift_cmd = shift_cmd_.load(std::memory_order_relaxed);
 	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
@@ -420,9 +487,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	} 
 	if(local_shift_cmd)
 	{	
-		std_msgs::Float64 msg;
-		msg.data = 1.0;
-		Shift_.publish(msg);
+		Shift_.setCommand(1.0);
 		if(!shifted_)
 		{
 			shifted_ = true;
@@ -437,19 +502,16 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	else
 	{
-		std_msgs::Float64 msg;
-		msg.data = -1.0;
-		Shift_.publish(msg);
+		Shift_.setCommand(-1.0);
 		if(shifted_)
 		{
 			shifted_ = false;
 			lift_joint_.setMotionAcceleration(before_shift_max_accel_);
 			lift_joint_.setMotionCruiseVelocity(before_shift_max_vel_);
-			lift_joint_.setPIDFSlot(0);
 			
-					
 			lift_joint_.setContinuousCurrentLimit(norm_cur_lim_);
 
+			lift_joint_.setPIDFSlot(0);
 			//lift_joint_.setF(f_lift_high_);
 		}
 	}
@@ -460,7 +522,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 	//ROS_INFO_STREAM("Intake power: " << cur_intake_cmd.power << " up?: " << cur_intake_cmd.up_command << " in state: " <<  cur_intake_cmd.spring_command);
 	
-
 	intake1_joint_.setCommand(cur_intake_cmd.power);
 	if(cur_intake_cmd.power > .5)
 	{
@@ -471,94 +532,79 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		intake2_joint_.setCommand(cur_intake_cmd.power);
 
 	}
-	if(cur_intake_cmd.up_command < 0)
-	{
-		std_msgs::Float64 msg;
-		msg.data = -1.0;
-		IntakeUp_.publish(msg);
-		intake_down_time_.store(ros::Time::now().toSec(), std::memory_order_relaxed);
-	}
-	else
-	{
-		//if((ros::Time::now().toSec() - intake_down_time_.load(std::memory_order_relaxed)) < 1.5) //1.5 is super arbitary
-		//{
-			std_msgs::Float64 msg;
-			msg.data = 1.0;
-			IntakeUp_.publish(msg);
-		//}
-		/*else
-		{
-			std_msgs::Float64 msg;
-			msg.data = 0;
-			IntakeUp_.publish(msg);
-		}*/
-	}
-	//Delay stuff maybe?
+	bool intake_up = cur_intake_cmd.up_command < 0;
 
-	std_msgs::Float64 intake_soft_msg;
-	std_msgs::Float64 intake_hard_msg;
+	if(intake_up_last_ != intake_up)
+	{
+		transition_time_ = ros::Time::now().toSec();
+	}
+	bool in_transition = ros::Time::now().toSec() - transition_time_ < .5; //Consider making this 
+																		   //check enable/disable 
+
+	double intake_soft_msg;
+	double intake_hard_msg;
+	bool intake_open = false;
 	switch(cur_intake_cmd.spring_command)
 	{
 		default:
-			intake_soft_msg.data = 1.0;
-			intake_hard_msg.data = 1.0;
+			intake_soft_msg = 1.0;
+			intake_hard_msg = 1.0;
 			break;
 		case 1:
-			intake_soft_msg.data = 1.0;
-			intake_hard_msg.data = -1.0;
+			intake_soft_msg = 1.0;
+			intake_hard_msg = -1.0;
+			intake_open = true;
 			break;
 		case 3:
-			intake_soft_msg.data = 0.0;
-			intake_hard_msg.data = 1.0;
+			intake_soft_msg = 0.0;
+			intake_hard_msg = 1.0;
 			break;
 	}	
-	IntakeSoftSpring_.publish(intake_soft_msg);
-	IntakeHardSpring_.publish(intake_hard_msg);
+	IntakeSoftSpring_.setCommand(intake_soft_msg);
+	IntakeHardSpring_.setCommand(intake_hard_msg);
 
-	std_msgs::Float64 clamp_msg;
-	clamp_msg.data = clamp_cmd_.load(std::memory_order_relaxed);
-	Clamp_.publish(std_msgs::Float64(clamp_msg));
-
-
-
-	
-	
 	elevator_controller::CubeState cube_msg;
-	cube_msg.has_cube = line_break_intake_high_.load(std::memory_order_relaxed) || line_break_intake_low_.load(std::memory_order_relaxed) || pivot_joint_.getForwardLimitSwitch();
-	cube_msg.intake_high = line_break_intake_high_.load(std::memory_order_relaxed);
-	cube_msg.intake_low = line_break_intake_low_.load(std::memory_order_relaxed);
+	cube_msg.intake_high = line_break_intake_high_.getPosition() != 0;
+	cube_msg.intake_low = line_break_intake_low_.getPosition() != 0;
 	cube_msg.clamp = pivot_joint_.getForwardLimitSwitch();
+	cube_msg.has_cube = cube_msg.intake_high || cube_msg.intake_low || cube_msg.clamp;
 	CubeState_.publish(cube_msg);
-
-	elevator_controller::ReturnElevatorCmd return_holder;
-	elevator_controller::ReturnElevatorCmd odom_holder;
+	CubeStateJoint_.setCommand(cube_msg.has_cube ? 1.0 : 0.0);
+	
+	const double clamp_cmd = clamp_cmd_.load(std::memory_order_relaxed);
+	
+	Clamp_.setCommand(clamp_cmd);
 
 	const double lift_position =  /*last_tar_l - lift_offset_*/lift_joint_.getPosition()  - lift_offset_;
-	const double pivot_angle   =  /*last_tar_p - pivot_offset_; */pivot_joint_.getPosition() - pivot_offset_;
+	const double raw_pivot_angle   =  pivot_joint_.getPosition();
+	
+	const double adder = floor(((raw_pivot_angle - pivot_offset_) + M_PI) / (2.0 * M_PI)) * 2.0 * M_PI;
+	if(fabs(adder) > .1)    //Offset will jump by intervals of 2 * pi, 
+							//don't reset soft limits if change is just due to floating
+							//point error
+	{
+		pivot_offset_ += adder;
+		pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.05 + pivot_offset_);
+		pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
+		ROS_WARN("Pivot encoder discontinuouity detected and accounted for");
+	
+	}
+	const double pivot_angle = raw_pivot_angle - pivot_offset_;
 
-		
-
-	//BELOW IS TOTAL HACK
-	//if(fabs(pivot_angle) < .0025)
-	//{
-	//	pivot_angle +=.005;
-	//
-	//}
-	//ROS_INFO_STREAM("lift_pos: " << lift_position);
-
+	//TODO: put in similar checks for the lift using limit switches
 	bool cur_up_or_down = pivot_angle > 0;
-
 
 	arm_limiting::point_type cur_pos(cos(pivot_angle)*arm_length_, lift_position +
 			sin(pivot_angle)*arm_length_);
 
+	elevator_controller::ReturnElevatorCmd odom_holder;
 	odom_holder.x = cur_pos.x();
 	odom_holder.y = cur_pos.y();
 	odom_holder.up_or_down = cur_up_or_down;
 
 	Odom_.publish(odom_holder);
 	
-	if(stop_arm_.load(std::memory_order_relaxed))
+	if(stop_arm_.getPosition())
 	{	
 		pivot_joint_.setPeakOutputForward(0);
 		pivot_joint_.setPeakOutputReverse(0);
@@ -573,23 +619,20 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 		lift_joint_.setPeakOutputForward(1);
 		lift_joint_.setPeakOutputReverse(-1);
-
 	}
+	bool safe_to_move_intake;
+	elevator_controller::ReturnElevatorCmd return_holder;
 	if(!curr_cmd.override_pos_limits)
 	{
-
 		arm_limiting::point_type cmd_point(curr_cmd.lin[0], curr_cmd.lin[1]);
-		/*if(cur_pos.y() < cut_off_line_)
-		{
-			cmd_point.x(cur_pos.x()); //Don't smack stuff	
-		}*/
 
 		bool reassignment_holder;
 
 		arm_limiting::point_type return_cmd;
 		bool return_up_or_down;
 		bool bottom_limit = false; //TODO FIX THIS
-		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit);
+		const bool cube_in_clamp = cube_msg.clamp && (clamp_cmd != 0);
+		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit, intake_up, in_transition, safe_to_move_intake, cube_in_clamp, intake_open);
 
 		return_holder.x = return_cmd.x();
 		return_holder.y = return_cmd.y();
@@ -605,8 +648,9 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		return_holder.x = curr_cmd.lin[0];
 		return_holder.y = curr_cmd.lin[1];
 		return_holder.up_or_down = curr_cmd.up_or_down;
-
+		safe_to_move_intake = true;
 	}
+	return_holder.header.stamp = ros::Time::now();
 	ReturnCmd_.publish(return_holder);
 
 	if(!curr_cmd.override_sensor_limits)
@@ -616,20 +660,45 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		//if target is beyond dist, will bring arm all the way up or down to go around
 		//this is relatively low priority
 	}
+
+	if(safe_to_move_intake)
+	{
+		intake_up_last_ = intake_up;
+	}
+	else
+	{
+		intake_up = intake_up_last_;
+	}
+	if(intake_up)
+	{
+		IntakeUp_.setCommand(-1.0);
+		intake_down_time_.store(ros::Time::now().toSec(), std::memory_order_relaxed);
+	}
+	else
+	{
+		//if((ros::Time::now().toSec() - intake_down_time_.load(std::memory_order_relaxed)) < 1.5) //1.5 is super arbitary
+		//{
+			IntakeUp_.setCommand(1.0);
+		//}
+		/*else
+		{
+			IntakeUp_.setCommand(0);
+		}*/
+	}
+	//Delay stuff maybe?
+
+	elevator_controller::ReturnElevatorCmd final_cmd_holder;
+	final_cmd_holder.x = curr_cmd.lin[0];
+	final_cmd_holder.y = curr_cmd.lin[1];
+	final_cmd_holder.up_or_down = curr_cmd.up_or_down;
+
+	ReturnTrueSetpoint_.publish(final_cmd_holder);
 	//ROS_INFO_STREAM("cmd: " << curr_cmd.lin << " up/down: " << curr_cmd.up_or_down);
 	const double pivot_target = acos(curr_cmd.lin[0]/arm_length_) * ((curr_cmd.up_or_down) ? 1 : -1);
 	
 	//ROS_INFO_STREAM("up_or_down: " << curr_cmd.up_or_down << "lin pos target" << curr_cmd.lin << " lift pos tar: " << curr_cmd.lin[1] - arm_length_ * sin(pivot_target));	
 	double pivot_custom_f = cos(pivot_angle) * f_arm_mass_ +f_arm_fric_;
 
-	
-	if(!enabled_.load(std::memory_order_relaxed))
-	{
-
-		pivot_joint_.setIntegralAccumulator(0);
-		lift_joint_.setIntegralAccumulator(0);
-
-	}
 	pivot_joint_.setCommand(pivot_target + pivot_offset_);
 	lift_joint_.setCommand(curr_cmd.lin[1] - arm_length_ * sin(pivot_target) + lift_offset_);
 	
@@ -656,85 +725,6 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 	else
 	{
 		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
-	}
-}
-void ElevatorController::stopCallback(const std_msgs::Bool &command)
-{
-	if(isRunning())
-	{
-		stop_arm_.store(command.data, std::memory_order_relaxed);
-	}
-	else
-	{
-		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
-	}
-}
-void ElevatorController::enabledCallback(const ros_control_boilerplate::MatchSpecificData &data)
-{
-	if(isRunning())
-	{
-		enabled_.store(data.isEnabled, std::memory_order_relaxed);
-	}
-	else
-	{
-		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
-	}
-}
-
-void ElevatorController::lineBreakCallback(const sensor_msgs::JointState &msg)
-{
-	if(isRunning())
-	{
-		static size_t line_break_intake_low_index = -1;
-		if(line_break_intake_low_index == -1)
-		{
-			for(size_t i = 0; i < msg.name.size(); i++)
-			{
-				if(msg.name[i] == "intake_line_break_low")
-				{
-					line_break_intake_low_index = i;
-					break;
-				}
-			}
-		}
-		if(line_break_intake_low_index == -1)
-			ROS_ERROR_NAMED(name_, "Could not read index for intake_line_break_low");
-		else
-			line_break_intake_low_.store(msg.position[line_break_intake_low_index] > 0, std::memory_order_relaxed);
-		
-		static size_t line_break_intake_high_index = -1;
-		if(line_break_intake_high_index == -1)
-		{
-			for(size_t i = 0; i < msg.name.size(); i++)
-			{
-				if(msg.name[i] == "intake_line_break_high")
-				{
-					line_break_intake_high_index = i;
-					break;
-				}
-			}
-		}
-		if(line_break_intake_high_index == -1)
-			ROS_ERROR_NAMED(name_, "Could not read index for intake_line_break");
-		else
-			line_break_intake_high_.store(msg.position[line_break_intake_high_index] > 0, std::memory_order_relaxed);
-
-		static size_t line_break_clamp_index = -1;
-		if(line_break_clamp_index == -1)
-		{
-			for(size_t i = 0; i < msg.name.size(); i++)
-			{
-				if(msg.name[i] == "clamp_line_break")
-				{
-					line_break_clamp_index = i;
-					break;
-				}
-			}
-		}
-		if(line_break_clamp_index == -1)
-			ROS_ERROR_NAMED(name_, "Could not read index for clamp_line_break");
-		else
-			line_break_clamp_.store(msg.position[line_break_clamp_index] > 0, std::memory_order_relaxed);
 	}
 }
 
@@ -834,8 +824,6 @@ bool ElevatorController::intakeService(elevator_controller::Intake::Request &com
 			const IntakeCommand cur_intake_cmd = *(intake_command_.readFromRT());
 			intake_struct.up_command = cur_intake_cmd.up_command;
 			intake_struct.spring_command = cur_intake_cmd.spring_command;
-
-
 		}
 		intake_command_.writeFromNonRT(intake_struct);
 		intake_down_time_.store(ros::Time::now().toSec(), std::memory_order_relaxed);

@@ -1,5 +1,5 @@
 elevator_controller:
     pivot_joint:
-        offset: -4.123336875 
+        offset: -4.055841777
     lift_joint:
         offset: -0.32

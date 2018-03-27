@@ -5,15 +5,12 @@ include ("../cmake_modules/CMakeOpt.cmake")
 
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
-  message_filters
-  hardware_interface
   controller_manager
   roscpp
   std_msgs
   ros_control_boilerplate
 )
 find_package(Eigen REQUIRED)
-
 
 #add_message_files (
 #  FILES

@@ -39,6 +39,61 @@ For a more detailed simulation example, see sim_hw_interface.cpp
 
 #include <ros_control_boilerplate/frcrobot_sim_interface.h>
 #include <ros_control_boilerplate/nextVelocity.h>
+#include <ros_control_boilerplate/nextVelocity.h>
+#include <ros_control_boilerplate/JoystickState.h>
+#include <termios.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <thread>
+
+#include <ros/ros.h>
+#include <sensor_msgs/JointState.h>
+#include <std_msgs/Float64MultiArray.h>
+
+#define KEYCODE_a 0x61
+#define KEYCODE_b 0x62
+#define KEYCODE_c 0x63
+#define KEYCODE_d 0x64
+#define KEYCODE_e 0x65
+#define KEYCODE_f 0x66
+#define KEYCODE_g 0x67
+#define KEYCODE_h 0x68
+#define KEYCODE_i 0x69
+#define KEYCODE_j 0x6a
+#define KEYCODE_k 0x6b
+#define KEYCODE_l 0x6c
+#define KEYCODE_m 0x6d
+#define KEYCODE_n 0x6e
+#define KEYCODE_o 0x6f
+#define KEYCODE_p 0x70
+#define KEYCODE_q 0x71
+#define KEYCODE_r 0x72
+#define KEYCODE_s 0x73
+#define KEYCODE_t 0x74
+#define KEYCODE_u 0x75
+#define KEYCODE_v 0x76
+#define KEYCODE_w 0x77
+#define KEYCODE_x 0x78
+#define KEYCODE_y 0x79
+#define KEYCODE_z 0x7a
+#define KEYCODE_A 0x41
+#define KEYCODE_B 0x42
+#define KEYCODE_C 0x43
+#define KEYCODE_D 0x44
+#define KEYCODE_MINUS 0x2D
+#define KEYCODE_EQUALS 0x3D
+#define KEYCODE_ONE 0x1
+#define KEYCODE_TWO 0x2
+#define KEYCODE_THREE 0x3
+#define KEYCODE_FOUR 0x4
+#define KEYCODE_FIVE 0x5
+#define KEYCODE_SIX 0x6
+#define KEYCODE_SEVEN 0x7
+#define KEYCODE_EIGHT 0x8
+#define KEYCODE_LEFT_BRACKET 0x5B
+#define KEYCODE_ESCAPE  0x1B
+
 
 namespace frcrobot_control
 {
@@ -48,12 +103,395 @@ FRCRobotSimInterface::FRCRobotSimInterface(ros::NodeHandle &nh,
 	: ros_control_boilerplate::FRCRobotInterface(nh, urdf_model)
 {
 }
+FRCRobotSimInterface::~FRCRobotSimInterface()
+{
+    sim_joy_thread_.join();
+}
 
+
+
+int kfd = 0;
+struct termios cooked, raw;
+
+void quit(int /*sig*/)
+{
+	tcsetattr(kfd, TCSANOW, &cooked);
+	exit(0);
+}
+
+class TeleopJointsKeyboard
+{
+	public:
+
+		TeleopJointsKeyboard()
+			: has_recieved_joints_(false)
+		{
+			std::cout << "init " << std::endl;
+			// TODO: make this robot agonistic
+			joints_pub_ = nh_.advertise<ros_control_boilerplate::JoystickState>("/frcrobot/joystick_states", 1);
+		}
+
+		~TeleopJointsKeyboard()
+		{ }
+
+
+		void keyboardLoop()
+		{
+			char c;
+
+			// get the console in raw mode
+			tcgetattr(kfd, &cooked);
+			memcpy(&raw, &cooked, sizeof(struct termios));
+			raw.c_lflag &= ~ (ICANON | ECHO);
+			// Setting a new line, then end of file
+			raw.c_cc[VEOL] = 1;
+			raw.c_cc[VEOF] = 2;
+			tcsetattr(kfd, TCSANOW, &raw);
+
+
+			for (;;)
+			{
+				// get the next event from the keyboard
+				if (read(kfd, &c, 1) < 0)
+				{
+					perror("read():");
+					exit(-1);
+				}
+
+                cmd_.rightStickY = 0;
+                cmd_.rightStickX = 0;
+
+                cmd_.leftStickY = 0;
+                cmd_.leftStickX = 0;
+
+                cmd_.leftTrigger = 0;
+                cmd_.rightTrigger = 0;
+                cmd_.buttonXButton = false;
+                cmd_.buttonXPress = false;
+                cmd_.buttonXRelease = false;
+                cmd_.buttonYButton = false;
+                cmd_.buttonYPress = false;
+                cmd_.buttonYRelease = false;
+
+                cmd_.bumperLeftButton = false;
+                cmd_.bumperLeftPress = false;
+                cmd_.bumperLeftRelease = false;
+
+                cmd_.bumperRightButton = false;
+                cmd_.bumperRightPress = false;
+                cmd_.bumperRightRelease = false;
+
+                cmd_.stickLeftButton = false;
+                cmd_.stickLeftPress = false;
+                cmd_.stickLeftRelease = false;
+
+                cmd_.stickRightButton = false;
+                cmd_.stickRightPress = false;
+                cmd_.stickRightRelease = false;
+
+                cmd_.buttonAButton = false;
+                cmd_.buttonAPress = false;
+                cmd_.buttonARelease = false;
+                cmd_.buttonBButton = false;
+                cmd_.buttonBPress = false;
+                cmd_.buttonBRelease = false;
+                cmd_.buttonBackButton = false;
+                cmd_.buttonBackPress = false;
+                cmd_.buttonBackRelease = false;
+
+                cmd_.buttonStartButton = false;
+                cmd_.buttonStartPress = false;
+                cmd_.buttonStartRelease = false;
+
+                cmd_.directionUpButton = false;
+                cmd_.directionUpPress = false;
+                cmd_.directionUpRelease = false;
+
+                cmd_.directionDownButton = false;
+                cmd_.directionDownPress = false;
+                cmd_.directionDownRelease = false;
+
+                cmd_.directionRightButton = false;
+                cmd_.directionRightPress = false;
+                cmd_.directionRightRelease = false;
+
+                cmd_.directionLeftButton = false;
+                cmd_.directionLeftPress = false;
+                cmd_.directionLeftRelease = false;
+
+				bool dirty = true;
+				switch (c)
+				{
+
+                case KEYCODE_i:
+                    cmd_.rightStickY += .5;
+                    break;
+                case KEYCODE_k:
+                    cmd_.rightStickY -= .5;
+                    break;
+                case KEYCODE_j:
+                    cmd_.rightStickX += .5;
+                    break;
+                case KEYCODE_l:
+                    cmd_.rightStickX -= .5;
+                    break;
+
+                case KEYCODE_d:
+                    cmd_.leftStickY += .5;
+                    break;
+                case KEYCODE_a:
+                    cmd_.leftStickY -= .5;
+                    break;
+                case KEYCODE_w:
+                    cmd_.leftStickX += .5;
+                    break;
+                case KEYCODE_s:
+                    cmd_.leftStickX -= .5;
+                    break;
+				case KEYCODE_ONE:
+                    if(cmd_last_.buttonAButton) {
+                        cmd_.buttonAPress = false; // radians
+                    }
+                    else {
+                        cmd_.buttonAPress = true; // radians
+                    }
+					cmd_.buttonAButton = true; // radians
+					break;
+				case KEYCODE_TWO:
+                    if(cmd_last_.buttonBButton) {
+                        cmd_.buttonBPress = false; // radians
+                    }
+                    else {
+                        cmd_.buttonBPress = true; // radians
+                    }
+					cmd_.buttonBButton = true; // radians
+					break;
+				case KEYCODE_THREE:
+                    if(cmd_last_.buttonXButton) {
+                        cmd_.buttonXPress = false; // radians
+                    }
+                    else {
+                        cmd_.buttonXPress = true; // radians
+                    }
+					cmd_.buttonXButton = true; // radians
+					break;
+				case KEYCODE_FOUR:
+                    if(cmd_last_.buttonYButton) {
+                        cmd_.buttonYPress = false; // radians
+                    }
+                    else {
+                        cmd_.buttonYPress = true; // radians
+                    }
+					cmd_.buttonYButton = true; // radians
+					break;
+				case KEYCODE_q:
+					cmd_.leftTrigger = .5; // radians
+					break;
+				case KEYCODE_e:
+					cmd_.rightTrigger = .5; // radians
+					break;
+				case KEYCODE_SEVEN:
+                    if(cmd_last_.stickLeftButton) {
+                        cmd_.stickLeftPress = false; // radians
+                    }
+                    else {
+                        cmd_.stickLeftPress = true; // radians
+                    }
+					cmd_.stickLeftButton = true; // radians
+					break;
+				case KEYCODE_EIGHT:
+                    if(cmd_last_.stickRightButton) {
+                        cmd_.stickRightPress = false; // radians
+                    }
+                    else {
+                        cmd_.stickRightPress = true; // radians
+                    }
+					cmd_.stickRightButton = true; // radians
+					break;
+				case KEYCODE_FIVE:
+                    if(cmd_last_.buttonBackButton) {
+                        cmd_.buttonBackPress = false; // radians
+                    }
+                    else {
+                        cmd_.buttonBackPress = true; // radians
+                    }
+					cmd_.buttonBackButton = true; // radians
+					break;
+				case KEYCODE_SIX:
+                    if(cmd_last_.buttonStartButton) {
+                        cmd_.buttonStartPress = false; // radians
+                    }
+                    else {
+                        cmd_.buttonStartPress = true; // radians
+                    }
+					cmd_.buttonStartButton = true; // radians
+					break;
+				case KEYCODE_MINUS:
+                    if(cmd_last_.bumperLeftButton) {
+                        cmd_.bumperLeftPress = false; // radians
+                    }
+                    else {
+                        cmd_.bumperLeftPress = true; // radians
+                    }
+					cmd_.bumperLeftButton = true; // radians
+					break;
+				case KEYCODE_EQUALS:
+                    if(cmd_last_.bumperRightButton) {
+                        cmd_.bumperRightPress = false; // radians
+                    }
+                    else {
+                        cmd_.bumperRightPress = true; // radians
+                    }
+					cmd_.bumperRightButton = true; // radians
+					break;
+
+				case KEYCODE_LEFT_BRACKET:
+
+                    if (read(kfd, &c, 1) < 0)
+                    {
+                        perror("read():");
+                        exit(-1);
+                    }
+                    switch (c)
+                    {
+                        case KEYCODE_B:
+                            if(cmd_last_.directionDownButton) {
+                                cmd_.directionDownPress = false; // radians
+                            }
+                            else {
+                                cmd_.directionDownPress = true; // radians
+                            }
+                            cmd_.directionDownButton = true;
+                            break;
+                        case KEYCODE_A:
+                            if(cmd_last_.directionUpButton) {
+                                cmd_.directionUpPress = false; // radians
+                            }
+                            else {
+                                cmd_.directionUpPress = true; // radians
+                            }
+                            cmd_.directionUpButton = true;
+                            break;
+                        case KEYCODE_D:
+                            if(cmd_last_.directionLeftButton) {
+                                cmd_.directionLeftPress = false; // radians
+                            }
+                            else {
+                                cmd_.directionLeftPress = true; // radians
+                            }
+                            cmd_.directionLeftButton = true;
+                            break;
+                        case KEYCODE_C:
+                            if(cmd_last_.directionRightButton) {
+                                cmd_.directionRightPress = false; // radians
+                            }
+                            else {
+                                cmd_.directionRightPress = true; // radians
+                            }
+                            cmd_.directionRightButton = true;
+                            break;
+                    }
+					break;
+
+				case  KEYCODE_ESCAPE:
+					//std::cout << std::endl;
+					//std::cout << "Exiting " << std::endl;
+					//quit(0);
+					break;
+                
+                if(cmd_last_.buttonAButton && !cmd_.buttonAButton) {
+                    cmd_.buttonARelease = true;
+                }
+                if(cmd_last_.buttonBButton && !cmd_.buttonBButton) {
+                    cmd_.buttonBRelease = true;
+                }
+                if(cmd_last_.buttonXButton && !cmd_.buttonXButton) {
+                    cmd_.buttonXRelease = true;
+                }
+                if(cmd_last_.buttonYButton && !cmd_.buttonYButton) {
+                    cmd_.buttonYRelease = true;
+                }
+                if(cmd_last_.buttonStartButton && !cmd_.buttonStartButton) {
+                    cmd_.buttonARelease = true;
+                }
+                if(cmd_last_.buttonBackButton && !cmd_.buttonBackButton) {
+                    cmd_.buttonARelease = true;
+                }
+                if(cmd_last_.stickLeftButton && !cmd_.stickLeftButton) {
+                    cmd_.stickLeftRelease = true;
+                }
+                if(cmd_last_.stickRightButton && !cmd_.stickRightButton) {
+                    cmd_.stickRightRelease = true;
+                }
+                if(cmd_last_.bumperLeftButton && !cmd_.bumperLeftButton) {
+                    cmd_.bumperLeftRelease = true;
+                }
+                if(cmd_last_.bumperRightButton && !cmd_.bumperRightButton) {
+                    cmd_.bumperRightRelease = true;
+                }
+                if(cmd_last_.directionRightButton && !cmd_.directionRightButton) {
+                    cmd_.directionRightRelease = true;
+                }
+                if(cmd_last_.directionLeftButton && !cmd_.directionLeftButton) {
+                    cmd_.directionLeftRelease = true;
+                }
+                if(cmd_last_.directionUpButton && !cmd_.directionUpButton) {
+                    cmd_.directionUpRelease = true;
+                }
+                if(cmd_last_.directionDownButton && !cmd_.directionDownButton) {
+                    cmd_.directionDownRelease = true;
+                }
+				// Publish command
+				if (dirty)
+				{
+					// Important safety feature
+					//if (!has_recieved_joints_)
+					//{
+					//	ROS_ERROR_STREAM_NAMED("joint_teleop", "Unable to send joint commands because robot state is invalid");
+					//}
+					//else
+					//{
+						std::cout << ".";
+						joints_pub_.publish(cmd_);
+                        cmd_last_ = cmd_;
+					//}
+				}
+			}
+		}
+    }
+
+	private:
+
+		ros::NodeHandle nh_;
+		ros::Publisher joints_pub_;
+		ros_control_boilerplate::JoystickState cmd_;
+		ros_control_boilerplate::JoystickState cmd_last_;
+		bool has_recieved_joints_;
+
+};
+
+void FRCRobotSimInterface::loop_joy(void)
+{
+	signal(SIGINT, quit);
+
+    TeleopJointsKeyboard teleop;
+    teleop.keyboardLoop();
+}
+void FRCRobotSimInterface::cube_state_callback(const elevator_controller::CubeState &cube) {
+    clamp = cube.clamp;
+    intake_high = cube.intake_high;
+    intake_low = cube.intake_low;
+    has_cube = cube.has_cube;
+}
 void FRCRobotSimInterface::init(void)
 {
 	// Do base class init. This loads common interface info
 	// used by both the real and sim interfaces
 	FRCRobotInterface::init();
+    ros::NodeHandle nh_;
+
+	sim_joy_thread_ = std::thread(&FRCRobotSimInterface::loop_joy, this);
+    cube_state_sub_ = nh_.subscribe("/frcrobot/cube_state_sim", 1, &FRCRobotSimInterface::cube_state_callback, this);
 	
 	// Loop through the list of joint names
 	// specified as params for the hardware_interface.
@@ -129,7 +567,34 @@ void FRCRobotSimInterface::init(void)
 
 void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 {
-	// Simulated state is updated in write, so just
+	
+	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
+	{
+        auto &ts = talon_state_[joint_id];
+        if(ts.getCANID() == 51) {
+            if(clamp) {
+                ts.setForwardLimitSwitch(true);
+            }
+            else {
+                ts.setForwardLimitSwitch(false);
+            }
+        }
+        
+    }
+    for (size_t i = 0; i < num_digital_inputs_; i++) 
+        {    
+            //State should really be a bool - but we're stuck using
+            //ROS control code which thinks everything to and from
+            //hardware are doubles
+            if(digital_input_names_[i] == "intake_line_break_high") {
+                digital_input_state_[i] = (intake_high) ? 1 : 0; 
+            }
+            if(digital_input_names_[i] == "intake_line_break_low") {
+                digital_input_state_[i] = (intake_low) ? 1 : 0; 
+            }
+        }    
+
+    // Simulated state is updated in write, so just
 	// display it here for debugging
 
 	//printState();
@@ -139,6 +604,7 @@ void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 		ROS_WARN("ROBOT CODE READY!");
 		printed_robot_code_ready = true;
 	}
+    ros::spinOnce();
 }
 
 void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
@@ -409,24 +875,33 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				ts.setSetpoint(setpoint);
 
 			double position = ts.getSetpoint();
-
 			double velocity = ts.getSpeed();
-			
 			double dt = elapsed_time.toSec();
 
-
+			//change the nextVelocity call to non existent as it does not work and throws an error from a non-existent package
 			double next_pos = nextVelocity(ts.getPosition(), position, velocity, ts.getMotionCruiseVelocity(), ts.getMotionAcceleration(), dt);
+			//ROS_WARN_STREAM("max vel: " <<ts.getMotionCruiseVelocity()<< " max accel: " << ts.getMotionAcceleration());
 
-			if(ts.getPosition() <= position < next_pos || ts.getPosition() >= position > next_pos)
+			if((ts.getPosition() <=  position &&  position < next_pos) ||( ts.getPosition() >= position && position > next_pos))
 			{
-				position = position;
+				next_pos = position;
 				velocity = 0;
 				//Talons don't allow overshoot, the profiling algorithm above does
 			}
 			ts.setPosition(next_pos);
 			ts.setSpeed(velocity);
-
 		}
+
+		hardware_interface::DemandType demand1_type_internal;
+		double demand1_value;
+		if (tc.demand1Changed(demand1_type_internal, demand1_value))
+		{
+			ts.setDemand1Type(demand1_type_internal);
+			ts.setDemand1Value(demand1_value);
+
+			ROS_INFO_STREAM("Set joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" demand1 type / value");
+		}
+
 		if (tc.clearStickyFaultsChanged())
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");
 	}
@@ -478,10 +953,10 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				") right rumble = " << std::dec << right_rumble << "(" << std::hex << right_rumble <<  ")" << std::dec);
 #endif
 	}
-	std::stringstream s;
+	//std::stringstream s;
 	for (size_t i = 0; i < num_dummy_joints_; i++)
 	{
-		s << dummy_joint_command_[i] << " ";
+		//s << dummy_joint_command_[i] << " ";
 		dummy_joint_effort_[i] = 0;
 		//if (dummy_joint_names_[i].substr(2, std::string::npos) == "_angle")
 		{
@@ -496,7 +971,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			//dummy_joint_velocity_[i] = dummy_joint_command_[i];
 		}
 	}
-	ROS_INFO_STREAM_THROTTLE(1, s.str());
+	//ROS_INFO_STREAM_THROTTLE(1, s.str());
 }
 
 }  // namespace

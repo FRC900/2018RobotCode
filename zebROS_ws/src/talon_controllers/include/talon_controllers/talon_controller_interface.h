@@ -1032,6 +1032,15 @@ class TalonControllerInterface
 			talon_->setOpenloopRamp(params_.open_loop_ramp_);
 		}
 
+		void setDemand1Type(hardware_interface::DemandType demand_type)
+		{
+			talon_->setDemand1Type(demand_type);
+		}
+		void setDemand1Value(double value)
+		{
+			talon_->setDemand1Value(value);
+		}
+
 	protected:
 		hardware_interface::TalonCommandHandle                          talon_;
 		TalonCIParams                                                   params_;

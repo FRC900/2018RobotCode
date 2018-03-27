@@ -39,6 +39,7 @@ sub install_package
 # on our development systems.
 #
 
+
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/lz4-dev_131+git0+d86dc91677-r0.4_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/lz4-staticdev_131+git0+d86dc91677-r0.4_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/lz4_131+git0+d86dc91677-r0.4_cortexa9-vfpv3.ipk");
@@ -150,3 +151,5 @@ install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-
 # rsync packages needed for deployment script
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/libacl1_2.2.52-r0.105_cortexa9-vfpv3.ipk");
 install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/rsync_3.1.2-r0.3_cortexa9-vfpv3.ipk");
+
+install_package("http://download.ni.com/ni-linux-rt/feeds/2017/arm/ipk/cortexa9-vfpv3/libidn11_1.32-r0.7_cortexa9-vfpv3.ipk");

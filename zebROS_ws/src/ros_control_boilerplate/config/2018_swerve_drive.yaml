@@ -13,6 +13,12 @@ swerve_drive_controller:
     max_accel: 2.5 #2
     max_brake_accel: 4.0 #4
     ang_accel_conv: 0.741176471
+    
+    f_s: 1
+    f_a: 1 #use torque curve instead?
+    f_v: 1 
+   
+    #consider adding stuff for the steering wheels too 
     mass: 70
     motor_free_speed: 5840
     motor_stall_torque: 1.4

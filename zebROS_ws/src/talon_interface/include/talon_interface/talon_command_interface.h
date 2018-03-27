@@ -73,6 +73,9 @@ class TalonHWCommand
 			command_changed_(true),
 			mode_(TalonMode_Uninitialized),
 			mode_changed_(false),
+			demand1_type_(DemandType_Neutral),
+			demand1_value_(0.0),
+			demand1_changed_(true),
 			pidf_slot_(0),
 			pidf_slot_changed_(true),
 			iaccum_(0.0),
@@ -191,7 +194,7 @@ class TalonHWCommand
 
 		void setP(double oldP, size_t index)
 		{
-			if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+			if (index >= (sizeof(p_) / sizeof(p_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setP()");
 				return;
@@ -204,7 +207,7 @@ class TalonHWCommand
 		}
 		double getP(size_t index) const
 		{
-			if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+			if (index >= (sizeof(p_) / sizeof(p_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getP()");
 				return 0.0;
@@ -214,7 +217,7 @@ class TalonHWCommand
 
 		void setI(double ii, size_t index)
 		{
-			if ((index < 0) || (index >= (sizeof(i_) / sizeof(i_[0]))))
+			if (index >= (sizeof(i_) / sizeof(i_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setI()");
 				return;
@@ -227,7 +230,7 @@ class TalonHWCommand
 		}
 		double getI(size_t index) const
 		{
-			if ((index < 0) || (index >= (sizeof(i_) / sizeof(i_[0]))))
+			if (index >= (sizeof(i_) / sizeof(i_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getI()");
 				return 0.0;
@@ -237,7 +240,7 @@ class TalonHWCommand
 
 		void setD(double dd, size_t index)
 		{
-			if ((index < 0) || (index >= (sizeof(d_) / sizeof(d_[0]))))
+			if (index >= (sizeof(d_) / sizeof(d_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setD()");
 				return;
@@ -250,7 +253,7 @@ class TalonHWCommand
 		}
 		double getD(size_t index) const
 		{
-			if ((index < 0) || (index >= (sizeof(d_) / sizeof(d_[0]))))
+			if (index >= (sizeof(d_) / sizeof(d_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getD()");
 				return 0.0;
@@ -260,7 +263,7 @@ class TalonHWCommand
 
 		void setF(double ff, size_t index)
 		{
-			if ((index < 0) || (index >= (sizeof(f_) / sizeof(f_[0]))))
+			if (index >= (sizeof(f_) / sizeof(f_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setF()");
 				return;
@@ -273,7 +276,7 @@ class TalonHWCommand
 		}
 		double getF(size_t index)
 		{
-			if ((index < 0) || (index >= (sizeof(f_) / sizeof(f_[0]))))
+			if (index >= (sizeof(f_) / sizeof(f_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getF()");
 				return 0.0;
@@ -283,7 +286,7 @@ class TalonHWCommand
 
 		void setIZ(int i_zone, size_t index)
 		{
-			if ((index < 0) || (index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
+			if (index >= (sizeof(i_zone_) / sizeof(i_zone_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setIZ()");
 				return;
@@ -296,7 +299,7 @@ class TalonHWCommand
 		}
 		int getIZ(size_t index) const
 		{
-			if ((index < 0) || (index >= (sizeof(i_zone_) / sizeof(i_zone_[0]))))
+			if (index >= (sizeof(i_zone_) / sizeof(i_zone_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getIZ()");
 				return 0.0;
@@ -306,7 +309,7 @@ class TalonHWCommand
 
 		void setAllowableClosedloopError(int allowable_closed_loop_error, size_t index)
 		{
-			if ((index < 0) || (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
+			if (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
 				return;
@@ -319,7 +322,7 @@ class TalonHWCommand
 		}
 		int getAllowableClosedloopError(size_t index) const
 		{
-			if ((index < 0) || (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0]))))
+			if (index >= (sizeof(allowable_closed_loop_error_) / sizeof(allowable_closed_loop_error_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getAllowableClosedLoopErrro()");
 				return 0;
@@ -328,7 +331,7 @@ class TalonHWCommand
 		}
 		void setMaxIntegralAccumulator(int max_integral_accumulator, size_t index)
 		{
-			if ((index < 0) || (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
+			if (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setAllowableClosedLoopError()");
 				return;
@@ -341,7 +344,7 @@ class TalonHWCommand
 		}
 		int getMaxIntegralAccumulator(size_t index) const
 		{
-			if ((index < 0) || (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0]))))
+			if (index >= (sizeof(max_integral_accumulator_) / sizeof(max_integral_accumulator_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getAllowableClosedLoopErrro()");
 				return 0.0;
@@ -350,7 +353,7 @@ class TalonHWCommand
 		}
 		void setClosedLoopPeakOutput(double closed_loop_peak_output, size_t index)
 		{
-			if ((index < 0) || (index >= (sizeof(closed_loop_peak_output_) / sizeof(closed_loop_peak_output_[0]))))
+			if (index >= (sizeof(closed_loop_peak_output_) / sizeof(closed_loop_peak_output_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setClosedLoopPeakOutput()");
 				return;
@@ -363,7 +366,7 @@ class TalonHWCommand
 		}
 		double getClosedLoopPeakOutput(size_t index) const
 		{
-			if ((index < 0) || (index >= (sizeof(closed_loop_peak_output_) / sizeof(closed_loop_peak_output_[0]))))
+			if (index >= (sizeof(closed_loop_peak_output_) / sizeof(closed_loop_peak_output_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getClosedLoopPeakOutput()");
 				return 0.0;
@@ -373,7 +376,7 @@ class TalonHWCommand
 
 		void setClosedLoopPeriod(int closed_loop_period, size_t index)
 		{
-			if ((index < 0) || (index >= (sizeof(closed_loop_period_) / sizeof(closed_loop_period_[0]))))
+			if (index >= (sizeof(closed_loop_period_) / sizeof(closed_loop_period_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::setClosedLoopPeriod()");
 				return;
@@ -386,7 +389,7 @@ class TalonHWCommand
 		}
 		int getClosedLoopPeriod(size_t index) const
 		{
-			if ((index < 0) || (index >= (sizeof(closed_loop_period_) / sizeof(closed_loop_period_[0]))))
+			if (index >= (sizeof(closed_loop_period_) / sizeof(closed_loop_period_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::getClosedLoopPeriod()");
 				return 0.0;
@@ -444,6 +447,47 @@ class TalonHWCommand
 			}
 		}
 
+		void setDemand1Type(DemandType demand_type)
+		{
+			if ((demand_type <  DemandType_Neutral) ||
+				(demand_type >= DemandType_Last))
+			{
+				ROS_WARN("Invalid mode passed to TalonHWCommand::setDemand1Type()");
+				return;
+			}
+			if (demand1_type_ != demand_type)
+			{
+				demand1_type_    = demand_type;
+				demand1_changed_ = true;
+			}
+		}
+		DemandType getDemand1Type(void) const
+		{
+			return demand1_type_;
+		}
+
+		void setDemand1Value(double demand_value)
+		{
+			if (demand1_value_ != demand_value)
+			{
+				demand1_value_   = demand_value;
+				demand1_changed_ = true;
+			}
+		}
+		double getDemand1Value(void) const
+		{
+			return demand1_value_;
+		}
+		bool demand1Changed(DemandType &type, double &value)
+		{
+			type  = demand1_type_;
+			value = demand1_value_;
+			if (!demand1_changed_)
+				return false;
+			demand1_changed_ = false;
+			return true;
+		}
+
 		void setNeutralMode(NeutralMode neutral_mode)
 		{
 			if (neutral_mode == NeutralMode_Uninitialized)
@@ -480,7 +524,7 @@ class TalonHWCommand
 		}
 		bool pidfChanged(double &p, double &i, double &d, double &f, int &iz, int &allowable_closed_loop_error, double &max_integral_accumulator, double &closed_loop_peak_output, int &closed_loop_period, size_t index)
 		{
-			if ((index < 0) || (index >= (sizeof(p_) / sizeof(p_[0]))))
+			if (index >= (sizeof(p_) / sizeof(p_[0])))
 			{
 				ROS_WARN("Invalid index passed to TalonHWCommand::pidfChanged()");
 				return false;
@@ -1262,6 +1306,9 @@ class TalonHWCommand
 		bool      command_changed_;
 		TalonMode mode_;         // talon mode - % vbus, close loop, motion profile, etc
 		bool      mode_changed_; // set if mode needs to be updated on the talon hw
+		DemandType demand1_type_;
+		double    demand1_value_;
+		bool      demand1_changed_;
 		//RG: shouldn't there be a variable for the peak voltage limits?
 		int       pidf_slot_; // index 0 or 1 of the active PIDF slot
 		bool      pidf_slot_changed_; // set to true to trigger a write to PIDF select on Talon

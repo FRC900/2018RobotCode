@@ -1,0 +1,2 @@
+auto_interpreter_server_intake_params:
+    linebreak_debounce_iterations: 10

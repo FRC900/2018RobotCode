@@ -17,15 +17,16 @@
 
 		<!-- Load controller settings -->
 		<rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
-		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_0.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
-		<rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets0.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets1.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
 		<rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
         <rosparam file="$(find teleop_joystick_control)/config/teleopJoystickCommands.yaml" command="load"/>
 		<rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
         <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
+        <rosparam file="$(find behaviors)/config/autoInterpreterServer.yaml" command="load"/>
 
 		<!-- Load hardware interface -->
 		<node name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
@@ -34,7 +35,7 @@
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller intake_up_controller shift_controller clamp_controller intake_spring_soft_controller intake_spring_hard_controller end_game_deploy_controller imu_sensor_controller navx_controller pdp_state_controller compressor_controller elevator_controller swerve_drive_controller rumble_controller robot_code_ready_controller"/>
+			output="screen" args="spawn joint_state_controller talon_state_controller imu_sensor_controller pdp_state_controller compressor_controller swerve_drive_controller elevator_controller rumble_controller robot_code_ready_controller"/>
 
         <!-- launch joystick subscriber-->
 		

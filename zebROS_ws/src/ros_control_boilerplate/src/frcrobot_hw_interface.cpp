@@ -50,8 +50,6 @@
 #include "ros_control_boilerplate/PDPData.h"
 
 #include <geometry_msgs/Twist.h>
-#include <std_msgs/String.h>
-#include <std_msgs/Float64.h>
 #include <tf2/LinearMath/Matrix3x3.h>
 
 //HAL / wpilib includes
@@ -109,25 +107,18 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	Joystick joystick(0);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 1);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
-	realtime_tools::RealtimePublisher<std_msgs::Float64> zero_navX(nh_, "/frcrobot/navx_controller/command", 1); //Kinda dirty
-
-	realtime_tools::RealtimePublisher<std_msgs::Bool> override_compressor_limits(nh_, "/frcrobot/regulate_compressor/disable", 1);	
-	realtime_tools::RealtimePublisher<std_msgs::Bool> override_arm(nh_, "/frcrobot/override_arm_limits", 1);	
-	realtime_tools::RealtimePublisher<std_msgs::Bool> stop_arm(nh_, "/frcrobot/elevator_controller/stop_arm", 1);	
+	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "autonomous_mode", 4);
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
-	std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
-	std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "autonomous_mode", 4);
+	//std::shared_ptr<nt::NetworkTable> subTable = NetworkTable::GetTable("Custom");
     realtime_pub_nt.msg_.mode.resize(4);
     realtime_pub_nt.msg_.delays.resize(4);
-    ros::Time time_now_t;
-	ros::Time last_nt_publish_time;
-	ros::Time last_joystick_publish_time;
-	ros::Time last_match_data_publish_time;
+	ros::Time last_nt_publish_time = ros::Time::now();
+	//ros::Time last_joystick_publish_time = ros::Time::now();
+	ros::Time last_match_data_publish_time = ros::Time::now();
 
-	const double nt_publish_rate = 1.1;
+	const double nt_publish_rate = 10;
 	//const double joystick_publish_rate = 20;
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
@@ -135,20 +126,20 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	while (ros::ok())
 	{
 		robot_.OneIteration();
-		time_now_t = ros::Time::now();
+		const ros::Time time_now_t = ros::Time::now();
 		//ROS_INFO("%f", ros::Time::now().toSec());
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
 		//subTable->PutString("Auto Selector", "Select Auto");
-		if (driveTable && 
-			((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t))
+		if ((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t)
 		{
 			// SmartDashboard works!
 			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_.load(std::memory_order_relaxed));
 			frc::SmartDashboard::PutNumber("Pressure", pressure_.load(std::memory_order_relaxed));
 			frc::SmartDashboard::PutBoolean("cube_state", cube_state_.load(std::memory_order_relaxed));
 
-			if (realtime_pub_nt.trylock()) 
+			std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
+			if (driveTable && realtime_pub_nt.trylock()) 
 			{
 				realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
 				realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
@@ -160,7 +151,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				realtime_pub_nt.msg_.delays[3] = (int)driveTable->GetNumber("delay_3", 0);
 				realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
 				
-				
 				frc::SmartDashboard::PutNumber("auto_mode_0_ret", realtime_pub_nt.msg_.mode[0]);
 				frc::SmartDashboard::PutNumber("auto_mode_1_ret", realtime_pub_nt.msg_.mode[1]);
 				frc::SmartDashboard::PutNumber("auto_mode_2_ret", realtime_pub_nt.msg_.mode[2]);
@@ -171,43 +161,26 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				frc::SmartDashboard::PutNumber("delay_3_ret", realtime_pub_nt.msg_.delays[3]);
 				frc::SmartDashboard::PutNumber("robot_start_position_ret", realtime_pub_nt.msg_.position);
 
-
-
 				realtime_pub_nt.msg_.header.stamp = time_now_t;
 				realtime_pub_nt.unlockAndPublish();
 			}
 
-			if (override_compressor_limits.trylock())
+			if (driveTable)
 			{
-				override_compressor_limits.msg_.data = (bool)driveTable->GetBoolean("disable_reg", 0);		
-				override_compressor_limits.unlockAndPublish();
-				frc::SmartDashboard::PutBoolean("disable_reg_ret", override_compressor_limits.msg_.data);
-			}
-			if (override_arm.trylock())
-			{
-				override_arm.msg_.data = (bool)driveTable->GetBoolean("disable_arm_limits", 0);		
-				override_arm.unlockAndPublish();
-				frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm.msg_.data );
-			}
-			if (stop_arm.trylock())
-			{
-				stop_arm.msg_.data = (bool)driveTable->GetBoolean("stop_arm", 0);
-				stop_arm.unlockAndPublish();
+				disable_compressor_.store((bool)driveTable->GetBoolean("disable_reg", 0), std::memory_order_relaxed);
+				frc::SmartDashboard::PutBoolean("disable_reg_ret", disable_compressor_.load(std::memory_order_relaxed));
 
-			}
-			if (zero_navX.trylock())
-			{
+				override_arm_limits_.store((bool)driveTable->GetBoolean("disable_arm_limits", 0), std::memory_order_relaxed);
+				frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm_limits_.load(std::memory_order_relaxed));
+
+				stop_arm_.store((bool)driveTable->GetBoolean("stop_arm", 0), std::memory_order_relaxed);
+
 				double zero_angle;
 				if(driveTable->GetBoolean("zero_navX", 0) != 0)
-				{
-					zero_angle = (double)driveTable->GetNumber("zero_angle", 0);	
-				}
+					zero_angle = (double)driveTable->GetNumber("zero_angle", 0);
 				else
-				{
 					zero_angle = -10000;
-				}
-				zero_navX.msg_.data = zero_angle;
-				zero_navX.unlockAndPublish();
+				navX_zero_.store(zero_angle, std::memory_order_relaxed);
 			}
 
 			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
@@ -402,7 +375,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.msg_.matchNumber = DriverStation::GetInstance().GetMatchNumber();
 			realtime_pub_match_data.msg_.matchType = DriverStation::GetInstance().GetMatchType(); //returns int that corresponds to a DriverStation matchType enum
 
-			realtime_pub_match_data.msg_.isEnabled = DriverStation::GetInstance().IsEnabled();
+			const bool isEnabled = DriverStation::GetInstance().IsEnabled();
+			realtime_pub_match_data.msg_.isEnabled = isEnabled;
+			match_data_enabled_.store(isEnabled, std::memory_order_relaxed);
+
 			realtime_pub_match_data.msg_.isDisabled = DriverStation::GetInstance().IsDisabled();
 			realtime_pub_match_data.msg_.isAutonomous = DriverStation::GetInstance().IsAutonomous();
 
@@ -410,18 +386,22 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_match_data.unlockAndPublish();
 
 			if (realtime_pub_match_data.msg_.isEnabled && (game_specific_message.length() > 0))
+			{
 				game_specific_message_seen = true;
+				last_match_data_publish_time += ros::Duration(1.0 / match_data_publish_rate);
+			}
 			else
+			{
+				last_match_data_publish_time = ros::Time::now();
 				game_specific_message_seen = false;
-
-			last_match_data_publish_time += ros::Duration(1.0 / match_data_publish_rate);
+			}
 		}
 	}
 }
 
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
-	ros::Duration(3).sleep();	
+	ros::Duration(3).sleep();
 	bool set_frame_period[num_can_talon_srxs_];
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		set_frame_period[i] = false;
@@ -438,9 +418,10 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 				// Only write to non-follow, non-disabled talons that
 				// have points to write from their top-level buffer
 				//ROS_INFO_STREAM("top count: " << can_talons_[i]->GetMotionProfileTopLevelBufferCount());
-				if ((talon_mode != hardware_interface::TalonMode_Follower) &&
-				/*can_talons_[i]->GetMotionProfileTopLevelBufferCount()*/ (mp_status.topBufferCnt 
-				&& mp_status.btmBufferCnt < 127) ||  
+				//ROS_WARN_STREAM("id: " << i << " top size: " << mp_status.topBufferCnt << " running: " << (*can_talons_mp_running_)[i].load(std::memory_order_relaxed));
+				if (((talon_mode != hardware_interface::TalonMode_Follower) &&
+				 /*can_talons_[i]->GetMotionProfileTopLevelBufferCount()*/ (mp_status.topBufferCnt 
+				&& mp_status.btmBufferCnt < 127)) ||  
 				(*can_talons_mp_running_)[i].load(std::memory_order_relaxed))
 				{
 					if (!set_frame_period[i])
@@ -466,6 +447,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 
 void FRCRobotHWInterface::init(void)
 {
+    ROS_ERROR("IN INIT");
 	// Do base class init. This loads common interface info
 	// used by both the real and sim interfaces
 	FRCRobotInterface::init();
@@ -474,9 +456,6 @@ void FRCRobotHWInterface::init(void)
 	// a CAN Talon object to avoid NIFPGA: Resource not initialized
 	// errors? See https://www.chiefdelphi.com/forums/showpost.php?p=1640943&postcount=3
 	hal_thread_ = std::thread(&FRCRobotHWInterface::hal_keepalive_thread, this);
-
-
-	cube_state_sub_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &FRCRobotHWInterface::cubeCallback, this);
 
 	can_talons_mp_written_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
 	can_talons_mp_writing_ = std::make_shared<std::vector<std::atomic<bool>>>(num_can_talon_srxs_);
@@ -488,6 +467,9 @@ void FRCRobotHWInterface::init(void)
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
 		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i]));
 		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 50); // Make sure motor is stopped, use a long timeout just in case
+		can_talons_[i]->SetStatusFramePeriod(ctre::phoenix::motorcontrol::StatusFrameEnhanced::Status_10_MotionMagic, 10, 50); 
+		//TODO: test above sketchy change
+		// Make sure motor is stopped, use a long timeout just in case
 		//safeTalonCall(can_talons_[i]->GetLastError(), "Initial Set(Disabled, 0)");
 		//safeTalonCall(can_talons_[i]->ClearStickyFaults(timeoutMs), "ClearStickyFaults()");
 		// TODO : if the talon doesn't initialize - maybe known
@@ -592,6 +574,15 @@ void FRCRobotHWInterface::init(void)
 		compressors_.push_back(std::make_shared<frc::Compressor>(compressor_pcm_ids_[i]));
 	}
 
+	stop_arm_  = false;
+	override_arm_limits_ = false;
+	cube_state_ = false;
+	disable_compressor_ = false;
+	navX_zero_ = -10000;
+	navX_angle_ = 0;
+	pressure_ = 0;
+	match_data_enabled_ = false;
+
 	for(size_t i = 0; i < num_dummy_joints_; i++)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
@@ -639,7 +630,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		{
 			profile_is_live = true;
 			break;	
-
 		} 
 	}
 	for(std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
@@ -648,7 +638,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		{
 			writing_points = true;
 			break;	
-
 		} 
 	}
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
@@ -689,7 +678,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 		if(ts.getCANID() == 51)
 		{
-
 			auto sensor_collection = talon->GetSensorCollection();
 			ts.setForwardLimitSwitch(sensor_collection.IsFwdLimitSwitchClosed());
 			ts.setReverseLimitSwitch(sensor_collection.IsRevLimitSwitchClosed());
@@ -733,7 +721,27 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.timeDurMs = talon_status.timeDurMs;
 			ts.setMotionProfileStatus(internal_status);
 			continue;
-		}	
+		}
+		else if(ts.getCANID() < 30 && (*can_talons_mp_written_)[joint_id].load(std::memory_order_relaxed))
+		{
+			
+			ctre::phoenix::motion::MotionProfileStatus talon_status;
+			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
+
+			hardware_interface::MotionProfileStatus internal_status;
+			internal_status.topBufferRem = talon_status.topBufferRem;
+			internal_status.topBufferCnt = talon_status.topBufferCnt;
+			internal_status.btmBufferCnt = talon_status.btmBufferCnt;
+			internal_status.hasUnderrun = talon_status.hasUnderrun;
+			internal_status.isUnderrun = talon_status.isUnderrun;
+			internal_status.activePointValid = talon_status.activePointValid;
+			internal_status.isLast = talon_status.isLast;
+			internal_status.profileSlotSelect0 = talon_status.profileSlotSelect0;
+			internal_status.profileSlotSelect1 = talon_status.profileSlotSelect1;
+			internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
+			internal_status.timeDurMs = talon_status.timeDurMs;
+			ts.setMotionProfileStatus(internal_status);
+		}  	
 		const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
 		ts.setPosition(position);
@@ -742,12 +750,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorVelocity");
 		ts.setSpeed(speed);
 
-
-			
-
-
-
-		
 		//top level buffer has capacity of 4096
 		//ROS_INFO_STREAM("num rem : " << talon_status.topBufferRem);
 
@@ -830,7 +832,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 			//ctre::phoenix::motorcontrol::StickyFaults sticky_faults;
 			//safeTalonCall(talon->GetStickyFaults(sticky_faults), "GetStickyFaults");
-			//ts.setStickyFaults(sticky_faults.ToBitfield());
+			//ts.setStickyFAults(sticky_faults.ToBitfield());
 		}
 	}
 		
@@ -908,12 +910,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		tf2::Quaternion tempQ;
 		if(i == 0)
 		{
-			if(navX_command_[i] != -10000)
-			{
-				offset_navX_[i] = navX_command_[i] - navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI;
-			}
+			const double navX_zero = navX_zero_.load(std::memory_order_relaxed);
+			if(navX_zero != -10000)
+				offset_navX_[i] = navX_zero - navXs_[i]->GetFusedHeading() / 360. * 2. * M_PI;
 
-			navX_angle_.store(navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i], std::memory_order_relaxed);
+			navX_angle_.store(navXs_[i]->GetFusedHeading() / 360. * 2. * M_PI + offset_navX_[i], std::memory_order_relaxed);
 		}
 		tempQ.setRPY(navXs_[i]->GetRoll() / -360 * 2 * M_PI, navXs_[i]->GetPitch() / -360 * 2 * M_PI, navXs_[i]->GetFusedHeading() / 360 * 2 * M_PI + offset_navX_[i]  );
 
@@ -1273,7 +1274,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				//ROS_WARN("slot");
 				ROS_INFO_STREAM("Updated joint " << joint_id << " PIDF slot to " << slot << std::endl);
 
-				safeTalonCall(talon->SelectProfileSlot(slot, timeoutMs),"SelectProfileSlot");
+				safeTalonCall(talon->SelectProfileSlot(slot, pidIdx),"SelectProfileSlot");
 				ts.setSlot(slot);
 			}
 		}
@@ -1306,7 +1307,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 
 		if (tc.neutralOutputChanged())
 		{
-		
 			//ROS_WARN("neutral");
 			talon->NeutralOutput();
 			safeTalonCall(talon->GetLastError(), "NeutralOutput");
@@ -1314,11 +1314,18 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ROS_INFO_STREAM("Set joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" neutral output");
 		}
 
+		// Force I accumulator to zero so the robot isn't enabled
+		// with a huge I term driving the controlled motor
+		if (!match_data_enabled_.load(std::memory_order_relaxed))
+			safeTalonCall(talon->SetIntegralAccumulator(0, pidIdx, timeoutMs), "SetIntegralAccumulator");
+
 		double iaccum;
 		if (close_loop_mode && tc.integralAccumulatorChanged(iaccum))
 		{
 			//ROS_WARN("iaccum");
-			safeTalonCall(talon->SetIntegralAccumulator(iaccum / closed_loop_scale, pidIdx, timeoutMs),"SetIntegralAccumulator");
+			safeTalonCall(talon->SetIntegralAccumulator(iaccum / closed_loop_scale, pidIdx, timeoutMs), "SetIntegralAccumulator");
+			//The units on this aren't really right
+
 			// Do not set talon state - this changes
 			// dynamically so read it in read() above instead
 			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" integral accumulator");
@@ -1520,7 +1527,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				//ROS_WARN("clear points");
 				safeTalonCall(talon->ClearMotionProfileTrajectories(), "ClearMotionProfileTrajectories");
 				(*can_talons_mp_written_)[joint_id].store(false, std::memory_order_relaxed);
-
 				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 			}
 
@@ -1529,43 +1535,46 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 				//ROS_WARN("clear underrun");
 				safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
 				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile underrun changed");
-
 			}
 
 			// TODO : check that Talon motion buffer is not full
 			// before writing, communicate how many have been written
 			// - and thus should be cleared - from the talon_command
 			// list of requests.
-			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
-			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
-			{
-				//ROS_INFO_STREAM("Pre buffer");
-				//ROS_WARN("point_buffer");
-				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
-				{
-					ctre::phoenix::motion::TrajectoryPoint pt;
-					pt.position = it->position / radians_scale;
-					pt.velocity = it->velocity / radians_per_second_scale;
-					pt.headingDeg = it->headingRad * 180. / M_PI;
-					pt.auxiliaryPos = it->auxiliaryPos; // TODO : unit conversion?
-					pt.profileSlotSelect0 = it->profileSlotSelect0;
-					pt.profileSlotSelect1 = it->profileSlotSelect1;
-					pt.isLastPoint = it->isLastPoint;
-					pt.zeroPos = it->zeroPos;
-					pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
-					safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
-				}
-				//ROS_INFO_STREAM("Post buffer");
-				// Copy the 1st profile trajectory point from
-				// the top level buffer to the talon
-				// Subsequent points will be copied by
-				// the process_motion_profile_buffer_thread code
-				talon->ProcessMotionProfileBuffer();
-				(*can_talons_mp_written_)[joint_id].store(true, std::memory_order_relaxed);
-
-				ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
-			}
 		}
+
+		std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
+		if (tc.motionProfileTrajectoriesChanged(trajectory_points))
+		{
+			//ROS_INFO_STREAM("Pre buffer");
+			//ROS_WARN("point_buffer");
+			//int i = 0;
+			for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
+			{
+				ctre::phoenix::motion::TrajectoryPoint pt;
+				pt.position = it->position / radians_scale;
+				pt.velocity = it->velocity / radians_per_second_scale;
+				pt.headingDeg = it->headingRad * 180. / M_PI;
+				pt.auxiliaryPos = it->auxiliaryPos; // TODO : unit conversion?
+				pt.profileSlotSelect0 = it->profileSlotSelect0;
+				pt.profileSlotSelect1 = it->profileSlotSelect1;
+				pt.isLastPoint = it->isLastPoint;
+				pt.zeroPos = it->zeroPos;
+				pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
+				safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
+				//ROS_INFO_STREAM("id: " << joint_id << " pos: " << pt.position << " i: " << i++);
+			}
+			//ROS_INFO_STREAM("Post buffer");
+			// Copy the 1st profile trajectory point from
+			// the top level buffer to the talon
+			// Subsequent points will be copied by
+			// the process_motion_profile_buffer_thread code
+			//talon->ProcessMotionProfileBuffer();
+			(*can_talons_mp_written_)[joint_id].store(true, std::memory_order_relaxed);
+
+			ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
+		}
+
 
 		// Set new motor setpoint if either the mode or
 		// the setpoint has been changed
@@ -1576,31 +1585,59 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		const bool b1 = tc.newMode(in_mode);
 		const bool b2 = tc.commandChanged(command);
 
-		if ((b1 || b2) && convertControlMode(in_mode, out_mode))
+		hardware_interface::DemandType demand1_type_internal;
+		double demand1_value;
+		const bool b3 = tc.demand1Changed(demand1_type_internal, demand1_value);
+
+		if (b1 || b2 || b3)
 		{
-			ts.setTalonMode(in_mode);
-			ts.setSetpoint(command);
-			
-			ts.setNeutralOutput(false); // maybe make this a part of setSetpoint?
-
-			switch (out_mode)
+			if ((b1 || b2) && convertControlMode(in_mode, out_mode))
 			{
-				case ctre::phoenix::motorcontrol::ControlMode::Velocity:
-					command /= radians_per_second_scale;
-					break;
-				case ctre::phoenix::motorcontrol::ControlMode::Position:
-					command /= radians_scale;
-					break;
-				case ctre::phoenix::motorcontrol::ControlMode::MotionMagic:
-					command /= radians_scale;
-					break;
-			}
-			
-			(*can_talons_mp_running_)[joint_id].store(out_mode == ctre::phoenix::motorcontrol::ControlMode::MotionProfile && command == 1, std::memory_order_relaxed);
+				ts.setTalonMode(in_mode);
+				ts.setSetpoint(command);
 
-			//ROS_INFO_STREAM("in mode: " << in_mode);
-			talon->Set(out_mode, command);
-			safeTalonCall(talon->GetLastError(), "Set");
+				ts.setNeutralOutput(false); // maybe make this a part of setSetpoint?
+
+				switch (out_mode)
+				{
+					case ctre::phoenix::motorcontrol::ControlMode::Velocity:
+						command /= radians_per_second_scale;
+						break;
+					case ctre::phoenix::motorcontrol::ControlMode::Position:
+						command /= radians_scale;
+						break;
+					case ctre::phoenix::motorcontrol::ControlMode::MotionMagic:
+						command /= radians_scale;
+						break;
+				}
+			
+				(*can_talons_mp_running_)[joint_id].store(out_mode == ctre::phoenix::motorcontrol::ControlMode::MotionProfile && command == 1, std::memory_order_relaxed);
+			}
+
+			ts.setDemand1Type(demand1_type_internal);
+			ts.setDemand1Value(demand1_value);
+
+			//ROS_INFO_STREAM c("in mode: " << in_mode);
+			if (b3 &&
+				(demand1_type_internal > hardware_interface::DemandType::DemandType_Neutral) &&
+			    (demand1_type_internal < hardware_interface::DemandType::DemandType_Last) )
+			{
+				ctre::phoenix::motorcontrol::DemandType demand1_type_phoenix;
+				switch (demand1_type_internal)
+				{
+					case hardware_interface::DemandType::DemandType_AuxPID:
+						demand1_type_phoenix = ctre::phoenix::motorcontrol::DemandType::DemandType_AuxPID;
+						break;
+					case hardware_interface::DemandType::DemandType_ArbitraryFeedForward:
+						demand1_type_phoenix = ctre::phoenix::motorcontrol::DemandType::DemandType_ArbitraryFeedForward;
+						break;
+				}
+
+				talon->Set(out_mode, command, demand1_type_phoenix, demand1_value);
+			}
+			else
+				talon->Set(out_mode, command);
+
 			//ROS_WARN_STREAM("set at: " << ts.getCANID() << " new mode: " << b1 << " command_changed: " << b2 << " cmd: " << command);
 		}
 
@@ -1634,7 +1671,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		PWMs_[i]->SetSpeed(pwm_command_[i]*inverter);
 	}
 	
-	for (size_t i = 0; i< num_solenoids_; i++)
+	for (size_t i = 0; i < num_solenoids_; i++)
 	{
 		const bool setpoint = solenoid_command_[i] > 0;
 		if (solenoid_state_[i] != setpoint)
@@ -1644,7 +1681,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		}
 	}
 
-	for (size_t i = 0; i< num_double_solenoids_; i++)
+	for (size_t i = 0; i < num_double_solenoids_; i++)
 	{
 		DoubleSolenoid::Value setpoint = DoubleSolenoid::Value::kOff;
 		if (double_solenoid_command_[i] >= 1.0)
@@ -1652,10 +1689,10 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		else if (double_solenoid_command_[i] <= -1.0)
 			setpoint = DoubleSolenoid::Value::kReverse;
 
-		if (double_solenoid_state_[i] != setpoint)
+		if (double_solenoid_state_[i] != double_solenoid_command_[i])
 		{
 			double_solenoids_[i]->Set(setpoint);
-			double_solenoid_state_[i] = setpoint;
+			double_solenoid_state_[i] = double_solenoid_command_[i];
 		}
 	}
 	
@@ -1678,6 +1715,40 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			const bool setpoint = compressor_command_[i] > 0;
 			compressors_[i]->SetClosedLoopControl(setpoint);
 			last_compressor_command_[i] = compressor_command_[i];
+		}
+	}
+	for (size_t i = 0; i < num_dummy_joints_; i++)
+	{
+		// Use dummy joints to communicate info between
+		// various controllers and driver station smartdash vars
+		if (dummy_joint_names_[i] == "cube_state")
+		{
+			dummy_joint_position_[i] = dummy_joint_command_[i];
+			cube_state_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
+		}
+		else if (dummy_joint_names_[i] == "stop_arm")
+			dummy_joint_position_[i] = stop_arm_.load(std::memory_order_relaxed) ? 1 : 0;
+		else if (dummy_joint_names_[i] == "override_arm_limits")
+			dummy_joint_position_[i] = override_arm_limits_.load(std::memory_order_relaxed) ? 1 : 0;
+		else if (dummy_joint_names_[i] == "disable_compressor")
+			dummy_joint_position_[i] = disable_compressor_.load(std::memory_order_relaxed) ? 1 : 0;
+		else
+		{
+			dummy_joint_effort_[i] = 0;
+			//if (dummy_joint_names_[i].substr(2, std::string::npos) == "_angle")
+			{
+				// position mode
+				dummy_joint_velocity_[i] = (dummy_joint_command_[i] - dummy_joint_position_[i]) / elapsed_time.toSec();
+				dummy_joint_position_[i] = dummy_joint_command_[i];
+			}
+#if 0
+			else if (dummy_joint_names_[i].substr(2, std::string::npos) == "_drive")
+			{
+				// velocity mode
+				dummy_joint_position_[i] += dummy_joint_command_[i] * elapsed_time.toSec();
+				dummy_joint_velocity_[i] = dummy_joint_command_[i];
+			}
+#endif
 		}
 	}
 }

@@ -14,16 +14,16 @@ sudo rfkill block bluetooth
 
 sudo chmod a+rw /dev/ttyACM0
 #sudo python /home/ubuntu/2017VisionCode/time_sync_server.py & 
-sudo umount /mnt/900_2
+sudo umount /mnt/900_2 --lazy
 
 export CUDA_CACHE_MAXSIZE=104857600
 export CUDA_CACHE_PATH=/home/ubuntu/.nv/ComputeCache
 
-if sudo mount /dev/disk/by-id/$(ls /dev/disk/by-id/ | grep 'SanDisk.*part1') /mnt/900_2; then
+if sudo mount /dev/nvme0n1p1 /mnt/900_2; then
 		sudo chmod a+rw /mnt/900_2/
-		roslaunch controller_node controller_test.launch record:=true
+		roslaunch controller_node controller_master.launch record:=true
 else
-		roslaunch controller_node controller_test.launch
+		roslaunch controller_node controller_master.launch
 fi
 
 nvpmodel -m 0
