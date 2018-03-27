@@ -43,34 +43,29 @@ void swerve::setCenterOfRotation(size_t id, const Vector2d &centerOfRotation)
 
 // TODO : split into motorOutputsDrive and motorOutputsPark
 // Make positionsNew and all Vector2ds const & arguments
-array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool /*forceRead*/, array<bool, WHEELCOUNT> &reverses, bool park, array<double, WHEELCOUNT> positionsNew, bool norm, size_t rotationCenterID)
+array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double rotation, double angle, bool /*forceRead*/, array<bool, WHEELCOUNT> &reverses, bool park, const array<double, WHEELCOUNT> &positionsNew, bool norm, size_t rotationCenterID)
 {
 	if (rotationCenterID >= multiplierSets_.size())
 	{
 		cerr << "Tell Ryan to stop using fixed-sized arrays for dynamically growable stuff" << endl;
 		return array<Vector2d, WHEELCOUNT>();
 	}
-	encoderPosition_ = positionsNew;
 	array<Vector2d, WHEELCOUNT> speedsAndAngles;
 	if (!park)
 	{
 		velocityVector /= drive_.maxSpeed;
+		rotation       /= multiplierSets_[rotationCenterID].maxRotRate_;
 
-		rotation /= multiplierSets_[rotationCenterID].maxRotRate_;
 		//ROS_WARN_STREAM("max rate r/s: " <<  multiplierSets_[rotationCenterID].maxRotRate_);
 		//ROS_INFO_STREAM("vel: " << velocityVector << " rot: " << rotation);
 		speedsAndAngles = swerveMath_.wheelSpeedsAngles(multiplierSets_[rotationCenterID].multipliers_, velocityVector, rotation, angle, norm);
 		for (int i = 0; i < WHEELCOUNT; i++)
 		{
 			//ROS_INFO_STREAM("PRE NORMalIZE pos/vel in direc: " << speedsAndAngles[i][0] << " rot: " <<speedsAndAngles[i][1] );
-			double nearestangle;
-			bool reverse;
-			double currpos = getWheelAngle(i, encoderPosition_[i]);
-			nearestangle = leastDistantAngleWithinHalfPi(currpos, speedsAndAngles[i][1], reverse);
+			const double currpos = getWheelAngle(i, positionsNew[i]);
+			const double nearestangle = leastDistantAngleWithinHalfPi(currpos, speedsAndAngles[i][1], reverses[i]);
 
-			reverses[i] = reverse;
-
-			speedsAndAngles[i][0] *= ((drive_.maxSpeed / (drive_.wheelRadius)) / ratio_.encodertoRotations) * units_.rotationSetV * (reverse ? -1 : 1);
+			speedsAndAngles[i][0] *= ((drive_.maxSpeed / (drive_.wheelRadius)) / ratio_.encodertoRotations) * units_.rotationSetV * (reverses[i] ? -1 : 1);
 			//ROS_INFO_STREAM(" id: " << i <<" speed: " << speedsAndAngles[i][0] << " reverse: " << reverse);
 			speedsAndAngles[i][1] = nearestangle * units_.steeringSet;
 			speedsAndAngles[i][1] += offsets_[i];
@@ -84,15 +79,12 @@ array<Vector2d, WHEELCOUNT> swerve::motorOutputs(Vector2d velocityVector, double
 			speedsAndAngles[i][1] = swerveMath_.parkingAngle_[i]; // TODO : find a way not to access member of swervemath here
 			speedsAndAngles[i][0] = 0;
 
-			double nearestanglep;
-			bool reverse;
-			double currpos = getWheelAngle(i, encoderPosition_[i]);
-			nearestanglep = leastDistantAngleWithinHalfPi(currpos, speedsAndAngles[i][1], reverse);
+			const double currpos = getWheelAngle(i, positionsNew[i]);
+			const double nearestanglep = leastDistantAngleWithinHalfPi(currpos, speedsAndAngles[i][1], reverses[i]);
 			//ROS_INFO_STREAM(" id: " << i << " currpos: " << currpos << "target" <<nearestanglep);
 			speedsAndAngles[i][1] = nearestanglep * units_.steeringSet;
 			speedsAndAngles[i][1] += offsets_[i];
 		}
-
 	}
 	return speedsAndAngles;
 }
@@ -134,20 +126,13 @@ Vector2d calculateOdom()
 
 double swerve::getWheelAngle(int index, double pos) const
 {
-	return (((pos)) - offsets_[index]) * units_.steeringGet;
+	return (pos - offsets_[index]) * units_.steeringGet;
 }
 
-double swerve::furthestWheel(Vector2d centerOfRotation) const
+double swerve::furthestWheel(const Vector2d &centerOfRotation) const
 {
 	double maxD = 0;
 	for (int i = 0; i < WHEELCOUNT; i++)
-	{
-		// TODO : rewrite using hypto() function
-		double dist = sqrt(pow(wheelCoordinates_[i][0] - centerOfRotation[0], 2) + pow(wheelCoordinates_[i][1] - centerOfRotation[1], 2));
-		if (dist > maxD)
-		{
-			maxD = dist;
-		}
-	}
+		maxD = std::max(maxD, hypot(wheelCoordinates_[i][0] - centerOfRotation[0], wheelCoordinates_[i][1] - centerOfRotation[1]));
 	return maxD;
 }
