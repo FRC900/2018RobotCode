@@ -22,7 +22,7 @@ teleop_params:
 
     intake_ready_to_drop_up_or_down: false
     intake_high_x: .215
-    intake_high_y: .433
+    intake_high_y: .41
     
     drop_x_tolerance: .1
 
@@ -51,8 +51,8 @@ teleop_params:
     exchange_delay: 0.5
     intake_power: 0.8
     intake_hold_power: 0.15
-    wait_after_clamp: 1.0
-    wait_open_before_drop: 8.0
+    wait_after_clamp: 0.2
+    wait_open_before_drop: 0.5
     delay_after_move_intake: 1.0
     wait_for_match_data: 2.0
     num_cmd_vel_modes: 10 #fix
