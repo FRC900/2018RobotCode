@@ -14,7 +14,7 @@ sudo rfkill block bluetooth
 
 sudo chmod a+rw /dev/ttyACM0
 #sudo python /home/ubuntu/2017VisionCode/time_sync_server.py & 
-sudo umount /mnt/900_2
+sudo umount /mnt/900_2 --lazy
 
 export CUDA_CACHE_MAXSIZE=104857600
 export CUDA_CACHE_PATH=/home/ubuntu/.nv/ComputeCache

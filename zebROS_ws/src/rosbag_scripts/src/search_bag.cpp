@@ -10,7 +10,6 @@
 
 int main(int argc, char **argv)
 {
-	//bool found_data = false;
 	if(argc < 2)
 	{
 		std::cout << "need a file thanks \n";
@@ -37,28 +36,27 @@ int main(int argc, char **argv)
 
 	foreach(rosbag::MessageInstance const m, view)
 	{
-		//if (found_data = true)
-			//continue;
 		ros_control_boilerplate::MatchSpecificData::ConstPtr s = m.instantiate<ros_control_boilerplate::MatchSpecificData>();
 		if (s != NULL){
-			//found_data = true;
+			if (s->allianceData != "")
+			{
+				temp_file << "We have data! Keep this file!!" << std::endl;
+			}
 			temp_file << s->header << std::endl;
 			temp_file << s->matchTimeRemaining << std::endl;
-		    temp_file << s->allianceData << std::endl;
+		    temp_file << "allianceData: " << s->allianceData << std::endl;
 			temp_file << static_cast<int>(s->allianceColor) << std::endl;
 			temp_file << static_cast<int>(s->matchType) << std::endl;
 			temp_file << static_cast<int>(s->driverStationLocation) << std::endl;
-			temp_file << static_cast<int>(s->matchNumber) << std::endl;
+			temp_file << "matchNumber: " << static_cast<int>(s->matchNumber) << std::endl;
 			temp_file << static_cast<bool>(s->isEnabled) << std::endl;
 			temp_file << static_cast<bool>(s->isDisabled) << std::endl;
 			temp_file << static_cast<bool>(s->isAutonomous) << std::endl;
-			//if(s->allianceData != "")
-			//	found_data = true;
 		}
 
-		bag.close();
-
-		return 0;
 	}
+	bag.close();
+
+	return 0;
 }
 

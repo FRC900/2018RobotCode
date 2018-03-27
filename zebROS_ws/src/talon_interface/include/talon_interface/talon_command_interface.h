@@ -17,6 +17,29 @@ enum TrajectoryDuration
 	TrajectoryDuration_50ms = 50,
 	TrajectoryDuration_100ms = 100,
 };
+
+//Below struct contains all the info we want for our profile
+//Later it might include some more complex settings (current limits?, peak output limits?, 
+//some f params to calc on the fly based on sensor data?)
+struct CustomProfilePoint
+{
+	CustomProfilePoint() :
+		positionMode(true), //versus velocity mode
+		pidSlot(0),
+		setpoint(0.0),
+		fTerm(0),
+		duration(0),
+		zeroPos(false)
+	{
+	}
+	bool positionMode;
+	int pidSlot;
+	double setpoint;
+	double fTerm;
+	double duration;
+	bool zeroPos;
+};
+
 	
 struct TrajectoryPoint
 {
@@ -167,8 +190,15 @@ class TalonHWCommand
 			pidf_changed_{true, true},
 
 			conversion_factor_(1.0),
-			conversion_factor_changed_(true)
+			conversion_factor_changed_(true),
+			
+			custom_profile_run_(false),
+			custom_profile_slot_(0),
+			custom_profile_hz_(20.0)
+
 		{
+			custom_profile_points_.resize(4); //change as needed
+			custom_profile_total_time_.resize(4); 		
 		}
 		// This gets the requested setpoint, not the
 		// status actually read from the controller
@@ -1300,6 +1330,91 @@ class TalonHWCommand
 			conversion_factor_changed_ = false;
 			return true;
 		}
+		void setCustomProfileHz(const double &hz)
+		{
+			custom_profile_hz_ = hz;
+		}
+		double getCustomProfileHz(void) const
+		{
+			return custom_profile_hz_;
+		}
+		void setCustomProfileRun(const bool &run)
+		{
+			custom_profile_run_ = run;
+		}
+		bool getCustomProfileRun(void) 
+		{
+			return custom_profile_run_;
+		}
+		void setCustomProfileSlot(const int &slot)
+		{
+			custom_profile_slot_ = slot;
+		}
+		int getCustomProfileSlot(void) const
+		{
+			return custom_profile_slot_;
+		}
+		void pushCustomProfilePoint(const CustomProfilePoint &point, int slot)
+		{
+			custom_profile_points_[slot].push_back(point);
+			if(custom_profile_points_[slot].size() != 0)
+			{
+				custom_profile_total_time_[slot].push_back(custom_profile_total_time_[slot].back() + point.duration);
+			}
+			else
+			{
+				custom_profile_total_time_[slot].push_back(point.duration);
+			}
+		} 
+		void pushCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
+		{
+			int prev_size = custom_profile_points_.size();
+			custom_profile_points_[slot].insert(custom_profile_points_[slot].end(), points.begin(), points.end());
+			for(; prev_size <custom_profile_points_.size(); prev_size++)
+			{
+				if(prev_size != 0)
+				{
+					custom_profile_total_time_[slot].push_back(points[prev_size].duration + custom_profile_total_time_[slot][prev_size - 1]);
+				}
+				else
+				{
+					custom_profile_total_time_[slot].push_back(points[prev_size].duration);	
+				}
+			}	
+		}
+		void overwriteCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
+		{
+			
+			custom_profile_points_[slot] = points;
+			custom_profile_total_time_[slot].resize(points.size());
+			
+			for(size_t i = 0; i < points.size(); i++)
+			{
+
+				if(i != 0)
+				{
+					custom_profile_total_time_[slot][i] = points[i].duration + custom_profile_total_time_[slot][i-1];
+				}
+				else
+				{
+					custom_profile_total_time_[slot][i] = points[i].duration;
+				}
+			}	
+		}
+		std::vector<CustomProfilePoint> getCustomProfilePoints(int slot) /*const*/ //TODO, can be const?
+		{
+			
+
+			return custom_profile_points_[slot];
+		}
+		std::vector<double> getCustomProfileTime(int slot)  /*const*/ //TODO, can be const?
+		{
+			return custom_profile_total_time_[slot];
+		}
+		int getCustomProfileCount(int slot)  /*const*/ //TODO, can be const?
+		{
+			return custom_profile_points_[slot].size();
+		}
 
 	private:
 		double    command_; // motor setpoint - % vbus, velocity, position, etc
@@ -1407,6 +1522,13 @@ class TalonHWCommand
 
 		double conversion_factor_;
 		bool   conversion_factor_changed_;
+		
+		bool custom_profile_run_;
+		int custom_profile_slot_;
+		double custom_profile_hz_;
+		std::vector<std::vector<CustomProfilePoint>> custom_profile_points_;
+		std::vector<std::vector<double>> custom_profile_total_time_;
+
 };
 
 // Handle - used by each controller to get, by name of the

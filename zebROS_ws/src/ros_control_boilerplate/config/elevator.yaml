@@ -59,8 +59,8 @@ elevator_controller:
         sensor_phase: True
         feedback_type: CTRE_MagEncoder_Absolute
         conversion_factor: 0.0454676
-        motion_cruise_velocity: 1 
-        motion_acceleration: 0.5
+        motion_cruise_velocity: 2.5 
+        motion_acceleration: 4
         current_limit_continuous_amps: 60
         current_limit_enable: True
     lift_follower1_joint:
@@ -86,8 +86,8 @@ elevator_controller:
         peak_output_reverse: -1.0
         nominal_output_forward: 0.0
         nominal_output_reverse: 0.0
-        motion_cruise_velocity: 2
-        motion_acceleration: 4
+        motion_cruise_velocity: 4
+        motion_acceleration: 7
         voltage_compensation_enable: true
         softlimit_reverse_threshold: 0
         softlimit_forward_threshold: 1
