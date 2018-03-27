@@ -26,6 +26,7 @@
         <rosparam file="$(find teleop_joystick_control)/config/teleopJoystickCommands.yaml" command="load"/>
 		<rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
         <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
+        <rosparam file="$(find behaviors)/config/autoInterpreterServer.yaml" command="load"/>
 
 		<!-- Load hardware interface -->
 		<node name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"

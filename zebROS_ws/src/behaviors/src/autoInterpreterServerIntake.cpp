@@ -9,6 +9,8 @@
 
 static double intake_power;
 static double intake_hold_power;
+double linebreak_debounce_iterations; 
+
 class autoAction {
     protected:
         //ros::NodeHandle nh_;
@@ -57,7 +59,7 @@ class autoAction {
                 ROS_INFO("Srv intake call OK in auto interpreter server intake");
             ros::spinOnce();
             while(!success && !timed_out && !aborted) {
-                success = cube_state_true > 11; 
+                success = cube_state_true > linebreak_debounce_iterations; 
                 if(as_.isPreemptRequested() || !ros::ok()) {
                     ROS_WARN("%s: Preempted", action_name_.c_str());
                     as_.setPreempted();
@@ -123,6 +125,7 @@ int main(int argc, char** argv) {
     
     ros::NodeHandle n;
     ros::NodeHandle n_params(n, "teleop_params");
+    ros::NodeHandle n_auto_interpreter_server_intake_params(n, "auto_interpreter_server_intake_params");
 
     if (!n_params.getParam("intake_power", intake_power))
 		ROS_ERROR("Could not read intake_power in autoInterpreterServerIntake");
@@ -131,6 +134,8 @@ int main(int argc, char** argv) {
 		ROS_ERROR("Could not read intake_hold_power in autoInterpreterServerIntake");
 
 
+    if (!n_auto_interpreter_server_intake_params.getParam("linebreak_debounce_iterations", linebreak_debounce_iterations))
+		ROS_ERROR("Could not read linebreak_debounce_iterations in autoInterpreterServerIntake");
     ros::spin();
     return 0;
 }
