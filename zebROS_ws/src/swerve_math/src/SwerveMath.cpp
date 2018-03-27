@@ -30,7 +30,7 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(const Eig
 		wheelMultipliers[i] = -1;//-sqrt(x * x + y * y); // TODO : use hypot function
 		wheelAngles[i] = atan2(x, y) + .5 * M_PI;
 	}
-	wheelMultipliers = normalize(wheelMultipliers);
+	normalize(wheelMultipliers);
 	array<Eigen::Vector2d, WHEELCOUNT> multipliersXY;
 	for (int i = 0; i < WHEELCOUNT; i++)
 	{
@@ -77,7 +77,7 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelSpeedsAngles(const arra
 	}
 	if(norm)
 	{
-		speeds = normalize(speeds);
+		normalize(speeds);
 	}
 	//Speed and angles are put into one array here because speeds needed to be normalized
 	array<Eigen::Vector2d, WHEELCOUNT> speedsAngles;
@@ -99,37 +99,15 @@ array<double, WHEELCOUNT> swerveDriveMath::parkingAngles(void) const
 	return angles;
 }
 
-// TODO : modify input arg rather than returning
-// a new array.  Change input to & arg, return type to void,
-// modfiy input rather than normalzied in the last loop,
-// remove the else statement
-array<double, WHEELCOUNT> swerveDriveMath::normalize(const array<double, WHEELCOUNT> &input) const
+void swerveDriveMath::normalize(array<double, WHEELCOUNT> &input) const
 {
 	//Note that this function only works on arrays of size WHEELCOUNT
-	double maxi = *max_element(input.begin(), input.end());
-	double mini = *min_element(input.begin(), input.end());
-	double absoluteMax;
-	if ( abs(maxi) > abs(mini) )
-	{
-		absoluteMax = abs(maxi);
-	}
-	else
-	{
-		absoluteMax = abs(mini);
-	}
+	const double maxi = fabs(*max_element(input.begin(), input.end()));
+	const double mini = fabs(*min_element(input.begin(), input.end()));
+	const double absoluteMax = std::max(maxi, mini);
 	if (absoluteMax > 1)
-	{
-		array<double, WHEELCOUNT> normalized;
 		for (size_t i = 0; i < input.size(); i++)
-		{
-			normalized[i] = input[i] / absoluteMax;
-		}
-		return normalized;
-	}
-	else
-	{
-		return input;
-	}
+			input[i] /= absoluteMax;
 }
 
 //odometry/foward kinematic functions below, TODO, use ROS function
