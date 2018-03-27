@@ -96,6 +96,7 @@ bool defaultConfig(void) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in defaultConfig");
@@ -110,6 +111,7 @@ bool intakeConfig(void) {
     srv.request.up_or_down = intake_ready_to_drop_up_or_down;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -125,6 +127,7 @@ bool overBack(void) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -156,7 +159,7 @@ bool intakeNoArm(void) {
 
     ROS_WARN("intaking cube");
     goal.IntakeCube = true;
-    goal.time_out = 3; //TODO config this
+    goal.time_out = 10; //TODO config this
 
     ac_intake->sendGoal(goal);
     
@@ -167,6 +170,7 @@ bool switchConfig(void) {
     srv.request.y = switch_config_y;
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
+    srv.request.put_cube_in_intake = false;
     srv.request.override_sensor_limits = false;
     if (!ElevatorService.call(srv))
 	{
@@ -182,6 +186,7 @@ bool highScale(void) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in highScale");
@@ -196,6 +201,7 @@ bool midScale(void) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in midScale");
@@ -210,6 +216,7 @@ bool lowScale(void) {
     srv.request.up_or_down = true;
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in lowScale");

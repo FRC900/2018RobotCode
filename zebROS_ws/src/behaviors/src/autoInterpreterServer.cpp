@@ -133,6 +133,7 @@ class autoAction
 				goal_l.y = intake_ready_to_drop_y;
 				goal_l.up_or_down = intake_ready_to_drop_up_or_down;
 				goal_l.override_pos_limits = false;
+				goal_l.put_cube_in_intake = false;
 				goal_l.dist_tolerance = 1.0;
 				goal_l.y_tolerance = 1.0;
 				goal_l.x_tolerance = drop_x_tolerance;
@@ -208,6 +209,7 @@ class autoAction
 					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5;
 					goal_l.GoToPos = true;
+					goal_l.put_cube_in_intake = false;
 					goal_l.x = intake_low_x;
 					goal_l.y = intake_low_y;
 					goal_l.up_or_down = intake_low_up_or_down;
@@ -247,6 +249,7 @@ class autoAction
 					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5;
 					goal_l.GoToPos = true;
+					goal_l.put_cube_in_intake = false;
 					goal_l.x = intake_high_x;
 					goal_l.y = intake_high_y;
 					goal_l.up_or_down = intake_high_up_or_down;
@@ -313,6 +316,7 @@ class autoAction
 					{
 						behaviors::LiftGoal goal_l;
 						goal_l.time_out = 5;
+						goal_l.put_cube_in_intake = false;
 						goal_l.GoToPos = true;
 						//go to specified after position
 						goal_l.x = goal->x;
@@ -360,10 +364,13 @@ class autoAction
 			}
 			if (goal->MoveToIntakeConfig)
 			{
+				//TODO:
+			
 				ai_->cancelAllGoals();
 				ROS_INFO("start of go to intake config with cube");
 				behaviors::LiftGoal goal_l;
 				goal_l.time_out = 5; //This honestly doesn't need to be an action lib
+				goal_l.put_cube_in_intake = true;
 				goal_l.GoToPos = true;
 				goal_l.x = intake_ready_to_drop_x;
 				goal_l.y = intake_ready_to_drop_y;
@@ -420,6 +427,7 @@ class autoAction
 					goal_l.y = intake_high_y;
 					goal_l.up_or_down = intake_high_up_or_down;
 					goal_l.override_pos_limits = false;
+					goal_l.put_cube_in_intake = false;
 					goal_l.dist_tolerance = 0.1;
 					goal_l.y_tolerance = 0.1;
 					goal_l.x_tolerance = 0.1;

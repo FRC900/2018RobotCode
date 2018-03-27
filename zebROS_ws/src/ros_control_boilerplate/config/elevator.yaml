@@ -34,9 +34,13 @@ elevator_controller:
     cut_off_x_line: .17 #FIX
     cut_off_y_line: .7 #FIX
 
-    dist_to_front_cube: .34
+    dist_to_front_cube: .381 #fix this 
     dist_to_front_clamp: .075
 
+    ready_to_go_into_intake_with_cube_x: .365
+
+    ready_to_go_into_intake_with_cube_y: .6
+    top_intake_cut_off_line_for_put_in_intake: 0.47
 
     
     #Fix below remove poly points

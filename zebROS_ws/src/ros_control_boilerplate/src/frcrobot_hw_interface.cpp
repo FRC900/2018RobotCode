@@ -522,6 +522,7 @@ void FRCRobotHWInterface::custom_profile_set_talon(bool posMode, double setpoint
 void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 {
 
+	//TODO: somehow make this into a hw function and a base function in frc_robot_sim interface so the sim version is synced etc
 	//I wonder how inefficient it is to have all of these threads 
 	//running at the specified hz just copying to the status
 	
@@ -535,7 +536,7 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 		ros::Rate rate(talon_command_[joint_id].getCustomProfileHz());
 		bool run = talon_command_[joint_id].getCustomProfileRun();
 		
-		if(status.running > run)
+		if(status.running && !run)
 		{		
 			std::vector<hardware_interface::CustomProfilePoint> empty_points;
 			talon_command_[joint_id].overwriteCustomProfilePoints(empty_points, status.slotRunning);	
@@ -545,7 +546,7 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 			points_run = 0;
 			pos_offset = 0;
 		}
-		if(run > status.running || !run) 
+		if(run && !status.running || !run) 
 		{
 			time_start = ros::Time::now().toSec();
 		}
