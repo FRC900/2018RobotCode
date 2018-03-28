@@ -194,6 +194,7 @@ class TalonHWCommand
 			
 			custom_profile_run_(false),
 			custom_profile_slot_(0),
+			custom_profile_next_slot_(-1),
 			custom_profile_hz_(20.0)
 
 		{
@@ -1330,13 +1331,21 @@ class TalonHWCommand
 			conversion_factor_changed_ = false;
 			return true;
 		}
-		void setCustomProfileHz(const double &hz)
+		int getCustomProfileNextSlot(void) const
 		{
-			custom_profile_hz_ = hz;
+			return custom_profile_next_slot_;
+		}	
+		void setCustomProfileNextSlot(const double &next_slot)
+		{
+			custom_profile_next_slot_ = next_slot;
 		}
 		double getCustomProfileHz(void) const
 		{
 			return custom_profile_hz_;
+		}
+		void setCustomProfileHz(const double &hz)
+		{
+			custom_profile_hz_ = hz;
 		}
 		void setCustomProfileRun(const bool &run)
 		{
@@ -1525,6 +1534,7 @@ class TalonHWCommand
 		
 		bool custom_profile_run_;
 		int custom_profile_slot_;
+		int custom_profile_next_slot_;
 		double custom_profile_hz_;
 		std::vector<std::vector<CustomProfilePoint>> custom_profile_points_;
 		std::vector<std::vector<double>> custom_profile_total_time_;

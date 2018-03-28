@@ -1079,6 +1079,14 @@ class TalonControllerInterface
         {
 			return talon_->getCustomProfileRun();
         }
+        virtual void setCustomProfileNextSlot(const int &next_slot)
+        {
+            talon_->setCustomProfileNextSlot(next_slot);
+        }
+        int getCustomProfileNextSlot(void)
+        {
+			return talon_->getCustomProfileNextSlot();
+        }
         virtual void setCustomProfileSlot(const int &slot)
         {
             talon_->setCustomProfileSlot(slot);

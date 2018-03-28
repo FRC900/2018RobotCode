@@ -559,7 +559,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 
 bool generateTrajectory(full_mode &trajectory) 
 {
-
+	ROS_ERROR("DO WE fail here");
 	if(!trajectory.exists)
 	{
 		//TODO MAKE LIGHT GO RED ON DRIVERSTATION
@@ -842,21 +842,27 @@ int main(int argc, char** argv) {
 		ROS_ERROR("Didn't read cmd_vel param max_num_mode in autoInterpreterClient");
 	// Load trajectories before callbacks which use them can
 	// start
-    ROS_WARN("Here");
+    ROS_ERROR("Here");
+    ros::Duration(20).sleep();
+    ROS_ERROR("Here1");
 	Modes all_modes = load_all_trajectories(max_num_mode, max_num_cmd_vel, max_num_start, n_params_behaviors, n_params_cmd_vel);
+    ROS_ERROR("Here2");
     ROS_WARN("Alls Here");
     mode_list profiled_modes = all_modes.profiled_modes;
     cmd_vel_list cmd_vel_modes = all_modes.cmd_vel_modes;
 
+    ROS_ERROR("Here3");
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
     ROS_WARN("here 567890");
 	ac->waitForServer(); 
+    ROS_ERROR("Here4");
 
 	std::map<std::string, std::string> service_connection_header;
 	service_connection_header["tcp_nodelay"] = "1";
 	point_gen = n.serviceClient<swerve_point_generator::FullGenCoefs>("/point_gen/command", false, service_connection_header);
 	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile", false, service_connection_header);
 
+    ROS_ERROR("Here5");
     IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
     ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
     ClampService = n.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
@@ -868,15 +874,16 @@ int main(int argc, char** argv) {
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
 
 	// Kick off 2 threads to process messages
+    ROS_ERROR("Here6");
 	ros::AsyncSpinner spinner(2);
 	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    ros::Duration(20).sleep();
+
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    //generateTrajectory(profiled_modes[3][3][2]);
+    generateTrajectory(profiled_modes[3][3][2]);
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
@@ -888,6 +895,7 @@ int main(int argc, char** argv) {
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
 
+    ROS_ERROR("Here7");
     while(ros::ok()) {
         ROS_WARN("running");
         double auto_start_time = DBL_MAX;
@@ -903,6 +911,7 @@ int main(int argc, char** argv) {
         bool end_auto = false;
         bool in_teleop = false;
         //ROS_WARN("Start of auto loop");
+		ROS_ERROR("Here8");
         while(!in_teleop && !end_auto) {
             ////ROS_WARN("In auto loop");
 

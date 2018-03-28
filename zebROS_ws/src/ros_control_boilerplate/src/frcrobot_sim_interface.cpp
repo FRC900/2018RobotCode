@@ -227,7 +227,6 @@ class TeleopJointsKeyboard
 				bool dirty = true;
 				switch (c)
 				{
-
                 case KEYCODE_i:
                     cmd_.rightStickY += .5;
                     break;
@@ -628,10 +627,16 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
             points_run = end -1;
             if(points_run < 0) points_run = 0;
 
+			int next_slot = talon_command_[joint_id].getCustomProfileNextSlot();
             if(status.outOfPoints)
             {
                 //If all points have been exhausted, just use the last point
                 custom_profile_set_talon(profile.back().positionMode, profile.back().setpoint, profile.back().fTerm, joint_id, profile.back().pidSlot, profile.back().zeroPos, pos_offset);
+				if(!(next_slot < 0))
+				{
+					talon_command_[joint_id].setCustomProfileNextSlot(-1);
+					talon_command_[joint_id].setCustomProfileSlot(next_slot);
+				}
             }
             else if(end ==0)
             {
