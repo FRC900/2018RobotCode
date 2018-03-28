@@ -468,7 +468,8 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						
 						
 						XmlRpc::XmlRpcValue &profile_wait_xml = action["profile_wait"];
-						int profile_wait = profile_wait_xml;
+						const double profile_wait_double = profile_wait_xml;
+                        int profile_wait = (int)profile_wait_double;
 						if(profile_wait != -1)
 						{				
 							profiled_modes[mode][layout][start_pos].wait_ids[profile_wait] =  num;
@@ -1071,7 +1072,6 @@ int main(int argc, char** argv) {
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
 
-    ROS_ERROR("Here7");
 	std::vector<bool> generate_for_this;
 	generate_for_this.resize(4);
 	std::vector<bool> mode_buffered;
@@ -1109,18 +1109,19 @@ int main(int argc, char** argv) {
 				
 				for(int i = 0; i<4; i++) {
                     //ROS_ERROR_STREAM("2");
-					out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_]);
                     if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
                         //ROS_ERROR_STREAM("3");
 
+                        out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_]);
 						generate_for_this[i] = true;	
 						any_change = true;
                     }
                     else if (auto_mode_data.modes_[i] <= num_cmd_vel_modes-1 && (auto_mode_data.modes_[i] >= 0) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
+                        out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_]);
 						generate_for_this[i] = false;	
                         //ROS_ERROR_STREAM("6");
                         if(generateTrajectory(cmd_vel_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_])) {
@@ -1139,6 +1140,9 @@ int main(int argc, char** argv) {
                             generated_vect[i] = false;
                             //ROS_ERROR_STREAM("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                         }
+                    }
+                    else {
+                        out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_]);
                     }
                 }
 				
