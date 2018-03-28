@@ -247,6 +247,7 @@ void generateCoefs(const double angle_diff, const ros::Duration time_to_run, bas
 	srvBaseTrajectory.request.points[0].time_from_start = time_to_run; 
 
 	generate_coefs.call(srvBaseTrajectory);
+
 }
 
 void generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory, swerve_point_generator::FullGenCoefs &traj) 
@@ -262,17 +263,20 @@ void generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory,
 	traj.request.initial_v = 0;
 	traj.request.final_v = 0;
 
-	point_gen.call(traj);
+	if(!point_gen.call(traj))
+		ROS_INFO_STREAM("point_gen died in generateTrajectory");
 }
 
 bool runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
 {
 	talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
-    swerve_control_srv.request.points = traj.points;
-    swerve_control_srv.request.dt = traj.dt;
+
+	swerve_control_srv.request.profiles.resize(1);
+    swerve_control_srv.request.profiles[0].points = traj.points;
+    swerve_control_srv.request.profiles[0].dt = traj.dt;
     swerve_control_srv.request.buffer = true;
     swerve_control_srv.request.run = true;
-    swerve_control_srv.request.slot = 0;
+    swerve_control_srv.request.profiles[0].slot = 0;
     
     if (!swerve_control.call(swerve_control_srv))
 	{
@@ -1100,7 +1104,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		if(!orient_running)
 		{
 			sendRobotZero = false;
-			double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
+			//double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
+			double angle = M_PI/3; //for testing
 			static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
 			static double max_rotational_velocity = 8.8; //radians/sec TODO: find this in config
 
