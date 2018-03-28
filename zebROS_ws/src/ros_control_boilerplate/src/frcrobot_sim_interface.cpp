@@ -535,6 +535,7 @@ void FRCRobotSimInterface::custom_profile_set_talon(bool posMode, double setpoin
         //can_talons_[joint_id]->SelectProfileSlot(pidSlot, timeoutMs);
         talon_state_[joint_id].setSlot(pidSlot);
     }
+	//ROS_INFO_STREAM("setpoint: " << setpoint << " fterm: " << fTerm << " id: " << joint_id << " offset " << pos_offset << " slot: " << pidSlot << " pos mode? " << posMode);
 
 }
 

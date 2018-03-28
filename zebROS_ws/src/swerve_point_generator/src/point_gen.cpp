@@ -32,7 +32,7 @@ swerveVar::driveModel model;
 
 bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_generator::FullGenCoefs::Response &res)
 {
-	ROS_WARN("running");
+	ROS_ERROR("running point gen");
 	
 	std::array<double, WHEELCOUNT> curPos;
 	talon_swerve_drive_controller::WheelPos pos_msg;

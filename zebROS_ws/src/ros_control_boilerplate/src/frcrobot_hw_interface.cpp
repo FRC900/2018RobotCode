@@ -475,8 +475,9 @@ void FRCRobotHWInterface::custom_profile_set_talon(bool posMode, double setpoint
 	{
 		mode = ctre::phoenix::motorcontrol::ControlMode::Position;
 		mode_i = hardware_interface::TalonMode_Position;
-		setpoint /= radians_scale; 
 		setpoint += pos_offset;
+		setpoint /= radians_scale; 
+
 	}
 	else
 	{
@@ -485,7 +486,7 @@ void FRCRobotHWInterface::custom_profile_set_talon(bool posMode, double setpoint
 		setpoint /= radians_per_second_scale; 
 	}				
 	can_talons_[joint_id]->Set(mode, setpoint, ctre::phoenix::motorcontrol::DemandType::DemandType_ArbitraryFeedForward, fTerm); //TODO: unit conversion
-
+	//ROS_INFO_STREAM("setpoint: " << setpoint << " fterm: " << fTerm << " id: " << joint_id << " offset " << pos_offset << " slot: " << pidSlot << " pos mode? " << posMode);
 	talon_command_[joint_id].setMode(mode_i);
 	talon_command_[joint_id].set(setpoint);
 	talon_command_[joint_id].setDemand1Type(hardware_interface::DemandType_ArbitraryFeedForward);
