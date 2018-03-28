@@ -1,6 +1,8 @@
-talon_swerve_drive_controller/SwervePoint[] points
-float64 dt
+talon_swerve_drive_controller/SwervePointSet[] profiles
+bool wipe_all
 bool buffer
 bool run
-uint8 slot
+uint8 run_slot
+bool change_queue
+uint8[] new_queue
 ---

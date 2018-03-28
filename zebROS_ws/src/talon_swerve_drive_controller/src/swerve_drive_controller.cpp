@@ -229,6 +229,14 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 		steering_joints_.resize(wheel_joints_size_);
 	}
 
+	/*ros::NodeHandle n; //Is this bad?
+
+    ros::NodeHandle n_params_behaviors(n, "auto_params");
+
+	if (!n_params_behaviors.getParam("num_profile_slots", num_profile_slots_))
+            ROS_ERROR("Didn't read param num_profile_slots in talon_swerve");
+	*/num_profile_slots_ = 20;
+
 	// Odometry related:
 	double publish_rate;
 	std::string base_link;
@@ -610,86 +618,122 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	// Retreive current velocity command and time step:
 
 	//ROS_INFO_STREAM("mode: " << *(mode_.readFromRT())); 
-	int slot_local = *(slot_.readFromRT());
-	if(*(buffer_.readFromRT()))
+
+	full_profile_cmd cur_prof_cmd = *(full_profile_buffer_.readFromRT()); 
+	//For this to be thread safe, the assumption is that the serv is called relatively infrequently
+	if(cur_prof_cmd.newly_set)
 	{
-		buffer_.writeFromNonRT(false);
-			
-		cmd_points cur_cmd_points = *(command_points_.readFromRT());
-		
-		
-		ROS_WARN("buffer in controller");
-		const int point_count2 = cur_cmd_points.drive_pos.size();
-		ROS_INFO_STREAM("points: " << point_count2);
-		for(size_t i = 0; i < WHEELCOUNT; i++)
+		if(cur_prof_cmd.buffer)
 		{
+			for(size_t p = 0; p < cur_prof_cmd.profiles.size(); p++)
+			{
+				ROS_WARN("buffer in controller");
+				const int point_count2 = cur_prof_cmd.profiles[p].drive_pos.size();
+				ROS_INFO_STREAM("points: " << point_count2);
+				for(size_t i = 0; i < WHEELCOUNT; i++)
+				{
 
-			holder_points_[i][0].positionMode = true;
-			holder_points_[i][1].positionMode = true;
+					holder_points_[i][0].positionMode = true;
+					holder_points_[i][1].positionMode = true;
+					
+					holder_points_[i][0].pidSlot = 1;
+					holder_points_[i][1].pidSlot = 1; //0 and 1 are the same right now
+
+					holder_points_[i][0].setpoint = cur_prof_cmd.profiles[p].drive_pos[0][i];
+					holder_points_[i][1].setpoint = cur_prof_cmd.profiles[p].steer_pos[0][i];
+					
+
+					holder_points_[i][0].fTerm = cur_prof_cmd.profiles[p].drive_f[0][i];
+					holder_points_[i][1].fTerm = cur_prof_cmd.profiles[p].steer_f[0][i];
+
+					holder_points_[i][0].duration = cur_prof_cmd.profiles[p].dt;
+					holder_points_[i][1].duration = cur_prof_cmd.profiles[p].dt;
+				
 			
-			holder_points_[i][0].pidSlot = 1;
-			holder_points_[i][1].pidSlot = 1; //0 and 1 are the same right now
+					holder_points_[i][0].zeroPos = true;
+					holder_points_[i][1].zeroPos = false;
+					
+					full_profile_[i][0].clear();
+					full_profile_[i][1].clear();
+					
+					full_profile_[i][0].push_back(holder_points_[i][0]); //Rather than buffering like this we should write directly to full profile at some point
+					full_profile_[i][1].push_back(holder_points_[i][1]); //Rather than buffering like this we should write directly to full profile at some point
 
-			holder_points_[i][0].setpoint = cur_cmd_points.drive_pos[0][i];
-			holder_points_[i][1].setpoint = cur_cmd_points.steer_pos[0][i];
+					holder_points_[i][0].zeroPos = false;
+				}
+
+
+
+				const int point_count = cur_prof_cmd.profiles[p].drive_pos.size();
+				ROS_INFO_STREAM("points: " << point_count);
+				for(int i = 1; i < point_count; i++)
+				{
+					for(size_t k = 0; k < WHEELCOUNT; k++)
+					{
+						holder_points_[k][0].setpoint = cur_prof_cmd.profiles[p].drive_pos[i][k];
+						holder_points_[k][1].setpoint = cur_prof_cmd.profiles[p].steer_pos[i][k];
+						
+
+						holder_points_[k][0].fTerm = cur_prof_cmd.profiles[p].drive_f[i][k];
+						holder_points_[k][1].fTerm = cur_prof_cmd.profiles[p].steer_f[i][k];
+						//ROS_INFO_STREAM("f: " << 	holder_points_[k][0].fTerm); 	
+
 			
 
-			holder_points_[i][0].fTerm = cur_cmd_points.drive_f[0][i];
-			holder_points_[i][1].fTerm = cur_cmd_points.steer_f[0][i];
+						full_profile_[k][0].push_back(holder_points_[k][0]); //Rather than buffering like this we should write directly to full profile at some point
+						full_profile_[k][1].push_back(holder_points_[k][1]); //Rather than buffering like this we should write directly to full profile at some point
 
-			holder_points_[i][0].duration = cur_cmd_points.dt;
-			holder_points_[i][1].duration = cur_cmd_points.dt;
-		
-	
-			holder_points_[i][0].zeroPos = true;
-			holder_points_[i][1].zeroPos = false;
-			
-			full_profile_[i][0].clear();
-			full_profile_[i][1].clear();
-			
-			full_profile_[i][0].push_back(holder_points_[i][0]); //Rather than buffering like this we should write directly to full profile at some point
-			full_profile_[i][1].push_back(holder_points_[i][1]); //Rather than buffering like this we should write directly to full profile at some point
 
-			holder_points_[i][0].zeroPos = false;
+						
+					}
+				}
+				ROS_WARN("done1");
+				for(size_t k = 0; k < WHEELCOUNT; k++)
+				{
+
+					speed_joints_[k].overwriteCustomProfilePoints(full_profile_[k][0], cur_prof_cmd.profiles[p].slot);
+					steering_joints_[k].overwriteCustomProfilePoints(full_profile_[k][1], cur_prof_cmd.profiles[p].slot);
+				}	
+
+				ROS_WARN("done");
+			}
 		}
+		else if(cur_prof_cmd.wipe_all)
+		{
+			for(int i = 0; i < num_profile_slots_; i++)
+			{	
+				for(size_t k = 0; k < WHEELCOUNT; k++)
+				{
 
-
-
-		const int point_count = cur_cmd_points.drive_pos.size();
-		ROS_INFO_STREAM("points: " << point_count);
-		for(int i = 1; i < point_count; i++)
+					full_profile_[k][0].clear();
+					full_profile_[k][1].clear();
+					speed_joints_[k].overwriteCustomProfilePoints(full_profile_[k][0], i);
+					steering_joints_[k].overwriteCustomProfilePoints(full_profile_[k][1], i);
+				}	
+			}
+		}
+		
+		if(cur_prof_cmd.run)
+		{	
+			mode_.writeFromNonRT(false); //Should be fine
+			for(size_t k = 0; k < WHEELCOUNT; k++)
+			{
+				steering_joints_[k].setCustomProfileSlot(cur_prof_cmd.run_slot);
+				speed_joints_[k].setCustomProfileSlot(cur_prof_cmd.run_slot);		
+			}
+		}
+		if(cur_prof_cmd.change_queue)
 		{
 			for(size_t k = 0; k < WHEELCOUNT; k++)
 			{
-				holder_points_[k][0].setpoint = cur_cmd_points.drive_pos[i][k];
-				holder_points_[k][1].setpoint = cur_cmd_points.steer_pos[i][k];
-				
-
-				holder_points_[k][0].fTerm = cur_cmd_points.drive_f[i][k];
-				holder_points_[k][1].fTerm = cur_cmd_points.steer_f[i][k];
-				//ROS_INFO_STREAM("f: " << 	holder_points_[k][0].fTerm); 	
-
-	
-
-				full_profile_[k][0].push_back(holder_points_[k][0]); //Rather than buffering like this we should write directly to full profile at some point
-				full_profile_[k][1].push_back(holder_points_[k][1]); //Rather than buffering like this we should write directly to full profile at some point
-
-
-				
-			}
+				steering_joints_[k].setCustomProfileNextSlot(cur_prof_cmd.new_queue);
+				speed_joints_[k].setCustomProfileNextSlot(cur_prof_cmd.new_queue);	
+			}	
 		}
-		ROS_WARN("done1");
-		for(size_t k = 0; k < WHEELCOUNT; k++)
-		{
+		full_profile_cmd empty;
+		full_profile_buffer_.writeFromNonRT(empty); //This is why we can't call the serv very frequently
 
-			speed_joints_[k].overwriteCustomProfilePoints(full_profile_[k][0], slot_local);
-			steering_joints_[k].overwriteCustomProfilePoints(full_profile_[k][1], slot_local);
-		}	
-
-		ROS_WARN("done");
-		
 	}
-
 	if(*(mode_.readFromRT()))
 	{
 		Commands curr_cmd = *(command_.readFromRT());
@@ -717,7 +761,9 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			speed_joints_[i].setClosedloopRamp(0);
 			steering_joints_[i].setCustomProfileRun(false);
 			speed_joints_[i].setCustomProfileRun(false);
-			
+			speed_joints_[i].setDemand1Value(0);
+			steering_joints_[i].setDemand1Value(0);
+	
 		}
 
 		if (fabs(curr_cmd.lin[0]) <= 1e-6 && fabs(curr_cmd.lin[1]) <= 1e-6 && fabs(curr_cmd.ang) <= 1e-6)
@@ -780,10 +826,6 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	{	
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
-			steering_joints_[i].setCustomProfileSlot(slot_local);
-			speed_joints_[i].setCustomProfileSlot(slot_local);
-			
-
 			steering_joints_[i].setCustomProfileRun(true);
 			speed_joints_[i].setCustomProfileRun(true);
 
@@ -902,35 +944,42 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 		*/		
 
 		ROS_WARN("serv points called");
-		slot_.writeFromNonRT(req.slot);
+
+		full_profile_cmd full_profile_struct;
+		full_profile_struct.buffer = req.buffer;
 		if(req.buffer)
 		{
-			points_struct_.dt = req.dt;
-
-
-			points_struct_.drive_pos.resize(req.points.size());
-			points_struct_.drive_f.resize(req.points.size());
-			points_struct_.steer_pos.resize(req.points.size());
-			points_struct_.steer_f.resize(req.points.size());
-			for(size_t i = 0; i < req.points.size(); i++)
+			full_profile_struct.profiles.resize(req.profiles.size());
+			for(size_t i = 0; i < req.profiles.size(); i++)
 			{
-				points_struct_.drive_pos[i] = req.points[i].drive_pos;
-				points_struct_.drive_f[i] = req.points[i].drive_f;
-				points_struct_.steer_pos[i] = req.points[i].steer_pos;
-				points_struct_.steer_f[i] = req.points[i].steer_f;
+				full_profile_struct.profiles[i].drive_pos.resize(req.profiles[i].points.size());
+				full_profile_struct.profiles[i].drive_f.resize(req.profiles[i].points.size());
+				full_profile_struct.profiles[i].steer_pos.resize(req.profiles[i].points.size());
+				full_profile_struct.profiles[i].steer_f.resize(req.profiles[i].points.size());
+				full_profile_struct.profiles[i].dt = req.profiles[i].dt;
+				full_profile_struct.profiles[i].slot = req.profiles[i].slot;
+				for(size_t k = 0; k < req.profiles[i].points.size(); k++)
+				{
+					full_profile_struct.profiles[i].drive_pos[k] = req.profiles[i].points[k].drive_pos;
+					full_profile_struct.profiles[i].drive_f[k] = req.profiles[i].points[k].drive_f;
+					full_profile_struct.profiles[i].steer_pos[k] = req.profiles[i].points[k].steer_pos;
+					full_profile_struct.profiles[i].steer_f[k] = req.profiles[i].points[k].steer_f;
+				}	
 			}
-			command_points_.writeFromNonRT(points_struct_);
-
 		}
-		if(req.buffer)
-			ROS_INFO_STREAM("buffering status: " << req.buffer);
-		buffer_.writeFromNonRT(req.buffer);
-		mode_.writeFromNonRT(!(req.run));
-		if(!req.run)
-			ROS_WARN_STREAM("Hypothetically shouldn't run?");
 
-		
-		
+		full_profile_struct.wipe_all		= req.wipe_all;		
+		full_profile_struct.run				= req.run;		
+		full_profile_struct.run_slot		= req.run_slot;		
+		full_profile_struct.change_queue	= req.change_queue;
+		for(size_t i= 0; i< req.new_queue.size(); i++)
+		{
+			full_profile_struct.new_queue.push_back(req.new_queue[i]);
+		}
+		full_profile_struct.newly_set		= true;
+				
+				
+		full_profile_buffer_.writeFromNonRT(full_profile_struct);
 		return true;
 	}
 	else

@@ -548,7 +548,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
     //running at the specified hz just copying to the status
 
     double time_start = ros::Time::now().toSec();
-    int num_slots = 4; //Needs to be the same as the talon command interface and talon state interface
+    int num_slots = 20; //Needs to be the same as the talon command interface and talon state interface
     hardware_interface::CustomProfileStatus status; //Status is also used to store info from last loop
     int points_run = 0;
     double pos_offset = 0;
@@ -628,17 +628,22 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
             points_run = end -1;
             if(points_run < 0) points_run = 0;
 
-			int next_slot = talon_command_[joint_id].getCustomProfileNextSlot();
-            if(status.outOfPoints)
-            {
-                //If all points have been exhausted, just use the last point
-                custom_profile_set_talon(profile.back().positionMode, profile.back().setpoint, profile.back().fTerm, joint_id, profile.back().pidSlot, profile.back().zeroPos, pos_offset);
-				if(!(next_slot < 0))
+
+			
+
+			
+			auto next_slot = talon_command_[joint_id].getCustomProfileNextSlot();
+			if(status.outOfPoints)
+			{
+				//If all points have been exhausted, just use the last point
+				custom_profile_set_talon(profile.back().positionMode, profile.back().setpoint, profile.back().fTerm, joint_id, profile.back().pidSlot, profile.back().zeroPos, pos_offset);
+				if((next_slot.size() > 0))
 				{
-					talon_command_[joint_id].setCustomProfileNextSlot(-1);
-					talon_command_[joint_id].setCustomProfileSlot(next_slot);
+					talon_command_[joint_id].setCustomProfileSlot(next_slot[0]);
+					next_slot.erase(next_slot.begin());
+					talon_command_[joint_id].setCustomProfileNextSlot(next_slot);
 				}
-            }
+			}
             else if(end ==0)
             {
                 //If we are still on the first point,just use the first point
@@ -718,12 +723,17 @@ void FRCRobotSimInterface::init(void)
 {
 	// Do base class init. This loads common interface info
 	// used by both the real and sim interfaces
+	ROS_WARN("Passes");	
 	FRCRobotInterface::init();
+	ROS_WARN("Passes");	
     ros::NodeHandle nh_;
+
+	ROS_WARN("1");	
 
 	sim_joy_thread_ = std::thread(&FRCRobotSimInterface::loop_joy, this);
     cube_state_sub_ = nh_.subscribe("/frcrobot/cube_state_sim", 1, &FRCRobotSimInterface::cube_state_callback, this);
 	
+	ROS_WARN("2");	
 	ROS_WARN("fails here?1");
 	// Loop through the list of joint names
 	// specified as params for the hardware_interface.

@@ -194,12 +194,26 @@ class TalonHWCommand
 			
 			custom_profile_run_(false),
 			custom_profile_slot_(0),
-			custom_profile_next_slot_(-1),
-			custom_profile_hz_(20.0)
+			custom_profile_hz_(50.0)
 
 		{
-			custom_profile_points_.resize(4); //change as needed
-			custom_profile_total_time_.resize(4); 		
+			//This is a bit dirty...
+			//I apologize for my problems spilling out over your nice and clean code, Kevin
+			/*int garbage;
+			char** more_garbage;
+			ros::init(garbage, more_garbage, "soon_to_die_talon_command_node");
+			ros::NodeHandle n;	
+			ros::NodeHandle n_params_behaviors(n, "auto_params");
+			int num_profile_slots;
+
+			if (!n_params_behaviors.getParam("num_profile_slots", num_profile_slots))
+			ROS_ERROR("Didn't read param num_profile_slots in talon code");
+			
+			ros::shutdown(); //Now that its short life is over, the mayfly dies and the cycle begins anew
+			*/
+			int num_profile_slots = 20;
+			custom_profile_points_.resize(num_profile_slots); //change as needed
+			custom_profile_total_time_.resize(num_profile_slots); 		
 		}
 		// This gets the requested setpoint, not the
 		// status actually read from the controller
@@ -1331,11 +1345,11 @@ class TalonHWCommand
 			conversion_factor_changed_ = false;
 			return true;
 		}
-		int getCustomProfileNextSlot(void) const
+		std::vector<int> getCustomProfileNextSlot(void) const
 		{
 			return custom_profile_next_slot_;
 		}	
-		void setCustomProfileNextSlot(const double &next_slot)
+		void setCustomProfileNextSlot(const std::vector<int> &next_slot)
 		{
 			custom_profile_next_slot_ = next_slot;
 		}
@@ -1534,10 +1548,15 @@ class TalonHWCommand
 		
 		bool custom_profile_run_;
 		int custom_profile_slot_;
-		int custom_profile_next_slot_;
+		std::vector<int> custom_profile_next_slot_;
 		double custom_profile_hz_;
 		std::vector<std::vector<CustomProfilePoint>> custom_profile_points_;
 		std::vector<std::vector<double>> custom_profile_total_time_;
+		//TODO: error catching on slot
+
+
+
+			
 
 };
 

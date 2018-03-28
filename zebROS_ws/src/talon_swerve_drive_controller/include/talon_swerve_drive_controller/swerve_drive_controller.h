@@ -122,6 +122,7 @@ class TalonSwerveDriveController
         	Eigen::Vector2d wheel4;
 
 		int set_check_;
+		int num_profile_slots_;
 
 		void compOdometry(const ros::Time& time, const double inv_delta_t);
 		Eigen::MatrixX2d new_wheel_pos_;	
@@ -161,16 +162,29 @@ class TalonSwerveDriveController
 			std::vector<std::vector<double>> steer_pos;
 			std::vector<std::vector<double>> steer_f;
 			double dt;
+			int slot;
+
+			cmd_points() : dt(0.0), slot(0) {}
 		};
-		
+		struct full_profile_cmd
+		{
+			std::vector<cmd_points> profiles;
+			bool wipe_all;
+			bool buffer;
+			bool run;
+			int run_slot;
+			bool change_queue;
+			std::vector<int> new_queue;
+			bool newly_set;
+			full_profile_cmd() : wipe_all(false), buffer(false), run(false), run_slot(0), change_queue(false), newly_set(false) {}
+		};
+				
+		realtime_tools::RealtimeBuffer<full_profile_cmd> full_profile_buffer_;	
 		realtime_tools::RealtimeBuffer<bool> mode_;
-		realtime_tools::RealtimeBuffer<bool> buffer_;
-		realtime_tools::RealtimeBuffer<bool> clear_;
+		//realtime_tools::RealtimeBuffer<bool> wipe_all_; //TODO, add this functionality
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		Commands brake_struct_;
-		realtime_tools::RealtimeBuffer<cmd_points> command_points_;
-		cmd_points points_struct_;
 		
 		ros::Subscriber sub_command_;
 
