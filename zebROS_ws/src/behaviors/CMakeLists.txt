@@ -129,7 +129,7 @@ catkin_package(
    INCLUDE_DIRS include
    #LIBRARIES behaviors
    CATKIN_DEPENDS actionlib nav_msgs roscpp rospy std_msgs
-   DEPENDS system_lib
+   DEPENDS 
 )
 add_executable(autoInterpreterClient src/autoInterpreterClient.cpp)
 target_link_libraries(

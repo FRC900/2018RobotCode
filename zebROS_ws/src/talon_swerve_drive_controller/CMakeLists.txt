@@ -20,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
     message_generation
 )
 
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 add_message_files (
 	FILES
@@ -48,12 +48,12 @@ catkin_package(
   controller_interface
   INCLUDE_DIRS include
   #LIBRARIES ${PROJECT_NAME}
-  DEPENDS Eigen
+  DEPENDS
 )
 
 include_directories(
   include ${catkin_INCLUDE_DIRS}
-  ${Eigen_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIR}
 )
 
 add_library(${PROJECT_NAME} 

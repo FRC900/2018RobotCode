@@ -723,12 +723,16 @@ void FRCRobotSimInterface::init(void)
 {
 	// Do base class init. This loads common interface info
 	// used by both the real and sim interfaces
+	ROS_WARN("Passes");	
 	FRCRobotInterface::init();
     ros::NodeHandle nh_;
+
+	ROS_WARN("1");	
 
 	sim_joy_thread_ = std::thread(&FRCRobotSimInterface::loop_joy, this);
     cube_state_sub_ = nh_.subscribe("/frcrobot/cube_state_sim", 1, &FRCRobotSimInterface::cube_state_callback, this);
 	
+	ROS_WARN("2");	
 	ROS_WARN("fails here?1");
 	// Loop through the list of joint names
 	// specified as params for the hardware_interface.

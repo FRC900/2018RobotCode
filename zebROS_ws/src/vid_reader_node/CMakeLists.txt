@@ -13,10 +13,8 @@ include ("../cmake_modules/CMakeOpt.cmake")
 if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 find_package(catkin REQUIRED COMPONENTS
      roscpp
-     message_filters
      sensor_msgs
      cv_bridge
-     message_generation
 )
 find_package(OpenCV REQUIRED)
 find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
@@ -65,10 +63,9 @@ link_directories(${ZED_LIBRARY_DIR} ${PCL_LIBRARY_DIRS} /usr/local/cuda/lib64/st
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  VidReader.msg
-)
+#add_message_files(
+#FILES
+#)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -85,10 +82,10 @@ add_message_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-generate_messages(
-   DEPENDENCIES
-   sensor_msgs
-)
+#generate_messages(
+#DEPENDENCIES
+#sensor_msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##

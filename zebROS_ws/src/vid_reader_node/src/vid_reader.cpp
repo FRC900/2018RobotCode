@@ -8,14 +8,10 @@
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.h>
 
-#include "zedcamerain.hpp"
+//#include "zedcamerain.hpp"
 #include "zedsvoin.hpp"
 #include "zmsin.hpp"
 #include "frameticker.hpp"
-#include <message_filters/subscriber.h>
-#include <message_filters/synchronizer.h>
-#include <message_filters/sync_policies/approximate_time.h>
-#include "vid_reader_node/VidReader.h"
 
 using namespace cv;
 using namespace std;
@@ -24,16 +20,14 @@ using namespace sensor_msgs;
 
 int main(int argc, char **argv)
 {
-
-
 	ros::init(argc, argv, "vid_reader");
 	ros::NodeHandle nh("~");
 	int sub_rate = 5;
 	int pub_rate = 1;
 	nh.getParam("pub_rate", pub_rate);
 
-	ros::Publisher zms_pub;
-	ros::Publisher zms_pub1;
+	ros::Publisher zms_pub = nh.advertise<sensor_msgs::Image>("/zed_goal/left/image_rect_color", pub_rate);
+	ros::Publisher zms_pub1 = nh.advertise<sensor_msgs::Image>("/zed_goal/depth/depth_registered", pub_rate);
 
 	MediaIn *cap = NULL;
 
@@ -54,20 +48,12 @@ int main(int argc, char **argv)
 
 	Mat image;
 	Mat depth;
-	Rect bound;
-	String *zed;
 	FrameTicker frameTicker;
 	while (cap->getFrame(image, depth))
 	{
 		frameTicker.mark();
 
-		vid_reader_node::VidReader vid_reader_msg;
-		
 		//ROS_INFO_STREAM("Depth: " << depth << endl);
-
-		vid_reader_msg.header.seq = 1;
-		vid_reader_msg.header.stamp = ros::Time::now();
-		vid_reader_msg.header.frame_id;
 
 		cv_bridge::CvImage rgb_out;
 
@@ -79,7 +65,6 @@ int main(int argc, char **argv)
 		}
 
 		cv_bridge::CvImage depth_out;
-
 
 		try {
 			depth_out.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
@@ -100,9 +85,6 @@ int main(int argc, char **argv)
 		ss << fixed << setprecision(2) << cap->FPS() << "C:" << frameTicker.getFPS() << "GD FPS";
 		putText(image, ss.str(), Point(image.cols - 15 * ss.str().length(), 50), FONT_HERSHEY_PLAIN, 1.5, Scalar(0,0,255));
 		ros::Duration(.15).sleep();
-
-		zms_pub = nh.advertise<sensor_msgs::Image>("/zed_goal/left/image_rect_color", pub_rate);
-		zms_pub1 = nh.advertise<sensor_msgs::Image>("/zed_goal/depth/depth_registered", pub_rate);
 
 		zms_pub.publish(rgb_out.toImageMsg());
 		zms_pub1.publish(depth_out.toImageMsg());

@@ -9,7 +9,6 @@
 #include "message_filters/sync_policies/approximate_time.h"
 #include <string>
 #include <cmath>
-#include <Eigen/Dense>
 #include <sensor_msgs/JointState.h>
 #include <ros_control_boilerplate/MatchSpecificData.h>
 #include <pdp_state_controller/PDPData.h>

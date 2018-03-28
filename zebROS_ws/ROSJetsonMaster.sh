@@ -29,6 +29,11 @@ elif [ -f /home/ofugikawa/2018RobotCode/zebROS_ws/devel/setup.bash ] ; then
     echo "Sourcing olivia's environment"
     source /home/ofugikawa/2018RobotCode/zebROS_ws/devel/setup.bash
     export ROS_IP=10.9.0.14
+elif [ -f /home/niall/2018RobotCode/zebROS_ws/devel/setup.bash ] ; then
+    # niall-specific configuration
+    echo "Sourcing niall's environment"
+    source /home/niall/2018RobotCode/zebROS_ws/devel/setup.bash
+    export ROS_IP=10.9.0.13
 
 else
     echo "Unknown environment! Trying to proceed anyway using local environment."

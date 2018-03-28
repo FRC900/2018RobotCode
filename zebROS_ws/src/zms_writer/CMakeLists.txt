@@ -107,8 +107,8 @@ if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES zms_writer
-  CATKIN_DEPENDS roscpp message_runtime
-  DEPENDS system_lib
+  CATKIN_DEPENDS roscpp message_filters image_transport cv_bridge
+  DEPENDS
 )
 
 
