@@ -57,6 +57,7 @@ catkin_package(
     cmake_modules
     std_msgs
 	message_runtime
+	talon_swerve_drive_controller
 	INCLUDE_DIRS include
 	#LIBRARIES ${PROJECT_NAME} trajectory_msgs
   DEPENDS Eigen
