@@ -229,13 +229,13 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 		steering_joints_.resize(wheel_joints_size_);
 	}
 
-	ros::NodeHandle n; //Is this bad?
+	/*ros::NodeHandle n; //Is this bad?
 
     ros::NodeHandle n_params_behaviors(n, "auto_params");
 
 	if (!n_params_behaviors.getParam("num_profile_slots", num_profile_slots_))
             ROS_ERROR("Didn't read param num_profile_slots in talon_swerve");
-
+	*/num_profile_slots_ = 20;
 
 	// Odometry related:
 	double publish_rate;

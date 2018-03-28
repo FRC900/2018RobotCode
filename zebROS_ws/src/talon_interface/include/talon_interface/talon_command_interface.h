@@ -199,7 +199,7 @@ class TalonHWCommand
 		{
 			//This is a bit dirty...
 			//I apologize for my problems spilling out over your nice and clean code, Kevin
-			int garbage;
+			/*int garbage;
 			char** more_garbage;
 			ros::init(garbage, more_garbage, "soon_to_die_talon_command_node");
 			ros::NodeHandle n;	
@@ -210,7 +210,8 @@ class TalonHWCommand
 			ROS_ERROR("Didn't read param num_profile_slots in talon code");
 			
 			ros::shutdown(); //Now that its short life is over, the mayfly dies and the cycle begins anew
-
+			*/
+			int num_profile_slots = 20;
 			custom_profile_points_.resize(num_profile_slots); //change as needed
 			custom_profile_total_time_.resize(num_profile_slots); 		
 		}

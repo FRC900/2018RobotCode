@@ -154,6 +154,7 @@ struct CustomProfileStatus
 
 		//This is a bit dirty...
 		//I apologize for my problems spilling out over your nice and clean code, Kevin
+		/*
 		int garbage;
 		char** more_garbage;
 		ros::init(garbage, more_garbage, "soon_to_die_talon_command_node");
@@ -165,7 +166,9 @@ struct CustomProfileStatus
 		ROS_ERROR("Didn't read param num_profile_slots in talon code");
 		
 		ros::shutdown(); //Now that its short life is over, the mayfly dies and the cycle begins anew
+		*/
 		
+		int num_profile_slots = 20;
 
 
 		remainingPoints.resize(num_profile_slots); //Needs to be the same as the talon command interface

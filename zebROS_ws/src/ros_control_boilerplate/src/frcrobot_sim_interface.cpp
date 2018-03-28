@@ -548,7 +548,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
     //running at the specified hz just copying to the status
 
     double time_start = ros::Time::now().toSec();
-    int num_slots = 4; //Needs to be the same as the talon command interface and talon state interface
+    int num_slots = 20; //Needs to be the same as the talon command interface and talon state interface
     hardware_interface::CustomProfileStatus status; //Status is also used to store info from last loop
     int points_run = 0;
     double pos_offset = 0;
@@ -725,6 +725,7 @@ void FRCRobotSimInterface::init(void)
 	// used by both the real and sim interfaces
 	ROS_WARN("Passes");	
 	FRCRobotInterface::init();
+	ROS_WARN("Passes");	
     ros::NodeHandle nh_;
 
 	ROS_WARN("1");	
