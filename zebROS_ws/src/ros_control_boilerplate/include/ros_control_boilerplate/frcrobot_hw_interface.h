@@ -58,10 +58,6 @@
 #include <Compressor.h>
 #include "LiveWindow/LiveWindow.h"
 #include "SmartDashboard/SmartDashboard.h"
-#include <PowerDistributionPanel.h>
-#include <elevator_controller/CubeState.h>
-
-#include <std_msgs/Bool.h>
 
 namespace frcrobot_control
 {

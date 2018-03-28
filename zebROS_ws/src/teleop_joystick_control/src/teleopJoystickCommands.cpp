@@ -976,17 +976,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	double rotation = (pow(JoystickState->leftTrigger, joystick_scale) - pow(JoystickState->rightTrigger, joystick_scale)) * max_rot;
 
-	if (JoystickState->bumperLeftButton == true)
-	{
-		leftStickX *= slow_mode;
-		leftStickY *= slow_mode;
-
-		rightStickX *= slow_mode;
-		rightStickY *= slow_mode;
-
-		rotation *= slow_mode;
-	}
-
 	static bool sendRobotZero = false;
 	// No motion? Tell the drive base to stop
 	if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
