@@ -14,6 +14,11 @@
 #include <sensor_msgs/Imu.h>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/LinearMath/Matrix3x3.h>
+#include <swerve_point_generator/Coefs.h>
+#include <swerve_point_generator/FullGen.h>
+#include <swerve_point_generator/FullGenCoefs.h>
+#include <swerve_point_generator/GenerateTrajectory.h>
+#include <talon_swerve_drive_controller/MotionProfilePoints.h>
 
 void rumbleTypeConverterPublish(uint16_t leftRumble, uint16_t rightRumble);
 void navXCallback(const sensor_msgs::Imu &navXState);

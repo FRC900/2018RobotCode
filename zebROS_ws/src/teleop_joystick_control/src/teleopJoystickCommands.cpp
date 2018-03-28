@@ -85,14 +85,11 @@ static double move_out_pos_x;
 static double move_out_pos_y;
 static bool move_out_up_or_down;
 static double move_out_down_y;
-<<<<<<< 265a62dd5447c870c5a4284cfd24f0025e2f2dfc
 static double over_back_x;
 static double intake_low_x;
 static double over_back_y;
 static bool over_back_up_or_down;
-=======
 static double wheel_radius;
->>>>>>> Added point_gen and swerve_control
 
 enum pos {high_scale, mid_scale, low_scale, switch_c, exchange, intake_ready_to_drop, intake, intake_low, climb_c, default_c, other};
 
@@ -230,34 +227,8 @@ void setHeight(const pos achieved_pos, pos &last_achieved_pos, ElevatorPos &elev
 	elevatorPosBefore = *(elevatorPos.readFromRT());
 	last_achieved_pos = achieved_pos;
 }
-/*
-void setMotionProfile(talon_swerve_drive_controller::SwervePoint points)
-{
-	TalonSwerveDriveController::motionProfileService srvMotionProfile;
-	
-	srvMotionProfile.request.points[] = points;
-	srvMotionProfile.request.dt = 20;
-	srvMotionProfile.request.buffer = false;
-	srvMotionProfile.request.run = true;
-	srvMotionProfile.request.slot = 0;
 
-	if (!MotionProfileSrv.call(srvMotionProfile))
-	{
-		ROS_ERROR("Motion profile srv call failed.");
-	}
-}
-*/
-void generateTrajectory(basically a list of coefficients loaded from kevin's code)
-{
-	if (!trajectory.exists)
-		ROS_ERROR("trajectory does not exist");
-	if(!point_gen.call(trajectory.srv_msg))
-		ROS_ERROR("point_gen failed");
-	if (!bufferTrajectory(trajectory.srv_msg.response))
-		ROS_ERROR("bufferTrajectory failed");
-}
-
-void runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
+bool runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
 {
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.points = traj.points;
@@ -267,7 +238,47 @@ void runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
     swerve_control_srv.request.slot = 0;
     
     if (!swerve_control.call(swerve_control_srv))
-		ROS_ERROR("swerve_control call() failed in autoInterpreterClient bufferTrajectory()");
+	{
+		ROS_ERROR("swerve_control call() failed in teleopJoystickCommands runTrajectory()");
+		return true;
+	}
+	else
+		return false;
+}
+
+void generateTrajectory(const swerve_point_generator::FullGenCoefs &trajectory) //from coefficients to points, and from points to commands
+{
+	if(!point_gen.call(trajectory))
+		ROS_ERROR("point_gen call() failed in teleopJoystickCommands generateTrajectory()");
+
+	if (!runTrajectory(trajectory.response))
+		ROS_ERROR("runTrajectory failed in teleopJoystickCommands generateTrajectory()");
+}
+
+void generateCoeffs(const double angle_diff, const swerve_point_generator::FullGenCoeffs &traj) //from waypoint to coefficients
+{
+		base_trajectory::GenerateSpline srvBaseTrajectory;
+
+		srvBaseTrajectory.request.points.resize(1);
+		//x-movement
+		srvBaseTrajectory.request.points[0].positions.push_back(0);
+		srvBaseTrajectory.request.points[0].velocities.push_back(0);
+		srvBaseTrajectory.request.points[0].accelerations.push_back(0);
+		//y-movement
+		srvBaseTrajectory.request.points[0].positions.push_back(0)[1] = 0;
+		srvBaseTrajectory.request.points[0].velocities.push_back(0)[1] = 0;
+		srvBaseTrajectory.request.points[0].accelerations.push_back(0)[1] = 0;
+		//z-rotation
+		srvBaseTrajectory.request.points[0].positions.push_back(angle_diff);
+		srvBaseTrajectory.request.points[0].velocities.push_back(0); //velocity at the end point
+		srvBaseTrajectory.request.points[0].accelerations.push_back(0); //acceleration at the end point
+		//time since this was called
+		srvBaseTrajectory.request.time_from_start = 0; //TODO
+
+		GenerateSpline.call(srvBaseTrajectory); //TODO
+
+		traj.request.coefficients = srvBaseTrajectory.response.coefficients;
+		generateTrajectory(&traj);
 }
 
 void match_data_callback(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData)
@@ -1236,6 +1247,18 @@ if(JoystickState->bumperLeftButton == true)
 		//ROS_INFO("teleop : Joystive elevator pos");
 	}
 
+	if(JoystickState->bumperLeftButton == true)
+	{
+		//check to see if it's already running?
+		sendRobotZero = false;
+		double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
+		static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
+		
+		swerve_point_generator::FullGenCoefs &traj;
+
+		generateCoeffs(least_dist_angle - angle, &traj);
+	}
+
 	lastTimeSecs = timeSecs;
 	//ROS_WARN("Header time: %f, Time now: %f, Time difference: %f", JoystickState->header.stamp.toSec(), ros::Time::now().toSec(), ros::Time::now().toSec() - JoystickState->header.stamp.toSec());
 }
@@ -1352,8 +1375,6 @@ int main(int argc, char **argv)
 		ROS_ERROR("Could not read default_up_or_down");
 	if (!n_params.getParam("exchange_delay", exchange_delay))
 		ROS_ERROR("Could not read exchange_delay");
-	if (!n_params.getParam("wheel_radius", wheel_radius))
-		ROS_ERROR("Could not read wheel_radius");
 
 	disableArmLimits = false;
 	navX_angle = M_PI / 2;
