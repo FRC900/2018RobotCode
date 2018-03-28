@@ -57,6 +57,7 @@ static ros::ServiceClient BrakeSrv;
 
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
+ros::ServiceClient generate_coefs;
 
 static double high_scale_config_x;
 static double high_scale_config_y;
@@ -246,16 +247,16 @@ bool runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
 		return false;
 }
 
-void generateTrajectory(const swerve_point_generator::FullGenCoefs &trajectory) //from coefficients to points, and from points to commands
+void generateTrajectory(swerve_point_generator::FullGenCoefs &trajectory) //from coefficients to points, and from points to commands
 {
-	if(!point_gen.call(trajectory))
+	if (!point_gen.call(trajectory))
 		ROS_ERROR("point_gen call() failed in teleopJoystickCommands generateTrajectory()");
 
 	if (!runTrajectory(trajectory.response))
 		ROS_ERROR("runTrajectory failed in teleopJoystickCommands generateTrajectory()");
 }
 
-void generateCoeffs(const double angle_diff, const swerve_point_generator::FullGenCoeffs &traj) //from waypoint to coefficients
+void generateCoefs(const double angle_diff) //from waypoint to coefficients
 {
 		base_trajectory::GenerateSpline srvBaseTrajectory;
 
@@ -265,20 +266,23 @@ void generateCoeffs(const double angle_diff, const swerve_point_generator::FullG
 		srvBaseTrajectory.request.points[0].velocities.push_back(0);
 		srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 		//y-movement
-		srvBaseTrajectory.request.points[0].positions.push_back(0)[1] = 0;
-		srvBaseTrajectory.request.points[0].velocities.push_back(0)[1] = 0;
-		srvBaseTrajectory.request.points[0].accelerations.push_back(0)[1] = 0;
+		srvBaseTrajectory.request.points[0].positions.push_back(0);
+		srvBaseTrajectory.request.points[0].velocities.push_back(0);
+		srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 		//z-rotation
 		srvBaseTrajectory.request.points[0].positions.push_back(angle_diff);
 		srvBaseTrajectory.request.points[0].velocities.push_back(0); //velocity at the end point
 		srvBaseTrajectory.request.points[0].accelerations.push_back(0); //acceleration at the end point
 		//time since this was called
-		srvBaseTrajectory.request.time_from_start = 0; //TODO
+		//srvBaseTrajectory.request.time_from_start = 0; //TODO
 
-		GenerateSpline.call(srvBaseTrajectory); //TODO
+		generate_coefs.call(srvBaseTrajectory); //TODO
 
-		traj.request.coefficients = srvBaseTrajectory.response.coefficients;
-		generateTrajectory(&traj);
+		swerve_point_generator::FullGenCoefs traj;
+		traj.request.orient_coefs = srvBaseTrajectory.response.orient_coefs;
+		traj.request.x_coefs = srvBaseTrajectory.response.x_coefs;
+		traj.request.y_coefs = srvBaseTrajectory.response.y_coefs;
+		generateTrajectory(traj);
 }
 
 void match_data_callback(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData)
@@ -1254,9 +1258,8 @@ if(JoystickState->bumperLeftButton == true)
 		double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
 		static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
 		
-		swerve_point_generator::FullGenCoefs &traj;
 
-		generateCoeffs(least_dist_angle - angle, &traj);
+		generateCoefs(least_dist_angle - angle);
 	}
 
 	lastTimeSecs = timeSecs;
@@ -1399,6 +1402,8 @@ int main(int argc, char **argv)
 	IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
 	BrakeSrv = n.serviceClient<std_srvs::Empty>("/frcrobot/swerve_drive_controller/brake", false, service_connection_header);
 	point_gen = n.serviceClient<swerve_point_generator::FullGenCoefs>("/point_gen/command", false, service_connection_header);
+	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile", false, service_connection_header);
+	generate_coefs = n.serviceClient<base_trajectory::GenerateSpline>("/base_trajectory/generate_spline", false, service_connection_header);
 
 	ros::Subscriber joystick_sub  = n.subscribe("joystick_states", 1, &evaluateCommands);
 	ros::Subscriber match_data    = n.subscribe("match_data", 1, &match_data_callback);
