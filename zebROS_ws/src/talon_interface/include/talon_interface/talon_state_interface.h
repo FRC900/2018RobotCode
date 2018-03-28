@@ -151,7 +151,24 @@ struct CustomProfileStatus
 		remainingTime(0.0),
 		outOfPoints(false)
 	{
-		remainingPoints.resize(4); //Needs to be the same as the talon command interface
+
+		//This is a bit dirty...
+		//I apologize for my problems spilling out over your nice and clean code, Kevin
+		int garbage;
+		char** more_garbage;
+		ros::init(garbage, more_garbage, "soon_to_die_talon_command_node");
+		ros::NodeHandle n;	
+		ros::NodeHandle n_params_behaviors(n, "auto_params");
+		int num_profile_slots;
+
+		if (!n_params_behaviors.getParam("num_profile_slots", num_profile_slots))
+		ROS_ERROR("Didn't read param num_profile_slots in talon code");
+		
+		ros::shutdown(); //Now that its short life is over, the mayfly dies and the cycle begins anew
+		
+
+
+		remainingPoints.resize(num_profile_slots); //Needs to be the same as the talon command interface
 	}
 };
 

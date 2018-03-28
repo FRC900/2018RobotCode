@@ -25,6 +25,7 @@ find_package(Eigen REQUIRED)
 add_message_files (
 	FILES
 	SwervePoint.msg
+	SwervePointSet.msg
 	)
 
 add_service_files (

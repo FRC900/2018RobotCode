@@ -22,6 +22,7 @@
 #include <swerve_point_generator/FullGenCoefs.h>
 #include <swerve_point_generator/GenerateTrajectory.h>
 #include <talon_swerve_drive_controller/MotionProfilePoints.h>
+#include <talon_swerve_drive_controller/SwervePointSet.h>
 #include <trajectory_msgs/JointTrajectory.h>
 #include <XmlRpcValue.h>
 #include <vector>
@@ -30,7 +31,7 @@ enum Action {deploy_intake, undeploy_intake, intake_cube, exchange_cube, default
 typedef struct action
 {
     double time;
-    std::vector<Action> actions;
+    Action action;
 } action_struct;
 
 typedef struct cmd_vel
@@ -42,11 +43,13 @@ typedef struct cmd_vel
 
 struct full_mode
 {
-	swerve_point_generator::FullGenCoefs srv_msg;
+	std::vector<swerve_point_generator::FullGenCoefs> srv_msgs;
+	int num_srv_msgs;
 	std::vector<action_struct> actions;
+	std::vector<int> wait_ids;
 	bool exists;
 
-	full_mode(void): exists(false) {}
+	full_mode(void): exists(false), num_srv_msgs(0) {}
 };
 
 struct cmd_vel_mode
@@ -57,7 +60,7 @@ struct cmd_vel_mode
 	cmd_vel_mode(void): exists(false) {}
 };
 typedef std::vector<std::vector<std::vector<full_mode>>> mode_list;
-typedef std::vector<std::vector<std::vector<cmd_vel_mode>>> cmd_vel_list;
+typedef std::vector<std::vector<std::vector<cmd_vel_mode>>> cmd_vel_list; //Also should maybe have another dimensition and wait for completions?
 
 
 typedef struct mode
@@ -78,12 +81,13 @@ bool clamp(void);
 bool releaseIntake(void);
 bool intakeOut(void);
 bool parkingConfig(void);
-bool generateTrajectory(full_mode &trajectory);
+bool generateTrajectory(std::vector<full_mode> &trajectory, std::vector<int> &start_buffer_ids);
 bool bufferTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj);
 bool runTrajectory(void);
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode);
 void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData);
-void run_auto(int auto_select, int auto_mode, int layout, int start_pos, double initial_delay, const std::vector<Action> &times);
+void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const full_mode &auto_run_data, std::vector<int> start_of_buffer_ids);
+void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<cmd_vel_struct> &segments);
 
 
 mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data);

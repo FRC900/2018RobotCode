@@ -1079,11 +1079,11 @@ class TalonControllerInterface
         {
 			return talon_->getCustomProfileRun();
         }
-        virtual void setCustomProfileNextSlot(const int &next_slot)
+        virtual void setCustomProfileNextSlot(const std::vector<int> &next_slot)
         {
             talon_->setCustomProfileNextSlot(next_slot);
         }
-        int getCustomProfileNextSlot(void)
+        std::vector<int> getCustomProfileNextSlot(void)
         {
 			return talon_->getCustomProfileNextSlot();
         }

@@ -318,7 +318,7 @@ bool parkingConfig(void)
 }
 
 
-Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_start_pos_num, ros::NodeHandle &auto_data, ros::NodeHandle &cmd_vel_data)
+Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_start_pos_num, int max_wait_for_action_num, ros::NodeHandle &auto_data, ros::NodeHandle &cmd_vel_data)
 {
 	XmlRpc::XmlRpcValue mode_xml;
 	XmlRpc::XmlRpcValue actions_xml;
@@ -337,174 +337,199 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 			profiled_modes[mode][layout].resize(max_start_pos_num + 1);
 			for(int start_pos = 0; start_pos <= max_start_pos_num; start_pos++)
 			{
-				
+				profiled_modes[mode][layout][start_pos].srv_msgs.resize(max_wait_for_action_num + 1);
 				std::string identifier("mode_"+std::to_string(mode)+"_layout_"+
 				std::to_string(layout)+"_start_"+std::to_string(start_pos));
-                
-                if(auto_data.getParam(identifier, mode_xml))
+				
+				for(int wait_for_action = 0; wait_for_action <= max_wait_for_action_num; wait_for_action++)
 				{
-					ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
-                    //XmlRpc::XmlRpcValue &coefs_xml = mode_xml["coefs"];
-                    //XmlRpc::XmlRpcValue &times_xml = mode_xml["times"];
-					const int num_splines = mode_xml.size();
-                    //const int num_times = times_xml.size();
-					for(int num = 0; num<num_splines; num++) {
-						XmlRpc::XmlRpcValue &spline = mode_xml[num];
-						XmlRpc::XmlRpcValue &x = spline["x"];
-						XmlRpc::XmlRpcValue &y = spline["y"];
-						XmlRpc::XmlRpcValue &orient = spline["orient"];
-						//XmlRpc::XmlRpcValue &time = spline["time"];
-
-						swerve_point_generator::Coefs x_coefs;
-						swerve_point_generator::Coefs y_coefs;
-						swerve_point_generator::Coefs orient_coefs;
-						for(int i = 0; i<x.size(); i++) {
-							const double x_coef = x[i];
-						    const double y_coef = y[i];
-						    const double orient_coef = orient[i];
-
-						    ////ROS_WARN("%f", orient_coef);
-						    x_coefs.spline.push_back(x_coef);
-						    y_coefs.spline.push_back(y_coef);
-						    orient_coefs.spline.push_back(orient_coef);
-						}
-						//const double t = time;
-						//profiled_modes[mode][layout][start_pos].times.push_back(t);
-						profiled_modes[mode][layout][start_pos].srv_msg.request.x_coefs.push_back(x_coefs);
-						profiled_modes[mode][layout][start_pos].srv_msg.request.y_coefs.push_back(y_coefs);
-						profiled_modes[mode][layout][start_pos].srv_msg.request.orient_coefs.push_back(orient_coefs);
-						profiled_modes[mode][layout][start_pos].srv_msg.request.end_points.push_back(num+1);
-					}
-					profiled_modes[mode][layout][start_pos].srv_msg.request.initial_v = 0; 
-					profiled_modes[mode][layout][start_pos].srv_msg.request.final_v = 0; 
-					profiled_modes[mode][layout][start_pos].exists = true; 
-
-					XmlRpc::XmlRpcValue group_xml;
-					if(auto_data.getParam(identifier + "_spline_group", group_xml))
+					if(auto_data.getParam(identifier+ +"_wait_for_action_"+std::to_string(wait_for_action), mode_xml))
 					{
-						//ROS_INFO_STREAM("Custom grouping for identifier: " << identifier << " found");
-						for(int i = 0; i < group_xml.size(); i++)
-						{	
-							profiled_modes[mode][layout][start_pos].srv_msg.request.spline_groups.push_back(group_xml[i]);
+						ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
+						//XmlRpc::XmlRpcValue &coefs_xml = mode_xml["coefs"];
+						//XmlRpc::XmlRpcValue &times_xml = mode_xml["times"];
+						const int num_splines = mode_xml.size();
+						//const int num_times = times_xml.size();
+						for(int num = 0; num<num_splines; num++) {
+							XmlRpc::XmlRpcValue &spline = mode_xml[num];
+							XmlRpc::XmlRpcValue &x = spline["x"];
+							XmlRpc::XmlRpcValue &y = spline["y"];
+							XmlRpc::XmlRpcValue &orient = spline["orient"];
+							//XmlRpc::XmlRpcValue &time = spline["time"];
+
+							swerve_point_generator::Coefs x_coefs;
+							swerve_point_generator::Coefs y_coefs;
+							swerve_point_generator::Coefs orient_coefs;
+							for(int i = 0; i<x.size(); i++) {
+								const double x_coef = x[i];
+								const double y_coef = y[i];
+								const double orient_coef = orient[i];
+
+								////ROS_WARN("%f", orient_coef);
+								x_coefs.spline.push_back(x_coef);
+								y_coefs.spline.push_back(y_coef);
+								orient_coefs.spline.push_back(orient_coef);
+							}
+							//const double t = time;
+							//profiled_modes[mode][layout][start_pos].times.push_back(t);
+							profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.x_coefs.push_back(x_coefs);
+							profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.y_coefs.push_back(y_coefs);
+							profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.orient_coefs.push_back(orient_coefs);
+							profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.end_points.push_back(num+1);
 						}
-						XmlRpc::XmlRpcValue wait_xml;
-						if(auto_data.getParam(identifier + "_waits", wait_xml))
+						profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.initial_v = 0; 
+						profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.final_v = 0; 
+						profiled_modes[mode][layout][start_pos].exists = true; 
+						profiled_modes[mode][layout][start_pos].num_srv_msgs +=1; 
+
+						XmlRpc::XmlRpcValue group_xml;
+						if(auto_data.getParam(identifier + "_spline_group", group_xml))
 						{
-							//ROS_INFO_STREAM("Custom waits for identifier: " << identifier << " found");
+							//ROS_INFO_STREAM("Custom grouping for identifier: " << identifier << " found");
 							for(int i = 0; i < group_xml.size(); i++)
+							{	
+								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.spline_groups.push_back(group_xml[i]);
+							}
+							XmlRpc::XmlRpcValue wait_xml;
+							if(auto_data.getParam(identifier + "_waits", wait_xml))
 							{
-								profiled_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(wait_xml[i]);
+								//ROS_INFO_STREAM("Custom waits for identifier: " << identifier << " found");
+								for(int i = 0; i < group_xml.size(); i++)
+								{
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(wait_xml[i]);
+								}
+							}
+							else
+							{
+								for(int i = 0; i < group_xml.size(); i++)
+								{
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(.16);
+								}
+							}
+							XmlRpc::XmlRpcValue shift_xml;
+							if(auto_data.getParam(identifier + "_t_shifts", shift_xml))
+							{
+								ROS_INFO_STREAM("Custom shifts for identifier: " << identifier << " found");
+								for(int i = 0; i < group_xml.size(); i++)
+								{
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.t_shift.push_back(shift_xml[i]);
+								}
+							}
+							else
+							{
+								for(int i = 0; i < group_xml.size(); i++)
+								{
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.t_shift.push_back(0);
+								}
+							}
+							XmlRpc::XmlRpcValue flip_xml;
+							if(auto_data.getParam(identifier + "_flips", flip_xml))
+							{
+								ROS_INFO_STREAM("Custom flips for identifier: " << identifier << " found");
+								for(int i = 0; i < group_xml.size(); i++)
+								{
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(flip_xml[i]);
+								}
+							}
+							else
+							{
+								for(int i = 0; i < group_xml.size(); i++)
+								{
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(false);
+								}
 							}
 						}
 						else
 						{
-							for(int i = 0; i < group_xml.size(); i++)
-							{
-								profiled_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(.16);
-							}
-						}
-						XmlRpc::XmlRpcValue shift_xml;
-						if(auto_data.getParam(identifier + "_t_shifts", shift_xml))
-						{
-							ROS_INFO_STREAM("Custom shifts for identifier: " << identifier << " found");
-							for(int i = 0; i < group_xml.size(); i++)
-							{
-								profiled_modes[mode][layout][start_pos].srv_msg.request.t_shift.push_back(shift_xml[i]);
-							}
-						}
-						else
-						{
-							for(int i = 0; i < group_xml.size(); i++)
-							{
-								profiled_modes[mode][layout][start_pos].srv_msg.request.t_shift.push_back(0);
-							}
-						}
-						XmlRpc::XmlRpcValue flip_xml;
-						if(auto_data.getParam(identifier + "_flips", flip_xml))
-						{
-							ROS_INFO_STREAM("Custom flips for identifier: " << identifier << " found");
-							for(int i = 0; i < group_xml.size(); i++)
-							{
-								profiled_modes[mode][layout][start_pos].srv_msg.request.flip.push_back(flip_xml[i]);
-							}
-						}
-						else
-						{
-							for(int i = 0; i < group_xml.size(); i++)
-							{
-								profiled_modes[mode][layout][start_pos].srv_msg.request.flip.push_back(false);
-							}
+								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(false);
+								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.spline_groups.push_back(num_splines);
+								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(.16);
+								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.t_shift.push_back(0);
 						}
 					}
-					else
-					{
-							profiled_modes[mode][layout][start_pos].srv_msg.request.flip.push_back(false);
-							profiled_modes[mode][layout][start_pos].srv_msg.request.spline_groups.push_back(num_splines);
-							profiled_modes[mode][layout][start_pos].srv_msg.request.wait_before_group.push_back(.16);
-							profiled_modes[mode][layout][start_pos].srv_msg.request.t_shift.push_back(0);
-					}
+
+
+
 				}
-
-
+				
 				if(auto_data.getParam(identifier+ "_actions", actions_xml))
 				{
 					ROS_INFO_STREAM("Auto mode actions with identifier: " << identifier+"_actions" << " found");
 					const int num_actions = actions_xml.size();
-                    profiled_modes[mode][layout][start_pos].actions.resize(num_actions);
+					profiled_modes[mode][layout][start_pos].actions.resize(num_actions);
+					for(int i = 0; i < max_wait_for_action_num; i++)
+					{
+						profiled_modes[mode][layout][start_pos].wait_ids.push_back(-1);
+					}
+	
 					for(int num = 0; num<num_actions; num++) {
 						XmlRpc::XmlRpcValue &action = actions_xml[num];
 						XmlRpc::XmlRpcValue &time = action["time"];
-						XmlRpc::XmlRpcValue &actions = action["actions"];
-						//XmlRpc::XmlRpcValue &time = spline["time"];
-                        const double num_actions_now = actions.size();
-						for(int i = 0; i<num_actions_now; i++) {
-                            const std::string action_now = actions[num];
-                            //profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(action_now);
-                            if(action_now == "deploy_intake") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(deploy_intake);
-                            }
-                            else if(action_now == "undeploy_intake") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(undeploy_intake);
-                            }
-                            else if(action_now == "intake_cube") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(intake_cube);
-                            }
-                            else if(action_now == "exchange_cube") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(exchange_cube);
-                            }
-                            else if(action_now == "default_config") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(default_config);
-                            }
-                            else if(action_now == "intake_config") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(intake_config);
-                            }
-                            else if(action_now == "exchange_config") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(exchange_config);
-                            }
-                            else if(action_now == "switch_config") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(switch_config);
-                            }
-                            else if(action_now == "low_scale_config") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(low_scale_config);
-                            }
-                            else if(action_now == "mid_scale_config") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(mid_scale_config);
-                            }
-                            else if(action_now == "high_scale_config") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(high_scale_config);
-                            }
-                            else if(action_now == "over_back_config") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(over_back_config);
-                            }
-                            else if(action_now == "release_clamp") {
-                                profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(release_clamp);
-                            }
+						
+						
+						XmlRpc::XmlRpcValue &profile_wait_xml = action["profile_wait"];
+						int profile_wait = profile_wait_xml;
+						if(profile_wait != -1)
+						{				
+							profiled_modes[mode][layout][start_pos].wait_ids[profile_wait] =  num;
 						}
-                        const double time_now = time;
-                        profiled_modes[mode][layout][start_pos].actions[num].time = time_now;
+						//TODO: params
+						XmlRpc::XmlRpcValue &action_name = action["action"];
+							//profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(action_now);
+							if(action_name == "deploy_intake") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = deploy_intake;
+							}
+							else if(action_name == "undeploy_intake") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = undeploy_intake;
+							}
+							else if(action_name == "intake_cube") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = intake_cube;
+							}
+							else if(action_name == "exchange_cube") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = exchange_cube;
+							}
+							else if(action_name == "default_config") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = default_config;
+							}
+							else if(action_name == "intake_config") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = intake_config;
+							}
+							else if(action_name == "exchange_config") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = exchange_config;
+							}
+							else if(action_name == "switch_config") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = switch_config;
+							}
+							else if(action_name == "low_scale_config") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = low_scale_config;
+							}
+							else if(action_name == "mid_scale_config") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = mid_scale_config;
+							}
+							else if(action_name == "high_scale_config") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = high_scale_config;
+							}
+							else if(action_name == "over_back_config") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = over_back_config;
+							}
+							else if(action_name == "release_clamp") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = release_clamp;
+							}
+						const double time_now = time;
+						profiled_modes[mode][layout][start_pos].actions[num].time = time_now;
 						//const double t = time;
 						//profiled_modes[mode][layout][start_pos].times.push_back(t);
 					}
+			
+					
+
+			
+				}
+				else
+				{
+					
+					profiled_modes[mode][layout][start_pos].exists = false; 
+
 				}
 			}
 
@@ -557,24 +582,47 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 	return all_modes;
 }
 
-bool generateTrajectory(full_mode &trajectory) 
+bool generateTrajectory(std::vector<full_mode> &trajectory, const std::vector<int> &start_buffer_ids, const std::vector<bool> &generate) 
 {
-	//ROS_ERROR("DO WE fail here");
-	if(!trajectory.exists)
-	{
-		//TODO MAKE LIGHT GO RED ON DRIVERSTATION
-		ROS_ERROR("auto mode/layout/start selected which wasn't found in the yaml");
-		return false;
-	}
 
-	if (!point_gen.call(trajectory.srv_msg))
+	
+    talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
+    swerve_control_srv.request.wipe_all = false;
+    swerve_control_srv.request.buffer = true;
+    swerve_control_srv.request.run    = false;
+    swerve_control_srv.request.change_queue   = false; 
+   
+	talon_swerve_drive_controller::SwervePointSet temp_holder;
+ 
+
+
+	for(size_t k = 0; k < trajectory.size(); k++)
 	{
-		ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
-		return false;
+		if(!generate[k]) continue;
+		//ROS_ERROR("DO WE fail here");
+		if(!trajectory[k].exists)
+		{
+			//TODO MAKE LIGHT GO RED ON DRIVERSTATION
+			ROS_ERROR("auto mode/layout/start selected which wasn't found in the yaml");
+			return false;
+		}
+		for(size_t i = 0; i < trajectory[k].num_srv_msgs; i++)
+		{
+			if (!point_gen.call(trajectory[k].srv_msgs[i]))
+			{
+				ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
+				return false;
+			}
+			temp_holder.dt = trajectory[k].srv_msgs[i].response.dt;
+			temp_holder.points = trajectory[k].srv_msgs[i].response.points;
+			temp_holder.slot = i + start_buffer_ids[k];
+			swerve_control_srv.request.profiles.push_back(temp_holder);
+			
+		}
 	}
-	if (!bufferTrajectory(trajectory.srv_msg.response))
+    if (!swerve_control.call(swerve_control_srv))
 	{
-		ROS_ERROR("bufferTrajectory call failed in autoInterpreterClient generateTrajectory()");
+		ROS_ERROR("swerve_control call() failed in autoInterpreterClient generateTrajectory()");
 		return false;
 	}
 	return true;
@@ -607,31 +655,34 @@ std::string lower(const std::string &str) {
   
     return new_string;
 }
-
-bool bufferTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
+bool queue_profile(std::vector<int> queue)
 {
-    //ROS_INFO_STREAM("Buffer trajectory num_points: " << traj.points.size() << " dt: " << traj.dt);
+
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
-    swerve_control_srv.request.points = traj.points;
-    swerve_control_srv.request.dt = traj.dt;
-    swerve_control_srv.request.buffer = true;
+    swerve_control_srv.request.buffer = false;
     swerve_control_srv.request.run    = false;
-    swerve_control_srv.request.slot   = 0; //TODO fix
-    
+    swerve_control_srv.request.wipe_all = false;
+    swerve_control_srv.request.change_queue   = true; 
+    for(size_t i = 0; i < queue.size(); i++)
+	{
+		swerve_control_srv.request.new_queue.push_back(queue[i]); 
+    }
     if (!swerve_control.call(swerve_control_srv))
 	{
-		ROS_ERROR("swerve_control call() failed in autoInterpreterClient bufferTrajectory()");
+		ROS_ERROR("swerve_control call() failed in autoInterpreterClient queue_profile");
 		return false;
 	}
 	return true;
-}
 
-bool runTrajectory(void) {
+}
+bool runTrajectory(int slot) {
     //ROS_WARN("Run trajectory");
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.buffer = false;
     swerve_control_srv.request.run    = true;
-    swerve_control_srv.request.slot   = 0; //TODO fix
+    swerve_control_srv.request.wipe_all = false;
+    swerve_control_srv.request.change_queue   = false; 
+    swerve_control_srv.request.run_slot = slot;
     
     if (!swerve_control.call(swerve_control_srv))
 	{
@@ -657,6 +708,62 @@ void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
     autoMode.writeFromNonRT(AutoMode(msg->mode, msg->delays, msg->position));
 }
 
+bool check_action_completion(int action, bool &intake_server_action, bool &robot_server_action, bool &timed_out) {
+    switch(action) {
+        case 0:
+            return true;
+        case 1:
+            return true;
+        case 2:
+			if(intake_server_action)
+				return true;
+			robot_server_action = true;
+			if(ac->getState().isDone())
+			{
+				if(ac->getResult()->timed_out)
+				{
+					timed_out = true;
+					return false;
+				}	
+				else
+				{
+					return true;
+					
+				}
+			}
+			else
+			{
+				return false;
+			}
+		case 3:
+            return true;
+        case 4:
+            return true;
+        case 5:
+            return true;
+        case 6:
+            return true;
+        case 7:
+            return true;
+        case 8:
+            return true;
+        case 9:
+            return true;
+        case 10:
+            return true;
+        case 11:
+            return true;
+        case 12:
+            return true;
+        default:
+            ROS_ERROR("Action not in list of actions");
+            return false;
+
+    }
+
+
+
+}
 bool call_action(int action) {
     switch(action) {
         case 0:
@@ -731,8 +838,8 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     for(int num = 0; num<num_segments; num++) {
         ROS_WARN("auto segment entered");
         double segment_start_time = ros::Time::now().toSec();
-        double curr_time = ros::Time::now().toSec();
-        while(curr_time < segment_start_time + segments[num].duration) {
+        double curr_time = ros::Time::now().toSec(); //These two vars are the same..........
+        while(curr_time < segment_start_time + segments[num].duration) { //HOW DOES THIS LOOP EVER EXIT!!
             vel.linear.x = segments[num].x;        
             vel.linear.y = segments[num].y;        
 
@@ -747,7 +854,8 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     parkingConfig();
 }
 
-void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<action_struct> &actions) {
+void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const full_mode &auto_run_data, std::vector<int> start_of_buffer_ids)
+{
     //ROS_WARN("auto entered");
     exit_auto = false;
     ros::Rate r(10);
@@ -758,25 +866,76 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
         r.sleep(); 
     }
 
-    while(!exit_auto && !runTrajectory())
+
+    while(!exit_auto && !runTrajectory(start_of_buffer_ids[layout])) //There is a better way
         r.sleep();
 
-    start_time = ros::Time::now().toSec();
-    int num_actions = actions.size();
 
+    start_time = ros::Time::now().toSec();
+    int num_actions = auto_run_data.actions.size();
+	int num_profs = auto_run_data.srv_msgs.size();
     ros::Rate action_rate(20);
+	
+		
+	int queued = -1;
+	std::vector<bool> finished;
+	
+    for(int num = 0; num<num_actions; num++) 
+	{
+		finished.push_back(false);
+	}
     for(int num = 0; num<num_actions; num++) {
-        double action_start_time = ros::Time::now().toSec();
-        double curr_time = ros::Time::now().toSec();
-        while(curr_time < action_start_time + actions[num].time && !exit_auto) {
+
+		double action_start_time = ros::Time::now().toSec();
+        //double curr_time = ros::Time::now().toSec();  //These two vars are the same..........
+        while(/*curr_time*/ ros::Time::now().toSec() < action_start_time + auto_run_data.actions[num].time && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
+			bool intake_action_lib_later_write = false;
+			bool robot_action_lib_later_write = false;
+			bool timed_out = false;
+			for(int i = num-1; i > 0; i--)
+			{	
+				if(finished[i]) continue;
+				finished[i] = check_action_completion(auto_run_data.actions[i].action, intake_action_lib_later_write, robot_action_lib_later_write, timed_out);		
+				exit_auto = exit_auto || timed_out;	
+			}
+			for(int i = 0; i < num_profs - 1; i++)
+			{
+				if(i <= queued) continue;
+				if(auto_run_data.wait_ids[i] == -1 || finished[auto_run_data.wait_ids[i]])
+				{
+					queued = i;
+					if(i!=0)
+					{
+						std::vector<int> queue;
+						for(int k = 1; k < queued + 1; k++)
+						{
+							queue.push_back(start_of_buffer_ids[layout] + k); 	
+						}
+						if(!queue_profile(queue));
+						{			
+							queued -= 1;
+							break;
+							//If we fail try again
+						}	
+
+					}
+					else if(!runTrajectory(start_of_buffer_ids[layout]))
+					{
+						queued -= 1;
+						break;
+						//If we fail try again
+					}
+				}
+				else
+				{
+					break;
+				}
+			}
             action_rate.sleep();
-        }
-        int num_actions_now = actions[num].actions.size();
-        for(int i = 0; i<num_actions_now; i++) {
-            call_action(actions[num].actions[i]);
-        }
-        
-    }
+		}
+        call_action(auto_run_data.actions[num].action);
+		 
+	}
 }
 
 int main(int argc, char** argv) {
@@ -828,14 +987,29 @@ int main(int argc, char** argv) {
 		ROS_ERROR("Could not read default_up_or_down");
 
 
+	int num_profile_slots;
+	
+    if (!n_params_behaviors.getParam("num_profile_slots", num_profile_slots))
+		ROS_ERROR("Didn't read param num_profile_slots");
+
+	std::vector<int> start_of_buffer_ids; 
+	int iterator = floor(num_profile_slots / 4);
+	start_of_buffer_ids.push_back(0);
+	start_of_buffer_ids.push_back(iterator);
+	start_of_buffer_ids.push_back(iterator*2);
+	start_of_buffer_ids.push_back(iterator*3);
+
     int max_num_mode;
     int max_num_cmd_vel;
     int max_num_start;
+    int max_num_wait_for_action;
 
     if (!n_params_behaviors.getParam("max_num_mode", max_num_mode))
 		ROS_ERROR("Didn't read param max_num_mode in autoInterpreterClient");
     if (!n_params_behaviors.getParam("max_num_start", max_num_start))
 		ROS_ERROR("Didn't read param max_num_start in autoInterpreterClient");
+    if (!n_params_behaviors.getParam("max_num_wait_for_action", max_num_wait_for_action))
+		ROS_ERROR("Didn't read param max_num_wait_for_action in autoInterpreterClient");
     
     if (!n_params_cmd_vel.getParam("max_num_mode", max_num_cmd_vel))
 		ROS_ERROR("Didn't read cmd_vel param max_num_mode in autoInterpreterClient");
@@ -846,7 +1020,7 @@ int main(int argc, char** argv) {
     ROS_ERROR("Here");
     //ros::Duration(20).sleep();
     ROS_ERROR("Here1");
-	Modes all_modes = load_all_trajectories(max_num_mode, max_num_cmd_vel, max_num_start, n_params_behaviors, n_params_cmd_vel);
+	Modes all_modes = load_all_trajectories(max_num_mode, max_num_cmd_vel, max_num_start, iterator, n_params_behaviors, n_params_cmd_vel);
     ROS_ERROR("Here2");
     ROS_WARN("Alls Here");
     mode_list profiled_modes = all_modes.profiled_modes;
@@ -898,6 +1072,10 @@ int main(int argc, char** argv) {
     ros::Rate r(10);
 
     ROS_ERROR("Here7");
+	std::vector<bool> generate_for_this;
+	generate_for_this.resize(4);
+	std::vector<bool> mode_buffered;
+	mode_buffered.resize(4);
     while(ros::ok()) {
         ROS_WARN("running");
         double auto_start_time = DBL_MAX;
@@ -909,8 +1087,9 @@ int main(int argc, char** argv) {
         int auto_mode = -1;
         int layout = 0;
         bool in_auto = false;
-        bool mode_buffered = false;
+
         bool end_auto = false;
+        bool run_regardless = false;
         bool in_teleop = false;
         while(!in_teleop && !end_auto) {
             ////ROS_ERROR("In auto loop");
@@ -918,54 +1097,74 @@ int main(int argc, char** argv) {
             MatchData match_data = *(matchData.readFromRT());
             AutoMode auto_mode_data = *(autoMode.readFromRT());
 
+
             if(!in_auto) { //accept changes to chosen auto_modes until we receive match data or auto starts
+                start_pos = auto_mode_data.start_pos_;
                 ////ROS_INFO("No match data and not in auto");
                 //loop through auto_mode data 
                 //generate trajectories for all changed modes
                 //ROS_ERROR_STREAM("1");
-                for(int i = 0; i<4; i++) {
+                bool any_change = false;
+				std::vector<full_mode> out_to_generate;
+				
+				for(int i = 0; i<4; i++) {
                     //ROS_ERROR_STREAM("2");
+					out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_]);
                     if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
                         //ROS_ERROR_STREAM("3");
-                        if(generateTrajectory(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_])) {
-                            //ROS_ERROR_STREAM("4");
-                            generated_vect[i] = true;
-                            auto_mode_vect[i] = auto_mode_data.modes_[i];
-                            delays_vect[i] = auto_mode_data.delays_[i];
-                            start_pos = auto_mode_data.start_pos_;
-                            //ROS_ERROR_STREAM("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
-                        }
-                        else {
-                            //ROS_ERROR_STREAM("5");
-                            auto_mode_vect[i] = -1;
-                            start_pos = -1;
-                            generated_vect[i] = false;
-                            //ROS_ERROR_STREAM("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
-                        }
+
+						generate_for_this[i] = true;	
+						any_change = true;
                     }
                     else if (auto_mode_data.modes_[i] <= num_cmd_vel_modes-1 && (auto_mode_data.modes_[i] >= 0) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
-                        ROS_ERROR_STREAM("6");
+						generate_for_this[i] = false;	
+                        //ROS_ERROR_STREAM("6");
                         if(generateTrajectory(cmd_vel_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_])) {
-                            ROS_ERROR_STREAM("7");
+							mode_buffered[i] = true;
+                            //ROS_ERROR_STREAM("7");
                             auto_mode_vect[i] = auto_mode_data.modes_[i];
                             delays_vect[i] = auto_mode_data.delays_[i];
-                            start_pos = auto_mode_data.start_pos_;
+
                             generated_vect[i] = true;
                             //ROS_ERROR_STREAM("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                         }
                         else {
-                            ROS_ERROR_STREAM("8");
-                            auto_mode_vect[i] = -1;
-                            start_pos = -1;
+							mode_buffered[i] = false;
+                            auto_mode_vect[i] = 0;
+                            delays_vect[i] = 0;
                             generated_vect[i] = false;
                             //ROS_ERROR_STREAM("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                         }
                     }
                 }
+				
+				if(generateTrajectory(out_to_generate, start_of_buffer_ids, generate_for_this)) {
+					for(int i = 0; i<4; i++) {
+						if(!generate_for_this[i]) continue;
+						//ROS_ERROR_STREAM("4");
+						mode_buffered[i] = true;
+						generated_vect[i] = true;
+						auto_mode_vect[i] = auto_mode_data.modes_[i];
+						delays_vect[i] = auto_mode_data.delays_[i];
+						//ROS_ERROR_STREAM("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+					}
+				}
+				else {
+					for(int i = 0; i<4; i++) {
+						if(!generate_for_this[i]) continue;
+						mode_buffered[i] = false;
+						//ROS_ERROR_STREAM("5");
+						auto_mode_vect[i] = 0;
+						delays_vect[i] = 0;
+						//start_pos = -1;
+						generated_vect[i] = false;
+						//ROS_ERROR_STREAM("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+					}
+				}
             }
 
             if(in_auto && match_data.isAutonomous_ == false) {
@@ -999,14 +1198,14 @@ int main(int argc, char** argv) {
                 ////ROS_INFO("No alliance data");
                 match_data_received = false;
             }
-            if(!match_data_received && ros::Time::now().toSec() > auto_start_time + wait_for_match_data) { //if match data isn't found after 2 seconds of auto starting run default auto
+            if((!match_data_received || !mode_buffered[layout] )&& ros::Time::now().toSec() > auto_start_time + wait_for_match_data) { //if match data isn't found after 2 seconds of auto or nothing is buffered starting run default auto
                 //ROS_ERROR_STREAM("5");
                 //ROS_INFO("In first two seconds of auto with no match data");
                 layout = 0;
                 auto_mode_vect[layout] = 1; //default auto: cross baseline forward
                 generated_vect[layout] = true;
                 match_data_received = true;
-                mode_buffered = true;
+				run_regardless = true;
             }
             if(!in_auto) { //check for auto to start and set a start time
                 //ROS_ERROR_STREAM("6");
@@ -1027,33 +1226,18 @@ int main(int argc, char** argv) {
                 }
             }
 
-            if(match_data_received && !mode_buffered) { //if we have match data and haven't buffered yet, buffer
-                //ROS_ERROR_STREAM("8");
-                //ROS_INFO("Match data received no auto buffered yet");
-                if(generated_vect[layout]) {
-                    if(auto_mode_vect[layout] > num_cmd_vel_modes-1) {
-                        if(bufferTrajectory(profiled_modes[auto_mode_vect[layout]-num_cmd_vel_modes][layout][start_pos].srv_msg.response)) {
-                            //ROS_ERROR_STREAM("Buffering Profiled auto mode");
-                            mode_buffered = true;
-                        }
-                    }
-                    else if(auto_mode_vect[layout] > 0) {
-                        //ROS_ERROR_STREAM("Fake buffering cmd_vel auto mode");
-                        mode_buffered = true;
-                    }
-                }
-                else {
-                    //ROS_ERROR_STREAM("No path generated when match_data received, Layout: [%d]", layout);
-                }
-            }
 
-            if(in_auto && mode_buffered) { //if in auto with mode buffered run it
+            if(in_auto && mode_buffered[layout] && match_data_received) { //if in auto with mode buffered run it
                 //ROS_ERROR_STREAM("9");
                 //ROS_INFO("Match data received and auto buffered");
                 if(auto_mode_vect[layout] > num_cmd_vel_modes-1) {
                     run_auto(auto_mode_vect[layout], layout, start_pos, 
-                             delays_vect[layout], profiled_modes[auto_mode_vect[layout]-num_cmd_vel_modes][layout][start_pos].actions);
+                             delays_vect[layout], profiled_modes[auto_mode_vect[layout]-num_cmd_vel_modes][layout][start_pos], start_of_buffer_ids);
                 }
+
+
+
+
                 else if(auto_mode_vect[layout] >= 0) {
                     run_auto(auto_mode_vect[layout], layout, start_pos, 
                              delays_vect[layout], cmd_vel_modes[auto_mode_vect[layout]][layout][start_pos].segments);
