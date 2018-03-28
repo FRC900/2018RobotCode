@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   message_generation
   trajectory_msgs
+  talon_swerve_drive_controller
 )
 
 ## System dependencies are found with CMake's conventions

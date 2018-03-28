@@ -1201,10 +1201,12 @@ int main(int argc, char **argv)
 	if (!n_params.getParam("exchange_delay", exchange_delay))
 		ROS_ERROR("Could not read exchange_delay");
 
+	disableArmLimits = false;
+	navX_angle = M_PI / 2;
+	matchTimeRemaining = std::numeric_limits<double>::max();
+
 	ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
-
 	ac_intake = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
-
 	ac_lift = std::make_shared<actionlib::SimpleActionClient<behaviors::LiftAction>> ("auto_interpreter_server_lift", true);
 
 	JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
@@ -1225,16 +1227,11 @@ int main(int argc, char **argv)
 
 	ros::Subscriber joystick_sub  = n.subscribe("joystick_states", 1, &evaluateCommands);
 	ros::Subscriber match_data    = n.subscribe("match_data", 1, &match_data_callback);
-
 	ros::Subscriber navX_heading  = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
 	ros::Subscriber elevator_odom = n.subscribe("/frcrobot/elevator_controller/odom", 1, &OdomCallback);
 	ros::Subscriber elevator_cmd  = n.subscribe("/frcrobot/elevator_controller/return_cmd_pos", 1, &elevCmdCallback);
 	ros::Subscriber cube_state    = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
 	ros::Subscriber joint_states_sub = n.subscribe("/frcrobot/joint_states", 1, &jointStateCallback);
-
-	disableArmLimits = false;
-	navX_angle = M_PI / 2;
-	matchTimeRemaining = std::numeric_limits<double>::max();
 
 	ROS_WARN("joy_init");
 

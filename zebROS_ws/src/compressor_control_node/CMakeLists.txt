@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   ros_control_boilerplate
 )
-find_package(Eigen REQUIRED)
 
 #add_message_files (
 #  FILES
@@ -21,13 +20,9 @@ find_package(Eigen REQUIRED)
 #)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
-find_package(Gflags REQUIRED)
-find_package(Eigen3 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
-
 
 catkin_package(
   INCLUDE_DIRS
@@ -38,22 +33,17 @@ catkin_package(
     std_msgs
     ros_control_boilerplate
   LIBRARIES
-  DEPENDS Eigen
+  DEPENDS 
 )
 
 ###########
 ## Build ##
 ###########
 
-include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
-
 include_directories(
   include/
   ${catkin_INCLUDE_DIRS}
-  ${Gflags_INCLUDE_DIRS}
-  ${Eigen_INCLUDE_DIRS}
 )
-
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above. This is needed to force

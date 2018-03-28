@@ -14,13 +14,13 @@ swerve_drive_controller:
     max_brake_accel: 4.0 #4
     ang_accel_conv: 0.741176471
     
-    f_s: .12
-    f_a: 0.0 #0.005 #use torque curve instead? TODO: FIX
+    f_s: 0.12
+    f_a: 0.0 #0.0 #0.005 #use torque curve instead? TODO: FIX
     f_v: 0.00315528
 
     #TODO: FIX BELOW!!!!	
-    f_s_s: .05
-    f_s_v: .03
+    f_s_s: 0.05
+    f_s_v: 0.03
    
     #consider adding stuff for the steering wheels too 
     mass: 70
@@ -97,7 +97,7 @@ swerve_drive_controller:
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
-            - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
+            - {p: 6.2, i: 0.026, d: 45.0, f: 0.47, i_zone: 800}
         invert_output: true
         sensor_phase: true
         peak_output_forward: 1.0
@@ -113,7 +113,7 @@ swerve_drive_controller:
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
-            - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
+            - {p: 6.2, i: 0.026, d: 45.0, f: 0.47, i_zone: 800}
         invert_output: true
         sensor_phase: true
         peak_output_forward: 1.0
@@ -128,7 +128,7 @@ swerve_drive_controller:
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
-            - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
+            - {p: 6.2, i: 0.026, d: 45.0, f: 0.47, i_zone: 800}
         invert_output: true
         sensor_phase: true
         peak_output_forward: 1.0
@@ -143,7 +143,7 @@ swerve_drive_controller:
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
-            - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500}
+            - {p: 6.2, i: 0.026, d: 45.0, f: 0.47, i_zone: 800}
         invert_output: true
         sensor_phase: true
         peak_output_forward: 1.0

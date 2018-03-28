@@ -559,7 +559,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 
 bool generateTrajectory(full_mode &trajectory) 
 {
-
+	//ROS_ERROR("DO WE fail here");
 	if(!trajectory.exists)
 	{
 		//TODO MAKE LIGHT GO RED ON DRIVERSTATION
@@ -582,7 +582,7 @@ bool generateTrajectory(full_mode &trajectory)
 
 bool generateTrajectory(cmd_vel_mode &segments) 
 {
-    ROS_ERROR_STREAM("In generate");
+    //ROS_ERROR_STREAM("In generate");
 	if(!segments.exists)
 	{
 		//TODO MAKE LIGHT GO RED ON DRIVERSTATION
@@ -827,7 +827,6 @@ int main(int argc, char** argv) {
 	if (!n_params.getParam("default_up_or_down", default_up_or_down))
 		ROS_ERROR("Could not read default_up_or_down");
 
-
     int max_num_mode;
     int max_num_cmd_vel;
     int max_num_start;
@@ -843,21 +842,27 @@ int main(int argc, char** argv) {
 		ROS_ERROR("Didn't read param num_cmd_vel_modes in autoInterpreterClient");
 	// Load trajectories before callbacks which use them can
 	// start
-    ROS_WARN("Here");
+    ROS_ERROR("Here");
+    //ros::Duration(20).sleep();
+    ROS_ERROR("Here1");
 	Modes all_modes = load_all_trajectories(max_num_mode, max_num_cmd_vel, max_num_start, n_params_behaviors, n_params_cmd_vel);
+    ROS_ERROR("Here2");
     ROS_WARN("Alls Here");
     mode_list profiled_modes = all_modes.profiled_modes;
     cmd_vel_list cmd_vel_modes = all_modes.cmd_vel_modes;
 
+    ROS_ERROR("Here3");
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
     ROS_WARN("here 567890");
 	ac->waitForServer(); 
+    ROS_ERROR("Here4");
 
 	std::map<std::string, std::string> service_connection_header;
 	service_connection_header["tcp_nodelay"] = "1";
 	point_gen = n.serviceClient<swerve_point_generator::FullGenCoefs>("/point_gen/command", false, service_connection_header);
 	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile", false, service_connection_header);
 
+    ROS_ERROR("Here5");
     IntakeService = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
     ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
     ClampService = n.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
@@ -869,11 +874,13 @@ int main(int argc, char** argv) {
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
 
 	// Kick off 2 threads to process messages
+    ROS_ERROR("Here6");
 	ros::AsyncSpinner spinner(2);
 	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    ros::Duration(20).sleep();
+    //ros::Duration(5).sleep();
+
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
@@ -881,7 +888,7 @@ int main(int argc, char** argv) {
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
-    
+	//return 1; 
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
     //generateTrajectory(profiled_modes[3][3][2]);
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
@@ -889,6 +896,7 @@ int main(int argc, char** argv) {
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
 
+    ROS_ERROR("Here7");
     while(ros::ok()) {
         ROS_WARN("running");
         double auto_start_time = DBL_MAX;
@@ -903,7 +911,6 @@ int main(int argc, char** argv) {
         bool mode_buffered = false;
         bool end_auto = false;
         bool in_teleop = false;
-        //ROS_ERROR("Start of auto loop");
         while(!in_teleop && !end_auto) {
             ////ROS_ERROR("In auto loop");
 
@@ -914,15 +921,15 @@ int main(int argc, char** argv) {
                 ////ROS_INFO("No match data and not in auto");
                 //loop through auto_mode data 
                 //generate trajectories for all changed modes
-                ROS_ERROR_STREAM("1");
+                //ROS_ERROR_STREAM("1");
                 for(int i = 0; i<4; i++) {
-                    ROS_ERROR_STREAM("2");
+                    //ROS_ERROR_STREAM("2");
                     if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
-                        ROS_ERROR_STREAM("3");
+                        //ROS_ERROR_STREAM("3");
                         if(generateTrajectory(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_])) {
-                            ROS_ERROR_STREAM("4");
+                            //ROS_ERROR_STREAM("4");
                             generated_vect[i] = true;
                             auto_mode_vect[i] = auto_mode_data.modes_[i];
                             delays_vect[i] = auto_mode_data.delays_[i];
@@ -930,7 +937,7 @@ int main(int argc, char** argv) {
                             //ROS_ERROR_STREAM("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                         }
                         else {
-                            ROS_ERROR_STREAM("5");
+                            //ROS_ERROR_STREAM("5");
                             auto_mode_vect[i] = -1;
                             start_pos = -1;
                             generated_vect[i] = false;
@@ -961,12 +968,12 @@ int main(int argc, char** argv) {
             }
 
             if(in_auto && match_data.isAutonomous_ == false) {
-                ROS_ERROR_STREAM("2");
+                //ROS_ERROR_STREAM("2");
                 //ROS_ERROR_STREAM("Leaving Autonomous to teleop");
                 in_teleop = true;
             }
             if (match_data.alliance_data_ != "") {
-                ROS_ERROR_STREAM("3");
+                //ROS_ERROR_STREAM("3");
                 //ROS_INFO("Receiving alliance data");
                 match_data_received = true;
                 if(lower(match_data.alliance_data_)=="rlr") {
@@ -987,12 +994,12 @@ int main(int argc, char** argv) {
                 }
             }
             else {
-                ROS_ERROR_STREAM("4");
+                //ROS_ERROR_STREAM("4");
                 ////ROS_INFO("No alliance data");
                 match_data_received = false;
             }
             if(!match_data_received && ros::Time::now().toSec() > auto_start_time + wait_for_match_data) { //if match data isn't found after 2 seconds of auto starting run default auto
-                ROS_ERROR_STREAM("5");
+                //ROS_ERROR_STREAM("5");
                 //ROS_INFO("In first two seconds of auto with no match data");
                 layout = 0;
                 auto_mode_vect[layout] = 1; //default auto: cross baseline forward
@@ -1001,7 +1008,7 @@ int main(int argc, char** argv) {
                 mode_buffered = true;
             }
             if(!in_auto) { //check for auto to start and set a start time
-                ROS_ERROR_STREAM("6");
+                //ROS_ERROR_STREAM("6");
                 ////ROS_INFO("Not in auto yet");
                 if(match_data.isAutonomous_ && match_data.isEnabled_) {
                     //ROS_ERROR_STREAM("Entering Auto");
@@ -1010,7 +1017,7 @@ int main(int argc, char** argv) {
                 }
             }
             if(in_auto) {
-                ROS_ERROR_STREAM("7");
+                //ROS_ERROR_STREAM("7");
                 //ROS_INFO("In auto");
                 if(!match_data.isAutonomous_ || !match_data.isEnabled_) {
                     //ROS_ERROR_STREAM("Disabled in Auto");
@@ -1020,7 +1027,7 @@ int main(int argc, char** argv) {
             }
 
             if(match_data_received && !mode_buffered) { //if we have match data and haven't buffered yet, buffer
-                ROS_ERROR_STREAM("8");
+                //ROS_ERROR_STREAM("8");
                 //ROS_INFO("Match data received no auto buffered yet");
                 if(generated_vect[layout]) {
                     if(auto_mode_vect[layout] > num_cmd_vel_modes-1) {
@@ -1040,7 +1047,7 @@ int main(int argc, char** argv) {
             }
 
             if(in_auto && mode_buffered) { //if in auto with mode buffered run it
-                ROS_ERROR_STREAM("9");
+                //ROS_ERROR_STREAM("9");
                 //ROS_INFO("Match data received and auto buffered");
                 if(auto_mode_vect[layout] > num_cmd_vel_modes-1) {
                     run_auto(auto_mode_vect[layout], layout, start_pos, 
@@ -1071,7 +1078,8 @@ int main(int argc, char** argv) {
                 end_auto = false;
                 in_teleop = !match_data.isAutonomous_ && !match_data.isEnabled_;
             }
-			slow.sleep(); //I think you want this.....
+			else
+				slow.sleep(); //I think you want this.....
         }
         while(in_teleop) {
             //ROS_INFO("Exited auto into teleop");
@@ -1079,7 +1087,8 @@ int main(int argc, char** argv) {
             if(!match_data.isEnabled_ || match_data.isAutonomous_) {
                 in_teleop = false;
             }
-            slow.sleep(); 
+			else
+				slow.sleep(); 
         }
     }
     return 0;
