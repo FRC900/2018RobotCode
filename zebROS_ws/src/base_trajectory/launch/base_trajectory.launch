@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+	<!-- GDB functionality -->
+	<arg name="debug" default="false" />
+	<arg unless="$(arg debug)" name="launch_prefix" value="" />
+	<arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+	<arg name="hw_or_sim" default="hw" />
+
+	<!-- Load example URDF -->
+	<group ns="base_trajectory">
+		<param name="robot_description" command="$(find xacro)/xacro --inorder '$(find base_trajectory)/urdf/base_trajectory.xacro'" />
+
+
+		<node name="base_trajectory_node" pkg="base_trajectory" type="base_trajectory_node"
+			output="screen" launch-prefix="$(arg launch_prefix)">
+		</node>
+		<node name="driver_node" pkg="base_trajectory" type="driver_node"
+			output="screen" launch-prefix="$(arg launch_prefix)">
+		</node>
+	</group>
+</launch>
