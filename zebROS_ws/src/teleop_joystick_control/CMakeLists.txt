@@ -13,7 +13,6 @@ find_package(catkin REQUIRED COMPONENTS
   elevator_controller
   std_srvs
 )
-find_package(Eigen REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Eigen3 REQUIRED)
@@ -28,7 +27,7 @@ catkin_package(
     control_msgs
     ros_control_boilerplate
   LIBRARIES
-  DEPENDS Eigen
+  DEPENDS
 )
 
 ###########
@@ -40,22 +39,7 @@ include_directories(SYSTEM ${EIGEN3_INCLUDE_DIRS})
 include_directories(
   include/
   ${catkin_INCLUDE_DIRS}
-  ${Eigen_INCLUDE_DIRS}
-)
-
-add_executable(joystickSubscriber src/joystickSubscriber.cpp)
-set_target_properties(joystickSubscriber PROPERTIES OUTPUT_NAME
-joystickSubscriber PREFIX "")
-target_link_libraries(joystickSubscriber
-  ${catkin_LIBRARIES}
-)
-## Add cmake target dependencies of the executable
-## same as for the library above. This is needed to force
-## talon controller messages to be built before the
-## talon controller code tries to use them
-add_dependencies(joystickSubscriber
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
+  ${Eigen3_INCLUDE_DIRS}
 )
 
 add_executable(teleopJoystickCommands src/teleopJoystickCommands.cpp)
@@ -87,7 +71,7 @@ add_dependencies(debug_cmd_vel ${${PROJECT_NAME}_EXPORTED_TARGETS}
 
 # Install ------------------------------------------------------------
 #Install header files
-install(TARGETS joystickSubscriber teleopJoystickCommands debug_cmd_vel
+install(TARGETS teleopJoystickCommands debug_cmd_vel
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
