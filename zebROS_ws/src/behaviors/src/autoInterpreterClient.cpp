@@ -827,7 +827,6 @@ int main(int argc, char** argv) {
 	if (!n_params.getParam("default_up_or_down", default_up_or_down))
 		ROS_ERROR("Could not read default_up_or_down");
 
-
     int max_num_mode;
     int max_num_cmd_vel;
     int max_num_start;
@@ -1079,7 +1078,8 @@ int main(int argc, char** argv) {
                 end_auto = false;
                 in_teleop = !match_data.isAutonomous_ && !match_data.isEnabled_;
             }
-			slow.sleep(); //I think you want this.....
+			else
+				slow.sleep(); //I think you want this.....
         }
         while(in_teleop) {
             //ROS_INFO("Exited auto into teleop");
@@ -1087,7 +1087,8 @@ int main(int argc, char** argv) {
             if(!match_data.isEnabled_ || match_data.isAutonomous_) {
                 in_teleop = false;
             }
-            slow.sleep(); 
+			else
+				slow.sleep(); 
         }
     }
     return 0;
