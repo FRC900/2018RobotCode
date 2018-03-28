@@ -77,16 +77,26 @@ rm -rf gflags*
 #cd ~/wpilib/common/current/lib/linux/athena/shared
 #scp *.so *.so.3.2 <target>:wpilib
 
-echo \#!/bin/bash > setupClock
-echo NAME="Setup Clock" >> setupClock
-echo USER=admin >> setupClock
-echo depmod echo bq32000 0x68 | tee /sys/class/i2c-adapter/i2c-2/new_device >> setupClock
-echo i2cdetect -y 2 >> setupClock
-echo hwclock.util-linux --hctosys >> setupClock
+echo << EOF > setupClock
+#!/bin/bash
+NAME="Setup Clock"
+USER=admin
+depmod
+echo bq32000 0x68 | tee /sys/class/i2c-adapter/i2c-2/new_device
+retries=0
+hwclock.util-linux --utc --hctosys
+while [[ $? -ne 0 && $retries < 5 ]]; do
+    sleep 5
+    retries+=1
+    hwclock.util-linux --utc --hctosys
+done
+EOF
 
 chmod +x setupClock
 cp setupClock /etc/init.d
+ln -s /etc/init.d/setupClock /etc/init.d/hwclock.sh
 /usr/sbin/update-rc.d -f setupClock defaults
+/usr/sbin/update-rc.d -f hwclock.sh defaults
 
 #*******************************************************
 # STOP HERE
