@@ -880,16 +880,16 @@ int main(int argc, char** argv) {
 	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    ros::Duration(5).sleep();
+    //ros::Duration(5).sleep();
 
     ROS_WARN("post sleep");
     
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    generateTrajectory(profiled_modes[3][3][2]);
+    //generateTrajectory(profiled_modes[3][3][2]);
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
-	return 1; 
+	//return 1; 
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
     //generateTrajectory(profiled_modes[3][3][2]);
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
