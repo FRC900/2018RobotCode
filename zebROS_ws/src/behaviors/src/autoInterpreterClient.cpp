@@ -606,6 +606,8 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
     swerve_control_srv.request.run    = false;
     swerve_control_srv.request.change_queue   = false; 
 
+	ROS_WARN("Generate Trajector");
+
 	for(size_t k = 0; k < trajectory.size(); k++)
 	{
 		if(!generate[k]) continue;
@@ -1061,22 +1063,24 @@ int main(int argc, char** argv) {
 	//spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    ros::Duration(4).sleep();
+    //ros::Duration(4).sleep();
 
     ROS_WARN("post sleep");
    
+	/*
+
 	std::vector<bool> test_modes = {true, false, false, false};
 	std::vector<int> test_modes_slot = {0, 1, 2, 3};
 	std::vector<FullMode> test_mode_gen;
-	test_mode_gen.push_back(profiled_modes[6][1][1]);
-	test_mode_gen.push_back(profiled_modes[7][1][2]);
-	test_mode_gen.push_back(profiled_modes[7][2][2]);
-	test_mode_gen.push_back(profiled_modes[7][3][2]);
+	test_mode_gen.push_back(profiled_modes[0][0][0]);
+	test_mode_gen.push_back(profiled_modes[0][1][0]);
+	test_mode_gen.push_back(profiled_modes[0][2][0]);
+	test_mode_gen.push_back(profiled_modes[0][3][0]);
 
-
+	*/
  
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    generateTrajectory(test_mode_gen, test_modes_slot = {0, 1, 2, 3}, test_modes = {true, true, true, true});
+    //generateTrajectory(test_mode_gen, test_modes_slot = {0, 1, 2, 3}, test_modes = {true, true, true, true});
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
@@ -1085,7 +1089,7 @@ int main(int argc, char** argv) {
     //generateTrajectory(profiled_modes[3][3][2]);
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
 
-	return 1;
+	//return 1;
 
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
@@ -1124,7 +1128,7 @@ int main(int argc, char** argv) {
                 //ROS_ERROR_STREAM("1");
                 //bool any_change = false;
 				std::vector<FullMode> out_to_generate;
-				
+				bool generate = false;	
 				for(int i = 0; i<4; i++) {
                     //ROS_ERROR_STREAM("2");
                     if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
@@ -1134,6 +1138,7 @@ int main(int argc, char** argv) {
 
                         out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_]);
 						generate_for_this[i] = true;	
+						generate = true;
 						//any_change = true;
                     }
                     else if (auto_mode_data.modes_[i] <= num_cmd_vel_modes-1 && (auto_mode_data.modes_[i] >= 0) &&
@@ -1163,28 +1168,30 @@ int main(int argc, char** argv) {
                         out_to_generate.push_back(empty_full_mode);
                     }
                 }
-				
-				if(generateTrajectory(out_to_generate, start_of_buffer_ids, generate_for_this)) {
-					for(int i = 0; i<4; i++) {
-						if(!generate_for_this[i]) continue;
-						//ROS_ERROR_STREAM("4");
-						mode_buffered[i] = true;
-						//generated_vect[i] = true;
-						auto_mode_vect[i] = auto_mode_data.modes_[i];
-						delays_vect[i] = auto_mode_data.delays_[i];
-						//ROS_ERROR_STREAM("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+				if(generate)
+				{	
+					if(generateTrajectory(out_to_generate, start_of_buffer_ids, generate_for_this)) {
+						for(int i = 0; i<4; i++) {
+							if(!generate_for_this[i]) continue;
+							//ROS_ERROR_STREAM("4");
+							mode_buffered[i] = true;
+							//generated_vect[i] = true;
+							auto_mode_vect[i] = auto_mode_data.modes_[i];
+							delays_vect[i] = auto_mode_data.delays_[i];
+							//ROS_ERROR_STREAM("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+						}
 					}
-				}
-				else {
-					for(int i = 0; i<4; i++) {
-						if(!generate_for_this[i]) continue;
-						mode_buffered[i] = false;
-						//ROS_ERROR_STREAM("5");
-						auto_mode_vect[i] = 0;
-						delays_vect[i] = 0;
-						//start_pos = -1;
-						//generated_vect[i] = false;
-						//ROS_ERROR_STREAM("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+					else {
+						for(int i = 0; i<4; i++) {
+							if(!generate_for_this[i]) continue;
+							mode_buffered[i] = false;
+							//ROS_ERROR_STREAM("5");
+							auto_mode_vect[i] = 0;
+							delays_vect[i] = 0;
+							//start_pos = -1;
+							//generated_vect[i] = false;
+							//ROS_ERROR_STREAM("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+						}
 					}
 				}
             }
