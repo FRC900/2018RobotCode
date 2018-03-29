@@ -151,20 +151,20 @@ bool customConfig(action_setpoint_struct) {
 	return true;
 }
 
-bool intakeCube(void) {
+bool intakeCube(action_setpoint_struct action_setpoint) {
 	behaviors::RobotGoal goal;
 
     ROS_WARN("intaking cube");
     goal.IntakeCube = true;
     goal.MoveToIntakeConfig = false;
-    goal.x = default_x;
-    goal.y = default_y;
-    goal.up_or_down = default_up_or_down;
+    goal.x = action_setpoint.x;
+    goal.y = action_setpoint.y;
+    goal.up_or_down = action_setpoint.up_or_down;
     goal.override_pos_limits = false; //TODO config these
-    goal.dist_tolerance = .5; //TODO config these
-    goal.x_tolerance = .5; //TODO config these
-    goal.y_tolerance = .5; //TODO config these
-    goal.time_out = 3; //TODO config these
+    goal.dist_tolerance = .1; //TODO config these
+    goal.x_tolerance = .1; //TODO config these
+    goal.y_tolerance = .1; //TODO config these
+    goal.time_out = 15; //TODO config these
 
     ac->sendGoal(goal);
     
@@ -746,7 +746,7 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
         case 1:
             return true;
         case 2:
-			if(intake_server_action)
+			if(robot_server_action)
 				return true;
 			robot_server_action = true;
 			if(ac->getState().isDone())
@@ -806,7 +806,7 @@ bool call_action(int action, action_setpoint_struct action_setpoint) {
             undeployIntake();
             break;
         case 2:
-            intakeCube();
+            intakeCube(action_setpoint);
             break;
         case 3:
             intakeNoArm();
@@ -1064,8 +1064,10 @@ int main(int argc, char** argv) {
 
     ROS_ERROR("Here3");
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
+    ac_intake = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
     ROS_WARN("here 567890");
 	ac->waitForServer(); 
+	ac_intake->waitForServer(); 
     ROS_ERROR("Here4");
 
 	std::map<std::string, std::string> service_connection_header;
