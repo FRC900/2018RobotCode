@@ -401,7 +401,7 @@ class arm_limits
 			{	
 				cmd.x(-.00002 + arm_length_);
 			}
-			else if(cmd.x() < cut_off_x_line_ + .00002 && cmd.y() < safe_to_go_back_y_ + arm_length_ - .03)
+			else if(cmd.x() < cut_off_x_line_ + .00002 && cmd.y() < safe_to_go_back_y_ + arm_length_ - .1)
 			{	
 				cmd.x(cut_off_x_line_ +   .00002);
 			}
@@ -417,7 +417,7 @@ class arm_limits
 			{	
 				cur_pos.x(-.00002 + arm_length_);
 			}
-			else if(cur_pos.x() < cut_off_x_line_ +  .00002 && cur_pos.y() < safe_to_go_back_y_ + arm_length_ - .03)
+			else if(cur_pos.x() < cut_off_x_line_ +  .00002 && cur_pos.y() < safe_to_go_back_y_ + arm_length_ - .1)
 			{	
 				cur_pos.x(cut_off_x_line_ +   .00002);
 			}
@@ -531,7 +531,7 @@ class arm_limits
 				}
 			}
 			bool recalc_due_to_lim = false; 	
-			if(cmd.x() < cut_off_x_line_ - .001   && cur_lift_height < safe_to_go_back_y_)
+			if(cmd.x() < cut_off_x_line_ - .001   && cur_lift_height < safe_to_go_back_y_ - .1)
 			{
 				//ROS_ERROR("Here22");
 				cmd.x(cut_off_x_line_);
@@ -540,7 +540,7 @@ class arm_limits
 				//ROS_INFO_STREAM(cmd.y());
 				//ROS_INFO_STREAM(isolated_lift_delta_y + cur_lift_height);
 			}
-			else if(cmd.x() - cut_off_x_line_ > -.001 && cur_pos.x() < cut_off_x_line_ - .001 && cur_lift_height +isolated_lift_delta_y < safe_to_go_back_y_)
+			else if(cmd.x() - cut_off_x_line_ > -.001 && cur_pos.x() < cut_off_x_line_ - .001 && cur_lift_height +isolated_lift_delta_y < safe_to_go_back_y_ - .1)
 			{	
 				recalc_due_to_lim = true;
 				cmd.y(safe_to_go_back_y_+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	

@@ -1066,7 +1066,7 @@ int main(int argc, char** argv) {
 	std::vector<bool> test_modes = {true, false, false, false};
 	std::vector<int> test_modes_slot = {0, 1, 2, 3};
 	std::vector<full_mode> test_mode_gen;
-	test_mode_gen.push_back(profiled_modes[7][0][2]);
+	test_mode_gen.push_back(profiled_modes[6][1][1]);
 	test_mode_gen.push_back(profiled_modes[7][1][2]);
 	test_mode_gen.push_back(profiled_modes[7][2][2]);
 	test_mode_gen.push_back(profiled_modes[7][3][2]);
