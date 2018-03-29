@@ -45,6 +45,7 @@ static ros::Publisher JoystickRobotVel;
 static ros::Publisher JoystickElevatorPos;
 static ros::Publisher JoystickRumble;
 static ros::ServiceClient EndGameDeploy;
+static ros::ServiceClient EndGameDeployWings;
 
 static ros::ServiceClient ElevatorSrv;
 static ros::ServiceClient ClampSrv;
@@ -266,6 +267,13 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	static std::string currentToggle = " ";
 	static std::string lastToggle = " ";
 
+    if (JoystickState->directionLeftPress && matchTimeRemaining.load(std::memory_order_relaxed) < 30 ) 
+    {
+			std_srvs::Empty empty; //TODO
+			if (!EndGameDeployWings.call(empty))
+				ROS_ERROR("EndGameDeploy wings call in teleop joystick failed");
+			ROS_WARN("SELF DESTURCT 2.0");
+	}
 	/*-----------------Up Double Press End Deploy------------------------------*/
 	static bool destruction_achieved = false;
 
@@ -716,6 +724,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	 */
 
 	/*------------------------------------Switch/Exchange------------------------------------*/
+
+
+	
 
     /*-----------------Direction Right/M6 Press - Switch ---------------------*/
     if (JoystickState->directionRightPress) 
@@ -1208,6 +1219,7 @@ int main(int argc, char **argv)
 	std::map<std::string, std::string> service_connection_header;
 	service_connection_header["tcp_nodelay"] = "1";
 	EndGameDeploy = n.serviceClient<std_srvs::Empty>("/frcrobot/elevator_controller/end_game_deploy", false, service_connection_header);
+	EndGameDeployWings = n.serviceClient<std_srvs::Empty>("/frcrobot/elevator_controller/end_game_deploy_wings", false, service_connection_header);
 	ElevatorSrv = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
 	ClampSrv = n.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
 	IntakeSrv = n.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
