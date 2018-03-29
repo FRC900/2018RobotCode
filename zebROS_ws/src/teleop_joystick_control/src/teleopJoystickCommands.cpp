@@ -267,8 +267,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	static std::string lastToggle = " ";
 
 	/*-----------------Up Double Press End Deploy------------------------------*/
+	static bool destruction_achieved = false;
 
-	if (JoystickState->directionUpPress && matchTimeRemaining.load(std::memory_order_relaxed) < 60)
+	if (JoystickState->directionUpPress && matchTimeRemaining.load(std::memory_order_relaxed) < 60 )
 	{
 		teleop_cancel();
 		//if(!ac->getState().isDone())
@@ -281,13 +282,31 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		//teleop_cancel();
 
 		static double directionUpLast = 0;
-		if (timeSecs - directionUpLast < 1.0)
+		if(destruction_achieved)
+		{
+				
+			srvElevator.request.x = .1; //Consider changing x_pos + up/down to preassigned rather than curr pos
+			srvElevator.request.y = 2.37;
+			/*max_extension_ + sin(acos(.1 / arm_length_))*arm_length_;*/ //TODO fix
+			srvElevator.request.up_or_down = true;
+			srvElevator.request.override_pos_limits = true;
+
+			if (!ElevatorSrv.call(srvElevator))
+			{
+				ROS_ERROR("Climb config srv call failed");
+			}
+			else
+			{
+			}
+		}
+		else if (timeSecs - directionUpLast < 1.0)
 		{
 			std_srvs::Empty empty; //TODO
 			if (!EndGameDeploy.call(empty))
 				ROS_ERROR("EndGameDeploy call in teleop joystick failed");
 			ROS_WARN("SELF DESTURCT");
 			achieved_pos = other;
+			destruction_achieved = true;
 		}
 		directionUpLast = timeSecs;
 	}
@@ -318,7 +337,38 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 		else
 		{
-			intake_up = false;
+		}
+		ROS_INFO("Climb config");
+		achieved_pos = climb_c;
+	}
+	if (JoystickState->directionDownRelease)
+	{
+		
+		ElevatorPos elevatorPosClimb = *(elevatorPos.readFromRT());
+		teleop_cancel();
+		//if(!ac->getState().isDone())
+			ac->cancelAllGoals();
+		//if(!ac_lift->getState().isDone())
+			ac_lift->cancelAllGoals();
+		//if(!ac_intake->getState().isDone())
+			ac_intake->cancelAllGoals();
+		srvElevator.request.x = elevatorPosClimb.X_; //Consider changing x_pos + up/down to preassigned rather than curr pos
+		srvElevator.request.y = elevatorPosClimb.Y_;
+		srvElevator.request.up_or_down = elevatorPosClimb.UpOrDown_;
+		srvElevator.request.override_pos_limits = true;
+		/*srvIntake.request.power = 0;
+		srvIntake.request.spring_state = 1; //hard_out
+		srvIntake.request.up = false;
+		if (!IntakeSrv.call(srvIntake)) //Is it worth trying to clamp or run the intake slowly?
+			ROS_ERROR("IntakeSrv call failed in teleop joystick climb config");
+		*/
+
+		if (!ElevatorSrv.call(srvElevator))
+		{
+			ROS_ERROR("Climb config srv call failed");
+		}
+		else
+		{
 		}
 		ROS_INFO("Climb config");
 		achieved_pos = climb_c;
@@ -639,7 +689,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		// TODO : need to call /set goal?
 	}
 
-	/*When we get the cube, slow the intake and grip hard*/
+	/*When we lose the cube, stop the intake and get ready to grab more cubes*/
 
 	if (run_out && (timeSecs > buttonBackStart + 2) && !start_toggle_on)
 	{
@@ -667,8 +717,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	/*------------------------------------Switch/Exchange------------------------------------*/
 
-    /*-----------------Left Stick Press - Switch ---------------------*/
-    if (JoystickState->stickLeftPress)
+    /*-----------------Direction Right/M6 Press - Switch ---------------------*/
+    if (JoystickState->directionRightPress) 
     {
         currentToggle = "StickLeft";
         if (lastToggle == " ")
@@ -714,7 +764,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             }
         }
     }
-	if (localCubeState.hasCubeClamp_) //No need to go to switch/exchange without cube
+	if (localCubeState.hasCubeClamp_ && local_clamped) //No need to go to switch/exchange without cube
 	{
 		/*-----------------Right Stick Press - Exchange ---------------------*/
 
@@ -819,8 +869,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			}
 		}
 	}
-	/*---------------------Right Button(M6) - Press Bring Up Intake-------------------*/
-	if (JoystickState->directionRightPress == true)
+	/*---------------------Left Stick(M3) - Press Bring Up Intake-------------------*/
+	if (JoystickState->stickLeftPress == true)
 	{
 		srvIntake.request.power = 0;
 		srvIntake.request.spring_state = 1; //hard_out
