@@ -22,8 +22,8 @@
       <arg name="quality" value="3" />
 		
 	  <arg name="zed_name" value="$(arg name)" />
-      <arg name="publish_tf" value="False" />
-      <arg name="base_frame" value="base_link" />
+	  <arg name="publish_tf" default="False" />
+	  <arg name="base_frame" value="base_link" />
     </include>
   </group>
   <include file="$(find controller_node)/launch/record_slave.launch" if="$(arg record)"/>
