@@ -135,6 +135,21 @@ bool overBack(void) {
 	}
 	return true;
 }
+bool customConfig(action_setpoint_struct) {
+	elevator_controller::ElevatorControlS srv;
+    srv.request.x = over_back_x;
+    srv.request.y = over_back_y;
+    srv.request.up_or_down = true;
+    srv.request.override_pos_limits = false;
+    srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
+    if (!ElevatorService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
+		return false;
+	}
+	return true;
+}
 
 bool intakeCube(void) {
 	behaviors::RobotGoal goal;
@@ -471,9 +486,15 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						
 						
 						XmlRpc::XmlRpcValue &profile_wait_xml = action["profile_wait"];
+						XmlRpc::XmlRpcValue &x_xml = action["x"];
+						XmlRpc::XmlRpcValue &y_xml = action["y"];
+						XmlRpc::XmlRpcValue &up_or_down_xml = action["up_or_down"];
 						const double profile_wait_double = profile_wait_xml;
                         int profile_wait = (int)profile_wait_double;
-						if(profile_wait != -1)
+						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.x = x_xml;
+						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.y = y_xml;
+						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.up_or_down = up_or_down_xml;
+						if(profile_wait >= 0)
 						{				
 							profiled_modes[mode][layout][start_pos].wait_ids[profile_wait] =  num;
 						}
@@ -516,9 +537,14 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 							else if(action_name == "over_back_config") {
 								profiled_modes[mode][layout][start_pos].actions[num].action = over_back_config;
 							}
+							else if(action_name == "custom_config") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = custom_config;
+							}
 							else if(action_name == "release_clamp") {
 								profiled_modes[mode][layout][start_pos].actions[num].action = release_clamp;
 							}
+
+						//Exception handling?
 						const double time_now = time;
 						profiled_modes[mode][layout][start_pos].actions[num].time = time_now;
 						//const double t = time;
@@ -760,6 +786,8 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
             return true;
         case 12:
             return true;
+        case 13:
+            return true;
         default:
             ROS_ERROR("Action not in list of actions");
             return false;
@@ -769,7 +797,7 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
 
 
 }
-bool call_action(int action) {
+bool call_action(int action, action_setpoint_struct action_setpoint) {
     switch(action) {
         case 0:
             deployIntake();
@@ -808,6 +836,9 @@ bool call_action(int action) {
             overBack();
             break;
         case 12:
+            customConfig(action_setpoint);
+            break;
+        case 13:
             releaseClamp();
             break;
         default:
@@ -938,7 +969,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 			}
             action_rate.sleep();
 		}
-        call_action(auto_run_data.actions[num].action);
+        call_action(auto_run_data.actions[num].action, auto_run_data.actions[num].action_setpoint);
 		 
 	}
 }

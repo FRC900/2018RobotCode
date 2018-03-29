@@ -26,12 +26,20 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <XmlRpcValue.h>
 #include <vector>
-enum Action {deploy_intake, undeploy_intake, intake_cube, exchange_cube, default_config, intake_config, exchange_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, release_clamp};
+enum Action {deploy_intake, undeploy_intake, intake_cube, exchange_cube, default_config, intake_config, exchange_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, custom_config, release_clamp};
 
+typedef struct action_setpoint
+{
+	double x;
+	double y;
+	bool up_or_down;
+
+} action_setpoint_struct;
 typedef struct action
 {
     double time;
     Action action;
+	action_setpoint_struct action_setpoint;
 } action_struct;
 
 typedef struct cmd_vel
