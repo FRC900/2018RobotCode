@@ -48,6 +48,7 @@ class autoAction
 		actionlib::SimpleActionClient<behaviors::LiftAction> al_;
 		std::atomic<bool> high_cube_;
 
+#if 0
 		// Elevator odometry. Make this a struct so that
 		// reads from it get data which is consistent - avoid
 		// cases where X has been modified by the callback
@@ -72,6 +73,7 @@ class autoAction
 			bool   UpOrDown_;
 		};
 		realtime_tools::RealtimeBuffer<ElevatorPos> elevator_odom;
+#endif
 
 		ros::Subscriber HighCube_;
 
@@ -112,7 +114,7 @@ class autoAction
 			//if(!ai_.getState().isDone())
 				//ai_.cancelAllGoals();
 
-			const double odom_x = elevator_odom.readFromRT()->X_;
+			//const double odom_x = elevator_odom.readFromRT()->X_;
 			if (goal->IntakeCube)
 			{
 				ROS_INFO("start of pickup cube");
@@ -455,10 +457,12 @@ class autoAction
 			high_cube_.store(msg.intake_high, std::memory_order_relaxed);
 		}
 
+#if 0
 		void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
 		{
 			elevator_odom.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down));
 		}
+#endif
 };
 
 int main(int argc, char **argv)
