@@ -27,7 +27,12 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 		ROS_ERROR("Endpoints should never be empty!");
 		return false;
 	}
-	t_total_ = end_points[end_points.size()-1] - end_points[0] + 1;
+	if  (x_splines.empty()) {
+		ROS_ERROR("x-splines should also not be empty");
+		return false;
+	}
+	t_total_ = end_points[end_points.size()-1] - end_points[0];
+
 	tk::spline spline;
 	double total_arc;
 
