@@ -343,6 +343,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 				
 				for(int wait_for_action = 0; wait_for_action <= max_wait_for_action_num; wait_for_action++)
 				{
+					std::string identifier_with_wait = identifier+ +"_wait_for_action_"+std::to_string(wait_for_action);
 					if(auto_data.getParam(identifier+ +"_wait_for_action_"+std::to_string(wait_for_action), mode_xml))
 					{
 						ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
@@ -383,7 +384,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						profiled_modes[mode][layout][start_pos].num_srv_msgs +=1; 
 
 						XmlRpc::XmlRpcValue group_xml;
-						if(auto_data.getParam(identifier + "_spline_group", group_xml))
+						if(auto_data.getParam(identifier_with_wait + "_spline_group", group_xml))
 						{
 							//ROS_INFO_STREAM("Custom grouping for identifier: " << identifier << " found");
 							for(int i = 0; i < group_xml.size(); i++)
@@ -391,7 +392,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.spline_groups.push_back(group_xml[i]);
 							}
 							XmlRpc::XmlRpcValue wait_xml;
-							if(auto_data.getParam(identifier + "_waits", wait_xml))
+							if(auto_data.getParam(identifier_with_wait + "_waits", wait_xml))
 							{
 								//ROS_INFO_STREAM("Custom waits for identifier: " << identifier << " found");
 								for(int i = 0; i < group_xml.size(); i++)
@@ -407,9 +408,9 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 								}
 							}
 							XmlRpc::XmlRpcValue shift_xml;
-							if(auto_data.getParam(identifier + "_t_shifts", shift_xml))
+							if(auto_data.getParam(identifier_with_wait + "_t_shifts", shift_xml))
 							{
-								ROS_INFO_STREAM("Custom shifts for identifier: " << identifier << " found");
+								ROS_INFO_STREAM("Custom shifts for identifier: " << identifier_with_wait << " found");
 								for(int i = 0; i < group_xml.size(); i++)
 								{
 									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.t_shift.push_back(shift_xml[i]);
@@ -423,12 +424,14 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 								}
 							}
 							XmlRpc::XmlRpcValue flip_xml;
-							if(auto_data.getParam(identifier + "_flips", flip_xml))
+							if(auto_data.getParam(identifier_with_wait + "_flips", flip_xml))
 							{
-								ROS_INFO_STREAM("Custom flips for identifier: " << identifier << " found");
+								ROS_INFO_STREAM("Custom flips for identifier: " << identifier_with_wait << " found");
 								for(int i = 0; i < group_xml.size(); i++)
 								{
-									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(flip_xml[i]);
+									ROS_ERROR_STREAM(i);
+									bool temp = flip_xml[i];
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(temp);
 								}
 							}
 							else
@@ -593,7 +596,6 @@ bool generateTrajectory(std::vector<full_mode> &trajectory, const std::vector<in
     swerve_control_srv.request.run    = false;
     swerve_control_srv.request.change_queue   = false; 
    
-	talon_swerve_drive_controller::SwervePointSet temp_holder;
  
 
 
@@ -609,12 +611,13 @@ bool generateTrajectory(std::vector<full_mode> &trajectory, const std::vector<in
 		}
 		for(size_t i = 0; i < trajectory[k].num_srv_msgs; i++)
 		{
-			ROS_WARN_STREAM("i: " << i << " k: " << k);
+			//ROS_WARN_STREAM("i: " << i << " k: " << k);
 			if (!point_gen.call(trajectory[k].srv_msgs[i]))
 			{
 				ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
 				return false;
 			}
+			talon_swerve_drive_controller::SwervePointSet temp_holder;
 			temp_holder.dt = trajectory[k].srv_msgs[i].response.dt;
 			temp_holder.points = trajectory[k].srv_msgs[i].response.points;
 			temp_holder.slot = i + start_buffer_ids[k];
@@ -1056,17 +1059,17 @@ int main(int argc, char** argv) {
 	//spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    ros::Duration(20).sleep();
+    ros::Duration(4).sleep();
 
     ROS_WARN("post sleep");
    
-	std::vector<bool> test_modes = {true, true, true, true};
+	std::vector<bool> test_modes = {true, false, false, false};
 	std::vector<int> test_modes_slot = {0, 1, 2, 3};
 	std::vector<full_mode> test_mode_gen;
-	test_mode_gen.push_back(profiled_modes[5][3][2]);
 	test_mode_gen.push_back(profiled_modes[7][0][2]);
 	test_mode_gen.push_back(profiled_modes[7][1][2]);
 	test_mode_gen.push_back(profiled_modes[7][2][2]);
+	test_mode_gen.push_back(profiled_modes[7][3][2]);
 
 
  
