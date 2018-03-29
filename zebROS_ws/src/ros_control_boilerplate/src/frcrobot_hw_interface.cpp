@@ -407,6 +407,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
 	return;
+#if 0
 	ros::Duration(3).sleep();	
 	bool set_frame_period[num_can_talon_srxs_];
 	for (size_t i = 0; i < num_can_talon_srxs_; i++)
@@ -449,6 +450,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 		}
 		rate.sleep();
 	}
+#endif
 }
 void FRCRobotHWInterface::custom_profile_set_talon(bool posMode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double &pos_offset)
 {
@@ -569,9 +571,9 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 		if(run)
 		{
 			auto profile = talon_command_[joint_id].getCustomProfilePoints(status.slotRunning);
-			static int fail_flag = 0;
 			if(profile.size() == 0)
 			{
+				static int fail_flag = 0;
 				if(fail_flag % 100 == 0)
 				{
 					ROS_ERROR("Tried to run custom profile with no points buffered");
