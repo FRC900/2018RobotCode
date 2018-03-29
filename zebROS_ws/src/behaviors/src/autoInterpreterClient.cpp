@@ -1059,13 +1059,13 @@ int main(int argc, char** argv) {
 
 	// Kick off 2 threads to process messages
     ROS_ERROR("Here6");
-	//ros::AsyncSpinner spinner(2);
-	//spinner.start();
+	ros::AsyncSpinner spinner(2);
+	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
     //ros::Duration(4).sleep();
 
-    ROS_WARN("post sleep");
+    //ROS_WARN("post sleep");
    
 	/*
 
