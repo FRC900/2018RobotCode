@@ -382,14 +382,12 @@ class autoAction
 
 				al_.sendGoal(goal_l);
 
-				double t_before_move_intake = 0;
 				elevator_controller::Intake srvIntake;
 				srvIntake.request.power = 0;
 				srvIntake.request.up = false;
 				srvIntake.request.just_override_power = false;
 				srvIntake.request.spring_state = 1; //hard_out
-				if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
-				t_before_move_intake = ros::Time::now().toSec();
+				if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");
 				
 				//loop till we get to where we can drop
 				while (!aborted && !timed_out)
