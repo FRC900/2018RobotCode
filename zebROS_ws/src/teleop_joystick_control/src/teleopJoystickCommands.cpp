@@ -246,7 +246,11 @@ void generateCoefs(const double angle_diff, const ros::Duration time_to_run, bas
 	//time for profile to run
 	srvBaseTrajectory.request.points[0].time_from_start = time_to_run; 
 
-	generate_coefs.call(srvBaseTrajectory);
+	if(!generate_coefs.call(srvBaseTrajectory))
+		ROS_INFO_STREAM("generate_coefs died in generateCoefs");
+	if (srvBaseTrajectory.response.end_points.empty())
+		ROS_INFO_STREAM("things are SUPER broken");
+
 }
 
 void generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory, swerve_point_generator::FullGenCoefs &traj) 
@@ -262,6 +266,8 @@ void generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory,
 	traj.request.initial_v = 0;
 	traj.request.final_v = 0;
 
+	if (srvBaseTrajectory.response.end_points.empty())
+		ROS_INFO_STREAM("things are broken");
 	if(!point_gen.call(traj))
 		ROS_INFO_STREAM("point_gen died in generateTrajectory");
 }
