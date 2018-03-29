@@ -727,7 +727,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 
 	
-
     /*-----------------Direction Right/M6 Press - Switch ---------------------*/
     if (JoystickState->directionRightPress) 
     {
