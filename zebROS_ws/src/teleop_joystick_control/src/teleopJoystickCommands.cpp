@@ -219,16 +219,7 @@ void setHeight(const pos achieved_pos, pos &last_achieved_pos, ElevatorPos &elev
 	last_achieved_pos = achieved_pos;
 }
 
-/*void generateTrajectory(swerve_point_generator::FullGenCoefs &trajectory) //from coefficients to points, and from points to commands
-{
-	if (!point_gen.call(trajectory))
-		ROS_ERROR("point_gen call() failed in teleopJoystickCommands generateTrajectory()");
-
-	if (!runTrajectory(trajectory.response))
-		ROS_ERROR("runTrajectory failed in teleopJoystickCommands generateTrajectory()");
-}*/
-
-void generateCoefs(const double angle_diff, const ros::Duration time_to_run, base_trajectory::GenerateSpline &srvBaseTrajectory)
+bool generateCoefs(const double angle_diff, const ros::Duration time_to_run, base_trajectory::GenerateSpline &srvBaseTrajectory)
 {
 	srvBaseTrajectory.request.points.resize(1); //only need one endpoint -- final orientation of robot
 	//x-movement (not moving at all)
@@ -246,14 +237,16 @@ void generateCoefs(const double angle_diff, const ros::Duration time_to_run, bas
 	//time for profile to run
 	srvBaseTrajectory.request.points[0].time_from_start = time_to_run; 
 
-	if(!generate_coefs.call(srvBaseTrajectory))
-		ROS_INFO_STREAM("generate_coefs died in generateCoefs");
 	if (srvBaseTrajectory.response.end_points.empty())
 		ROS_INFO_STREAM("things are SUPER broken");
 
+	if(!generate_coefs.call(srvBaseTrajectory))
+		return false;
+	else
+		return true;
 }
 
-void generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory, swerve_point_generator::FullGenCoefs &traj) 
+bool generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory, swerve_point_generator::FullGenCoefs &traj) 
 {
 	traj.request.orient_coefs = srvBaseTrajectory.response.orient_coefs;
 	traj.request.x_coefs = srvBaseTrajectory.response.x_coefs;
@@ -268,8 +261,11 @@ void generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory,
 
 	if (srvBaseTrajectory.response.end_points.empty())
 		ROS_INFO_STREAM("things are broken");
+
 	if(!point_gen.call(traj))
-		ROS_INFO_STREAM("point_gen died in generateTrajectory");
+		return false;
+	else
+		return true;
 }
 
 bool runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
@@ -284,12 +280,9 @@ bool runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
     swerve_control_srv.request.profiles[0].slot = 0;
     
     if (!swerve_control.call(swerve_control_srv))
-	{
-		ROS_ERROR("swerve_control call() failed in teleopJoystickCommands runTrajectory()");
-		return true;
-	}
-	else
 		return false;
+	else
+		return true;
 
 }
 
@@ -1160,19 +1153,22 @@ if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 			static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
 			static double max_rotational_velocity = 8.8; //radians/sec TODO: find this in config
 
+			ROS_INFO_STREAM("least_dist_angle: " << least_dist_angle);
+
 			static ros::Duration time_to_run((fabs((least_dist_angle - angle)) / max_rotational_velocity) * .8);
 
 			base_trajectory::GenerateSpline srvBaseTrajectory;
 			swerve_point_generator::FullGenCoefs traj;
 			
-			generateCoefs(least_dist_angle - angle, time_to_run, srvBaseTrajectory); //generate coefficients for the spline from the endpoints
-			generateTrajectory(srvBaseTrajectory, traj); //generate a motion profile from the coefs
-			runTrajectory(traj.response); //run on swerve_control
+			if (!generateCoefs(least_dist_angle - angle, time_to_run, srvBaseTrajectory)) //generate coefficients for the spline from the endpoints 
+				ROS_INFO_STREAM("generate_coefs died in teleopJoystickCommands generateCoefs");
+			if (!generateTrajectory(srvBaseTrajectory, traj)) //generate a motion profile from the coefs
+				ROS_INFO_STREAM("point_gen died in teleopJoystickCommands generateTrajectory");
+			if (!runTrajectory(traj.response)) //run on swerve_control
+				ROS_ERROR("swerve_control failed in teleopJoystickCommands runTrajectory");
 		}
 		else
-		{
 			ROS_WARN("Orient already running! Can't generate trajectory");
-		}
 	}
 
 	lastTimeSecs = timeSecs;
