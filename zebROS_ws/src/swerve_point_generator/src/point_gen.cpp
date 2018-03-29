@@ -248,7 +248,7 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 	}
 	
 	graph_prof.call(graph_msg);
-	res.points.erase(res.points.begin() + prev_point_count, res.points.end());
+	//res.points.erase(res.points.begin() + prev_point_count, res.points.end());
 	//talon_swerve_drive_controller::MotionProfilePoints graph_swerve_msg;
 	//graph_swerve_msg.request.points = res.points;
 	//graph_swerve_prof.call(graph_swerve_msg);

@@ -609,6 +609,7 @@ bool generateTrajectory(std::vector<full_mode> &trajectory, const std::vector<in
 		}
 		for(size_t i = 0; i < trajectory[k].num_srv_msgs; i++)
 		{
+			ROS_WARN_STREAM("i: " << i << " k: " << k);
 			if (!point_gen.call(trajectory[k].srv_msgs[i]))
 			{
 				ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
@@ -1051,16 +1052,26 @@ int main(int argc, char** argv) {
 
 	// Kick off 2 threads to process messages
     ROS_ERROR("Here6");
-	ros::AsyncSpinner spinner(2);
-	spinner.start();
+	//ros::AsyncSpinner spinner(2);
+	//spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    //ros::Duration(5).sleep();
+    ros::Duration(20).sleep();
 
     ROS_WARN("post sleep");
-    
+   
+	std::vector<bool> test_modes = {true, true, true, true};
+	std::vector<int> test_modes_slot = {0, 1, 2, 3};
+	std::vector<full_mode> test_mode_gen;
+	test_mode_gen.push_back(profiled_modes[5][3][2]);
+	test_mode_gen.push_back(profiled_modes[7][0][2]);
+	test_mode_gen.push_back(profiled_modes[7][1][2]);
+	test_mode_gen.push_back(profiled_modes[7][2][2]);
+
+
+ 
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    //generateTrajectory(profiled_modes[3][3][2]);
+    generateTrajectory(test_mode_gen, test_modes_slot = {0, 1, 2, 3}, test_modes = {true, true, true, true});
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
@@ -1068,6 +1079,8 @@ int main(int argc, char** argv) {
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
     //generateTrajectory(profiled_modes[3][3][2]);
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
+
+	return 1;
 
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);

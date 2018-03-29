@@ -453,7 +453,7 @@ void swerve_profiler::comp_point_characteristics(const std::vector<spline_coefs>
 	calc_point(orient_splines_second_deriv[which_spline], t, second_deriv_orient);
 
 	//if(fow)
-	//ROS_INFO_STREAM("which spline: " << which_spline << " t_raw: "<< t << " x: " << holder_point.pos[0] << " y: " << holder_point.pos[1] << " a: " << x_splines[which_spline].a <<" b: " << x_splines[which_spline].b <<" c: " << x_splines[which_spline].c <<" d: " << x_splines[which_spline].d <<" e: " << x_splines[which_spline].e <<" f: " << x_splines[which_spline].f);
+	ROS_INFO_STREAM("which spline: " << which_spline << " t_raw: "<< t << " x: " << holder_point.pos[0] << " y: " << holder_point.pos[1] << " a: " << x_splines[which_spline].a <<" b: " << x_splines[which_spline].b <<" c: " << x_splines[which_spline].c <<" d: " << x_splines[which_spline].d <<" e: " << x_splines[which_spline].e <<" f: " << x_splines[which_spline].f);
 
 	//Radius = (x'^2 + y'^2)^(3/2) / (x' * y'' - y' * x'')
 
