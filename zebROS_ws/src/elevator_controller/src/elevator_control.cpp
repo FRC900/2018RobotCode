@@ -15,6 +15,7 @@ ElevatorController::ElevatorController():
 	clamp_cmd_(0.0),
 	climb_height_(0.0),
 	end_game_deploy_cmd_(false),
+	end_game_deploy_wings_cmd_(false),
 	end_game_deploy_t1_(false),
 	end_game_deploy_t2_(false),
 	end_game_deploy_start_(0.0),
@@ -420,10 +421,12 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	service_clamp_ = controller_nh.advertiseService("clamp", &ElevatorController::clampService, this);
 	service_shift_ = controller_nh.advertiseService("shift", &ElevatorController::shiftService, this);
 	service_end_game_deploy_ = controller_nh.advertiseService("end_game_deploy", &ElevatorController::endGameDeployService, this);
+	service_end_game_deploy_wings_ = controller_nh.advertiseService("end_game_deploy_wings", &ElevatorController::endGameDeployWingsService, this);
 
 	Clamp_            = pos_joint_iface->getHandle("clamp");
 	Shift_            = pos_joint_iface->getHandle("shift");
 	EndGameDeploy_    = pos_joint_iface->getHandle("end_game_deploy");
+	EndGameDeployWings_    = pos_joint_iface->getHandle("end_game_deploy_wings");
 	IntakeUp_         = pos_joint_iface->getHandle("intake_up");
 	IntakeSoftSpring_ = pos_joint_iface->getHandle("intake_spring_soft");
 	IntakeHardSpring_ = pos_joint_iface->getHandle("intake_spring_hard");
@@ -454,6 +457,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//const double inv_delta_t = 1 / delta_t;
 	//compOdometry(time, inv_delta_t);
 	const bool end_game_deploy_cmd = end_game_deploy_cmd_.load(std::memory_order_relaxed);
+	const bool end_game_deploy_wings_cmd = end_game_deploy_wings_cmd_.load(std::memory_order_relaxed);
+	
+	EndGameDeployWings_.setCommand(end_game_deploy_wings_cmd);
+
 	if(end_game_deploy_cmd && !end_game_deploy_t1_)
 	{
 		//ROS_INFO("part 1");
@@ -815,6 +822,20 @@ bool ElevatorController::endGameDeployService(std_srvs::Empty::Request &/*comman
 	{
 		ROS_WARN("called deploy");
 		end_game_deploy_cmd_.store(true, std::memory_order_relaxed);
+		return true;
+	}
+	else
+	{
+		ROS_ERROR_NAMED(name_, "Can't accept new commands. Controller is not running.");
+		return false;
+	}
+}
+bool ElevatorController::endGameDeployWingsService(std_srvs::Empty::Request &/*command*/, std_srvs::Empty::Response &/*res*/)
+{
+	if(isRunning())
+	{
+		ROS_WARN("called wings deploy");
+		end_game_deploy_wings_cmd_.store(true, std::memory_order_relaxed);
 		return true;
 	}
 	else

@@ -66,6 +66,7 @@ class ElevatorController
 		std::atomic<double> clamp_cmd_;
 		double climb_height_;
 		std::atomic<bool> end_game_deploy_cmd_;
+		std::atomic<bool> end_game_deploy_wings_cmd_;
 		bool end_game_deploy_t1_;
 		bool end_game_deploy_t2_;
 		double end_game_deploy_start_;
@@ -113,11 +114,13 @@ class ElevatorController
 		ros::ServiceServer service_clamp_;
 		ros::ServiceServer service_shift_;
 		ros::ServiceServer service_end_game_deploy_;
+		ros::ServiceServer service_end_game_deploy_wings_;
 		//TODO: considering adding x offset?
 
 		hardware_interface::JointHandle Clamp_;
 		hardware_interface::JointHandle Shift_;
 		hardware_interface::JointHandle EndGameDeploy_;
+		hardware_interface::JointHandle EndGameDeployWings_;
 
 		hardware_interface::JointHandle IntakeUp_;
 		hardware_interface::JointHandle IntakeHardSpring_;
@@ -142,6 +145,7 @@ class ElevatorController
 		bool clampService(std_srvs::SetBool::Request &command, std_srvs::SetBool::Response &res); 
 		bool shiftService(std_srvs::SetBool::Request &command, std_srvs::SetBool::Response &res); 
 		bool endGameDeployService(std_srvs::Empty::Request &command, std_srvs::Empty::Response &res); 
+		bool endGameDeployWingsService(std_srvs::Empty::Request &command, std_srvs::Empty::Response &res); 
 
 		std::shared_ptr<arm_limiting::arm_limits> arm_limiter_;
 
