@@ -87,8 +87,6 @@ struct AutoMode {
 realtime_tools::RealtimeBuffer<MatchData> matchData;
 realtime_tools::RealtimeBuffer<AutoMode> autoMode;
 
-
-
 bool defaultConfig(void) {
 	elevator_controller::ElevatorControlS srv;
     srv.request.x = default_x;
@@ -136,20 +134,36 @@ bool overBack(void) {
 	return true;
 }
 
-bool intakeCube(void) {
+bool customConfig(const ActionSetpoint &action_setpoint) {
+	elevator_controller::ElevatorControlS srv;
+    srv.request.x = over_back_x;
+    srv.request.y = over_back_y;
+    srv.request.up_or_down = true;
+    srv.request.override_pos_limits = false;
+    srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
+    if (!ElevatorService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
+		return false;
+	}
+	return true;
+}
+
+bool intakeCube(const ActionSetpoint &action_setpoint) {
 	behaviors::RobotGoal goal;
 
     ROS_WARN("intaking cube");
     goal.IntakeCube = true;
     goal.MoveToIntakeConfig = false;
-    goal.x = default_x;
-    goal.y = default_y;
-    goal.up_or_down = default_up_or_down;
+    goal.x = action_setpoint.x;
+    goal.y = action_setpoint.y;
+    goal.up_or_down = action_setpoint.up_or_down;
     goal.override_pos_limits = false; //TODO config these
-    goal.dist_tolerance = .5; //TODO config these
-    goal.x_tolerance = .5; //TODO config these
-    goal.y_tolerance = .5; //TODO config these
-    goal.time_out = 3; //TODO config these
+    goal.dist_tolerance = .1; //TODO config these
+    goal.x_tolerance = .1; //TODO config these
+    goal.y_tolerance = .1; //TODO config these
+    goal.time_out = 15; //TODO config these
 
     ac->sendGoal(goal);
     
@@ -317,7 +331,6 @@ bool parkingConfig(void)
 	return true;
 }
 
-
 Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_start_pos_num, int max_wait_for_action_num, ros::NodeHandle &auto_data, ros::NodeHandle &cmd_vel_data)
 {
 	XmlRpc::XmlRpcValue mode_xml;
@@ -325,8 +338,8 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 
 	XmlRpc::XmlRpcValue cmd_vel_xml;
 
-	mode_list profiled_modes;
-    cmd_vel_list cmd_vel_modes;
+	ModeList profiled_modes;
+    CmdVelList cmd_vel_modes;
 
 	profiled_modes.resize(max_mode_num + 1);
 	for(int mode = 0; mode <= max_mode_num; mode++)
@@ -343,6 +356,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 				
 				for(int wait_for_action = 0; wait_for_action <= max_wait_for_action_num; wait_for_action++)
 				{
+					std::string identifier_with_wait = identifier+ +"_wait_for_action_"+std::to_string(wait_for_action);
 					if(auto_data.getParam(identifier+ +"_wait_for_action_"+std::to_string(wait_for_action), mode_xml))
 					{
 						ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
@@ -383,7 +397,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						profiled_modes[mode][layout][start_pos].num_srv_msgs +=1; 
 
 						XmlRpc::XmlRpcValue group_xml;
-						if(auto_data.getParam(identifier + "_spline_group", group_xml))
+						if(auto_data.getParam(identifier_with_wait + "_spline_group", group_xml))
 						{
 							//ROS_INFO_STREAM("Custom grouping for identifier: " << identifier << " found");
 							for(int i = 0; i < group_xml.size(); i++)
@@ -391,7 +405,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.spline_groups.push_back(group_xml[i]);
 							}
 							XmlRpc::XmlRpcValue wait_xml;
-							if(auto_data.getParam(identifier + "_waits", wait_xml))
+							if(auto_data.getParam(identifier_with_wait + "_waits", wait_xml))
 							{
 								//ROS_INFO_STREAM("Custom waits for identifier: " << identifier << " found");
 								for(int i = 0; i < group_xml.size(); i++)
@@ -407,9 +421,9 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 								}
 							}
 							XmlRpc::XmlRpcValue shift_xml;
-							if(auto_data.getParam(identifier + "_t_shifts", shift_xml))
+							if(auto_data.getParam(identifier_with_wait + "_t_shifts", shift_xml))
 							{
-								ROS_INFO_STREAM("Custom shifts for identifier: " << identifier << " found");
+								ROS_INFO_STREAM("Custom shifts for identifier: " << identifier_with_wait << " found");
 								for(int i = 0; i < group_xml.size(); i++)
 								{
 									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.t_shift.push_back(shift_xml[i]);
@@ -423,12 +437,14 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 								}
 							}
 							XmlRpc::XmlRpcValue flip_xml;
-							if(auto_data.getParam(identifier + "_flips", flip_xml))
+							if(auto_data.getParam(identifier_with_wait + "_flips", flip_xml))
 							{
-								ROS_INFO_STREAM("Custom flips for identifier: " << identifier << " found");
+								ROS_INFO_STREAM("Custom flips for identifier: " << identifier_with_wait << " found");
 								for(int i = 0; i < group_xml.size(); i++)
 								{
-									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(flip_xml[i]);
+									ROS_ERROR_STREAM(i);
+									bool temp = flip_xml[i];
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(temp);
 								}
 							}
 							else
@@ -447,9 +463,6 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.t_shift.push_back(0);
 						}
 					}
-
-
-
 				}
 				
 				if(auto_data.getParam(identifier+ "_actions", actions_xml))
@@ -466,11 +479,16 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						XmlRpc::XmlRpcValue &action = actions_xml[num];
 						XmlRpc::XmlRpcValue &time = action["time"];
 						
-						
 						XmlRpc::XmlRpcValue &profile_wait_xml = action["profile_wait"];
+						XmlRpc::XmlRpcValue &x_xml = action["x"];
+						XmlRpc::XmlRpcValue &y_xml = action["y"];
+						XmlRpc::XmlRpcValue &up_or_down_xml = action["up_or_down"];
 						const double profile_wait_double = profile_wait_xml;
                         int profile_wait = (int)profile_wait_double;
-						if(profile_wait != -1)
+						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.x = x_xml;
+						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.y = y_xml;
+						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.up_or_down = up_or_down_xml;
+						if(profile_wait >= 0)
 						{				
 							profiled_modes[mode][layout][start_pos].wait_ids[profile_wait] =  num;
 						}
@@ -513,29 +531,26 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 							else if(action_name == "over_back_config") {
 								profiled_modes[mode][layout][start_pos].actions[num].action = over_back_config;
 							}
+							else if(action_name == "custom_config") {
+								profiled_modes[mode][layout][start_pos].actions[num].action = custom_config;
+							}
 							else if(action_name == "release_clamp") {
 								profiled_modes[mode][layout][start_pos].actions[num].action = release_clamp;
 							}
+
+						//Exception handling?
 						const double time_now = time;
 						profiled_modes[mode][layout][start_pos].actions[num].time = time_now;
 						//const double t = time;
 						//profiled_modes[mode][layout][start_pos].times.push_back(t);
 					}
-			
-					
-
-			
 				}
 				else
 				{
-					
 					profiled_modes[mode][layout][start_pos].exists = false; 
-
 				}
 			}
-
 		}
-
 	}
 
 	cmd_vel_modes.resize(max_mode_cmd_vel + 1);
@@ -583,19 +598,13 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 	return all_modes;
 }
 
-bool generateTrajectory(std::vector<full_mode> &trajectory, const std::vector<int> &start_buffer_ids, const std::vector<bool> &generate) 
+bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int> &start_buffer_ids, const std::vector<bool> &generate)
 {
-
-	
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.wipe_all = false;
     swerve_control_srv.request.buffer = true;
     swerve_control_srv.request.run    = false;
     swerve_control_srv.request.change_queue   = false; 
-   
-	talon_swerve_drive_controller::SwervePointSet temp_holder;
- 
-
 
 	for(size_t k = 0; k < trajectory.size(); k++)
 	{
@@ -609,11 +618,13 @@ bool generateTrajectory(std::vector<full_mode> &trajectory, const std::vector<in
 		}
 		for(size_t i = 0; i < trajectory[k].num_srv_msgs; i++)
 		{
+			//ROS_WARN_STREAM("i: " << i << " k: " << k);
 			if (!point_gen.call(trajectory[k].srv_msgs[i]))
 			{
 				ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
 				return false;
 			}
+			talon_swerve_drive_controller::SwervePointSet temp_holder;
 			temp_holder.dt = trajectory[k].srv_msgs[i].response.dt;
 			temp_holder.points = trajectory[k].srv_msgs[i].response.points;
 			temp_holder.slot = i + start_buffer_ids[k];
@@ -629,7 +640,7 @@ bool generateTrajectory(std::vector<full_mode> &trajectory, const std::vector<in
 	return true;
 }
 
-bool generateTrajectory(cmd_vel_mode &segments) 
+bool generateTrajectory(const CmdVelMode &segments)
 {
     //ROS_ERROR_STREAM("In generate");
 	if(!segments.exists)
@@ -641,7 +652,7 @@ bool generateTrajectory(cmd_vel_mode &segments)
     
 	return true;
 }
-bool generateCmdVel(cmd_vel_mode &mode) {
+bool generateCmdVel(const CmdVelMode &mode) {
     if(!mode.exists) {
         ROS_ERROR("auto mode/layout/start selected wasn't found in the yaml");
         return false;
@@ -658,7 +669,6 @@ std::string lower(const std::string &str) {
 }
 bool queue_profile(std::vector<int> queue)
 {
-
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.buffer = false;
     swerve_control_srv.request.run    = false;
@@ -716,7 +726,7 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
         case 1:
             return true;
         case 2:
-			if(intake_server_action)
+			if(robot_server_action)
 				return true;
 			robot_server_action = true;
 			if(ac->getState().isDone())
@@ -729,7 +739,6 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
 				else
 				{
 					return true;
-					
 				}
 			}
 			else
@@ -756,16 +765,15 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
             return true;
         case 12:
             return true;
+        case 13:
+            return true;
         default:
             ROS_ERROR("Action not in list of actions");
             return false;
-
     }
-
-
-
 }
-bool call_action(int action) {
+
+bool call_action(int action, const ActionSetpoint &action_setpoint) {
     switch(action) {
         case 0:
             deployIntake();
@@ -774,7 +782,7 @@ bool call_action(int action) {
             undeployIntake();
             break;
         case 2:
-            intakeCube();
+            intakeCube(action_setpoint);
             break;
         case 3:
             intakeNoArm();
@@ -804,6 +812,9 @@ bool call_action(int action) {
             overBack();
             break;
         case 12:
+            customConfig(action_setpoint);
+            break;
+        case 13:
             releaseClamp();
             break;
         default:
@@ -812,33 +823,30 @@ bool call_action(int action) {
     }
 }
 
-
-void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<cmd_vel_struct> &segments) {
+void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<CmdVel> &segments) {
     ROS_WARN("auto entered");
     exit_auto = false;
-    ros::Rate r(10);
-    double start_time = ros::Time::now().toSec();
-    
-    while(!exit_auto && ros::Time::now().toSec() < start_time + initial_delay) {
-        r.sleep(); 
-    }
 
-    start_time = ros::Time::now().toSec();
-    int num_segments = segments.size();
-    
     if(auto_select == 0) {
         return;
     }
 
+    ros::Rate r(10);
+    const double start_time = ros::Time::now().toSec();
+    while(!exit_auto && ros::Time::now().toSec() < start_time + initial_delay) {
+        r.sleep(); 
+    }
+    
     geometry_msgs::Twist vel;
     vel.linear.z = 0;
     vel.angular.x = 0;
     vel.angular.y = 0;
     vel.angular.z = 0;
 
-    for(int num = 0; num<num_segments; num++) {
+    const size_t num_segments = segments.size();
+    for(size_t num = 0; num<num_segments; num++) {
         ROS_WARN("auto segment entered");
-        double segment_start_time = ros::Time::now().toSec();
+        const double segment_start_time = ros::Time::now().toSec();
         double curr_time = ros::Time::now().toSec(); //These two vars are the same..........
         while(curr_time < segment_start_time + segments[num].duration) { //HOW DOES THIS LOOP EVER EXIT!!
             vel.linear.x = segments[num].x;        
@@ -849,13 +857,14 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
             curr_time = ros::Time::now().toSec();
         }
     }
+
     if(auto_select == 2) {
         releaseClamp();
     }
     parkingConfig();
 }
 
-void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const full_mode &auto_run_data, std::vector<int> start_of_buffer_ids)
+void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const FullMode &auto_run_data, std::vector<int> start_of_buffer_ids)
 {
     //ROS_WARN("auto entered");
     exit_auto = false;
@@ -867,27 +876,24 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
         r.sleep(); 
     }
 
-
     while(!exit_auto && !runTrajectory(start_of_buffer_ids[layout])) //There is a better way
         r.sleep();
 
-
     start_time = ros::Time::now().toSec();
-    int num_actions = auto_run_data.actions.size();
-	int num_profs = auto_run_data.srv_msgs.size();
+    size_t num_actions = auto_run_data.actions.size();
+	size_t num_profs = auto_run_data.srv_msgs.size();
     ros::Rate action_rate(20);
-	
 		
 	int queued = -1;
 	std::vector<bool> finished;
 	
-    for(int num = 0; num<num_actions; num++) 
+    for(size_t num = 0; num<num_actions; num++)
 	{
 		finished.push_back(false);
 	}
-    for(int num = 0; num<num_actions; num++) {
+    for(size_t num = 0; num<num_actions; num++) {
 
-		double action_start_time = ros::Time::now().toSec();
+		const double action_start_time = ros::Time::now().toSec();
         //double curr_time = ros::Time::now().toSec();  //These two vars are the same..........
         while(/*curr_time*/ ros::Time::now().toSec() < action_start_time + auto_run_data.actions[num].time && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
 			bool intake_action_lib_later_write = false;
@@ -918,7 +924,6 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 							break;
 							//If we fail try again
 						}	
-
 					}
 					else if(!runTrajectory(start_of_buffer_ids[layout]))
 					{
@@ -934,8 +939,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 			}
             action_rate.sleep();
 		}
-        call_action(auto_run_data.actions[num].action);
-		 
+        call_action(auto_run_data.actions[num].action, auto_run_data.actions[num].action_setpoint);
 	}
 }
 
@@ -1024,13 +1028,15 @@ int main(int argc, char** argv) {
 	Modes all_modes = load_all_trajectories(max_num_mode, max_num_cmd_vel, max_num_start, iterator, n_params_behaviors, n_params_cmd_vel);
     ROS_ERROR("Here2");
     ROS_WARN("Alls Here");
-    mode_list profiled_modes = all_modes.profiled_modes;
-    cmd_vel_list cmd_vel_modes = all_modes.cmd_vel_modes;
+    ModeList profiled_modes = all_modes.profiled_modes;
+    CmdVelList cmd_vel_modes = all_modes.cmd_vel_modes;
 
     ROS_ERROR("Here3");
     ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
+    ac_intake = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
     ROS_WARN("here 567890");
 	ac->waitForServer(); 
+	ac_intake->waitForServer(); 
     ROS_ERROR("Here4");
 
 	std::map<std::string, std::string> service_connection_header;
@@ -1051,16 +1057,26 @@ int main(int argc, char** argv) {
 
 	// Kick off 2 threads to process messages
     ROS_ERROR("Here6");
-	ros::AsyncSpinner spinner(2);
-	spinner.start();
+	//ros::AsyncSpinner spinner(2);
+	//spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    //ros::Duration(5).sleep();
+    ros::Duration(4).sleep();
 
     ROS_WARN("post sleep");
-    
+   
+	std::vector<bool> test_modes = {true, false, false, false};
+	std::vector<int> test_modes_slot = {0, 1, 2, 3};
+	std::vector<FullMode> test_mode_gen;
+	test_mode_gen.push_back(profiled_modes[6][1][1]);
+	test_mode_gen.push_back(profiled_modes[7][1][2]);
+	test_mode_gen.push_back(profiled_modes[7][2][2]);
+	test_mode_gen.push_back(profiled_modes[7][3][2]);
+
+
+ 
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    //generateTrajectory(profiled_modes[3][3][2]);
+    generateTrajectory(test_mode_gen, test_modes_slot = {0, 1, 2, 3}, test_modes = {true, true, true, true});
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
@@ -1068,6 +1084,8 @@ int main(int argc, char** argv) {
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
     //generateTrajectory(profiled_modes[3][3][2]);
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
+
+	return 1;
 
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
@@ -1079,17 +1097,17 @@ int main(int argc, char** argv) {
     while(ros::ok()) {
         ROS_WARN("running");
         double auto_start_time = DBL_MAX;
-        std::vector<bool> generated_vect = {false, false, false, false};
+        //std::vector<bool> generated_vect = {false, false, false, false};
         std::vector<int> auto_mode_vect = {-1, -1, -1, -1};
         std::vector<double> delays_vect = {0, 0, 0, 0};
         int start_pos = 0;
         bool match_data_received = false;
-        int auto_mode = -1;
+        //int auto_mode = -1;
         int layout = 0;
         bool in_auto = false;
 
         bool end_auto = false;
-        bool run_regardless = false;
+        //bool run_regardless = false;
         bool in_teleop = false;
         while(!in_teleop && !end_auto) {
             ////ROS_ERROR("In auto loop");
@@ -1097,15 +1115,14 @@ int main(int argc, char** argv) {
             MatchData match_data = *(matchData.readFromRT());
             AutoMode auto_mode_data = *(autoMode.readFromRT());
 
-
             if(!in_auto) { //accept changes to chosen auto_modes until we receive match data or auto starts
                 start_pos = auto_mode_data.start_pos_;
                 ////ROS_INFO("No match data and not in auto");
                 //loop through auto_mode data 
                 //generate trajectories for all changed modes
                 //ROS_ERROR_STREAM("1");
-                bool any_change = false;
-				std::vector<full_mode> out_to_generate;
+                //bool any_change = false;
+				std::vector<FullMode> out_to_generate;
 				
 				for(int i = 0; i<4; i++) {
                     //ROS_ERROR_STREAM("2");
@@ -1116,7 +1133,7 @@ int main(int argc, char** argv) {
 
                         out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_]);
 						generate_for_this[i] = true;	
-						any_change = true;
+						//any_change = true;
                     }
                     else if (auto_mode_data.modes_[i] <= num_cmd_vel_modes-1 && (auto_mode_data.modes_[i] >= 0) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
@@ -1130,14 +1147,14 @@ int main(int argc, char** argv) {
                             auto_mode_vect[i] = auto_mode_data.modes_[i];
                             delays_vect[i] = auto_mode_data.delays_[i];
 
-                            generated_vect[i] = true;
+                            //generated_vect[i] = true;
                             //ROS_ERROR_STREAM("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                         }
                         else {
 							mode_buffered[i] = false;
                             auto_mode_vect[i] = 0;
                             delays_vect[i] = 0;
-                            generated_vect[i] = false;
+                            //generated_vect[i] = false;
                             //ROS_ERROR_STREAM("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
                         }
                     }
@@ -1151,7 +1168,7 @@ int main(int argc, char** argv) {
 						if(!generate_for_this[i]) continue;
 						//ROS_ERROR_STREAM("4");
 						mode_buffered[i] = true;
-						generated_vect[i] = true;
+						//generated_vect[i] = true;
 						auto_mode_vect[i] = auto_mode_data.modes_[i];
 						delays_vect[i] = auto_mode_data.delays_[i];
 						//ROS_ERROR_STREAM("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
@@ -1165,7 +1182,7 @@ int main(int argc, char** argv) {
 						auto_mode_vect[i] = 0;
 						delays_vect[i] = 0;
 						//start_pos = -1;
-						generated_vect[i] = false;
+						//generated_vect[i] = false;
 						//ROS_ERROR_STREAM("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
 					}
 				}
@@ -1207,9 +1224,9 @@ int main(int argc, char** argv) {
                 //ROS_INFO("In first two seconds of auto with no match data");
                 layout = 0;
                 auto_mode_vect[layout] = 1; //default auto: cross baseline forward
-                generated_vect[layout] = true;
+                //generated_vect[layout] = true;
                 match_data_received = true;
-				run_regardless = true;
+				//run_regardless = true;
             }
             if(!in_auto) { //check for auto to start and set a start time
                 //ROS_ERROR_STREAM("6");
@@ -1265,7 +1282,7 @@ int main(int argc, char** argv) {
             MatchData match_data = *(matchData.readFromRT());
             if(!match_data.isAutonomous_ || !match_data.isEnabled_) {
                 end_auto = false;
-                in_teleop = !match_data.isAutonomous_ && !match_data.isEnabled_;
+                in_teleop = !match_data.isAutonomous_ && match_data.isEnabled_;
             }
 			else
 				slow.sleep(); //I think you want this.....

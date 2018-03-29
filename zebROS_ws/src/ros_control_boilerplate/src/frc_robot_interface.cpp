@@ -55,6 +55,7 @@ FRCRobotInterface::FRCRobotInterface(ros::NodeHandle &nh, urdf::Model *urdf_mode
 	, num_rumble_(0)
 	, num_navX_(0)
 	, num_analog_inputs_(0)
+	, num_dummy_joints_(0)
     , robot_code_ready_(0.0)
 {
 	// Check if the URDF model needs to be loaded
@@ -711,6 +712,7 @@ std::string FRCRobotInterface::printCommandHelper()
 void FRCRobotInterface::loadURDF(ros::NodeHandle &nh, std::string param_name)
 {
 	return;
+#if 0
 	std::string urdf_string;
 	urdf_model_ = new urdf::Model();
 
@@ -738,6 +740,7 @@ void FRCRobotInterface::loadURDF(ros::NodeHandle &nh, std::string param_name)
 		ROS_ERROR_STREAM_NAMED(name_, "Unable to load URDF model");
 	else
 		ROS_DEBUG_STREAM_NAMED(name_, "Received URDF from param server");
+#endif
 }
 
 }  // namespace

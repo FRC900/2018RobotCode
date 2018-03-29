@@ -345,8 +345,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	static std::string lastToggle = " ";
 
 	/*-----------------Up Double Press End Deploy------------------------------*/
+	static bool destruction_achieved = false;
 
-	if (JoystickState->directionUpPress && matchTimeRemaining.load(std::memory_order_relaxed) < 60)
+	if (JoystickState->directionUpPress && matchTimeRemaining.load(std::memory_order_relaxed) < 60 )
 	{
 		teleop_cancel();
 		//if(!ac->getState().isDone())
@@ -359,13 +360,31 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		//teleop_cancel();
 
 		static double directionUpLast = 0;
-		if (timeSecs - directionUpLast < 1.0)
+		if(destruction_achieved)
+		{
+				
+			srvElevator.request.x = .1; //Consider changing x_pos + up/down to preassigned rather than curr pos
+			srvElevator.request.y = 2.37;
+			/*max_extension_ + sin(acos(.1 / arm_length_))*arm_length_;*/ //TODO fix
+			srvElevator.request.up_or_down = true;
+			srvElevator.request.override_pos_limits = true;
+
+			if (!ElevatorSrv.call(srvElevator))
+			{
+				ROS_ERROR("Climb config srv call failed");
+			}
+			else
+			{
+			}
+		}
+		else if (timeSecs - directionUpLast < 1.0)
 		{
 			std_srvs::Empty empty; //TODO
 			if (!EndGameDeploy.call(empty))
 				ROS_ERROR("EndGameDeploy call in teleop joystick failed");
 			ROS_WARN("SELF DESTURCT");
 			achieved_pos = other;
+			destruction_achieved = true;
 		}
 		directionUpLast = timeSecs;
 	}
@@ -396,7 +415,38 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 		else
 		{
-			intake_up = false;
+		}
+		ROS_INFO("Climb config");
+		achieved_pos = climb_c;
+	}
+	if (JoystickState->directionDownRelease)
+	{
+		
+		ElevatorPos elevatorPosClimb = *(elevatorPos.readFromRT());
+		teleop_cancel();
+		//if(!ac->getState().isDone())
+			ac->cancelAllGoals();
+		//if(!ac_lift->getState().isDone())
+			ac_lift->cancelAllGoals();
+		//if(!ac_intake->getState().isDone())
+			ac_intake->cancelAllGoals();
+		srvElevator.request.x = elevatorPosClimb.X_; //Consider changing x_pos + up/down to preassigned rather than curr pos
+		srvElevator.request.y = elevatorPosClimb.Y_;
+		srvElevator.request.up_or_down = elevatorPosClimb.UpOrDown_;
+		srvElevator.request.override_pos_limits = true;
+		/*srvIntake.request.power = 0;
+		srvIntake.request.spring_state = 1; //hard_out
+		srvIntake.request.up = false;
+		if (!IntakeSrv.call(srvIntake)) //Is it worth trying to clamp or run the intake slowly?
+			ROS_ERROR("IntakeSrv call failed in teleop joystick climb config");
+		*/
+
+		if (!ElevatorSrv.call(srvElevator))
+		{
+			ROS_ERROR("Climb config srv call failed");
+		}
+		else
+		{
 		}
 		ROS_INFO("Climb config");
 		achieved_pos = climb_c;
@@ -717,7 +767,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		// TODO : need to call /set goal?
 	}
 
-	/*When we get the cube, slow the intake and grip hard*/
+	/*When we lose the cube, stop the intake and get ready to grab more cubes*/
 
 	if (run_out && (timeSecs > buttonBackStart + 2) && !start_toggle_on)
 	{
@@ -745,55 +795,55 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	/*------------------------------------Switch/Exchange------------------------------------*/
 
-	if (localCubeState.hasCubeClamp_) //No need to go to switch/exchange without cube
-	{
-		/*-----------------Left Stick Press - Switch ---------------------*/
-		if (JoystickState->stickLeftPress)
-		{
-			currentToggle = "StickLeft";
-			if (lastToggle == " ")
-			{
-				setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
-			}
-			if (currentToggle == lastToggle)
-			{
-				unToggle(last_achieved_pos, elevatorPosBefore, achieved_pos, currentToggle);
-			}
-			else
-			{
-				teleop_cancel();	
-				//if(!ac->getState().isDone())
-				ac->cancelAllGoals();
-				//if(!ac_lift->getState().isDone())
-				ac_lift->cancelAllGoals();
-				//if(!ac_intake->getState().isDone())
-				ac_intake->cancelAllGoals();
-				srvIntake.request.power = 0;
-				srvIntake.request.spring_state = 1; //hard_out
-				srvIntake.request.up = true; //
-				if (!IntakeSrv.call(srvIntake))
-					ROS_ERROR("IntakeSrv call failed in go to switch config");
-				else
-				{
-					ROS_INFO("intakeSrv call to switch height");
-					intake_up = true;
-				}
+    /*-----------------Direction Right/M6 Press - Switch ---------------------*/
+    if (JoystickState->directionRightPress) 
+    {
+        currentToggle = "StickLeft";
+        if (lastToggle == " ")
+        {
+            setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
+        }
+        if (currentToggle == lastToggle)
+        {
+            unToggle(last_achieved_pos, elevatorPosBefore, achieved_pos, currentToggle);
+        }
+        else
+        {
+            teleop_cancel();	
+            //if(!ac->getState().isDone())
+            ac->cancelAllGoals();
+            //if(!ac_lift->getState().isDone())
+            ac_lift->cancelAllGoals();
+            //if(!ac_intake->getState().isDone())
+            ac_intake->cancelAllGoals();
+            srvIntake.request.power = 0;
+            srvIntake.request.spring_state = 1; //hard_out
+            srvIntake.request.up = true; //
+            if (!IntakeSrv.call(srvIntake))
+                ROS_ERROR("IntakeSrv call failed in go to switch config");
+            else
+            {
+                ROS_INFO("intakeSrv call to switch height");
+                intake_up = true;
+            }
 
-				srvElevator.request.x = switch_config_x;
-				srvElevator.request.y = switch_config_y;
-				srvElevator.request.up_or_down = switch_config_up_or_down;
-				srvElevator.request.override_pos_limits =  localDisableArmLimits;
-				achieved_pos = switch_c;
-				if (ElevatorSrv.call(srvElevator))
-				{
-					ROS_INFO("Toggled to switch height");
-				}
-				else
-				{
-					ROS_ERROR("Failed to toggle to switch height");
-				}
-			}
-		}
+            srvElevator.request.x = switch_config_x;
+            srvElevator.request.y = switch_config_y;
+            srvElevator.request.up_or_down = switch_config_up_or_down;
+            srvElevator.request.override_pos_limits =  localDisableArmLimits;
+            achieved_pos = switch_c;
+            if (ElevatorSrv.call(srvElevator))
+            {
+                ROS_INFO("Toggled to switch height");
+            }
+            else
+            {
+                ROS_ERROR("Failed to toggle to switch height");
+            }
+        }
+    }
+	if (localCubeState.hasCubeClamp_ && local_clamped) //No need to go to switch/exchange without cube
+	{
 		/*-----------------Right Stick Press - Exchange ---------------------*/
 
 		if (JoystickState->stickRightPress)
@@ -881,8 +931,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			}
 		}
 	}
-	/*---------------------Right Button(M6) - Press Bring Up Intake-------------------*/
-	if (JoystickState->directionRightPress == true)
+	/*---------------------Left Stick(M3) - Press Bring Up Intake-------------------*/
+	if (JoystickState->stickLeftPress == true)
 	{
 		srvIntake.request.power = 0;
 		srvIntake.request.spring_state = 1; //hard_out
@@ -903,154 +953,150 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		ROS_INFO("teleop : called IntakeSrv in direction right press");
 	}
 	/*-----------------------------------------Low/High Scale-----------------------------------------*/
-	if (localCubeState.hasCubeClamp_) //No need to go to scale without cube
-	{
-		if (JoystickState->buttonYPress)
-		{
-			/*--------------------Y Single Press - High Scale ---------------------*/
-			currentToggle = "Y";
-			if (lastToggle == " ")
-			{
-				setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
-			}
-			if (currentToggle == lastToggle)
-			{
-				unToggle(last_achieved_pos, elevatorPosBefore, achieved_pos, currentToggle);
-			}
-			else
-			{
-				//if(!ac->getState().isDone())
-				ac->cancelAllGoals();
-				//if(!ac_lift->getState().isDone())
-				ac_lift->cancelAllGoals();
-				//if(!ac_intake->getState().isDone())
-				ac_intake->cancelAllGoals();
-				intakeGoToDefault(intake_up);
+    if (JoystickState->buttonYPress)
+    {
+        /*--------------------Y Single Press - High Scale ---------------------*/
+        currentToggle = "Y";
+        if (lastToggle == " ")
+        {
+            setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
+        }
+        if (currentToggle == lastToggle)
+        {
+            unToggle(last_achieved_pos, elevatorPosBefore, achieved_pos, currentToggle);
+        }
+        else
+        {
+            //if(!ac->getState().isDone())
+            ac->cancelAllGoals();
+            //if(!ac_lift->getState().isDone())
+            ac_lift->cancelAllGoals();
+            //if(!ac_intake->getState().isDone())
+            ac_intake->cancelAllGoals();
+            intakeGoToDefault(intake_up);
 
-				srvElevator.request.x = high_scale_config_x;
-				srvElevator.request.y = high_scale_config_y;
-				srvElevator.request.up_or_down = high_scale_config_up_or_down;
-				srvElevator.request.override_pos_limits = localDisableArmLimits;
-				achieved_pos = high_scale;
+            srvElevator.request.x = high_scale_config_x;
+            srvElevator.request.y = high_scale_config_y;
+            srvElevator.request.up_or_down = high_scale_config_up_or_down;
+            srvElevator.request.override_pos_limits = localDisableArmLimits;
+            achieved_pos = high_scale;
 
-				if (ElevatorSrv.call(srvElevator))
-				{
-					ROS_WARN("Toggled to low level scale");
-				}
-				else
-				{
-					ROS_ERROR("Failed to toggle to low level scale");
-				}
-			}
-		}
-		/*--------------------B Single Press - High Scale ---------------------*/
-		if (JoystickState->buttonBPress == true)
-		{
-			currentToggle = "B";
-			
-			if (lastToggle == " ")
-			{
-				setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
-			}
-			if (currentToggle == lastToggle)
-			{
-				unToggle(last_achieved_pos, elevatorPosBefore, achieved_pos, currentToggle);
-			}
-			else
-			{
-				//if(!ac->getState().isDone())
-				ac->cancelAllGoals();
-				//if(!ac_lift->getState().isDone())
-				ac_lift->cancelAllGoals();
-				//if(!ac_intake->getState().isDone())
-				ac_intake->cancelAllGoals();
-				intakeGoToDefault(intake_up);
-				srvElevator.request.x = mid_scale_config_x;
-				srvElevator.request.y = mid_scale_config_y;
-				srvElevator.request.up_or_down = mid_scale_config_up_or_down;
-				srvElevator.request.override_pos_limits = localDisableArmLimits;
-				achieved_pos = mid_scale;
-				if (ElevatorSrv.call(srvElevator))
-				{
-					ROS_WARN("Toggled to mid level scale height");
-				}
-				else
-				{
-					ROS_ERROR("Failed to toggle to mid level scale height");
-				}
-			}
+            if (ElevatorSrv.call(srvElevator))
+            {
+                ROS_WARN("Toggled to low level scale");
+            }
+            else
+            {
+                ROS_ERROR("Failed to toggle to low level scale");
+            }
+        }
+    }
+    /*--------------------B Single Press - High Scale ---------------------*/
+    if (JoystickState->buttonBPress == true)
+    {
+        currentToggle = "B";
+        
+        if (lastToggle == " ")
+        {
+            setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
+        }
+        if (currentToggle == lastToggle)
+        {
+            unToggle(last_achieved_pos, elevatorPosBefore, achieved_pos, currentToggle);
+        }
+        else
+        {
+            //if(!ac->getState().isDone())
+            ac->cancelAllGoals();
+            //if(!ac_lift->getState().isDone())
+            ac_lift->cancelAllGoals();
+            //if(!ac_intake->getState().isDone())
+            ac_intake->cancelAllGoals();
+            intakeGoToDefault(intake_up);
+            srvElevator.request.x = mid_scale_config_x;
+            srvElevator.request.y = mid_scale_config_y;
+            srvElevator.request.up_or_down = mid_scale_config_up_or_down;
+            srvElevator.request.override_pos_limits = localDisableArmLimits;
+            achieved_pos = mid_scale;
+        if (ElevatorSrv.call(srvElevator))
+        {
+            ROS_WARN("Toggled to mid level scale height");
+        }
+        else
+        {
+            ROS_ERROR("Failed to toggle to mid level scale height");
+        }
+    }
 
 
 
 
-		}
-	}
-	/*------------------------Back Button(M2) - Hold Spin Out------------------------------------*/
-	if (JoystickState->buttonBackButton == true)
-	{
-		srvIntake.request.power = -1;
-		srvIntake.request.up = false;
-		srvIntake.request.spring_state = 2; //soft_in
-		if (!IntakeSrv.call(srvIntake))
-			ROS_ERROR("IntakeSrv call failed in back button");
-		else
-		{
-			intake_up = false;
-		}
-		start_toggle_on = false;
-		ROS_INFO("teleop : called IntakeSrv in BackButton press");
-		buttonBackStart = timeSecs;
-	}
-	/*if (JoystickState->buttonBackRelease == true)
-	{
-		srvIntake.request.power = 0;
-		srvIntake.request.up = false;
-		if (!IntakeSrv.call(srvIntake))
-			ROS_ERROR("IntakeSrv call failed in back button released");
-	    else {
-	        intake_up = false;
-	    }
-		ROS_INFO("teleop : called IntakeSrv in BackButton release");
-	}*/
+}
+/*------------------------Back Button(M2) - Hold Spin Out------------------------------------*/
+if (JoystickState->buttonBackButton == true)
+{
+    srvIntake.request.power = -1;
+    srvIntake.request.up = false;
+    srvIntake.request.spring_state = 2; //soft_in
+    if (!IntakeSrv.call(srvIntake))
+        ROS_ERROR("IntakeSrv call failed in back button");
+    else
+    {
+        intake_up = false;
+    }
+    start_toggle_on = false;
+    ROS_INFO("teleop : called IntakeSrv in BackButton press");
+    buttonBackStart = timeSecs;
+}
+/*if (JoystickState->buttonBackRelease == true)
+{
+    srvIntake.request.power = 0;
+    srvIntake.request.up = false;
+    if (!IntakeSrv.call(srvIntake))
+        ROS_ERROR("IntakeSrv call failed in back button released");
+    else {
+        intake_up = false;
+    }
+    ROS_INFO("teleop : called IntakeSrv in BackButton release");
+}*/
 
-	//}
+//}
 
-	///////////////////// Drivetrain and Elevator Control \\\\\\\\\\\\\\\\\\\
+///////////////////// Drivetrain and Elevator Control \\\\\\\\\\\\\\\\\\\
 
-	//talon_controllers::CloseLoopControllerMsg arm;
-	double leftStickX = JoystickState->leftStickX;
-	double leftStickY = JoystickState->leftStickY;
+//talon_controllers::CloseLoopControllerMsg arm;
+double leftStickX = JoystickState->leftStickX;
+double leftStickY = JoystickState->leftStickY;
 
-	double rightStickX = JoystickState->rightStickX;
-	double rightStickY = JoystickState->rightStickY;
+double rightStickX = JoystickState->rightStickX;
+double rightStickY = JoystickState->rightStickY;
 
-	dead_zone_check(leftStickX, leftStickY);
-	dead_zone_check(rightStickX, rightStickY);
+dead_zone_check(leftStickX, leftStickY);
+dead_zone_check(rightStickX, rightStickY);
 
-	leftStickX =  pow(leftStickX, joystick_scale) * max_speed;
-	leftStickY = -pow(leftStickY, joystick_scale) * max_speed;
-
-	
-	
-
-	rightStickX =  pow(rightStickX, joystick_scale);
-	rightStickY = -pow(rightStickY, joystick_scale);
-
-	double rotation = (pow(JoystickState->leftTrigger, joystick_scale) - pow(JoystickState->rightTrigger, joystick_scale)) * max_rot;
+leftStickX =  pow(leftStickX, joystick_scale) * max_speed;
+leftStickY = -pow(leftStickY, joystick_scale) * max_speed;
 
 
-	static bool sendRobotZero = false;
-	// No motion? Tell the drive base to stop
-	if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
-	{
-		if (!sendRobotZero)
-		{
-			std_srvs::Empty empty;
-			if (!BrakeSrv.call(empty))
-				ROS_ERROR("BrakeSrv call failed in sendRobotZero");
-			ROS_INFO("BrakeSrv called");
-			sendRobotZero = true;
-		}
+
+
+rightStickX =  pow(rightStickX, joystick_scale);
+rightStickY = -pow(rightStickY, joystick_scale);
+
+double rotation = (pow(JoystickState->leftTrigger, joystick_scale) - pow(JoystickState->rightTrigger, joystick_scale)) * max_rot;
+
+static bool sendRobotZero = false;
+// No motion? Tell the drive base to stop
+if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
+{
+    if (!sendRobotZero)
+    {
+        std_srvs::Empty empty;
+        if (!BrakeSrv.call(empty))
+            ROS_ERROR("BrakeSrv call failed in sendRobotZero");
+        ROS_INFO("BrakeSrv called");
+        sendRobotZero = true;
+    }
 	}
 	else // X or Y or rotation != 0 so tell the drive base to move
 	{

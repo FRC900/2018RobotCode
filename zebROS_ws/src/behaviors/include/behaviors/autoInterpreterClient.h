@@ -26,48 +26,57 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <XmlRpcValue.h>
 #include <vector>
-enum Action {deploy_intake, undeploy_intake, intake_cube, exchange_cube, default_config, intake_config, exchange_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, release_clamp};
+enum Action {deploy_intake, undeploy_intake, intake_cube, exchange_cube, default_config, intake_config, exchange_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, custom_config, release_clamp};
 
-typedef struct action
+struct ActionSetpoint
+{
+	double x;
+	double y;
+	bool up_or_down;
+
+};
+
+struct ActionStruct
 {
     double time;
     Action action;
-} action_struct;
+	ActionSetpoint action_setpoint;
+};
 
-typedef struct cmd_vel
+struct CmdVel
 {
     double duration;
     double x;
     double y;
-} cmd_vel_struct;
+};
 
-struct full_mode
+struct FullMode
 {
 	std::vector<swerve_point_generator::FullGenCoefs> srv_msgs;
 	int num_srv_msgs;
-	std::vector<action_struct> actions;
+	std::vector<ActionStruct> actions;
 	std::vector<int> wait_ids;
 	bool exists;
 
-	full_mode(void): exists(false), num_srv_msgs(0) {}
+	FullMode(void): exists(false), num_srv_msgs(0) {}
 };
 
-struct cmd_vel_mode
+struct CmdVelMode
 {
-    std::vector<cmd_vel_struct> segments;
+    std::vector<CmdVel> segments;
     bool exists;
 
-	cmd_vel_mode(void): exists(false) {}
+	CmdVelMode(void): exists(false) {}
 };
-typedef std::vector<std::vector<std::vector<full_mode>>> mode_list;
-typedef std::vector<std::vector<std::vector<cmd_vel_mode>>> cmd_vel_list; //Also should maybe have another dimensition and wait for completions?
 
+typedef std::vector<std::vector<std::vector<FullMode>>> ModeList;
+typedef std::vector<std::vector<std::vector<CmdVelMode>>> CmdVelList; //Also should maybe have another dimensition and wait for completions?
 
-typedef struct mode
+struct Modes
 {
-    mode_list profiled_modes;
-    cmd_vel_list cmd_vel_modes;
-} Modes;
+    ModeList profiled_modes;
+    CmdVelList cmd_vel_modes;
+};
 
 bool defaultConfig(void);
 bool intakeConfig(void);
@@ -81,13 +90,11 @@ bool clamp(void);
 bool releaseIntake(void);
 bool intakeOut(void);
 bool parkingConfig(void);
-bool generateTrajectory(std::vector<full_mode> &trajectory, std::vector<int> &start_buffer_ids);
-bool bufferTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj);
 bool runTrajectory(void);
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode);
 void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData);
-void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const full_mode &auto_run_data, std::vector<int> start_of_buffer_ids);
-void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<cmd_vel_struct> &segments);
+void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const FullMode &auto_run_data, std::vector<int> start_of_buffer_ids);
+void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<CmdVel> &segments);
 
 
-mode_list load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data);
+ModeList load_all_trajectories(int max_mode_num, int max_start_pos_num, ros::NodeHandle &auto_data);

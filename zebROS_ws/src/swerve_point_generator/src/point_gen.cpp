@@ -32,7 +32,7 @@ swerveVar::driveModel model;
 
 bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_generator::FullGenCoefs::Response &res)
 {
-	ROS_ERROR("running point gen");
+	//ROS_ERROR("running point gen");
 	
 	std::array<double, WHEELCOUNT> curPos;
 	talon_swerve_drive_controller::WheelPos pos_msg;
@@ -100,7 +100,7 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 		}
 		for (size_t i = priv_num; i < req.spline_groups[s]; i++)
 		{
-			ROS_INFO_STREAM("hrer: " << req.end_points[i] - shift_by<< " r_s: " <<  req.spline_groups[s] <<  " s: "<< s);
+			//ROS_INFO_STREAM("hrer: " << req.end_points[i] - shift_by<< " r_s: " <<  req.spline_groups[s] <<  " s: "<< s);
 			end_points_holder.push_back(req.end_points[i] - shift_by);
 			
 		}
@@ -108,10 +108,10 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 		bool flip_dirc = req.flip[s];	
 	
 		swerve_point_generator::GenerateSwerveProfile::Response srv_msg; //TODO FIX THIS, HACK
-		srv_msg.points.resize(0);
+		//srv_msg.points.resize(0);
 		profile_gen->generate_profile(x_splines, y_splines, orient_splines, req.initial_v, req.final_v, srv_msg, end_points_holder, t_shift, flip_dirc);
 		const int point_count = srv_msg.points.size();
-		ROS_WARN("TEST2");
+		//ROS_WARN("TEST2");
 
 
 		graph_msg.request.joint_trajectory.header = srv_msg.header;
@@ -121,7 +121,7 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 
 		//ROS_INFO_STREAM("dt: " << res.dt);
 
-		ROS_WARN("BUFFERING");
+		//ROS_WARN("BUFFERING");
 		//TODO: optimize code?
 
 
@@ -219,8 +219,8 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 
 				if (i > point_count - k_p - 2)
 				{
-					ROS_INFO_STREAM("final pos" << angles_positions[k][0] + res.points[i + n - 1 + prev_point_count].drive_pos[k]);
-					ROS_INFO_STREAM("vel sum" << vel_sum[k]);
+					//ROS_INFO_STREAM("final pos" << angles_positions[k][0] + res.points[i + n - 1 + prev_point_count].drive_pos[k]);
+					//ROS_INFO_STREAM("vel sum" << vel_sum[k]);
 					res.points[i + n + prev_point_count].drive_f.push_back(0);
 					res.points[i + n + prev_point_count].steer_f.push_back(0);
 				}
@@ -245,14 +245,17 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 			}
 		}	
 		prev_point_count += point_count + n - k_p;	
+		//ROS_ERROR_STREAM("l: " <<  prev_point_count << " P: " << point_count);
 	}
+			
 	
 	graph_prof.call(graph_msg);
 	res.points.erase(res.points.begin() + prev_point_count, res.points.end());
+	ROS_INFO_STREAM("profile time: " << res.points.size() * defined_dt);
 	//talon_swerve_drive_controller::MotionProfilePoints graph_swerve_msg;
 	//graph_swerve_msg.request.points = res.points;
 	//graph_swerve_prof.call(graph_swerve_msg);
-	ROS_WARN("FIN");
+	//ROS_WARN("FIN");
 	return true;
 }
 int main(int argc, char **argv)
@@ -378,9 +381,9 @@ int main(int argc, char **argv)
 
 	// Once everything this node needs is available, open
 	// it up to connections from the outside
-	ROS_ERROR("BEFORE advertiseService");
+	//ROS_ERROR("BEFORE advertiseService");
 	ros::ServiceServer service = nh.advertiseService("/point_gen/command", full_gen);
-	ROS_ERROR("AFTER advertiseService");
+	//ROS_ERROR("AFTER advertiseService");
 
 	ros::spin();
 }

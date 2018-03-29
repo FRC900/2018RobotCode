@@ -67,7 +67,6 @@ class autoAction {
     void executeCB(const behaviors::LiftGoalConstPtr &goal) {
 	ros::Rate r(10);
 	const double startTime = ros::Time::now().toSec();
-	bool success = false;
 	bool aborted = false;
 	bool timed_out = false;
 	if(goal->GoToPos)
@@ -81,6 +80,7 @@ class autoAction {
 	    srv_elevator.request.override_pos_limits = goal->override_pos_limits;
 	    if(!ElevatorSrv_.call(srv_elevator)) ROS_ERROR("Srv elevator call failed from auto server lift");;
 	    ros::spinOnce();
+		bool success = false;
 	    while(!aborted && !timed_out && !success)
 	    {
 		const ElevatorPos odom = *(elevator_odom.readFromRT());
@@ -122,8 +122,6 @@ class autoAction {
 	behaviors::LiftResult result;
 	result.timed_out = timed_out;
         as_.setSucceeded(result);
-        
-	return;
     }
 
     void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg) {

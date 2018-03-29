@@ -57,7 +57,7 @@ swerve_drive_controller:
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
-        current_limit_continuous_amps: 40
+        current_limit_continuous_amps: 20
         current_limit_enable: True
     speed_joint_fr:
         joint: fr_drive #fix pid
@@ -68,7 +68,7 @@ swerve_drive_controller:
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
-        current_limit_continuous_amps: 40
+        current_limit_continuous_amps: 20
         current_limit_enable: True
     speed_joint_bl:
         joint: bl_drive #fix pid
@@ -79,7 +79,7 @@ swerve_drive_controller:
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
-        current_limit_continuous_amps: 40
+        current_limit_continuous_amps: 20
         current_limit_enable: True
     speed_joint_br:
         joint: br_drive #fix pid
@@ -90,7 +90,7 @@ swerve_drive_controller:
         invert_output: True
         feedback_type: CTRE_MagEncoder_Relative
         voltage_compensation_enable: True
-        current_limit_continuous_amps: 40
+        current_limit_continuous_amps: 20
         current_limit_enable: True
     steering_joint_fl:
         joint: fl_angle

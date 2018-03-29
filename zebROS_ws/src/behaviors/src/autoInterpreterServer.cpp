@@ -367,20 +367,21 @@ class autoAction
 			
 				ai_.cancelAllGoals();
 				ROS_INFO("start of go to intake config with cube");
+				
 				behaviors::LiftGoal goal_l;
-				goal_l.time_out = 5; //This honestly doesn't need to be an action lib
-				goal_l.put_cube_in_intake = true;
+				goal_l.time_out = 5; 
 				goal_l.GoToPos = true;
-				goal_l.x = intake_ready_to_drop_x;
-				goal_l.y = intake_ready_to_drop_y;
-				goal_l.up_or_down = intake_ready_to_drop_up_or_down;
+				goal_l.x = intake_high_x;
+				goal_l.y = intake_high_y;
+				goal_l.up_or_down = intake_high_up_or_down;
 				goal_l.override_pos_limits = false;
-				goal_l.dist_tolerance = 1.0;
-				goal_l.y_tolerance = 1.0;
-				goal_l.x_tolerance = drop_x_tolerance;
+				goal_l.put_cube_in_intake = true;
+				goal_l.dist_tolerance = 0.1;
+				goal_l.y_tolerance = 0.1;
+				goal_l.x_tolerance = 0.1;
 
 				al_.sendGoal(goal_l);
-				
+
 				double t_before_move_intake = 0;
 				elevator_controller::Intake srvIntake;
 				srvIntake.request.power = 0;
@@ -391,51 +392,6 @@ class autoAction
 				t_before_move_intake = ros::Time::now().toSec();
 				
 				//loop till we get to where we can drop
-				while (!aborted && !timed_out)
-				{
-					ROS_WARN("brief wait before close");
-					if (as_.isPreemptRequested() || !ros::ok())
-					{
-						ROS_WARN("%s: Preempted", action_name_.c_str());
-						as_.setPreempted();
-						aborted = true;
-						break;
-					}
-					if (!aborted)
-					{
-						r.sleep();
-						ros::spinOnce();
-						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
-						//time_out if the action times out
-						if (ros::Time::now().toSec() - t_before_move_intake > wait_open_before_drop)
-						{
-							break;
-						}
-						if (al_.getState().isDone())
-						{
-							timed_out = timed_out || al_.getResult()->timed_out;
-						}
-					}
-				}
-				if(!aborted && !timed_out)
-				{
-					behaviors::LiftGoal goal_l;
-					goal_l.time_out = 5; 
-					goal_l.GoToPos = true;
-					goal_l.x = intake_high_x;
-					goal_l.y = intake_high_y;
-					goal_l.up_or_down = intake_high_up_or_down;
-					goal_l.override_pos_limits = false;
-					goal_l.put_cube_in_intake = false;
-					goal_l.dist_tolerance = 0.1;
-					goal_l.y_tolerance = 0.1;
-					goal_l.x_tolerance = 0.1;
-
-					al_.sendGoal(goal_l);
-					
-
-					
-				}
 				while (!aborted && !timed_out)
 				{
 					if (as_.isPreemptRequested() || !ros::ok())

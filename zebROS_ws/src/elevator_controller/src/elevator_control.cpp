@@ -480,7 +480,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	{
 		//ROS_INFO("part 2");
 		command_struct_.lin[0] = .1;
-		command_struct_.lin[1] = max_extension_ + cos(asin(.1 / arm_length_))*arm_length_;
+		command_struct_.lin[1] = max_extension_ + sin(acos(.1 / arm_length_))*arm_length_;
 		command_struct_.up_or_down = true;
 		command_struct_.override_pos_limits = true;
 		command_struct_.override_sensor_limits = false;
