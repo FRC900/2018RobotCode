@@ -2,7 +2,7 @@
 
 <launch>
 	<!-- GDB functionality -->
-	<arg name="screen" default="true" />
+	<arg name="screen" default="false" />
 	<arg unless="$(arg screen)" name="output" value="log" />
 	<arg     if="$(arg screen)" name="output" value="screen" />
 
