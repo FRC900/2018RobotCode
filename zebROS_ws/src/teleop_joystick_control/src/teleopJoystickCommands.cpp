@@ -247,7 +247,6 @@ void generateCoefs(const double angle_diff, const ros::Duration time_to_run, bas
 	srvBaseTrajectory.request.points[0].time_from_start = time_to_run; 
 
 	generate_coefs.call(srvBaseTrajectory);
-
 }
 
 void generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory, swerve_point_generator::FullGenCoefs &traj) 

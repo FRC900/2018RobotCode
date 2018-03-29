@@ -197,7 +197,12 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 			std::cout << std::endl;
 		}
 		// All splines in a waypoint end at the same time?
+		if(trajectory[0][seg].endTime())
+			ROS_ERROR("end_points will not be loaded");
 		out_msg.end_points.push_back(trajectory[0][seg].endTime());
+		if (out_msg.end_points.empty())
+			ROS_ERROR("IT is EMPTY");
+		ROS_ERROR("IS ERROR STREAM EVEN WORKING ???????");
 	}
 }
 
