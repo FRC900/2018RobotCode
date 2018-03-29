@@ -1076,7 +1076,7 @@ int main(int argc, char** argv) {
 
  
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
-    generateTrajectory(test_mode_gen, test_modes_slot = {0, 1, 2, 3}, test_modes = {true, true, true, true});
+    //generateTrajectory(test_mode_gen, test_modes_slot = {0, 1, 2, 3}, test_modes = {true, true, true, true});
     //ROS_WARN("Auto Client loaded");
     //ros::Duration(30).sleep();
     //ROS_WARN("post sleep");
@@ -1085,7 +1085,7 @@ int main(int argc, char** argv) {
     //generateTrajectory(profiled_modes[3][3][2]);
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
 
-	return 1;
+	//return 1;
 
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
