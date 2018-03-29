@@ -887,7 +887,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 	int queued = -1;
 	std::vector<bool> finished;
 	
-    for(size_t num = 0; num<num_actions; num++) 
+    for(size_t num = 0; num<num_actions; num++)
 	{
 		finished.push_back(false);
 	}
@@ -1282,7 +1282,7 @@ int main(int argc, char** argv) {
             MatchData match_data = *(matchData.readFromRT());
             if(!match_data.isAutonomous_ || !match_data.isEnabled_) {
                 end_auto = false;
-                in_teleop = !match_data.isAutonomous_ && !match_data.isEnabled_;
+                in_teleop = !match_data.isAutonomous_ && match_data.isEnabled_;
             }
 			else
 				slow.sleep(); //I think you want this.....

@@ -42,7 +42,6 @@ class autoAction {
     void executeCB(const behaviors::IntakeGoalConstPtr &goal) {
         ros::Rate r(10);
         double startTime = ros::Time::now().toSec();
-        bool success = false;
         bool timed_out = false;
         bool aborted = false;
         if(goal->IntakeCube) {
@@ -58,6 +57,7 @@ class autoAction {
             else
                 ROS_INFO("Srv intake call OK in auto interpreter server intake");
             ros::spinOnce();
+			bool success = false;
             while(!success && !timed_out && !aborted) {
                 success = cube_state_true > linebreak_debounce_iterations; 
                 if(as_.isPreemptRequested() || !ros::ok()) {
