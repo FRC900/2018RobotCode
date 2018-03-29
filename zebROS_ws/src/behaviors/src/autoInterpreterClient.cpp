@@ -1109,6 +1109,7 @@ int main(int argc, char** argv) {
         bool end_auto = false;
         //bool run_regardless = false;
         bool in_teleop = false;
+		const FullMode empty_full_mode;
         while(!in_teleop && !end_auto) {
             ////ROS_ERROR("In auto loop");
 
@@ -1138,7 +1139,7 @@ int main(int argc, char** argv) {
                     else if (auto_mode_data.modes_[i] <= num_cmd_vel_modes-1 && (auto_mode_data.modes_[i] >= 0) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
-                        out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_]);
+                        out_to_generate.push_back(empty_full_mode);
 						generate_for_this[i] = false;	
                         //ROS_ERROR_STREAM("6");
                         if(generateTrajectory(cmd_vel_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_])) {
@@ -1159,7 +1160,7 @@ int main(int argc, char** argv) {
                         }
                     }
                     else {
-                        out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_]);
+                        out_to_generate.push_back(empty_full_mode);
                     }
                 }
 				
