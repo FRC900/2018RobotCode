@@ -847,6 +847,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     ROS_WARN("auto entered");
     exit_auto = false;
 
+    clamp();
     if(auto_select == 0) {
         return;
     }
@@ -857,6 +858,10 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
         r.sleep(); 
     }
     
+    if(auto_select == 2) {
+        switchConfig();
+    }
+
     geometry_msgs::Twist vel;
     vel.linear.z = 0;
     vel.angular.x = 0;
@@ -1279,6 +1284,7 @@ int main(int argc, char** argv) {
                 static int default_lift_iterations = 0;
                 if(default_lift_iterations%5 == 0) {
                     defaultConfig();
+                    clamp();
                     elevator_controller::Intake srv;
                     srv.request.spring_state = 2; //soft_in
                     srv.request.power=0;
