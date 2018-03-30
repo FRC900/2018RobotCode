@@ -657,7 +657,15 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
     /* NIALL */
     if(starting_config_.getPosition())
     {
+		
+		command_struct_.lin[0] = .1;
+		command_struct_.lin[1] = min_extension_ + sin(acos(.1 / arm_length_))*arm_length_ + .05;
+		command_struct_.up_or_down = true;
+		command_struct_.override_pos_limits = true;
+		command_struct_.override_sensor_limits = false;
+		command_struct_.put_cube_in_intake = false;
 
+		command_.writeFromNonRT(command_struct_);		
     }
     else
     {
@@ -777,16 +785,17 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 
 bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &/*res*/)
 {
+	Commands command_struct;
 	if(isRunning())
 	{
-		command_struct_.lin[0] = command.x;
-		command_struct_.lin[1] = command.y;
-		command_struct_.up_or_down = command.up_or_down;
-		command_struct_.override_pos_limits = command.override_pos_limits;
-		command_struct_.override_sensor_limits = command.override_sensor_limits;
+		command_struct.lin[0] = command.x;
+		command_struct.lin[1] = command.y;
+		command_struct.up_or_down = command.up_or_down;
+		command_struct.override_pos_limits = command.override_pos_limits;
+		command_struct.override_sensor_limits = command.override_sensor_limits;
 
-		command_struct_.put_cube_in_intake = command.put_cube_in_intake;
-		command_struct_.stamp = ros::Time::now();
+		command_struct.put_cube_in_intake = command.put_cube_in_intake;
+		command_struct.stamp = ros::Time::now();
 		command_.writeFromNonRT(command_struct_);
 		return true;
 	}
