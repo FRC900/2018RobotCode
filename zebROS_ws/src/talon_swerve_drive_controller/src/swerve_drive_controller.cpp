@@ -623,8 +623,28 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	//For this to be thread safe, the assumption is that the serv is called relatively infrequently
 	if(cur_prof_cmd.newly_set)
 	{
+		
+		
+		if(cur_prof_cmd.wipe_all)
+		{
+			for(int i = 0; i < num_profile_slots_; i++)
+			{	
+				for(size_t k = 0; k < WHEELCOUNT; k++)
+				{
+
+					full_profile_[k][0].clear();
+					full_profile_[k][1].clear();
+					speed_joints_[k].overwriteCustomProfilePoints(full_profile_[k][0], i);
+					steering_joints_[k].overwriteCustomProfilePoints(full_profile_[k][1], i);
+				}	
+			}
+		}
+
+
 		if(cur_prof_cmd.buffer)
 		{
+			
+			ROS_WARN("buffer in controller - pre loop");
 			for(size_t p = 0; p < cur_prof_cmd.profiles.size(); p++)
 			{
 				ROS_WARN("buffer in controller");
@@ -698,23 +718,11 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				ROS_WARN("done");
 			}
 		}
-		else if(cur_prof_cmd.wipe_all)
-		{
-			for(int i = 0; i < num_profile_slots_; i++)
-			{	
-				for(size_t k = 0; k < WHEELCOUNT; k++)
-				{
 
-					full_profile_[k][0].clear();
-					full_profile_[k][1].clear();
-					speed_joints_[k].overwriteCustomProfilePoints(full_profile_[k][0], i);
-					steering_joints_[k].overwriteCustomProfilePoints(full_profile_[k][1], i);
-				}	
-			}
-		}
 		
 		if(cur_prof_cmd.run)
 		{	
+			ROS_WARN("running from  controller");
 			mode_.writeFromNonRT(false); //Should be fine
 			for(size_t k = 0; k < WHEELCOUNT; k++)
 			{
@@ -722,6 +730,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				speed_joints_[k].setCustomProfileSlot(cur_prof_cmd.run_slot);		
 			}
 		}
+
 		if(cur_prof_cmd.change_queue)
 		{
 			for(size_t k = 0; k < WHEELCOUNT; k++)
