@@ -235,7 +235,7 @@ cmd_vel_params:
     mode_2_layout_0_2_start_1:
             [{x: -0.0, y: -0.75, duration: 1.533}, 
              {x: 0.5, y: 0.0, duration: 0.4},
-             {x: 1.5, y: 0.0, duration: 2.0}]
+             {x: .75, y: 0.0, duration: 4.0}]
     mode_2_layout_0_2_start_2:
             [{x: 1.2, y: 0.53, duration: 2.58}]
     mode_2_layout_1_3_start_0:
@@ -244,7 +244,7 @@ cmd_vel_params:
             [{x: 0.75, y: 0.0, duration: 0.8}, 
              {x:  0.0, y: 0.75, duration: 2.067},
              {x: 0.5, y: 0.0, duration: 0.4},
-             {x: 1.5, y: 0.0, duration: 2.0}]
+             {x: .75, y: 0.0, duration: 4.0}]
     mode_3_layout_1_3_start_2:
             [{x: 1.05, y: -0.1, duration: 6.0}]
 
