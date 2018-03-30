@@ -32,7 +32,7 @@
   <arg name="sub_rate" default="10" />
   <arg name="pub_rate" default="1" />
 
-  <group ns="$(arg name)">
+  <!--  <group ns="$(arg name)">
     <include file="$(find zed_wrapper)/launch/zed_camera.launch">
       <arg name="zed_name" value="$(arg name)" />
       <arg name="resolution" value="$(arg resolution)" />
@@ -47,7 +47,7 @@
       <arg name="whitebalance" value="$(arg whitebalance)" />
 	  <arg name="publish_tf" value="False" />
     </include>
-</group>
+</group> -->
 
 <!--
   <node name="goal_detection_node" pkg="goal_detection" type="goal_detection_node" respawn="true" output="screen">
@@ -62,8 +62,8 @@
 
   <!--<include file="$(find controller_node)/launch/fuse_odom.launch"/>-->
 
-  <include file="$(find rplidar_ros)/launch/rplidar.launch" />
-  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4180115 -0.3183901 0.2206 3.14159265 0 0 base_link laser" />
+  <!-- <include file="$(find rplidar_ros)/launch/rplidar.launch" /> -->
+  <!-- <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4180115 -0.3183901 0.2206 3.14159265 0 0 base_link laser" /> -->
 
   <!--<include file="$(find controller_node)/launch/gmapping.launch"/>-->
 
