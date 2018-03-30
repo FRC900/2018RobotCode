@@ -321,6 +321,12 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*-----------------Down Press Climb to Correct height----------------------*/
 	if (JoystickState->directionDownPress)
 	{
+		ROS_WARN("pressed down");
+
+		
+	
+
+
 		teleop_cancel();
 		//if(!ac->getState().isDone())
 			ac->cancelAllGoals();
@@ -352,6 +358,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	if (JoystickState->directionDownRelease)
 	{
 		
+		ROS_WARN("released down");
 		ElevatorPos elevatorPosClimb = *(elevatorPos.readFromRT());
 		teleop_cancel();
 		//if(!ac->getState().isDone())
