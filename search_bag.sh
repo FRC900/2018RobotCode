@@ -36,17 +36,18 @@ do
 	if [ ! -z "$any_data" -a "$any_data" != " " ] 
 	then
 		echo This has match data
-		alliance_data=$(grep this temp_file.txt)
-		if [ ! -z "$alliance_data" -a "$alliance_data" != " " ]
-		then 
-			echo This has alliance data.
-			matchNumber=$(grep -m1 matchNumber temp_file.txt | cut -c14-15)
+		matchNumber=$(grep -m1 matchNumber temp_file.txt | cut -c14-15)
 			if [ $matchNumber = 0 ]
 			then
 				echo Match number is zero -- renaming
 				mv $var $HOME/2018RobotCode/match0$(basename $var)
 				continue
 			fi
+
+		alliance_data=$(grep this temp_file.txt)
+		if [ ! -z "$alliance_data" -a "$alliance_data" != " " ]
+		then 
+			echo This has alliance data.
 			bag_name=Match${matchNumber}
 			if [ -e ${bag_name}*.bag ]
 			then 
