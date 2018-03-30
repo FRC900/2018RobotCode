@@ -83,16 +83,18 @@ For a more detailed simulation example, see sim_hw_interface.cpp
 #define KEYCODE_D 0x44
 #define KEYCODE_MINUS 0x2D
 #define KEYCODE_EQUALS 0x3D
-#define KEYCODE_ONE 0x1
-#define KEYCODE_TWO 0x2
-#define KEYCODE_THREE 0x3
-#define KEYCODE_FOUR 0x4
-#define KEYCODE_FIVE 0x5
-#define KEYCODE_SIX 0x6
-#define KEYCODE_SEVEN 0x7
-#define KEYCODE_EIGHT 0x8
+#define KEYCODE_ONE 0x31
+#define KEYCODE_TWO 0x32
+#define KEYCODE_THREE 0x33
+#define KEYCODE_FOUR 0x34
+#define KEYCODE_FIVE 0x35
+#define KEYCODE_SIX 0x36
+#define KEYCODE_SEVEN 0x37
+#define KEYCODE_EIGHT 0x38
 #define KEYCODE_LEFT_BRACKET 0x5B
 #define KEYCODE_ESCAPE  0x1B
+#define KEYCODE_CARROT 0x5E
+#define KEYCODE_SPACE 0x20
 
 
 namespace frcrobot_control
@@ -143,7 +145,6 @@ class TeleopJointsKeyboard
 		void keyboardLoop()
 		{
 			char c;
-
 			// get the console in raw mode
 			tcgetattr(kfd, &cooked);
 			memcpy(&raw, &cooked, sizeof(struct termios));
@@ -156,6 +157,7 @@ class TeleopJointsKeyboard
 
 			for (;;)
 			{
+
 				// get the next event from the keyboard
 				if (read(kfd, &c, 1) < 0)
 				{
@@ -224,33 +226,41 @@ class TeleopJointsKeyboard
                 cmd_.directionLeftPress = false;
                 cmd_.directionLeftRelease = false;
 
-				bool dirty = true;
+				bool dirty = false;
 				switch (c)
 				{
                 case KEYCODE_i:
                     cmd_.rightStickY += .5;
+                    dirty = true;
                     break;
                 case KEYCODE_k:
                     cmd_.rightStickY -= .5;
+                    dirty = true;
                     break;
                 case KEYCODE_j:
                     cmd_.rightStickX += .5;
+                    dirty = true;
                     break;
                 case KEYCODE_l:
                     cmd_.rightStickX -= .5;
+                    dirty = true;
                     break;
 
                 case KEYCODE_d:
                     cmd_.leftStickY += .5;
+                    dirty = true;
                     break;
                 case KEYCODE_a:
                     cmd_.leftStickY -= .5;
+                    dirty = true;
                     break;
                 case KEYCODE_w:
                     cmd_.leftStickX += .5;
+                    dirty = true;
                     break;
                 case KEYCODE_s:
                     cmd_.leftStickX -= .5;
+                    dirty = true;
                     break;
 				case KEYCODE_ONE:
                     if(cmd_last_.buttonAButton) {
@@ -260,6 +270,7 @@ class TeleopJointsKeyboard
                         cmd_.buttonAPress = true; // radians
                     }
 					cmd_.buttonAButton = true; // radians
+                    dirty = true;
 					break;
 				case KEYCODE_TWO:
                     if(cmd_last_.buttonBButton) {
@@ -269,6 +280,7 @@ class TeleopJointsKeyboard
                         cmd_.buttonBPress = true; // radians
                     }
 					cmd_.buttonBButton = true; // radians
+                    dirty = true;
 					break;
 				case KEYCODE_THREE:
                     if(cmd_last_.buttonXButton) {
@@ -278,6 +290,7 @@ class TeleopJointsKeyboard
                         cmd_.buttonXPress = true; // radians
                     }
 					cmd_.buttonXButton = true; // radians
+                    dirty = true;
 					break;
 				case KEYCODE_FOUR:
                     if(cmd_last_.buttonYButton) {
@@ -287,12 +300,15 @@ class TeleopJointsKeyboard
                         cmd_.buttonYPress = true; // radians
                     }
 					cmd_.buttonYButton = true; // radians
+                    dirty = true;
 					break;
 				case KEYCODE_q:
 					cmd_.leftTrigger = .5; // radians
+                    dirty = true;
 					break;
 				case KEYCODE_e:
 					cmd_.rightTrigger = .5; // radians
+                    dirty = true;
 					break;
 				case KEYCODE_SEVEN:
                     if(cmd_last_.stickLeftButton) {
@@ -302,6 +318,7 @@ class TeleopJointsKeyboard
                         cmd_.stickLeftPress = true; // radians
                     }
 					cmd_.stickLeftButton = true; // radians
+                    dirty = true;
 					break;
 				case KEYCODE_EIGHT:
                     if(cmd_last_.stickRightButton) {
@@ -311,6 +328,7 @@ class TeleopJointsKeyboard
                         cmd_.stickRightPress = true; // radians
                     }
 					cmd_.stickRightButton = true; // radians
+                    dirty = true;
 					break;
 				case KEYCODE_FIVE:
                     if(cmd_last_.buttonBackButton) {
@@ -320,6 +338,7 @@ class TeleopJointsKeyboard
                         cmd_.buttonBackPress = true; // radians
                     }
 					cmd_.buttonBackButton = true; // radians
+                    dirty = true;
 					break;
 				case KEYCODE_SIX:
                     if(cmd_last_.buttonStartButton) {
@@ -329,6 +348,7 @@ class TeleopJointsKeyboard
                         cmd_.buttonStartPress = true; // radians
                     }
 					cmd_.buttonStartButton = true; // radians
+                    dirty = true;
 					break;
 				case KEYCODE_MINUS:
                     if(cmd_last_.bumperLeftButton) {
@@ -338,6 +358,7 @@ class TeleopJointsKeyboard
                         cmd_.bumperLeftPress = true; // radians
                     }
 					cmd_.bumperLeftButton = true; // radians
+                    dirty = true;
 					break;
 				case KEYCODE_EQUALS:
                     if(cmd_last_.bumperRightButton) {
@@ -347,10 +368,10 @@ class TeleopJointsKeyboard
                         cmd_.bumperRightPress = true; // radians
                     }
 					cmd_.bumperRightButton = true; // radians
+                    dirty = true;
 					break;
 
 				case KEYCODE_LEFT_BRACKET:
-
                     if (read(kfd, &c, 1) < 0)
                     {
                         perror("read():");
@@ -366,6 +387,7 @@ class TeleopJointsKeyboard
                                 cmd_.directionDownPress = true; // radians
                             }
                             cmd_.directionDownButton = true;
+                            dirty = true;
                             break;
                         case KEYCODE_A:
                             if(cmd_last_.directionUpButton) {
@@ -375,6 +397,7 @@ class TeleopJointsKeyboard
                                 cmd_.directionUpPress = true; // radians
                             }
                             cmd_.directionUpButton = true;
+                            dirty = true;
                             break;
                         case KEYCODE_D:
                             if(cmd_last_.directionLeftButton) {
@@ -384,6 +407,7 @@ class TeleopJointsKeyboard
                                 cmd_.directionLeftPress = true; // radians
                             }
                             cmd_.directionLeftButton = true;
+                            dirty = true;
                             break;
                         case KEYCODE_C:
                             if(cmd_last_.directionRightButton) {
@@ -393,6 +417,7 @@ class TeleopJointsKeyboard
                                 cmd_.directionRightPress = true; // radians
                             }
                             cmd_.directionRightButton = true;
+                            dirty = true;
                             break;
                     }
 					break;
@@ -402,7 +427,14 @@ class TeleopJointsKeyboard
 					//std::cout << "Exiting " << std::endl;
 					//quit(0);
 					break;
-                
+                case KEYCODE_CARROT:
+                    ROS_WARN("I'ts a carrot");
+                    dirty = false;
+                    break;
+                case KEYCODE_SPACE:
+                    dirty = true;
+                } 
+                ROS_ERROR("LEMur");
                 if(cmd_last_.buttonAButton && !cmd_.buttonAButton) {
                     cmd_.buttonARelease = true;
                 }
@@ -446,6 +478,7 @@ class TeleopJointsKeyboard
                     cmd_.directionDownRelease = true;
                 }
 				// Publish command
+                ROS_ERROR("LEMur");
 				if (dirty)
 				{
 					// Important safety feature
@@ -455,12 +488,12 @@ class TeleopJointsKeyboard
 					//}
 					//else
 					//{
+                        ROS_ERROR("LEMur");
 						std::cout << ".";
 						joints_pub_.publish(cmd_);
                         cmd_last_ = cmd_;
 					//}
 				}
-			}
 		}
     }
 
@@ -477,7 +510,7 @@ class TeleopJointsKeyboard
 void FRCRobotSimInterface::loop_joy(void)
 {
 	signal(SIGINT, quit);
-
+    ROS_ERROR("HEERRPP");
     TeleopJointsKeyboard teleop;
     teleop.keyboardLoop();
 }
