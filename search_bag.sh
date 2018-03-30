@@ -28,23 +28,63 @@ do
 		continue
 	fi
 
+#	any_data=$(rosbag info $var | grep /frcrobot/match_data)
+#	if [ ! -z "$any_data" -a "$any_data" != " " ] #negate this
+#	then
+#		echo This does not have match data -- renaming to practice${var} 
+#		cp $var $HOME/2018RobotCode/practice$(basename $var)
+#		continue
+#	fi
+#	echo this has match data
+
 	echo Writing data to file
 	zebROS_ws/devel/lib/rosbag_scripts/rosbag_scripts_node $var
 	filename=$(basename $var)
 
+#	alliance_data=$(grep this temp_file.txt)
+	
+#	if [ ! -z "$alliance_data" -a "$alliance_data" != " " ] # negate this
+#	then
+#		echo This does not have alliance data -- renaming to prematch${var}
+#		cp $var $HOME/2018RobotCode/prematch$(basename $var)
+#	fi
+#	echo this has alliance data
+
+#	matchNumber=$(grep -m1 matchNumber temp_file.txt | cut -c14-15)
+#	if [ $matchnumber = 0 ]
+#	then
+#		echo match number is zero -- renaming
+#		mv $var $home/2018robotcode/match0$(basename $var)
+#		continue
+#	fi
+
+#	bag_name=Match${matchNumber}
+#	if [ -e ${bag_name}*.bag ]
+#	then 
+#		echo This match already has a bag file -- merging to ${bag_name}_${count}.bag
+#		~/2018RobotCode/zebROS_ws/src/rosbag_scripts/scripts/merge_bagfiles.py ${bag_name}_${count}.bag $var ${bag_name}*.bag -v
+#		rm ${bag_name}_$(( $count - 1)).bag
+#		rm ${bag_name}.bag
+#		count=$(( $count + 1 ))
+#	else 
+#		echo Renaming bag file to ${bag_name}.bag
+#		cp $var $HOME/2018RobotCode/${bag_name}.bag
+#	fi
+
+
 	any_data=$(rosbag info $var | grep /frcrobot/match_data)
 	if [ ! -z "$any_data" -a "$any_data" != " " ] 
 	then
-		echo This has match data
+		echo this has match data
 		alliance_data=$(grep this temp_file.txt)
 		if [ ! -z "$alliance_data" -a "$alliance_data" != " " ]
 		then 
 			echo This has alliance data.
 			matchNumber=$(grep -m1 matchNumber temp_file.txt | cut -c14-15)
-			if [ $matchNumber = 0 ]
+			if [ $matchnumber = 0 ]
 			then
-				echo Match number is zero -- renaming
-				mv $var $HOME/2018RobotCode/match0$(basename $var)
+				echo match number is zero -- renaming
+				mv $var $home/2018robotcode/match0$(basename $var)
 				continue
 			fi
 			bag_name=Match${matchNumber}
