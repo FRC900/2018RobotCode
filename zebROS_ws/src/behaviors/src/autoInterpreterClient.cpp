@@ -1120,6 +1120,11 @@ int main(int argc, char** argv) {
 	generate_for_this.resize(4);
 	std::vector<bool> mode_buffered;
 	mode_buffered.resize(4);
+
+
+	ros::service::waitForService("/frcrobot/swerve_drive_controller/run_profile", 60);
+    ros::Duration(4).sleep();
+
     while(ros::ok()) {
         ROS_WARN("running");
         double auto_start_time = DBL_MAX;
