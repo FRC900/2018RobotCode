@@ -1144,6 +1144,7 @@ int main(int argc, char** argv) {
         std::vector<int> auto_mode_vect = {-1, -1, -1, -1};
         std::vector<double> delays_vect = {0, 0, 0, 0};
         int start_pos = 0;
+		int last_start_pos = 0;
         bool match_data_received = false;
         //int auto_mode = -1;
         int layout = 0;
@@ -1171,7 +1172,7 @@ int main(int argc, char** argv) {
 				for(int i = 0; i<4; i++) {
                     //ROS_ERROR_STREAM("2");
 					if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
-                        ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
+                        ((((auto_mode_data.modes_[i] != auto_mode_vect[i]))) || (auto_mode_data.start_pos_ != last_start_pos)))
                     {
                         //ROS_ERROR_STREAM("3");
 
@@ -1183,7 +1184,7 @@ int main(int argc, char** argv) {
 						//any_change = true;
                     }
                     else if (auto_mode_data.modes_[i] <= num_cmd_vel_modes-1 && (auto_mode_data.modes_[i] >= 0) &&
-                        ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
+                        ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != last_start_pos)))
                     {
                         out_to_generate.push_back(empty_full_mode);
 						generate_for_this[i] = false;	
@@ -1238,6 +1239,7 @@ int main(int argc, char** argv) {
 						}
 					}
 				}
+				last_start_pos = start_pos;
             }
 
             if(in_auto && match_data.isAutonomous_ == false) {

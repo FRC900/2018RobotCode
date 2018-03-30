@@ -19,7 +19,7 @@ do
 	if [[ $var == *bag.active ]]
 	then 
 		echo Reindexing
-		rosbag reindex $var 
+		#rosbag reindex $var 
 	fi
 
 	if [[ $var == *.orig.active ]]
@@ -32,14 +32,15 @@ do
 	$HOME/2018RobotCode/zebROS_ws/devel/lib/rosbag_scripts/rosbag_scripts_node $var
 	filename=$(basename $var)
 
-	any_data=$(rosbag info $var | grep /frcrobot/match_data)
-	if [ ! -z "$any_data" -a "$any_data" != " " ] 
+	match_data=$(rosbag info $var | grep /frcrobot/match_data)
+	if [ ! -z "$match_data" -a "$match_data" != " " ] 
 	then
 		echo This has match data
 		matchNumber=$(grep -m1 matchNumber temp_file.txt | cut -c14-15)
 			if [ $matchNumber = 0 ]
 			then
 				echo Match number is zero -- renaming
+				mv $var $HOME/2018RobotCode/practice$(basename $var)
 				continue
 			fi
 
@@ -57,7 +58,7 @@ do
 				count=$(( $count + 1 ))
 			else 
 				echo Renaming bag file to ${bag_name}.bag
-				mv $var /mnt/900_2/${bag_name}.bag
+				cp $var $HOME/2018RobotCode/${bag_name}.bag
 			fi
 		else
 			echo This does not have alliance data -- renaming to prematch${var}
