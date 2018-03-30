@@ -6,7 +6,7 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "heartbeat_jetson");
     ros::NodeHandle n;
     
-    heartbeat_pub_jetson = n.advertise<std_msgs::Int32>("/frcrobot/jetson_heartbeat", 1);
+    heartbeat_pub_jetson = n.advertise<std_msgs::Int32>("/frcrobot/heartbeat_jetson", 1);
 
     ros::Rate r(5);
     std_msgs::Int32 val;
