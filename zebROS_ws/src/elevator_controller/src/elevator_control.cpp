@@ -458,8 +458,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//compOdometry(time, inv_delta_t);
 	const bool end_game_deploy_cmd = end_game_deploy_cmd_.load(std::memory_order_relaxed);
 	const bool end_game_deploy_wings_cmd = end_game_deploy_wings_cmd_.load(std::memory_order_relaxed);
+
+	const double deploy_wing_cmd_out = end_game_deploy_wings_cmd ? 1.0 : -1.0;
 	
-	EndGameDeployWings_.setCommand(end_game_deploy_wings_cmd);
+	EndGameDeployWings_.setCommand(deploy_wing_cmd_out);
 
 	if(end_game_deploy_cmd && !end_game_deploy_t1_)
 	{

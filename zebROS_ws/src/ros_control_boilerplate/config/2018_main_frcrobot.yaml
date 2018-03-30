@@ -22,7 +22,7 @@ hardware_interface:
        - {name: intake_up, type: double_solenoid, pcm: 0, forward_id: 4, reverse_id: 0} 
        - {name: shift, type: double_solenoid, pcm: 0, forward_id: 5, reverse_id: 2} #doesn't work as far as I can tell
        - {name: end_game_deploy, type: solenoid, pcm: 1, id: 7}
-       - {name: end_game_deploy_wings, type: solenoid, pcm: 1, id: 1} #Fix
+       - {name: end_game_deploy_wings, type: solenoid, pcm: 1, id: 6} #Fix
        - {name: intake_line_break_high, type: digital_input, dio_channel: 1, invert: true}
        - {name: intake_line_break_low, type: digital_input, dio_channel: 0, invert: true}
        - {name: fl_drive, type: can_talon_srx, can_id: 21}

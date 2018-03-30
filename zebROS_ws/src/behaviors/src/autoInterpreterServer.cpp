@@ -140,7 +140,11 @@ class autoAction
 				goal_l.x_tolerance = drop_x_tolerance;
 
 				al_.sendGoal(goal_l);
+	
 				//loop till we get to where we can drop
+				double finish_time = 0;	
+				bool finished_lift = false;	
+		
 				while (!aborted && !timed_out)
 				{
 					ROS_INFO("start of pickup cube 1");
@@ -165,8 +169,52 @@ class autoAction
 						if (al_.getState().isDone())
 						{
 							timed_out = timed_out || al_.getResult()->timed_out;
+							finished_lift = true;
+							finish_time = ros::Time::now().toSec();
 						}
 					}
+				}
+				while (!aborted && !timed_out && !finished_lift)
+				{
+					
+					if (as_.isPreemptRequested() || !ros::ok())
+					{
+						ROS_WARN("%s: Preempted", action_name_.c_str());
+						as_.setPreempted();
+						aborted = true;
+						break;
+					}
+					if (!aborted)
+					{
+						r.sleep();
+						ros::spinOnce();
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
+						//time_out if the action times out
+						if (al_.getState().isDone())
+						{
+							timed_out = timed_out || al_.getResult()->timed_out;
+							finished_lift = true;
+							finish_time = ros::Time::now().toSec();
+						}
+					}
+
+				}
+				while(!aborted && !timed_out && -finish_time + ros::Time::now().toSec() > 1.0 ) //TODO config
+				{
+					if (as_.isPreemptRequested() || !ros::ok())
+					{
+						ROS_WARN("%s: Preempted", action_name_.c_str());
+						as_.setPreempted();
+						aborted = true;
+						break;
+					}
+					if (!aborted)
+					{
+						r.sleep();
+						ros::spinOnce();
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
+					}
+
 				}
 				/*double t_before_move_intake = 0;
 				ROS_ERROR("COMMENTED OUTJHGFVBHJHGFVCBNV");

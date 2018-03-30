@@ -396,6 +396,8 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						profiled_modes[mode][layout][start_pos].exists = true; 
 						profiled_modes[mode][layout][start_pos].num_srv_msgs +=1; 
 
+						ROS_WARN_STREAM("mode: " << mode << " layout: " << layout << " start_pos: " << start_pos);
+
 						XmlRpc::XmlRpcValue group_xml;
 						if(auto_data.getParam(identifier_with_wait + "_spline_group", group_xml))
 						{
@@ -606,7 +608,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
     swerve_control_srv.request.run    = false;
     swerve_control_srv.request.change_queue   = false; 
 
-	ROS_WARN("Generate Trajector");
+	ROS_ERROR("Generate Trajector");
 
 	for(size_t k = 0; k < trajectory.size(); k++)
 	{
@@ -1131,12 +1133,13 @@ int main(int argc, char** argv) {
 				bool generate = false;	
 				for(int i = 0; i<4; i++) {
                     //ROS_ERROR_STREAM("2");
-                    if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
+					if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
                         ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
                     {
                         //ROS_ERROR_STREAM("3");
 
                         out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_]);
+						ROS_ERROR_STREAM("actual mode: " << auto_mode_data.modes_[i] - num_cmd_vel_modes << " layout: " << i << " start: " << auto_mode_data.start_pos_); 
 						generate_for_this[i] = true;	
 						generate = true;
 						//any_change = true;
@@ -1166,6 +1169,7 @@ int main(int argc, char** argv) {
                     }
                     else {
                         out_to_generate.push_back(empty_full_mode);
+						generate_for_this[i] = false;	
                     }
                 }
 				if(generate)
