@@ -48,7 +48,7 @@ double default_x;
 double default_y;
 double run_out_start;
 static bool default_up_or_down;
-std::vector<double> auto_mode_status_vect = {0, 0, 0, 0};
+std::vector<double> auto_mode_status_vect = {1, 1, 1, 1};
 
 
 struct MatchData {
@@ -619,13 +619,15 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 
 	for(size_t k = 0; k < trajectory.size(); k++)
 	{
+        auto_mode_status_vect[k] = 1;
 		if(!generate[k]) continue;
 		//ROS_ERROR("DO WE fail here");
 		if(!trajectory[k].exists)
 		{
 			//TODO MAKE LIGHT GO RED ON DRIVERSTATION
+            ROS_ERROR("Failed in generate");
 			ROS_ERROR("auto mode/layout/start selected which wasn't found in the yaml");
-            auto_mode_status_vect[k] = false;
+            auto_mode_status_vect[k] = 0;
 			return false;
 		}
 		for(size_t i = 0; i < trajectory[k].num_srv_msgs; i++)
@@ -634,7 +636,6 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 			if (!point_gen.call(trajectory[k].srv_msgs[i]))
 			{
 				ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
-                auto_mode_status_vect[k] = false;
 				return false;
 			}
 			talon_swerve_drive_controller::SwervePointSet temp_holder;
@@ -644,7 +645,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 			swerve_control_srv.request.profiles.push_back(temp_holder);
 			
 		}
-        auto_mode_status_vect[k] = true;
+        ROS_ERROR("Succeeded in generate Trajectory");
 	}
     if (!swerve_control.call(swerve_control_srv))
 	{
@@ -1158,9 +1159,10 @@ int main(int argc, char** argv) {
                         //ROS_ERROR_STREAM("3");
 
                         out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_]);
-						ROS_ERROR_STREAM("actual mode: " << auto_mode_data.modes_[i] - num_cmd_vel_modes << " layout: " << i << " start: " << auto_mode_data.start_pos_); 
+						//ROS_ERROR_STREAM("actual mode: " << auto_mode_data.modes_[i] - num_cmd_vel_modes << " layout: " << i << " start: " << auto_mode_data.start_pos_); 
 						generate_for_this[i] = true;	
 						generate = true;
+                        auto_mode_status_vect[i]=1;
 						//any_change = true;
                     }
                     else if (auto_mode_data.modes_[i] <= num_cmd_vel_modes-1 && (auto_mode_data.modes_[i] >= 0) &&
@@ -1171,6 +1173,8 @@ int main(int argc, char** argv) {
                         //ROS_ERROR_STREAM("6");
                         if(generateCmdVelTrajectory(cmd_vel_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_])) {
 							mode_buffered[i] = true;
+                            auto_mode_status_vect[i]=1;
+
                             //ROS_ERROR_STREAM("7");
                             auto_mode_vect[i] = auto_mode_data.modes_[i];
                             delays_vect[i] = auto_mode_data.delays_[i];
@@ -1301,6 +1305,13 @@ int main(int argc, char** argv) {
                 in_auto = false;
                 end_auto = true;
             }
+
+            /*
+            auto_mode_status_vect[0] = 1;
+            auto_mode_status_vect[1] = 1;
+            auto_mode_status_vect[2] = 1;
+            auto_mode_status_vect[3] = 1;
+            */
             state_0.data = auto_mode_status_vect[0];
             state_1.data = auto_mode_status_vect[1];
             state_2.data = auto_mode_status_vect[2];
