@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+
+<launch>
+  <node name="rosbag_record_heartbeat" pkg="rosbag" type="record"
+	  args="record -o /mnt/900_2/heartbeat --lz4 --buffsize=0
+	  /frcrobot/heartbeat_jetson
+	  /frcrobot/heartbeat_rio " />
+</launch>
