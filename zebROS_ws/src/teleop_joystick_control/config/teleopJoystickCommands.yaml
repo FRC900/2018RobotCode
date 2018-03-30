@@ -14,21 +14,21 @@ teleop_params:
     switch_config_y: 1.2
     switch_config_up_or_down: true
     #exchange should probably be the same as intake
-    exchange_config_x: .235
+    exchange_config_x: .225
     exchange_config_y: .433 #check this
     exchange_config_up_or_down: false
-    intake_ready_to_drop_x: .235
+    intake_ready_to_drop_x: .225
     intake_ready_to_drop_y: 0.5 #1.075 - y pos arm relative
 
     intake_ready_to_drop_up_or_down: false
-    intake_high_x: .235
-    intake_high_y: .41
+    intake_high_x: .225
+    intake_high_y: .43
     
     drop_x_tolerance: .05
 
 
     intake_high_up_or_down: false
-    intake_low_x: .235
+    intake_low_x: .225
     intake_low_y: .376
     
 
@@ -51,7 +51,7 @@ teleop_params:
     exchange_delay: 0.5
     intake_power: 0.8
     intake_hold_power: 0.15
-    wait_after_clamp: 0.2
+    wait_after_clamp: 0.5
     wait_open_before_drop: 0.5
     delay_after_move_intake: 1.0
     wait_for_match_data: 2.0

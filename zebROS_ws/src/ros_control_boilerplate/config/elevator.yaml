@@ -28,7 +28,7 @@ elevator_controller:
     climb_cur_lim: 60
     norm_cur_lim: 15
 
-    drop_down_pos: .235 #FIX
+    drop_down_pos: .225 #FIX
     drop_down_tolerance: .05 #FIX
     safe_to_go_back_y: 1.95 #FIX
     cut_off_x_line: .17 #FIX

@@ -477,7 +477,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		
 		intake_command_.writeFromNonRT(climb_intake_cmd); //Not really sure how bad this is
 
-		command_struct_.lin[0] = -0.05;
+		command_struct_.lin[0] = 0.05;
 		command_struct_.lin[1] = min_extension_ + cos(asin(-0.05 / arm_length_))*arm_length_;
 		command_struct_.up_or_down = true;
 		command_struct_.override_pos_limits = true;
@@ -492,7 +492,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	if(end_game_deploy_cmd && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .65)
 	{
 		//ROS_INFO("part 2");
-		command_struct_.lin[0] = -0.05;
+		command_struct_.lin[0] = 0.05;
 		command_struct_.lin[1] = max_extension_ + sin(acos(-0.05 / arm_length_))*arm_length_;
 		command_struct_.up_or_down = true;
 		command_struct_.override_pos_limits = true;

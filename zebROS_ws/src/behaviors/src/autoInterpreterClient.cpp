@@ -913,6 +913,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 		
 	int queued = -1;
 	std::vector<bool> finished;
+
 	
     for(size_t num = 0; num<num_actions; num++)
 	{
@@ -923,7 +924,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 		const double action_start_time = ros::Time::now().toSec();
         //double curr_time = ros::Time::now().toSec();  //These two vars are the same..........
         while(/*curr_time*/ ros::Time::now().toSec() < action_start_time + auto_run_data.actions[num].time && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
-			bool intake_action_lib_later_write = false;
+			/*bool intake_action_lib_later_write = false;
 			bool robot_action_lib_later_write = false;
 			bool timed_out = false;
 			for(int i = num-1; i > 0; i--)
@@ -965,6 +966,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 				}
 			}
             action_rate.sleep();
+			*/
 		}
         call_action(auto_run_data.actions[num].action, auto_run_data.actions[num].action_setpoint);
 	}

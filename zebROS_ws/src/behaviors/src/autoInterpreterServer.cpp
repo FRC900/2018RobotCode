@@ -171,6 +171,7 @@ class autoAction
 							timed_out = timed_out || al_.getResult()->timed_out;
 							finished_lift = true;
 							finish_time = ros::Time::now().toSec();
+							ROS_WARN("lift finished");
 						}
 					}
 				}
@@ -186,6 +187,7 @@ class autoAction
 					}
 					if (!aborted)
 					{
+						ROS_WARN("lift unfinished in p2");
 						r.sleep();
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
@@ -195,6 +197,7 @@ class autoAction
 							timed_out = timed_out || al_.getResult()->timed_out;
 							finished_lift = true;
 							finish_time = ros::Time::now().toSec();
+							ROS_WARN("lift finished in p2");
 						}
 					}
 
