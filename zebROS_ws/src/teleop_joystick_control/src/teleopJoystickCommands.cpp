@@ -293,7 +293,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		if(destruction_achieved)
 		{
 				
-			srvElevator.request.x = .1; //Consider changing x_pos + up/down to preassigned rather than curr pos
+			srvElevator.request.x = -.05; //Consider changing x_pos + up/down to preassigned rather than curr pos
 			srvElevator.request.y = 2.37;
 			/*max_extension_ + sin(acos(.1 / arm_length_))*arm_length_;*/ //TODO fix
 			srvElevator.request.up_or_down = true;
@@ -319,7 +319,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		directionUpLast = timeSecs;
 	}
 	/*-----------------Down Press Climb to Correct height----------------------*/
-	if (JoystickState->directionDownPress)
+	if (JoystickState->directionDownPress && destruction_achieved  )
 	{
 		ROS_WARN("pressed down");
 
@@ -334,7 +334,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			ac_lift->cancelAllGoals();
 		//if(!ac_intake->getState().isDone())
 			ac_intake->cancelAllGoals();
-		srvElevator.request.x = .1; //Consider changing x_pos + up/down to preassigned rather than curr pos
+		srvElevator.request.x = -0.05; //Consider changing x_pos + up/down to preassigned rather than curr pos
 		srvElevator.request.y = climb;
 		srvElevator.request.up_or_down = true;
 		srvElevator.request.override_pos_limits = true;
@@ -355,7 +355,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		ROS_INFO("Climb config");
 		achieved_pos = climb_c;
 	}
-	if (JoystickState->directionDownRelease)
+	if (JoystickState->directionDownRelease && destruction_achieved   )
 	{
 		
 		ROS_WARN("released down");
@@ -385,7 +385,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		else
 		{
 		}
-		ROS_INFO("Climb config");
+		ROS_INFO("Climb config released");
 		achieved_pos = climb_c;
 	}
 
