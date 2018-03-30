@@ -844,7 +844,6 @@ bool call_action(int action, const ActionSetpoint &action_setpoint) {
 }
 
 void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<CmdVel> &segments) {
-    ROS_WARN("auto entered");
     exit_auto = false;
 
     clamp();
@@ -870,7 +869,6 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 
     const size_t num_segments = segments.size();
     for(size_t num = 0; num<num_segments; num++) {
-        ROS_WARN("auto segment entered");
         const double segment_start_time = ros::Time::now().toSec();
         double curr_time = ros::Time::now().toSec(); //These two vars are the same..........
         while(curr_time < segment_start_time + segments[num].duration) { //HOW DOES THIS LOOP EVER EXIT!!
