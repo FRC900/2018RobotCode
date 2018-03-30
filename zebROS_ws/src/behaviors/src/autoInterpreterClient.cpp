@@ -4,6 +4,8 @@
 #include <behaviors/IntakeAction.h>
 #include <behaviors/RobotAction.h>
 #include <realtime_tools/realtime_buffer.h>
+#include <ros_control_boilerplate/AutoModeStatus.h>
+#include <std_msgs/Float64.h>
 
 
 //enum Action {deploy_intake, undeploy_intake, intake_cube, intake_no_arm, exchange_cube, default_config, intake_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, release_clamp};
@@ -22,6 +24,10 @@ static ros::ServiceClient ElevatorService;
 static ros::ServiceClient ClampService;
 static ros::ServiceClient BrakeService;
 static ros::Publisher VelPub;
+static ros::Publisher auto_state_0;
+static ros::Publisher auto_state_1;
+static ros::Publisher auto_state_2;
+static ros::Publisher auto_state_3;
 
 double high_scale_config_x;
 double high_scale_config_y;
@@ -42,6 +48,7 @@ double default_x;
 double default_y;
 double run_out_start;
 static bool default_up_or_down;
+std::vector<double> auto_mode_status_vect = {0, 0, 0, 0};
 
 
 struct MatchData {
@@ -618,6 +625,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 		{
 			//TODO MAKE LIGHT GO RED ON DRIVERSTATION
 			ROS_ERROR("auto mode/layout/start selected which wasn't found in the yaml");
+            auto_mode_status_vect[k] = false;
 			return false;
 		}
 		for(size_t i = 0; i < trajectory[k].num_srv_msgs; i++)
@@ -626,6 +634,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 			if (!point_gen.call(trajectory[k].srv_msgs[i]))
 			{
 				ROS_ERROR("point_gen call failed in autoInterpreterClient generateTrajectory()");
+                auto_mode_status_vect[k] = false;
 				return false;
 			}
 			talon_swerve_drive_controller::SwervePointSet temp_holder;
@@ -635,6 +644,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 			swerve_control_srv.request.profiles.push_back(temp_holder);
 			
 		}
+        auto_mode_status_vect[k] = true;
 	}
     if (!swerve_control.call(swerve_control_srv))
 	{
@@ -644,7 +654,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 	return true;
 }
 
-bool generateTrajectory(const CmdVelMode &segments)
+bool generateCmdVelTrajectory(const CmdVelMode &segments)
 {
     //ROS_ERROR_STREAM("In generate");
 	if(!segments.exists)
@@ -1055,7 +1065,16 @@ int main(int argc, char** argv) {
     BrakeService = n.serviceClient<std_srvs::Empty>("/frcrobot/talon_swerve_drive_controller/brake", false, service_connection_header);
     
     VelPub = n.advertise<geometry_msgs::Twist>("/frcrobot/swerve_drive_controller/cmd_vel", 1);
+    auto_state_0 = n.advertise<std_msgs::Float64>("/frcrobot/auto_state_controller_0/command", 1);
+    auto_state_1 = n.advertise<std_msgs::Float64>("/frcrobot/auto_state_controller_1/command", 1);
+    auto_state_2 = n.advertise<std_msgs::Float64>("/frcrobot/auto_state_controller_2/command", 1);
+    auto_state_3 = n.advertise<std_msgs::Float64>("/frcrobot/auto_state_controller_3/command", 1);
 
+    std_msgs::Float64 state_0;
+    std_msgs::Float64 state_1;
+    std_msgs::Float64 state_2;
+    std_msgs::Float64 state_3;
+    
     ros::Subscriber auto_mode_sub = n.subscribe("autonomous_mode", 1, &auto_mode_cb);
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
 
@@ -1150,7 +1169,7 @@ int main(int argc, char** argv) {
                         out_to_generate.push_back(empty_full_mode);
 						generate_for_this[i] = false;	
                         //ROS_ERROR_STREAM("6");
-                        if(generateTrajectory(cmd_vel_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_])) {
+                        if(generateCmdVelTrajectory(cmd_vel_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_])) {
 							mode_buffered[i] = true;
                             //ROS_ERROR_STREAM("7");
                             auto_mode_vect[i] = auto_mode_data.modes_[i];
@@ -1282,7 +1301,15 @@ int main(int argc, char** argv) {
                 in_auto = false;
                 end_auto = true;
             }
-
+            state_0.data = auto_mode_status_vect[0];
+            state_1.data = auto_mode_status_vect[1];
+            state_2.data = auto_mode_status_vect[2];
+            state_3.data = auto_mode_status_vect[3];
+            
+            auto_state_0.publish(state_0);
+            auto_state_1.publish(state_1);
+            auto_state_2.publish(state_2);
+            auto_state_3.publish(state_3);
             r.sleep();
         }
 

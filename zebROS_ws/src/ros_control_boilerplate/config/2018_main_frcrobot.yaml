@@ -40,7 +40,12 @@ hardware_interface:
        - {name: cube_state, type: dummy}
        - {name: stop_arm, type: dummy}
        - {name: override_arm_limits, type: dummy}
+       - {name: starting_config, type: dummy}
        - {name: disable_compressor, type: dummy}
+       - {name: auto_state_0, type: dummy}
+       - {name: auto_state_1, type: dummy}
+       - {name: auto_state_2, type: dummy}
+       - {name: auto_state_3, type: dummy}
 
 # Create controllers for each joint
 #
@@ -114,3 +119,19 @@ compressor_controller:
 rumble_controller:
     type: position_controllers/JointPositionController
     joint: joystick_rumble
+
+auto_state_controller_0:
+    type: position_controllers/JointPositionController
+    joint: auto_state_0
+
+auto_state_controller_1:
+    type: position_controllers/JointPositionController
+    joint: auto_state_1
+
+auto_state_controller_2:
+    type: position_controllers/JointPositionController
+    joint: auto_state_2
+
+auto_state_controller_3:
+    type: position_controllers/JointPositionController
+    joint: auto_state_3

@@ -31,7 +31,7 @@ sleep 4
 ######## rosbag input ########
 #play the rosbag to link topic(s)
 cd
-gnome-terminal -- rosbag play --clock Downloads/$1
+gnome-terminal -- rosbag play --clock $1
 #rqt_bag Downloads/$1
 cd ../2018RobotCode/zebROS_ws
 rosrun plotjuggler PlotJuggler

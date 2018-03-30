@@ -206,7 +206,12 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::atomic<bool> stop_arm_;
 		std::atomic<bool> override_arm_limits_;
 		std::atomic<bool> cube_state_;
+		std::atomic<bool> auto_state_0_;
+		std::atomic<bool> auto_state_1_;
+		std::atomic<bool> auto_state_2_;
+		std::atomic<bool> auto_state_3_;
 		std::atomic<bool> disable_compressor_;
+		std::atomic<bool> starting_config_;
 		std::atomic<double> navX_zero_;
 		std::atomic<double> navX_angle_;
 		std::atomic<double> pressure_;

@@ -416,6 +416,10 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 
 	stop_arm_ = joint_state_iface->getHandle("stop_arm");
 
+    /* NIALL */
+	starting_config_ = joint_state_iface->getHandle("starting_config");
+    /* NIALL */
+
 	service_command_ = controller_nh.advertiseService("cmd_posS", &ElevatorController::cmdPosService, this);
 	service_intake_ = controller_nh.advertiseService("intake", &ElevatorController::intakeService, this);
 	service_clamp_ = controller_nh.advertiseService("clamp", &ElevatorController::clampService, this);
@@ -650,6 +654,16 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		lift_joint_.setPeakOutputForward(1);
 		lift_joint_.setPeakOutputReverse(-1);
 	}
+    /* NIALL */
+    if(starting_config_.getPosition())
+    {
+
+    }
+    else
+    {
+    
+    }
+    /* NIALL */
 	bool safe_to_move_intake;
 	elevator_controller::ReturnElevatorCmd return_holder;
 	if(!curr_cmd.override_pos_limits)
