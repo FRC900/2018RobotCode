@@ -21,7 +21,7 @@
  *Press down to climb (lift goes to position)
  *
  */
-static double dead_zone = .2, slow_mode = .33, max_speed = 3.6, max_rot = 8.8, joystick_scale = 3;
+static double dead_zone = .2, slow_mode = .33, max_speed = 3.6, max_rot = 8.8, joystick_scale = 3, rotation_scale = 3;
 void dead_zone_check(double &val1, double &val2)
 {
 	if (fabs(val1) <= dead_zone && fabs(val2) <= dead_zone)
@@ -1031,7 +1031,7 @@ leftStickY = -pow(leftStickY, joystick_scale) * max_speed;
 rightStickX =  pow(rightStickX, joystick_scale);
 rightStickY = -pow(rightStickY, joystick_scale);
 
-double rotation = (pow(JoystickState->leftTrigger, joystick_scale) - pow(JoystickState->rightTrigger, joystick_scale)) * max_rot;
+double rotation = (pow(JoystickState->leftTrigger, rotation_scale) - pow(JoystickState->rightTrigger, rotation_scale)) * max_rot;
 
 static bool sendRobotZero = false;
 // No motion? Tell the drive base to stop
