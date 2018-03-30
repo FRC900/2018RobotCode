@@ -44,7 +44,6 @@ do
 			if [ $matchNumber = 0 ]
 			then
 				echo Match number is zero -- renaming
-				mv $var /mnt/900_2/match0$(basename $var)
 				continue
 			fi
 			bag_name=Match${matchNumber}

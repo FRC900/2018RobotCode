@@ -33,6 +33,9 @@ class DriverStationSim(Plugin):
         loadUi(ui_file, self._widget)
         # Give QObjects reasonable names
         self._widget.setObjectName('DriverStationSim')
+        if(self.enable_button.isDown()):
+            unclick_enable()
+        
         # Show _widget.windowTitle on left-top of each plugin (when 
         # it's set in _widget). This is useful when you open multiple 
         # plugins at once. Also if you open multiple instances of your 
@@ -42,6 +45,9 @@ class DriverStationSim(Plugin):
             self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         # Add widget to the user interface
         context.add_widget(self._widget)
+
+    def unclick_enable(self):
+        self.disable_button.setText("True")
 
     def shutdown_plugin(self):
         # TODO unregister all publishers here
