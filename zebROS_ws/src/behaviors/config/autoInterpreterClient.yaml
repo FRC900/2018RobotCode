@@ -180,6 +180,8 @@ auto_params:
 cmd_vel_params:
     num_cmd_vel_modes: 5
     max_num_mode: 4
+
+    #do nothing
     mode_0_layout_0_2_start_0:
             [{x: 0.0, y: 0.0, duration: 0.0}]
     mode_0_layout_0_2_start_1:
@@ -192,6 +194,8 @@ cmd_vel_params:
             [{x: 0.0, y: 0.0, duration: 0.0}]
     mode_0_layout_1_3_start_2:
             [{x: 0.0, y: 0.0, duration: 0.0}]
+
+    #Forward Cross Line
     mode_1_layout_0_2_start_0:
             [{x: 1.05, y: 0.1, duration: 4.0}]
     mode_1_layout_0_2_start_1:
@@ -204,18 +208,41 @@ cmd_vel_params:
             [{x: 0.875, y: -0.3, duration: 3.5}]
     mode_1_layout_1_3_start_2:
             [{x: 1.05, y: -0.1, duration: 4.0}]
+
+    #Forward Switch
     mode_2_layout_0_2_start_0:
-            [{x: 1.05, y: -1.5, duration: 3.0}]
+            [{x: 1.05, y: 0.1, duration: 6.0}]
     mode_2_layout_0_2_start_1:
-            [{x: 1.05, y: -0.45, duration: 3.0}]
+            [{x: -0.0, y: -0.75, duration: 1.533}, 
+             {x: 0.5, y: 0.0, duration: 0.4},
+             {x: 1.5, y: 0.0, duration: 2.0}]
     mode_2_layout_0_2_start_2:
             [{x: 1.2, y: 0.53, duration: 2.58}]
     mode_2_layout_1_3_start_0:
-            [{x: 1.2, y: -0.53, duration: 2.58}]
+            [{x: 1.2, y: -0.53, duration: 3.0}]
     mode_2_layout_1_3_start_1:
-            [{x: 1.125, y: 0.675, duration: 2.76}]
-    mode_2_layout_1_3_start_2:
-            [{x: 1.05, y: -1.5, duration: 3.0}]
+            [{x: 0.75, y: 0.0, duration: 0.8}, 
+             {x:  0.0, y: 0.75, duration: 2.067},
+             {x: 0.5, y: 0.0, duration: 0.4},
+             {x: 1.5, y: 0.0, duration: 2.0}]
+    mode_3_layout_1_3_start_2:
+            [{x: 1.05, y: -0.1, duration: 6.0}]
+
+    #Forward Switch
+    #mode_2_layout_0_2_start_0:
+    #        [{x: 1.05, y: -1.5, duration: 3.0}]
+    #mode_2_layout_0_2_start_1:
+   #         [{x: 1.05, y: -0.45, duration: 3.0}]
+   # mode_2_layout_0_2_start_2:
+   #         [{x: 1.2, y: 0.53, duration: 2.58}]
+   # mode_2_layout_1_3_start_0:
+   #         [{x: 1.2, y: -0.53, duration: 2.58}]
+   # mode_2_layout_1_3_start_1:
+   #         [{x: 1.125, y: 0.675, duration: 2.76}]
+   # mode_2_layout_1_3_start_2:
+   #         [{x: 1.05, y: -1.5, duration: 3.0}]
+
+    #Backwards Switch (Not Used)
     mode_3_layout_0_2_start_0:
             [{x: -1.05, y: -0.1, duration: 6.0}]
     mode_3_layout_0_2_start_1:
@@ -233,6 +260,8 @@ cmd_vel_params:
              {x: -1.5, y: 0.0, duration: 2.0}]
     mode_3_layout_1_3_start_2:
             [{x: -1.05, y: 0.1, duration: 6.0}]
+
+    #Backwards Cross Line (Not Used)
     mode_4_layout_0_2_start_0:
             [{x: -1.05, y: -0.1, duration: 4.0}]
     mode_4_layout_0_2_start_1:
