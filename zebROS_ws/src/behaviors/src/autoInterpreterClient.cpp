@@ -884,6 +884,10 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     }
 
     if(auto_select == 2) {
+        double at_switch = ros::Time::now().toSec();
+        while(!exit_auto && ros::Time::now().toSec() < at_switch + 1) {
+            r.sleep(); 
+        }
         releaseClamp();
     }
     parkingConfig();
