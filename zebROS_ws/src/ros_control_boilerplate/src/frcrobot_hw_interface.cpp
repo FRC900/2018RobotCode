@@ -142,6 +142,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			frc::SmartDashboard::PutNumber("navX_angle", navX_angle_.load(std::memory_order_relaxed));
 			frc::SmartDashboard::PutNumber("Pressure", pressure_.load(std::memory_order_relaxed));
 			frc::SmartDashboard::PutBoolean("cube_state", cube_state_.load(std::memory_order_relaxed));
+			frc::SmartDashboard::PutBoolean("death_0", auto_state_0_.load(std::memory_order_relaxed));
+			frc::SmartDashboard::PutBoolean("death_1", auto_state_1_.load(std::memory_order_relaxed));
+			frc::SmartDashboard::PutBoolean("death_2", auto_state_2_.load(std::memory_order_relaxed));
+			frc::SmartDashboard::PutBoolean("death_3", auto_state_3_.load(std::memory_order_relaxed));
 
 			std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
 			if (driveTable && realtime_pub_nt.trylock()) 
@@ -155,6 +159,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				realtime_pub_nt.msg_.delays[2] = (int)driveTable->GetNumber("delay_2", 0);
 				realtime_pub_nt.msg_.delays[3] = (int)driveTable->GetNumber("delay_3", 0);
 				realtime_pub_nt.msg_.position = (int)driveTable->GetNumber("robot_start_position", 0);
+
 				
 				frc::SmartDashboard::PutNumber("auto_mode_0_ret", realtime_pub_nt.msg_.mode[0]);
 				frc::SmartDashboard::PutNumber("auto_mode_1_ret", realtime_pub_nt.msg_.mode[1]);
@@ -173,6 +178,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			if (driveTable)
 			{
 				disable_compressor_.store((bool)driveTable->GetBoolean("disable_reg", 0), std::memory_order_relaxed);
+				starting_config_.store((bool)driveTable->GetBoolean("starting_config", 0), std::memory_order_relaxed);
 				frc::SmartDashboard::PutBoolean("disable_reg_ret", disable_compressor_.load(std::memory_order_relaxed));
 
 				override_arm_limits_.store((bool)driveTable->GetBoolean("disable_arm_limits", 0), std::memory_order_relaxed);
@@ -816,6 +822,7 @@ void FRCRobotHWInterface::init(void)
 	override_arm_limits_ = false;
 	cube_state_ = false;
 	disable_compressor_ = false;
+    starting_config_ = false;
 	navX_zero_ = -10000;
 	navX_angle_ = 0;
 	pressure_ = 0;
@@ -1971,12 +1978,37 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			dummy_joint_position_[i] = dummy_joint_command_[i];
 			cube_state_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
 		}
+
+
+		if (dummy_joint_names_[i] == "auto_state_0")
+		{
+			dummy_joint_position_[i] = dummy_joint_command_[i];
+			auto_state_0_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
+		}
+		if (dummy_joint_names_[i] == "auto_state_1")
+		{
+			dummy_joint_position_[i] = dummy_joint_command_[i];
+			auto_state_1_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
+		}
+		if (dummy_joint_names_[i] == "auto_state_2")
+		{
+			dummy_joint_position_[i] = dummy_joint_command_[i];
+			auto_state_2_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
+		}
+		if (dummy_joint_names_[i] == "auto_state_3")
+		{
+			dummy_joint_position_[i] = dummy_joint_command_[i];
+			auto_state_3_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
+		}
+
 		else if (dummy_joint_names_[i] == "stop_arm")
 			dummy_joint_position_[i] = stop_arm_.load(std::memory_order_relaxed) ? 1 : 0;
 		else if (dummy_joint_names_[i] == "override_arm_limits")
 			dummy_joint_position_[i] = override_arm_limits_.load(std::memory_order_relaxed) ? 1 : 0;
 		else if (dummy_joint_names_[i] == "disable_compressor")
 			dummy_joint_position_[i] = disable_compressor_.load(std::memory_order_relaxed) ? 1 : 0;
+		else if (dummy_joint_names_[i] == "starting_config")
+			dummy_joint_position_[i] = starting_config_.load(std::memory_order_relaxed) ? 1 : 0;
 		else
 		{
 			dummy_joint_effort_[i] = 0;

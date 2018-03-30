@@ -20,7 +20,9 @@ auto_params:
      max_num_wait_for_action: 2
      num_profile_slots: 20
 
-     #mode 0: profiled place in switch
+     #mode 0: profiled place in switch (start everywhere)
+     #mode 1: multi scale 1 switch (start on sides)
+     #mode 2: pure multi scale (start on sides)
 
 
 

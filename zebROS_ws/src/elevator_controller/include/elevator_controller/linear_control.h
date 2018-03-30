@@ -108,6 +108,7 @@ class ElevatorController
 		Commands command_struct_;
 		ros::Subscriber sub_command_;
 		hardware_interface::JointStateHandle stop_arm_;
+		hardware_interface::JointStateHandle starting_config_;
 		ros::ServiceServer service_command_;
 		realtime_tools::RealtimeBuffer<IntakeCommand> intake_command_;
 		ros::ServiceServer service_intake_;
