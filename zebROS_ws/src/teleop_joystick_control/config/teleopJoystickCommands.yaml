@@ -59,3 +59,5 @@ teleop_params:
 
     over_back_x: -0.15
     over_back_y: 2.4
+    
+    wait_stabilize_before_drop: 1.0

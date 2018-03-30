@@ -344,20 +344,20 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			}
 			
 			realtime_pub_joystick.msg_.directionUpButton = joystick_up_;
-			realtime_pub_joystick.msg_.directionUpPress = joystick_up_ > joystick_up_last_;
-			realtime_pub_joystick.msg_.directionUpRelease = joystick_up_ > joystick_up_last_;
+			realtime_pub_joystick.msg_.directionUpPress = joystick_up_ && !joystick_up_last_;
+			realtime_pub_joystick.msg_.directionUpRelease = !joystick_up_ && joystick_up_last_;
 			
 			realtime_pub_joystick.msg_.directionDownButton = joystick_down_;
-			realtime_pub_joystick.msg_.directionDownPress = joystick_down_ > joystick_down_last_;
-			realtime_pub_joystick.msg_.directionDownRelease = joystick_down_ > joystick_down_last_;
+			realtime_pub_joystick.msg_.directionDownPress = joystick_down_ && !joystick_down_last_;
+			realtime_pub_joystick.msg_.directionDownRelease = !joystick_down_ && joystick_down_last_;
 
 			realtime_pub_joystick.msg_.directionLeftButton = joystick_left_;
-			realtime_pub_joystick.msg_.directionLeftPress = joystick_left_ > joystick_left_last_;
-			realtime_pub_joystick.msg_.directionLeftRelease = joystick_left_ > joystick_left_last_;
+			realtime_pub_joystick.msg_.directionLeftPress = joystick_left_ && !joystick_left_last_;
+			realtime_pub_joystick.msg_.directionLeftRelease = !joystick_left_ && joystick_left_last_;
 
 			realtime_pub_joystick.msg_.directionRightButton = joystick_right_;
-			realtime_pub_joystick.msg_.directionRightPress = joystick_right_ > joystick_right_last_;
-			realtime_pub_joystick.msg_.directionRightRelease = joystick_right_ > joystick_right_last_;
+			realtime_pub_joystick.msg_.directionRightPress = joystick_right_ && !joystick_right_last_;
+			realtime_pub_joystick.msg_.directionRightRelease = !joystick_right_ && joystick_right_last_;
 
 			joystick_up_last_ = joystick_up_;
 			joystick_down_last_ = joystick_down_;

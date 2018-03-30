@@ -32,7 +32,7 @@ static double intake_ready_to_drop_x;
 static bool intake_ready_to_drop_up_or_down;
 static double drop_x_tolerance;
 static double wait_open_before_drop;
-
+ static double wait_stabilize_before_drop;
 class autoAction
 {
 	protected:
@@ -199,7 +199,7 @@ class autoAction
 					}
 
 				}
-				while(!aborted && !timed_out && -finish_time + ros::Time::now().toSec() > 1.0 ) //TODO config
+				while(!aborted && !timed_out && ros::Time::now().toSec() - finish_time < wait_stabilize_before_drop) //TODO config
 				{
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
@@ -266,10 +266,11 @@ class autoAction
 					goal_l.dist_tolerance = 0.1; //Tolerances are intentionally large, will require testing
 					goal_l.y_tolerance = 0.1;
 					goal_l.x_tolerance = 0.1;
+					ROS_INFO("start of pickup cube 3");
 					al_.sendGoal(goal_l);
 					while (!aborted && !timed_out)
 					{
-						ROS_INFO("start of pickup cube 3");
+
 						if (as_.isPreemptRequested() || !ros::ok())
 						{
 							ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -548,6 +549,11 @@ int main(int argc, char **argv)
 		ROS_ERROR("Could not read intake_low_y");
 	if (!n_params.getParam("wait_open_before_drop", wait_open_before_drop))
 		ROS_ERROR("Could not read wait_open_before_drop");
+
+	if (!n_params.getParam("wait_stabilize_before_drop", wait_stabilize_before_drop))
+		ROS_ERROR("Could not read wait_stabilize_before_drop");
+	
+
 	if (!n_params.getParam("drop_x_tolerance", drop_x_tolerance))
 		ROS_ERROR("Could not read drop_x_tolerance");
 
