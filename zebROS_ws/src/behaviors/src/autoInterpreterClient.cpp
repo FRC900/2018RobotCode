@@ -622,6 +622,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 		if(!trajectory[k].exists)
 		{
 			//TODO MAKE LIGHT GO RED ON DRIVERSTATION
+            ROS_ERROR("Failed in generate");
 			ROS_ERROR("auto mode/layout/start selected which wasn't found in the yaml");
             auto_mode_status_vect[k] = false;
 			return false;
@@ -642,6 +643,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 			swerve_control_srv.request.profiles.push_back(temp_holder);
 			
 		}
+        ROS_ERROR("Succeeded in generate Trajectory");
         auto_mode_status_vect[k] = true;
 	}
     if (!swerve_control.call(swerve_control_srv))
@@ -1078,8 +1080,8 @@ int main(int argc, char** argv) {
 
 	// Kick off 2 threads to process messages
     ROS_ERROR("Here6");
-	//ros::AsyncSpinner spinner(2);
-	//spinner.start();
+	ros::AsyncSpinner spinner(2);
+	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
     //ros::Duration(4).sleep();
