@@ -249,6 +249,7 @@ bool intakeStop(void) {
 	elevator_controller::Intake srv;
     srv.request.spring_state = 2; //soft_in
     srv.request.power=0;
+    srv.request.just_override_power = false;
     if (!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in intakeStop");
@@ -260,6 +261,7 @@ bool releaseIntake(void) {
 	elevator_controller::Intake srv;
     srv.request.spring_state = 1; //hard out
     srv.request.power = 0;
+    srv.request.just_override_power = false;
     if (!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in releaseIntake");
@@ -292,6 +294,7 @@ bool intakeOut(void) {
 	elevator_controller::Intake srv;
 	srv.request.power = -1;
 	srv.request.spring_state = 2; //soft-in
+    srv.request.just_override_power = false;
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in intakeOut");
@@ -304,6 +307,7 @@ bool deployIntake(void) {
 	srv.request.power = 0;
 	srv.request.spring_state = 2; //soft-in
     srv.request.up = 0; //down
+    srv.request.just_override_power = false;
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in deployIntake");
@@ -317,6 +321,7 @@ bool undeployIntake(void) {
 	srv.request.power = 0;
 	srv.request.spring_state = 2; //soft-in
     srv.request.up = true;
+    srv.request.just_override_power = false;
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in undeployIntake");
@@ -1271,6 +1276,16 @@ int main(int argc, char** argv) {
             if(!in_auto) { //check for auto to start and set a start time
                 //ROS_ERROR_STREAM("6");
                 ////ROS_INFO("Not in auto yet");
+                static int default_lift_iterations = 0;
+                if(default_lift_iterations%5 == 0) {
+                    defaultConfig();
+                    elevator_controller::Intake srv;
+                    srv.request.spring_state = 2; //soft_in
+                    srv.request.power=0;
+                    srv.request.just_override_power = false;
+                    srv.request.up = true;
+                    default_lift_iterations += 1;
+                }
                 if(match_data.isAutonomous_ && match_data.isEnabled_) {
                     //ROS_ERROR_STREAM("Entering Auto");
                     in_auto = true;
