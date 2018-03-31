@@ -59,14 +59,42 @@ class DriverStationSim(Plugin):
             start_time = rospy.get_time()
             enable_last = False
             auto_last = False
+            practice_last = False
+            auto_duration = 0
             while(not rospy.is_shutdown()):
+                #Robot State Values
                 enable = self._widget.enable_button_2.isChecked()
                 disable = self._widget.disable_button_2.isChecked()
                 auto = self._widget.auto_mode.isChecked()
+                practice = self._widget.practice_button.isChecked()
+
+
+                #Time Start and Restart Handling
                 if(not enable_last and enable):
+                    rospy.logwarn("enableLast")
                     start_time = rospy.get_time()
-                if(not auto_last and auto):
+                if(not auto_last and auto and not practice):
+                    rospy.logwarn("autoLast")
                     start_time = rospy.get_time()
+                if(not practice_last and practice):
+                    rospy.logwarn("practiceLast")
+                    start_time = rospy.get_time()
+                    auto_duration = 15 #TODO read from DS
+                if(enable and practice):
+                    if(rospy.get_time() < start_time + auto_duration):
+                        auto = True
+                        enable = True
+                        disable = False
+                    elif(rospy.get_time() >= start_time + auto_duration and rospy.get_time < start_time + 150):
+                        auto = False
+                        enable = True
+                        disable = False
+                    elif(rospy.get_time() >= start_time + 150):
+                        auto = False
+                        enable = False
+                        disable = True
+
+
                 if(enable):
                     time_diff = int(rospy.get_time()-start_time)
                     self._widget.minutes.display((150-time_diff)/60)
@@ -78,6 +106,8 @@ class DriverStationSim(Plugin):
                     match_msg.matchTimeRemaining = 0
                     match_msg.isDisabled = True
                     match_msg.isEnabled = False
+
+                #Publish Data
                 match_msg.allianceData = self._widget.match_data.text()
                 match_msg.allianceColor = 1
                 match_msg.driverStationLocation = 1
@@ -86,6 +116,7 @@ class DriverStationSim(Plugin):
 
                 enable_last = match_msg.isEnabled
                 auto_last = auto
+                practice_last = practice
 
 
                 auto_msg.header.stamp = rospy.Time.now()
