@@ -33,6 +33,7 @@ static bool intake_ready_to_drop_up_or_down;
 static double drop_x_tolerance;
 static double wait_open_before_drop;
  static double wait_stabilize_before_drop;
+ static double wait_after_open;
 class autoAction
 {
 	protected:
