@@ -1460,6 +1460,16 @@ class TalonHWCommand
 		{
 			return custom_profile_total_time_[slot];
 		}
+		double getCustomProfileEndTime(int slot)
+		{
+			return custom_profile_total_time_[slot].back();
+		}
+		// TODO : TimeCount and ProfileCount should always
+		// be the same?
+		int getCustomProfileTimeCount(int slot)
+		{
+			return custom_profile_points_[slot].size();
+		}
 		int getCustomProfileCount(int slot)  /*const*/ //TODO, can be const?
 		{
 			return custom_profile_points_[slot].size();
