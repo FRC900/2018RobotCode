@@ -294,7 +294,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 				
 			srvElevator.request.x = .05; //Consider changing x_pos + up/down to preassigned rather than curr pos
-			srvElevator.request.y = 2.37;
+			srvElevator.request.y = 2.45;
 			/*max_extension_ + sin(acos(.1 / arm_length_))*arm_length_;*/ //TODO fix
 			srvElevator.request.up_or_down = true;
 			srvElevator.request.override_pos_limits = true;

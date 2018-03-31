@@ -5,7 +5,7 @@ elevator_controller:
     intake2: "intake2_joint"
     pivot: "pivot_joint"
     
-    intake_power_diff_multiplier: .5
+    intake_power_diff_multiplier: .65
     arm_length: 0.4318 
     max_extension: 2.03 #3.628571429 #29619 
     climb_height: 1.3 
