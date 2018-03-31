@@ -999,13 +999,13 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 
 		bool dependencies_run =  false;
 
-		while(/*curr_time*/ (ros::Time::now().toSec() < action_start_time + auto_run_data.actions[num].time || dependencies_run ) && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
+		while(/*curr_time*/ (ros::Time::now().toSec() < (action_start_time + auto_run_data.actions[num].time)) || (!dependencies_run ) && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
 			
 			bool intake_action_lib_later_write = false;
 			bool robot_action_lib_later_write = false;
 			bool timed_out = false;
 			
-				
+			ROS_WARN_STREAM("Time check: " << (ros::Time::now().toSec() < (action_start_time + auto_run_data.actions[num].time)) <<  " dependency check: " << 	dependencies_run);
 				
 
 
@@ -1075,7 +1075,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
             action_rate.sleep();
 	
 		}
-		
+		ROS_ERROR("hypothetically running actions");	
         call_action(auto_run_data.actions[num].action, auto_run_data.actions[num].action_setpoint);
 	}
 }
