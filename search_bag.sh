@@ -19,7 +19,7 @@ do
 	if [[ $var == *bag.active ]]
 	then 
 		echo Reindexing
-		#rosbag reindex $var 
+		rosbag reindex $var 
 	fi
 
 	if [[ $var == *.orig.active ]]
