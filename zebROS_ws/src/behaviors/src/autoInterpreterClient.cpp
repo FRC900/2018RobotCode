@@ -831,13 +831,13 @@ void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
     autoMode.writeFromNonRT(AutoMode(msg->mode, msg->delays, msg->position));
 }
 
-bool check_action_completion(int action, bool &intake_server_action, bool &robot_server_action, bool &timed_out) {
+bool check_action_completion(Action action, bool &intake_server_action, bool &robot_server_action, bool &timed_out) {
     switch(action) {
-        case 0:
+        case deploy_intake:
             return true;
-        case 1:
+        case undeploy_intake:
             return true;
-        case 2:
+        case intake_cube:
 			if(robot_server_action || intake_server_action)
 			{
 				robot_server_action = true;
@@ -860,31 +860,30 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
 			{
 				return false;
 			}
-		case 3:
+        case intake_no_arm:
             return true;
-        case 4:
+        case exchange_cube:
             return true;
-        case 5:
+        case default_config:
             return true;
-        case 6:
+        case intake_config:
             return true;
-        case 7:
+        case switch_config:
             return true;
-        case 8:
+        case low_scale_config:
             return true;
-        case 9:
+        case mid_scale_config:
             return true;
-        case 10:
+        case high_scale_config:
             return true;
-        case 11:
+        case over_back_config:
             return true;
-        case 12:
+        case custom_config:
             return true;
-        case 13:
+        case release_clamp:
             return true;
         default:
             ROS_ERROR("Action not in list of actions");
-            return false;
     }
 }
 
