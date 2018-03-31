@@ -72,6 +72,8 @@
 
 <!--	<include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)"/>-->
 
+	<include file="$(find controller_node)/launch/record_simple.launch" if="$(arg record)" />
+
   <machine name="roboRIO" address="10.9.0.2" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
 
   <arg name="debug" default="false" />
@@ -117,4 +119,5 @@
 <node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat_jetson" output="$(arg output)" />
 
 <node machine="roboRIO" name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat_rio" output="$(arg output)" />
+
 </launch>
