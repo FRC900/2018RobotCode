@@ -40,7 +40,7 @@ do
 			if [ $matchNumber = 0 ]
 			then
 				echo Match number is zero -- renaming
-				mv $var $HOME/2018RobotCode/practice$(basename $var)
+				cp $var $HOME/2018RobotCode/practice$(basename $var)
 				continue
 			fi
 
@@ -62,11 +62,11 @@ do
 			fi
 		else
 			echo This does not have alliance data -- renaming to prematch${var}
-			mv $var /mnt/900_2/prematch$(basename $var)
+			cp $var /mnt/900_2/prematch$(basename $var)
 		fi
 	else
 		echo This does not have match data -- renaming to practice${var} 
-		mv $var /mnt/900_2/practice$(basename $var)
+		cp $var /mnt/900_2/practice$(basename $var)
 	fi
 	#rm temp_file.txt
 

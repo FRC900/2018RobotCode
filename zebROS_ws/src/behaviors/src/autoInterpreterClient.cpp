@@ -620,8 +620,6 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
     swerve_control_srv.request.run    = false;
     swerve_control_srv.request.change_queue   = false; 
 
-	ROS_ERROR("Generate Trajector");
-
 	for(size_t k = 0; k < trajectory.size(); k++)
 	{
         auto_mode_status_vect[k] = 1;
@@ -630,7 +628,6 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 		if(!trajectory[k].exists)
 		{
 			//TODO MAKE LIGHT GO RED ON DRIVERSTATION
-            ROS_ERROR("Failed in generate");
 			ROS_ERROR("auto mode/layout/start selected which wasn't found in the yaml");
             auto_mode_status_vect[k] = 0;
 			return false;
@@ -894,6 +891,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const FullMode &auto_run_data, std::vector<int> start_of_buffer_ids)
 {
     //ROS_WARN("auto entered");
+    ROS_WARN("auto_select:[%d], layout:[%d], start_pos:[%d]", auto_select, layout, start_pos);
     exit_auto = false;
     ros::Rate r(10);
 
@@ -1133,10 +1131,6 @@ int main(int argc, char** argv) {
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
 
-	std::vector<bool> generate_for_this;
-	generate_for_this.resize(4);
-	std::vector<bool> mode_buffered;
-	mode_buffered.resize(4);
 
 
 	ros::service::waitForService("/frcrobot/swerve_drive_controller/run_profile", 60);
@@ -1144,6 +1138,10 @@ int main(int argc, char** argv) {
 
     while(ros::ok()) {
         ROS_WARN("running");
+        std::vector<bool> generate_for_this;
+        std::vector<bool> mode_buffered;
+        mode_buffered.resize(4);
+        generate_for_this.resize(4);
         double auto_start_time = DBL_MAX;
         //std::vector<bool> generated_vect = {false, false, false, false};
         std::vector<int> auto_mode_vect = {-1, -1, -1, -1};

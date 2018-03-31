@@ -434,7 +434,6 @@ class TeleopJointsKeyboard
                 case KEYCODE_SPACE:
                     dirty = true;
                 } 
-                ROS_ERROR("LEMur");
                 if(cmd_last_.buttonAButton && !cmd_.buttonAButton) {
                     cmd_.buttonARelease = true;
                 }
@@ -478,7 +477,6 @@ class TeleopJointsKeyboard
                     cmd_.directionDownRelease = true;
                 }
 				// Publish command
-                ROS_ERROR("LEMur");
 				if (dirty)
 				{
 					// Important safety feature
@@ -488,7 +486,6 @@ class TeleopJointsKeyboard
 					//}
 					//else
 					//{
-                        ROS_ERROR("LEMur");
 						std::cout << ".";
 						joints_pub_.publish(cmd_);
                         cmd_last_ = cmd_;
@@ -510,7 +507,6 @@ class TeleopJointsKeyboard
 void FRCRobotSimInterface::loop_joy(void)
 {
 	signal(SIGINT, quit);
-    ROS_ERROR("HEERRPP");
     TeleopJointsKeyboard teleop;
     teleop.keyboardLoop();
 }
