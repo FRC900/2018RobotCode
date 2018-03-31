@@ -272,7 +272,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			std_srvs::Empty empty; //TODO
 			if (!EndGameDeployWings.call(empty))
 				ROS_ERROR("EndGameDeploy wings call in teleop joystick failed");
-			ROS_WARN("SELF DESTURCT 2.0");
+			//ROS_WARN("SELF DESTURCT 2.0");
 	}
 	/*-----------------Up Double Press End Deploy------------------------------*/
 	static bool destruction_achieved = false;
@@ -312,7 +312,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			std_srvs::Empty empty; //TODO
 			if (!EndGameDeploy.call(empty))
 				ROS_ERROR("EndGameDeploy call in teleop joystick failed");
-			ROS_WARN("SELF DESTURCT");
+			//ROS_WARN("SELF DESTURCT");
 			achieved_pos = other;
 			destruction_achieved = true;
 		}
@@ -321,7 +321,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*-----------------Down Press Climb to Correct height----------------------*/
 	if (JoystickState->directionDownPress && destruction_achieved  )
 	{
-		ROS_WARN("pressed down");
+		//ROS_WARN("pressed down");
 
 		
 	
@@ -352,13 +352,13 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		else
 		{
 		}
-		ROS_INFO("Climb config");
+		//ROS_INFO("Climb config");
 		achieved_pos = climb_c;
 	}
 	if (JoystickState->directionDownRelease && destruction_achieved   )
 	{
 		
-		ROS_WARN("released down");
+		//ROS_WARN("released down");
 		ElevatorPos elevatorPosClimb = *(elevatorPos.readFromRT());
 		teleop_cancel();
 		//if(!ac->getState().isDone())
@@ -385,7 +385,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		else
 		{
 		}
-		ROS_INFO("Climb config released");
+		//ROS_INFO("Climb config released");
 		achieved_pos = climb_c;
 	}
 
@@ -417,7 +417,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				srvClamp.request.data = false;
 				if (!ClampSrv.call(srvClamp))
 					ROS_ERROR("ClampSrv call failed in clamp with cube");
-				ROS_INFO("teleop : Clamp with cube");
+				//ROS_INFO("teleop : Clamp with cube");
 				placed_delay_check = true; //Kick off placing
 				place_start = ros::Time::now().toSec();
 		}
@@ -429,7 +429,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				srvClamp.request.data = true;
 				if (ClampSrv.call(srvClamp))
 				{
-					ROS_WARN("Clamped");
+					//ROS_WARN("Clamped");
 					clamped = true;
 				}
 				else
@@ -442,7 +442,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				srvClamp.request.data = false;
 				if (ClampSrv.call(srvClamp))
 				{
-					ROS_WARN("UnClamped");
+					//ROS_WARN("UnClamped");
 					clamped = false;
 				}
 				else
@@ -496,7 +496,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			intake_up = false;
 		}
 		start_toggle_on = false;
-		ROS_INFO("teleop : RELEASE THE coob");
+		//ROS_INFO("teleop : RELEASE THE coob");
 
 	}
 	/*------------------No Cube - Single Press Intake-------------------*/
@@ -507,7 +507,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 		currentToggle = " ";
 		//Make more robust????
-		ROS_WARN("intaking cube");
+		//ROS_WARN("intaking cube");
 		goal.IntakeCube = true;
 		goal.MoveToIntakeConfig = false;
 		goal.x = default_x;
@@ -547,7 +547,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		goal_intake.time_out = 15;
 		ac_intake->sendGoal(goal_intake);
 		intake_up = false;
-		ROS_INFO("teleop : Intake No Lift");
+		//ROS_INFO("teleop : Intake No Lift");
 		//}
 	}
 
@@ -558,7 +558,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvClamp.request.data = false;
 		if (!ClampSrv.call(srvClamp))
 			ROS_ERROR("ClampSrv call failed in ready_to_spin_out_check");
-		ROS_INFO("teleop : called ClampSrv in ready_to_spin_out_check");
+		//ROS_INFO("teleop : called ClampSrv in ready_to_spin_out_check");
 
 		srvIntake.request.power = -1;
 		srvIntake.request.spring_state = 2; //soft_in
@@ -569,7 +569,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			intake_up = false;
 		}
-		ROS_INFO("teleop : called IntakeSrv in ready_to_spin_out_check");
+		//ROS_INFO("teleop : called IntakeSrv in ready_to_spin_out_check");
 		finish_spin_out_check = true;
 		ready_to_spin_out_check = false;
 		time_start_spin = ros::Time::now().toSec();
@@ -587,7 +587,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			intake_up = false;
 		}
-		ROS_INFO("teleop : called IntakeSrv in finish_spin_out_check");
+		//ROS_INFO("teleop : called IntakeSrv in finish_spin_out_check");
 		finish_spin_out_check = false;
 
 		srvElevator.request.x = intake_ready_to_drop_x;
@@ -600,7 +600,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 		else
 		{
-			ROS_INFO("teleop : called ElevatorSrv in after spin out_check");
+			//ROS_INFO("teleop : called ElevatorSrv in after spin out_check");
 		}
 		//TODO: change to going to intake config
 
@@ -612,7 +612,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 		   ElevatorSrv.call(srvElevator);
 		 */
-		ROS_INFO("teleop : called Go to Intake Goal in finish_spin_out_check");
+		//ROS_INFO("teleop : called Go to Intake Goal in finish_spin_out_check");
 		achieved_pos = intake;
 	}
 	static bool return_to_intake_from_low = false;
@@ -640,7 +640,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			ROS_ERROR("Failed going up after placing");
 		}
-		ROS_INFO("teleop : called ElevatorSrv in placed_delay_check");
+		//ROS_INFO("teleop : called ElevatorSrv in placed_delay_check");
 		placed_delay_check = false;
 		return_to_intake_from_low = achieved_pos == switch_c;
 		return_to_intake_from_high = !return_to_intake_from_low;
@@ -669,7 +669,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 		else
 		{
-			ROS_INFO("teleop : called ElevatorSrv in return from high");
+			//ROS_INFO("teleop : called ElevatorSrv in return from high");
 		}
 		return_to_intake_from_high = false;
 		achieved_pos = intake;
@@ -697,7 +697,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 		else
 		{
-			ROS_INFO("teleop : called ElevatorSrv in return from low");
+			//ROS_INFO("teleop : called ElevatorSrv in return from low");
 		}
 		return_to_intake_from_low = false;
 		achieved_pos = intake;
@@ -717,7 +717,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			intake_up = false;
 		}
-		ROS_INFO("teleop : Intake run out finished");
+		//ROS_INFO("teleop : Intake run out finished");
 		run_out = false;
 	}
 
@@ -762,7 +762,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
                 ROS_ERROR("IntakeSrv call failed in go to switch config");
             else
             {
-                ROS_INFO("intakeSrv call to switch height");
+                //ROS_INFO("intakeSrv call to switch height");
                 intake_up = true;
             }
 
@@ -773,7 +773,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             achieved_pos = switch_c;
             if (ElevatorSrv.call(srvElevator))
             {
-                ROS_INFO("Toggled to switch height");
+                //ROS_INFO("Toggled to switch height");
             }
             else
             {
@@ -804,7 +804,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 				ac->sendGoal(goal);
 				achieved_pos = intake;
-				ROS_INFO("sendGoal() stickRight moveToIntakeConfig");
+				//ROS_INFO("sendGoal() stickRight moveToIntakeConfig");
 			}
 		}
 	}
@@ -818,7 +818,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		srvElevator.request.override_pos_limits = localDisableArmLimits;
 		if (ElevatorSrv.call(srvElevator))
 		{
-			ROS_WARN("Toggled to up/down");
+			//ROS_WARN("Toggled to up/down");
 		}
 		else
 		{
@@ -858,7 +858,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				achieved_pos = default_c;
 				if (ElevatorSrv.call(srvElevator))
 				{
-					ROS_WARN("Toggled to default config");
+					//ROS_WARN("Toggled to default config");
 				}
 				else
 				{
@@ -868,7 +868,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			else
 			{
 
-				ROS_INFO_STREAM("is done?: " << ac->getState().isDone());
+				//ROS_INFO_STREAM("is done?: " << ac->getState().isDone());
 				srvElevator.request.x = intake_ready_to_drop_x;
 				srvElevator.request.y = intake_ready_to_drop_y;
 				srvElevator.request.up_or_down = intake_ready_to_drop_up_or_down;
@@ -879,7 +879,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				}
 				else
 				{
-					ROS_INFO("teleop : called ElevatorSrv in default call");
+					//ROS_INFO("teleop : called ElevatorSrv in default call");
 				}
 				achieved_pos = intake;
 
@@ -905,7 +905,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			intake_up = !intake_up;
 		}
-		ROS_INFO("teleop : called IntakeSrv in direction right press");
+		//ROS_INFO("teleop : called IntakeSrv in direction right press");
 	}
 	/*-----------------------------------------Low/High Scale-----------------------------------------*/
     if (JoystickState->buttonYPress)
@@ -938,7 +938,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
             if (ElevatorSrv.call(srvElevator))
             {
-                ROS_WARN("Toggled to low level scale");
+                //ROS_WARN("Toggled to low level scale");
             }
             else
             {
@@ -975,7 +975,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             achieved_pos = mid_scale;
         if (ElevatorSrv.call(srvElevator))
         {
-            ROS_WARN("Toggled to mid level scale height");
+            //ROS_WARN("Toggled to mid level scale height");
         }
         else
         {
@@ -1000,7 +1000,7 @@ if (JoystickState->buttonBackButton == true)
         intake_up = false;
     }
     start_toggle_on = false;
-    ROS_INFO("teleop : called IntakeSrv in BackButton press");
+    //ROS_INFO("teleop : called IntakeSrv in BackButton press");
     buttonBackStart = timeSecs;
 }
 /*if (JoystickState->buttonBackRelease == true)

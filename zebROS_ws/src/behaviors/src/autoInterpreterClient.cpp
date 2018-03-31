@@ -1033,9 +1033,12 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 			}
 
 			ROS_WARN_STREAM("prof count: " << num_profs);
-			for(int i = 0; i < num_profs - 1; i++)
+			for(int i = 0; i < num_profs; i++)
 			{
+				ROS_INFO_STREAM("start loop");
+				ROS_INFO_STREAM("wait id: " << auto_run_data.wait_ids[i]);
 				if(i <= queued) continue;
+				ROS_INFO_STREAM("running loop still");
 				if(auto_run_data.wait_ids[i] == -1 || finished[auto_run_data.wait_ids[i]])
 				{
 					

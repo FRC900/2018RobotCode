@@ -71,7 +71,7 @@ class autoAction {
 	bool timed_out = false;
 	if(goal->GoToPos)
 	{
-	    ROS_INFO("start of got to pos");
+	    //ROS_INFO("start of got to pos");
 	    elevator_controller::ElevatorControlS srv_elevator;
 	    srv_elevator.request.x = goal->x;
 	    srv_elevator.request.y = goal->y;
@@ -91,7 +91,7 @@ class autoAction {
 		    fabs(dx) < goal->x_tolerance &&
 		    fabs(dy) < goal->y_tolerance;
 
-		ROS_INFO_STREAM("goal x: " << goal->x << " goal y: " << goal->y << " goal up_or_down: " << goal->up_or_down);
+		//ROS_INFO_STREAM("goal x: " << goal->x << " goal y: " << goal->y << " goal up_or_down: " << goal->up_or_down);
 
 		if(as_.isPreemptRequested() || !ros::ok()) {
 		    ROS_WARN("%s: Preempted", action_name_.c_str());
