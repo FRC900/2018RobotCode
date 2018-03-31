@@ -215,7 +215,11 @@ class TalonHWCommand
 			int num_profile_slots = 20;
 			custom_profile_points_.resize(num_profile_slots); //change as needed
 			custom_profile_total_time_.resize(num_profile_slots); 		
-			custom_profile_points_changed_.resize(num_profile_slots);
+			for(int i = 0; i < num_profile_slots; i++)
+            {
+                custom_profile_points_changed_.push_back(true);
+            }	
+
 		}
 		// This gets the requested setpoint, not the
 		// status actually read from the controller

@@ -54,6 +54,7 @@
 
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Bool.h>
+#include <std_msgs/UInt16.h>
 #include <std_srvs/Empty.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/TwistStamped.h>
@@ -341,6 +342,9 @@ class TalonSwerveDriveController
 		Eigen::Affine2d odom_to_base_;       // Odometry to base frame transform
 		Eigen::Affine2d odom_rigid_transf_;
 		Eigen::Matrix2Xd wheel_pos_;
+
+		
+		ros::Publisher profile_queue_num;
 
 		realtime_tools::RealtimePublisher<nav_msgs::Odometry> odom_pub_;
 		realtime_tools::RealtimePublisher<tf::tfMessage> odom_tf_pub_;

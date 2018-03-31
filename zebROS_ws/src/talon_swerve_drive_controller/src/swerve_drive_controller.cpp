@@ -303,6 +303,10 @@ bool TalonSwerveDriveController::init(hardware_interface::TalonCommandInterface 
 		offsets.push_back(dbl_val);
 	}
 
+	
+	profile_queue_num = controller_nh.advertise<std_msgs::UInt16>("profile_queue_num", 1);
+
+
 	/*
 	if (!setOdomParamsFromUrdf(root_nh,
 	                          speed_names[0],
@@ -842,6 +846,37 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		}
 
 	}
+
+	static uint16_t slot_ret = 0;
+	static int slot_ret_diff_last_sum;
+
+	for (size_t i = 0; i < wheel_joints_size_; ++i)
+	{
+		if(slot_ret != steering_joints_[i].getCustomProfileSlot()) slot_ret_diff_last_sum+=1;
+				
+		slot_ret = steering_joints_[i].getCustomProfileSlot();
+		
+
+		if(slot_ret != speed_joints_[i].getCustomProfileSlot()) slot_ret_diff_last_sum+=1;
+		
+		
+		slot_ret = speed_joints_[i].getCustomProfileSlot();
+
+		//ROS_ERROR_STREAM(slot_local);     
+	}
+	
+	std_msgs::UInt16 pub_queue_hold;
+	pub_queue_hold.data = slot_ret;
+
+	profile_queue_num.publish(pub_queue_hold);
+	if(slot_ret_diff_last_sum > 20)
+	{
+
+		ROS_ERROR("potential profile slot issue with swerve");
+	}
+
+
+
 }
 
 void TalonSwerveDriveController::starting(const ros::Time &time)

@@ -92,6 +92,7 @@ struct AutoMode {
 };
 
 realtime_tools::RealtimeBuffer<MatchData> matchData;
+realtime_tools::RealtimeBuffer<int> queue_slot;
 realtime_tools::RealtimeBuffer<AutoMode> autoMode;
 
 bool defaultConfig(void) {
@@ -369,7 +370,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 				for(int wait_for_action = 0; wait_for_action <= max_wait_for_action_num; wait_for_action++)
 				{
 					std::string identifier_with_wait = identifier+ +"_wait_for_action_"+std::to_string(wait_for_action);
-					if(auto_data.getParam(identifier+ +"_wait_for_action_"+std::to_string(wait_for_action), mode_xml))
+					if(auto_data.getParam(identifier_with_wait, mode_xml))
 					{
 						ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
 						//XmlRpc::XmlRpcValue &coefs_xml = mode_xml["coefs"];
@@ -476,96 +477,145 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(.16);
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.t_shift.push_back(0);
 						}
-					}
+
+						
+					
+
 				}
 				
-				if(auto_data.getParam(identifier+ "_actions", actions_xml))
-				{
-					ROS_INFO_STREAM("Auto mode actions with identifier: " << identifier+"_actions" << " found");
-					const int num_actions = actions_xml.size();
-					profiled_modes[mode][layout][start_pos].actions.resize(num_actions);
-					for(int i = 0; i < max_wait_for_action_num; i++)
-					{
-						profiled_modes[mode][layout][start_pos].wait_ids.push_back(-1);
-					}
-	
-					for(int num = 0; num<num_actions; num++) {
-						XmlRpc::XmlRpcValue &action = actions_xml[num];
-						XmlRpc::XmlRpcValue &time = action["time"];
-						
-						XmlRpc::XmlRpcValue &profile_wait_xml = action["profile_wait"];
-						XmlRpc::XmlRpcValue &x_xml = action["x"];
-						XmlRpc::XmlRpcValue &y_xml = action["y"];
-						XmlRpc::XmlRpcValue &up_or_down_xml = action["up_or_down"];
-						const double profile_wait_double = profile_wait_xml;
-                        int profile_wait = (int)profile_wait_double;
-						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.x = x_xml;
-						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.y = y_xml;
-						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.up_or_down = up_or_down_xml;
-						if(profile_wait >= 0)
-						{				
-							profiled_modes[mode][layout][start_pos].wait_ids[profile_wait] =  num;
-						}
-						//TODO: params
-						XmlRpc::XmlRpcValue &action_name = action["action"];
-							//profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(action_now);
-							if(action_name == "deploy_intake") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = deploy_intake;
-							}
-							else if(action_name == "undeploy_intake") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = undeploy_intake;
-							}
-							else if(action_name == "intake_cube") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = intake_cube;
-							}
-							else if(action_name == "exchange_cube") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = exchange_cube;
-							}
-							else if(action_name == "default_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = default_config;
-							}
-							else if(action_name == "intake_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = intake_config;
-							}
-							else if(action_name == "exchange_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = exchange_config;
-							}
-							else if(action_name == "switch_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = switch_config;
-							}
-							else if(action_name == "low_scale_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = low_scale_config;
-							}
-							else if(action_name == "mid_scale_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = mid_scale_config;
-							}
-							else if(action_name == "high_scale_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = high_scale_config;
-							}
-							else if(action_name == "over_back_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = over_back_config;
-							}
-							else if(action_name == "custom_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = custom_config;
-							}
-							else if(action_name == "release_clamp") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = release_clamp;
-							}
 
-						//Exception handling?
-						const double time_now = time;
-						profiled_modes[mode][layout][start_pos].actions[num].time = time_now;
-						//const double t = time;
-						//profiled_modes[mode][layout][start_pos].times.push_back(t);
-					}
-				}
-				else
+			}
+			
+			if(auto_data.getParam(identifier+ "_actions", actions_xml))
+			{
+				ROS_INFO_STREAM("Auto mode actions with identifier: " << identifier+"_actions" << " found");
+				const int num_actions = actions_xml.size();
+				profiled_modes[mode][layout][start_pos].actions.resize(num_actions);
+				for(int i = 0; i < max_wait_for_action_num; i++)
 				{
-					profiled_modes[mode][layout][start_pos].exists = false; 
+					profiled_modes[mode][layout][start_pos].wait_ids.push_back(-1);
 				}
+
+				for(int num = 0; num<num_actions; num++) {
+					XmlRpc::XmlRpcValue &action = actions_xml[num];
+					ROS_WARN("1");
+					XmlRpc::XmlRpcValue &time = action["time"];
+					
+					XmlRpc::XmlRpcValue &profile_wait_xml = action["profile_wait"];
+					ROS_WARN("2");
+					XmlRpc::XmlRpcValue &action_waiter_xml = action["wait_for_action"];
+					ROS_WARN("3");
+					XmlRpc::XmlRpcValue &action_waiter_duration_xml = action["wait_for_action_delay"];
+					ROS_WARN("4");
+					XmlRpc::XmlRpcValue &profile_waiter_xml = action["wait_for_profile"];
+					ROS_WARN("5");
+					//XmlRpc::XmlRpcValue &profile_waiter_duration_xml = action["wait_for_profile_delay"];
+					XmlRpc::XmlRpcValue &x_xml = action["x"];
+					ROS_WARN("6");
+					XmlRpc::XmlRpcValue &y_xml = action["y"];
+					ROS_WARN("7");
+					XmlRpc::XmlRpcValue &up_or_down_xml = action["up_or_down"];
+					ROS_WARN("8");
+					const double profile_wait_double = profile_wait_xml;
+					int profile_wait = (int)profile_wait_double;
+
+					
+					const double action_waiter_double = action_waiter_xml;
+					int action_waiter = (int)action_waiter_double;
+
+				
+					
+					const double action_waiter_duration_double = action_waiter_duration_xml;
+					int action_waiter_duration = (int)action_waiter_duration_double;
+	
+
+					const double profile_waiter_double = profile_waiter_xml;
+					int profile_waiter = (int)profile_waiter_double;
+					
+					//TODO: add dur
+
+					ROS_WARN("9");
+					profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.x = x_xml;
+					ROS_WARN("10");
+					profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.y = y_xml;
+					ROS_WARN("11");
+					profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.up_or_down = up_or_down_xml;
+					ROS_WARN("12");
+					
+					profiled_modes[mode][layout][start_pos].actions[num].wait_action_id = action_waiter;
+					ROS_WARN("13");
+					profiled_modes[mode][layout][start_pos].actions[num].wait_action_time = action_waiter_duration_xml;
+					ROS_WARN("14");
+
+				
+					profiled_modes[mode][layout][start_pos].actions[num].wait_profile_id = profile_waiter;
+					ROS_WARN("15");
+					//profiled_modes[mode][layout][start_pos].actions[num].wait_profile_time = profile_waiter_duration_xml;
+
+					if(profile_wait >= 0)
+					{				
+						profiled_modes[mode][layout][start_pos].wait_ids[profile_wait] =  num;
+					}
+					//TODO: params
+					XmlRpc::XmlRpcValue &action_name = action["action"];
+						//profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(action_now);
+						if(action_name == "deploy_intake") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = deploy_intake;
+						}
+						else if(action_name == "undeploy_intake") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = undeploy_intake;
+						}
+						else if(action_name == "intake_cube") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = intake_cube;
+						}
+						else if(action_name == "exchange_cube") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = exchange_cube;
+						}
+						else if(action_name == "default_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = default_config;
+						}
+						else if(action_name == "intake_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = intake_config;
+						}
+						else if(action_name == "exchange_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = exchange_config;
+						}
+						else if(action_name == "switch_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = switch_config;
+						}
+						else if(action_name == "low_scale_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = low_scale_config;
+						}
+						else if(action_name == "mid_scale_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = mid_scale_config;
+						}
+						else if(action_name == "high_scale_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = high_scale_config;
+						}
+						else if(action_name == "over_back_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = over_back_config;
+						}
+						else if(action_name == "custom_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = custom_config;
+						}
+						else if(action_name == "release_clamp") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = release_clamp;
+						}
+
+					//Exception handling?
+					const double time_now = time;
+					profiled_modes[mode][layout][start_pos].actions[num].time = time_now;
+					//const double t = time;
+					//profiled_modes[mode][layout][start_pos].times.push_back(t);
+				}
+			}
+			else
+			{
+				profiled_modes[mode][layout][start_pos].exists = false; 
 			}
 		}
 	}
+}
 
 	cmd_vel_modes.resize(max_mode_cmd_vel + 1);
     ROS_INFO("Loading cmd_vel params");
@@ -732,6 +782,13 @@ void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &m
 
 }
 
+void queue_slot_cb(const std_msgs::UInt16::ConstPtr &msg) {
+    queue_slot.writeFromNonRT(msg->data);
+
+}
+
+
+
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
     autoMode.writeFromNonRT(AutoMode(msg->mode, msg->delays, msg->position));
 }
@@ -743,9 +800,12 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
         case 1:
             return true;
         case 2:
-			if(robot_server_action)
-				return true;
-			robot_server_action = true;
+			if(robot_server_action || intake_server_action)
+			{
+				robot_server_action = true;
+				intake_server_action = true;
+				return true;		
+			}
 			if(ac->getState().isDone())
 			{
 				if(ac->getResult()->timed_out)
@@ -902,8 +962,8 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     }
 
     
-	while(!exit_auto && !runTrajectory(start_of_buffer_ids[layout])) //There is a better way
-        r.sleep();
+	//while(!exit_auto && !runTrajectory(start_of_buffer_ids[layout])) //There is a better way
+    //    r.sleep();
 	
     start_time = ros::Time::now().toSec();
     size_t num_actions = auto_run_data.actions.size();
@@ -918,21 +978,56 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 	{
 		finished.push_back(false);
 	}
+	std::vector<double> time_finished;
+
+	
+    for(size_t num = 0; num<num_actions; num++)
+	{
+		time_finished.push_back(100000000);
+	}
     for(size_t num = 0; num<num_actions; num++) {
 
 		const double action_start_time = ros::Time::now().toSec();
         //double curr_time = ros::Time::now().toSec();  //These two vars are the same..........
-        while(/*curr_time*/ ros::Time::now().toSec() < action_start_time + auto_run_data.actions[num].time && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
-			/*
+        
+		
+
+		bool dependencies_run =  false;
+
+		while(/*curr_time*/ (ros::Time::now().toSec() < action_start_time + auto_run_data.actions[num].time || dependencies_run ) && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
+			
 			bool intake_action_lib_later_write = false;
 			bool robot_action_lib_later_write = false;
 			bool timed_out = false;
-			for(int i = num-1; i > 0; i--)
+			
+				
+				
+
+
+
+			for(int i = num; i >= 0; i--)
 			{	
 				if(finished[i]) continue;
-				finished[i] = check_action_completion(auto_run_data.actions[i].action, intake_action_lib_later_write, robot_action_lib_later_write, timed_out);		
+				finished[i] = check_action_completion(auto_run_data.actions[i].action, intake_action_lib_later_write, robot_action_lib_later_write, timed_out);	
+				time_finished[i] = ros::Time::now().toSec();	
 				exit_auto = exit_auto || timed_out;	
 			}
+			
+			if(auto_run_data.actions[num].wait_action_id >=0)
+			{
+				dependencies_run = finished[auto_run_data.actions[num].wait_action_id] && ros::Time::now().toSec() - time_finished[auto_run_data.actions[num].wait_action_id] > auto_run_data.actions[num].wait_action_time;
+
+			}
+			else
+			{
+				dependencies_run = true; 	
+			} 
+			if(auto_run_data.actions[num].wait_action_id >=0)
+			{
+				dependencies_run = dependencies_run && *(queue_slot.readFromRT()) >= auto_run_data.actions[num].wait_profile_id; //TODO: add support a wait here maybe
+			}
+
+
 			for(int i = 0; i < num_profs - 1; i++)
 			{
 				if(i <= queued) continue;
@@ -966,7 +1061,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 				}
 			}
             action_rate.sleep();
-		*/	
+	
 		}
 		
         call_action(auto_run_data.actions[num].action, auto_run_data.actions[num].action_setpoint);
@@ -1092,6 +1187,7 @@ int main(int argc, char** argv) {
     std_msgs::Float64 state_3;
     
     ros::Subscriber auto_mode_sub = n.subscribe("autonomous_mode", 1, &auto_mode_cb);
+    ros::Subscriber slot_sub = n.subscribe("profile_queue_num", 1, &queue_slot_cb);
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
 
 	// Kick off 2 threads to process messages

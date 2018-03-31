@@ -11,6 +11,7 @@
 #include "std_srvs/SetBool.h"
 
 #include "std_msgs/Bool.h"
+#include "std_msgs/UInt16.h"
 #include "elevator_controller/ElevatorControl.h"
 #include "elevator_controller/Intake.h"
 #include "elevator_controller/ElevatorControlS.h"
@@ -41,6 +42,10 @@ struct ActionStruct
     double time;
     Action action;
 	ActionSetpoint action_setpoint;
+	int wait_action_id;
+	double wait_action_time;
+	int wait_profile_id;
+	//double wait_profile_time;
 };
 
 struct CmdVel
@@ -92,6 +97,7 @@ bool intakeOut(void);
 bool parkingConfig(void);
 bool runTrajectory(void);
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &AutoMode);
+void queue_slot_cb(const std_msgs::UInt16::ConstPtr &msg);
 void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData);
 void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const FullMode &auto_run_data, std::vector<int> start_of_buffer_ids);
 void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<CmdVel> &segments);

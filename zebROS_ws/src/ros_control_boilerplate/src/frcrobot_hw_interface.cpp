@@ -536,17 +536,20 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 	//running at the specified hz just copying to the status
 	
 	double time_start = ros::Time::now().toSec();
-	int num_slots = 4; //Needs to be the same as the talon command interface and talon state interface
+	int num_slots = 20; //Needs to be the same as the talon command interface and talon state interface
 	hardware_interface::CustomProfileStatus status; //Status is also used to store info from last loop
 	int points_run = 0;
 	double pos_offset = 0;
 
 	std::vector<std::vector<hardware_interface::CustomProfilePoint>> saved_points;
+	saved_points.resize(num_slots);
+	
 	std::vector<std::vector<double>> saved_times;
-
+	saved_times.resize(num_slots);
+	
 	while (ros::ok())
 	{
-		getCustomProfilePointsTimesChanged(saved_points, saved_times);	
+		talon_command_[joint_id].getCustomProfilePointsTimesChanged(saved_points, saved_times);	
 
 
 		ros::Rate rate(talon_command_[joint_id].getCustomProfileHz());
@@ -664,7 +667,7 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 					double fTerm = saved_points[slot][end - 1].fTerm + (saved_points[slot][end].fTerm - saved_points[slot][end - 1].fTerm) / 
 					(saved_times[slot][end] - saved_times[slot][end-1]) * (time_since_start - saved_times[slot][end-1]);
 
-					custom_saved_points[slot]_set_talon(saved_points[slot][end].positionMode, setpoint, fTerm, joint_id, saved_points[slot][end].pidSlot, saved_points[slot][end-1].zeroPos, pos_offset);
+					custom_profile_set_talon(saved_points[slot][end].positionMode, setpoint, fTerm, joint_id, saved_points[slot][end].pidSlot, saved_points[slot][end-1].zeroPos, pos_offset);
 				
 				}
 

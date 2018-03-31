@@ -127,6 +127,51 @@ class arm_limits
 		}
 		bool check_if_possible(point_type &cmd, bool &up_or_down, int check_type, double lift_height = 0)
 		{		
+	
+
+			
+			if(check_type == -1)
+			{
+				if(up_or_down)
+				{
+					if(boost::geometry::within(cmd, saved_polygons_[0]))
+					{
+						//ROS_WARN("success");
+						return true;
+					}
+					else if(boost::geometry::within(cmd, saved_polygons_[1]))
+					{
+						if(cmd.x() > .4)
+						{
+							up_or_down = false;
+							return false;
+						}
+					}
+
+						find_nearest_point(cmd, up_or_down, check_type, lift_height);
+						return false;
+				}
+				else
+				{
+					if(boost::geometry::within(cmd, saved_polygons_[1]))
+					{
+						//ROS_WARN("success");	
+						return true;
+					}
+					else if(boost::geometry::within(cmd, saved_polygons_[0]))
+					{
+						if(cmd.x() > .4)
+						{
+							//ROS_WARN("down to up");
+							up_or_down = true;
+							return false;
+						}
+					}
+						//ROS_WARN("FAIL");
+						find_nearest_point(cmd, up_or_down, check_type, lift_height);
+						return false;
+				}
+			}
 			if(check_type == 0)
 			{
 				if(up_or_down)
@@ -412,7 +457,7 @@ class arm_limits
 
 			//ROS_WARN_STREAM("up/down: " << cur_up_or_down);
 			cur_pos.y(cur_pos.y() + .001);
-			/*bool pos_works = */check_if_possible(cur_pos, cur_up_or_down, 0);
+			/*bool pos_works = */check_if_possible(cur_pos, cur_up_or_down, -1);
 			if(cur_pos.x() - arm_length_ > -.00002)
 			{	
 				cur_pos.x(-.00002 + arm_length_);

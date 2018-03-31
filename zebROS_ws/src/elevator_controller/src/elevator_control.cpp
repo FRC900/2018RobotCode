@@ -658,8 +658,8 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
     if(starting_config_.getPosition())
     {
 		
-		command_struct_.lin[0] = -0.05;
-		command_struct_.lin[1] = min_extension_ + sin(acos(-0.05 / arm_length_))*arm_length_ + .05;
+		command_struct_.lin[0] = 0.05;
+		command_struct_.lin[1] = min_extension_ + sin(acos(0.05 / arm_length_))*arm_length_ + .05;
 		command_struct_.up_or_down = true;
 		command_struct_.override_pos_limits = true;
 		command_struct_.override_sensor_limits = false;
@@ -701,6 +701,29 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		return_holder.y = curr_cmd.lin[1];
 		return_holder.up_or_down = curr_cmd.up_or_down;
 		safe_to_move_intake = true;
+	
+		
+	//___________________TESTING________________________________\\
+
+		arm_limiting::point_type cmd_point(curr_cmd.lin[0], curr_cmd.lin[1]);
+
+		bool reassignment_holder;
+
+		arm_limiting::point_type return_cmd;
+		bool return_up_or_down;
+		bool bottom_limit = false; //TODO FIX THIS
+		const bool cube_in_clamp = cube_msg.clamp && (clamp_cmd <= 0);
+		bool copy_up_or_down = curr_cmd.up_or_down;
+		arm_limiter_->safe_cmd(cmd_point, copy_up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit, intake_up, in_transition, safe_to_move_intake, cube_in_clamp, intake_open, curr_cmd.put_cube_in_intake);
+
+
+		//potentially do something if reassignment is needed (Like a ROS_WARN?)
+
+
+	//___________________TESTING________________________________\\
+
+
+
 	}
 	return_holder.header.stamp = ros::Time::now();
 	ReturnCmd_.publish(return_holder);
