@@ -26,6 +26,8 @@ else
 		roslaunch controller_node controller_master.launch
 fi
 
+top -b > /home/ubuntu/top_log.txt
+
 nvpmodel -m 0
 /home/ubuntu/jetson_clocks.sh
 /home/ubuntu/2018RobotCode/jetson_setup/clocks.sh &
