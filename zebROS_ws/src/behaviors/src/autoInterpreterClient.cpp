@@ -972,7 +972,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 	
     start_time = ros::Time::now().toSec();
     size_t num_actions = auto_run_data.actions.size();
-	size_t num_profs = auto_run_data.srv_msgs.size();
+	size_t num_profs = auto_run_data.num_srv_msgs;
     ros::Rate action_rate(20);
 		
 	int queued = -1;
@@ -1032,12 +1032,14 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 				dependencies_run = dependencies_run && *(queue_slot.readFromRT()) >= auto_run_data.actions[num].wait_profile_id; //TODO: add support a wait here maybe
 			}
 
-
+			ROS_WARN_STREAM("prof count: " << num_profs);
 			for(int i = 0; i < num_profs - 1; i++)
 			{
 				if(i <= queued) continue;
 				if(auto_run_data.wait_ids[i] == -1 || finished[auto_run_data.wait_ids[i]])
 				{
+					
+					ROS_WARN_STREAM("Queued" << queued);
 					queued = i;
 					if(i!=0)
 					{
@@ -1048,6 +1050,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 						}
 						if(!queue_profile(queue));
 						{			
+							ROS_WARN("queue fail");
 							queued -= 1;
 							break;
 							//If we fail try again
@@ -1055,6 +1058,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 					}
 					else if(!runTrajectory(start_of_buffer_ids[layout]))
 					{
+						ROS_WARN("runTrajectory fail");
 						queued -= 1;
 						break;
 						//If we fail try again
