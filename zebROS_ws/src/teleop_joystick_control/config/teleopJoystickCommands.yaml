@@ -52,6 +52,7 @@ teleop_params:
     intake_power: 1.0
     intake_hold_power: 0.15
     wait_after_clamp: 0.5
+    wait_after_open: 0.2
     wait_open_before_drop: 0.5
     delay_after_move_intake: 1.0
     wait_for_match_data: 2.0

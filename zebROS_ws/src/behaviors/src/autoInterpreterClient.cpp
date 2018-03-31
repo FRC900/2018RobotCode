@@ -110,6 +110,24 @@ bool defaultConfig(void) {
 	}
 	return true;
 }
+bool startMatchConfig()
+{
+	elevator_controller::ElevatorControlS srv;
+    srv.request.x = .35;
+    srv.request.y = .7;
+    srv.request.up_or_down = true;
+    srv.request.override_pos_limits = true;
+    srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
+    if (!ElevatorService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ElevatorService in defaultConfig");
+		return false;
+	}
+	return true;
+
+
+}
 bool intakeConfig(void) {
 	elevator_controller::ElevatorControlS srv;
     srv.request.x = intake_ready_to_drop_x;
@@ -498,24 +516,16 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 
 				for(int num = 0; num<num_actions; num++) {
 					XmlRpc::XmlRpcValue &action = actions_xml[num];
-					ROS_WARN("1");
 					XmlRpc::XmlRpcValue &time = action["time"];
 					
 					XmlRpc::XmlRpcValue &profile_wait_xml = action["profile_wait"];
-					ROS_WARN("2");
 					XmlRpc::XmlRpcValue &action_waiter_xml = action["wait_for_action"];
-					ROS_WARN("3");
 					XmlRpc::XmlRpcValue &action_waiter_duration_xml = action["wait_for_action_delay"];
-					ROS_WARN("4");
 					XmlRpc::XmlRpcValue &profile_waiter_xml = action["wait_for_profile"];
-					ROS_WARN("5");
 					//XmlRpc::XmlRpcValue &profile_waiter_duration_xml = action["wait_for_profile_delay"];
 					XmlRpc::XmlRpcValue &x_xml = action["x"];
-					ROS_WARN("6");
 					XmlRpc::XmlRpcValue &y_xml = action["y"];
-					ROS_WARN("7");
 					XmlRpc::XmlRpcValue &up_or_down_xml = action["up_or_down"];
-					ROS_WARN("8");
 					const double profile_wait_double = profile_wait_xml;
 					int profile_wait = (int)profile_wait_double;
 
@@ -534,22 +544,15 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 					
 					//TODO: add dur
 
-					ROS_WARN("9");
 					profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.x = x_xml;
-					ROS_WARN("10");
 					profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.y = y_xml;
-					ROS_WARN("11");
 					profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.up_or_down = up_or_down_xml;
-					ROS_WARN("12");
 					
 					profiled_modes[mode][layout][start_pos].actions[num].wait_action_id = action_waiter;
-					ROS_WARN("13");
 					profiled_modes[mode][layout][start_pos].actions[num].wait_action_time = action_waiter_duration_xml;
-					ROS_WARN("14");
 
 				
 					profiled_modes[mode][layout][start_pos].actions[num].wait_profile_id = profile_waiter;
-					ROS_WARN("15");
 					//profiled_modes[mode][layout][start_pos].actions[num].wait_profile_time = profile_waiter_duration_xml;
 
 					if(profile_wait >= 0)
@@ -1386,7 +1389,7 @@ int main(int argc, char** argv) {
                 ////ROS_INFO("Not in auto yet");
                 static int default_lift_iterations = 0;
                 if(default_lift_iterations%5 == 0) {
-                    defaultConfig();
+                    startMatchConfig();
                     clamp();
                     elevator_controller::Intake srv;
                     srv.request.spring_state = 2; //soft_in
