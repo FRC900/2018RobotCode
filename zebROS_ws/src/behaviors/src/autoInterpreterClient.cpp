@@ -103,7 +103,8 @@ bool defaultConfig(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
-    if (!ElevatorService.call(srv))
+    ROS_INFO("def conf");
+	if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in defaultConfig");
 		return false;
@@ -119,6 +120,7 @@ bool startMatchConfig()
     srv.request.override_pos_limits = true;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("start conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in defaultConfig");
@@ -136,6 +138,7 @@ bool intakeConfig(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("intake conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -152,6 +155,7 @@ bool overBack(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("over back conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -168,6 +172,7 @@ bool customConfig(const ActionSetpoint &action_setpoint) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("custom conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -193,6 +198,7 @@ bool intakeCube(const ActionSetpoint &action_setpoint) {
 
     ac->sendGoal(goal);
     
+    ROS_INFO("intake");
 }
 bool intakeNoArm(void) {
 	behaviors::IntakeGoal goal;
@@ -202,6 +208,7 @@ bool intakeNoArm(void) {
     goal.time_out = 10; //TODO config this
 
     ac_intake->sendGoal(goal);
+    ROS_INFO("intake no arm");
     
 }
 bool switchConfig(void) {
@@ -212,6 +219,7 @@ bool switchConfig(void) {
     srv.request.override_pos_limits = false;
     srv.request.put_cube_in_intake = false;
     srv.request.override_sensor_limits = false;
+    ROS_INFO("switch");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in switchConfig");
@@ -227,6 +235,7 @@ bool highScale(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("high scale");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in highScale");
@@ -242,6 +251,7 @@ bool midScale(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("mid scale");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in midScale");
@@ -257,6 +267,7 @@ bool lowScale(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("low scale");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in lowScale");
@@ -269,6 +280,7 @@ bool intakeStop(void) {
     srv.request.spring_state = 2; //soft_in
     srv.request.power=0;
     srv.request.just_override_power = false;
+    ROS_INFO("intake stop");
     if (!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in intakeStop");
@@ -281,6 +293,7 @@ bool releaseIntake(void) {
     srv.request.spring_state = 1; //hard out
     srv.request.power = 0;
     srv.request.just_override_power = false;
+    ROS_INFO("release intake");
     if (!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in releaseIntake");
@@ -291,6 +304,7 @@ bool releaseIntake(void) {
 bool releaseClamp(void) {
 	std_srvs::SetBool srv;
 	srv.request.data = false;
+    ROS_INFO("release clamp");
 	if (!ClampService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ClampService in releaseClamp");
@@ -301,6 +315,7 @@ bool releaseClamp(void) {
 bool clamp(void) {
 	std_srvs::SetBool srv;
     srv.request.data = true;
+    ROS_INFO("clamp");
     if (!ClampService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ClampService in clamp");
@@ -314,6 +329,7 @@ bool intakeOut(void) {
 	srv.request.power = -1;
 	srv.request.spring_state = 2; //soft-in
     srv.request.just_override_power = false;
+    ROS_INFO("intake_out");
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in intakeOut");
@@ -327,6 +343,7 @@ bool deployIntake(void) {
 	srv.request.spring_state = 2; //soft-in
     srv.request.up = 0; //down
     srv.request.just_override_power = false;
+    ROS_INFO("intake_deplot");
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in deployIntake");
@@ -341,6 +358,7 @@ bool undeployIntake(void) {
 	srv.request.spring_state = 2; //soft-in
     srv.request.up = true;
     srv.request.just_override_power = false;
+    ROS_INFO("intake up");
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in undeployIntake");
@@ -560,50 +578,67 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						profiled_modes[mode][layout][start_pos].wait_ids[profile_wait] =  num;
 					}
 					//TODO: params
-					XmlRpc::XmlRpcValue &action_name = action["action"];
+					XmlRpc::XmlRpcValue &action_name = action["actions"];
 						//profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(action_now);
 						if(action_name == "deploy_intake") {
+                            ROS_ERROR("Always intake");
 							profiled_modes[mode][layout][start_pos].actions[num].action = deploy_intake;
 						}
 						else if(action_name == "undeploy_intake") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = undeploy_intake;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "intake_cube") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = intake_cube;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "exchange_cube") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = exchange_cube;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "default_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = default_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "intake_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = intake_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "exchange_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = exchange_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "switch_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = switch_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "low_scale_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = low_scale_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "mid_scale_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = mid_scale_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "high_scale_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = high_scale_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "over_back_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = over_back_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "custom_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = custom_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "release_clamp") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = release_clamp;
+                            ROS_ERROR("other");
 						}
+                        else {
+                            ROS_ERROR("LEmurs have returned");
+                        }
 
 					//Exception handling?
 					const double time_now = time;
@@ -796,13 +831,13 @@ void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
     autoMode.writeFromNonRT(AutoMode(msg->mode, msg->delays, msg->position));
 }
 
-bool check_action_completion(int action, bool &intake_server_action, bool &robot_server_action, bool &timed_out) {
+bool check_action_completion(Action action, bool &intake_server_action, bool &robot_server_action, bool &timed_out) {
     switch(action) {
-        case 0:
+        case deploy_intake:
             return true;
-        case 1:
+        case undeploy_intake:
             return true;
-        case 2:
+        case intake_cube:
 			if(robot_server_action || intake_server_action)
 			{
 				robot_server_action = true;
@@ -825,76 +860,76 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
 			{
 				return false;
 			}
-		case 3:
+        case intake_no_arm:
             return true;
-        case 4:
+        case exchange_cube:
             return true;
-        case 5:
+        case default_config:
             return true;
-        case 6:
+        case intake_config:
             return true;
-        case 7:
+        case switch_config:
             return true;
-        case 8:
+        case low_scale_config:
             return true;
-        case 9:
+        case mid_scale_config:
             return true;
-        case 10:
+        case high_scale_config:
             return true;
-        case 11:
+        case over_back_config:
             return true;
-        case 12:
+        case custom_config:
             return true;
-        case 13:
+        case release_clamp:
             return true;
         default:
             ROS_ERROR("Action not in list of actions");
-            return false;
     }
 }
 
-bool call_action(int action, const ActionSetpoint &action_setpoint) {
+bool call_action(Action action, const ActionSetpoint &action_setpoint) {
+    ROS_WARN("%d", action);
     switch(action) {
-        case 0:
+        case deploy_intake:
             deployIntake();
             break;
-        case 1:
+        case undeploy_intake:
             undeployIntake();
             break;
-        case 2:
+        case intake_cube:
             intakeCube(action_setpoint);
             break;
-        case 3:
+        case intake_no_arm:
             intakeNoArm();
             break;
-        case 4:
+        case exchange_cube:
             intakeOut();
             break;
-        case 5:
+        case default_config:
             defaultConfig();
             break;
-        case 6:
+        case intake_config:
             intakeConfig();
             break;
-        case 7:
+        case switch_config:
             switchConfig();
             break;
-        case 8:
+        case low_scale_config:
             lowScale();
             break;
-        case 9:
+        case mid_scale_config:
             midScale();
             break;
-        case 10:
+        case high_scale_config:
             highScale();
             break;
-        case 11:
+        case over_back_config:
             overBack();
             break;
-        case 12:
+        case custom_config:
             customConfig(action_setpoint);
             break;
-        case 13:
+        case release_clamp:
             releaseClamp();
             break;
         default:
@@ -999,13 +1034,13 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 
 		bool dependencies_run =  false;
 
-		while(/*curr_time*/ (ros::Time::now().toSec() < action_start_time + auto_run_data.actions[num].time || dependencies_run ) && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
+		while(/*curr_time*/ (ros::Time::now().toSec() < (action_start_time + auto_run_data.actions[num].time)) || (!dependencies_run ) && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
 			
 			bool intake_action_lib_later_write = false;
 			bool robot_action_lib_later_write = false;
 			bool timed_out = false;
 			
-				
+			ROS_WARN_STREAM("Time check: " << (ros::Time::now().toSec() < (action_start_time + auto_run_data.actions[num].time)) <<  " dependency check: " << 	dependencies_run);
 				
 
 
@@ -1033,13 +1068,16 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 			}
 
 			ROS_WARN_STREAM("prof count: " << num_profs);
-			for(int i = 0; i < num_profs - 1; i++)
+			for(int i = 0; i < num_profs; i++)
 			{
+				//ROS_INFO_STREAM("start loop");
+				//ROS_INFO_STREAM("wait id: " << auto_run_data.wait_ids[i]);
 				if(i <= queued) continue;
+				//ROS_INFO_STREAM("running loop still");
 				if(auto_run_data.wait_ids[i] == -1 || finished[auto_run_data.wait_ids[i]])
 				{
 					
-					ROS_WARN_STREAM("Queued" << queued);
+					//ROS_WARN_STREAM("Queued" << queued);
 					queued = i;
 					if(i!=0)
 					{
@@ -1072,7 +1110,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
             action_rate.sleep();
 	
 		}
-		
+		ROS_ERROR("hypothetically running actions");	
         call_action(auto_run_data.actions[num].action, auto_run_data.actions[num].action_setpoint);
 	}
 }

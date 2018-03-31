@@ -118,7 +118,7 @@ class autoAction
 			//const double odom_x = elevator_odom.readFromRT()->X_;
 			if (goal->IntakeCube)
 			{
-				ROS_INFO("start of pickup cube");
+				//ROS_INFO("start of pickup cube");
 				std_srvs::SetBool srv_clamp;
 				ros::spinOnce();
 				behaviors::IntakeGoal goal_i;
@@ -148,7 +148,7 @@ class autoAction
 		
 				while (!aborted && !timed_out)
 				{
-					ROS_INFO("start of pickup cube 1");
+					//ROS_INFO("start of pickup cube 1");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -169,7 +169,7 @@ class autoAction
 							
 							if( !finished_lift)
 								finish_time = ros::Time::now().toSec();
-							ROS_WARN("lift finished");
+							//ROS_WARN("lift finished");
 						}
 						if (ai_.getState().isDone())
 						{
@@ -191,7 +191,7 @@ class autoAction
 					}
 					if (!aborted)
 					{
-						ROS_WARN("lift unfinished in p2");
+						//ROS_WARN("lift unfinished in p2");
 						r.sleep();
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
@@ -201,7 +201,7 @@ class autoAction
 							timed_out = timed_out || al_.getResult()->timed_out;
 							finished_lift = true;
 							finish_time = ros::Time::now().toSec();
-							ROS_WARN("lift finished in p2");
+							//ROS_WARN("lift finished in p2");
 						}
 					}
 
@@ -217,7 +217,7 @@ class autoAction
 					}
 					if (!aborted)
 					{
-						ROS_WARN_STREAM("wait for drop etc t: " <<ros::Time::now().toSec() - finish_time );
+						//ROS_WARN_STREAM("wait for drop etc t: " <<ros::Time::now().toSec() - finish_time );
 						r.sleep();
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
@@ -263,7 +263,7 @@ class autoAction
 				*/
 				if (!aborted && !timed_out && !high_cube_.load(std::memory_order_relaxed))
 				{
-					ROS_INFO("start of pickup cube 3 - true");
+					//ROS_INFO("start of pickup cube 3 - true");
 					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5;
 					goal_l.GoToPos = true;
@@ -275,7 +275,7 @@ class autoAction
 					goal_l.dist_tolerance = 0.1; //Tolerances are intentionally large, will require testing
 					goal_l.y_tolerance = 0.1;
 					goal_l.x_tolerance = 0.1;
-					ROS_INFO("start of pickup cube 3");
+					//ROS_INFO("start of pickup cube 3");
 					al_.sendGoal(goal_l);
 					while (!aborted && !timed_out)
 					{
@@ -305,7 +305,7 @@ class autoAction
 				}
 				else if (!aborted && !timed_out)
 				{
-					ROS_INFO("start of pickup cube 4 - true");
+					//ROS_INFO("start of pickup cube 4 - true");
 					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5;
 					goal_l.GoToPos = true;
@@ -320,7 +320,7 @@ class autoAction
 					al_.sendGoal(goal_l);
 					while (!aborted && !timed_out)
 					{
-						ROS_INFO("start of pickup cube 4");
+						//ROS_INFO("start of pickup cube 4");
 						if (as_.isPreemptRequested() || !ros::ok())
 						{
 							ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -356,7 +356,7 @@ class autoAction
 				double open_time = 0;
 				while (!aborted && !timed_out)
 				{
-					ROS_INFO("start of pickup cube 5");
+					//ROS_INFO("start of pickup cube 5");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -387,7 +387,7 @@ class autoAction
 
 				while (!aborted && !timed_out)
 				{
-					ROS_INFO("start of pickup cube 5");
+					//ROS_INFO("start of pickup cube 5");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -425,7 +425,7 @@ class autoAction
 
 				while (!aborted && !timed_out)
 				{
-					ROS_INFO("start of pickup cube 6");
+					//ROS_INFO("start of pickup cube 6");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -454,7 +454,7 @@ class autoAction
 				//TODO:
 			
 				ai_.cancelAllGoals();
-				ROS_INFO("start of go to intake config with cube");
+				//ROS_INFO("start of go to intake config with cube");
 				
 				behaviors::LiftGoal goal_l;
 				goal_l.time_out = 5; 
