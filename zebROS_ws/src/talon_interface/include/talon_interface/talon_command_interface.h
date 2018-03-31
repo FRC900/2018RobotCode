@@ -1377,6 +1377,9 @@ class TalonHWCommand
 		{
 			return custom_profile_slot_;
 		}
+		// TODO : custom profile points & times need to 
+		// be locked by a mutex of some sort to
+		// make sure reads and writes are atomic
 		void pushCustomProfilePoint(const CustomProfilePoint &point, int slot)
 		{
 			custom_profile_points_[slot].push_back(point);
