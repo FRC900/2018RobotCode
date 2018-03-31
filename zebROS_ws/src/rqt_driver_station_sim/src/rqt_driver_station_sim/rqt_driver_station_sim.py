@@ -121,6 +121,8 @@ class DriverStationSim(Plugin):
 
                 auto_msg.header.stamp = rospy.Time.now()
 
+                auto_msg.position = self._widget.start_pos.value();
+
                 auto_msg.mode[0] = self._widget.mode_0.value();
                 auto_msg.mode[1] = self._widget.mode_1.value();
                 auto_msg.mode[2] = self._widget.mode_2.value();
