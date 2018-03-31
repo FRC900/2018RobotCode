@@ -853,48 +853,48 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
     }
 }
 
-bool call_action(int action, const ActionSetpoint &action_setpoint) {
+bool call_action(Action action, const ActionSetpoint &action_setpoint) {
     switch(action) {
-        case 0:
+        case deploy_intake:
             deployIntake();
             break;
-        case 1:
+        case undeploy_intake:
             undeployIntake();
             break;
-        case 2:
+        case intake_cube:
             intakeCube(action_setpoint);
             break;
-        case 3:
+        case intake_no_arm:
             intakeNoArm();
             break;
-        case 4:
+        case exchange_cube:
             intakeOut();
             break;
-        case 5:
+        case default_config:
             defaultConfig();
             break;
-        case 6:
+        case intake_config:
             intakeConfig();
             break;
-        case 7:
+        case switch_config:
             switchConfig();
             break;
-        case 8:
+        case low_scale_config:
             lowScale();
             break;
-        case 9:
+        case mid_scale_config:
             midScale();
             break;
-        case 10:
+        case high_scale_config:
             highScale();
             break;
-        case 11:
+        case over_back_config:
             overBack();
             break;
-        case 12:
+        case custom_config:
             customConfig(action_setpoint);
             break;
-        case 13:
+        case release_clamp:
             releaseClamp();
             break;
         default:
