@@ -903,9 +903,10 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
         r.sleep(); 
     }
 
-    while(!exit_auto && !runTrajectory(start_of_buffer_ids[layout])) //There is a better way
+    
+	while(!exit_auto && !runTrajectory(start_of_buffer_ids[layout])) //There is a better way
         r.sleep();
-
+	
     start_time = ros::Time::now().toSec();
     size_t num_actions = auto_run_data.actions.size();
 	size_t num_profs = auto_run_data.srv_msgs.size();
@@ -924,7 +925,8 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 		const double action_start_time = ros::Time::now().toSec();
         //double curr_time = ros::Time::now().toSec();  //These two vars are the same..........
         while(/*curr_time*/ ros::Time::now().toSec() < action_start_time + auto_run_data.actions[num].time && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
-			/*bool intake_action_lib_later_write = false;
+			/*
+			bool intake_action_lib_later_write = false;
 			bool robot_action_lib_later_write = false;
 			bool timed_out = false;
 			for(int i = num-1; i > 0; i--)
@@ -966,8 +968,9 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 				}
 			}
             action_rate.sleep();
-			*/
+		*/	
 		}
+		
         call_action(auto_run_data.actions[num].action, auto_run_data.actions[num].action_setpoint);
 	}
 }

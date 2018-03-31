@@ -49,7 +49,7 @@ teleop_params:
     high_return_intake_up_or_down: true
     timeout: 15
     exchange_delay: 0.5
-    intake_power: 0.8
+    intake_power: 1.0
     intake_hold_power: 0.15
     wait_after_clamp: 0.5
     wait_open_before_drop: 0.5

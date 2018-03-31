@@ -346,15 +346,6 @@ class autoAction
 					if (!ClampSrv_.call(srv_clamp)) ROS_ERROR("Srv_ clamp call failed");;
 
 				}
-				if (!aborted && !timed_out)
-				{
-					elevator_controller::Intake srvIntake;
-					srvIntake.request.power = 0.0;
-					srvIntake.request.up = false;
-					srvIntake.request.just_override_power = false;
-					srvIntake.request.spring_state = 1; //hard_out
-					if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
-				}
 				while (!aborted && !timed_out)
 				{
 					ROS_INFO("start of pickup cube 5");
@@ -380,6 +371,12 @@ class autoAction
 						goal_l.y_tolerance = goal->y_tolerance;
 						goal_l.x_tolerance = goal->x_tolerance;
 						al_.sendGoal(goal_l);
+						elevator_controller::Intake srvIntake;
+						srvIntake.request.power = 0.0;
+						srvIntake.request.up = false;
+						srvIntake.request.just_override_power = false;
+						srvIntake.request.spring_state = 1; //hard_out
+						if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
 						break;
 					}
 					if (!aborted)
