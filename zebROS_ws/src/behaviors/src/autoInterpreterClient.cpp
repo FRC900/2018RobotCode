@@ -103,7 +103,8 @@ bool defaultConfig(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
-    if (!ElevatorService.call(srv))
+    ROS_INFO("def conf");
+	if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in defaultConfig");
 		return false;
@@ -119,6 +120,7 @@ bool startMatchConfig()
     srv.request.override_pos_limits = true;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("start conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in defaultConfig");
@@ -136,6 +138,7 @@ bool intakeConfig(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("intake conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -152,6 +155,7 @@ bool overBack(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("over back conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -168,6 +172,7 @@ bool customConfig(const ActionSetpoint &action_setpoint) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("custom conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -193,6 +198,7 @@ bool intakeCube(const ActionSetpoint &action_setpoint) {
 
     ac->sendGoal(goal);
     
+    ROS_INFO("intake");
 }
 bool intakeNoArm(void) {
 	behaviors::IntakeGoal goal;
@@ -202,6 +208,7 @@ bool intakeNoArm(void) {
     goal.time_out = 10; //TODO config this
 
     ac_intake->sendGoal(goal);
+    ROS_INFO("intake no arm");
     
 }
 bool switchConfig(void) {
@@ -212,6 +219,7 @@ bool switchConfig(void) {
     srv.request.override_pos_limits = false;
     srv.request.put_cube_in_intake = false;
     srv.request.override_sensor_limits = false;
+    ROS_INFO("switch");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in switchConfig");
@@ -227,6 +235,7 @@ bool highScale(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("high scale");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in highScale");
@@ -242,6 +251,7 @@ bool midScale(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("mid scale");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in midScale");
@@ -257,6 +267,7 @@ bool lowScale(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("low scale");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in lowScale");
@@ -269,6 +280,7 @@ bool intakeStop(void) {
     srv.request.spring_state = 2; //soft_in
     srv.request.power=0;
     srv.request.just_override_power = false;
+    ROS_INFO("intake stop");
     if (!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in intakeStop");
@@ -281,6 +293,7 @@ bool releaseIntake(void) {
     srv.request.spring_state = 1; //hard out
     srv.request.power = 0;
     srv.request.just_override_power = false;
+    ROS_INFO("release intake");
     if (!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in releaseIntake");
@@ -291,6 +304,7 @@ bool releaseIntake(void) {
 bool releaseClamp(void) {
 	std_srvs::SetBool srv;
 	srv.request.data = false;
+    ROS_INFO("release clamp");
 	if (!ClampService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ClampService in releaseClamp");
@@ -301,6 +315,7 @@ bool releaseClamp(void) {
 bool clamp(void) {
 	std_srvs::SetBool srv;
     srv.request.data = true;
+    ROS_INFO("clamp");
     if (!ClampService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ClampService in clamp");
@@ -314,6 +329,7 @@ bool intakeOut(void) {
 	srv.request.power = -1;
 	srv.request.spring_state = 2; //soft-in
     srv.request.just_override_power = false;
+    ROS_INFO("intake_out");
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in intakeOut");
@@ -327,6 +343,7 @@ bool deployIntake(void) {
 	srv.request.spring_state = 2; //soft-in
     srv.request.up = 0; //down
     srv.request.just_override_power = false;
+    ROS_INFO("intake_deplot");
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in deployIntake");
@@ -341,6 +358,7 @@ bool undeployIntake(void) {
 	srv.request.spring_state = 2; //soft-in
     srv.request.up = true;
     srv.request.just_override_power = false;
+    ROS_INFO("intake up");
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in undeployIntake");
@@ -1035,14 +1053,14 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 			ROS_WARN_STREAM("prof count: " << num_profs);
 			for(int i = 0; i < num_profs; i++)
 			{
-				ROS_INFO_STREAM("start loop");
-				ROS_INFO_STREAM("wait id: " << auto_run_data.wait_ids[i]);
+				//ROS_INFO_STREAM("start loop");
+				//ROS_INFO_STREAM("wait id: " << auto_run_data.wait_ids[i]);
 				if(i <= queued) continue;
-				ROS_INFO_STREAM("running loop still");
+				//ROS_INFO_STREAM("running loop still");
 				if(auto_run_data.wait_ids[i] == -1 || finished[auto_run_data.wait_ids[i]])
 				{
 					
-					ROS_WARN_STREAM("Queued" << queued);
+					//ROS_WARN_STREAM("Queued" << queued);
 					queued = i;
 					if(i!=0)
 					{
