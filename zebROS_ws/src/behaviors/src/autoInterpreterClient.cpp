@@ -578,50 +578,67 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						profiled_modes[mode][layout][start_pos].wait_ids[profile_wait] =  num;
 					}
 					//TODO: params
-					XmlRpc::XmlRpcValue &action_name = action["action"];
+					XmlRpc::XmlRpcValue &action_name = action["actions"];
 						//profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(action_now);
 						if(action_name == "deploy_intake") {
+                            ROS_ERROR("Always intake");
 							profiled_modes[mode][layout][start_pos].actions[num].action = deploy_intake;
 						}
 						else if(action_name == "undeploy_intake") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = undeploy_intake;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "intake_cube") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = intake_cube;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "exchange_cube") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = exchange_cube;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "default_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = default_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "intake_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = intake_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "exchange_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = exchange_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "switch_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = switch_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "low_scale_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = low_scale_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "mid_scale_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = mid_scale_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "high_scale_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = high_scale_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "over_back_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = over_back_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "custom_config") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = custom_config;
+                            ROS_ERROR("other");
 						}
 						else if(action_name == "release_clamp") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = release_clamp;
+                            ROS_ERROR("other");
 						}
+                        else {
+                            ROS_ERROR("LEmurs have returned");
+                        }
 
 					//Exception handling?
 					const double time_now = time;
@@ -872,6 +889,7 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
 }
 
 bool call_action(Action action, const ActionSetpoint &action_setpoint) {
+    ROS_WARN("%d", action);
     switch(action) {
         case deploy_intake:
             deployIntake();

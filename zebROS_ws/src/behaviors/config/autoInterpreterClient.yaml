@@ -115,7 +115,7 @@ auto_params:
      mode_1_layout_2_start_2_wait_for_action_0:
         [{ x: [-6.188999999999999, 16.272, -12.628999999999998, 1.78, -0.11999999999999966, 3.05], y: [24.879999999999995, -60.550000000000004, 38.285000000000004, -0.8349999999999995, 4.944999999999999, 0.445], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]
      mode_1_layout_2_start_2_actions:
-        [{ time: 5.5, actions: "high_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+        [{ time: 1.0, actions: "high_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
          { time: 5.5, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
 
         
