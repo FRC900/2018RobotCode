@@ -568,7 +568,6 @@ void FRCRobotSimInterface::custom_profile_set_talon(bool posMode, double setpoin
 
 void FRCRobotSimInterface::custom_profile_thread(int joint_id)
 {
-	
 	//ros::Duration(3).sleep();	
     //I wonder how inefficient it is to have all of these threads 
     //running at the specified hz just copying to the status
@@ -587,6 +586,12 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
 	
     while (ros::ok())
     {
+		if (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_Follower)
+		{
+			ROS_INFO("Exiting custom_profile_thread since mode == Follower");
+			return;
+		}
+
 		talon_command_[joint_id].getCustomProfilePointsTimesChanged(saved_points, saved_times);	
 
         ros::Rate rate(talon_command_[joint_id].getCustomProfileHz());
