@@ -917,9 +917,6 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
         r.sleep(); 
     }
     
-    if(auto_select == 2) {
-        switchConfig();
-    }
 
     geometry_msgs::Twist vel;
     vel.linear.z = 0;
@@ -932,6 +929,11 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
         const double segment_start_time = ros::Time::now().toSec();
         double curr_time = ros::Time::now().toSec(); //These two vars are the same..........
         while(curr_time < segment_start_time + segments[num].duration) { //HOW DOES THIS LOOP EVER EXIT!!
+            if(curr_time > start_time + 1 && curr_time < start_time + 1 + r.expectedCycleTime().toSec()) {
+                if(auto_select == 2) {
+                    switchConfig();
+                }
+            }
             vel.linear.x = segments[num].x;        
             vel.linear.y = segments[num].y;        
 
