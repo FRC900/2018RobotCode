@@ -1130,10 +1130,6 @@ int main(int argc, char** argv) {
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
 
-	std::vector<bool> generate_for_this;
-	generate_for_this.resize(4);
-	std::vector<bool> mode_buffered;
-	mode_buffered.resize(4);
 
 
 	ros::service::waitForService("/frcrobot/swerve_drive_controller/run_profile", 60);
@@ -1141,6 +1137,10 @@ int main(int argc, char** argv) {
 
     while(ros::ok()) {
         ROS_WARN("running");
+        std::vector<bool> generate_for_this;
+        std::vector<bool> mode_buffered;
+        mode_buffered.resize(4);
+        generate_for_this.resize(4);
         double auto_start_time = DBL_MAX;
         //std::vector<bool> generated_vect = {false, false, false, false};
         std::vector<int> auto_mode_vect = {-1, -1, -1, -1};
