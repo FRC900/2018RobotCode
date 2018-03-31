@@ -161,18 +161,21 @@ class autoAction
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 						//time_out if the action times out
+						if (al_.getState().isDone())
+						{
+							timed_out = timed_out || al_.getResult()->timed_out;
+							finished_lift = true;
+							
+							if( !finished_lift)
+								finish_time = ros::Time::now().toSec();
+							ROS_WARN("lift finished");
+						}
 						if (ai_.getState().isDone())
 						{
 							timed_out = timed_out || ai_.getResult()->timed_out;
 							break;
 						}
-						if (al_.getState().isDone())
-						{
-							timed_out = timed_out || al_.getResult()->timed_out;
-							finished_lift = true;
-							finish_time = ros::Time::now().toSec();
-							ROS_WARN("lift finished");
-						}
+
 					}
 				}
 				while (!aborted && !timed_out && !finished_lift)
@@ -213,6 +216,7 @@ class autoAction
 					}
 					if (!aborted)
 					{
+						ROS_WARN_STREAM("wait for drop etc t: " <<ros::Time::now().toSec() - finish_time );
 						r.sleep();
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
@@ -258,6 +262,7 @@ class autoAction
 				*/
 				if (!aborted && !timed_out && !high_cube_.load(std::memory_order_relaxed))
 				{
+					ROS_INFO("start of pickup cube 3 - true");
 					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5;
 					goal_l.GoToPos = true;
@@ -299,6 +304,7 @@ class autoAction
 				}
 				else if (!aborted && !timed_out)
 				{
+					ROS_INFO("start of pickup cube 4 - true");
 					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5;
 					goal_l.GoToPos = true;

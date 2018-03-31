@@ -655,7 +655,7 @@ class arm_limits
 			{
 				
 				//ROS_WARN("0");	
-				//ROS_WARN("HOOK LIMITED");
+				ROS_WARN("HOOK LIMITED");
 				//up_or_down = cur_up_or_down;
 				if(cmd.x() < hook_depth_ && !enforced_hook_x_limit)
 				{
@@ -900,7 +900,7 @@ class arm_limits
 		void find_nearest_point(point_type &cmd, bool &up_or_down, int check_type, double lift_height = 0)
 		{
 			//ROS_INFO_STREAM("finding nearest point for: " << boost::geometry::wkt(cmd) << " up/down: " << up_or_down << " check type: " << check_type);
-			if(check_type == 0)
+			if(check_type == 0  || check_type == -1)
 			{
 				double min_dist_up  = std::numeric_limits<double>::max();
 				double min_dist_down  = std::numeric_limits<double>::max();
@@ -931,7 +931,7 @@ class arm_limits
 					//ROS_INFO_STREAM("current line: " << boost::geometry::wkt(poly_lines[1][i]) << " dist: " << temp_dist <<" down");
 
 				}	
-				if(fabs(min_dist_down - min_dist_up) < .02)
+				if(fabs(min_dist_down - min_dist_up) < check_type == -1 ? .35 : .02)
 				{
 					closer_up_or_down = up_or_down;
 
