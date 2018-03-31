@@ -525,7 +525,6 @@ void FRCRobotHWInterface::custom_profile_set_talon(bool posMode, double setpoint
 
 void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 {
-
 	//TODO: somehow make this into a hw function and a base function in frc_robot_sim interface so the sim version is synced etc
 	//I wonder how inefficient it is to have all of these threads 
 	//running at the specified hz just copying to the status
