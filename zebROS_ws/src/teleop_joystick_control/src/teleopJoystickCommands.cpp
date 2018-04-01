@@ -1282,12 +1282,7 @@ if(JoystickState->bumperLeftButton == true)
 			swerve_point_generator::FullGenCoefs traj;
 			
 			if (!generateCoefs(least_dist_angle - angle, time_to_run, srvBaseTrajectory)) //generate coefficients for the spline from the endpoints 
-			{	ROS_INFO_STREAM("generate_coefs died in teleopJoystickCommands generateCoefs");
-				if (srvBaseTrajectory.response.end_points.empty())
-					ROS_INFO_STREAM("things are SUPER broken");
-				if (srvBaseTrajectory.response.orient_coefs.empty())
-					ROS_INFO_STREAM("things are even moooooore broken now"); 
-			}
+				ROS_INFO_STREAM("generate_coefs died in teleopJoystickCommands generateCoefs");
 			else {
 			if (!generateTrajectory(srvBaseTrajectory, traj)) //generate a motion profile from the coefs
 				ROS_INFO_STREAM("point_gen died in teleopJoystickCommands generateTrajectory");
