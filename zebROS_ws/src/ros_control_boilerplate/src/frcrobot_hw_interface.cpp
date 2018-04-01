@@ -146,7 +146,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			frc::SmartDashboard::PutBoolean("death_1", auto_state_1_.load(std::memory_order_relaxed));
 			frc::SmartDashboard::PutBoolean("death_2", auto_state_2_.load(std::memory_order_relaxed));
 			frc::SmartDashboard::PutBoolean("death_3", auto_state_3_.load(std::memory_order_relaxed));
-			frc::SmartDashboard::PutBoolean("stop_arm", stop_arm_.load(std::memory_order_relaxed));
 
 			std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
 			if (driveTable && realtime_pub_nt.trylock()) 
@@ -186,6 +185,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				frc::SmartDashboard::PutBoolean("disable_arm_limits_ret", override_arm_limits_.load(std::memory_order_relaxed));
 
 				stop_arm_.store((bool)driveTable->GetBoolean("stop_arm", 0), std::memory_order_relaxed);
+				frc::SmartDashboard::PutBoolean("stop_arm", stop_arm_.load(std::memory_order_relaxed));
 
 				double zero_angle;
 				if(driveTable->GetBoolean("zero_navX", 0) != 0)
