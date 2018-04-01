@@ -303,7 +303,7 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	lift_joint_.setForwardSoftLimitEnable(true);
 	lift_joint_.setReverseSoftLimitEnable(true);
 
-	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.15 + pivot_offset_);
+	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2  + pivot_offset_);
 	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
 	
 	//TODO: something is broke with these soft limits
@@ -416,6 +416,10 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 
 	stop_arm_ = joint_state_iface->getHandle("stop_arm");
 
+    /* NIALL */
+	starting_config_ = joint_state_iface->getHandle("starting_config");
+    /* NIALL */
+
 	service_command_ = controller_nh.advertiseService("cmd_posS", &ElevatorController::cmdPosService, this);
 	service_intake_ = controller_nh.advertiseService("intake", &ElevatorController::intakeService, this);
 	service_clamp_ = controller_nh.advertiseService("clamp", &ElevatorController::clampService, this);
@@ -458,8 +462,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//compOdometry(time, inv_delta_t);
 	const bool end_game_deploy_cmd = end_game_deploy_cmd_.load(std::memory_order_relaxed);
 	const bool end_game_deploy_wings_cmd = end_game_deploy_wings_cmd_.load(std::memory_order_relaxed);
+
+	const double deploy_wing_cmd_out = end_game_deploy_wings_cmd ? 1.0 : -1.0;
 	
-	EndGameDeployWings_.setCommand(end_game_deploy_wings_cmd);
+	EndGameDeployWings_.setCommand(deploy_wing_cmd_out);
 
 	if(end_game_deploy_cmd && !end_game_deploy_t1_)
 	{
@@ -471,8 +477,8 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		
 		intake_command_.writeFromNonRT(climb_intake_cmd); //Not really sure how bad this is
 
-		command_struct_.lin[0] = .1;
-		command_struct_.lin[1] = min_extension_ + cos(asin(.1 / arm_length_))*arm_length_;
+		command_struct_.lin[0] = 0.05;
+		command_struct_.lin[1] = min_extension_ + cos(asin(0.05 / arm_length_))*arm_length_;
 		command_struct_.up_or_down = true;
 		command_struct_.override_pos_limits = true;
 		command_struct_.override_sensor_limits = false;
@@ -486,8 +492,8 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	if(end_game_deploy_cmd && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .65)
 	{
 		//ROS_INFO("part 2");
-		command_struct_.lin[0] = .1;
-		command_struct_.lin[1] = max_extension_ + sin(acos(.1 / arm_length_))*arm_length_;
+		command_struct_.lin[0] = 0.05;
+		command_struct_.lin[1] = max_extension_ + sin(acos(0.05 / arm_length_))*arm_length_;
 		command_struct_.up_or_down = true;
 		command_struct_.override_pos_limits = true;
 		command_struct_.override_sensor_limits = false;
@@ -610,7 +616,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 							//point error
 	{
 		pivot_offset_ += adder;
-		pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 -.15 + pivot_offset_);
+		pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 + pivot_offset_);
 		pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
 		ROS_WARN("Pivot encoder discontinuouity detected and accounted for");
 	
@@ -648,6 +654,24 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		lift_joint_.setPeakOutputForward(1);
 		lift_joint_.setPeakOutputReverse(-1);
 	}
+    /* NIALL */
+    if(starting_config_.getPosition())
+    {
+		
+		command_struct_.lin[0] = 0.05;
+		command_struct_.lin[1] = min_extension_ + sin(acos(0.05 / arm_length_))*arm_length_ + .05;
+		command_struct_.up_or_down = true;
+		command_struct_.override_pos_limits = true;
+		command_struct_.override_sensor_limits = false;
+		command_struct_.put_cube_in_intake = false;
+
+		command_.writeFromNonRT(command_struct_);		
+    }
+    else
+    {
+    
+    }
+    /* NIALL */
 	bool safe_to_move_intake;
 	elevator_controller::ReturnElevatorCmd return_holder;
 	if(!curr_cmd.override_pos_limits)
@@ -677,6 +701,29 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		return_holder.y = curr_cmd.lin[1];
 		return_holder.up_or_down = curr_cmd.up_or_down;
 		safe_to_move_intake = true;
+	
+		
+	//___________________TESTING________________________________\\
+
+		arm_limiting::point_type cmd_point(curr_cmd.lin[0], curr_cmd.lin[1]);
+
+		bool reassignment_holder;
+
+		arm_limiting::point_type return_cmd;
+		bool return_up_or_down;
+		bool bottom_limit = false; //TODO FIX THIS
+		const bool cube_in_clamp = cube_msg.clamp && (clamp_cmd <= 0);
+		bool copy_up_or_down = curr_cmd.up_or_down;
+		arm_limiter_->safe_cmd(cmd_point, copy_up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit, intake_up, in_transition, safe_to_move_intake, cube_in_clamp, intake_open, curr_cmd.put_cube_in_intake);
+
+
+		//potentially do something if reassignment is needed (Like a ROS_WARN?)
+
+
+	//___________________TESTING________________________________\\
+
+
+
 	}
 	return_holder.header.stamp = ros::Time::now();
 	ReturnCmd_.publish(return_holder);
@@ -741,17 +788,18 @@ void ElevatorController::starting(const ros::Time &/*time*/)
 }
 void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorControl &command)
 {
+	Commands command_struct;
 	if(isRunning())
 	{
-		command_struct_.lin[0] = command.x;
-		command_struct_.lin[1] = command.y;
-		command_struct_.up_or_down = command.up_or_down;
-		command_struct_.override_pos_limits = command.override_pos_limits;
-		command_struct_.override_sensor_limits = command.override_sensor_limits;
-		command_struct_.put_cube_in_intake = command.put_cube_in_intake;
+		command_struct.lin[0] = command.x;
+		command_struct.lin[1] = command.y;
+		command_struct.up_or_down = command.up_or_down;
+		command_struct.override_pos_limits = command.override_pos_limits;
+		command_struct.override_sensor_limits = command.override_sensor_limits;
+		command_struct.put_cube_in_intake = command.put_cube_in_intake;
 
-		command_struct_.stamp = ros::Time::now();
-		command_.writeFromNonRT(command_struct_);
+		command_struct.stamp = ros::Time::now();
+		command_.writeFromNonRT(command_struct);
 	}
 	else
 	{
@@ -761,17 +809,18 @@ void ElevatorController::cmdPosCallback(const elevator_controller::ElevatorContr
 
 bool ElevatorController::cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &/*res*/)
 {
+	Commands command_struct;
 	if(isRunning())
 	{
-		command_struct_.lin[0] = command.x;
-		command_struct_.lin[1] = command.y;
-		command_struct_.up_or_down = command.up_or_down;
-		command_struct_.override_pos_limits = command.override_pos_limits;
-		command_struct_.override_sensor_limits = command.override_sensor_limits;
+		command_struct.lin[0] = command.x;
+		command_struct.lin[1] = command.y;
+		command_struct.up_or_down = command.up_or_down;
+		command_struct.override_pos_limits = command.override_pos_limits;
+		command_struct.override_sensor_limits = command.override_sensor_limits;
 
-		command_struct_.put_cube_in_intake = command.put_cube_in_intake;
-		command_struct_.stamp = ros::Time::now();
-		command_.writeFromNonRT(command_struct_);
+		command_struct.put_cube_in_intake = command.put_cube_in_intake;
+		command_struct.stamp = ros::Time::now();
+		command_.writeFromNonRT(command_struct);
 		return true;
 	}
 	else

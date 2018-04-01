@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<launch>
+  <node name="simple_record_node" pkg="rosbag" type="record"
+	  args="record -o /mnt/900_2/ --lz4
+		/frcrobot/match_data
+		/frcrobot/pdp_states
+		/frcrobot/heartbeat_rio
+		/frcrobot/heartbeat_jetson
+		" />
+</launch>

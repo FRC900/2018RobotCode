@@ -5,7 +5,7 @@ static std::atomic<double> pressure_;
 static std::atomic<double> match_time_;
 static std::atomic<bool> fms_connected_;
 static std::atomic<double> weighted_average_current_;
-static int game_mode_ = 1; //0 for auto, one or greater for anything else
+static bool is_auto_ = false; //0 for auto, one or greater for anything else
 static std::atomic<bool> disable_;
 
 int main(int argc, char **argv) {
@@ -67,10 +67,11 @@ int main(int argc, char **argv) {
 		const double this_pressure = pressure_.load(std::memory_order_relaxed);
 		if(fms_connected_.load(std::memory_order_relaxed) && !disable_.load(std::memory_order_relaxed) )
 		{
-			if(game_mode_ != 0 && this_match_time > 30 && (this_pressure < 110 || (run_last_tick && this_pressure < 120)))
+			if(!is_auto_ && this_match_time > 30 /*&& (this_pressure < 110 || (run_last_tick && this_pressure < 120))*/)
 			{
 				//const double sensor_estimated = (this_match_time-30) * (120 - this_pressure) / (150 - this_match_time);
 				//FIX ABOVE SO IT TAKES INTO ACCOUNT REFILLS, and maybe use?
+				/*
 				const double sensor_estimated = 0;
 				double max_estimated = max_match_non_end_use_ * (this_match_time - 30)/(120);
 				if(sensor_estimated > max_estimated)
@@ -89,8 +90,10 @@ int main(int argc, char **argv) {
 					ROS_INFO_STREAM("model val: " << modelVal);
 					if(modelVal > 0)
 					{
+					*/
 						holder_msg.data = 1;
 						run_last_tick = true;
+					/*
 					}
 					else
 					{
@@ -102,7 +105,7 @@ int main(int argc, char **argv) {
 				{
 					holder_msg.data = 0;
 					run_last_tick = false;
-				}
+				}*/
 			}
 			else
 			{
@@ -154,6 +157,7 @@ void matchDataCallback(const ros_control_boilerplate::MatchSpecificData &MatchDa
 {
 	match_time_.store(MatchData.matchTimeRemaining, std::memory_order_relaxed);
 	fms_connected_.store(MatchData.matchTimeRemaining >= 0, std::memory_order_relaxed);
+	is_auto_ = MatchData.isAutonomous;
 }
 
 // consider a boost::circular_buffer

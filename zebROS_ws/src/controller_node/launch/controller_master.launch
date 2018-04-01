@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 
 <launch>
+	<!-- GDB functionality -->
+	<arg name="screen" default="false" />
+	<arg unless="$(arg screen)" name="output" value="log" />
+	<arg     if="$(arg screen)" name="output" value="screen" />
+
   <!--
   Master Node Launcher
   * ZED Wrapper Instance
@@ -27,7 +32,7 @@
   <arg name="sub_rate" default="10" />
   <arg name="pub_rate" default="1" />
 
-  <group ns="$(arg name)">
+  <!-- <group ns="$(arg name)">
     <include file="$(find zed_wrapper)/launch/zed_camera.launch">
       <arg name="zed_name" value="$(arg name)" />
       <arg name="resolution" value="$(arg resolution)" />
@@ -42,7 +47,7 @@
       <arg name="whitebalance" value="$(arg whitebalance)" />
 	  <arg name="publish_tf" value="False" />
     </include>
-</group>
+</group> -->
 
 <!--
   <node name="goal_detection_node" pkg="goal_detection" type="goal_detection_node" respawn="true" output="screen">
@@ -57,15 +62,17 @@
 
   <!--<include file="$(find controller_node)/launch/fuse_odom.launch"/>-->
 
-  <include file="$(find rplidar_ros)/launch/rplidar.launch" />
-  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4180115 -0.3183901 0.2206 3.14159265 0 0 base_link laser" />
+  <!-- <include file="$(find rplidar_ros)/launch/rplidar.launch" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4180115 -0.3183901 0.2206 3.14159265 0 0 base_link laser" /> -->
 
   <!--<include file="$(find controller_node)/launch/gmapping.launch"/>-->
 
   <!--<remap from="/cmd_vel" to="frcrobot/swerve_drive_controller/cmd_vel"/>
   <include file="$(find controller_node)/launch/move_base.launch"/>-->
 
-  <include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)"/>
+<!--	<include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)"/>-->
+
+	<include file="$(find controller_node)/launch/record_simple.launch" if="$(arg record)" />
 
   <machine name="roboRIO" address="10.9.0.2" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
 
@@ -90,23 +97,27 @@
     <rosparam file="$(find behaviors)/config/autoInterpreterServer.yaml" command="load"/>
 
 	<!-- Load hardware interface -->
-	<node machine="roboRIO" name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main" launch-prefix="$(arg launch_prefix)"> </node>
+	<node machine="roboRIO" name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main" launch-prefix="$(arg launch_prefix)" output="$(arg output)"> </node>
 
     <!-- Load controller manager -->
-    <node machine="roboRIO" name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-	   args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller rumble_controller imu_sensor_controller compressor_controller robot_code_ready_controller"/>
+    <node machine="roboRIO" name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="$(arg output)"
+	   args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller rumble_controller imu_sensor_controller compressor_controller robot_code_ready_controller auto_state_controller_0 auto_state_controller_1 auto_state_controller_2 auto_state_controller_3"/>
 
-    <node machine="roboRIO" name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands" >
+    <node machine="roboRIO" name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands" output="$(arg output)">
       <remap from="/frcrobot/cmd_vel" to="/frcrobot/swerve_drive_controller/cmd_vel"/>
     </node>
 
-    <node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" />
-    <node name="autoInterpreterServerLift" pkg="behaviors" type="autoInterpreterServerLift" />
-    <node name="autoInterpreterServerIntake" pkg="behaviors" type="autoInterpreterServerIntake" />
-    <node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" />
-    <node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor"  />
-    <node name="point_gen" pkg="swerve_point_generator" type="point_gen" />
+    <node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="$(arg output)" />
+    <node machine="roboRIO"  name="autoInterpreterServerLift" pkg="behaviors" type="autoInterpreterServerLift" output="$(arg output)"/>
+    <node machine="roboRIO" name="autoInterpreterServerIntake" pkg="behaviors" type="autoInterpreterServerIntake" output="$(arg output)"/>
+    <node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="$(arg output)"/>
+    <node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="$(arg output)"/>
+    <node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="$(arg output)"/>
 
-  </group>
+</group>
+
+<node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat_jetson" output="$(arg output)" />
+
+<node machine="roboRIO" name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat_rio" output="$(arg output)" />
 
 </launch>

@@ -196,6 +196,7 @@ class TalonHWCommand
 			custom_profile_slot_(0),
 			custom_profile_hz_(50.0)
 
+
 		{
 			//This is a bit dirty...
 			//I apologize for my problems spilling out over your nice and clean code, Kevin
@@ -214,6 +215,11 @@ class TalonHWCommand
 			int num_profile_slots = 20;
 			custom_profile_points_.resize(num_profile_slots); //change as needed
 			custom_profile_total_time_.resize(num_profile_slots); 		
+			for(int i = 0; i < num_profile_slots; i++)
+            {
+                custom_profile_points_changed_.push_back(true);
+            }	
+
 		}
 		// This gets the requested setpoint, not the
 		// status actually read from the controller
@@ -1377,8 +1383,13 @@ class TalonHWCommand
 		{
 			return custom_profile_slot_;
 		}
+		// TODO : custom profile points & times need to 
+		// be locked by a mutex of some sort to
+		// make sure reads and writes are atomic
 		void pushCustomProfilePoint(const CustomProfilePoint &point, int slot)
 		{
+			custom_profile_points_changed_[slot] = true;
+
 			custom_profile_points_[slot].push_back(point);
 			if(custom_profile_points_[slot].size() != 0)
 			{
@@ -1391,6 +1402,7 @@ class TalonHWCommand
 		} 
 		void pushCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
+			custom_profile_points_changed_[slot] = true;
 			int prev_size = custom_profile_points_.size();
 			custom_profile_points_[slot].insert(custom_profile_points_[slot].end(), points.begin(), points.end());
 			for(; prev_size <custom_profile_points_.size(); prev_size++)
@@ -1408,6 +1420,7 @@ class TalonHWCommand
 		void overwriteCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
 			
+			custom_profile_points_changed_[slot] = true;
 			custom_profile_points_[slot] = points;
 			custom_profile_total_time_[slot].resize(points.size());
 			
@@ -1430,9 +1443,32 @@ class TalonHWCommand
 
 			return custom_profile_points_[slot];
 		}
+		std::vector<bool> getCustomProfilePointsTimesChanged(std::vector<std::vector<CustomProfilePoint>> &ret_points, std::vector<std::vector<double>> &ret_times)
+		{
+			for(size_t i = 0; i < custom_profile_points_changed_.size(); i++)
+			{	
+				if(custom_profile_points_changed_[i])
+				{
+					ret_points[i] = custom_profile_points_[i]; 
+					ret_times[i]  = custom_profile_total_time_[i];
+				}
+			}	
+			return custom_profile_points_changed_;
+
+		}
 		std::vector<double> getCustomProfileTime(int slot)  /*const*/ //TODO, can be const?
 		{
 			return custom_profile_total_time_[slot];
+		}
+		double getCustomProfileEndTime(int slot)
+		{
+			return custom_profile_total_time_[slot].back();
+		}
+		// TODO : TimeCount and ProfileCount should always
+		// be the same?
+		int getCustomProfileTimeCount(int slot)
+		{
+			return custom_profile_points_[slot].size();
 		}
 		int getCustomProfileCount(int slot)  /*const*/ //TODO, can be const?
 		{
@@ -1552,6 +1588,9 @@ class TalonHWCommand
 		double custom_profile_hz_;
 		std::vector<std::vector<CustomProfilePoint>> custom_profile_points_;
 		std::vector<std::vector<double>> custom_profile_total_time_;
+		
+		std::vector<bool> custom_profile_points_changed_;
+
 		//TODO: error catching on slot
 
 

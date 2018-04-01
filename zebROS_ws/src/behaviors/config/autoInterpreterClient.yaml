@@ -1,9 +1,426 @@
+#RLR - 0
+#LRL - 1
+#RRR - 2
+#LLL - 3
+
+#left - 0
+#middle - 1
+#right - 2
+
+#TODO: check below
+#0.4445 to edge
+#0.568325 to front
+
+#Modes we need - just switch modes, multi scale + 1 switch, pure multi scale
+
 auto_params:
      wait_for_match_data: 2
      max_num_mode: 10
      max_num_start: 2
      max_num_wait_for_action: 2
      num_profile_slots: 20
+
+     #mode 0: profiled place in switch (start everywhere)
+     #mode 1: multi scale 1 switch (start on sides)
+     #mode 2: pure multi scale (start on sides)
+
+
+
+     #Note, these start from the middle ones are just flipped
+     #    mode_0_layout_0_start_1_wait_for_action_0:
+     #       [{ x: [-9.509099999999998, 23.767899999999997, -15.908799999999998, 0.15999999999999998, -0.04970000000000005, 0.13970000000000005], y: [2.4217200000000005, -6.13026, 4.398120000000002, -0.6000000000000001, 2.3285, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }]
+     # mode_0_layout_0_start_0_actions:
+     #      [{ time: 0.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
+     #        { time: 5.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false}]
+                
+
+     #mode_0_layout_1_start_1_wait_for_action_0:
+     #        [{ x: [9.509099999999998, -23.767899999999997, 15.908799999999998, -0.15999999999999998, 0.04970000000000005, -0.13970000000000005], y: [2.4217200000000005, -6.13026, 4.398120000000002, -0.6000000000000001, 2.3285, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }]
+     # mode_0_layout_1_start_0_actions:
+     #       [{ time: 0.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
+     #       { time: 5.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false}]
+
+     
+     #mode_0_layout_2_start_1_wait_for_action_0:
+     #       [{ x: [-9.509099999999998, 23.767899999999997, -15.908799999999998, 0.15999999999999998, -0.04970000000000005, 0.13970000000000005], y: [2.4217200000000005, -6.13026, 4.398120000000002, -0.6000000000000001, 2.3285, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }]
+     #mode_0_layout_2_start_0_actions:
+     #       [{ time: 0.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
+     #        { time: 5.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false}]
+
+     
+     #mode_0_layout_3_start_1_wait_for_action_0:
+     #        [{ x: [9.509099999999998, -23.767899999999997, 15.908799999999998, -0.15999999999999998, 0.04970000000000005, -0.13970000000000005], y: [2.4217200000000005, -6.13026, 4.398120000000002, -0.6000000000000001, 2.3285, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }]
+     #mode_0_layout_3_start_0_actions:
+     #      [{ time: 0.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
+     #       { time: 5.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false}]
+
+                     ###### 
+     mode_0_layout_0_start_1_wait_for_action_0:
+            [{ x: [5.4350000000000005, -13.969999999999999, 9.224999999999998, 0.42, 0.10999999999999999, 0.18], y: [0.7512200000000018, -2.505760000000002, 2.6791200000000046, -0.8149999999999998, 2.4299999999999997, 0.45], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }]
+   
+     mode_0_layout_0_start_1_actions:
+            [{ time: 1.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 5.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+     mode_0_layout_1_start_1_wait_for_action_0:
+            [{ x: [-10.18, 25.589999999999996, -17.395, 0.39499999999999996, 0.0050000000000000044, 0.185], y: [-0.11128000000000071, 0.6717399999999998, -0.6983800000000002, -0.7925, 3.46, 0.46], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }]
+     mode_0_layout_1_start_1_actions:
+            [{ time: 1.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 5.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+     mode_0_layout_2_start_1_wait_for_action_0:
+            [{ x: [5.4350000000000005, -13.969999999999999, 9.224999999999998, 0.42, 0.10999999999999999, 0.18], y: [0.7512200000000018, -2.505760000000002, 2.6791200000000046, -0.8149999999999998, 2.4299999999999997, 0.45], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }]
+     mode_0_layout_2_start_1_actions:
+            [{ time: 1.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 5.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+     mode_0_layout_3_start_1_wait_for_action_0:
+            [{ x: [-10.18, 25.589999999999996, -17.395, 0.39499999999999996, 0.0050000000000000044, 0.185], y: [-0.11128000000000071, 0.6717399999999998, -0.6983800000000002, -0.7925, 3.46, 0.46], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }]
+     mode_0_layout_3_start_1_actions:
+            [{ time: 1.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 5.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+
+
+     #Profiled Scale
+     mode_1_layout_0_start_0_wait_for_action_0:
+       [{ x: [-6.188999999999999, 16.272, -12.628999999999998, 1.78, -0.11999999999999966, 3.05], y: [24.879999999999995, -60.550000000000004, 38.285000000000004, -0.8349999999999995, 4.944999999999999, 0.445], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }] 
+     mode_1_layout_0_start_0_actions:
+        [{ time: 1.0, actions: "high_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+         { time: 3.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+     mode_1_layout_0_start_2_wait_for_action_0:
+        [{ x: [3.5549999999999997, -11.259999999999994, 10.985, -1.44, 0.009999999999999787, -3.05], y: [-3.0359999999999943, 12.632999999999996, -14.01700000000001, -3.41, 13.535, 0.445], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+        { x: [4.628999999999996, -34.221999999999994, 97.52099999999996, -134.01599999999988, 92.03199999999987, -27.14399999999995], y: [0.10399999999999565, -0.8829999999999671, 2.867999999999906, -4.368999999999872, 3.1619999999999155, 5.268000000000022], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+        { x: [-1.9690000000000003, 25.065999999999995, -126.20899999999997, 313.29200000000014, -381.8160000000006, 183.68800000000056], y: [2.058000000000001, -26.29300000000002, 132.45600000000005, -328.37699999999995, 400.93799999999965, -186.92399999999952], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]
+     mode_1_layout_0_start_2_actions:
+        [{ time: 1.0, actions: "high_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+         { time: 5.1, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+     mode_1_layout_3_start_0_wait_for_action_0:
+       [{ x: [-6.188999999999999, 16.272, -12.628999999999998, 1.78, -0.11999999999999966, 3.05], y: [24.879999999999995, -60.550000000000004, 38.285000000000004, -0.8349999999999995, 4.944999999999999, 0.445], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }] 
+     mode_1_layout_3_start_0_actions:
+        [{ time: 1.0, actions: "high_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+         { time: 3.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+     mode_1_layout_3_start_2_wait_for_action_0:
+        [{ x: [3.5549999999999997, -11.259999999999994, 10.985, -1.44, 0.009999999999999787, -3.05], y: [-3.0359999999999943, 12.632999999999996, -14.01700000000001, -3.41, 13.535, 0.445], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+        { x: [4.628999999999996, -34.221999999999994, 97.52099999999996, -134.01599999999988, 92.03199999999987, -27.14399999999995], y: [0.10399999999999565, -0.8829999999999671, 2.867999999999906, -4.368999999999872, 3.1619999999999155, 5.268000000000022], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+        { x: [-1.9690000000000003, 25.065999999999995, -126.20899999999997, 313.29200000000014, -381.8160000000006, 183.68800000000056], y: [2.058000000000001, -26.29300000000002, 132.45600000000005, -328.37699999999995, 400.93799999999965, -186.92399999999952], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]
+     mode_1_layout_3_start_2_actions:
+        [{ time: 1.0, actions: "high_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+         { time: 5.1, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+     mode_1_layout_1_start_0_wait_for_action_0:
+        [{ x: [-3.5549999999999997, 11.259999999999994, -10.985, 1.44, -0.009999999999999787, 3.05], y: [-3.0359999999999943, 12.632999999999996, -14.01700000000001, -3.41, 13.535, 0.445], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+        { x: [-4.628999999999996, 34.221999999999994, -97.52099999999996, 134.01599999999988, -92.03199999999987, 27.14399999999995], y: [0.10399999999999565, -0.8829999999999671, 2.867999999999906, -4.368999999999872, 3.1619999999999155, 5.268000000000022], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+        { x: [1.9690000000000003, -25.065999999999995, 126.20899999999997, -313.29200000000014, 381.8160000000006, -183.68800000000056], y: [2.058000000000001, -26.29300000000002, 132.45600000000005, -328.37699999999995, 400.93799999999965, -186.92399999999952], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]
+     mode_1_layout_1_start_0_actions:
+        [{ time: 1.0, actions: "high_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+         { time: 5.1, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+        
+     mode_1_layout_1_start_2_wait_for_action_0:
+        [{ x: [6.188999999999999, -16.272, 12.628999999999998, -1.78, 0.11999999999999966, -3.05], y: [24.879999999999995, -60.550000000000004, 38.285000000000004, -0.8349999999999995, 4.944999999999999, 0.445], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]
+     mode_1_layout_1_start_2_actions:
+        [{ time: 1.0, actions: "high_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+         { time: 3.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+     mode_1_layout_2_start_0_wait_for_action_0:
+        [{ x: [-3.5549999999999997, 11.259999999999994, -10.985, 1.44, -0.009999999999999787, 3.05], y: [-3.0359999999999943, 12.632999999999996, -14.01700000000001, -3.41, 13.535, 0.445], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+        { x: [-4.628999999999996, 34.221999999999994, -97.52099999999996, 134.01599999999988, -92.03199999999987, 27.14399999999995], y: [0.10399999999999565, -0.8829999999999671, 2.867999999999906, -4.368999999999872, 3.1619999999999155, 5.268000000000022], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+        { x: [1.9690000000000003, -25.065999999999995, 126.20899999999997, -313.29200000000014, 381.8160000000006, -183.68800000000056], y: [2.058000000000001, -26.29300000000002, 132.45600000000005, -328.37699999999995, 400.93799999999965, -186.92399999999952], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]
+     mode_1_layout_2_start_0_actions:
+        [{ time: 1.0, actions: "high_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+         { time: 5.1, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+     mode_1_layout_2_start_2_wait_for_action_0:
+        [{ x: [6.188999999999999, -16.272, 12.628999999999998, -1.78, 0.11999999999999966, -3.05], y: [24.879999999999995, -60.550000000000004, 38.285000000000004, -0.8349999999999995, 4.944999999999999, 0.445], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]
+     mode_1_layout_2_start_2_actions:
+        [{ time: 1.0, actions: "high_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+         { time: 3.0, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}, { time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+        
+#End Profiled Scale
+
+
+
+
+
+
+
+    #4 cube new
+
+     mode_7_layout_2_start_2_wait_for_action_0:
+        [{ x: [-5.5811720000000005, 14.741068000000002, -11.619896, 1.86, -0.2287239999999997, 2.9987239999999997], y: [29.252639999999992, -71.81361999999999, 46.00843999999999, -0.1499999999999997, 3.4484999999999997, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
+         { x: [0.47950000000000026, -0.8905000000000003, 0.24750000000000005, -0.21350000000000002, -0.0129999999999999, 2.17], y: [-0.3048799999999954, 0.4222199999999887, 0.06766000000000716, 0.5300000000000002, -1.67746, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+         { x: [-7.423999999999999, 54.358999999999995, -153.54600000000002, 208.705, -137.95, 37.635999999999996], y: [1.3724999999999952, -10.194999999999967, 28.7054999999999, -38.45399999999985, 24.45899999999989, 0.4670000000000343], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+         { x: [0.47950000000000026, -0.8905000000000003, 0.24750000000000005, -0.21350000000000002, -0.0129999999999999, 2.17], y: [-0.3048799999999954, 0.4222199999999887, 0.06766000000000716, 0.5300000000000002, -1.67746, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+         { x: [-7.423999999999999, 54.358999999999995, -153.54600000000002, 208.705, -137.95, 37.635999999999996], y: [1.3724999999999952, -10.194999999999967, 28.7054999999999, -38.45399999999985, 24.45899999999989, 0.4670000000000343], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+         { x: [-1.6449999999999996, 3.7749999999999986, -1.9949999999999994, -0.4950000000000001, -0.009999999999999787, 2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+         { x: [-1.6449999999999996, 3.7749999999999986, -1.9949999999999994, -0.4950000000000001, -0.009999999999999787, 2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+         { x: [-5.264999999999999, 12.884999999999998, -8.085, -0.3450000000000001, -0.30999999999999983, 2.17], y: [12.422619999999997, -30.032779999999992, 18.775159999999993, 1.7150000000000003, -4.76746, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+         { x: [-5.264999999999999, 12.884999999999998, -8.085, -0.3450000000000001, -0.30999999999999983, 2.17], y: [12.422619999999997, -30.032779999999992, 18.775159999999993, 1.7150000000000003, -4.76746, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }] 
+     mode_7_layout_2_start_2_actions:
+                [{ time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+                 { time: 7.5, actions: "exchange_cube", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+                 { time: 9.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+                 { time: 11.5, actions: "exchange_cube", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+                 { time: 13.0, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+     mode_7_layout_2_start_2_wait_for_action_0_spline_group:
+                [1, 3, 5, 6, 7, 8]
+     mode_7_layout_2_start_2_wait_for_action_0_flips:
+                [false, false, true, false, true, false]
+
+
+     #new LRL scale, scale, switch
+
+     mode_7_layout_2_start_2_wait_for_action_0:
+        [{ x: [-5.5811720000000005, 14.741068000000002, -11.619896, 1.86, -0.2287239999999997, 2.9987239999999997], y: [29.252639999999992, -71.81361999999999, 46.00843999999999, -0.1499999999999997, 3.4484999999999997, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
+        { x: [-1.6449999999999996, 3.7749999999999986, -1.9949999999999994, -0.4950000000000001, -0.009999999999999787, 2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
+        { x: [-1.6449999999999996, 3.7749999999999986, -1.9949999999999994, -0.4950000000000001, -0.009999999999999787, 2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
+         { x: [1.1520000000000006, -2.5410000000000013, 1.3040000000000012, -0.20500000000000007, -0.029999999999999805, 2.17], y: [-0.8548800000000032, 1.9572200000000066, -1.0873400000000046, 0.28500000000000014, -1.1874599999999997, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+        { x: [-15.515, 115.35200000000002, -330.47900000000004, 454.456, -302.24, 80.27600000000001], y: [4.522500000000003, -32.33000000000001, 88.4175, -116.27999999999994, 73.68999999999994, -11.58999999999999], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }] 
+     mode_7_layout_2_start_2_actions:
+                [{ time: 1.0, actions: "intake_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+                 { time: 3.5, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+        
+     mode_7_layout_2_start_2_wait_for_action_0_spline_group:
+                [1, 2, 3, 5]
+     mode_7_layout_2_start_2_wait_for_action_0_flips:
+                [false, false, true, false]
+     #new RLR switch, scale, scale
+
+     mode_7_layout_2_start_2_wait_for_action_0:
+         [{ x: [1.9688280000000016, -3.5289320000000046, -0.3698959999999971, 1.86, -0.2287239999999997, 2.9987239999999997], y: [17.7855, -42.8495, 26.444, -0.1499999999999997, 3.4484999999999997, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+         { x: [5.149999999999999, -39.835, 118.52000000000001, -168.78500000000005, 113.71000000000006, -26.060000000000016], y: [3.135000000000001, -24.82500000000001, 75.10500000000002, -107.77500000000002, 73.87000000000003, -14.26000000000002], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+         { x: [-3.2009999999999987, 39.242999999999995, -189.22500000000002, 447.89300000000014, -522.4780000000001, 243.54799999999977], y: [1.0550000000000024, -13.905000000000031, 73.04500000000014, -191.0950000000003, 248.83000000000027, -122.58000000000004], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+          { x: [0.9540000000000006, -17.951999999999998, 133.8019999999999, -492.6699999999994, 893.4559999999979, -637.7859999999973], y: [-2.5678600000000014, 43.52378000000006, -292.9285200000003, 979.6847599999999, -1629.6134599999968, 1085.6413799999946], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
+          { x: [1.6449999999999996, -3.7749999999999986, 1.9949999999999994, 0.4950000000000001, 0.009999999999999787, -2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+          { x: [1.6449999999999996, -3.7749999999999986, 1.9949999999999994, 0.4950000000000001, 0.009999999999999787, -2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }] 
+     mode_7_layout_2_start_2_actions:
+                [{ time: 1.0, actions: "mid_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+                 { time: 3.5, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+     mode_7_layout_2_start_2_wait_for_action_0_spline_group:
+                [4, 5, 6]
+     mode_7_layout_2_start_2_wait_for_action_0_flips:
+                [false, false, true]
+
+     #new LLL scale, switch, switch
+
+     mode_7_layout_3_start_2_wait_for_action_0:
+            [{ x: [6.683828, -13.37893200000001, 5.145104, -0.1299999999999999, -0.11872399999999983, 2.9987239999999997], y: [22.865500000000004, -55.439499999999995, 34.394, 0.6899999999999995, 3.0685000000000002, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+            { x: [2.012500000000003, -15.572499999999991, 46.03250000000003, -62.91750000000016, 34.92500000000018, -3.2800000000000615], y: [0.34449999999999825, -2.0784999999999876, 4.900499999999965, -5.785499999999953, 3.6609999999999676, 5.108000000000009], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+            { x: [0.995000000000001, -13.037500000000016, 67.16000000000005, -169.12250000000003, 206.4949999999999, -98.61999999999989], y: [2.700639999999997, -33.12401999999996, 159.77449999999982, -378.42821999999967, 440.70931999999993, -196.0779200000003], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
+           { x: [1.6449999999999996, -3.7749999999999986, 1.9949999999999994, 0.4950000000000001, 0.009999999999999787, -2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
+           { x: [1.6449999999999996, -3.7749999999999986, 1.9949999999999994, 0.4950000000000001, 0.009999999999999787, -2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
+           { x: [-5.264999999999999, 12.884999999999998, -8.085, -0.3450000000000001, -0.30999999999999983, 2.17], y: [12.422619999999997, -30.032779999999992, 18.775159999999993, 1.7150000000000003, -4.76746, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]
+     mode_7_layout_3_start_2_actions:
+                [{ time: 1.0, actions:  "intake_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+                 { time: 3.5, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
+     mode_7_layout_3_start_2_wait_for_action_0_spline_group:
+                [3, 4, 5, 6]
+     mode_7_layout_3_start_2_wait_for_action_0_flips:
+                [false, false, true, false]
+
+#exchangy bit
+     mode_6_layout_1_start_1_wait_for_action_0:
+             [{ x: [-9.509099999999998, 23.767899999999997, -15.908799999999998, 0.15999999999999998, -0.04970000000000005, 0.13970000000000005], y: [2.4217200000000005, -6.13026, 4.398120000000002, -0.6000000000000001, 2.3285, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
+             { x: [-2.409, 3.9129999999999985, -0.7409999999999997, 0.06300000000000006, 0.11399999999999988, -1.4], y: [-7.705240000000002, 19.304560000000006, -12.458820000000003, 0.35649999999999993, -1.53258, 2.98958], orient: [-18.843733642, 47.1064309261, -31.3984809261, -0.00580635796197, 0.0, 0.0], time: 4.0 },
+             { x: [1.3005000000000004, -9.900500000000001, 30.292500000000004, -47.25150000000001, 38.349000000000004, -13.25], y: [-0.6769999999999996, 5.337999999999994, -16.94799999999995, 27.340999999999887, -21.308999999999898, 7.208999999999968], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }, 
+             { x: [-6.057499999999999, 15.443, -10.879999999999999, 0.58, -0.01, 0.01], y: [9.194500000000001, -22.056000000000008, 13.125999999999998, 1.99, -3.9250000000000003, 2.115], orient: [18.843733642, -47.1064309261, 31.3984809261, 0.00580635796197, 0.0, -3.14159], time: 4.0 }, 
+             { x: [-2.259500000000001, 5.365, -3.559000000000001, 0.9235, -0.10550000000000004, -0.9145], y: [3.570499999999999, -9.3765, 6.024000000000001, 0.8919999999999999, 1.1315, 0.4445], orient: [18.843733642, -47.1064309261, 31.3984809261, 0.00580635796197, 0.0, -3.14159], time: 4.0 }, 
+             { x: [-2.259500000000001, 5.365, -3.559000000000001, 0.9235, -0.10550000000000004, -0.9145], y: [3.570499999999999, -9.3765, 6.024000000000001, 0.8919999999999999, 1.1315, 0.4445], orient: [-18.843733642, 47.1064309261, -31.3984809261, -0.00580635796197, 0.0, 0.0], time: 4.0 }]
+     mode_6_layout_1_start_1_actions:
+                [{ time: 1.0, actions: "intake_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+                 { time: 3.5, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+     mode_6_layout_1_start_1_wait_for_action_0_spline_group:
+                [1, 3, 4, 5, 6]
+     mode_6_layout_1_start_1_wait_for_action_0_flips:
+                [false, false, false, false, true]
+
+
+
+     #Drive in large black square (test modes start with 15)
+     mode_15_layout_0_start_0_wait_for_action_0:
+                [{ x: [0.08382799999999913, -0.21393199999999757, 0.14510399999999812, 0.004999999999999893, -0.00872399999999951, 2.9987239999999997], y: [-0.34518749999999976, 1.8354374999999976, -2.6752499999999984, 0.17499999999999982, 3.5299375000000004, 0.5000625], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+                   { x: [0.5275000000000016, -1.9775000000000027, 2.142500000000002, 0.12749999999999995, -2.4699999999999998, 3.01], y: [0.1200000000000001, -0.30000000000000027, 0.20000000000000018, 0.0, -0.020000000000000018, 3.02], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+                   { x: [-0.09499999999999931, 0.22999999999999843, -0.14499999999999913, 0.0, 0.010000000000000009, 1.36], y: [0.4148125000000036, -0.059562500000005514, -1.3952499999999972, 0.07999999999999985, 3.4799375, 0.5000625], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
+                   { x: [0.6800000000000033, -2.265000000000004, 2.2500000000000036, 0.10499999999999998, -2.42, 3.01], y: [0.06537499999999985, -0.15593749999999962, 0.09562499999999974, 0.0050000000000000044, -0.010062499999999974, 0.5000625], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]     
+     mode_15_layout_0_start_0_actions:
+                [{ time: 1.0, actions: "intake_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false , wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+                 { time: 3.5, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+     mode_15_layout_0_start_0_wait_for_action_0_spline_group:
+                [1, 2, 3, 4]
+     mode_15_layout_0_start_0_wait_for_action_0_waits:
+                [10.0, 3.0, 3.0, 3.0]
+
+
+             
+cmd_vel_params:
+    num_cmd_vel_modes: 5
+    max_num_mode: 4
+
+    #do nothing
+    mode_0_layout_0_2_start_0:
+            [{x: 0.0, y: 0.0, duration: 0.0}]
+    mode_0_layout_0_2_start_1:
+            [{x: 0.0, y: 0.0, duration: 0.0}]
+    mode_0_layout_0_2_start_2:
+            [{x: 0.0, y: 0.0, duration: 0.0}]
+    mode_0_layout_1_3_start_0:
+            [{x: 0.0, y: 0.0, duration: 0.0}]
+    mode_0_layout_1_3_start_1:
+            [{x: 0.0, y: 0.0, duration: 0.0}]
+    mode_0_layout_1_3_start_2:
+            [{x: 0.0, y: 0.0, duration: 0.0}]
+
+    #Forward Cross Line
+    mode_1_layout_0_2_start_0:
+            [{x: 1.05, y: 0.1, duration: 4.0}]
+    mode_1_layout_0_2_start_1:
+            [{x: 0.875, y: 0.5, duration: 3.5}]
+    mode_1_layout_0_2_start_2:
+            [{x: 1.05, y: -0.1, duration: 4.0}]
+    mode_1_layout_1_3_start_0:
+            [{x: 1.05, y: 0.1, duration: 4.0}]
+    mode_1_layout_1_3_start_1:
+            [{x: 0.875, y: -0.3, duration: 3.5}]
+    mode_1_layout_1_3_start_2:
+            [{x: 1.05, y: -0.1, duration: 4.0}]
+
+    #Forward Switch
+    mode_2_layout_0_2_start_0:
+            [{x: 1.05, y: 0.1, duration: 6.0}]
+    mode_2_layout_0_2_start_1:
+            [{x: -0.0, y: -0.75, duration: 1.233}, 
+             {x: 0.5, y: 0.0, duration: 0.4},
+             {x: .75, y: 0.0, duration: 4.0}]
+    mode_2_layout_0_2_start_2:
+            [{x: 1.2, y: 0.53, duration: 2.58}]
+    mode_2_layout_1_3_start_0:
+            [{x: 1.2, y: -0.53, duration: 3.0}]
+    mode_2_layout_1_3_start_1:
+            [{x: 0.75, y: 0.0, duration: 0.8}, 
+             {x:  0.0, y: 0.75, duration: 2.367},
+             {x: 0.5, y: 0.0, duration: 0.4},
+             {x: .75, y: 0.0, duration: 4.0}]
+    mode_3_layout_1_3_start_2:
+            [{x: 1.05, y: -0.1, duration: 6.0}]
+
+    #Forward Switch
+    #mode_2_layout_0_2_start_0:
+    #        [{x: 1.05, y: -1.5, duration: 3.0}]
+    #mode_2_layout_0_2_start_1:
+   #         [{x: 1.05, y: -0.45, duration: 3.0}]
+   # mode_2_layout_0_2_start_2:
+   #         [{x: 1.2, y: 0.53, duration: 2.58}]
+   # mode_2_layout_1_3_start_0:
+   #         [{x: 1.2, y: -0.53, duration: 2.58}]
+   # mode_2_layout_1_3_start_1:
+   #         [{x: 1.125, y: 0.675, duration: 2.76}]
+   # mode_2_layout_1_3_start_2:
+   #         [{x: 1.05, y: -1.5, duration: 3.0}]
+
+    #Backwards Switch (Not Used)
+    mode_3_layout_0_2_start_0:
+            [{x: -1.05, y: -0.1, duration: 6.0}]
+    mode_3_layout_0_2_start_1:
+            [{x: 0.0, y: 0.75, duration: 1.533}, 
+             {x: -0.5, y: 0.0, duration: 0.4},
+             {x: -1.5, y: 0.0, duration: 2.0}]
+    mode_3_layout_0_2_start_2:
+            [{x: -1.2, y: -0.53, duration: 2.58}]
+    mode_3_layout_1_3_start_0:
+            [{x: -1.2, y: 0.53, duration: 3.0}]
+    mode_3_layout_1_3_start_1:
+            [{x: -0.75, y: 0.0, duration: 0.8}, 
+             {x:  0.0, y: -0.75, duration: 2.067},
+             {x: -0.5, y: 0.0, duration: 0.4},
+             {x: -1.5, y: 0.0, duration: 2.0}]
+    mode_3_layout_1_3_start_2:
+            [{x: -1.05, y: 0.1, duration: 6.0}]
+
+    #Backwards Cross Line (Not Used)
+    mode_4_layout_0_2_start_0:
+            [{x: -1.05, y: -0.1, duration: 4.0}]
+    mode_4_layout_0_2_start_1:
+            [{x: -0.875, y: -0.5, duration: 3.5}]
+    mode_4_layout_0_2_start_2:
+            [{x: -1.05, y: 0.1, duration: 4.0}]
+    mode_4_layout_1_3_start_0:
+            [{x: -1.05, y: -0.1, duration: 4.0}]
+    mode_4_layout_1_3_start_1:
+            [{x: -0.875, y: 0.3, duration: 3.5}]
+    mode_4_layout_1_3_start_2:
+            [{x: -1.05, y: 0.1, duration: 4.0}]
+
+#above is for s:r ll
+#####################################################
+
+        
+  #switch-scale-scale-scale
+  #mode_1_layout_1_2_pos_1_times: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+  #mode_1_layout_1_2_pos_2_times:  
+  #mode_1_layout_3_4_pos_1_times:  
+  #mode_1_layout_3_4_pos_2_times:  
+  #
+  #longway scale-switch-scale
+  #mode_2_layout_1_2_pos_1_times: DON'T EXIST
+  #mode_2_layout_1_2_pos_2_times: DON'T EXIST
+  #mode_2_layout_3_4_pos_1_times:
+  #mode_2_layout_3_4_pos_2_times:
+  #
+  ##shortway scale-switch-scale
+  #mode_3_layout_1_2_pos_1_times:  
+  #mode_3_layout_1_2_pos_2_times:  
+  #mode_3_layout_3_4_pos_1_times:  
+  #mode_3_layout_3_4_pos_2_times:  
+  #0 0 0
+  #1 0 0
+  #0 1 0
+  #1 1 0
+  ##longway scale-scale-scale
+  #mode_4_layout_1_2_pos_1_times:  
+  #mode_4_layout_1_2_pos_2_times:  
+  #mode_4_layout_3_4_pos_1_times:  
+  #mode_4_layout_3_4_pos_2_times:  
+  #
+  ##basic switch
+  #mode_5_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
+  #mode_5_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
+  #mode_5_layout_3_4_pos_1_times:  
+  #mode_5_layout_3_4_pos_2_times:  
+  #
+  ##longway switch
+  #mode_5_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
+  #mode_5_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
+  #mode_5_layout_3_4_pos_1_times:  
+  #mode_5_layout_3_4_pos_2_times:  
+  #
+  ##basic scale
+  #mode_4_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
+  #mode_4_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
+  #mode_4_layout_3_4_pos_1_times:  
+  #mode_4_layout_3_4_pos_2_times:  
+  #
+  ##longway scale
+  #mode_4_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
+  #mode_4_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
+  #mode_4_layout_3_4_pos_1_times:  
+  #mode_4_layout_3_4_pos_2_times:  
+  #
+  ##cross baseline
+  #mode_4_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
+  #mode_4_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
+  #mode_4_layout_3_4_pos_1_times:  
+  #mode_4_layout_3_4_pos_2_times: 
+
+
+#TODO: lkely garbage
+
+
 #     mode_0_layout_0_start_0:
 #                #Test Profile
 #                [{ x: [-7.669172, 18.985068, -12.473896, 0.208, -0.048724, 2.998724], y: [6.6748125, -12.3895624, 3.35475, 0.2, 4.0599375, 0.5000625], orient: [5.46964485452, -13.2608268541, 8.47024536045, -0.482093663912, 1.30303030303, 0.0], time: 4.0 },
@@ -86,20 +503,8 @@ auto_params:
   #   mode_2_layout_3_start_2_spline_group:
   #              [1, 3, 4]
 #
-     #Drive in large black square
-     mode_5_layout_3_start_2_wait_for_action_0:
-                [{ x: [0.08382799999999913, -0.21393199999999757, 0.14510399999999812, 0.004999999999999893, -0.00872399999999951, 2.9987239999999997], y: [-0.34518749999999976, 1.8354374999999976, -2.6752499999999984, 0.17499999999999982, 3.5299375000000004, 0.5000625], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-                   { x: [0.5275000000000016, -1.9775000000000027, 2.142500000000002, 0.12749999999999995, -2.4699999999999998, 3.01], y: [0.1200000000000001, -0.30000000000000027, 0.20000000000000018, 0.0, -0.020000000000000018, 3.02], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-                   { x: [-0.09499999999999931, 0.22999999999999843, -0.14499999999999913, 0.0, 0.010000000000000009, 1.36], y: [0.4148125000000036, -0.059562500000005514, -1.3952499999999972, 0.07999999999999985, 3.4799375, 0.5000625], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-                   { x: [0.6800000000000033, -2.265000000000004, 2.2500000000000036, 0.10499999999999998, -2.42, 3.01], y: [0.06537499999999985, -0.15593749999999962, 0.09562499999999974, 0.0050000000000000044, -0.010062499999999974, 0.5000625], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]     
-     mode_5_layout_3_start_2_actions:
-                [{ time: 1.0, actions: "intake_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false },
-                 { time: 3.5, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false}]
-     mode_5_layout_3_start_2_wait_for_action_0_spline_group:
-                [1, 2, 3, 4]
-     mode_5_layout_3_start_2_wait_for_action_0_waits:
-                [10.0, 3.0, 3.0, 3.0]
-     
+
+
 #     mode_4_layout_3_start_2:
 #                [{ x: [-5.5811720000000005, 14.741068000000002, -11.619896, 1.86, -0.2287239999999997, 2.9987239999999997], y: [29.252639999999992, -71.81361999999999, 46.00843999999999, -0.1499999999999997, 3.4484999999999997, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
  #                { x: [0.47950000000000026, -0.8905000000000003, 0.24750000000000005, -0.21350000000000002, -0.0129999999999999, 2.17], y: [-0.3048799999999954, 0.4222199999999887, 0.06766000000000716, 0.5300000000000002, -1.67746, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
@@ -121,225 +526,10 @@ auto_params:
     #            [false, false, true, false, true, false]
     
 
-     #4 cube new
-
-     mode_7_layout_0_start_2_wait_for_action_0:
-        [{ x: [-5.5811720000000005, 14.741068000000002, -11.619896, 1.86, -0.2287239999999997, 2.9987239999999997], y: [29.252639999999992, -71.81361999999999, 46.00843999999999, -0.1499999999999997, 3.4484999999999997, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
-         { x: [0.47950000000000026, -0.8905000000000003, 0.24750000000000005, -0.21350000000000002, -0.0129999999999999, 2.17], y: [-0.3048799999999954, 0.4222199999999887, 0.06766000000000716, 0.5300000000000002, -1.67746, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-         { x: [-7.423999999999999, 54.358999999999995, -153.54600000000002, 208.705, -137.95, 37.635999999999996], y: [1.3724999999999952, -10.194999999999967, 28.7054999999999, -38.45399999999985, 24.45899999999989, 0.4670000000000343], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-         { x: [0.47950000000000026, -0.8905000000000003, 0.24750000000000005, -0.21350000000000002, -0.0129999999999999, 2.17], y: [-0.3048799999999954, 0.4222199999999887, 0.06766000000000716, 0.5300000000000002, -1.67746, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-         { x: [-7.423999999999999, 54.358999999999995, -153.54600000000002, 208.705, -137.95, 37.635999999999996], y: [1.3724999999999952, -10.194999999999967, 28.7054999999999, -38.45399999999985, 24.45899999999989, 0.4670000000000343], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-         { x: [-1.6449999999999996, 3.7749999999999986, -1.9949999999999994, -0.4950000000000001, -0.009999999999999787, 2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-         { x: [-1.6449999999999996, 3.7749999999999986, -1.9949999999999994, -0.4950000000000001, -0.009999999999999787, 2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-         { x: [-5.264999999999999, 12.884999999999998, -8.085, -0.3450000000000001, -0.30999999999999983, 2.17], y: [12.422619999999997, -30.032779999999992, 18.775159999999993, 1.7150000000000003, -4.76746, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-         { x: [-5.264999999999999, 12.884999999999998, -8.085, -0.3450000000000001, -0.30999999999999983, 2.17], y: [12.422619999999997, -30.032779999999992, 18.775159999999993, 1.7150000000000003, -4.76746, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }] 
-     mode_7_layout_0_start_2_actions:
-                [{ time: 5.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
-                 { time: 7.5, actions: "exchange_cube", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
-                 { time: 9.5, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
-                 { time: 11.5, actions: "exchange_cube", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
-                 { time: 13.0, actions: "intake_no_arm", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false}]
-     mode_7_layout_0_start_2_wait_for_action_0_spline_group:
-                [1, 3, 5, 6, 7, 8]
-     mode_7_layout_0_start_2_wait_for_action_0_flips:
-                [false, false, true, false, true, false]
 
 
-     #new LRL scale, scale, switch
 
-     mode_7_layout_1_start_2_wait_for_action_0:
-        [{ x: [-5.5811720000000005, 14.741068000000002, -11.619896, 1.86, -0.2287239999999997, 2.9987239999999997], y: [29.252639999999992, -71.81361999999999, 46.00843999999999, -0.1499999999999997, 3.4484999999999997, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
-        { x: [-1.6449999999999996, 3.7749999999999986, -1.9949999999999994, -0.4950000000000001, -0.009999999999999787, 2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
-        { x: [-1.6449999999999996, 3.7749999999999986, -1.9949999999999994, -0.4950000000000001, -0.009999999999999787, 2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
-         { x: [1.1520000000000006, -2.5410000000000013, 1.3040000000000012, -0.20500000000000007, -0.029999999999999805, 2.17], y: [-0.8548800000000032, 1.9572200000000066, -1.0873400000000046, 0.28500000000000014, -1.1874599999999997, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-        { x: [-15.515, 115.35200000000002, -330.47900000000004, 454.456, -302.24, 80.27600000000001], y: [4.522500000000003, -32.33000000000001, 88.4175, -116.27999999999994, 73.68999999999994, -11.58999999999999], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }] 
-     mode_7_layout_1_start_2_actions:
-                [{ time: 1.0, actions: "intake_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
-                 { time: 3.5, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false}]
-        
-     mode_7_layout_1_start_2_wait_for_action_0_spline_group:
-                [1, 2, 3, 5]
-     mode_7_layout_1_start_2_wait_for_action_0_flips:
-                [false, false, true, false]
-     #new RLR switch, scale, scale
 
-     mode_7_layout_2_start_2_wait_for_action_0:
-         [{ x: [1.9688280000000016, -3.5289320000000046, -0.3698959999999971, 1.86, -0.2287239999999997, 2.9987239999999997], y: [17.7855, -42.8495, 26.444, -0.1499999999999997, 3.4484999999999997, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-         { x: [5.149999999999999, -39.835, 118.52000000000001, -168.78500000000005, 113.71000000000006, -26.060000000000016], y: [3.135000000000001, -24.82500000000001, 75.10500000000002, -107.77500000000002, 73.87000000000003, -14.26000000000002], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-         { x: [-3.2009999999999987, 39.242999999999995, -189.22500000000002, 447.89300000000014, -522.4780000000001, 243.54799999999977], y: [1.0550000000000024, -13.905000000000031, 73.04500000000014, -191.0950000000003, 248.83000000000027, -122.58000000000004], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-          { x: [0.9540000000000006, -17.951999999999998, 133.8019999999999, -492.6699999999994, 893.4559999999979, -637.7859999999973], y: [-2.5678600000000014, 43.52378000000006, -292.9285200000003, 979.6847599999999, -1629.6134599999968, 1085.6413799999946], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
-          { x: [1.6449999999999996, -3.7749999999999986, 1.9949999999999994, 0.4950000000000001, 0.009999999999999787, -2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-          { x: [1.6449999999999996, -3.7749999999999986, 1.9949999999999994, 0.4950000000000001, 0.009999999999999787, -2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }] 
-     mode_7_layout_2_start_2_actions:
-                [{ time: 1.0, actions: "mid_scale_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
-                 { time: 3.5, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false}]
 
-     mode_7_layout_2_start_2_wait_for_action_0_spline_group:
-                [4, 5, 6]
-     mode_7_layout_2_start_2_wait_for_action_0_flips:
-                [false, false, true]
 
-     #new LLL scale, switch, switch
-
-     mode_7_layout_3_start_2_wait_for_action_0:
-            [{ x: [6.683828, -13.37893200000001, 5.145104, -0.1299999999999999, -0.11872399999999983, 2.9987239999999997], y: [22.865500000000004, -55.439499999999995, 34.394, 0.6899999999999995, 3.0685000000000002, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-            { x: [2.012500000000003, -15.572499999999991, 46.03250000000003, -62.91750000000016, 34.92500000000018, -3.2800000000000615], y: [0.34449999999999825, -2.0784999999999876, 4.900499999999965, -5.785499999999953, 3.6609999999999676, 5.108000000000009], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 },
-            { x: [0.995000000000001, -13.037500000000016, 67.16000000000005, -169.12250000000003, 206.4949999999999, -98.61999999999989], y: [2.700639999999997, -33.12401999999996, 159.77449999999982, -378.42821999999967, 440.70931999999993, -196.0779200000003], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
-           { x: [1.6449999999999996, -3.7749999999999986, 1.9949999999999994, 0.4950000000000001, 0.009999999999999787, -2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
-           { x: [1.6449999999999996, -3.7749999999999986, 1.9949999999999994, 0.4950000000000001, 0.009999999999999787, -2.17], y: [5.648619999999996, -14.300779999999992, 9.712159999999997, 1.0250000000000001, -3.3874599999999995, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
-           { x: [-5.264999999999999, 12.884999999999998, -8.085, -0.3450000000000001, -0.30999999999999983, 2.17], y: [12.422619999999997, -30.032779999999992, 18.775159999999993, 1.7150000000000003, -4.76746, 7.31746], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }]
-     mode_7_layout_3_start_2_actions:
-                [{ time: 1.0, actions:  "intake_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
-                 { time: 3.5, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false}]
-
-     mode_7_layout_3_start_2_wait_for_action_0_spline_group:
-                [3, 4, 5, 6]
-     mode_7_layout_3_start_2_wait_for_action_0_flips:
-                [false, false, true, false]
-
-#exchangy bit
-     mode_6_layout_1_start_1_wait_for_action_0:
-             [{ x: [-9.509099999999998, 23.767899999999997, -15.908799999999998, 0.15999999999999998, -0.04970000000000005, 0.13970000000000005], y: [2.4217200000000005, -6.13026, 4.398120000000002, -0.6000000000000001, 2.3285, 0.5715], orient: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], time: 4.0 }, 
-             { x: [-2.409, 3.9129999999999985, -0.7409999999999997, 0.06300000000000006, 0.11399999999999988, -1.4], y: [-7.705240000000002, 19.304560000000006, -12.458820000000003, 0.35649999999999993, -1.53258, 2.98958], orient: [-18.843733642, 47.1064309261, -31.3984809261, -0.00580635796197, 0.0, 0.0], time: 4.0 },
-             { x: [1.3005000000000004, -9.900500000000001, 30.292500000000004, -47.25150000000001, 38.349000000000004, -13.25], y: [-0.6769999999999996, 5.337999999999994, -16.94799999999995, 27.340999999999887, -21.308999999999898, 7.208999999999968], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }, 
-             { x: [-6.057499999999999, 15.443, -10.879999999999999, 0.58, -0.01, 0.01], y: [9.194500000000001, -22.056000000000008, 13.125999999999998, 1.99, -3.9250000000000003, 2.115], orient: [18.843733642, -47.1064309261, 31.3984809261, 0.00580635796197, 0.0, -3.14159], time: 4.0 }, 
-             { x: [-2.259500000000001, 5.365, -3.559000000000001, 0.9235, -0.10550000000000004, -0.9145], y: [3.570499999999999, -9.3765, 6.024000000000001, 0.8919999999999999, 1.1315, 0.4445], orient: [18.843733642, -47.1064309261, 31.3984809261, 0.00580635796197, 0.0, -3.14159], time: 4.0 }, 
-             { x: [-2.259500000000001, 5.365, -3.559000000000001, 0.9235, -0.10550000000000004, -0.9145], y: [3.570499999999999, -9.3765, 6.024000000000001, 0.8919999999999999, 1.1315, 0.4445], orient: [-18.843733642, 47.1064309261, -31.3984809261, -0.00580635796197, 0.0, 0.0], time: 4.0 }]
-     mode_6_layout_1_start_1_actions:
-                [{ time: 1.0, actions: "intake_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false},
-                 { time: 3.5, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false}]
-     mode_6_layout_1_start_1_wait_for_action_0_spline_group:
-                [1, 3, 4, 5, 6]
-     mode_6_layout_1_start_1_wait_for_action_0_flips:
-                [false, false, false, false, true]
-
-             
-cmd_vel_params:
-    num_cmd_vel_modes: 5
-    max_num_mode: 4
-    mode_0_layout_0_2_start_0:
-            [{x: 0.0, y: 0.0, duration: 0.0}]
-    mode_0_layout_0_2_start_1:
-            [{x: 0.0, y: 0.0, duration: 0.0}]
-    mode_0_layout_0_2_start_2:
-            [{x: 0.0, y: 0.0, duration: 0.0}]
-    mode_0_layout_1_3_start_0:
-            [{x: 0.0, y: 0.0, duration: 0.0}]
-    mode_0_layout_1_3_start_1:
-            [{x: 0.0, y: 0.0, duration: 0.0}]
-    mode_0_layout_1_3_start_2:
-            [{x: 0.0, y: 0.0, duration: 0.0}]
-    mode_1_layout_0_2_start_0:
-            [{x: 1.05, y: 0.1, duration: 4.0}]
-    mode_1_layout_0_2_start_1:
-            [{x: 0.875, y: 0.5, duration: 3.5}]
-    mode_1_layout_0_2_start_2:
-            [{x: 1.05, y: -0.1, duration: 4.0}]
-    mode_1_layout_1_3_start_0:
-            [{x: 1.05, y: 0.1, duration: 4.0}]
-    mode_1_layout_1_3_start_1:
-            [{x: 0.875, y: -0.3, duration: 3.5}]
-    mode_1_layout_1_3_start_2:
-            [{x: 1.05, y: -0.1, duration: 4.0}]
-    mode_2_layout_0_2_start_0:
-            [{x: 1.05, y: -1.5, duration: 3.0}]
-    mode_2_layout_0_2_start_1:
-            [{x: 1.05, y: -0.45, duration: 3.0}]
-    mode_2_layout_0_2_start_2:
-            [{x: 1.2, y: 0.53, duration: 2.58}]
-    mode_2_layout_1_3_start_0:
-            [{x: 1.2, y: -0.53, duration: 2.58}]
-    mode_2_layout_1_3_start_1:
-            [{x: 1.125, y: 0.675, duration: 2.76}]
-    mode_2_layout_1_3_start_2:
-            [{x: 1.05, y: -1.5, duration: 3.0}]
-    mode_3_layout_0_2_start_0:
-            [{x: -1.05, y: -0.1, duration: 6.0}]
-    mode_3_layout_0_2_start_1:
-            [{x: 0.0, y: 0.75, duration: 1.533}, 
-             {x: -0.5, y: 0.0, duration: 0.4},
-             {x: -1.5, y: 0.0, duration: 2.0}]
-    mode_3_layout_0_2_start_2:
-            [{x: -1.2, y: -0.53, duration: 2.58}]
-    mode_3_layout_1_3_start_0:
-            [{x: -1.2, y: 0.53, duration: 3.0}]
-    mode_3_layout_1_3_start_1:
-            [{x: -0.75, y: 0.0, duration: 0.8}, 
-             {x:  0.0, y: -0.75, duration: 2.067},
-             {x: -0.5, y: 0.0, duration: 0.4},
-             {x: -1.5, y: 0.0, duration: 2.0}]
-    mode_3_layout_1_3_start_2:
-            [{x: -1.05, y: 0.1, duration: 6.0}]
-    mode_4_layout_0_2_start_0:
-            [{x: -1.05, y: -0.1, duration: 4.0}]
-    mode_4_layout_0_2_start_1:
-            [{x: -0.875, y: -0.5, duration: 3.5}]
-    mode_4_layout_0_2_start_2:
-            [{x: -1.05, y: 0.1, duration: 4.0}]
-    mode_4_layout_1_3_start_0:
-            [{x: -1.05, y: -0.1, duration: 4.0}]
-    mode_4_layout_1_3_start_1:
-            [{x: -0.875, y: 0.3, duration: 3.5}]
-    mode_4_layout_1_3_start_2:
-            [{x: -1.05, y: 0.1, duration: 4.0}]
-
-#above is for s:r ll
-#####################################################
-
-        
-  #switch-scale-scale-scale
-  #mode_1_layout_1_2_pos_1_times: [1, 2, 3, 4, 5, 6, 7, 8, 9]
-  #mode_1_layout_1_2_pos_2_times:  
-  #mode_1_layout_3_4_pos_1_times:  
-  #mode_1_layout_3_4_pos_2_times:  
-  #
-  #longway scale-switch-scale
-  #mode_2_layout_1_2_pos_1_times: DON'T EXIST
-  #mode_2_layout_1_2_pos_2_times: DON'T EXIST
-  #mode_2_layout_3_4_pos_1_times:
-  #mode_2_layout_3_4_pos_2_times:
-  #
-  ##shortway scale-switch-scale
-  #mode_3_layout_1_2_pos_1_times:  
-  #mode_3_layout_1_2_pos_2_times:  
-  #mode_3_layout_3_4_pos_1_times:  
-  #mode_3_layout_3_4_pos_2_times:  
-  #0 0 0
-  #1 0 0
-  #0 1 0
-  #1 1 0
-  ##longway scale-scale-scale
-  #mode_4_layout_1_2_pos_1_times:  
-  #mode_4_layout_1_2_pos_2_times:  
-  #mode_4_layout_3_4_pos_1_times:  
-  #mode_4_layout_3_4_pos_2_times:  
-  #
-  ##basic switch
-  #mode_5_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
-  #mode_5_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
-  #mode_5_layout_3_4_pos_1_times:  
-  #mode_5_layout_3_4_pos_2_times:  
-  #
-  ##longway switch
-  #mode_5_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
-  #mode_5_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
-  #mode_5_layout_3_4_pos_1_times:  
-  #mode_5_layout_3_4_pos_2_times:  
-  #
-  ##basic scale
-  #mode_4_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
-  #mode_4_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
-  #mode_4_layout_3_4_pos_1_times:  
-  #mode_4_layout_3_4_pos_2_times:  
-  #
-  ##longway scale
-  #mode_4_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
-  #mode_4_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
-  #mode_4_layout_3_4_pos_1_times:  
-  #mode_4_layout_3_4_pos_2_times:  
-  #
-  ##cross baseline
-  #mode_4_layout_1_2_pos_1_times:  #THESE WILL ALL HAVE THE SAME TIMES
-  #mode_4_layout_1_2_pos_2_times:  #FIGURE SOMETHING OUT
-  #mode_4_layout_3_4_pos_1_times:  
-  #mode_4_layout_3_4_pos_2_times:  
+ 

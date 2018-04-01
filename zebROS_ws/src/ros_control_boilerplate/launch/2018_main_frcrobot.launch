@@ -35,10 +35,9 @@
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller imu_sensor_controller pdp_state_controller compressor_controller swerve_drive_controller elevator_controller rumble_controller robot_code_ready_controller"/>
+			output="screen" args="spawn joint_state_controller talon_state_controller imu_sensor_controller pdp_state_controller compressor_controller swerve_drive_controller elevator_controller rumble_controller robot_code_ready_controller auto_state_controller_0 auto_state_controller_1 auto_state_controller_2 auto_state_controller_3" />
 
-		<node name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands"
-			output="screen" >
+        <node name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands" output="screen" >
 			<remap from="/frcrobot/cmd_vel" to="/frcrobot/swerve_drive_controller/cmd_vel"/> 
 		</node>
         	

@@ -45,7 +45,7 @@ class autoAction {
         bool timed_out = false;
         bool aborted = false;
         if(goal->IntakeCube) {
-			ROS_INFO("start of intake cube");
+			//ROS_INFO("start of intake cube");
             cube_state_true = 0;
             elevator_controller::Intake srv;
             srv.request.power = intake_power;
@@ -54,8 +54,8 @@ class autoAction {
             srv.request.up = false;
             if(!IntakeSrv_.call(srv)) 
                 ROS_ERROR("Srv intake call failed in auto interpreter server intake");
-            else
-                ROS_INFO("Srv intake call OK in auto interpreter server intake");
+            //else
+                //ROS_INFO("Srv intake call OK in auto interpreter server intake");
             ros::spinOnce();
 			bool success = false;
             while(!success && !timed_out && !aborted) {
@@ -87,8 +87,8 @@ class autoAction {
             srv.request.just_override_power = !success;
             if(!IntakeSrv_.call(srv)) 
                 ROS_ERROR("Srv intake call failed in auto interpreter server intake");
-            else
-                ROS_INFO("Srv intake call OK in auto interpreter server intake");
+            //else
+                //ROS_INFO("Srv intake call OK in auto interpreter server intake");
 		}
 	//else if goal->
 	//{}
@@ -115,8 +115,8 @@ class autoAction {
         }
 	else {
 		cube_state_true = 0;
-	}
     }
+	}
 };
 
 int main(int argc, char** argv) {

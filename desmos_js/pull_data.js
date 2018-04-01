@@ -391,7 +391,7 @@ function loadGraphVals(calculator, vals)
 	calculator.setExpression({id:'field24', latex:'x=-d_1+d_8\\left\\{\\frac{d_3}{2}-d_9<y<\\frac{d_3}{2}+d_9\\right\\}', color: '#000000'});
 	calculator.setExpression({id:'field25', latex:'d_{10}=36.2\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field26', latex:'y=\\frac{d_3}{2}-d_9\\left\\{d_1-d_8-d_{10}<x<d_1-d_8\\right\\}', color: '#000000'});
-	calculator.setExpression({id:'field27', latex:'y=\\frac{d_3}{2}-d_9\\ -\\ .3', color: '#2d70b3', style: Desmos.Styles.DOTTED});
+	calculator.setExpression({id:'field27', latex:'y=\\frac{d_3}{2}-d_9\\ -\\ .45', color: '#2d70b3', style: Desmos.Styles.DOTTED});
 	calculator.setExpression({id:'field28', latex:'y=\\frac{d_3}{2}+d_9\\left\\{d_1-d_8-d_{10}<x<d_1-d_8\\right\\}', color: '#000000'});
 	calculator.setExpression({id:'field29', latex:'y=\\frac{d_3}{2}-d_9\\left\\{-d_1+d_8+d_{10}>x>-d_1+d_8\\right\\}', color: '#000000'});
 	calculator.setExpression({id:'field30', latex:'y=\\frac{d_3}{2}+d_9\\left\\{-d_1+d_8+d_{10}>x>-d_1+d_8\\right\\}', color: '#000000'});

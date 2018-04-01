@@ -32,7 +32,8 @@ static double intake_ready_to_drop_x;
 static bool intake_ready_to_drop_up_or_down;
 static double drop_x_tolerance;
 static double wait_open_before_drop;
-
+ static double wait_stabilize_before_drop;
+ static double wait_after_open;
 class autoAction
 {
 	protected:
@@ -48,6 +49,7 @@ class autoAction
 		actionlib::SimpleActionClient<behaviors::LiftAction> al_;
 		std::atomic<bool> high_cube_;
 
+#if 0
 		// Elevator odometry. Make this a struct so that
 		// reads from it get data which is consistent - avoid
 		// cases where X has been modified by the callback
@@ -72,6 +74,7 @@ class autoAction
 			bool   UpOrDown_;
 		};
 		realtime_tools::RealtimeBuffer<ElevatorPos> elevator_odom;
+#endif
 
 		ros::Subscriber HighCube_;
 
@@ -112,10 +115,10 @@ class autoAction
 			//if(!ai_.getState().isDone())
 				//ai_.cancelAllGoals();
 
-			const double odom_x = elevator_odom.readFromRT()->X_;
+			//const double odom_x = elevator_odom.readFromRT()->X_;
 			if (goal->IntakeCube)
 			{
-				ROS_INFO("start of pickup cube");
+				//ROS_INFO("start of pickup cube");
 				std_srvs::SetBool srv_clamp;
 				ros::spinOnce();
 				behaviors::IntakeGoal goal_i;
@@ -138,10 +141,14 @@ class autoAction
 				goal_l.x_tolerance = drop_x_tolerance;
 
 				al_.sendGoal(goal_l);
+	
 				//loop till we get to where we can drop
+				double finish_time = 0;	
+				bool finished_lift = false;	
+		
 				while (!aborted && !timed_out)
 				{
-					ROS_INFO("start of pickup cube 1");
+					//ROS_INFO("start of pickup cube 1");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -155,16 +162,67 @@ class autoAction
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 						//time_out if the action times out
+						if (al_.getState().isDone())
+						{
+							timed_out = timed_out || al_.getResult()->timed_out;
+							finished_lift = true;
+							
+							if( !finished_lift)
+								finish_time = ros::Time::now().toSec();
+							//ROS_WARN("lift finished");
+						}
 						if (ai_.getState().isDone())
 						{
 							timed_out = timed_out || ai_.getResult()->timed_out;
 							break;
 						}
+
+					}
+				}
+				while (!aborted && !timed_out && !finished_lift)
+				{
+					
+					if (as_.isPreemptRequested() || !ros::ok())
+					{
+						ROS_WARN("%s: Preempted", action_name_.c_str());
+						as_.setPreempted();
+						aborted = true;
+						break;
+					}
+					if (!aborted)
+					{
+						//ROS_WARN("lift unfinished in p2");
+						r.sleep();
+						ros::spinOnce();
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
+						//time_out if the action times out
 						if (al_.getState().isDone())
 						{
 							timed_out = timed_out || al_.getResult()->timed_out;
+							finished_lift = true;
+							finish_time = ros::Time::now().toSec();
+							//ROS_WARN("lift finished in p2");
 						}
 					}
+
+				}
+				while(!aborted && !timed_out && ros::Time::now().toSec() - finish_time < wait_stabilize_before_drop) //TODO config
+				{
+					if (as_.isPreemptRequested() || !ros::ok())
+					{
+						ROS_WARN("%s: Preempted", action_name_.c_str());
+						as_.setPreempted();
+						aborted = true;
+						break;
+					}
+					if (!aborted)
+					{
+						//ROS_WARN_STREAM("wait for drop etc t: " <<ros::Time::now().toSec() - finish_time );
+						r.sleep();
+						ros::spinOnce();
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
+					}
+
 				}
 				/*double t_before_move_intake = 0;
 				ROS_ERROR("COMMENTED OUTJHGFVBHJHGFVCBNV");
@@ -205,6 +263,7 @@ class autoAction
 				*/
 				if (!aborted && !timed_out && !high_cube_.load(std::memory_order_relaxed))
 				{
+					//ROS_INFO("start of pickup cube 3 - true");
 					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5;
 					goal_l.GoToPos = true;
@@ -216,10 +275,11 @@ class autoAction
 					goal_l.dist_tolerance = 0.1; //Tolerances are intentionally large, will require testing
 					goal_l.y_tolerance = 0.1;
 					goal_l.x_tolerance = 0.1;
+					//ROS_INFO("start of pickup cube 3");
 					al_.sendGoal(goal_l);
 					while (!aborted && !timed_out)
 					{
-						ROS_INFO("start of pickup cube 3");
+
 						if (as_.isPreemptRequested() || !ros::ok())
 						{
 							ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -245,6 +305,7 @@ class autoAction
 				}
 				else if (!aborted && !timed_out)
 				{
+					//ROS_INFO("start of pickup cube 4 - true");
 					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5;
 					goal_l.GoToPos = true;
@@ -259,7 +320,7 @@ class autoAction
 					al_.sendGoal(goal_l);
 					while (!aborted && !timed_out)
 					{
-						ROS_INFO("start of pickup cube 4");
+						//ROS_INFO("start of pickup cube 4");
 						if (as_.isPreemptRequested() || !ros::ok())
 						{
 							ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -284,7 +345,7 @@ class autoAction
 					}
 				}
 					
-				double clamp_time;
+				double clamp_time = 0;
 				if (!aborted && !timed_out)
 				{
 					srv_clamp.request.data = true;
@@ -292,18 +353,10 @@ class autoAction
 					if (!ClampSrv_.call(srv_clamp)) ROS_ERROR("Srv_ clamp call failed");;
 
 				}
-				if (!aborted && !timed_out)
-				{
-					elevator_controller::Intake srvIntake;
-					srvIntake.request.power = 0.0;
-					srvIntake.request.up = false;
-					srvIntake.request.just_override_power = false;
-					srvIntake.request.spring_state = 1; //hard_out
-					if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
-				}
+				double open_time = 0;
 				while (!aborted && !timed_out)
 				{
-					ROS_INFO("start of pickup cube 5");
+					//ROS_INFO("start of pickup cube 5");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -313,6 +366,39 @@ class autoAction
 					}
 					if (ros::Time::now().toSec() - clamp_time > wait_after_clamp)
 					{
+
+						open_time = ros::Time::now().toSec();
+						elevator_controller::Intake srvIntake;
+						srvIntake.request.power = 0.0;
+						srvIntake.request.up = false;
+						srvIntake.request.just_override_power = false;
+						srvIntake.request.spring_state = 1; //hard_out
+						if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
+						break;
+					}
+					if (!aborted)
+					{
+						r.sleep();
+						ros::spinOnce();
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
+					}
+				}
+
+
+				while (!aborted && !timed_out)
+				{
+					//ROS_INFO("start of pickup cube 5");
+					if (as_.isPreemptRequested() || !ros::ok())
+					{
+						ROS_WARN("%s: Preempted", action_name_.c_str());
+						as_.setPreempted();
+						aborted = true;
+						break;
+					}
+					if (ros::Time::now().toSec() - open_time > wait_after_open)
+					{
+
+
 						behaviors::LiftGoal goal_l;
 						goal_l.time_out = 5;
 						goal_l.put_cube_in_intake = false;
@@ -327,6 +413,7 @@ class autoAction
 						goal_l.x_tolerance = goal->x_tolerance;
 						al_.sendGoal(goal_l);
 						break;
+
 					}
 					if (!aborted)
 					{
@@ -335,9 +422,10 @@ class autoAction
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 					}
 				}
+
 				while (!aborted && !timed_out)
 				{
-					ROS_INFO("start of pickup cube 6");
+					//ROS_INFO("start of pickup cube 6");
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -366,7 +454,7 @@ class autoAction
 				//TODO:
 			
 				ai_.cancelAllGoals();
-				ROS_INFO("start of go to intake config with cube");
+				//ROS_INFO("start of go to intake config with cube");
 				
 				behaviors::LiftGoal goal_l;
 				goal_l.time_out = 5; 
@@ -455,10 +543,12 @@ class autoAction
 			high_cube_.store(msg.intake_high, std::memory_order_relaxed);
 		}
 
+#if 0
 		void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)
 		{
 			elevator_odom.writeFromNonRT(ElevatorPos(msg->x, msg->y, msg->up_or_down));
 		}
+#endif
 };
 
 int main(int argc, char **argv)
@@ -482,6 +572,8 @@ int main(int argc, char **argv)
 		ROS_ERROR("could not read wait_after_clamp");
 	if (!n_params.getParam("delay_after_move_intake", delay_after_move_intake))
 		ROS_ERROR("could not read delay_after_move_intake");
+	if (!n_params.getParam("wait_after_open", wait_after_open))
+		ROS_ERROR("could not read wait_after_open");
 
 	// If n is passed into autoAction class constructor,
 	// these reads could move there also and the vars they
@@ -496,6 +588,11 @@ int main(int argc, char **argv)
 		ROS_ERROR("Could not read intake_low_y");
 	if (!n_params.getParam("wait_open_before_drop", wait_open_before_drop))
 		ROS_ERROR("Could not read wait_open_before_drop");
+
+	if (!n_params.getParam("wait_stabilize_before_drop", wait_stabilize_before_drop))
+		ROS_ERROR("Could not read wait_stabilize_before_drop");
+	
+
 	if (!n_params.getParam("drop_x_tolerance", drop_x_tolerance))
 		ROS_ERROR("Could not read drop_x_tolerance");
 

@@ -4,6 +4,8 @@
 #include <behaviors/IntakeAction.h>
 #include <behaviors/RobotAction.h>
 #include <realtime_tools/realtime_buffer.h>
+#include <ros_control_boilerplate/AutoModeStatus.h>
+#include <std_msgs/Float64.h>
 
 
 //enum Action {deploy_intake, undeploy_intake, intake_cube, intake_no_arm, exchange_cube, default_config, intake_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, release_clamp};
@@ -22,6 +24,10 @@ static ros::ServiceClient ElevatorService;
 static ros::ServiceClient ClampService;
 static ros::ServiceClient BrakeService;
 static ros::Publisher VelPub;
+static ros::Publisher auto_state_0;
+static ros::Publisher auto_state_1;
+static ros::Publisher auto_state_2;
+static ros::Publisher auto_state_3;
 
 double high_scale_config_x;
 double high_scale_config_y;
@@ -42,6 +48,7 @@ double default_x;
 double default_y;
 double run_out_start;
 static bool default_up_or_down;
+std::vector<double> auto_mode_status_vect = {1, 1, 1, 1};
 
 
 struct MatchData {
@@ -85,6 +92,7 @@ struct AutoMode {
 };
 
 realtime_tools::RealtimeBuffer<MatchData> matchData;
+realtime_tools::RealtimeBuffer<int> queue_slot;
 realtime_tools::RealtimeBuffer<AutoMode> autoMode;
 
 bool defaultConfig(void) {
@@ -95,12 +103,32 @@ bool defaultConfig(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("def conf");
+	if (!ElevatorService.call(srv))
+	{
+		ROS_ERROR("Service call failed : ElevatorService in defaultConfig");
+		return false;
+	}
+	return true;
+}
+bool startMatchConfig()
+{
+	elevator_controller::ElevatorControlS srv;
+    srv.request.x = .35;
+    srv.request.y = .7;
+    srv.request.up_or_down = true;
+    srv.request.override_pos_limits = true;
+    srv.request.override_sensor_limits = false;
+    srv.request.put_cube_in_intake = false;
+    ROS_INFO("start conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in defaultConfig");
 		return false;
 	}
 	return true;
+
+
 }
 bool intakeConfig(void) {
 	elevator_controller::ElevatorControlS srv;
@@ -110,6 +138,7 @@ bool intakeConfig(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("intake conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -126,6 +155,7 @@ bool overBack(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("over back conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -142,6 +172,7 @@ bool customConfig(const ActionSetpoint &action_setpoint) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("custom conf");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in intakeConfig");
@@ -167,6 +198,7 @@ bool intakeCube(const ActionSetpoint &action_setpoint) {
 
     ac->sendGoal(goal);
     
+    ROS_INFO("intake");
 }
 bool intakeNoArm(void) {
 	behaviors::IntakeGoal goal;
@@ -176,6 +208,7 @@ bool intakeNoArm(void) {
     goal.time_out = 10; //TODO config this
 
     ac_intake->sendGoal(goal);
+    ROS_INFO("intake no arm");
     
 }
 bool switchConfig(void) {
@@ -186,6 +219,7 @@ bool switchConfig(void) {
     srv.request.override_pos_limits = false;
     srv.request.put_cube_in_intake = false;
     srv.request.override_sensor_limits = false;
+    ROS_INFO("switch");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in switchConfig");
@@ -201,6 +235,7 @@ bool highScale(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("high scale");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in highScale");
@@ -216,6 +251,7 @@ bool midScale(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("mid scale");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in midScale");
@@ -231,6 +267,7 @@ bool lowScale(void) {
     srv.request.override_pos_limits = false;
     srv.request.override_sensor_limits = false;
     srv.request.put_cube_in_intake = false;
+    ROS_INFO("low scale");
     if (!ElevatorService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ElevatorService in lowScale");
@@ -242,6 +279,8 @@ bool intakeStop(void) {
 	elevator_controller::Intake srv;
     srv.request.spring_state = 2; //soft_in
     srv.request.power=0;
+    srv.request.just_override_power = false;
+    ROS_INFO("intake stop");
     if (!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in intakeStop");
@@ -253,6 +292,8 @@ bool releaseIntake(void) {
 	elevator_controller::Intake srv;
     srv.request.spring_state = 1; //hard out
     srv.request.power = 0;
+    srv.request.just_override_power = false;
+    ROS_INFO("release intake");
     if (!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in releaseIntake");
@@ -263,6 +304,7 @@ bool releaseIntake(void) {
 bool releaseClamp(void) {
 	std_srvs::SetBool srv;
 	srv.request.data = false;
+    ROS_INFO("release clamp");
 	if (!ClampService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ClampService in releaseClamp");
@@ -273,6 +315,7 @@ bool releaseClamp(void) {
 bool clamp(void) {
 	std_srvs::SetBool srv;
     srv.request.data = true;
+    ROS_INFO("clamp");
     if (!ClampService.call(srv))
 	{
 		ROS_ERROR("Service call failed : ClampService in clamp");
@@ -285,6 +328,8 @@ bool intakeOut(void) {
 	elevator_controller::Intake srv;
 	srv.request.power = -1;
 	srv.request.spring_state = 2; //soft-in
+    srv.request.just_override_power = false;
+    ROS_INFO("intake_out");
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in intakeOut");
@@ -297,6 +342,8 @@ bool deployIntake(void) {
 	srv.request.power = 0;
 	srv.request.spring_state = 2; //soft-in
     srv.request.up = 0; //down
+    srv.request.just_override_power = false;
+    ROS_INFO("intake_deplot");
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in deployIntake");
@@ -310,6 +357,8 @@ bool undeployIntake(void) {
 	srv.request.power = 0;
 	srv.request.spring_state = 2; //soft-in
     srv.request.up = true;
+    srv.request.just_override_power = false;
+    ROS_INFO("intake up");
 	if(!IntakeService.call(srv))
 	{
 		ROS_ERROR("Service call failed : IntakeService in undeployIntake");
@@ -357,7 +406,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 				for(int wait_for_action = 0; wait_for_action <= max_wait_for_action_num; wait_for_action++)
 				{
 					std::string identifier_with_wait = identifier+ +"_wait_for_action_"+std::to_string(wait_for_action);
-					if(auto_data.getParam(identifier+ +"_wait_for_action_"+std::to_string(wait_for_action), mode_xml))
+					if(auto_data.getParam(identifier_with_wait, mode_xml))
 					{
 						ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
 						//XmlRpc::XmlRpcValue &coefs_xml = mode_xml["coefs"];
@@ -395,6 +444,8 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.final_v = 0; 
 						profiled_modes[mode][layout][start_pos].exists = true; 
 						profiled_modes[mode][layout][start_pos].num_srv_msgs +=1; 
+
+						ROS_WARN_STREAM("mode: " << mode << " layout: " << layout << " start_pos: " << start_pos);
 
 						XmlRpc::XmlRpcValue group_xml;
 						if(auto_data.getParam(identifier_with_wait + "_spline_group", group_xml))
@@ -462,96 +513,147 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(.16);
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.t_shift.push_back(0);
 						}
-					}
+
+						
+					
+
 				}
 				
-				if(auto_data.getParam(identifier+ "_actions", actions_xml))
-				{
-					ROS_INFO_STREAM("Auto mode actions with identifier: " << identifier+"_actions" << " found");
-					const int num_actions = actions_xml.size();
-					profiled_modes[mode][layout][start_pos].actions.resize(num_actions);
-					for(int i = 0; i < max_wait_for_action_num; i++)
-					{
-						profiled_modes[mode][layout][start_pos].wait_ids.push_back(-1);
-					}
-	
-					for(int num = 0; num<num_actions; num++) {
-						XmlRpc::XmlRpcValue &action = actions_xml[num];
-						XmlRpc::XmlRpcValue &time = action["time"];
-						
-						XmlRpc::XmlRpcValue &profile_wait_xml = action["profile_wait"];
-						XmlRpc::XmlRpcValue &x_xml = action["x"];
-						XmlRpc::XmlRpcValue &y_xml = action["y"];
-						XmlRpc::XmlRpcValue &up_or_down_xml = action["up_or_down"];
-						const double profile_wait_double = profile_wait_xml;
-                        int profile_wait = (int)profile_wait_double;
-						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.x = x_xml;
-						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.y = y_xml;
-						profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.up_or_down = up_or_down_xml;
-						if(profile_wait >= 0)
-						{				
-							profiled_modes[mode][layout][start_pos].wait_ids[profile_wait] =  num;
-						}
-						//TODO: params
-						XmlRpc::XmlRpcValue &action_name = action["action"];
-							//profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(action_now);
-							if(action_name == "deploy_intake") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = deploy_intake;
-							}
-							else if(action_name == "undeploy_intake") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = undeploy_intake;
-							}
-							else if(action_name == "intake_cube") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = intake_cube;
-							}
-							else if(action_name == "exchange_cube") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = exchange_cube;
-							}
-							else if(action_name == "default_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = default_config;
-							}
-							else if(action_name == "intake_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = intake_config;
-							}
-							else if(action_name == "exchange_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = exchange_config;
-							}
-							else if(action_name == "switch_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = switch_config;
-							}
-							else if(action_name == "low_scale_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = low_scale_config;
-							}
-							else if(action_name == "mid_scale_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = mid_scale_config;
-							}
-							else if(action_name == "high_scale_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = high_scale_config;
-							}
-							else if(action_name == "over_back_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = over_back_config;
-							}
-							else if(action_name == "custom_config") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = custom_config;
-							}
-							else if(action_name == "release_clamp") {
-								profiled_modes[mode][layout][start_pos].actions[num].action = release_clamp;
-							}
 
-						//Exception handling?
-						const double time_now = time;
-						profiled_modes[mode][layout][start_pos].actions[num].time = time_now;
-						//const double t = time;
-						//profiled_modes[mode][layout][start_pos].times.push_back(t);
-					}
-				}
-				else
+			}
+			
+			if(auto_data.getParam(identifier+ "_actions", actions_xml))
+			{
+				ROS_INFO_STREAM("Auto mode actions with identifier: " << identifier+"_actions" << " found");
+				const int num_actions = actions_xml.size();
+				profiled_modes[mode][layout][start_pos].actions.resize(num_actions);
+				for(int i = 0; i < max_wait_for_action_num; i++)
 				{
-					profiled_modes[mode][layout][start_pos].exists = false; 
+					profiled_modes[mode][layout][start_pos].wait_ids.push_back(-1);
 				}
+
+				for(int num = 0; num<num_actions; num++) {
+					XmlRpc::XmlRpcValue &action = actions_xml[num];
+					XmlRpc::XmlRpcValue &time = action["time"];
+					
+					XmlRpc::XmlRpcValue &profile_wait_xml = action["profile_wait"];
+					XmlRpc::XmlRpcValue &action_waiter_xml = action["wait_for_action"];
+					XmlRpc::XmlRpcValue &action_waiter_duration_xml = action["wait_for_action_delay"];
+					XmlRpc::XmlRpcValue &profile_waiter_xml = action["wait_for_profile"];
+					//XmlRpc::XmlRpcValue &profile_waiter_duration_xml = action["wait_for_profile_delay"];
+					XmlRpc::XmlRpcValue &x_xml = action["x"];
+					XmlRpc::XmlRpcValue &y_xml = action["y"];
+					XmlRpc::XmlRpcValue &up_or_down_xml = action["up_or_down"];
+					const double profile_wait_double = profile_wait_xml;
+					int profile_wait = (int)profile_wait_double;
+
+					
+					const double action_waiter_double = action_waiter_xml;
+					int action_waiter = (int)action_waiter_double;
+
+				
+					
+					const double action_waiter_duration_double = action_waiter_duration_xml;
+					int action_waiter_duration = (int)action_waiter_duration_double;
+	
+
+					const double profile_waiter_double = profile_waiter_xml;
+					int profile_waiter = (int)profile_waiter_double;
+					
+					//TODO: add dur
+
+					profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.x = x_xml;
+					profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.y = y_xml;
+					profiled_modes[mode][layout][start_pos].actions[num].action_setpoint.up_or_down = up_or_down_xml;
+					
+					profiled_modes[mode][layout][start_pos].actions[num].wait_action_id = action_waiter;
+					profiled_modes[mode][layout][start_pos].actions[num].wait_action_time = action_waiter_duration_xml;
+
+				
+					profiled_modes[mode][layout][start_pos].actions[num].wait_profile_id = profile_waiter;
+					//profiled_modes[mode][layout][start_pos].actions[num].wait_profile_time = profile_waiter_duration_xml;
+
+					if(profile_wait >= 0)
+					{				
+						profiled_modes[mode][layout][start_pos].wait_ids[profile_wait] =  num;
+					}
+					//TODO: params
+					XmlRpc::XmlRpcValue &action_name = action["actions"];
+						//profiled_modes[mode][layout][start_pos].actions[num].actions.push_back(action_now);
+						if(action_name == "deploy_intake") {
+                            ROS_ERROR("Always intake");
+							profiled_modes[mode][layout][start_pos].actions[num].action = deploy_intake;
+						}
+						else if(action_name == "undeploy_intake") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = undeploy_intake;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "intake_cube") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = intake_cube;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "exchange_cube") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = exchange_cube;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "default_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = default_config;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "intake_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = intake_config;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "exchange_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = exchange_config;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "switch_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = switch_config;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "low_scale_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = low_scale_config;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "mid_scale_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = mid_scale_config;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "high_scale_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = high_scale_config;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "over_back_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = over_back_config;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "custom_config") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = custom_config;
+                            ROS_ERROR("other");
+						}
+						else if(action_name == "release_clamp") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = release_clamp;
+                            ROS_ERROR("other");
+						}
+                        else {
+                            ROS_ERROR("LEmurs have returned");
+                        }
+
+					//Exception handling?
+					const double time_now = time;
+					profiled_modes[mode][layout][start_pos].actions[num].time = time_now;
+					//const double t = time;
+					//profiled_modes[mode][layout][start_pos].times.push_back(t);
+				}
+			}
+			else
+			{
+				profiled_modes[mode][layout][start_pos].exists = false; 
 			}
 		}
 	}
+}
 
 	cmd_vel_modes.resize(max_mode_cmd_vel + 1);
     ROS_INFO("Loading cmd_vel params");
@@ -608,12 +710,14 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 
 	for(size_t k = 0; k < trajectory.size(); k++)
 	{
+        auto_mode_status_vect[k] = 1;
 		if(!generate[k]) continue;
 		//ROS_ERROR("DO WE fail here");
 		if(!trajectory[k].exists)
 		{
 			//TODO MAKE LIGHT GO RED ON DRIVERSTATION
 			ROS_ERROR("auto mode/layout/start selected which wasn't found in the yaml");
+            auto_mode_status_vect[k] = 0;
 			return false;
 		}
 		for(size_t i = 0; i < trajectory[k].num_srv_msgs; i++)
@@ -631,6 +735,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 			swerve_control_srv.request.profiles.push_back(temp_holder);
 			
 		}
+        ROS_ERROR("Succeeded in generate Trajectory");
 	}
     if (!swerve_control.call(swerve_control_srv))
 	{
@@ -640,7 +745,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 	return true;
 }
 
-bool generateTrajectory(const CmdVelMode &segments)
+bool generateCmdVelTrajectory(const CmdVelMode &segments)
 {
     //ROS_ERROR_STREAM("In generate");
 	if(!segments.exists)
@@ -715,20 +820,30 @@ void match_data_cb(const ros_control_boilerplate::MatchSpecificData::ConstPtr &m
 
 }
 
+void queue_slot_cb(const std_msgs::UInt16::ConstPtr &msg) {
+    queue_slot.writeFromNonRT(msg->data);
+
+}
+
+
+
 void auto_mode_cb(const ros_control_boilerplate::AutoMode::ConstPtr &msg) {
     autoMode.writeFromNonRT(AutoMode(msg->mode, msg->delays, msg->position));
 }
 
-bool check_action_completion(int action, bool &intake_server_action, bool &robot_server_action, bool &timed_out) {
+bool check_action_completion(Action action, bool &intake_server_action, bool &robot_server_action, bool &timed_out) {
     switch(action) {
-        case 0:
+        case deploy_intake:
             return true;
-        case 1:
+        case undeploy_intake:
             return true;
-        case 2:
-			if(robot_server_action)
-				return true;
-			robot_server_action = true;
+        case intake_cube:
+			if(robot_server_action || intake_server_action)
+			{
+				robot_server_action = true;
+				intake_server_action = true;
+				return true;		
+			}
 			if(ac->getState().isDone())
 			{
 				if(ac->getResult()->timed_out)
@@ -745,76 +860,76 @@ bool check_action_completion(int action, bool &intake_server_action, bool &robot
 			{
 				return false;
 			}
-		case 3:
+        case intake_no_arm:
             return true;
-        case 4:
+        case exchange_cube:
             return true;
-        case 5:
+        case default_config:
             return true;
-        case 6:
+        case intake_config:
             return true;
-        case 7:
+        case switch_config:
             return true;
-        case 8:
+        case low_scale_config:
             return true;
-        case 9:
+        case mid_scale_config:
             return true;
-        case 10:
+        case high_scale_config:
             return true;
-        case 11:
+        case over_back_config:
             return true;
-        case 12:
+        case custom_config:
             return true;
-        case 13:
+        case release_clamp:
             return true;
         default:
             ROS_ERROR("Action not in list of actions");
-            return false;
     }
 }
 
-bool call_action(int action, const ActionSetpoint &action_setpoint) {
+bool call_action(Action action, const ActionSetpoint &action_setpoint) {
+    ROS_WARN("%d", action);
     switch(action) {
-        case 0:
+        case deploy_intake:
             deployIntake();
             break;
-        case 1:
+        case undeploy_intake:
             undeployIntake();
             break;
-        case 2:
+        case intake_cube:
             intakeCube(action_setpoint);
             break;
-        case 3:
+        case intake_no_arm:
             intakeNoArm();
             break;
-        case 4:
+        case exchange_cube:
             intakeOut();
             break;
-        case 5:
+        case default_config:
             defaultConfig();
             break;
-        case 6:
+        case intake_config:
             intakeConfig();
             break;
-        case 7:
+        case switch_config:
             switchConfig();
             break;
-        case 8:
+        case low_scale_config:
             lowScale();
             break;
-        case 9:
+        case mid_scale_config:
             midScale();
             break;
-        case 10:
+        case high_scale_config:
             highScale();
             break;
-        case 11:
+        case over_back_config:
             overBack();
             break;
-        case 12:
+        case custom_config:
             customConfig(action_setpoint);
             break;
-        case 13:
+        case release_clamp:
             releaseClamp();
             break;
         default:
@@ -824,9 +939,9 @@ bool call_action(int action, const ActionSetpoint &action_setpoint) {
 }
 
 void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const std::vector<CmdVel> &segments) {
-    ROS_WARN("auto entered");
     exit_auto = false;
 
+    clamp();
     if(auto_select == 0) {
         return;
     }
@@ -837,6 +952,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
         r.sleep(); 
     }
     
+
     geometry_msgs::Twist vel;
     vel.linear.z = 0;
     vel.angular.x = 0;
@@ -845,10 +961,14 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 
     const size_t num_segments = segments.size();
     for(size_t num = 0; num<num_segments; num++) {
-        ROS_WARN("auto segment entered");
         const double segment_start_time = ros::Time::now().toSec();
         double curr_time = ros::Time::now().toSec(); //These two vars are the same..........
         while(curr_time < segment_start_time + segments[num].duration) { //HOW DOES THIS LOOP EVER EXIT!!
+            if(curr_time > start_time + 1 && curr_time < start_time + 1 + r.expectedCycleTime().toSec()) {
+                if(auto_select == 2) {
+                    switchConfig();
+                }
+            }
             vel.linear.x = segments[num].x;        
             vel.linear.y = segments[num].y;        
 
@@ -859,6 +979,10 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     }
 
     if(auto_select == 2) {
+        double at_switch = ros::Time::now().toSec();
+        while(!exit_auto && ros::Time::now().toSec() < at_switch + 1) {
+            r.sleep(); 
+        }
         releaseClamp();
     }
     parkingConfig();
@@ -867,6 +991,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 void run_auto(int auto_select, int layout, int start_pos, double initial_delay, const FullMode &auto_run_data, std::vector<int> start_of_buffer_ids)
 {
     //ROS_WARN("auto entered");
+    ROS_WARN("auto_select:[%d], layout:[%d], start_pos:[%d]", auto_select, layout, start_pos);
     exit_auto = false;
     ros::Rate r(10);
 
@@ -876,40 +1001,83 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
         r.sleep(); 
     }
 
-    while(!exit_auto && !runTrajectory(start_of_buffer_ids[layout])) //There is a better way
-        r.sleep();
-
+    
+	//while(!exit_auto && !runTrajectory(start_of_buffer_ids[layout])) //There is a better way
+    //    r.sleep();
+	
     start_time = ros::Time::now().toSec();
     size_t num_actions = auto_run_data.actions.size();
-	size_t num_profs = auto_run_data.srv_msgs.size();
+	size_t num_profs = auto_run_data.num_srv_msgs;
     ros::Rate action_rate(20);
 		
 	int queued = -1;
 	std::vector<bool> finished;
+
 	
     for(size_t num = 0; num<num_actions; num++)
 	{
 		finished.push_back(false);
 	}
+	std::vector<double> time_finished;
+
+	
+    for(size_t num = 0; num<num_actions; num++)
+	{
+		time_finished.push_back(100000000);
+	}
     for(size_t num = 0; num<num_actions; num++) {
 
 		const double action_start_time = ros::Time::now().toSec();
         //double curr_time = ros::Time::now().toSec();  //These two vars are the same..........
-        while(/*curr_time*/ ros::Time::now().toSec() < action_start_time + auto_run_data.actions[num].time && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
+        
+		
+
+		bool dependencies_run =  false;
+
+		while(/*curr_time*/ (ros::Time::now().toSec() < (action_start_time + auto_run_data.actions[num].time)) || (!dependencies_run ) && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
+			
 			bool intake_action_lib_later_write = false;
 			bool robot_action_lib_later_write = false;
 			bool timed_out = false;
-			for(int i = num-1; i > 0; i--)
+			
+			ROS_WARN_STREAM("Time check: " << (ros::Time::now().toSec() < (action_start_time + auto_run_data.actions[num].time)) <<  " dependency check: " << 	dependencies_run);
+				
+
+
+
+			for(int i = num; i >= 0; i--)
 			{	
 				if(finished[i]) continue;
-				finished[i] = check_action_completion(auto_run_data.actions[i].action, intake_action_lib_later_write, robot_action_lib_later_write, timed_out);		
+				finished[i] = check_action_completion(auto_run_data.actions[i].action, intake_action_lib_later_write, robot_action_lib_later_write, timed_out);	
+				time_finished[i] = ros::Time::now().toSec();	
 				exit_auto = exit_auto || timed_out;	
 			}
-			for(int i = 0; i < num_profs - 1; i++)
+			
+			if(auto_run_data.actions[num].wait_action_id >=0)
 			{
+				dependencies_run = finished[auto_run_data.actions[num].wait_action_id] && ros::Time::now().toSec() - time_finished[auto_run_data.actions[num].wait_action_id] > auto_run_data.actions[num].wait_action_time;
+
+			}
+			else
+			{
+				dependencies_run = true; 	
+			} 
+			if(auto_run_data.actions[num].wait_action_id >=0)
+			{
+				dependencies_run = dependencies_run && *(queue_slot.readFromRT()) >= auto_run_data.actions[num].wait_profile_id; //TODO: add support a wait here maybe
+			}
+
+			ROS_WARN_STREAM("prof count: " << num_profs);
+			for(int i = 0; i < num_profs; i++)
+			{
+				//ROS_INFO_STREAM("start loop");
+				//ROS_INFO_STREAM("wait id: " << auto_run_data.wait_ids[i]);
 				if(i <= queued) continue;
+				//ROS_INFO_STREAM("running loop still");
 				if(auto_run_data.wait_ids[i] == -1 || finished[auto_run_data.wait_ids[i]])
 				{
+					
+					//ROS_WARN_STREAM("Queued" << queued);
 					queued = i;
 					if(i!=0)
 					{
@@ -920,6 +1088,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 						}
 						if(!queue_profile(queue));
 						{			
+							ROS_WARN("queue fail");
 							queued -= 1;
 							break;
 							//If we fail try again
@@ -927,6 +1096,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 					}
 					else if(!runTrajectory(start_of_buffer_ids[layout]))
 					{
+						ROS_WARN("runTrajectory fail");
 						queued -= 1;
 						break;
 						//If we fail try again
@@ -938,7 +1108,9 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 				}
 			}
             action_rate.sleep();
+	
 		}
+		ROS_ERROR("hypothetically running actions");	
         call_action(auto_run_data.actions[num].action, auto_run_data.actions[num].action_setpoint);
 	}
 }
@@ -1051,29 +1223,41 @@ int main(int argc, char** argv) {
     BrakeService = n.serviceClient<std_srvs::Empty>("/frcrobot/talon_swerve_drive_controller/brake", false, service_connection_header);
     
     VelPub = n.advertise<geometry_msgs::Twist>("/frcrobot/swerve_drive_controller/cmd_vel", 1);
+    auto_state_0 = n.advertise<std_msgs::Float64>("/frcrobot/auto_state_controller_0/command", 1);
+    auto_state_1 = n.advertise<std_msgs::Float64>("/frcrobot/auto_state_controller_1/command", 1);
+    auto_state_2 = n.advertise<std_msgs::Float64>("/frcrobot/auto_state_controller_2/command", 1);
+    auto_state_3 = n.advertise<std_msgs::Float64>("/frcrobot/auto_state_controller_3/command", 1);
 
+    std_msgs::Float64 state_0;
+    std_msgs::Float64 state_1;
+    std_msgs::Float64 state_2;
+    std_msgs::Float64 state_3;
+    
     ros::Subscriber auto_mode_sub = n.subscribe("autonomous_mode", 1, &auto_mode_cb);
+    ros::Subscriber slot_sub = n.subscribe("profile_queue_num", 1, &queue_slot_cb);
     ros::Subscriber match_data_sub = n.subscribe("match_data", 1, &match_data_cb);
 
 	// Kick off 2 threads to process messages
     ROS_ERROR("Here6");
-	//ros::AsyncSpinner spinner(2);
-	//spinner.start();
+	ros::AsyncSpinner spinner(2);
+	spinner.start();
 	
     ROS_WARN("Auto Client loaded");
-    ros::Duration(4).sleep();
+    //ros::Duration(4).sleep();
 
-    ROS_WARN("post sleep");
+    //ROS_WARN("post sleep");
    
+	/*
+
 	std::vector<bool> test_modes = {true, false, false, false};
 	std::vector<int> test_modes_slot = {0, 1, 2, 3};
 	std::vector<FullMode> test_mode_gen;
-	test_mode_gen.push_back(profiled_modes[6][1][1]);
-	test_mode_gen.push_back(profiled_modes[7][1][2]);
-	test_mode_gen.push_back(profiled_modes[7][2][2]);
-	test_mode_gen.push_back(profiled_modes[7][3][2]);
+	test_mode_gen.push_back(profiled_modes[0][0][0]);
+	test_mode_gen.push_back(profiled_modes[0][1][0]);
+	test_mode_gen.push_back(profiled_modes[0][2][0]);
+	test_mode_gen.push_back(profiled_modes[0][3][0]);
 
-
+	*/
  
     /*---------------------------- JUST FOR TESTING ------------------------------------ */
     //generateTrajectory(test_mode_gen, test_modes_slot = {0, 1, 2, 3}, test_modes = {true, true, true, true});
@@ -1090,17 +1274,23 @@ int main(int argc, char** argv) {
     //ROS_WARN("SUCCESS IN autoInterpreterClient.cpp");
     ros::Rate r(10);
 
-	std::vector<bool> generate_for_this;
-	generate_for_this.resize(4);
-	std::vector<bool> mode_buffered;
-	mode_buffered.resize(4);
+
+
+	ros::service::waitForService("/frcrobot/swerve_drive_controller/run_profile", 60);
+    ros::Duration(4).sleep();
+
     while(ros::ok()) {
         ROS_WARN("running");
+        std::vector<bool> generate_for_this;
+        std::vector<bool> mode_buffered;
+        mode_buffered.resize(4);
+        generate_for_this.resize(4);
         double auto_start_time = DBL_MAX;
         //std::vector<bool> generated_vect = {false, false, false, false};
         std::vector<int> auto_mode_vect = {-1, -1, -1, -1};
         std::vector<double> delays_vect = {0, 0, 0, 0};
         int start_pos = 0;
+		int last_start_pos = 0;
         bool match_data_received = false;
         //int auto_mode = -1;
         int layout = 0;
@@ -1109,6 +1299,7 @@ int main(int argc, char** argv) {
         bool end_auto = false;
         //bool run_regardless = false;
         bool in_teleop = false;
+		const FullMode empty_full_mode;
         while(!in_teleop && !end_auto) {
             ////ROS_ERROR("In auto loop");
 
@@ -1123,26 +1314,31 @@ int main(int argc, char** argv) {
                 //ROS_ERROR_STREAM("1");
                 //bool any_change = false;
 				std::vector<FullMode> out_to_generate;
-				
+				bool generate = false;	
 				for(int i = 0; i<4; i++) {
                     //ROS_ERROR_STREAM("2");
-                    if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
-                        ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
+					if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
+                        ((((auto_mode_data.modes_[i] != auto_mode_vect[i]))) || (auto_mode_data.start_pos_ != last_start_pos)))
                     {
                         //ROS_ERROR_STREAM("3");
 
                         out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_]);
+						//ROS_ERROR_STREAM("actual mode: " << auto_mode_data.modes_[i] - num_cmd_vel_modes << " layout: " << i << " start: " << auto_mode_data.start_pos_); 
 						generate_for_this[i] = true;	
+						generate = true;
+                        auto_mode_status_vect[i]=1;
 						//any_change = true;
                     }
                     else if (auto_mode_data.modes_[i] <= num_cmd_vel_modes-1 && (auto_mode_data.modes_[i] >= 0) &&
-                        ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != start_pos)))
+                        ((auto_mode_data.modes_[i] != auto_mode_vect[i]) || (auto_mode_data.start_pos_ != last_start_pos)))
                     {
-                        out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_]);
+                        out_to_generate.push_back(empty_full_mode);
 						generate_for_this[i] = false;	
                         //ROS_ERROR_STREAM("6");
-                        if(generateTrajectory(cmd_vel_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_])) {
+                        if(generateCmdVelTrajectory(cmd_vel_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_])) {
 							mode_buffered[i] = true;
+                            auto_mode_status_vect[i]=1;
+
                             //ROS_ERROR_STREAM("7");
                             auto_mode_vect[i] = auto_mode_data.modes_[i];
                             delays_vect[i] = auto_mode_data.delays_[i];
@@ -1159,33 +1355,37 @@ int main(int argc, char** argv) {
                         }
                     }
                     else {
-                        out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i]][i][auto_mode_data.start_pos_]);
+                        out_to_generate.push_back(empty_full_mode);
+						generate_for_this[i] = false;	
                     }
                 }
-				
-				if(generateTrajectory(out_to_generate, start_of_buffer_ids, generate_for_this)) {
-					for(int i = 0; i<4; i++) {
-						if(!generate_for_this[i]) continue;
-						//ROS_ERROR_STREAM("4");
-						mode_buffered[i] = true;
-						//generated_vect[i] = true;
-						auto_mode_vect[i] = auto_mode_data.modes_[i];
-						delays_vect[i] = auto_mode_data.delays_[i];
-						//ROS_ERROR_STREAM("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+				if(generate)
+				{	
+					if(generateTrajectory(out_to_generate, start_of_buffer_ids, generate_for_this)) {
+						for(int i = 0; i<4; i++) {
+							if(!generate_for_this[i]) continue;
+							//ROS_ERROR_STREAM("4");
+							mode_buffered[i] = true;
+							//generated_vect[i] = true;
+							auto_mode_vect[i] = auto_mode_data.modes_[i];
+							delays_vect[i] = auto_mode_data.delays_[i];
+							//ROS_ERROR_STREAM("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+						}
+					}
+					else {
+						for(int i = 0; i<4; i++) {
+							if(!generate_for_this[i]) continue;
+							mode_buffered[i] = false;
+							//ROS_ERROR_STREAM("5");
+							auto_mode_vect[i] = 0;
+							delays_vect[i] = 0;
+							//start_pos = -1;
+							//generated_vect[i] = false;
+							//ROS_ERROR_STREAM("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+						}
 					}
 				}
-				else {
-					for(int i = 0; i<4; i++) {
-						if(!generate_for_this[i]) continue;
-						mode_buffered[i] = false;
-						//ROS_ERROR_STREAM("5");
-						auto_mode_vect[i] = 0;
-						delays_vect[i] = 0;
-						//start_pos = -1;
-						//generated_vect[i] = false;
-						//ROS_ERROR_STREAM("Invalid Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
-					}
-				}
+				last_start_pos = start_pos;
             }
 
             if(in_auto && match_data.isAutonomous_ == false) {
@@ -1231,6 +1431,17 @@ int main(int argc, char** argv) {
             if(!in_auto) { //check for auto to start and set a start time
                 //ROS_ERROR_STREAM("6");
                 ////ROS_INFO("Not in auto yet");
+                static int default_lift_iterations = 0;
+                if(default_lift_iterations%5 == 0) {
+                    startMatchConfig();
+                    clamp();
+                    elevator_controller::Intake srv;
+                    srv.request.spring_state = 2; //soft_in
+                    srv.request.power=0;
+                    srv.request.just_override_power = false;
+                    srv.request.up = true;
+                    default_lift_iterations += 1;
+                }
                 if(match_data.isAutonomous_ && match_data.isEnabled_) {
                     //ROS_ERROR_STREAM("Entering Auto");
                     in_auto = true;
@@ -1271,6 +1482,21 @@ int main(int argc, char** argv) {
                 end_auto = true;
             }
 
+            /*
+            auto_mode_status_vect[0] = 1;
+            auto_mode_status_vect[1] = 1;
+            auto_mode_status_vect[2] = 1;
+            auto_mode_status_vect[3] = 1;
+            */
+            state_0.data = auto_mode_status_vect[0];
+            state_1.data = auto_mode_status_vect[1];
+            state_2.data = auto_mode_status_vect[2];
+            state_3.data = auto_mode_status_vect[3];
+            
+            auto_state_0.publish(state_0);
+            auto_state_1.publish(state_1);
+            auto_state_2.publish(state_2);
+            auto_state_3.publish(state_3);
             r.sleep();
         }
 
