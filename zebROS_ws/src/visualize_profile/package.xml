@@ -60,6 +60,7 @@
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>trajectory_msgs</build_export_depend>
   <build_depend>message_generation</build_depend>
+  <build_depend>talon_state_controller</build_depend>
   <exec_depend>message_runtime</exec_depend>
   <exec_depend>matplotlib</exec_depend>
   <exec_depend>rospy</exec_depend>

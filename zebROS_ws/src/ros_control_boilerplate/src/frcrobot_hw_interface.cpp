@@ -467,10 +467,14 @@ void FRCRobotHWInterface::custom_profile_set_talon(bool posMode, double setpoint
 	const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
 	const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
 	
+	pos_offset = 0;	
 	if(zeroPos)
 	{
-		pos_offset = can_talons_[joint_id]->GetSelectedSensorPosition(pidIdx) * radians_scale;
-		talon_state_[joint_id].setPosition(pos_offset);
+		//pos_offset = can_talons_[joint_id]->GetSelectedSensorPosition(pidIdx) /* radians_scale*/;
+
+		can_talons_[joint_id]->SetSelectedSensorPosition(0, pidIdx, timeoutMs);
+		talon_state_[joint_id].setPosition(0);
+		ROS_WARN_STREAM("zeroing talon:" <<  joint_id << " at: " << pos_offset);
 	}
 	//set talon
 	ctre::phoenix::motorcontrol::ControlMode mode;
@@ -482,6 +486,7 @@ void FRCRobotHWInterface::custom_profile_set_talon(bool posMode, double setpoint
 		mode_i = hardware_interface::TalonMode_Position;
 		setpoint += pos_offset;
 		setpoint /= radians_scale; 
+		
 	}
 	else
 	{

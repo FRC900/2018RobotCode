@@ -11,6 +11,7 @@ hardware_interface pluginlib controller_interface sensor_msgs talon_interface
 add_message_files (
   FILES
   TalonState.msg
+  CustomProfileStatus.msg
 )
 generate_messages(
   DEPENDENCIES

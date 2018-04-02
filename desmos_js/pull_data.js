@@ -367,7 +367,7 @@ function loadGraphVals(calculator, vals)
 
 	calculator.setExpression({id:'field1', latex:'y=0\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', domain:{min:'-d_1+d_2', max:'d_1-d_2'}, color: '#000000'});
 	calculator.setExpression({id:'field2', latex:'d_1=\\frac{27}{2}\\cdot12\\cdot\\frac{2.54}{100}'});
-	calculator.setExpression({id:'field3', latex:'d_2=26.69\\cdot\\frac{2.54}{100}'});
+	calculator.setExpression({id:'field3', latex:'d_2=29.69\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field4', latex:'d_3=54\\cdot12\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field5', latex:'d_4=35.34\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field6', latex:'y=d_3\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', color: '#000000'});
@@ -835,7 +835,7 @@ function loadGraph(calculator)
 
 	calculator.setExpression({id:'field1', latex:'y=0\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', domain:{min:'-d_1+d_2', max:'d_1-d_2'}, color: '#000000'});
 	calculator.setExpression({id:'field2', latex:'d_1=\\frac{27}{2}\\cdot12\\cdot\\frac{2.54}{100}'});
-	calculator.setExpression({id:'field3', latex:'d_2=26.69\\cdot\\frac{2.54}{100}'});
+	calculator.setExpression({id:'field3', latex:'d_2=29.69\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field4', latex:'d_3=54\\cdot12\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field5', latex:'d_4=35.34\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field6', latex:'y=d_3\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', color: '#000000'});

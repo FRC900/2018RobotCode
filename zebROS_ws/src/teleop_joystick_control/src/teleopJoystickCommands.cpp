@@ -1217,7 +1217,7 @@ int main(int argc, char **argv)
 	ac_intake = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
 	ac_lift = std::make_shared<actionlib::SimpleActionClient<behaviors::LiftAction>> ("auto_interpreter_server_lift", true);
 
-	JoystickRobotVel = n.advertise<geometry_msgs::Twist>("cmd_vel", 1);
+	JoystickRobotVel = n.advertise<geometry_msgs::Twist>("/frcrobot/swerve_drive_controller/cmd_vel", 1);
 	//JoystickTestVel = n.advertise<std_msgs::Header>("test_header", 3);
 	JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
 	JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);

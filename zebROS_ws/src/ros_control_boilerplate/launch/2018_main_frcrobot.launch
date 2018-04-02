@@ -18,9 +18,9 @@
 
 		<!-- Load controller settings -->
 		<rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
-		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_0.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
-		<rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets0.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets1.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
 		<rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
@@ -40,7 +40,6 @@
 			output="screen" args="spawn joint_state_controller talon_state_controller imu_sensor_controller pdp_state_controller compressor_controller swerve_drive_controller elevator_controller rumble_controller robot_code_ready_controller auto_state_controller_0 auto_state_controller_1 auto_state_controller_2 auto_state_controller_3" />
 
         <node name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands" output="screen" >
-			<remap from="/frcrobot/cmd_vel" to="/frcrobot/swerve_drive_controller/cmd_vel"/> 
 		</node>
         	
 		<node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="screen" >
@@ -60,7 +59,7 @@
 		<node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="screen" >
 		</node>
 	
-		<node name="map_server" pkg="map_server" type="map_server" args="$(find controller_node)/maps/2018FRC_field_half_size.yaml" output="screen" if="$(arg static_map)">
+		<node name="map_server" pkg="map_server" type="map_server" args="$(find controller_node)/maps/2018FRC_field.yaml" output="screen" if="$(arg static_map)">
 			<param name="frame_id" value="/map"/>
 		</node>
 		
@@ -69,6 +68,8 @@
 
 
 		<node name="robot_visualize" pkg="robot_visualizer" type="robot_visualize" output="screen" >
+		</node>
+		<node name="profile_follow" pkg="robot_visualizer" type="profile_follow" output="screen" >
 		</node>
 
 		<!-- <node name="debug_cmd_vel" pkg="teleop_joystick_control" type="debug_cmd_vel" output="screen" /> -->
