@@ -54,7 +54,7 @@ static ros::ServiceClient BrakeSrv;
 
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
-ros::ServiceClient generate_coefs;
+ros::ServiceClient spline_gen;
 
 static double high_scale_config_x;
 static double high_scale_config_y;
@@ -225,11 +225,11 @@ bool generateCoefs(const double angle_diff, const ros::Duration time_to_run, bas
 	srvBaseTrajectory.request.points.resize(1); //only need one endpoint -- final orientation of robot
 	
 	//x-movement (not moving at all)
-	srvBaseTrajectory.request.points[0].positions.push_back(0);
+	srvBaseTrajectory.request.points[0].positions.push_back(.01);
 	srvBaseTrajectory.request.points[0].velocities.push_back(0);
 	srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 	//y-movement (not moving at all)
-	srvBaseTrajectory.request.points[0].positions.push_back(0);
+	srvBaseTrajectory.request.points[0].positions.push_back(.01);
 	srvBaseTrajectory.request.points[0].velocities.push_back(0);
 	srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 	//z-rotation
@@ -239,7 +239,7 @@ bool generateCoefs(const double angle_diff, const ros::Duration time_to_run, bas
 	//time for profile to run
 	srvBaseTrajectory.request.points[0].time_from_start = time_to_run; 
 
-	if(!generate_coefs.call(srvBaseTrajectory))
+	if(!spline_gen.call(srvBaseTrajectory))
 		return false;
 	else
 		return true;
@@ -250,13 +250,18 @@ bool generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory,
 	traj.request.orient_coefs = srvBaseTrajectory.response.orient_coefs;
 	traj.request.x_coefs = srvBaseTrajectory.response.x_coefs;
 	traj.request.y_coefs = srvBaseTrajectory.response.y_coefs;
-	traj.request.spline_groups.push_back(0);
+	traj.request.spline_groups.push_back(1);
 	traj.request.wait_before_group.push_back(0);
 	traj.request.t_shift.push_back(0);
-	traj.request.flip.push_back(0);
+	traj.request.flip.push_back(false);
 	traj.request.end_points = srvBaseTrajectory.response.end_points;
 	traj.request.initial_v = 0;
 	traj.request.final_v = 0;
+
+	if (traj.request.end_points.empty())
+		ROS_WARN("request end points are empty");
+	else
+		ROS_WARN("request end points are not empty????????");
 
 	if (srvBaseTrajectory.response.end_points.empty())
 		ROS_INFO_STREAM("things are broken");
@@ -271,9 +276,11 @@ bool runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
 {
 	talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
 
+	ROS_INFO_STREAM("traj: " << traj.dt);
+
 	swerve_control_srv.request.profiles.resize(1);
     swerve_control_srv.request.profiles[0].points = traj.points;
-    swerve_control_srv.request.profiles[0].dt = traj.dt;
+    swerve_control_srv.request.profiles[0].dt = 0.02;
     swerve_control_srv.request.buffer = true;
     swerve_control_srv.request.run = true;
     swerve_control_srv.request.profiles[0].slot = 0;
@@ -1179,13 +1186,15 @@ if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 			swerve_point_generator::FullGenCoefs traj;
 			
 			if (!generateCoefs(least_dist_angle - angle, time_to_run, srvBaseTrajectory)) //generate coefficients for the spline from the endpoints 
-				ROS_INFO_STREAM("generate_coefs died in teleopJoystickCommands generateCoefs");
-			else {
+				ROS_INFO_STREAM("spline_gen died in teleopJoystickCommands generateCoefs");
+			if (srvBaseTrajectory.response.end_points.empty())
+				ROS_WARN("END POINTS EMPTY");
+			else
+				ROS_WARN("NOPE YOU'RE GOOD");
 			if (!generateTrajectory(srvBaseTrajectory, traj)) //generate a motion profile from the coefs
 				ROS_INFO_STREAM("point_gen died in teleopJoystickCommands generateTrajectory");
 			if (!runTrajectory(traj.response)) //run on swerve_control
 				ROS_ERROR("swerve_control failed in teleopJoystickCommands runTrajectory");
-			}
 		}
 		else
 			ROS_WARN("Orient already running! Can't generate trajectory");
@@ -1320,7 +1329,7 @@ int main(int argc, char **argv)
 	BrakeSrv = n.serviceClient<std_srvs::Empty>("/frcrobot/swerve_drive_controller/brake", false, service_connection_header);
 	point_gen = n.serviceClient<swerve_point_generator::FullGenCoefs>("/point_gen/command", false, service_connection_header);
 	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile", false, service_connection_header);
-	generate_coefs = n.serviceClient<base_trajectory::GenerateSpline>("/base_trajectory/spline_gen", false, service_connection_header);
+	spline_gen = n.serviceClient<base_trajectory::GenerateSpline>("/base_trajectory/spline_gen", false, service_connection_header);
 
 	ros::Subscriber joystick_sub  = n.subscribe("joystick_states", 1, &evaluateCommands);
 	ros::Subscriber match_data    = n.subscribe("match_data", 1, &match_data_callback);
