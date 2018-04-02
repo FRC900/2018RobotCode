@@ -114,8 +114,10 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 		//ROS_WARN("TEST2");
 
 
+		
+
 		graph_msg.request.joint_trajectory.header = srv_msg.header;
-		graph_msg.request.joint_trajectory.points.insert(graph_msg.request.joint_trajectory.points.end(), srv_msg.points.begin(), srv_msg.points.end());
+
 
 		
 
@@ -169,6 +171,9 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 		std::array<double, WHEELCOUNT> vel_sum;
 		for (int i = prev_point_count; i < n+prev_point_count; i++)
 		{
+				
+			graph_msg.request.joint_trajectory.points.push_back(srv_msg.points[0]);
+	
 			for (size_t k = 0; k < WHEELCOUNT; k++)
 			{
 				//ROS_WARN("hhhhere");
@@ -191,6 +196,10 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 				//ROS_INFO_STREAM(" hhhh" << "drive_pos: " << res.points[i+1].drive_pos[k] << "drive_vel: " << res.points[i+1].drive_vel[k] << "steer_pos: " << res.points[i+1].steer_pos[i]);
 			}
 		}
+
+		
+		graph_msg.request.joint_trajectory.points.insert(graph_msg.request.joint_trajectory.points.end(), srv_msg.points.begin(), srv_msg.points.end());
+
 		std::array<double, WHEELCOUNT> prev_vels;
 		std::array<double, WHEELCOUNT> prev_steer_pos;
 		for (size_t k = 0; k < WHEELCOUNT; k++)
@@ -243,7 +252,7 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 				
 				prev_steer_pos[k] = angles_positions[k][1]; 
 				
-				//ROS_INFO_STREAM(" hhhh" << "drive_pos: " << res.points[i+1].drive_pos[k] << "drive_vel: " << res.points[i+1].drive_vel[k] << "steer_pos: " << res.points[i+1].steer_pos[i]);
+				//ROS_INFO_STREAM("drive_pos: " << res.points[i+n+prev_point_count].drive_pos[k] << "drive_f: " << res.points[i+n+prev_point_count].drive_f[k] << "steer_pos: " << res.points[i+n+prev_point_count].steer_pos[k]);
 			}
 		}	
 		prev_point_count += point_count + n - k_p;	

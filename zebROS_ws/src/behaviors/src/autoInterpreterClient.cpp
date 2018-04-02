@@ -711,6 +711,8 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 {
 	trajectory_msgs_pass_out.resize(trajectory.size());
 
+	ROS_ERROR_STREAM("num traj msgs: " << trajectory_msgs_pass_out.size());
+
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.wipe_all = false;
     swerve_control_srv.request.buffer = true;
@@ -720,9 +722,10 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 	for(size_t k = 0; k < trajectory.size(); k++)
 	{
         
+		if(!generate[k]) continue;
 		trajectory_msgs_pass_out[k].clear();
 		auto_mode_status_vect[k] = 1;
-		if(!generate[k]) continue;
+
 		//ROS_ERROR("DO WE fail here");
 		if(!trajectory[k].exists)
 		{
@@ -750,6 +753,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 	
 		}
         ROS_ERROR("Succeeded in generate Trajectory");
+		//ROS_ERROR_STREAM("num traj msgs sub msgs: " << trajectory_msgs_pass_out[k].size());
 	}
     if (!swerve_control.call(swerve_control_srv))
 	{
@@ -1069,7 +1073,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 			bool robot_action_lib_later_write = false;
 			bool timed_out = false;
 			
-			ROS_WARN_STREAM("Time check: " << (ros::Time::now().toSec() < (action_start_time + auto_run_data.actions[num].time)) <<  " dependency check: " << 	dependencies_run);
+			//ROS_WARN_STREAM("Time check: " << (ros::Time::now().toSec() < (action_start_time + auto_run_data.actions[num].time)) <<  " dependency check: " << 	dependencies_run);
 				
 
 
@@ -1096,7 +1100,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 				dependencies_run = dependencies_run && *(queue_slot.readFromRT()) >= auto_run_data.actions[num].wait_profile_id; //TODO: add support a wait here maybe
 			}
 
-			ROS_WARN_STREAM("prof count: " << num_profs);
+			//ROS_WARN_STREAM("prof count: " << num_profs);
 			for(int i = 0; i < num_profs; i++)
 			{
 				//ROS_INFO_STREAM("start loop");
@@ -1139,7 +1143,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
             action_rate.sleep();
 	
 		}
-		ROS_ERROR("hypothetically running actions");	
+		ROS_ERROR_STREAM("hypothetically running action: " << num);	
         call_action(auto_run_data.actions[num].action, auto_run_data.actions[num].action_setpoint);
 	}
 }
@@ -1402,7 +1406,9 @@ int main(int argc, char** argv) {
 							auto_mode_vect[i] = auto_mode_data.modes_[i];
 							delays_vect[i] = auto_mode_data.delays_[i];
 							//ROS_ERROR_STREAM("Generating Auto mode [%d], to be mode: %d", i, auto_mode_data.modes_[i]);
+							ROS_ERROR_STREAM("Sizing: " << joint_trajectories[i].size());
 						}
+
 					}
 					else {
 						for(int i = 0; i<4; i++) {
