@@ -118,6 +118,7 @@ float64[] motion_profile_trajectory_period
 string[]  faults
 string[]  sticky_faults
 float64[] conversion_factor
+talon_state_controller/CustomProfileStatus[] custom_profile_status
 bool[]    water_game
 
 #TODO: add custom profile status struct by breaking it up etc.

@@ -62,6 +62,8 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 
 	auto &m = realtime_pub_->msg_;
 	// get joints and allocate message
+	talon_state_controller::CustomProfileStatus custom_profile_status_holder;	
+
 	for (unsigned i = 0; i < num_hw_joints_; i++)
 	{
 		m.name.push_back(joint_names[i]);
@@ -172,6 +174,8 @@ bool TalonStateController::init(hardware_interface::TalonStateInterface *hw,
 		m.faults.push_back("");
 		m.sticky_faults.push_back("");
 		m.conversion_factor.push_back(0.0);
+		m.custom_profile_status.push_back(custom_profile_status_holder);
+
 		m.water_game.push_back(true);
 
 		talon_state_.push_back(hw->getHandle(joint_names[i]));
@@ -226,6 +230,10 @@ std::string TalonStateController::limitSwitchNormalToString(const hardware_inter
 
 void TalonStateController::update(const ros::Time &time, const ros::Duration & /*period*/)
 {
+	
+	
+	talon_state_controller::CustomProfileStatus custom_profile_status_holder;	
+
 	// limit rate of publishing
 	if (publish_rate_ > 0.0 && last_publish_time_ + ros::Duration(1.0 / publish_rate_) < time)
 	{
@@ -517,6 +525,18 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 					}
 					m.sticky_faults[i] = str;
 				}
+	
+				
+				hardware_interface::CustomProfileStatus temp_status = ts->getCustomProfileStatus();
+				custom_profile_status_holder.running = temp_status.running;
+				custom_profile_status_holder.slotRunning = temp_status.slotRunning;
+				custom_profile_status_holder.remainingPoints  = temp_status.remainingPoints;
+				 custom_profile_status_holder.remainingTime = temp_status.remainingTime;
+				 custom_profile_status_holder.outOfPoints = temp_status.outOfPoints;
+
+				m.custom_profile_status[i] = custom_profile_status_holder;
+
+
 				m.conversion_factor[i] = ts->getConversionFactor();
 				//Add custom profile status
 			}

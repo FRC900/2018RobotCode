@@ -70,6 +70,8 @@
 
 		<node name="robot_visualize" pkg="robot_visualizer" type="robot_visualize" output="screen" >
 		</node>
+		<node name="profile_follow" pkg="robot_visualizer" type="profile_follow" output="screen" >
+		</node>
 
 		<!-- <node name="debug_cmd_vel" pkg="teleop_joystick_control" type="debug_cmd_vel" output="screen" /> -->
 		

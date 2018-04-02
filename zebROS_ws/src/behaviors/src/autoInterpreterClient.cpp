@@ -6,6 +6,7 @@
 #include <realtime_tools/realtime_buffer.h>
 #include <ros_control_boilerplate/AutoModeStatus.h>
 #include <std_msgs/Float64.h>
+#include <robot_visualizer/ProfileFollower.h>
 
 
 //enum Action {deploy_intake, undeploy_intake, intake_cube, intake_no_arm, exchange_cube, default_config, intake_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, release_clamp};
@@ -23,6 +24,10 @@ static ros::ServiceClient IntakeService;
 static ros::ServiceClient ElevatorService;
 static ros::ServiceClient ClampService;
 static ros::ServiceClient BrakeService;
+static ros::ServiceClient VisualizeService;
+
+
+
 static ros::Publisher VelPub;
 static ros::Publisher auto_state_0;
 static ros::Publisher auto_state_1;
@@ -49,6 +54,8 @@ double default_y;
 double run_out_start;
 static bool default_up_or_down;
 std::vector<double> auto_mode_status_vect = {1, 1, 1, 1};
+
+std::vector<std::vector<trajectory_msgs::JointTrajectory>> joint_trajectories;
 
 
 struct MatchData {
@@ -700,8 +707,10 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 	return all_modes;
 }
 
-bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int> &start_buffer_ids, const std::vector<bool> &generate)
+bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int> &start_buffer_ids, const std::vector<bool> &generate, std::vector<std::vector<trajectory_msgs::JointTrajectory>> &trajectory_msgs_pass_out)
 {
+	trajectory_msgs_pass_out.resize(trajectory.size());
+
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.wipe_all = false;
     swerve_control_srv.request.buffer = true;
@@ -710,7 +719,9 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 
 	for(size_t k = 0; k < trajectory.size(); k++)
 	{
-        auto_mode_status_vect[k] = 1;
+        
+		trajectory_msgs_pass_out[k].clear();
+		auto_mode_status_vect[k] = 1;
 		if(!generate[k]) continue;
 		//ROS_ERROR("DO WE fail here");
 		if(!trajectory[k].exists)
@@ -733,7 +744,10 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 			temp_holder.points = trajectory[k].srv_msgs[i].response.points;
 			temp_holder.slot = i + start_buffer_ids[k];
 			swerve_control_srv.request.profiles.push_back(temp_holder);
-			
+					
+			trajectory_msgs_pass_out[k].push_back(trajectory[k].srv_msgs[i].response.joint_trajectory);
+
+	
 		}
         ROS_ERROR("Succeeded in generate Trajectory");
 	}
@@ -996,7 +1010,22 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     ros::Rate r(10);
 
     double start_time = ros::Time::now().toSec();
-    
+   
+
+	robot_visualizer::ProfileFollower srv_viz_msg;
+	srv_viz_msg.request.joint_trajectories = joint_trajectories[layout];
+
+	srv_viz_msg.request.start_id = start_of_buffer_ids[layout];
+
+	if(!VisualizeService.call(srv_viz_msg))
+	{
+		ROS_ERROR("failed to call viz srv");
+	}
+	else
+	{
+		ROS_ERROR("succeded in call to viz srv");
+	}
+ 
     while(!exit_auto && ros::Time::now().toSec() < start_time + initial_delay) {
         r.sleep(); 
     }
@@ -1221,7 +1250,8 @@ int main(int argc, char** argv) {
     ElevatorService = n.serviceClient<elevator_controller::ElevatorControlS>("/frcrobot/elevator_controller/cmd_posS", false, service_connection_header);
     ClampService = n.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
     BrakeService = n.serviceClient<std_srvs::Empty>("/frcrobot/talon_swerve_drive_controller/brake", false, service_connection_header);
-    
+	VisualizeService = n.serviceClient<robot_visualizer::ProfileFollower>("/frcrobot/visualize_auto", false, service_connection_header);    
+
     VelPub = n.advertise<geometry_msgs::Twist>("/frcrobot/swerve_drive_controller/cmd_vel", 1);
     auto_state_0 = n.advertise<std_msgs::Float64>("/frcrobot/auto_state_controller_0/command", 1);
     auto_state_1 = n.advertise<std_msgs::Float64>("/frcrobot/auto_state_controller_1/command", 1);
@@ -1278,6 +1308,8 @@ int main(int argc, char** argv) {
 
 	ros::service::waitForService("/frcrobot/swerve_drive_controller/run_profile", 60);
     ros::Duration(4).sleep();
+
+
 
     while(ros::ok()) {
         ROS_WARN("running");
@@ -1361,7 +1393,7 @@ int main(int argc, char** argv) {
                 }
 				if(generate)
 				{	
-					if(generateTrajectory(out_to_generate, start_of_buffer_ids, generate_for_this)) {
+					if(generateTrajectory(out_to_generate, start_of_buffer_ids, generate_for_this, joint_trajectories)) {
 						for(int i = 0; i<4; i++) {
 							if(!generate_for_this[i]) continue;
 							//ROS_ERROR_STREAM("4");

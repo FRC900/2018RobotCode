@@ -40,6 +40,7 @@
 #include <boost/shared_ptr.hpp>
 #include <talon_interface/talon_state_interface.h>
 #include <talon_state_controller/TalonState.h>
+#include <talon_state_controller/CustomProfileStatus.h>
 
 namespace talon_state_controller
 {

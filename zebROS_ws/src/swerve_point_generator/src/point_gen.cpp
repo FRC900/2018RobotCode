@@ -117,6 +117,8 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 		graph_msg.request.joint_trajectory.header = srv_msg.header;
 		graph_msg.request.joint_trajectory.points.insert(graph_msg.request.joint_trajectory.points.end(), srv_msg.points.begin(), srv_msg.points.end());
 
+		
+
 		res.dt = defined_dt;
 
 		//ROS_INFO_STREAM("dt: " << res.dt);
@@ -252,6 +254,9 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 	graph_prof.call(graph_msg);
 	res.points.erase(res.points.begin() + prev_point_count, res.points.end());
 	ROS_INFO_STREAM("profile time: " << res.points.size() * defined_dt);
+	
+	res.joint_trajectory = graph_msg.request.joint_trajectory;
+
 	//talon_swerve_drive_controller::MotionProfilePoints graph_swerve_msg;
 	//graph_swerve_msg.request.points = res.points;
 	//graph_swerve_prof.call(graph_swerve_msg);
