@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   trajectory_msgs
+  talon_state_controller
 )
 
 ## System dependencies are found with CMake's conventions

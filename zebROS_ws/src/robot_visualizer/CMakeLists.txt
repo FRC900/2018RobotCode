@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
 	geometry_msgs
 	trajectory_msgs
 	message_generation
+    talon_state_controller
 )
 
 find_package(Eigen3 REQUIRED)
@@ -34,6 +35,7 @@ generate_messages(
 catkin_package(
   CATKIN_DEPENDS
 	roscpp
+    talon_state_controller
   INCLUDE_DIRS include
   #LIBRARIES ${PROJECT_NAME}
   DEPENDS
