@@ -8,6 +8,7 @@
 
 	<arg name="hw_or_sim" default="hw" />
 	<arg name="bot id" default="0" />
+	<arg name="static_map" default="True"/>
 
 	<!-- Load example URDF 
 	<param name="robot_description" command="$(find xacro)/xacro - -inorder '$(find ros_control_boilerplate)/urdf/base_trajectory.xacro'" />
@@ -27,6 +28,7 @@
 		<rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
         <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
         <rosparam file="$(find behaviors)/config/autoInterpreterServer.yaml" command="load"/>
+        <rosparam file="$(find robot_visualizer)/config/robot_visualize.yaml" command="load"/>
 
 		<!-- Load hardware interface -->
 		<node name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
@@ -56,6 +58,17 @@
 		<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="screen" >
         	</node>
 			<node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="screen" >
+		</node>
+	
+		<node name="map_server" pkg="map_server" type="map_server" args="$(find controller_node)/maps/2018FRC_field_half_size.yaml" output="screen" if="$(arg static_map)">
+			<param name="frame_id" value="/map"/>
+		</node>
+		
+
+
+
+
+		<node name="robot_visualize" pkg="robot_visualizer" type="robot_visualize" output="screen" >
 		</node>
 
 		

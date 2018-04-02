@@ -1,0 +1,16 @@
+robot_visual:
+    width: .89
+    length: 1.022
+    wheel_base_pos_offset: .054
+    intake_length: .26
+    intake_width: .26
+    intake_angle_in: 1.5
+    intake_angle_out: 2.29
+    intake_position: 0.45
+    arm_length_place_forward: .36
+    arm_length_place_backward: -0.36
+    arm_length_place_switch: 0.4318
+    arm_length_intake: .1
+    arm_pivot_position: .30
+    
+
