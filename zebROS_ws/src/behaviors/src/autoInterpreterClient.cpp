@@ -843,6 +843,8 @@ bool check_action_completion(Action action, bool &intake_server_action, bool &ro
 			{
 				return false;
 			}
+        case do_nothing:
+            return true;
         case intake_no_arm:
             return true;
         case exchange_cube:
@@ -873,6 +875,8 @@ bool check_action_completion(Action action, bool &intake_server_action, bool &ro
 bool call_action(Action action, const ActionSetpoint &action_setpoint) {
     ROS_WARN("%d", action);
     switch(action) {
+        case do_nothing:
+            break;
         case deploy_intake:
             deployIntake();
             break;
