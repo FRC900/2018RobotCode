@@ -56,7 +56,7 @@
         	
 		<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="screen" >
         	</node>
-		<node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="screen" >
+			<node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="screen" >
 		</node>
 	
 		<node name="map_server" pkg="map_server" type="map_server" args="$(find controller_node)/maps/2018FRC_field.yaml" output="screen" if="$(arg static_map)">
@@ -72,6 +72,7 @@
 		<node name="profile_follow" pkg="robot_visualizer" type="profile_follow" output="screen" >
 		</node>
 
+		<node name="base_trajectory_node" pkg="base_trajectory" type="base_trajectory" output="screen" > </node> 
 		<!-- <node name="debug_cmd_vel" pkg="teleop_joystick_control" type="debug_cmd_vel" output="screen" /> -->
 		
 
