@@ -1,5 +1,5 @@
 <library path="src">
-  <class name="rqt_driver_station_sim" type="rqt_driver_station_sim.rqt_driver_station_sim.DriverStationSim" base_class_type="rqt_gui_py::Plugin">
+  <class name="rqt_driver_station_sim" type="rqt_driver_station_sim.driver_station_sim.DriverStationSim" base_class_type="rqt_gui_py::Plugin">
     <description>
       An example Python GUI plugin to create a great user interface.
     </description>
@@ -13,7 +13,7 @@
       </group>
       -->
       <label>Rqt Driver Station Sim</label>
-      <icon type="theme">system-help</icon>
+      <icon type="theme">folder</icon>
       <statustip>Driver Station mimic that runs in sim.</statustip>
     </qtgui>
   </class>
