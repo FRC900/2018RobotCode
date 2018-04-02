@@ -229,8 +229,9 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 	}
 	//ROS_ERROR("finished raw generation");
 	ROS_INFO_STREAM("time: " << point_count * dt_);
+	ROS_INFO_STREAM("total_arc: " << total_arc);
 	out_msg.points.erase(out_msg.points.begin() + point_count - 1, out_msg.points.end());
-	//ROS_ERROR_STREAM("p: " << out_msg.points.size());
+	ROS_ERROR_STREAM("p: " << out_msg.points.size());
 	return true;
 }
 // TODO :: is return code needed here?

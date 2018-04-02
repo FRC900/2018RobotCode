@@ -13,7 +13,7 @@
 	<!-- Load example URDF 
 	<param name="robot_description" command="$(find xacro)/xacro - -inorder '$(find ros_control_boilerplate)/urdf/base_trajectory.xacro'" />
 	-->
-
+	<node name="base_trajectory_node" pkg="base_trajectory" type="base_trajectory_node" output="screen" > </node> 
 	<group ns="frcrobot">
 
 		<!-- Load controller settings -->
@@ -72,7 +72,7 @@
 		<node name="profile_follow" pkg="robot_visualizer" type="profile_follow" output="screen" >
 		</node>
 
-		<node name="base_trajectory_node" pkg="base_trajectory" type="base_trajectory" output="screen" > </node> 
+		
 		<!-- <node name="debug_cmd_vel" pkg="teleop_joystick_control" type="debug_cmd_vel" output="screen" /> -->
 		
 
