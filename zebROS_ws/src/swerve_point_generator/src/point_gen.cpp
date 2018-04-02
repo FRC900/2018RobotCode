@@ -193,7 +193,7 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 
 				res.points[i].steer_pos.push_back(angles_positions[k][1]);
 				res.points[i].steer_f.push_back(0); 
-				//ROS_INFO_STREAM(" hhhh" << "drive_pos: " << res.points[i+1].drive_pos[k] << "drive_vel: " << res.points[i+1].drive_vel[k] << "steer_pos: " << res.points[i+1].steer_pos[i]);
+				//ROS_INFO_STREAM("drive_pos: " << res.points[i+1].drive_pos[k] << "drive_f: " << res.points[i+1].drive_vel[k] << "steer_pos: " << res.points[i+1].steer_pos[i]);
 			}
 		}
 
@@ -252,7 +252,7 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 				
 				prev_steer_pos[k] = angles_positions[k][1]; 
 				
-				//ROS_INFO_STREAM("drive_pos: " << res.points[i+n+prev_point_count].drive_pos[k] << "drive_f: " << res.points[i+n+prev_point_count].drive_f[k] << "steer_pos: " << res.points[i+n+prev_point_count].steer_pos[k]);
+				ROS_INFO_STREAM("drive_pos: " << res.points[i+n+prev_point_count].drive_pos[k] << "drive_f: " << res.points[i+n+prev_point_count].drive_f[k] << "steer_pos: " << res.points[i+n+prev_point_count].steer_pos[k]);
 			}
 		}	
 		prev_point_count += point_count + n - k_p;	

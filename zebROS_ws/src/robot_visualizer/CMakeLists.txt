@@ -35,7 +35,6 @@ generate_messages(
 catkin_package(
   CATKIN_DEPENDS
 	roscpp
-    talon_state_controller
   INCLUDE_DIRS include
   #LIBRARIES ${PROJECT_NAME}
   DEPENDS
