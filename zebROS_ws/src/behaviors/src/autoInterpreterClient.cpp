@@ -636,9 +636,6 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 							profiled_modes[mode][layout][start_pos].actions[num].action = release_clamp;
                             ROS_ERROR("other");
 						}
-                        else {
-                            ROS_ERROR("LEmurs have returned");
-                        }
 
 					//Exception handling?
 					const double time_now = time;
