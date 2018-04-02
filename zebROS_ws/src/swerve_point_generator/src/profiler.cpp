@@ -362,6 +362,7 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 
 		}
 		arc_before = total_arc_length;
+		ROS_INFO_STREAM("arc_before: " << arc_before);
 		for (size_t k = 0; k < 100; k++)
 		{
 			a_val = k * period_t + start;
@@ -377,9 +378,12 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 
 			//f(t) = sqrt((dx/dt)^2 + (dy/dt)^2)
 
+			ROS_INFO_STREAM("period_t: " << period_t);
+			ROS_INFO_STREAM("idek: " << (sqrt(x_at_a * x_at_a + y_at_a * y_at_a) + 4 *
+												sqrt(x_at_avg * x_at_avg + y_at_avg * y_at_avg) + sqrt(x_at_b * x_at_b + y_at_b * y_at_b)));
 			total_arc_length += period_t / 6 * (sqrt(x_at_a * x_at_a + y_at_a * y_at_a) + 4 *
 												sqrt(x_at_avg * x_at_avg + y_at_avg * y_at_avg) + sqrt(x_at_b * x_at_b + y_at_b * y_at_b));
-			//ROS_INFO_STREAM("Spline: " << i << " t_val: " << a_val <<"  arc_length: " << total_arc_length);
+			ROS_INFO_STREAM("Spline: " << i << " t_val: " << a_val <<"  arc_length: " << total_arc_length);
 		}
 	}
 	if(x_splines_first_deriv.size() == 1)
