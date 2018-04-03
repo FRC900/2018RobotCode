@@ -556,7 +556,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	//ROS_INFO_STREAM("Intake power: " << cur_intake_cmd.power << " up?: " << cur_intake_cmd.up_command << " in state: " <<  cur_intake_cmd.spring_command);
 	
 	intake1_joint_.setCommand(cur_intake_cmd.power);
-    if(cur_intake_cmd.power != cur_intake_cmd.other_power && cur_intake_cmd.power != 0.0) 
+    if(cur_intake_cmd.power != cur_intake_cmd.other_power) 
     {
         intake2_joint_.setCommand(cur_intake_cmd.other_power);
     }
