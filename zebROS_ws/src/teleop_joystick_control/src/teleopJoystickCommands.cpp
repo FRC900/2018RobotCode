@@ -504,8 +504,30 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	}
 	/*------------------No Cube - Single Press Intake-------------------*/
 
+<<<<<<< HEAD
 	//if (JoystickState->buttonAPress == true && !(localCubeState.hasCubeClamp_ && local_clamped) && (timeSecs - place_start) > 1.0  )
     if(JoystickState->buttonAPress)
+=======
+	if (JoystickState->buttonAPress == true)
+	{
+
+
+
+		srvIntake.request.power = 0;
+		srvIntake.request.spring_state = 1; //soft_in
+		srvIntake.request.up = false;
+		if (!IntakeSrv.call(srvIntake))
+			ROS_ERROR("IntakeSrv call failed in ready_to_spin_out_check");
+
+
+
+
+
+
+	}
+
+	/*if (JoystickState->buttonAPress == true && !(localCubeState.hasCubeClamp_ && local_clamped) && (timeSecs - place_start) > 1.0  )
+>>>>>>> db6144331d69e13dc6fa602a7942d35d75667b7b
 	{
 		teleop_cancel();	
 
@@ -545,6 +567,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 			intake_up = false;
 		}
 	}
+	*/
 
 	/*------------------ Start Button(M2) No Cube - intake without clampe --------------*/
 
