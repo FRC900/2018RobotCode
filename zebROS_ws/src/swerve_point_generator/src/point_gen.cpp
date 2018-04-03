@@ -252,7 +252,7 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 				
 				prev_steer_pos[k] = angles_positions[k][1]; 
 				
-				ROS_INFO_STREAM("drive_pos: " << res.points[i+n+prev_point_count].drive_pos[k] << "drive_f: " << res.points[i+n+prev_point_count].drive_f[k] << "steer_pos: " << res.points[i+n+prev_point_count].steer_pos[k]);
+				//ROS_INFO_STREAM("drive_pos: " << res.points[i+n+prev_point_count].drive_pos[k] << "drive_f: " << res.points[i+n+prev_point_count].drive_f[k] << "steer_pos: " << res.points[i+n+prev_point_count].steer_pos[k]);
 			}
 		}	
 		prev_point_count += point_count + n - k_p;	

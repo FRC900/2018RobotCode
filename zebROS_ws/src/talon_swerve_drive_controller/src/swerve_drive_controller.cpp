@@ -627,10 +627,22 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	//For this to be thread safe, the assumption is that the serv is called relatively infrequently
 	if(cur_prof_cmd.newly_set)
 	{
-		
-		
+		if(cur_prof_cmd.brake)
+		{	
+			ROS_WARN("profile_reset");
+			//required for reset
+			for(size_t k = 0; k < WHEELCOUNT; k++)
+			{
+				steering_joints_[k].setCustomProfileRun(false);
+				speed_joints_[k].setCustomProfileRun(false);
+			}
+
+			mode_.writeFromNonRT(true); //Should be fine
+	
+		}
 		if(cur_prof_cmd.wipe_all)
 		{
+			ROS_WARN("profile_wipe");
 			for(int i = 0; i < num_profile_slots_; i++)
 			{	
 				for(size_t k = 0; k < WHEELCOUNT; k++)
@@ -1014,6 +1026,7 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 
 		full_profile_struct.wipe_all		= req.wipe_all;		
 		full_profile_struct.run				= req.run;		
+		full_profile_struct.brake			= req.brake;		
 		full_profile_struct.run_slot		= req.run_slot;		
 		full_profile_struct.change_queue	= req.change_queue;
 		for(size_t i= 0; i< req.new_queue.size(); i++)
