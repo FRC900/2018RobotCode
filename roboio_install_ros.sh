@@ -98,6 +98,12 @@ ln -s /etc/init.d/setupClock /etc/init.d/hwclock.sh
 /usr/sbin/update-rc.d -f setupClock defaults
 /usr/sbin/update-rc.d -f hwclock.sh defaults
 
+# Set up prereqs for deploy script
+mv ~/2018RobotCode ~/2018RobotCode.orig
+ln -s ~/2018RobotCode.orig ~/2018RobotCode
+mkdir -p ~/2018RobotCode.prod/zebROS_ws
+mkdir -p ~/2018RobotCode.dev/zebROS_ws
+
 #*******************************************************
 # STOP HERE
 #*******************************************************
