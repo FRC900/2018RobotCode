@@ -370,6 +370,7 @@ class autoAction
 						open_time = ros::Time::now().toSec();
 						elevator_controller::Intake srvIntake;
 						srvIntake.request.power = 0.0;
+						srvIntake.request.other_power = 0.0;
 						srvIntake.request.up = false;
 						srvIntake.request.just_override_power = false;
 						srvIntake.request.spring_state = 1; //hard_out
@@ -472,6 +473,7 @@ class autoAction
 
 				elevator_controller::Intake srvIntake;
 				srvIntake.request.power = 0;
+                srvIntake.request.other_power = 0.0;
 				srvIntake.request.up = false;
 				srvIntake.request.just_override_power = false;
 				srvIntake.request.spring_state = 1; //hard_out
@@ -505,6 +507,7 @@ class autoAction
 					
 					elevator_controller::Intake srvIntake;
 					srvIntake.request.power = .15; //hold dat cube
+                    srvIntake.request.other_power = .15;
 					srvIntake.request.up = false;
 					srvIntake.request.spring_state = 3; //hard_in
 					srvIntake.request.just_override_power = false;
