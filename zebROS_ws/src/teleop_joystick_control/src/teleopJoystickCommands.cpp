@@ -161,6 +161,7 @@ void intakeGoToDefault(bool &intake_up)
 {
 	elevator_controller::Intake srvIntake;
 	srvIntake.request.power = 0;
+	srvIntake.request.other_power = 0;
 	srvIntake.request.just_override_power = true; //Maybe this shouldn't be true?
 	srvIntake.request.spring_state = 2; //soft_in
 	srvIntake.request.up = false;
@@ -484,9 +485,11 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		ac_lift->cancelAllGoals();
 		//if(!ac_intake->getState().isDone())
 		ac_intake->cancelAllGoals();
-		buttonBackStart = timeSecs;
+		buttonBackStart = timeSecs - 1.5;
 		run_out = true;
 		srvIntake.request.power = -1;
+        srvIntake.request.other_power = 1;
+        srvIntake.request.other_power = -1;
 		srvIntake.request.spring_state = 2; //soft_in
 		srvIntake.request.up = false;
 		if (!IntakeSrv.call(srvIntake))
@@ -580,6 +583,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		//ROS_INFO("teleop : called ClampSrv in ready_to_spin_out_check");
 
 		srvIntake.request.power = -1;
+        srvIntake.request.other_power = -1;
 		srvIntake.request.spring_state = 2; //soft_in
 		srvIntake.request.up = false;
 		if (!IntakeSrv.call(srvIntake))
@@ -598,6 +602,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	if (finish_spin_out_check && (timeSecs - time_start_spin) > 2.0)
 	{
 		srvIntake.request.power = 0;
+        srvIntake.request.other_power = 0;
 		srvIntake.request.spring_state = 2; //soft_in
 		srvIntake.request.up = false;
 		if (!IntakeSrv.call(srvIntake))
@@ -728,6 +733,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	if (run_out && (timeSecs > buttonBackStart + 2) && !start_toggle_on)
 	{
 		srvIntake.request.power = 0;
+        srvIntake.request.other_power = 0;
 		srvIntake.request.spring_state = 2; //soft_in
 		srvIntake.request.up = false;
 		if (!IntakeSrv.call(srvIntake))
@@ -775,6 +781,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
             //if(!ac_intake->getState().isDone())
             ac_intake->cancelAllGoals();
             srvIntake.request.power = 0;
+            srvIntake.request.other_power = 0;
             srvIntake.request.spring_state = 1; //hard_out
             srvIntake.request.up = true; //
             if (!IntakeSrv.call(srvIntake))
@@ -909,6 +916,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	if (JoystickState->stickLeftPress == true)
 	{
 		srvIntake.request.power = 0;
+        srvIntake.request.other_power = 0;
 		srvIntake.request.spring_state = 1; //hard_out
 		if (intake_up)
 		{
@@ -1010,6 +1018,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 if (JoystickState->buttonBackButton == true)
 {
     srvIntake.request.power = -1;
+    srvIntake.request.other_power = -1;
     srvIntake.request.up = false;
     srvIntake.request.spring_state = 2; //soft_in
     if (!IntakeSrv.call(srvIntake))
