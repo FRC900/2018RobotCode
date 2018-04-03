@@ -286,6 +286,7 @@ bool intakeStop(void) {
 	elevator_controller::Intake srv;
     srv.request.spring_state = 2; //soft_in
     srv.request.power=0;
+    srv.request.other_power=0;
     srv.request.just_override_power = false;
     ROS_INFO("intake stop");
     if (!IntakeService.call(srv))
@@ -299,6 +300,7 @@ bool releaseIntake(void) {
 	elevator_controller::Intake srv;
     srv.request.spring_state = 1; //hard out
     srv.request.power = 0;
+    srv.request.other_power=0;
     srv.request.just_override_power = false;
     ROS_INFO("release intake");
     if (!IntakeService.call(srv))
@@ -334,6 +336,7 @@ bool clamp(void) {
 bool intakeOut(void) {
 	elevator_controller::Intake srv;
 	srv.request.power = -1;
+    srv.request.other_power=-1;
 	srv.request.spring_state = 2; //soft-in
     srv.request.just_override_power = false;
     ROS_INFO("intake_out");
@@ -347,6 +350,7 @@ bool intakeOut(void) {
 bool deployIntake(void) {
 	elevator_controller::Intake srv;
 	srv.request.power = 0;
+    srv.request.other_power=0;
 	srv.request.spring_state = 2; //soft-in
     srv.request.up = 0; //down
     srv.request.just_override_power = false;
@@ -362,6 +366,7 @@ bool deployIntake(void) {
 bool undeployIntake(void) {
 	elevator_controller::Intake srv;
 	srv.request.power = 0;
+    srv.request.other_power=0;
 	srv.request.spring_state = 2; //soft-in
     srv.request.up = true;
     srv.request.just_override_power = false;
@@ -1463,6 +1468,7 @@ int main(int argc, char** argv) {
 					elevator_controller::Intake srv;
 					srv.request.spring_state = 2; //soft_in
 					srv.request.power=0;
+                    srv.request.other_power=0;
 					srv.request.just_override_power = false;
 					srv.request.up = true;
 					if(!IntakeService.call(srv))

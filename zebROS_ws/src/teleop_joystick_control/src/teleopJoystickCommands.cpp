@@ -488,7 +488,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		buttonBackStart = timeSecs - 1.5;
 		run_out = true;
 		srvIntake.request.power = -1;
-        srvIntake.request.other_power = 1;
+        srvIntake.request.other_power = -1;
         srvIntake.request.other_power = -1;
 		srvIntake.request.spring_state = 2; //soft_in
 		srvIntake.request.up = false;
@@ -504,13 +504,15 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	}
 	/*------------------No Cube - Single Press Intake-------------------*/
 
-	if (JoystickState->buttonAPress == true && !(localCubeState.hasCubeClamp_ && local_clamped) && (timeSecs - place_start) > 1.0  )
+	//if (JoystickState->buttonAPress == true && !(localCubeState.hasCubeClamp_ && local_clamped) && (timeSecs - place_start) > 1.0  )
+    if(JoystickState->buttonAPress)
 	{
 		teleop_cancel();	
 
 		currentToggle = " ";
 		//Make more robust????
 		//ROS_WARN("intaking cube");
+        /*
 		goal.IntakeCube = true;
 		goal.MoveToIntakeConfig = false;
 		goal.x = default_x;
@@ -526,6 +528,22 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		achieved_pos = other;
 		start_toggle_on = true;
 		intake_up = false;
+        */
+
+		buttonBackStart = timeSecs - 1.5;
+		run_out = true;
+		srvIntake.request.power = -1;
+        srvIntake.request.other_power = 1;
+        srvIntake.request.other_power = -1;
+		srvIntake.request.spring_state = 2; //soft_in
+		srvIntake.request.up = false;
+
+		if (!IntakeSrv.call(srvIntake))
+			ROS_ERROR("IntakeSrv call failed in spit out cube");
+		else
+		{
+			intake_up = false;
+		}
 	}
 
 	/*------------------ Start Button(M2) No Cube - intake without clampe --------------*/
