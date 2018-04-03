@@ -2,6 +2,7 @@ talon_swerve_drive_controller/SwervePointSet[] profiles
 bool wipe_all
 bool buffer
 bool run
+bool brake
 uint8 run_slot
 bool change_queue
 uint8[] new_queue

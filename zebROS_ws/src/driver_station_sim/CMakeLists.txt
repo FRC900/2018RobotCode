@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(vid_reader_node)
+project(driver_station_sim)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -7,31 +7,14 @@ project(vid_reader_node)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-
-include ("../cmake_modules/CMakeOpt.cmake")
-
-if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 find_package(catkin REQUIRED COMPONENTS
-     roscpp
-     sensor_msgs
-     cv_bridge
+  roscpp
+  rospy
 )
-find_package(OpenCV REQUIRED)
-find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
-find_package(PCL REQUIRED COMPONENTS common io)
-add_definitions(${PCL_DEFINITIONS})
-find_library (LibTinyXML2 tinyxml2)
-include_directories(
-	${PCL_INCLUDE_DIRS}
-	include
-	${catkin_INCLUDE_DIRS}
-	${OpenCV_INCLUDE_DIRS}
-	${Boost_INCLUDE_DIR}
-	${PCL_INCLUDE_DIRS}
-	../../../common
-	)
 
-link_directories(${ZED_LIBRARY_DIR} ${PCL_LIBRARY_DIRS} /usr/local/cuda/lib64/stubs)
+## System dependencies are found with CMake's conventions
+# find_package(Boost REQUIRED COMPONENTS system)
+
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -63,9 +46,11 @@ link_directories(${ZED_LIBRARY_DIR} ${PCL_LIBRARY_DIRS} /usr/local/cuda/lib64/st
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-#add_message_files(
-#FILES
-#)
+# add_message_files(
+#   FILES
+#   Message1.msg
+#   Message2.msg
+# )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -82,10 +67,10 @@ link_directories(${ZED_LIBRARY_DIR} ${PCL_LIBRARY_DIRS} /usr/local/cuda/lib64/st
 # )
 
 ## Generate added messages and services with any dependencies listed here
-#generate_messages(
-#DEPENDENCIES
-#sensor_msgs
-#)
+# generate_messages(
+#   DEPENDENCIES
+#   std_msgs  # Or other packages containing msgs
+# )
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -116,12 +101,12 @@ link_directories(${ZED_LIBRARY_DIR} ${PCL_LIBRARY_DIRS} /usr/local/cuda/lib64/st
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
- catkin_package(
-  #  INCLUDE_DIRS include
-  #  LIBRARIES vid_reader_node
-    CATKIN_DEPENDS roscpp message_runtime sensor_msgs
-  #  DEPENDS system_lib
-  )
+catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES driver_station_sim
+#  CATKIN_DEPENDS roscpp rospy
+#  DEPENDS system_lib
+)
 
 ###########
 ## Build ##
@@ -129,10 +114,14 @@ link_directories(${ZED_LIBRARY_DIR} ${PCL_LIBRARY_DIRS} /usr/local/cuda/lib64/st
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
+include_directories(
+# include
+  ${catkin_INCLUDE_DIRS}
+)
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/vid_reader_node.cpp
+#   src/${PROJECT_NAME}/driver_station_sim.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -143,18 +132,7 @@ link_directories(${ZED_LIBRARY_DIR} ${PCL_LIBRARY_DIRS} /usr/local/cuda/lib64/st
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/vid_reader_node_node.cpp)
-add_executable(vid_reader_node
-	src/vid_reader.cpp
-	../../../common/mediain.cpp
-	../../../common/syncin.cpp
-	../../../common/zmsin.cpp
-	../../../common/cameraparams.cpp
-	../../../common/zedparams.cpp
-	../../../common/portable_binary_iarchive.cpp
-	../../../common/portable_binary_oarchive.cpp
-	../../../common/ZvSettings.cpp
-)
+# add_executable(${PROJECT_NAME}_node src/driver_station_sim_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -164,23 +142,12 @@ add_executable(vid_reader_node
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-add_dependencies(vid_reader_node 
-    ${${PROJECT_NAME}_EXPORTED_TARGETS} 
-    ${catkin_EXPORTED_TARGETS}
-  )
+# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(
-	vid_reader_node
-	${catkin_LIBRARIES}
-	${OpenCV_LIBS}
-	${Boost_LIBRARIES}
-	${PCL_COMMON_LIBRARIES}
-	${LibTinyXML2}
-)
 
 #############
 ## Install ##
@@ -197,11 +164,11 @@ target_link_libraries(
 # )
 
 ## Mark executables and/or libraries for installation
-  install(TARGETS vid_reader_node
-    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-  )
+# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
+#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+# )
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/
@@ -222,11 +189,10 @@ target_link_libraries(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_vid_reader_node.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_driver_station_sim.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
- endif()

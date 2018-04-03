@@ -125,6 +125,12 @@ cd 2018RobotCode
 git submodule init
 git submodule update
 
+# Set up prereqs for deploy script
+mv ~/2018RobotCode ~/2018RobotCode.orig
+ln -s ~/2018RobotCode.orig ~/2018RobotCode
+mkdir -p ~/2018RobotCode.prod/zebROS_ws
+mkdir -p ~/2018RobotCode.dev/zebROS_ws
+
 #mount and setup autostart script
 if [ "$jetson" = true ] ; then
 	sudo mkdir /mnt/900_2

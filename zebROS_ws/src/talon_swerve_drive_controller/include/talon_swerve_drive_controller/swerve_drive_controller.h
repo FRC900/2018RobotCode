@@ -173,11 +173,12 @@ class TalonSwerveDriveController
 			bool wipe_all;
 			bool buffer;
 			bool run;
+			bool brake;
 			int run_slot;
 			bool change_queue;
 			std::vector<int> new_queue;
 			bool newly_set;
-			full_profile_cmd() : wipe_all(false), buffer(false), run(false), run_slot(0), change_queue(false), newly_set(false) {}
+			full_profile_cmd() : wipe_all(false), buffer(false), run(false), brake(false),  run_slot(0), change_queue(false), newly_set(false) {}
 		};
 				
 		realtime_tools::RealtimeBuffer<full_profile_cmd> full_profile_buffer_;	
