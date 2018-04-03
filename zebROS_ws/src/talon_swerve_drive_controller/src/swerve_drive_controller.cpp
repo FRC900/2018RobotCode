@@ -1043,6 +1043,7 @@ bool TalonSwerveDriveController::brakeService(std_srvs::Empty::Request &/*req*/,
 		brake_struct_.stamp = ros::Time::now();
 		ROS_WARN("called in controller");
 		command_.writeFromNonRT(brake_struct_);
+		mode_.writeFromNonRT (true);
 
 		
 
