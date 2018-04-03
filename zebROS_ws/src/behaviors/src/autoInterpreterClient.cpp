@@ -1346,6 +1346,7 @@ int main(int argc, char** argv) {
 					elevator_controller::Intake srv;
 					srv.request.spring_state = 2; //soft_in
 					srv.request.power=0;
+                    srv.request.other_power=0;
 					srv.request.just_override_power = false;
 					srv.request.up = true;
 					if(!IntakeService.call(srv))
