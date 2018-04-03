@@ -475,7 +475,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 							{
 								for(int i = 0; i < group_xml.size(); i++)
 								{
-									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(.16);
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(2.0);
 								}
 							}
 							XmlRpc::XmlRpcValue shift_xml;
@@ -518,7 +518,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						{
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(false);
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.spline_groups.push_back(num_splines);
-								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(.16);
+								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(2.0);
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.t_shift.push_back(0);
 						}
 
@@ -1328,8 +1328,29 @@ int main(int argc, char** argv) {
 
 			//ROS_INFO_STREAM("in auto: " << match_data.isAutonomous_ << " enabled? " << 
 
-            
+			if(match_data.isAutonomous_ && !match_data.isEnabled_)
+			{
+				static int reset_counter = 0;
+				reset_counter ++;
+				if(reset_counter % 10 == 1)
+				{
+					//Set up for auto
+					parkingConfig();
+					startMatchConfig();
+					clamp();
+					elevator_controller::Intake srv;
+					srv.request.spring_state = 2; //soft_in
+					srv.request.power=0;
+					srv.request.just_override_power = false;
+					srv.request.up = true;
+					if(!IntakeService.call(srv))
+					{
+						ROS_ERROR("Service call failed : IntakeService in deployIntake");
+					}
+				}
 
+            
+			}
 			if(!in_auto && !last_in_auto) { //accept changes to chosen auto_modes until we receive match data or auto starts
                 start_pos = auto_mode_data.start_pos_;
                 ////ROS_INFO("No match data and not in auto");
