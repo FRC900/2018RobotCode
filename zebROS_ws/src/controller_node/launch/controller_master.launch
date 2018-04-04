@@ -115,18 +115,12 @@
     <node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="$(arg output)"/>
     <node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="$(arg output)"/>
     <node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="$(arg output)"/>
-	<node name="map_server" pkg="map_server" type="map_server" args="$(find controller_node)/maps/2018FRC_field.yaml" output="screen" if="$(arg static_map)">
+	<node name="map_server" pkg="map_server" type="map_server" args="$(find controller_node)/maps/2018FRC_field.yaml" output="$(arg output)" if="$(arg static_map)">
 		<param name="frame_id" value="/map"/>
 	</node>
 
-
-
-
-
-	<node name="robot_visualize" pkg="robot_visualizer" type="robot_visualize" output="screen" >
-	</node>
-	<node name="profile_follow" pkg="robot_visualizer" type="profile_follow" output="screen" >
-	</node>
+	<node name="robot_visualize" pkg="robot_visualizer" type="robot_visualize" output="$(arg output)" />
+	<node name="profile_follow" pkg="robot_visualizer" type="profile_follow" output="$(arg output)" />
 </group>
 
 <node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat_jetson" output="$(arg output)" />
