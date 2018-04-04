@@ -71,9 +71,11 @@
   <!--<remap from="/cmd_vel" to="frcrobot/swerve_drive_controller/cmd_vel"/>
   <include file="$(find controller_node)/launch/move_base.launch"/>-->
 
-<!--	<include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)"/>-->
-
+<!--	
 	<include file="$(find controller_node)/launch/record_simple.launch" if="$(arg record)" />
+-->
+		<include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)"/>
+
 
   <machine name="roboRIO" address="10.9.0.2" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
 
