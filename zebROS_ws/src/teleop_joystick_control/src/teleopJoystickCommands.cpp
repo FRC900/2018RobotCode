@@ -12,6 +12,7 @@
 #include "behaviors/RobotAction.h"
 #include "behaviors/IntakeAction.h"
 #include "behaviors/LiftAction.h"
+#include "std_msgs/Bool.h"
 
 /*TODO list:
  *
@@ -44,6 +45,8 @@ static ros::Publisher JoystickRobotVel;
 //static ros::Publisher JoystickTestVel;
 static ros::Publisher JoystickElevatorPos;
 static ros::Publisher JoystickRumble;
+static ros::Publisher wait_proceed_pub;
+
 static ros::ServiceClient EndGameDeploy;
 static ros::ServiceClient EndGameDeployWings;
 
@@ -506,15 +509,21 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 
 	if (JoystickState->buttonAPress == true)
 	{
-	/*if (JoystickState->buttonAPress == true && !(localCubeState.hasCubeClamp_ && local_clamped) && (timeSecs - place_start) > 1.0  )
+	if (JoystickState->buttonAPress == true && !(localCubeState.hasCubeClamp_ && local_clamped) && (timeSecs - place_start) > 1.0  )
+	{
+
+
 		teleop_cancel();	
 
 		currentToggle = " ";
 		//Make more robust????
 		//ROS_WARN("intaking cube");
-        /*
+        
 		goal.IntakeCube = true;
 		goal.MoveToIntakeConfig = false;
+		
+		goal.wait_to_proceed = true;
+
 		goal.x = default_x;
 		goal.y = default_y;
 		goal.up_or_down = default_up_or_down;
@@ -528,23 +537,16 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		achieved_pos = other;
 		start_toggle_on = true;
 		intake_up = false;
-        */
-
-		buttonBackStart = timeSecs - 1.5;
-		run_out = true;
-		srvIntake.request.power = -1;
-        srvIntake.request.other_power = 1;
-        srvIntake.request.other_power = -1;
-		srvIntake.request.spring_state = 2; //soft_in
-		srvIntake.request.up = false;
-
-		if (!IntakeSrv.call(srvIntake))
-			ROS_ERROR("IntakeSrv call failed in spit out cube");
-		else
-		{
-			intake_up = false;
-		}
+        
 	}
+	}
+	
+	std_msgs::Bool holder_msg;
+	holder_msg.data = !JoystickState->buttonAButton;
+
+	wait_proceed_pub.publish(holder_msg);	
+
+	
 
 	/*------------------ Start Button(M2) No Cube - intake without clampe --------------*/
 
@@ -644,6 +646,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	/*If some time has passed since place, start arm move back*/
 	if (placed_delay_check && (timeSecs - place_start) > .5)
 	{
+		#if 0
 		const ElevatorPos epos_r = *(elevatorPos.readFromRT());
 		
 		if(epos_r.Y_ < 1.4)
@@ -663,6 +666,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			ROS_ERROR("Failed going up after placing");
 		}
+		#endif	
+	
 		//ROS_INFO("teleop : called ElevatorSrv in placed_delay_check");
 		placed_delay_check = false;
 		return_to_intake_from_low = achieved_pos == switch_c;
@@ -1248,6 +1253,7 @@ int main(int argc, char **argv)
 	//JoystickTestVel = n.advertise<std_msgs::Header>("test_header", 3);
 	JoystickElevatorPos = n.advertise<elevator_controller::ElevatorControl>("/frcrobot/elevator_controller/cmd_pos", 1);
 	JoystickRumble = n.advertise<std_msgs::Float64>("rumble_controller/command", 1);
+	wait_proceed_pub = n.advertise<std_msgs::Bool>("/frcrobot/auto_interpreter_server/proceed", 1);
 
 	std::map<std::string, std::string> service_connection_header;
 	service_connection_header["tcp_nodelay"] = "1";

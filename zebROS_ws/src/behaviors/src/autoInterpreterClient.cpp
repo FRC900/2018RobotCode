@@ -703,7 +703,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
 	ROS_ERROR_STREAM("num traj msgs: " << trajectory_msgs_pass_out.size());
 
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
-    swerve_control_srv.request.wipe_all = false;
+    swerve_control_srv.request.wipe_all = true;
     swerve_control_srv.request.buffer = true;
     swerve_control_srv.request.brake = true;
     swerve_control_srv.request.run    = false;
@@ -724,6 +724,7 @@ bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int
             auto_mode_status_vect[k] = 0;
 			return false;
 		}
+		ROS_WARN_STREAM("num srv msgs: " << trajectory[k].num_srv_msgs);
 		for(size_t i = 0; i < trajectory[k].num_srv_msgs; i++)
 		{
 			//ROS_WARN_STREAM("i: " << i << " k: " << k);

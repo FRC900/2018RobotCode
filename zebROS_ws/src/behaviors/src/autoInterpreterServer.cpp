@@ -48,7 +48,7 @@ class autoAction
 		actionlib::SimpleActionClient<behaviors::IntakeAction> ai_;
 		actionlib::SimpleActionClient<behaviors::LiftAction> al_;
 		std::atomic<bool> high_cube_;
-
+		bool proceed;
 #if 0
 		// Elevator odometry. Make this a struct so that
 		// reads from it get data which is consistent - avoid
@@ -77,6 +77,7 @@ class autoAction
 #endif
 
 		ros::Subscriber HighCube_;
+		ros::Subscriber Proceed_;
 
 	public:
 		// TODO : pass in nh via the constructor -
@@ -93,6 +94,11 @@ class autoAction
 			IntakeSrv_ = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
 			ClampSrv_ = nh_.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
 			HighCube_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &autoAction::cubeStateCallback, this);
+			Proceed_ = nh_.subscribe("/frcrobot/auto_interpreter_server/proceed", 1, &autoAction::proceedCallback, this);
+
+
+
+
 			//al_ = std::make_shared<actionlib::SimpleActionClient<behaviors::LiftAction>>("auto_interpreter_server_lift", true);
 			//ai_ = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
 			as_.start();
@@ -109,6 +115,7 @@ class autoAction
 			bool aborted = false;
 			bool success = false;
 			bool timed_out = false;
+			
 
 			//if(!al_.getState().isDone())
 				//al_.cancelAllGoals();
@@ -208,6 +215,25 @@ class autoAction
 				}
 				while(!aborted && !timed_out && ros::Time::now().toSec() - finish_time < wait_stabilize_before_drop) //TODO config
 				{
+					if (as_.isPreemptRequested() || !ros::ok())
+					{
+						ROS_WARN("%s: Preempted", action_name_.c_str());
+						as_.setPreempted();
+						aborted = true;
+						break;
+					}
+					if (!aborted)
+					{
+						//ROS_WARN_STREAM("wait for drop etc t: " <<ros::Time::now().toSec() - finish_time );
+						r.sleep();
+						ros::spinOnce();
+						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
+					}
+
+				}
+				while(!aborted && !timed_out && goal->wait_to_proceed && !proceed)
+				{
+					
 					if (as_.isPreemptRequested() || !ros::ok())
 					{
 						ROS_WARN("%s: Preempted", action_name_.c_str());
@@ -545,6 +571,11 @@ class autoAction
 		{
 			high_cube_.store(msg.intake_high, std::memory_order_relaxed);
 		}
+		void proceedCallback(const std_msgs::Bool &msg)
+		{
+			proceed = msg.data;
+		}
+
 
 #if 0
 		void OdomCallback(const elevator_controller::ReturnElevatorCmd::ConstPtr &msg)

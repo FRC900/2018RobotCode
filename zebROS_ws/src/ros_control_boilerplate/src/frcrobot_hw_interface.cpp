@@ -554,7 +554,7 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 			return;
 		}
 
-		talon_command_[joint_id].getCustomProfilePointsTimesChanged(saved_points, saved_times);	
+		talon_command_[joint_id].getCustomProfilePointsTimesChanged(saved_points, saved_times);
 
 		ros::Rate rate(talon_command_[joint_id].getCustomProfileHz());
 		bool run = talon_command_[joint_id].getCustomProfileRun();

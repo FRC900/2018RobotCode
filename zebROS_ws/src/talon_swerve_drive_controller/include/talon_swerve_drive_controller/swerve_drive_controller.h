@@ -187,6 +187,7 @@ class TalonSwerveDriveController
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		Commands brake_struct_;
+		Commands brake_struct_other_;
 		
 		ros::Subscriber sub_command_;
 

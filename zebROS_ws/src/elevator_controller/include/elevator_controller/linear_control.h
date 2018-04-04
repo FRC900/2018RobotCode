@@ -86,7 +86,7 @@ class ElevatorController
 			double power;
             double other_power;
 			double down_time;
-			IntakeCommand() : up_command(-1.0), spring_command(0.0), power(0.0), down_time(0.0) {}
+			IntakeCommand() : up_command(-1.0), spring_command(0.0), power(0.0), other_power(0.0), down_time(0.0) {}
 		};
 
 		talon_controllers::TalonMotionMagicCloseLoopControllerInterface lift_joint_;

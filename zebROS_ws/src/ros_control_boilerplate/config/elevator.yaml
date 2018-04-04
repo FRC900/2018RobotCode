@@ -30,7 +30,7 @@ elevator_controller:
 
     drop_down_pos: .225 #FIX
     drop_down_tolerance: .05 #FIX
-    safe_to_go_back_y: 1.95 #FIX
+    safe_to_go_back_y: 1.9 #FIX
     cut_off_x_line: .17 #FIX
     cut_off_y_line: .7 #FIX
 
@@ -46,7 +46,7 @@ elevator_controller:
     #Fix below remove poly points
     #right now, over the back is disabled 
     polygon_points_down: [-2.0, -1.0, -2.0, 3.0, .17, 3.0, .17, 0.7, 0.205, 0.7, 0.205, 0.32, 1.0, 0.32, 1.0, -1.1, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
-    polygon_points_up: [-2.0, -1.0, -2.0, 3.0, -0.05, 3.0, -0.05, -1.0, 0.0, -1.0, 0.0, 2.3818, .17, 2.2818, .17, 0.7, 1.0, .7, 1.0, -1.5, -2.0, -1.5, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
+    polygon_points_up: [-2.0, -1.0, -2.0, 3.0, -0.35, 3.0, -0.35, -1.0, 0.0, -1.0, 0.0, 2.3318, .17, 2.2318, .17, 0.7, 1.0, .7, 1.0, -1.5, -2.0, -1.5, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
     
     polygon_points_intake_up: [-2.0, 0.7, 1.0, 0.7, 1.0, 0.0, -2.0, 0.0, -2.0, 0.7] #[-2.0, 0.6, 0.225, 0.6, 0.225, 0.0, -2.0, 0.0, -2.0, 0.6]
     polygon_points_intake_down: [-2.0, -1.0, -2.1, -1.0, -2.1, -1.1, -2.0, -1.0] #Currently removing nothing #[-2.0, 0.4, 1.0, 0.4, 1.0, 0.0, -2.0, 0.0, -2.0, 0.4] 

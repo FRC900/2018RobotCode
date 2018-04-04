@@ -1388,6 +1388,7 @@ class TalonHWCommand
 		// make sure reads and writes are atomic
 		void pushCustomProfilePoint(const CustomProfilePoint &point, int slot)
 		{
+			ROS_INFO_STREAM("pushed point at slot: " << slot);
 			custom_profile_points_changed_[slot] = true;
 
 			custom_profile_points_[slot].push_back(point);
@@ -1403,6 +1404,7 @@ class TalonHWCommand
 		void pushCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
 			custom_profile_points_changed_[slot] = true;
+			ROS_INFO_STREAM("pushed points at slot: " << slot);
 			int prev_size = custom_profile_points_.size();
 			custom_profile_points_[slot].insert(custom_profile_points_[slot].end(), points.begin(), points.end());
 			for(; prev_size <custom_profile_points_.size(); prev_size++)
@@ -1420,7 +1422,14 @@ class TalonHWCommand
 		void overwriteCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
 			
+			ROS_INFO_STREAM("override points at slot: " << slot);
 			custom_profile_points_changed_[slot] = true;
+			for(int i = 0; i < 		custom_profile_points_changed_.size(); i++)
+			{
+				ROS_INFO_STREAM("slot: " << i << " changed: " << custom_profile_points_changed_[i]);
+
+
+			}
 			custom_profile_points_[slot] = points;
 			custom_profile_total_time_[slot].resize(points.size());
 			
@@ -1445,15 +1454,19 @@ class TalonHWCommand
 		}
 		std::vector<bool> getCustomProfilePointsTimesChanged(std::vector<std::vector<CustomProfilePoint>> &ret_points, std::vector<std::vector<double>> &ret_times)
 		{
+			std::vector<bool> returner = custom_profile_points_changed_;
 			for(size_t i = 0; i < custom_profile_points_changed_.size(); i++)
 			{	
 				if(custom_profile_points_changed_[i])
 				{
+					ROS_INFO_STREAM("actually changed in interface " << custom_profile_points_changed_[i] << " slot: " << i); 
 					ret_points[i] = custom_profile_points_[i]; 
 					ret_times[i]  = custom_profile_total_time_[i];
+					custom_profile_points_changed_[i] = false;
 				}
-			}	
-			return custom_profile_points_changed_;
+			}
+
+			return returner;
 
 		}
 		std::vector<double> getCustomProfileTime(int slot)  /*const*/ //TODO, can be const?

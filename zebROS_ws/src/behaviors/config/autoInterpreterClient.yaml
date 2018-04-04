@@ -370,7 +370,7 @@ auto_params:
      mode_15_layout_0_start_0_wait_for_action_0_spline_group:
                 [1, 2, 3, 4]
      mode_15_layout_0_start_0_wait_for_action_0_waits:
-                [10.0, 3.0, 3.0, 3.0]
+                [3.0, 3.0, 3.0, 3.0]
 
 
      #Forward one meter 

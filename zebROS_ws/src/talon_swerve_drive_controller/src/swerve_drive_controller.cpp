@@ -633,11 +633,18 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 			//required for reset
 			for(size_t k = 0; k < WHEELCOUNT; k++)
 			{
+
 				steering_joints_[k].setCustomProfileRun(false);
 				speed_joints_[k].setCustomProfileRun(false);
 			}
+			brake_struct_other_.lin[0] = 0;
+			brake_struct_other_.lin[1] = 0;
+			brake_struct_other_.ang = 0;
+			brake_struct_other_.stamp = ros::Time::now();
+			ROS_WARN("called in controller");
+			command_.writeFromNonRT(brake_struct_other_);
+			mode_.writeFromNonRT (true);
 
-			mode_.writeFromNonRT(true); //Should be fine
 	
 		}
 		if(cur_prof_cmd.wipe_all)
@@ -726,9 +733,15 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				ROS_WARN("done1");
 				for(size_t k = 0; k < WHEELCOUNT; k++)
 				{
+					ROS_WARN_STREAM("speed points before: " << speed_joints_[k].getCustomProfilePoints(cur_prof_cmd.profiles[p].slot).size());
+					ROS_WARN_STREAM("steer points before: " << steering_joints_[k].getCustomProfilePoints(cur_prof_cmd.profiles[p].slot).size());
+
+
 
 					speed_joints_[k].overwriteCustomProfilePoints(full_profile_[k][0], cur_prof_cmd.profiles[p].slot);
 					steering_joints_[k].overwriteCustomProfilePoints(full_profile_[k][1], cur_prof_cmd.profiles[p].slot);
+					ROS_WARN_STREAM("speed points after: " << speed_joints_[k].getCustomProfilePoints(cur_prof_cmd.profiles[p].slot).size());
+					ROS_WARN_STREAM("steer points after: " << steering_joints_[k].getCustomProfilePoints(cur_prof_cmd.profiles[p].slot).size());
 				}	
 
 				ROS_WARN("done");
@@ -781,7 +794,8 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
-			steering_joints_[i].setPIDFSlot(0);;
+			steering_joints_[i].setPIDFSlot(0);
+			speed_joints_[i].setPIDFSlot(0);
 			steering_joints_[i].setMode(position_mode);
 			speed_joints_[i].setClosedloopRamp(0);
 			steering_joints_[i].setCustomProfileRun(false);
@@ -820,7 +834,7 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 		for (size_t i = 0; i < wheel_joints_size_; ++i)
 		{
 			speed_joints_[i].setMode(velocity_mode);
-			speed_joints_[i].setPIDFSlot(0);;
+
 
 
 		}
@@ -1005,6 +1019,7 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 		full_profile_struct.buffer = req.buffer;
 		if(req.buffer)
 		{
+			ROS_INFO_STREAM("size in controller: " << req.profiles.size());
 			full_profile_struct.profiles.resize(req.profiles.size());
 			for(size_t i = 0; i < req.profiles.size(); i++)
 			{

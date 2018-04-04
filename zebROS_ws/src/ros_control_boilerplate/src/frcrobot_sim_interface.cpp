@@ -592,7 +592,13 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
 			return;
 		}
 
-		talon_command_[joint_id].getCustomProfilePointsTimesChanged(saved_points, saved_times);	
+		std::vector<bool> holder = talon_command_[joint_id].getCustomProfilePointsTimesChanged(saved_points, saved_times);	
+			for(int i  = 0; i < num_slots; i++)
+			{
+				if(holder[i])
+				{	ROS_INFO_STREAM(talon_state_[joint_id].getCANID() << ": saved points size: " << saved_points[i].size());
+				}
+			}
 
         ros::Rate rate(talon_command_[joint_id].getCustomProfileHz());
         bool run = talon_command_[joint_id].getCustomProfileRun();
