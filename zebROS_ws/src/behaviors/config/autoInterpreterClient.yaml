@@ -152,9 +152,9 @@ auto_params:
            { x: [-1.3005000000000004, 9.900500000000001, -30.292500000000004, 47.25150000000001, -38.349000000000004, 13.25], y: [-0.6769999999999996, 5.337999999999994, -16.94799999999995, 27.340999999999887, -21.308999999999898, 7.208999999999968], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }]
      mode_2_layout_0_start_1_actions:
             [{ time: 0.5, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
-             { time: 1.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
-             { time: 2.5, actions: "intake_cube", profile_wait: -1.0, x: 0.3, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
-            [{ time: 5.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 3.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 1.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 2.5, actions: "intake_cube", profile_wait: -1.0, x: 0.3, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 5.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 3.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
              { time: 6.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 4.0,  wait_for_action_delay: 1.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
      mode_2_layout_0_start_1_wait_for_action_0_spline_group:
                 [1, 3, 5]
@@ -167,11 +167,13 @@ auto_params:
           { x: [-2.409, 3.9129999999999985, -0.7409999999999997, 0.06300000000000006, 0.11399999999999988, -1.4], y: [-7.549525000000001, 18.941225, -12.2512, 0.35649999999999993, -1.480675, 2.937675], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 },
           { x: [1.3005000000000004, -9.900500000000001, 30.292500000000004, -47.25150000000001, 38.349000000000004, -13.25], y: [-0.6769999999999996, 5.337999999999994, -16.94799999999995, 27.340999999999887, -21.308999999999898, 7.208999999999968], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }]
      mode_2_layout_1_start_1_actions:
+            
             [{ time: 0.5, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
-             { time: 1.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
-             { time: 2.5, actions: "intake_cube", profile_wait: -1.0, x: 0.3, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
-            [{ time: 5.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 3.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 1.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 2.5, actions: "intake_cube", profile_wait: -1.0, x: 0.3, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 5.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 3.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
              { time: 6.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 4.0,  wait_for_action_delay: 1.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
      mode_2_layout_1_start_1_wait_for_action_0_spline_group:
                 [1, 3, 5]
      mode_2_layout_1_start_1_wait_for_action_0_flips:
@@ -184,11 +186,13 @@ auto_params:
            { x: [2.409, -3.9129999999999985, 0.7409999999999997, -0.06300000000000006, -0.11399999999999988, 1.4], y: [-7.549525000000001, 18.941225, -12.2512, 0.35649999999999993, -1.480675, 2.937675], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 },
            { x: [-1.3005000000000004, 9.900500000000001, -30.292500000000004, 47.25150000000001, -38.349000000000004, 13.25], y: [-0.6769999999999996, 5.337999999999994, -16.94799999999995, 27.340999999999887, -21.308999999999898, 7.208999999999968], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }] 
      mode_2_layout_2_start_1_actions:
+            
             [{ time: 0.5, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
-             { time: 1.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
-             { time: 2.5, actions: "intake_cube", profile_wait: -1.0, x: 0.3, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
-            [{ time: 5.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 3.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 1.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 2.5, actions: "intake_cube", profile_wait: -1.0, x: 0.3, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 5.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 3.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
              { time: 6.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 4.0,  wait_for_action_delay: 1.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+
      mode_2_layout_2_start_1_wait_for_action_0_spline_group:
                 [1, 3, 5]
      mode_2_layout_2_start_1_wait_for_action_0_flips:
@@ -202,9 +206,9 @@ auto_params:
           { x: [1.3005000000000004, -9.900500000000001, 30.292500000000004, -47.25150000000001, 38.349000000000004, -13.25], y: [-0.6769999999999996, 5.337999999999994, -16.94799999999995, 27.340999999999887, -21.308999999999898, 7.208999999999968], orient: [0.0, 0.0, 0.0, 0.0, 0.0, -3.14159], time: 4.0 }]
      mode_2_layout_3_start_1_actions:
             [{ time: 0.5, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
-             { time: 1.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
-             { time: 2.5, actions: "intake_cube", profile_wait: -1.0, x: 0.3, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
-            [{ time: 5.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 3.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 1.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 2.5, actions: "intake_cube", profile_wait: -1.0, x: 0.3, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 5.0, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 3.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
              { time: 6.75, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 4.0,  wait_for_action_delay: 1.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
      mode_2_layout_3_start_1_wait_for_action_0_spline_group:
                 [1, 3, 5]
