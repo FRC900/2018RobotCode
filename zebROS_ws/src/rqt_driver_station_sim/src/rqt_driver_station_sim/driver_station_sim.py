@@ -1,4 +1,8 @@
+#!/usr/bin/env python
+
+
 import os
+import argparse
 import rospy
 import rospkg
 import threading
@@ -12,7 +16,6 @@ from ros_control_boilerplate.msg import MatchSpecificData
 
 
 class DriverStationSim(Plugin):
-
     def __init__(self, context):
         super(DriverStationSim, self).__init__(context)
         # Give QObjects reasonable names

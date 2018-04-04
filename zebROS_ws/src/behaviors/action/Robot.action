@@ -10,6 +10,7 @@ float64 dist_tolerance
 float64 y_tolerance
 float64 x_tolerance
 bool hasCube
+bool wait_to_proceed
 ---
 bool timed_out
 ---

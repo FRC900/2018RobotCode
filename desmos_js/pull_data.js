@@ -351,12 +351,12 @@ function loadGraphVals(calculator, vals)
 {
 	// FIELD
 	calculator.setExpression({id:'num_splines0', latex:'n_{splines} =' + vals[0].toString()});
-	calculator.setExpression({id:'scale_point_y0', latex:'y_{show} = ' +7.31746 });
-	calculator.setExpression({id:'scale_point_x0', latex:'x_{show} =' + 2.17});
+	calculator.setExpression({id:'scale_point_y0', latex:'y_{scale} = ' +7.16746 });
+	calculator.setExpression({id:'scale_point_x0', latex:'x_{scale} =' + 2.1});
 
 
 	
-	calculator.setExpression({id:'switch_point_y0', latex:'y_{switch}=3.556-22.3\\cdot\\frac{2.54}{100}'});
+	calculator.setExpression({id:'switch_point_y0', latex:'y_{switch}=3.556-0.568325-.12'});
 	calculator.setExpression({id:'switch_point_x0', latex:'x_{switch}=1.4'});
 
 	
@@ -367,7 +367,7 @@ function loadGraphVals(calculator, vals)
 
 	calculator.setExpression({id:'field1', latex:'y=0\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', domain:{min:'-d_1+d_2', max:'d_1-d_2'}, color: '#000000'});
 	calculator.setExpression({id:'field2', latex:'d_1=\\frac{27}{2}\\cdot12\\cdot\\frac{2.54}{100}'});
-	calculator.setExpression({id:'field3', latex:'d_2=26.69\\cdot\\frac{2.54}{100}'});
+	calculator.setExpression({id:'field3', latex:'d_2=29.69\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field4', latex:'d_3=54\\cdot12\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field5', latex:'d_4=35.34\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field6', latex:'y=d_3\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', color: '#000000'});
@@ -422,6 +422,7 @@ function loadGraphVals(calculator, vals)
 	calculator.setExpression({id:'field55', latex:'x=-d_{16}+d_{14}+\\left(d_{15}+d_{14}\\right)\\cdot5\\left\\{d_5+d_7<y<d_5+d_7+d_{14}\\right\\}', color: '#000000'});
 	calculator.setExpression({id:'field56', latex:'y=d_5+d_7+d_{14}\\left\\{-d_{16}+\\left(d_{15}+d_{14}\\right)\\cdot5<x<-d_{16}+d_{14}+\\left(d_{15}+d_{14}\\right)\\cdot5\\right\\}', color: '#000000'});
 	calculator.setExpression({id:'field57', latex:'y=d_5+d_7+d_{14}+\\frac{28}{1}\\cdot\\frac{2.54}{100}', color: '#2d70b3', style: Desmos.Styles.DOTTED});
+	calculator.setExpression({id:'field57', latex:'y=d_5-0.568325-.12', color: '#2d70b3', style: Desmos.Styles.DOTTED});
 	calculator.setExpression({id:'field58', latex:'d_{17}=\\left(3\\cdot12+5.25\\right)\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field59', latex:'d_{18}=\\left(8\\cdot12+8\\right)\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field60', latex:'d_{19}=\\left(1\\cdot12+.75\\right)\\cdot\\frac{2.54}{100}'});
@@ -816,10 +817,10 @@ function loadGraph(calculator)
 {
 	// FIELD
 	calculator.setExpression({id:'num_splines0', latex:'n_{splines} = 5'});
-	calculator.setExpression({id:'scale_point_y0', latex:'y_{scale} = ' +7.31746 });
-	calculator.setExpression({id:'scale_point_x0', latex:'x_{scale} =' + 2.17});
+	calculator.setExpression({id:'scale_point_y0', latex:'y_{scale} = ' +7.16746 });
+	calculator.setExpression({id:'scale_point_x0', latex:'x_{scale} =' + 2.1});
 	
-	calculator.setExpression({id:'switch_point_y0', latex:'y_{switch}=3.556-22.3\\cdot\\frac{2.54}{100}'});
+	calculator.setExpression({id:'switch_point_y0', latex:'y_{switch}=3.556-0.568325-.12'});
 	calculator.setExpression({id:'switch_point_x0', latex:'x_{switch}=1.4'});
 
 	
@@ -835,7 +836,7 @@ function loadGraph(calculator)
 
 	calculator.setExpression({id:'field1', latex:'y=0\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', domain:{min:'-d_1+d_2', max:'d_1-d_2'}, color: '#000000'});
 	calculator.setExpression({id:'field2', latex:'d_1=\\frac{27}{2}\\cdot12\\cdot\\frac{2.54}{100}'});
-	calculator.setExpression({id:'field3', latex:'d_2=26.69\\cdot\\frac{2.54}{100}'});
+	calculator.setExpression({id:'field3', latex:'d_2=29.69\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field4', latex:'d_3=54\\cdot12\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field5', latex:'d_4=35.34\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field6', latex:'y=d_3\\left\\{-d_1+d_2<x<d_1-d_2\\right\\}', color: '#000000'});
@@ -890,6 +891,7 @@ function loadGraph(calculator)
 	calculator.setExpression({id:'field55', latex:'x=-d_{16}+d_{14}+\\left(d_{15}+d_{14}\\right)\\cdot5\\left\\{d_5+d_7<y<d_5+d_7+d_{14}\\right\\}', color: '#000000'});
 	calculator.setExpression({id:'field56', latex:'y=d_5+d_7+d_{14}\\left\\{-d_{16}+\\left(d_{15}+d_{14}\\right)\\cdot5<x<-d_{16}+d_{14}+\\left(d_{15}+d_{14}\\right)\\cdot5\\right\\}', color: '#000000'});
 	calculator.setExpression({id:'field57', latex:'y=d_5+d_7+d_{14}+\\frac{28}{1}\\cdot\\frac{2.54}{100}', color: '#2d70b3', style: Desmos.Styles.DOTTED});
+	calculator.setExpression({id:'field57', latex:'y=d_5-0.568325-.12', color: '#2d70b3', style: Desmos.Styles.DOTTED});
 	calculator.setExpression({id:'field58', latex:'d_{17}=\\left(3\\cdot12+5.25\\right)\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field59', latex:'d_{18}=\\left(8\\cdot12+8\\right)\\cdot\\frac{2.54}{100}'});
 	calculator.setExpression({id:'field60', latex:'d_{19}=\\left(1\\cdot12+.75\\right)\\cdot\\frac{2.54}{100}'});

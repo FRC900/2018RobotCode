@@ -416,7 +416,7 @@ p, li { white-space: pre-wrap; }
       <item>
        <widget class="QSpinBox" name="mode_0">
         <property name="maximum">
-         <number>12</number>
+         <number>25</number>
         </property>
         <property name="value">
          <number>0</number>
@@ -477,7 +477,7 @@ p, li { white-space: pre-wrap; }
       <item>
        <widget class="QSpinBox" name="mode_1">
         <property name="maximum">
-         <number>12</number>
+         <number>25</number>
         </property>
        </widget>
       </item>
@@ -535,7 +535,7 @@ p, li { white-space: pre-wrap; }
       <item>
        <widget class="QSpinBox" name="mode_2">
         <property name="maximum">
-         <number>12</number>
+         <number>25</number>
         </property>
        </widget>
       </item>
@@ -599,7 +599,7 @@ p, li { white-space: pre-wrap; }
       <item>
        <widget class="QSpinBox" name="mode_3">
         <property name="maximum">
-         <number>12</number>
+         <number>25</number>
         </property>
        </widget>
       </item>

@@ -27,7 +27,7 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <XmlRpcValue.h>
 #include <vector>
-enum Action {deploy_intake, undeploy_intake, intake_cube, intake_no_arm, exchange_cube, default_config, intake_config, exchange_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, custom_config, release_clamp};
+enum Action {do_nothing, deploy_intake, undeploy_intake, intake_cube, intake_no_arm, exchange_cube, default_config, intake_config, exchange_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, custom_config, release_clamp};
 
 struct ActionSetpoint
 {

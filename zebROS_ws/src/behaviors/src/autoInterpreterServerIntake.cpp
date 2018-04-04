@@ -49,6 +49,7 @@ class autoAction {
             cube_state_true = 0;
             elevator_controller::Intake srv;
             srv.request.power = intake_power;
+            srv.request.other_power = intake_power;
             srv.request.just_override_power = false;
             srv.request.spring_state = 2; //soft in
             srv.request.up = false;
@@ -82,6 +83,7 @@ class autoAction {
             */		    
             }
             srv.request.power = success ? 0.15 : 0;
+            srv.request.other_power = success ? 0.15 : 0;
             srv.request.spring_state = 3; //soft in
             srv.request.up = false;
             srv.request.just_override_power = !success;
