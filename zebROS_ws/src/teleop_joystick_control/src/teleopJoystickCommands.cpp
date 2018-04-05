@@ -1192,6 +1192,33 @@ double rotation = ( pow(JoystickState->leftTrigger, rotation_scale) - pow(Joysti
 
 static bool sendRobotZero = false;
 // No motion? Tell the drive base to stop
+if(JoystickState->bumperLeftPress == true)
+{
+	//TODO: check to see if it's already running?
+	static bool orient_running;
+	if(!orient_running)
+	{
+		sendRobotZero = false;
+		double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
+		//double angle = M_PI/6; //for testing
+		static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
+		static double max_rotational_velocity = 8.8; //radians/sec TODO: find this in config
+
+		static ros::Duration time_to_run((fabs((least_dist_angle - angle)) / max_rotational_velocity) * .8);
+
+		base_trajectory::GenerateSpline srvBaseTrajectory;
+		swerve_point_generator::FullGenCoefs traj;
+		
+		if (!generateCoefs(least_dist_angle - angle, time_to_run, srvBaseTrajectory)) //generate coefficients for the spline from the endpoints 
+			ROS_INFO_STREAM("spline_gen died in teleopJoystickCommands generateCoefs");
+		if (!generateTrajectory(srvBaseTrajectory, traj)) //generate a motion profile from the coefs
+			ROS_INFO_STREAM("point_gen died in teleopJoystickCommands generateTrajectory");
+		if (!runTrajectory(traj.response)) //run on swerve_control
+			ROS_ERROR("swerve_control failed in teleopJoystickCommands runTrajectory");
+	}
+	else
+		ROS_INFO_STREAM("Can't run orient, it's already running");
+}
 if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 {
     if (!sendRobotZero)
@@ -1253,33 +1280,6 @@ if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 		//ROS_INFO("teleop : Joystive elevator pos");
 	}
 
-	if(JoystickState->bumperLeftPress == true)
-	{
-		//TODO: check to see if it's already running?
-		static bool orient_running;
-		if(!orient_running)
-		{
-			sendRobotZero = false;
-			//double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
-			double angle = M_PI/6; //for testing
-			static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
-			static double max_rotational_velocity = 8.8; //radians/sec TODO: find this in config
-
-			static ros::Duration time_to_run((fabs((least_dist_angle - angle)) / max_rotational_velocity) * .8);
-
-			base_trajectory::GenerateSpline srvBaseTrajectory;
-			swerve_point_generator::FullGenCoefs traj;
-			
-			if (!generateCoefs(least_dist_angle - angle, time_to_run, srvBaseTrajectory)) //generate coefficients for the spline from the endpoints 
-				ROS_INFO_STREAM("spline_gen died in teleopJoystickCommands generateCoefs");
-			if (!generateTrajectory(srvBaseTrajectory, traj)) //generate a motion profile from the coefs
-				ROS_INFO_STREAM("point_gen died in teleopJoystickCommands generateTrajectory");
-			if (!runTrajectory(traj.response)) //run on swerve_control
-				ROS_ERROR("swerve_control failed in teleopJoystickCommands runTrajectory");
-		}
-		else
-			ROS_INFO_STREAM("Can't run orient, it's already running");
-	}
 
 	lastTimeSecs = timeSecs;
 	//ROS_WARN("Header time: %f, Time now: %f, Time difference: %f", JoystickState->header.stamp.toSec(), ros::Time::now().toSec(), ros::Time::now().toSec() - JoystickState->header.stamp.toSec());
