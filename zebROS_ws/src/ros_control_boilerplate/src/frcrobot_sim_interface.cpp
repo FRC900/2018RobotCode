@@ -513,7 +513,7 @@ void FRCRobotSimInterface::loop_joy(void)
 
 
 
-void FRCRobotSimInterface::custom_profile_set_talon(hardware_interface::TalonMode in_mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos)
+void FRCRobotSimInterface::custom_profile_set_talon(hardware_interface::TalonMode in_mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double start_run, int &slot_last)
 {
 	const hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
 	const int encoder_ticks_per_rotation = talon_state_[joint_id].getEncoderTicksPerRotation();
@@ -568,11 +568,10 @@ void FRCRobotSimInterface::custom_profile_set_talon(hardware_interface::TalonMod
 	double command;
 
 	talon_command_[joint_id].newMode(in_mode);
-	talon_command_[joint_id].commandChanged(command);
+	//talon_command_[joint_id].commandChanged(command);
 
 	hardware_interface::DemandType demand1_type_internal;
 	double demand1_value;
-	talon_command_[joint_id].demand1Changed(demand1_type_internal, demand1_value);
 
 	talon_state_[joint_id].setDemand1Type(demand1_type_internal);
 	talon_state_[joint_id].setDemand1Value(demand1_value);
@@ -583,12 +582,15 @@ void FRCRobotSimInterface::custom_profile_set_talon(hardware_interface::TalonMod
 	talon_state_[joint_id].setNeutralOutput(false); // maybe make this a part of setSetpoint?
 
 	talon_command_[joint_id].setPidfSlot(pidSlot);
-	int dummy;
-	if(talon_command_[joint_id].slotChanged(dummy))
+
+	if(ros::Time::now().toSec() - start_run < .2 || slot_last != pidSlot)
 	{
+		ROS_INFO_STREAM("set pid on " << talon_state_[joint_id].getCANID() << "  to: " << pidSlot);
+
 		//can_talons_[joint_id]->SelectProfileSlot(pidSlot, timeoutMs);
 		talon_state_[joint_id].setSlot(pidSlot);
 	}
+	slot_last = pidSlot;
 }
 
 void FRCRobotSimInterface::custom_profile_thread(int joint_id)
@@ -608,6 +610,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
 	std::vector<std::vector<double>> saved_times;
 	saved_times.resize(num_slots);
 	
+	int slot_last = -1;
 	while (ros::ok())
 	{
 		if (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_Follower)
@@ -649,6 +652,8 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
 		status.slotRunning = slot;	
 		if(run)
 		{
+
+
 			if(saved_points[slot].size() == 0)
 			{
 				static int fail_flag = 0;
@@ -694,7 +699,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
 				auto next_slot = talon_command_[joint_id].getCustomProfileNextSlot();
 
 				//If all points have been exhausted, just use the last point
-				custom_profile_set_talon(saved_points[slot].back().mode, saved_points[slot].back().setpoint, saved_points[slot].back().fTerm, joint_id, saved_points[slot].back().pidSlot, saved_points[slot].back().zeroPos);
+				custom_profile_set_talon(saved_points[slot].back().mode, saved_points[slot].back().setpoint, saved_points[slot].back().fTerm, joint_id, saved_points[slot].back().pidSlot, saved_points[slot].back().zeroPos, time_start, slot_last);
 				if((next_slot.size() > 0))
 				{
 					talon_command_[joint_id].setCustomProfileSlot(next_slot[0]);
@@ -705,7 +710,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
 			else if(end == 0)
 			{
 				//If we are still on the first point,just use the first point
-				custom_profile_set_talon(saved_points[slot][0].mode, saved_points[slot][0].setpoint, saved_points[slot][0].fTerm, joint_id, saved_points[slot][0].pidSlot, saved_points[slot][0].zeroPos);
+				custom_profile_set_talon(saved_points[slot][0].mode, saved_points[slot][0].setpoint, saved_points[slot][0].fTerm, joint_id, saved_points[slot][0].pidSlot, saved_points[slot][0].zeroPos,  time_start, slot_last);
 			}
 			else
 			{
@@ -714,7 +719,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
 				if(saved_points[slot][end].mode != saved_points[slot][end-1].mode)
 				{
 					ROS_WARN("mid profile mode flip. If intended, Cooooooooollllll. If not, fix the code");
-					custom_profile_set_talon(saved_points[slot][end].mode, saved_points[slot][end].setpoint, saved_points[slot][end].fTerm, joint_id, saved_points[slot][end].pidSlot, saved_points[slot][end].zeroPos);
+					custom_profile_set_talon(saved_points[slot][end].mode, saved_points[slot][end].setpoint, saved_points[slot][end].fTerm, joint_id, saved_points[slot][end].pidSlot, saved_points[slot][end].zeroPos,  time_start, slot_last);
 					// consider adding a check to see which is closer
 				}
 				else
@@ -727,7 +732,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
 					double fTerm = saved_points[slot][end - 1].fTerm + (saved_points[slot][end].fTerm - saved_points[slot][end - 1].fTerm) / 
 					(saved_times[slot][end] - saved_times[slot][end-1]) * (time_since_start - saved_times[slot][end-1]);
 
-					custom_profile_set_talon(saved_points[slot][end].mode, setpoint, fTerm, joint_id, saved_points[slot][end].pidSlot, saved_points[slot][end-1].zeroPos);
+					custom_profile_set_talon(saved_points[slot][end].mode, setpoint, fTerm, joint_id, saved_points[slot][end].pidSlot, saved_points[slot][end-1].zeroPos, time_start, slot_last);
 				
 				}
 			}
@@ -920,15 +925,24 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 	ROS_INFO_STREAM_THROTTLE(1,
 			std::endl << std::string(__FILE__) << ":" << __LINE__ <<
 			std::endl << "Command" << std::endl << printCommandHelper());
-
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		auto &ts = talon_state_[joint_id];
 		auto &tc = talon_command_[joint_id];
 
 		 if(talon_command_[joint_id].getCustomProfileRun())
-            continue; //Don't mess with talons running in custom profile mode		
+			{
+            
+								
+				can_talon_srx_run_profile_stop_time_[joint_id] = ros::Time::now().toSec();
 
+
+
+				
+				continue; //Don't mess with talons running in custom profile mode		
+
+
+			}
 		// If commanded mode changes, copy it over
 		// to current state
 		hardware_interface::TalonMode new_mode;
@@ -965,7 +979,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			double max_integral_accumulator;
 			double closed_loop_peak_output;
 			int    closed_loop_period;
-			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period, slot))
+			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period, slot) ||  ros::Time::now().toSec()- can_talon_srx_run_profile_stop_time_[joint_id] < .2)
 			{
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" PIDF slot " << slot << " config values");
 				ts.setPidfP(p, slot);

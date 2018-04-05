@@ -134,6 +134,11 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 		ROS_ERROR_NAMED(name_, "Can not read climb_cur_lim");
 		return false;
 	}
+	if (!controller_nh.getParam("limit_power_press", limit_power_press_))
+	{
+		ROS_ERROR_NAMED(name_, "Can not read limit_power_press");
+		return false;
+	}
 
 	std::string node_name;
 	//Offset for lift should be lift sensor pos when all the way down + height of carriage pivot point
@@ -672,6 +677,13 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
     
     }
     /* NIALL */
+	bool bottom_limit = pivot_joint_.getReverseLimitSwitch(); //TODO FIX THIS
+	if(bottom_limit)
+	{	
+		
+		pivot_joint_.setPeakOutputReverse(-limit_power_press_);
+
+	}
 	bool safe_to_move_intake;
 	elevator_controller::ReturnElevatorCmd return_holder;
 	if(!curr_cmd.override_pos_limits)
@@ -682,7 +694,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 		arm_limiting::point_type return_cmd;
 		bool return_up_or_down;
-		bool bottom_limit = pivot_joint_.getReverseLimitSwitch(); //TODO FIX THIS
 		const bool cube_in_clamp = cube_msg.clamp && (clamp_cmd <= 0);
 		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit, intake_up, in_transition, safe_to_move_intake, cube_in_clamp, intake_open, curr_cmd.put_cube_in_intake);
 

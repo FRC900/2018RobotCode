@@ -135,6 +135,7 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		// Configuration
 		std::vector<std::string> can_talon_srx_names_;
 		std::vector<int>         can_talon_srx_can_ids_;
+		std::vector<double>      can_talon_srx_run_profile_stop_time_;
 		std::size_t              num_can_talon_srxs_;
 
 		std::vector<std::string> nidec_brushless_names_;

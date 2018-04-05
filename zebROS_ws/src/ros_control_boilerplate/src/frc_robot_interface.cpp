@@ -416,6 +416,7 @@ void FRCRobotInterface::init()
 		hardware_interface::TalonStateHandle tsh(can_talon_srx_names_[i], &talon_state_[i]);
 		talon_state_interface_.registerHandle(tsh);
 
+		can_talon_srx_run_profile_stop_time_.push_back(0);
 		// Do the same for a command interface for
 		// the same talon
 		hardware_interface::TalonCommandHandle tch(tsh, &talon_command_[i]);

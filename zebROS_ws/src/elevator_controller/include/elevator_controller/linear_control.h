@@ -57,6 +57,7 @@ class ElevatorController
 		
 		bool intake_up_last_;
 		double transition_time_;
+		double limit_power_press_;
 
 		std::string name_;
 		hardware_interface::JointStateHandle line_break_intake_high_;

@@ -17,18 +17,18 @@ teleop_params:
     exchange_config_x: .24
     exchange_config_y: .433 #check this
     exchange_config_up_or_down: false
-    intake_ready_to_drop_x: .2
+    intake_ready_to_drop_x: .18
     intake_ready_to_drop_y: 0.5 #1.075 - y pos arm relative
 
     intake_ready_to_drop_up_or_down: false
-    intake_high_x: .2
+    intake_high_x: .18
     intake_high_y: .43
     
-    drop_x_tolerance: .05
+    drop_x_tolerance: .1
 
 
     intake_high_up_or_down: false
-    intake_low_x: .2
+    intake_low_x: .18
     intake_low_y: .376
     
 
