@@ -299,10 +299,11 @@ class TeleopJointsKeyboard
 					cmd_.buttonYButton = true; // radians
                     dirty = true;
 					break;
-				case KEYCODE_q:
+				/*case KEYCODE_q:
 					cmd_.leftTrigger = .5; // radians
                     dirty = true;
 					break;
+				*/
 				case KEYCODE_e:
 					cmd_.rightTrigger = .5; // radians
                     dirty = true;
@@ -643,6 +644,7 @@ void FRCRobotSimInterface::custom_profile_thread(int joint_id)
 			//Right now we wipe everything if the slots are flipped
 			//Should try to be analagous to having a break between
 			points_run = 0;
+			time_start = ros::Time::now().toSec();
 		}
 		status.slotRunning = slot;	
 		if(run)

@@ -505,9 +505,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 								ROS_INFO_STREAM("Custom flips for identifier: " << identifier_with_wait << " found");
 								for(int i = 0; i < group_xml.size(); i++)
 								{
-									ROS_ERROR_STREAM(i);
 									bool temp = flip_xml[i];
-									ROS_ERROR_STREAM("failed here");
 									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(temp);
 								}
 							}
@@ -518,10 +516,28 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(false);
 								}
 							}
+							XmlRpc::XmlRpcValue x_inverts_xml;
+							if(auto_data.getParam(identifier_with_wait + "_x_inverts", x_inverts_xml))
+							{
+								ROS_INFO_STREAM("Custom x inverts for identifier: " << identifier_with_wait << " found");
+								for(int i = 0; i < group_xml.size(); i++)
+								{
+									bool temp = x_inverts_xml[i];
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.x_invert.push_back(temp);
+								}
+							}
+							else
+							{
+								for(int i = 0; i < group_xml.size(); i++)
+								{
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.x_invert.push_back(false);
+								}
+							}
 						}
 						else
 						{
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(false);
+								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.x_invert.push_back(false);
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.spline_groups.push_back(num_splines);
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(0.16);
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.t_shift.push_back(0);
@@ -798,6 +814,7 @@ bool queue_profile(std::vector<int> queue)
 		ROS_ERROR("swerve_control call() failed in autoInterpreterClient queue_profile");
 		return false;
 	}
+	ROS_WARN("why no true");
 	return true;
 
 }
@@ -1074,15 +1091,16 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 				
 
 
-
-			for(int i = num; i >= 0; i--)
-			{	
-				if(finished[i]) continue;
-				finished[i] = check_action_completion(auto_run_data.actions[i].action, intake_action_lib_later_write, robot_action_lib_later_write, timed_out);	
+			if(num != 0)
+			{
+				for(int i = num - 1; i >= 0; i--)
+				{	
+					if(finished[i]) continue;
+					finished[i] = check_action_completion(auto_run_data.actions[i].action, intake_action_lib_later_write, robot_action_lib_later_write, timed_out);	
 				time_finished[i] = ros::Time::now().toSec();	
-				exit_auto = exit_auto || timed_out;	
+					exit_auto = exit_auto || timed_out;	
+				}
 			}
-			
 			if(auto_run_data.actions[num].wait_action_id >=0)
 			{
 				dependencies_run = finished[auto_run_data.actions[num].wait_action_id] && ros::Time::now().toSec() - time_finished[auto_run_data.actions[num].wait_action_id] > auto_run_data.actions[num].wait_action_time;
@@ -1116,10 +1134,11 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 						{
 							queue.push_back(start_of_buffer_ids[layout] + k); 	
 						}
-						if(!queue_profile(queue));
+						if(!queue_profile(queue))
 						{			
 							ROS_WARN("queue fail");
 							queued -= 1;
+							action_rate.sleep();
 							break;
 							//If we fail try again
 						}	
@@ -1128,6 +1147,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 					{
 						ROS_WARN("runTrajectory fail");
 						queued -= 1;
+						action_rate.sleep();
 						break;
 						//If we fail try again
 					}

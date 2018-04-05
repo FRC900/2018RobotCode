@@ -51,6 +51,7 @@
 #include <talon_swerve_drive_controller/MotionProfilePoints.h>
 #include <talon_swerve_drive_controller/speed_limiter.h>
 #include <swerve_math/Swerve.h>
+#include <boost/circular_buffer.hpp>
 
 #include <sensor_msgs/JointState.h>
 #include <std_msgs/Bool.h>
@@ -179,10 +180,12 @@ class TalonSwerveDriveController
 			bool change_queue;
 			std::vector<int> new_queue;
 			bool newly_set;
-			full_profile_cmd() : wipe_all(false), buffer(false), run(false), brake(false),  run_slot(0), change_queue(false), newly_set(false) {}
+			int id_counter;
+			full_profile_cmd() : wipe_all(false), buffer(false), run(false), brake(false),  run_slot(0), change_queue(false), newly_set(false), id_counter(0) {}
 		};
 				
-		realtime_tools::RealtimeBuffer<full_profile_cmd> full_profile_buffer_;	
+		boost::circular_buffer<full_profile_cmd> full_profile_buffer_{10}; //likely more than needed
+			
 		realtime_tools::RealtimeBuffer<bool> mode_;
 		//realtime_tools::RealtimeBuffer<bool> wipe_all_; //TODO, add this functionality
 		realtime_tools::RealtimeBuffer<Commands> command_;

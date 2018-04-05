@@ -570,7 +570,7 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 		if(status.running && !run)
 		{		
 			std::vector<hardware_interface::CustomProfilePoint> empty_points;
-			talon_command_[joint_id].overwriteCustomProfilePoints(empty_points, status.slotRunning);	
+			//talon_command_[joint_id].overwriteCustomProfilePoints(empty_points, status.slotRunning);	
 			//Right now we wipe everything if the profile is stopped
 			//This could be changed to a pause type feature in which the first point has zeroPos set and the other
 			//positions get shifted

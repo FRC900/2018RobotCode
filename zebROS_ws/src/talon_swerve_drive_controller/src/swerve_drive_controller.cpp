@@ -622,11 +622,19 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 	// Retreive current velocity command and time step:
 
 	//ROS_INFO_STREAM("mode: " << *(mode_.readFromRT())); 
+	
 
-	full_profile_cmd cur_prof_cmd = *(full_profile_buffer_.readFromRT()); 
+		
+
+
+	
+
 	//For this to be thread safe, the assumption is that the serv is called relatively infrequently
-	if(cur_prof_cmd.newly_set)
+	if(full_profile_buffer_.size() != 0)
 	{
+		//WHERE BE THIS MUTEX
+		full_profile_cmd cur_prof_cmd = full_profile_buffer_.front();
+		full_profile_buffer_.pop_front(); 
 		if(cur_prof_cmd.brake)
 		{	
 			ROS_WARN("profile_reset");
@@ -762,8 +770,6 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				speed_joints_[k].setCustomProfileNextSlot(cur_prof_cmd.new_queue);	
 			}	
 		}
-		full_profile_cmd empty;
-		full_profile_buffer_.writeFromNonRT(empty); //This is why we can't call the serv very frequently
 
 	}
 	static double mode_last = ros::Time::now().toSec();
@@ -1021,7 +1027,11 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 			brake();
 			return;
 		}
-		*/		
+		*/	
+
+		//2 Megs -  at least 10 profs
+	
+
 
 		ROS_WARN("serv points called");
 
@@ -1065,8 +1075,10 @@ bool TalonSwerveDriveController::motionProfileService(talon_swerve_drive_control
 		}
 		full_profile_struct.newly_set		= true;
 				
-				
-		full_profile_buffer_.writeFromNonRT(full_profile_struct);
+		//mutex?		
+		full_profile_buffer_.push_back(full_profile_struct);
+		
+
 		return true;
 	}
 	else
