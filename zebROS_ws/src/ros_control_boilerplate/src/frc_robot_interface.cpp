@@ -670,6 +670,67 @@ void FRCRobotInterface::init()
 	ROS_INFO_STREAM_NAMED(name_, "FRCRobotInterface Ready.");
 }
 
+// Note - there are two commented-out can_talon calls here.  If
+// they're put back in, make customProfileFoo() methods which
+// are virtual in the frc_robot_interface def.  For a Set()
+// call, make the virtual one do nothing (like the other
+// calls already). Then in the hw_interface, override it
+// with a method which makes the actual talon call
+// For get, not sure what to do exactly?  The hw one is obvious-
+// get the value from the talon. For sim, maybe grab it from state?
+void FRCRobotInterface::custom_profile_set_talon(hardware_interface::TalonMode mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double start_run, int &slot_last)
+{
+	if(zeroPos)
+	{
+		//pos_offset = can_talons_[joint_id]->GetSelectedSensorPosition(pidIdx) /* radians_scale*/;
+
+		setSensorPosition(joint_id, 0);
+		talon_state_[joint_id].setPosition(0);
+		ROS_WARN_STREAM("zeroing talon:" <<  joint_id);
+	}
+	//set talon
+	if(mode == hardware_interface::TalonMode_PercentOutput)
+	{
+		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_Neutral, 0);
+	}
+	else
+	{	
+		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_ArbitraryFeedForward, fTerm);
+		talon_command_[joint_id].setDemand1Type(hardware_interface::DemandType_ArbitraryFeedForward);
+		talon_command_[joint_id].setDemand1Value(fTerm);
+
+		hardware_interface::DemandType demand1_type_internal;
+		talon_command_[joint_id].demand1Changed(demand1_type_internal, fTerm);
+
+		talon_state_[joint_id].setDemand1Type(demand1_type_internal);
+		talon_state_[joint_id].setDemand1Value(fTerm);
+	}	
+
+	//ROS_INFO_STREAM("setpoint: " << setpoint << " fterm: " << fTerm << " id: " << joint_id << " offset " << pos_offset << " slot: " << pidSlot << " pos mode? " << posMode);
+	
+	talon_command_[joint_id].setMode(mode);
+	talon_command_[joint_id].newMode(mode);
+	talon_state_[joint_id].setTalonMode(mode);
+
+	talon_command_[joint_id].set(setpoint);
+	talon_command_[joint_id].commandChanged(setpoint);
+	talon_state_[joint_id].setSetpoint(setpoint);
+
+	talon_state_[joint_id].setNeutralOutput(false); // maybe make this a part of setSetpoint?
+
+	talon_command_[joint_id].setPidfSlot(pidSlot);
+	// Need a call to PidfSlot changed here?
+
+	if(ros::Time::now().toSec() - start_run < .2 || slot_last != pidSlot)
+    {
+        ROS_INFO_STREAM("set pid on " << talon_state_[joint_id].getCANID() << "  to: " << pidSlot);
+
+        //can_talons_[joint_id]->SelectProfileSlot(pidSlot, timeoutMs);
+        talon_state_[joint_id].setSlot(pidSlot);
+    }
+    slot_last = pidSlot;
+}
+
 void FRCRobotInterface::custom_profile_thread(int joint_id)
 {
 	//I wonder how inefficient it is to have all of these threads 

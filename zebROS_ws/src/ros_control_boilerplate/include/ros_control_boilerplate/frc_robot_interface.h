@@ -133,7 +133,21 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		hardware_interface::ImuSensorInterface imu_interface_;
 
 		void custom_profile_thread(int joint_id);
-		virtual void custom_profile_set_talon(hardware_interface::TalonMode mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double start_run, int &pid_slot) = 0;
+		void custom_profile_set_talon(hardware_interface::TalonMode mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double start_run, int &pid_slot);
+
+		// These are overridden in hw_interface to actually 
+		// write to talon HW
+		virtual void customProfileSetMode(int joint_id,
+				 						  hardware_interface::TalonMode mode,
+										  double setpoint,
+										  hardware_interface::DemandType demandtype,
+										  double demandvalue)
+		{
+		}
+
+		virtual void setSensorPosition(int joint_id, double position)
+		{
+		}
 
 		std::vector<std::thread> custom_profile_threads_;
 

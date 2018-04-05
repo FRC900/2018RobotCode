@@ -509,96 +509,13 @@ void FRCRobotSimInterface::loop_joy(void)
     teleop.keyboardLoop();
 }
 
-
-
-
-
-void FRCRobotSimInterface::custom_profile_set_talon(hardware_interface::TalonMode in_mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double start_run, int &slot_last)
-{
-	const hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
-	const int encoder_ticks_per_rotation = talon_state_[joint_id].getEncoderTicksPerRotation();
-	const double conversion_factor = talon_state_[joint_id].getConversionFactor();
-
-	
-	if(zeroPos)
-	{
-		//pos_offset = can_talons_[joint_id]->GetSelectedSensorPosition(pidIdx) /* radians_scale*/;
-
-		//can_talons_[joint_id]->SetSelectedSensorPosition(0, pidIdx, timeoutMs);
-		talon_state_[joint_id].setPosition(0);
-		ROS_WARN_STREAM("zeroing talon:" <<  joint_id);
-	}
-	//set talon
-	//ctre::phoenix::motorcontrol::ControlMode out_mode;
-
-	//convertControlMode(in_mode, out_mode);
-	/*
-	
-	switch (out_mode)
-	{
-		case ctre::phoenix::motorcontrol::ControlMode::Velocity:
-			setpoint /= radians_per_second_scale;
-			break;
-		case ctre::phoenix::motorcontrol::ControlMode::Position:
-			setpoint /= radians_scale;
-			break;
-		case ctre::phoenix::motorcontrol::ControlMode::MotionMagic:
-			setpoint /= radians_scale;
-			break;
-	}
-	*/	
-	if(in_mode == hardware_interface::TalonMode_PercentOutput)
-	{
-		//can_talons_[joint_id]->Set(out_mode, setpoint);
-
-	}
-	else
-	{	
-		//can_talons_[joint_id]->Set(out_mode, setpoint, ctre::phoenix::motorcontrol::DemandType::DemandType_ArbitraryFeedForward, fTerm); //TODO: unit conversion
-		talon_command_[joint_id].setDemand1Type(hardware_interface::DemandType_ArbitraryFeedForward);
-		talon_command_[joint_id].setDemand1Value(fTerm);
-	}	
-
-
-	//ROS_INFO_STREAM("setpoint: " << setpoint << " fterm: " << fTerm << " id: " << joint_id << " offset " << pos_offset << " slot: " << pidSlot << " pos mode? " << posMode);
-	talon_command_[joint_id].setMode(in_mode);
-	talon_command_[joint_id].set(setpoint);
-
-	
-	double command;
-
-	talon_command_[joint_id].newMode(in_mode);
-	//talon_command_[joint_id].commandChanged(command);
-
-	hardware_interface::DemandType demand1_type_internal;
-	double demand1_value;
-
-	talon_state_[joint_id].setDemand1Type(demand1_type_internal);
-	talon_state_[joint_id].setDemand1Value(demand1_value);
-				
-	talon_state_[joint_id].setTalonMode(in_mode);
-	talon_state_[joint_id].setSetpoint(command);
-
-	talon_state_[joint_id].setNeutralOutput(false); // maybe make this a part of setSetpoint?
-
-	talon_command_[joint_id].setPidfSlot(pidSlot);
-
-	if(ros::Time::now().toSec() - start_run < .2 || slot_last != pidSlot)
-	{
-		ROS_INFO_STREAM("set pid on " << talon_state_[joint_id].getCANID() << "  to: " << pidSlot);
-
-		//can_talons_[joint_id]->SelectProfileSlot(pidSlot, timeoutMs);
-		talon_state_[joint_id].setSlot(pidSlot);
-	}
-	slot_last = pidSlot;
-}
-
 void FRCRobotSimInterface::cube_state_callback(const elevator_controller::CubeState &cube) {
     clamp = cube.clamp;
     intake_high = cube.intake_high;
     intake_low = cube.intake_low;
     has_cube = cube.has_cube;
 }
+
 void FRCRobotSimInterface::init(void)
 {
 	// Do base class init. This loads common interface info
