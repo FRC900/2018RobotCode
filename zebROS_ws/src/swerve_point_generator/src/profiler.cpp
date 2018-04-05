@@ -130,10 +130,11 @@ ROS_INFO_STREAM("running generate_profile");
 	std::vector<double> dtds_for_spline;
 	double t_raw2;
 	spline = parametrize_spline(x_splines_first_deriv, y_splines_first_deriv, end_points, total_arc, dtds_for_spline);
-	//ROS_WARN("still running");
+	ROS_WARN("still running");
 	int point_count = 0;
 	//back pass
-	//ROS_INFO_STREAM("total arc: " <<total_arc);
+	ROS_INFO_STREAM("total arc: " <<total_arc);
+	ROS_INFO_STREAM("dt_: " << dt_);
 	for (double i = total_arc /*- .1*/ ; i > 0;)
 	{
 
@@ -162,7 +163,7 @@ ROS_INFO_STREAM("running generate_profile");
 		}
 		//ROS_INFO_STREAM("V: " << curr_v);
 	}
-	//ROS_INFO_STREAM("passed loop 1");
+	ROS_INFO_STREAM("passed loop 1");
 	velocities.erase(velocities.end() - 1);
 	positions.erase(positions.end() - 1);
 	
