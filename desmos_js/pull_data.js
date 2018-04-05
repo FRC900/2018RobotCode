@@ -354,6 +354,8 @@ function loadGraphVals(calculator, vals)
 	calculator.setExpression({id:'scale_point_y0', latex:'y_{scale} = ' +7.16746 });
 	calculator.setExpression({id:'scale_point_x0', latex:'x_{scale} =' + 2.1});
 
+	calculator.setExpression({id:'scale_point_y0_back', latex:'y_{scaleback} = ' +7.61746 });
+	calculator.setExpression({id:'scale_point_x0_back', latex:'x_{scaleback} =' +2.0304 });
 
 	
 	calculator.setExpression({id:'switch_point_y0', latex:'y_{switch}=3.556-0.568325-.12'});
@@ -819,6 +821,10 @@ function loadGraph(calculator)
 	calculator.setExpression({id:'num_splines0', latex:'n_{splines} = 5'});
 	calculator.setExpression({id:'scale_point_y0', latex:'y_{scale} = ' +7.16746 });
 	calculator.setExpression({id:'scale_point_x0', latex:'x_{scale} =' + 2.1});
+
+	
+	calculator.setExpression({id:'scale_point_y0_back', latex:'y_{scaleback} = ' +7.61746 });
+	calculator.setExpression({id:'scale_point_x0_back', latex:'x_{scaleback} =' +2.0304 });
 	
 	calculator.setExpression({id:'switch_point_y0', latex:'y_{switch}=3.556-0.568325-.12'});
 	calculator.setExpression({id:'switch_point_x0', latex:'x_{switch}=1.4'});
