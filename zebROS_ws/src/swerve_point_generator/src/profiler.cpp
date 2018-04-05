@@ -31,8 +31,11 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 		ROS_ERROR("x-splines should also not be empty");
 		return false;
 	}
-	t_total_ = end_points[end_points.size()-1] - end_points[0];
+ROS_INFO_STREAM("running generate_profile");
+	ROS_INFO_STREAM("x splines passed in: " << x_splines[1].a <<  x_splines[1].b<<  x_splines[1].c <<  x_splines[1].d << x_splines[1].e);
+	ROS_INFO_STREAM("x splines size: " << x_splines.size());
 
+	t_total_ = end_points[end_points.size()-1] - end_points[0] + 1;
 	tk::spline spline;
 	double total_arc;
 
@@ -62,6 +65,7 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 
 		x_splines_first_deriv.push_back(holder_spline);
 
+		ROS_INFO_STREAM("first deriv: " << x_splines_first_deriv[i].a <<  x_splines_first_deriv[i].b<<  x_splines_first_deriv[i].c <<  x_splines_first_deriv[i].d << x_splines_first_deriv[i].e);
 
 		holder_spline.f = 1 * holder_spline.e;
 		holder_spline.e = 2 * holder_spline.d;
@@ -230,8 +234,9 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 	//ROS_ERROR("finished raw generation");
 	ROS_INFO_STREAM("time: " << point_count * dt_);
 	ROS_INFO_STREAM("total_arc: " << total_arc);
-	out_msg.points.erase(out_msg.points.begin() + point_count - 1, out_msg.points.end());
+	out_msg.points.erase(out_msg.points.begin() + point_count, out_msg.points.end());
 	ROS_ERROR_STREAM("p: " << out_msg.points.size());
+	ROS_INFO_STREAM("point_count in profiler: " << point_count);
 	return true;
 }
 // TODO :: is return code needed here?
@@ -339,6 +344,7 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 
 	//ROS_WARN_STREAM(x_splines_first_deriv.size());
 
+	ROS_INFO_STREAM("THE SIZE HERE IS: " << x_splines_first_deriv.size());
 	for (size_t i = 0; i < x_splines_first_deriv.size(); i++)
 	{
 		
@@ -378,20 +384,21 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 
 			//f(t) = sqrt((dx/dt)^2 + (dy/dt)^2)
 
-			ROS_INFO_STREAM("period_t: " << period_t);
-			ROS_INFO_STREAM("idek: " << (sqrt(x_at_a * x_at_a + y_at_a * y_at_a) + 4 *
-												sqrt(x_at_avg * x_at_avg + y_at_avg * y_at_avg) + sqrt(x_at_b * x_at_b + y_at_b * y_at_b)));
+			//ROS_INFO_STREAM("period_t: " << period_t);
+			//ROS_INFO_STREAM("idek: " << (sqrt(x_at_a * x_at_a + y_at_a * y_at_a) + 4 * sqrt(x_at_avg * x_at_avg + y_at_avg * y_at_avg) + sqrt(x_at_b * x_at_b + y_at_b * y_at_b)));
 			total_arc_length += period_t / 6 * (sqrt(x_at_a * x_at_a + y_at_a * y_at_a) + 4 *
 												sqrt(x_at_avg * x_at_avg + y_at_avg * y_at_avg) + sqrt(x_at_b * x_at_b + y_at_b * y_at_b));
-			ROS_INFO_STREAM("Spline: " << i << " t_val: " << a_val <<"  arc_length: " << total_arc_length);
+			ROS_INFO_STREAM("arc_now: " << total_arc_length);
+			//ROS_INFO_STREAM("Spline: " << i << " t_val: " << a_val <<"  arc_length: " << total_arc_length);
 		}
 	}
+	ROS_INFO_STREAM("hurrah1");
 	if(x_splines_first_deriv.size() == 1)
 		dtds_by_spline.push_back((end_points[x_splines_first_deriv.size() - 1] - 0) /  (total_arc_length - arc_before));
 	else
 		dtds_by_spline.push_back((end_points[x_splines_first_deriv.size() - 1] - end_points[x_splines_first_deriv.size() - 2]) /  (total_arc_length - arc_before));
 		
-	
+	ROS_INFO_STREAM("hurrah2");
 	t_vals.push_back(b_val);
 	s_vals.push_back(total_arc_length);
 	//TODO: Loop to generate set of s vals for t vals iterating from 0 to end_time (simpsons rule here)
@@ -408,7 +415,7 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 
 
 	}*/
-
+	ROS_INFO_STREAM("successful parametrize spline");
 	return s;
 }
 bool swerve_profiler::poly_solve(const double a, const double b, const double c, double &x)

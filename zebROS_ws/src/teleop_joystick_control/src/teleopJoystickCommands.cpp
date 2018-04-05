@@ -234,11 +234,11 @@ bool generateCoefs(const double angle_diff, const ros::Duration time_to_run, bas
 	srvBaseTrajectory.request.points.resize(1); //only need one endpoint -- final orientation of robot
 	
 	//x-movement (not moving at all)
-	srvBaseTrajectory.request.points[0].positions.push_back(10);
+	srvBaseTrajectory.request.points[0].positions.push_back(0.01);
 	srvBaseTrajectory.request.points[0].velocities.push_back(0);
 	srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 	//y-movement (not moving at all)
-	srvBaseTrajectory.request.points[0].positions.push_back(.01);
+	srvBaseTrajectory.request.points[0].positions.push_back(0.01);
 	srvBaseTrajectory.request.points[0].velocities.push_back(0);
 	srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 	//z-rotation
@@ -246,8 +246,8 @@ bool generateCoefs(const double angle_diff, const ros::Duration time_to_run, bas
 	srvBaseTrajectory.request.points[0].velocities.push_back(0); //velocity at the end point
 	srvBaseTrajectory.request.points[0].accelerations.push_back(0); //acceleration at the end point
 	//time for profile to run
-	srvBaseTrajectory.request.points[0].time_from_start = time_to_run; 
-
+	srvBaseTrajectory.request.points[0].time_from_start = time_to_run;
+	
 	if(!spline_gen.call(srvBaseTrajectory))
 		return false;
 	else
@@ -256,16 +256,20 @@ bool generateCoefs(const double angle_diff, const ros::Duration time_to_run, bas
 
 bool generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory, swerve_point_generator::FullGenCoefs &traj) 
 {
-	traj.request.orient_coefs = srvBaseTrajectory.response.orient_coefs;
-	traj.request.x_coefs = srvBaseTrajectory.response.x_coefs;
-	traj.request.y_coefs = srvBaseTrajectory.response.y_coefs;
+	traj.request.orient_coefs.resize(1);
+	traj.request.x_coefs.resize(1);
+	traj.request.y_coefs.resize(1);
+	traj.request.orient_coefs[0] = srvBaseTrajectory.response.orient_coefs[1];
+	traj.request.x_coefs[0] = srvBaseTrajectory.response.x_coefs[1];
+	traj.request.y_coefs[0] = srvBaseTrajectory.response.y_coefs[1];
 	traj.request.spline_groups.push_back(1);
-	traj.request.wait_before_group.push_back(0);
+	traj.request.wait_before_group.push_back(.16);
 	traj.request.t_shift.push_back(0);
 	traj.request.flip.push_back(false);
 	traj.request.end_points = srvBaseTrajectory.response.end_points;
 	traj.request.initial_v = 0;
 	traj.request.final_v = 0;
+	traj.request.x_invert.push_back(0);
 
 	if (traj.request.end_points.empty())
 		ROS_WARN("request end points are empty");
@@ -1267,40 +1271,28 @@ if(JoystickState->bumperLeftButton == true)
 		//ROS_INFO("teleop : Joystive elevator pos");
 	}
 
-	if(JoystickState->bumperLeftButton == true)
+	if(JoystickState->bumperLeftPress == true)
 	{
 		//TODO: check to see if it's already running?
-		static bool orient_running = false;
-		if(!orient_running)
-		{
-			sendRobotZero = false;
-			//double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
-			double angle = M_PI/3; //for testing
-			static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
-			static double max_rotational_velocity = 8.8; //radians/sec TODO: find this in config
+		sendRobotZero = false;
+		//double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
+		double angle = M_PI/3; //for testing
+		static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
+		static double max_rotational_velocity = 8.8; //radians/sec TODO: find this in config
 
-			ROS_INFO_STREAM("least_dist_angle: " << least_dist_angle);
+		static ros::Duration time_to_run((fabs((least_dist_angle - angle)) / max_rotational_velocity) * .8);
 
-			static ros::Duration time_to_run((fabs((least_dist_angle - angle)) / max_rotational_velocity) * .8);
-
-			ROS_INFO_STREAM("time_to_run: " << time_to_run);
-
-			base_trajectory::GenerateSpline srvBaseTrajectory;
-			swerve_point_generator::FullGenCoefs traj;
-			
-			if (!generateCoefs(least_dist_angle - angle, time_to_run, srvBaseTrajectory)) //generate coefficients for the spline from the endpoints 
-				ROS_INFO_STREAM("spline_gen died in teleopJoystickCommands generateCoefs");
-			if (srvBaseTrajectory.response.end_points.empty())
-				ROS_WARN("END POINTS EMPTY");
-			else
-				ROS_WARN("NOPE YOU'RE GOOD");
-			if (!generateTrajectory(srvBaseTrajectory, traj)) //generate a motion profile from the coefs
-				ROS_INFO_STREAM("point_gen died in teleopJoystickCommands generateTrajectory");
-			if (!runTrajectory(traj.response)) //run on swerve_control
-				ROS_ERROR("swerve_control failed in teleopJoystickCommands runTrajectory");
-		}
-		else
-			ROS_WARN("Orient already running! Can't generate trajectory");
+		base_trajectory::GenerateSpline srvBaseTrajectory;
+		swerve_point_generator::FullGenCoefs traj;
+		
+		if (!generateCoefs(least_dist_angle - angle, time_to_run, srvBaseTrajectory)) //generate coefficients for the spline from the endpoints 
+			ROS_INFO_STREAM("spline_gen died in teleopJoystickCommands generateCoefs");
+		else {
+			ROS_WARN("NOPE YOU'RE GOOD");
+		if (!generateTrajectory(srvBaseTrajectory, traj)) //generate a motion profile from the coefs
+			ROS_INFO_STREAM("point_gen died in teleopJoystickCommands generateTrajectory");
+		if (!runTrajectory(traj.response)) //run on swerve_control
+			ROS_ERROR("swerve_control failed in teleopJoystickCommands runTrajectory"); }
 	}
 
 	lastTimeSecs = timeSecs;

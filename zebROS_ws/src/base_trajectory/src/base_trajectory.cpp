@@ -43,7 +43,7 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 	// Hold current position if trajectory is empty
 	if (msg.points.empty())
 	{
-		ROS_DEBUG("Empty trajectory command, stopping.");
+		ROS_INFO_STREAM("Empty trajectory command, stopping.");
 		return false;
 	}
 
@@ -154,7 +154,7 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 	}
 	catch(const std::invalid_argument& ex)
 	{
-		ROS_ERROR_STREAM(ex.what());
+		ROS_ERROR_STREAM("error: " << ex.what());
 		return false;
 	}
 	catch(...)
@@ -201,6 +201,7 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 		}
 		// All splines in a waypoint end at the same time?
 		out_msg.end_points.push_back(trajectory[0][seg].endTime());
+		ROS_INFO_STREAM("end of generate");
 	}
 }
 
@@ -215,6 +216,7 @@ int main(int argc, char **argv)
 	period = ros::Duration(1.0 / loop_hz);
 
 	ros::ServiceServer service = nh.advertiseService("/base_trajectory/spline_gen", generate);
+	ROS_INFO_STREAM("sad");
 
 	ros::spin();
 }
