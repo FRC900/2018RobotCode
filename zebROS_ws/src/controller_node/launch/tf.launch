@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
 <launch>
-	<param name="use_sim_time" value="true" />
-	<node pkg="rosbag" type="play" name="player" output="screen" args="-l --clock /home/kjaget/Downloads/Match1_5.bag"/>
+  <param name="use_sim_time" value="true" />
+  <node pkg="rosbag" type="play" name="player" output="screen" args="-l --clock /home/kjaget/Downloads/Match1_5.bag"/>
 
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_navx" args="-0.2914015 -0.072263 0.0244348 0 0 0 base_link navx" />
 
-
- <include file="$(find controller_node)/launch/fuse_odom.launch"/>
+  <include file="$(find controller_node)/launch/fuse_odom.launch"/>
 
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4180115 -0.3183901 0.2206 3.14159265 0 0 base_link laser" /> -->
 
@@ -18,4 +17,3 @@
 -->
 
 </launch>
-
