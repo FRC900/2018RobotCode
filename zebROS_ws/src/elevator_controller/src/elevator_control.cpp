@@ -117,11 +117,6 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 		ROS_ERROR_NAMED(name_, "Can not read climb_height");
 		return false;
 	}
-	if (!controller_nh.getParam("intake_power_diff_multiplier", intake_power_diff_multiplier_))
-	{
-		ROS_ERROR_NAMED(name_, "Can not read intake_power_diff_multiplier");
-		return false;
-	}
 
 	if (!controller_nh.getParam("intake_power_diff_multiplier", intake_power_diff_multiplier_))
 	{
@@ -303,8 +298,8 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	lift_joint_.setForwardSoftLimitEnable(true);
 	lift_joint_.setReverseSoftLimitEnable(true);
 
-	pivot_joint_.setForwardSoftLimitThreshold(M_PI/2  + pivot_offset_);
-	pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
+	pivot_joint_.setForwardSoftLimitThreshold(M_PI  + pivot_offset_);
+	pivot_joint_.setReverseSoftLimitThreshold(-1.05 + pivot_offset_);
 	
 	//TODO: something is broke with these soft limits
 
@@ -621,8 +616,8 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 							//point error
 	{
 		pivot_offset_ += adder;
-		pivot_joint_.setForwardSoftLimitThreshold(M_PI/2 + pivot_offset_);
-		pivot_joint_.setReverseSoftLimitThreshold(-M_PI/2 + .05 + pivot_offset_);
+		pivot_joint_.setForwardSoftLimitThreshold(M_PI + pivot_offset_);
+		pivot_joint_.setReverseSoftLimitThreshold(-1.05 + pivot_offset_);
 		ROS_WARN("Pivot encoder discontinuouity detected and accounted for");
 	
 	}
@@ -687,7 +682,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 		arm_limiting::point_type return_cmd;
 		bool return_up_or_down;
-		bool bottom_limit = false; //TODO FIX THIS
+		bool bottom_limit = pivot_joint_.getReverseLimitSwitch(); //TODO FIX THIS
 		const bool cube_in_clamp = cube_msg.clamp && (clamp_cmd <= 0);
 		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit, intake_up, in_transition, safe_to_move_intake, cube_in_clamp, intake_open, curr_cmd.put_cube_in_intake);
 
@@ -707,7 +702,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		return_holder.up_or_down = curr_cmd.up_or_down;
 		safe_to_move_intake = true;
 	
-		
+	/*	
 	//___________________TESTING________________________________\\
 
 		arm_limiting::point_type cmd_point(curr_cmd.lin[0], curr_cmd.lin[1]);
@@ -726,7 +721,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 
 	//___________________TESTING________________________________\\
-
+	*/
 
 
 	}

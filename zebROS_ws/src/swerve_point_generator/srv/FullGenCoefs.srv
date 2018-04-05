@@ -5,6 +5,7 @@ int32[] spline_groups
 float64[] wait_before_group
 float64[] t_shift
 bool[] flip
+bool[] x_invert
 float64[] end_points
 float64 initial_v
 float64 final_v

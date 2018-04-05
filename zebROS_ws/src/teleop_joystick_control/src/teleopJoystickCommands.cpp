@@ -86,6 +86,9 @@ static double move_out_pos_x;
 static double move_out_pos_y;
 static bool move_out_up_or_down;
 static double move_out_down_y;
+static double over_back_x;
+static double over_back_y;
+static bool over_back_up_or_down;
 
 enum pos {high_scale, mid_scale, low_scale, switch_c, exchange, intake_ready_to_drop, intake, intake_low, climb_c, default_c, other};
 
@@ -752,7 +755,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		achieved_pos = other;
 	}
 
-	if (return_to_intake_from_high && timeSecs - return_to_intake_start > 4)
+	if (/*return_to_intake_from_high && timeSecs - return_to_intake_start > 4*/ false)
 	{
 		/*
 		TODO: Long term plan is to have intake return from high and intake return from low go up and then down and then drop after ~2 sec delay
@@ -780,7 +783,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		// TODO : need to call /set goal?
 	}
 
-	if (return_to_intake_from_low && timeSecs - return_to_intake_start > 4)
+	if (/*return_to_intake_from_low && timeSecs - return_to_intake_start > 4*/ false)
 	{
 		/*
 		TODO: Long term plan is to have intake return from high and intake return from low go up and then down and then drop after ~2 sec delay
@@ -915,7 +918,56 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 	}
 
-
+	if (JoystickState->bumperLeftPress == true)
+	{
+        currentToggle = "BumpL";
+        
+        if (lastToggle == " ")
+        {
+            setHeight(achieved_pos, last_achieved_pos, elevatorPosBefore);
+        }
+        if (currentToggle == lastToggle)
+        {
+            unToggle(last_achieved_pos, elevatorPosBefore, achieved_pos, currentToggle);
+        }
+        else
+        {
+            //if(!ac->getState().isDone())
+            ac->cancelAllGoals();
+            //if(!ac_lift->getState().isDone())
+            ac_lift->cancelAllGoals();
+            //if(!ac_intake->getState().isDone())
+            ac_intake->cancelAllGoals();
+            intakeGoToDefault(intake_up);
+            srvElevator.request.x = over_back_x;
+            srvElevator.request.y = over_back_y;
+            srvElevator.request.up_or_down = over_back_up_or_down;
+            srvElevator.request.override_pos_limits = localDisableArmLimits;
+            achieved_pos = other; //TODO fix
+        }
+		if (ElevatorSrv.call(srvElevator))
+        {
+            //ROS_WARN("Toggled to mid level scale height");
+        }
+        else
+        {
+            ROS_ERROR("Failed to toggle to mid level scale height");
+        }
+		/*ElevatorPos epos_swap = *(elevatorPos.readFromRT());
+		srvElevator.request.x = epos_swap.X_;
+		srvElevator.request.y = epos_swap.Y_;
+		srvElevator.request.up_or_down = !epos_swap.UpOrDown_;
+		srvElevator.request.override_pos_limits = localDisableArmLimits;
+		if (ElevatorSrv.call(srvElevator))
+		{
+			//ROS_WARN("Toggled to up/down");
+		}
+		else
+		{
+			ROS_ERROR("Failed to toggle to up/down");
+		}
+		*/
+	}
 
 	/*----------------------------Right Bumper - Press Untoggle-----------------------------*/
 	
@@ -1283,6 +1335,15 @@ int main(int argc, char **argv)
 
 	ros::NodeHandle n_params(n, "teleop_params");
 
+
+
+
+	if (!n_params.getParam("over_back_x", over_back_x))
+		ROS_ERROR("Could not read over_back_x");
+	if (!n_params.getParam("over_back_y", over_back_y))
+		ROS_ERROR("Could not read over_back_y");
+	if (!n_params.getParam("over_back_up_or_down", over_back_up_or_down))
+		ROS_ERROR("Could not read over_back_up_or_down");
 	if (!n_params.getParam("move_out_pos_x", move_out_pos_x))
 		ROS_ERROR("Could not read move_out_pos_x");
 	if (!n_params.getParam("move_out_pos_y", move_out_pos_y))
