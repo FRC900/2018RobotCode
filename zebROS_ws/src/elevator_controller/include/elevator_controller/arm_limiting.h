@@ -576,6 +576,7 @@ class arm_limits
 				}
 			}
 			bool recalc_due_to_lim = false; 	
+			
 			if(cmd.x() < cut_off_x_line_ - .001   && cur_lift_height < safe_to_go_back_y_ - .1)
 			{
 				//ROS_ERROR("Here22");
@@ -591,6 +592,10 @@ class arm_limits
 				cmd.y(safe_to_go_back_y_+sin(acos(cmd.x()/arm_length_))*arm_length_*( up_or_down ? 1 : -1));	
 				//ROS_WARN_STREAM("making it safe to go down by setting: " << cmd.y()); 
 			}
+			bool ignore_pivot_lim = cur_pos.x() < cut_off_x_line_ - .001 && cur_lift_height > safe_to_go_back_y_ - .05 && cmd.x() < cut_off_x_line_ - .001;
+			
+
+
 			isolated_pivot_y =  sin(acos(cmd.x()/arm_length_))*arm_length_
 			*( up_or_down ? 1 : -1) + cur_lift_height;
 
@@ -811,7 +816,7 @@ class arm_limits
 	
 			//ROS_INFO_STREAM("pivot check. Cmd: " << boost::geometry::wkt(test_pivot_cmd) << " up/down :" << up_or_down << " lift_height: " << cur_lift_height);
 			
-			if(!check_if_possible(test_pivot_cmd, up_or_down, 1, cur_lift_height))
+			if(!ignore_pivot_lim && !check_if_possible(test_pivot_cmd, up_or_down, 1, cur_lift_height)) //Trying not to run second thing if first is true
 			{
 				//double new_ang = acos(test_pivot_cmd.x()/arm_length_) * up_or_down ? 1 : -1;
 

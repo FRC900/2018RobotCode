@@ -702,7 +702,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		return_holder.up_or_down = curr_cmd.up_or_down;
 		safe_to_move_intake = true;
 	
-		
+	/*	
 	//___________________TESTING________________________________\\
 
 		arm_limiting::point_type cmd_point(curr_cmd.lin[0], curr_cmd.lin[1]);
@@ -721,7 +721,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 
 
 	//___________________TESTING________________________________\\
-
+	*/
 
 
 	}

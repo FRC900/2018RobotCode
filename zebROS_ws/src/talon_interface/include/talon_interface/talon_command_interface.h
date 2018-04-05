@@ -24,7 +24,7 @@ enum TrajectoryDuration
 struct CustomProfilePoint
 {
 	CustomProfilePoint() :
-		positionMode(true), //versus velocity mode
+		mode(TalonMode_Position), 
 		pidSlot(0),
 		setpoint(0.0),
 		fTerm(0),
@@ -32,7 +32,7 @@ struct CustomProfilePoint
 		zeroPos(false)
 	{
 	}
-	bool positionMode;
+	TalonMode mode;
 	int pidSlot;
 	double setpoint;
 	double fTerm;

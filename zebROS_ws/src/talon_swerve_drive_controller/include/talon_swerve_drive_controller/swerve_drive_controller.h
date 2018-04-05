@@ -162,6 +162,7 @@ class TalonSwerveDriveController
 			std::vector<std::vector<double>> drive_f;
 			std::vector<std::vector<double>> steer_pos;
 			std::vector<std::vector<double>> steer_f;
+			std::vector<std::vector<bool>> hold;
 			double dt;
 			int slot;
 

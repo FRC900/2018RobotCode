@@ -176,7 +176,10 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 	
 			for (size_t k = 0; k < WHEELCOUNT; k++)
 			{
-				//ROS_WARN("hhhhere");
+				
+
+				res.points[i].hold.push_back(true);
+
 				if(s==0)
 				{
 					res.points[i].drive_pos.push_back(angles_positions[k][0]);
@@ -218,6 +221,9 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 			//ROS_INFO_STREAM("pos_0:" << srv_msg.points[i+1].positions[0] << "pos_1:" << srv_msg.points[i+1].positions[1] <<"pos_2:" <<  srv_msg.points[i+1].positions[2] << " counts: " << point_count << " i: "<< i << " wheels: " << WHEELCOUNT);
 			for (size_t k = 0; k < WHEELCOUNT; k++)
 			{
+				res.points[i + n + prev_point_count].hold.push_back(false);
+
+
 				//ROS_WARN("hhhhere");
 				if (i != 0 || n != 0 || s != 0)
 				{
