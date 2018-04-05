@@ -470,7 +470,9 @@ void FRCRobotHWInterface::customProfileSetMode(int joint_id,
 		hardware_interface::TalonMode mode,
 		double setpoint,
 		hardware_interface::DemandType demandtype,
-		double demandvalue)
+		double demandvalue,
+		bool change_pid,
+		int pid_slot)
 {
 	ctre::phoenix::motorcontrol::ControlMode out_mode;
 
@@ -512,6 +514,93 @@ void FRCRobotHWInterface::customProfileSetMode(int joint_id,
 			return;
 	}
 	can_talons_[joint_id]->Set(out_mode, setpoint, out_demandtype, demandvalue); //TODO: unit conversion
+				
+
+
+
+
+
+
+
+
+
+			
+
+
+
+			if (change_pid)
+			{
+				//TODO: FIX
+
+				double p;
+				double i;
+				double d;
+				double f;
+				int    iz;
+				int    allowable_closed_loop_error;
+				double max_integral_accumulator;
+				double closed_loop_peak_output;
+				int    closed_loop_period;
+	 
+				talon_command_[joint_id].pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period, pid_slot);
+
+
+
+
+
+					//ROS_WARN("PIDF");
+					can_talons_[joint_id]->Config_kP(pid_slot, p, timeoutMs);
+					can_talons_[joint_id]->Config_kI(pid_slot, i, timeoutMs);
+					can_talons_[joint_id]->Config_kD(pid_slot, d, timeoutMs);
+					can_talons_[joint_id]->Config_kF(pid_slot, f, timeoutMs);
+					can_talons_[joint_id]->Config_IntegralZone(pid_slot, iz, timeoutMs);
+					// TODO : Scale these two?
+					can_talons_[joint_id]->ConfigAllowableClosedloopError(pid_slot, allowable_closed_loop_error, timeoutMs);
+					can_talons_[joint_id]->ConfigMaxIntegralAccumulator(pid_slot, max_integral_accumulator, timeoutMs);
+					can_talons_[joint_id]->ConfigClosedLoopPeakOutput(pid_slot, closed_loop_peak_output, timeoutMs);
+					can_talons_[joint_id]->ConfigClosedLoopPeriod(pid_slot, closed_loop_period, timeoutMs);
+
+					talon_state_[joint_id].setPidfP(p, pid_slot);
+					talon_state_[joint_id].setPidfI(i, pid_slot);
+					talon_state_[joint_id].setPidfD(d, pid_slot);
+					talon_state_[joint_id].setPidfF(f, pid_slot);
+					talon_state_[joint_id].setPidfIzone(iz, pid_slot);
+					talon_state_[joint_id].setAllowableClosedLoopError(allowable_closed_loop_error, pid_slot);
+					talon_state_[joint_id].setMaxIntegralAccumulator(max_integral_accumulator, pid_slot);
+					talon_state_[joint_id].setClosedLoopPeakOutput(closed_loop_peak_output, pid_slot);
+					talon_state_[joint_id].setClosedLoopPeriod(closed_loop_period, pid_slot);
+				//ROS_WARN("slot");
+				//ROS_INFO_STREAM("Updated joint " << joint_id << " PIDF slot to " << slot << std::endl);
+
+				can_talons_[joint_id]->SelectProfileSlot(pid_slot, pidIdx);
+			}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
 }
 
 void FRCRobotHWInterface::init(void)
