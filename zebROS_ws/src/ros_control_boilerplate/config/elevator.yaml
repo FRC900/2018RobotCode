@@ -5,11 +5,11 @@ elevator_controller:
     intake2: "intake2_joint"
     pivot: "pivot_joint"
     
-    intake_power_diff_multiplier: .65
+    intake_power_diff_multiplier: 1.25
     arm_length: 0.4318 
     max_extension: 2.03 #3.628571429 #29619 
     climb_height: 1.3 
-    min_extension: 0.40 
+    min_extension: 0.41 
    
 
     custom_f_lift_high: 153.45 #Fix  
@@ -22,15 +22,15 @@ elevator_controller:
     after_shift_max_vel: .5 #fix
 
     hook_depth: 0.274706  #FIX
-    hook_min_height: 1.15 #FIX
-    hook_max_height: 1.30 #FIX
+    hook_min_height: 1.20 #FIX
+    hook_max_height: 1.45 #FIX
  
     climb_cur_lim: 60
     norm_cur_lim: 15
 
-    drop_down_pos: .225 #FIX
-    drop_down_tolerance: .05 #FIX
-    safe_to_go_back_y: 1.9 #FIX
+    drop_down_pos: .20 #FIX
+    drop_down_tolerance: .1 #FIX
+    safe_to_go_back_y: 1.95 #FIX
     cut_off_x_line: .17 #FIX
     cut_off_y_line: .7 #FIX
 
@@ -45,8 +45,8 @@ elevator_controller:
     
     #Fix below remove poly points
     #right now, over the back is disabled 
-    polygon_points_down: [-2.0, -1.0, -2.0, 3.0, .17, 3.0, .17, 0.7, 0.205, 0.7, 0.205, 0.32, 1.0, 0.32, 1.0, -1.1, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
-    polygon_points_up: [-2.0, -1.0, -2.0, 3.0, -0.35, 3.0, -0.35, -1.0, 0.0, -1.0, 0.0, 2.3318, .17, 2.2318, .17, 0.7, 1.0, .7, 1.0, -1.5, -2.0, -1.5, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
+    polygon_points_down: [-2.0, -1.0, -2.0, 3.0, .17, 3.0, .22, 0.7, 0.17, 0.7, 0.22, 0.32, 1.0, 0.32, 1.0, -1.1, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
+    polygon_points_up: [-2.0, -1.0, -2.0, 3.0, -0.31, 3.0, -0.31, -1.0, 0.0, -1.0, 0.0, 2.3818, .17, 2.2818, .17, 0.7, 1.0, .7, 1.0, -1.5, -2.0, -1.5, -2.0, -1.0] #~5 cm of clearance  #consider widening zone of over back a little 
     
     polygon_points_intake_up: [-2.0, 0.7, 1.0, 0.7, 1.0, 0.0, -2.0, 0.0, -2.0, 0.7] #[-2.0, 0.6, 0.225, 0.6, 0.225, 0.0, -2.0, 0.0, -2.0, 0.6]
     polygon_points_intake_down: [-2.0, -1.0, -2.1, -1.0, -2.1, -1.1, -2.0, -1.0] #Currently removing nothing #[-2.0, 0.4, 1.0, 0.4, 1.0, 0.0, -2.0, 0.0, -2.0, 0.4] 
@@ -82,21 +82,23 @@ elevator_controller:
         joint: pivot
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
-            - {p: 2, i: 0.0005, d: 0.25, f: 7, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
-            - {p: 2, i: 0.005, d: 0.25, f: 7, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+            - {p: 2, i: 0.0005, d: 0.25, f: 7, i_zone: 300, allowable_closed_loop_error: 20} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+            - {p: 2, i: 0.005, d: 0.25, f: 7, i_zone: 300, allowable_closed_loop_error: 20} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
         invert_output: True
         sensor_phase: False
         peak_output_forward: 1.0
         peak_output_reverse: -1.0
         nominal_output_forward: 0.0
         nominal_output_reverse: 0.0
-        motion_cruise_velocity: 3
+        motion_cruise_velocity: 1.5
+        limit_switch_local_reverse_normal: "NormallyOpen"
+        limit_switch_local_reverse_source: "FeedbackConnector"
         motion_acceleration: 2
         voltage_compensation_enable: true
         softlimit_reverse_threshold: 0
         softlimit_forward_threshold: 1
         conversion_factor: 1 #FIX
-        current_limit_continuous_amps: 25
+        current_limit_continuous_amps: 15
         current_limit_enable: True
 
     intake1_joint:

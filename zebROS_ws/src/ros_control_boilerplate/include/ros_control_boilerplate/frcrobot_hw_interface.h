@@ -177,7 +177,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		void hal_keepalive_thread(void);
 		void process_motion_profile_buffer_thread(double hz);
 		void custom_profile_thread(int joint_id);
-		void custom_profile_set_talon(bool posMode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double &pos_offset);
+		void custom_profile_set_talon(hardware_interface::TalonMode mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos);
 
 		/* Get conversion factor for position, velocity, and closed-loop stuff */
 
