@@ -38,6 +38,7 @@
 */
 
 #pragma once
+#include <thread>
 
 // ROS
 #include <ros/ros.h>
@@ -130,11 +131,30 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		hardware_interface::TalonCommandInterface  talon_command_interface_;
 
 		hardware_interface::ImuSensorInterface imu_interface_;
-		//hardware_interface::ImuSensorInterface navX_interface_;
+
+		void custom_profile_thread(int joint_id);
+		void custom_profile_set_talon(hardware_interface::TalonMode mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double start_run, int &pid_slot);
+
+		// These are overridden in hw_interface to actually 
+		// write to talon HW
+		virtual void customProfileSetMode(int joint_id,
+				 						  hardware_interface::TalonMode mode,
+										  double setpoint,
+										  hardware_interface::DemandType demandtype,
+										  double demandvalue)
+		{
+		}
+
+		virtual void setSensorPosition(int joint_id, double position)
+		{
+		}
+
+		std::vector<std::thread> custom_profile_threads_;
 
 		// Configuration
 		std::vector<std::string> can_talon_srx_names_;
 		std::vector<int>         can_talon_srx_can_ids_;
+		std::vector<double>      can_talon_srx_run_profile_stop_time_;
 		std::size_t              num_can_talon_srxs_;
 
 		std::vector<std::string> nidec_brushless_names_;

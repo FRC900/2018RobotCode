@@ -1465,7 +1465,7 @@ class TalonHWCommand
 			{	
 				if(custom_profile_points_changed_[i])
 				{
-					ROS_INFO_STREAM("actually changed in interface " << custom_profile_points_changed_[i] << " slot: " << i); 
+					//ROS_INFO_STREAM("actually changed in interface " << custom_profile_points_changed_[i] << " slot: " << i); 
 					ret_points[i] = custom_profile_points_[i]; 
 					ret_times[i]  = custom_profile_total_time_[i];
 					custom_profile_points_changed_[i] = false;

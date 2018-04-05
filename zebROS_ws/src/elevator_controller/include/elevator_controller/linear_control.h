@@ -57,6 +57,7 @@ class ElevatorController
 		
 		bool intake_up_last_;
 		double transition_time_;
+		double limit_power_press_;
 
 		std::string name_;
 		hardware_interface::JointStateHandle line_break_intake_high_;
@@ -128,7 +129,8 @@ class ElevatorController
 		hardware_interface::JointHandle IntakeHardSpring_;
 		hardware_interface::JointHandle IntakeSoftSpring_;
 
-		ros::Publisher CubeState_; 
+		ros::Publisher CubeState_;
+		ros::Publisher bot_lim_pub;
 		hardware_interface::JointHandle CubeStateJoint_;
 
 		ros::Publisher ReturnCmd_; 
