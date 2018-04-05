@@ -232,11 +232,11 @@ bool generateCoefs(const double angle_diff, const ros::Duration time_to_run, bas
 	srvBaseTrajectory.request.points.resize(1); //only need one endpoint -- final orientation of robot
 	
 	//x-movement (not moving at all)
-	srvBaseTrajectory.request.points[0].positions.push_back(0.01);
+	srvBaseTrajectory.request.points[0].positions.push_back(0.1);
 	srvBaseTrajectory.request.points[0].velocities.push_back(0);
 	srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 	//y-movement (not moving at all)
-	srvBaseTrajectory.request.points[0].positions.push_back(0.01);
+	srvBaseTrajectory.request.points[0].positions.push_back(0.1);
 	srvBaseTrajectory.request.points[0].velocities.push_back(0);
 	srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 	//z-rotation
