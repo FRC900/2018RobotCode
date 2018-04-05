@@ -10,9 +10,9 @@ swerve_drive_controller:
     # fix me
     wheel_radius: 0.0381 # m
     max_speed: 3.6 #3.628571429
-    max_accel: 2.0 #2
-    max_brake_accel: 2.5 #4
-    ang_accel_conv: 1.0 #0.741176471
+    max_accel: 2.5 #2
+    max_brake_accel: 3.0 #4
+    ang_accel_conv: 0.741176471
     
     f_s: 0.12
     f_a: 0.005 #use torque curve instead? TODO: FIX
@@ -97,7 +97,11 @@ swerve_drive_controller:
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+<<<<<<< 5b858c9817578f55be9215b94adff5a7ed245d3f
             - {p: 5.0, i: 0.03, d: 75.0, f: 0.47, i_zone: 1200} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+=======
+            - {p: 4.2, i: 0.01, d: 45.0, f: 0.47, i_zone: 900} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+>>>>>>> more
         invert_output: true
         sensor_phase: true
         peak_output_forward: 1.0
@@ -113,7 +117,11 @@ swerve_drive_controller:
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+<<<<<<< 5b858c9817578f55be9215b94adff5a7ed245d3f
             - {p: 5.0, i: 0.03, d: 75.0, f: 0.47, i_zone: 1200} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+=======
+            - {p: 4.2, i: 0.01, d: 45.0, f: 0.47, i_zone: 900} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+>>>>>>> more
        
         invert_output: true
         sensor_phase: true
@@ -129,7 +137,11 @@ swerve_drive_controller:
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+<<<<<<< 5b858c9817578f55be9215b94adff5a7ed245d3f
             - {p: 5.0, i: 0.03, d: 75.0, f: 0.47, i_zone: 1200} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+=======
+            - {p: 4.2, i: 0.01, d: 45.0, f: 0.47, i_zone: 900} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+>>>>>>> more
         
         invert_output: true
         sensor_phase: true
@@ -145,7 +157,11 @@ swerve_drive_controller:
         feedback_type: CTRE_MagEncoder_Absolute
         close_loop_values:
             - {p: 4.2, i: 0.006, d: 45.0, f: 0.47, i_zone: 500} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+<<<<<<< 5b858c9817578f55be9215b94adff5a7ed245d3f
             - {p: 5.0, i: 0.03, d: 75.0, f: 0.47, i_zone: 1200} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+=======
+            - {p: 4.2, i: 0.01, d: 45.0, f: 0.47, i_zone: 900} #{p: 7.15, i: 0.006, d: 90.0, f: 0.609381981, i_zone: 500}
+>>>>>>> more
         invert_output: true
         sensor_phase: true
         peak_output_forward: 1.0
