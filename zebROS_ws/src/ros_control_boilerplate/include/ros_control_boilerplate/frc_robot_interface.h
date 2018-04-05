@@ -38,6 +38,7 @@
 */
 
 #pragma once
+#include <thread>
 
 // ROS
 #include <ros/ros.h>
@@ -130,7 +131,11 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 		hardware_interface::TalonCommandInterface  talon_command_interface_;
 
 		hardware_interface::ImuSensorInterface imu_interface_;
-		//hardware_interface::ImuSensorInterface navX_interface_;
+
+		void custom_profile_thread(int joint_id);
+		virtual void custom_profile_set_talon(hardware_interface::TalonMode mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double start_run, int &pid_slot) = 0;
+
+		std::vector<std::thread> custom_profile_threads_;
 
 		// Configuration
 		std::vector<std::string> can_talon_srx_names_;
