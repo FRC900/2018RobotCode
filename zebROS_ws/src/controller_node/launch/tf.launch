@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <launch>
+	<param name="use_sim_time" value="true" />
+	<node pkg="rosbag" type="play" name="player" output="screen" args="-l --clock /home/kjaget/Downloads/Match1_5.bag"/>
+
   <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_navx" args="-0.2914015 -0.072263 0.0244348 0 0 0 base_link navx" />
 
 
@@ -9,8 +12,10 @@
 
   <include file="$(find controller_node)/launch/gmapping.launch"/>
 
+  <!--
   <remap from="/cmd_vel" to="frcrobot/swerve_drive_controller/cmd_vel"/>
   <include file="$(find controller_node)/launch/move_base.launch"/>
+-->
 
 </launch>
 
