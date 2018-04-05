@@ -483,7 +483,6 @@ class TeleopJointsKeyboard
 					//}
 					//else
 					//{
-						std::cout << ".";
 						joints_pub_.publish(cmd_);
                         cmd_last_ = cmd_;
 					//}

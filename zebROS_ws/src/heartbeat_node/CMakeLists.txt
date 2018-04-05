@@ -54,16 +54,10 @@ add_dependencies(
   ${catkin_EXPORTED_TARGETS}
 )
 
-add_executable(heartbeat_jetson src/heartbeat_jetson.cpp)
-set_target_properties(heartbeat_jetson PROPERTIES OUTPUT_NAME 
-heartbeat_jetson PREFIX "")
-target_link_libraries(heartbeat_jetson
-  ${catkin_LIBRARIES}
-)
-add_executable(heartbeat_rio src/heartbeat_rio.cpp)
-set_target_properties(heartbeat_rio PROPERTIES OUTPUT_NAME 
-heartbeat_rio PREFIX "")
-target_link_libraries(heartbeat_rio
+add_executable(heartbeat src/heartbeat.cpp)
+set_target_properties(heartbeat PROPERTIES OUTPUT_NAME 
+heartbeat PREFIX "")
+target_link_libraries(heartbeat
   ${catkin_LIBRARIES}
 )
 ## Add cmake target dependencies of the executable
@@ -81,7 +75,7 @@ target_link_libraries(heartbeat_rio
 #DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 #)
 
-install(TARGETS heartbeat_jetson heartbeat_rio
+install(TARGETS heartbeat heartbeat
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
