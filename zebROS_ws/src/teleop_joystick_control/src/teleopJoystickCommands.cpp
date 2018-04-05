@@ -925,7 +925,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 	}
 
-	if (JoystickState->bumperLeftPress == true)
+	/*if (JoystickState->bumperLeftPress == true)
 	{
         currentToggle = "BumpL";
         
@@ -960,7 +960,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         {
             ROS_ERROR("Failed to toggle to mid level scale height");
         }
-		/*ElevatorPos epos_swap = *(elevatorPos.readFromRT());
+		ElevatorPos epos_swap = *(elevatorPos.readFromRT());
 		srvElevator.request.x = epos_swap.X_;
 		srvElevator.request.y = epos_swap.Y_;
 		srvElevator.request.up_or_down = !epos_swap.UpOrDown_;
@@ -973,8 +973,8 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		{
 			ROS_ERROR("Failed to toggle to up/down");
 		}
-		*/
-	}
+		
+	} */
 
 	/*----------------------------Right Bumper - Press Untoggle-----------------------------*/
 	
