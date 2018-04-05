@@ -435,6 +435,7 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
 	IntakeSoftSpring_ = pos_joint_iface->getHandle("intake_spring_soft");
 	IntakeHardSpring_ = pos_joint_iface->getHandle("intake_spring_hard");
 
+	bot_lim_pub		  = controller_nh.advertise<std_msgs::Bool>("bottom_limit_pivot", 1);
 	CubeState_        = controller_nh.advertise<elevator_controller::CubeState>("cube_state", 1);
 	CubeStateJoint_   = pos_joint_iface->getHandle("cube_state");
 
@@ -678,6 +679,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
     }
     /* NIALL */
 	bool bottom_limit = pivot_joint_.getReverseLimitSwitch(); //TODO FIX THIS
+	bot_lim_pub.publish(bottom_limit);
 	if(bottom_limit)
 	{	
 		

@@ -48,6 +48,7 @@ class autoAction
 		actionlib::SimpleActionClient<behaviors::IntakeAction> ai_;
 		actionlib::SimpleActionClient<behaviors::LiftAction> al_;
 		std::atomic<bool> high_cube_;
+		bool bottom_lim_ = false;
 		bool proceed;
 #if 0
 		// Elevator odometry. Make this a struct so that
@@ -77,6 +78,7 @@ class autoAction
 #endif
 
 		ros::Subscriber HighCube_;
+		ros::Subscriber BottomLimit_;
 		ros::Subscriber Proceed_;
 
 	public:
@@ -94,6 +96,8 @@ class autoAction
 			IntakeSrv_ = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
 			ClampSrv_ = nh_.serviceClient<std_srvs::SetBool>("/frcrobot/elevator_controller/clamp", false, service_connection_header);
 			HighCube_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &autoAction::cubeStateCallback, this);
+			BottomLimit_ = nh_.subscribe("/frcrobot/elevator_controller/bottom_limit_pivot", 1, &autoAction::bottomLimitCallback, this);
+
 			Proceed_ = nh_.subscribe("/frcrobot/auto_interpreter_server/proceed", 1, &autoAction::proceedCallback, this);
 
 
@@ -169,15 +173,15 @@ class autoAction
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 						//time_out if the action times out
-						if (al_.getState().isDone())
-						{
-							timed_out = timed_out || al_.getResult()->timed_out;
-							finished_lift = true;
+						//if (al_.getState().isDone())
+						//{
+							//timed_out = timed_out || al_.getResult()->timed_out;
+							finished_lift = bottom_lim_;
 							
 							if( !finished_lift)
 								finish_time = ros::Time::now().toSec();
 							//ROS_WARN("lift finished");
-						}
+						//}
 						if (ai_.getState().isDone())
 						{
 							timed_out = timed_out || ai_.getResult()->timed_out;
@@ -203,13 +207,13 @@ class autoAction
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
 						//time_out if the action times out
-						if (al_.getState().isDone())
-						{
-							timed_out = timed_out || al_.getResult()->timed_out;
-							finished_lift = true;
+						//if (al_.getState().isDone())
+						//{
+							//timed_out = timed_out || al_.getResult()->timed_out;
+							finished_lift = bottom_lim_;
 							finish_time = ros::Time::now().toSec();
 							//ROS_WARN("lift finished in p2");
-						}
+						//}
 					}
 
 				}
@@ -567,6 +571,10 @@ class autoAction
 		}
 
 		// TODO : debounce code?
+		void bottomLimitCallback(const std_msgs::Bool &msg)
+		{
+			bottom_lim_ = msg.data;
+		}
 		void cubeStateCallback(const elevator_controller::CubeState &msg)
 		{
 			high_cube_.store(msg.intake_high, std::memory_order_relaxed);
