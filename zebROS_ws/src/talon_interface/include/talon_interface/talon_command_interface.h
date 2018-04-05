@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cassert>
+#include <mutex>
 #include <string>
 #include <talon_interface/talon_state_interface.h>
 
@@ -194,9 +194,9 @@ class TalonHWCommand
 			
 			custom_profile_run_(false),
 			custom_profile_slot_(0),
-			custom_profile_hz_(50.0)
-
-
+			custom_profile_next_slot_mutex_ptr_(std::make_shared<std::mutex>()),
+			custom_profile_hz_(50.0),
+			custom_profile_vectors_mutex_ptr_(std::make_shared<std::mutex>())
 		{
 			//This is a bit dirty...
 			//I apologize for my problems spilling out over your nice and clean code, Kevin
@@ -1353,10 +1353,12 @@ class TalonHWCommand
 		}
 		std::vector<int> getCustomProfileNextSlot(void) const
 		{
+			std::lock_guard<std::mutex>(*custom_profile_next_slot_mutex_ptr_);
 			return custom_profile_next_slot_;
 		}	
 		void setCustomProfileNextSlot(const std::vector<int> &next_slot)
 		{
+			std::lock_guard<std::mutex>(*custom_profile_next_slot_mutex_ptr_);
 			custom_profile_next_slot_ = next_slot;
 		}
 		double getCustomProfileHz(void) const
@@ -1388,7 +1390,7 @@ class TalonHWCommand
 		// make sure reads and writes are atomic
 		void pushCustomProfilePoint(const CustomProfilePoint &point, int slot)
 		{
-
+			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
 			custom_profile_points_[slot].push_back(point);
 			if(custom_profile_points_[slot].size() != 0)
@@ -1404,6 +1406,7 @@ class TalonHWCommand
 		} 
 		void pushCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
+			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
 			int prev_size = custom_profile_points_.size();
 			custom_profile_points_[slot].insert(custom_profile_points_[slot].end(), points.begin(), points.end());
@@ -1421,22 +1424,20 @@ class TalonHWCommand
 			custom_profile_points_changed_[slot] = true;
 			//ROS_INFO_STREAM("pushed points at slot: " << slot);
 		}
+
 		void overwriteCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
-			
+			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
-			for(int i = 0; i < 		custom_profile_points_changed_.size(); i++)
+			for(size_t i = 0; i < custom_profile_points_changed_.size(); i++)
 			{
 				//ROS_INFO_STREAM("slot: " << i << " changed: " << custom_profile_points_changed_[i]);
-
-
 			}
 			custom_profile_points_[slot] = points;
 			custom_profile_total_time_[slot].resize(points.size());
 			
 			for(size_t i = 0; i < points.size(); i++)
 			{
-
 				if(i != 0)
 				{
 					custom_profile_total_time_[slot][i] = points[i].duration + custom_profile_total_time_[slot][i-1];
@@ -1449,14 +1450,16 @@ class TalonHWCommand
 			//ROS_INFO_STREAM("override points at slot: " << slot);
 			custom_profile_points_changed_[slot] = true;
 		}
+
 		std::vector<CustomProfilePoint> getCustomProfilePoints(int slot) /*const*/ //TODO, can be const?
 		{
-			
+			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
 			return custom_profile_points_[slot];
 		}
 		std::vector<bool> getCustomProfilePointsTimesChanged(std::vector<std::vector<CustomProfilePoint>> &ret_points, std::vector<std::vector<double>> &ret_times)
 		{
+			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 			std::vector<bool> returner = custom_profile_points_changed_;
 			for(size_t i = 0; i < custom_profile_points_changed_.size(); i++)
 			{	
@@ -1470,24 +1473,27 @@ class TalonHWCommand
 			}
 
 			return returner;
-
 		}
 		std::vector<double> getCustomProfileTime(int slot)  /*const*/ //TODO, can be const?
 		{
+			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 			return custom_profile_total_time_[slot];
 		}
 		double getCustomProfileEndTime(int slot)
 		{
+			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 			return custom_profile_total_time_[slot].back();
 		}
 		// TODO : TimeCount and ProfileCount should always
 		// be the same?
 		int getCustomProfileTimeCount(int slot)
 		{
+			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 			return custom_profile_points_[slot].size();
 		}
 		int getCustomProfileCount(int slot)  /*const*/ //TODO, can be const?
 		{
+			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 			return custom_profile_points_[slot].size();
 		}
 
@@ -1598,21 +1604,24 @@ class TalonHWCommand
 		double conversion_factor_;
 		bool   conversion_factor_changed_;
 		
+		// TODO : do these need atomic or mutex protection?
 		bool custom_profile_run_;
 		int custom_profile_slot_;
+		std::shared_ptr<std::mutex> custom_profile_next_slot_mutex_ptr_;
 		std::vector<int> custom_profile_next_slot_;
 		double custom_profile_hz_;
+
+		// Mutex protecting the following 3 arrays. Access to all of them
+		// needs to be atomic - changes to 1 must match changes to the
+		// rest otherwise a get() method could potentially read
+		// inconsistent state. The mutex locks access so only 1
+		// thread can be in a method which accesses them at
+		// any given point
+		std::shared_ptr<std::mutex> custom_profile_vectors_mutex_ptr_;
 		std::vector<std::vector<CustomProfilePoint>> custom_profile_points_;
 		std::vector<std::vector<double>> custom_profile_total_time_;
 		
 		std::vector<bool> custom_profile_points_changed_;
-
-		//TODO: error catching on slot
-
-
-
-			
-
 };
 
 // Handle - used by each controller to get, by name of the
