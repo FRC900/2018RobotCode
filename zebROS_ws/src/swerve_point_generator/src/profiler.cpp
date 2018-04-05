@@ -133,11 +133,8 @@ ROS_INFO_STREAM("running generate_profile");
 	ROS_WARN("still running");
 	int point_count = 0;
 	//back pass
-	ROS_INFO_STREAM("total arc: " <<total_arc);
-	ROS_INFO_STREAM("dt_: " << dt_);
 	for (double i = total_arc /*- .1*/ ; i > 0;)
 	{
-
 		i -= curr_v * dt_;
 		//ROS_WARN("pre - even_now");
 
