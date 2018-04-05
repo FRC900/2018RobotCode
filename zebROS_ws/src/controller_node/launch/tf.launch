@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_navx" args="-0.2914015 -0.072263 0.0244348 0 0 0 base_link navx" />
+
+
+ <include file="$(find controller_node)/launch/fuse_odom.launch"/>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4180115 -0.3183901 0.2206 3.14159265 0 0 base_link laser" /> -->
+
+  <include file="$(find controller_node)/launch/gmapping.launch"/>
+
+  <remap from="/cmd_vel" to="frcrobot/swerve_drive_controller/cmd_vel"/>
+  <include file="$(find controller_node)/launch/move_base.launch"/>
+
+</launch>
+
