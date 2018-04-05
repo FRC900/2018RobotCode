@@ -1388,8 +1388,7 @@ class TalonHWCommand
 		// make sure reads and writes are atomic
 		void pushCustomProfilePoint(const CustomProfilePoint &point, int slot)
 		{
-			ROS_INFO_STREAM("pushed point at slot: " << slot);
-			custom_profile_points_changed_[slot] = true;
+
 
 			custom_profile_points_[slot].push_back(point);
 			if(custom_profile_points_[slot].size() != 0)
@@ -1400,11 +1399,12 @@ class TalonHWCommand
 			{
 				custom_profile_total_time_[slot].push_back(point.duration);
 			}
+			ROS_INFO_STREAM("pushed point at slot: " << slot);
+			custom_profile_points_changed_[slot] = true;
 		} 
 		void pushCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
-			custom_profile_points_changed_[slot] = true;
-			ROS_INFO_STREAM("pushed points at slot: " << slot);
+
 			int prev_size = custom_profile_points_.size();
 			custom_profile_points_[slot].insert(custom_profile_points_[slot].end(), points.begin(), points.end());
 			for(; prev_size <custom_profile_points_.size(); prev_size++)
@@ -1418,12 +1418,13 @@ class TalonHWCommand
 					custom_profile_total_time_[slot].push_back(points[prev_size].duration);	
 				}
 			}	
+			custom_profile_points_changed_[slot] = true;
+			ROS_INFO_STREAM("pushed points at slot: " << slot);
 		}
 		void overwriteCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
 			
-			ROS_INFO_STREAM("override points at slot: " << slot);
-			custom_profile_points_changed_[slot] = true;
+
 			for(int i = 0; i < 		custom_profile_points_changed_.size(); i++)
 			{
 				ROS_INFO_STREAM("slot: " << i << " changed: " << custom_profile_points_changed_[i]);
@@ -1445,6 +1446,8 @@ class TalonHWCommand
 					custom_profile_total_time_[slot][i] = points[i].duration;
 				}
 			}	
+			ROS_INFO_STREAM("override points at slot: " << slot);
+			custom_profile_points_changed_[slot] = true;
 		}
 		std::vector<CustomProfilePoint> getCustomProfilePoints(int slot) /*const*/ //TODO, can be const?
 		{

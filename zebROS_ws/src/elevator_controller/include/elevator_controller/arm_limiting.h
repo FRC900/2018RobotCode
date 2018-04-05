@@ -542,7 +542,7 @@ class arm_limits
 					up_or_down = false;
 					//ROS_ERROR("Here -  2");
 				}
-				if(((!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_ && !cur_up_or_down) && !bottom_limit ) && cmd.y() < cut_off_y_line_) )  
+				if(((!(fabs(orig_pos.x() - cmd.x()) < drop_down_tolerance_ && !cur_up_or_down && bottom_limit) ) && cmd.y() < cut_off_y_line_) )  
 				{
 					cmd.y(cut_off_y_line_);
 					//ROS_ERROR("Here");

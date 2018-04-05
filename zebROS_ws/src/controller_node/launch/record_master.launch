@@ -14,7 +14,7 @@
   -->
 
   <node name="rosbag_record_node" pkg="rosbag" type="record"
-	  args="record -o /mnt/900_2/ --lz4 --split --duration=30 --buffsize=0
+	  args="record -o /mnt/900_2/ --lz4 --split --duration=30
 		/frcrobot/auto_interpreter_server/cancel
 		/frcrobot/auto_interpreter_server/feedback
 		/frcrobot/auto_interpreter_server/goal
