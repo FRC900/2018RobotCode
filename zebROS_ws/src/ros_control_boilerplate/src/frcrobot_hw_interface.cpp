@@ -590,6 +590,7 @@ void FRCRobotHWInterface::custom_profile_thread(int joint_id)
 			//Right now we wipe everything if the slots are flipped
 			//Should try to be analagous to having a break between
 			points_run = 0;
+			time_start = ros::Time::now().toSec();
 		}
 		status.slotRunning = slot;	
 		if(run)
