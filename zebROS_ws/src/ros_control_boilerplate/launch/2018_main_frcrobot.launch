@@ -80,11 +80,11 @@
 	</group>
 
     <group ns="rio">
-        <node name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
+        <node name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat" output="screen" />
     </group>
 
     <group ns="jetson">
-        <node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
+        <node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat" output="screen" />
     </group>
         
 
