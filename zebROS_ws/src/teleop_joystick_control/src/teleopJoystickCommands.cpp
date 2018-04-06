@@ -90,7 +90,7 @@ static double over_back_x;
 static double intake_low_x;
 static double over_back_y;
 static bool over_back_up_or_down;
-static double wheel_radius;
+static bool outOfPoints;
 
 enum pos {high_scale, mid_scale, low_scale, switch_c, exchange, intake_ready_to_drop, intake, intake_low, climb_c, default_c, other};
 
@@ -925,7 +925,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		}
 	}
 
-	/*if (JoystickState->bumperLeftPress == true)
+	if (JoystickState->bumperLeftPress == true)
 	{
         currentToggle = "BumpL";
         
@@ -960,7 +960,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
         {
             ROS_ERROR("Failed to toggle to mid level scale height");
         }
-		ElevatorPos epos_swap = *(elevatorPos.readFromRT());
+		/*ElevatorPos epos_swap = *(elevatorPos.readFromRT());
 		srvElevator.request.x = epos_swap.X_;
 		srvElevator.request.y = epos_swap.Y_;
 		srvElevator.request.up_or_down = !epos_swap.UpOrDown_;
@@ -972,9 +972,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		else
 		{
 			ROS_ERROR("Failed to toggle to up/down");
-		}
+		}*/
 		
-	} */
+	}
 
 	/*----------------------------Right Bumper - Press Untoggle-----------------------------*/
 	
@@ -1191,15 +1191,14 @@ double rotation = ( pow(JoystickState->leftTrigger, rotation_scale) - pow(Joysti
 
 static bool sendRobotZero = false;
 // No motion? Tell the drive base to stop
-if(JoystickState->bumperLeftPress == true)
+if(JoystickState->stickRightPress == true)
 {
-	//TODO: check to see if it's already running?
 	static bool orient_running;
 	if(!orient_running)
 	{
 		sendRobotZero = false;
-		double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
-		//double angle = M_PI/6; //for testing
+		//double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
+		double angle = M_PI/6; //for testing
 		static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
 		static double max_rotational_velocity = 8.8; //radians/sec TODO: find this in config
 
@@ -1214,9 +1213,14 @@ if(JoystickState->bumperLeftPress == true)
 			ROS_INFO_STREAM("point_gen died in teleopJoystickCommands generateTrajectory");
 		if (!runTrajectory(traj.response)) //run on swerve_control
 			ROS_ERROR("swerve_control failed in teleopJoystickCommands runTrajectory");
+		orient_running = true;
 	}
-	else
+	else 
+	{
 		ROS_INFO_STREAM("Can't run orient, it's already running");
+		if (outOfPoints)
+			orient_running = false;
+	}
 }
 if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 {
@@ -1449,6 +1453,7 @@ int main(int argc, char **argv)
 	ros::Subscriber elevator_cmd  = n.subscribe("/frcrobot/elevator_controller/return_cmd_pos", 1, &elevCmdCallback);
 	ros::Subscriber cube_state    = n.subscribe("/frcrobot/elevator_controller/cube_state", 1, &cubeCallback);
 	ros::Subscriber joint_states_sub = n.subscribe("/frcrobot/joint_states", 1, &jointStateCallback);
+	ros::Subscriber talon_states_sub = n.subscribe("/frcrobot/talon_states", 1, &talonStateCallback);
 
 	ROS_WARN("joy_init");
 
@@ -1525,5 +1530,10 @@ void jointStateCallback(const sensor_msgs::JointState &joint_state)
 		clamped_c.store(joint_state.position[clamp_idx] <= 0, std::memory_order_relaxed);
 	if (override_arm_limits_idx < joint_state.position.size())
 		disableArmLimits.store(joint_state.position[override_arm_limits_idx], std::memory_order_relaxed);
+	
 }
 
+talonStateCallback(const talon_state_controller::TalonState &talon_state)
+{
+	outOfPoints = talon_state[0].outOfPoints;
+}
