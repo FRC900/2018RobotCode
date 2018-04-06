@@ -386,7 +386,6 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 			//ROS_INFO_STREAM("idek: " << (sqrt(x_at_a * x_at_a + y_at_a * y_at_a) + 4 * sqrt(x_at_avg * x_at_avg + y_at_avg * y_at_avg) + sqrt(x_at_b * x_at_b + y_at_b * y_at_b)));
 			total_arc_length += period_t / 6 * (sqrt(x_at_a * x_at_a + y_at_a * y_at_a) + 4 *
 												sqrt(x_at_avg * x_at_avg + y_at_avg * y_at_avg) + sqrt(x_at_b * x_at_b + y_at_b * y_at_b));
-			ROS_INFO_STREAM("arc_now: " << total_arc_length);
 			//ROS_INFO_STREAM("Spline: " << i << " t_val: " << a_val <<"  arc_length: " << total_arc_length);
 		}
 	}
