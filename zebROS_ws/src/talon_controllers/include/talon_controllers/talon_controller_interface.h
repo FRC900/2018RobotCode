@@ -801,15 +801,26 @@ class TalonControllerInterface
 		virtual bool setPIDFSlot(int slot)
 		{
 			if ((slot != 0) && (slot != 1))
+			{
+				//ROS_WARN_STREAM("controller set of PID slot:  (false): " << slot);
 				return false;
+			}
 			if (slot == params_.pidf_slot_)
+			{
+			
+				//ROS_WARN_STREAM("controller set of PID slot:  (true): " << slot);
+
+				talon_->setPidfSlot(slot);
 				return true;
+			
+			}
 			params_.pidf_slot_ = slot;
 
 			// If dynamic reconfigure is running update
 			// the reported config there with the new internal
 			// state
 			syncDynamicReconfigure();
+
 
 			talon_->setPidfSlot(params_.pidf_slot_);
 			return true;

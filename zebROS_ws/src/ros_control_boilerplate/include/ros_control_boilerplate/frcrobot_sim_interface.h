@@ -75,11 +75,6 @@ class FRCRobotSimInterface : public ros_control_boilerplate::FRCRobotInterface
 		void loop_joy(void);
 		std::thread sim_joy_thread_;
 
-		void custom_profile_set_talon(hardware_interface::TalonMode mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos);
-
-		void custom_profile_thread(int joint_id);
-		std::vector<std::thread> custom_profile_threads_;
-
         void cube_state_callback(const elevator_controller::CubeState &cube);
 };  // class
 

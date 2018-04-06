@@ -458,29 +458,32 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 	}
 #endif
 }
-void FRCRobotHWInterface::custom_profile_set_talon(hardware_interface::TalonMode in_mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos)
+
+// Stuff to support generalized custom profile code
+void FRCRobotHWInterface::setSensorPosition(int joint_id, double position)
 {
+	can_talons_[joint_id]->SetSelectedSensorPosition(position, pidIdx, timeoutMs);
+}
+
+// Maybe find a way to make use of this in write() as well?
+void FRCRobotHWInterface::customProfileSetMode(int joint_id,
+		hardware_interface::TalonMode mode,
+		double setpoint,
+		hardware_interface::DemandType demandtype,
+		double demandvalue,
+		bool change_pid,
+		int pid_slot)
+{
+	ctre::phoenix::motorcontrol::ControlMode out_mode;
+
+	convertControlMode(mode, out_mode);
+
 	const hardware_interface::FeedbackDevice encoder_feedback = talon_state_[joint_id].getEncoderFeedback();
 	const int encoder_ticks_per_rotation = talon_state_[joint_id].getEncoderTicksPerRotation();
 	const double conversion_factor = talon_state_[joint_id].getConversionFactor();
 
 	const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
 	const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
-	
-	if(zeroPos)
-	{
-		//pos_offset = can_talons_[joint_id]->GetSelectedSensorPosition(pidIdx) /* radians_scale*/;
-
-		can_talons_[joint_id]->SetSelectedSensorPosition(0, pidIdx, timeoutMs);
-		talon_state_[joint_id].setPosition(0);
-		ROS_WARN_STREAM("zeroing talon:" <<  joint_id);
-	}
-	//set talon
-	ctre::phoenix::motorcontrol::ControlMode out_mode;
-
-	convertControlMode(in_mode, out_mode);
-
-	
 	switch (out_mode)
 	{
 		case ctre::phoenix::motorcontrol::ControlMode::Velocity:
@@ -493,220 +496,113 @@ void FRCRobotHWInterface::custom_profile_set_talon(hardware_interface::TalonMode
 			setpoint /= radians_scale;
 			break;
 	}	
-	if(out_mode ==ctre::phoenix::motorcontrol::ControlMode::PercentOutput)
+
+	ctre::phoenix::motorcontrol::DemandType out_demandtype;
+	switch (demandtype)
 	{
-		can_talons_[joint_id]->Set(out_mode, setpoint);
-
-	}
-	else
-	{	
-		can_talons_[joint_id]->Set(out_mode, setpoint, ctre::phoenix::motorcontrol::DemandType::DemandType_ArbitraryFeedForward, fTerm); //TODO: unit conversion
-		talon_command_[joint_id].setDemand1Type(hardware_interface::DemandType_ArbitraryFeedForward);
-		talon_command_[joint_id].setDemand1Value(fTerm);
-	}	
-
-
-	//ROS_INFO_STREAM("setpoint: " << setpoint << " fterm: " << fTerm << " id: " << joint_id << " offset " << pos_offset << " slot: " << pidSlot << " pos mode? " << posMode);
-	talon_command_[joint_id].setMode(in_mode);
-	talon_command_[joint_id].set(setpoint);
-
-	
-	double command;
-
-	talon_command_[joint_id].newMode(in_mode);
-	talon_command_[joint_id].commandChanged(command);
-
-	hardware_interface::DemandType demand1_type_internal;
-	double demand1_value;
-	talon_command_[joint_id].demand1Changed(demand1_type_internal, demand1_value);
-
-	talon_state_[joint_id].setDemand1Type(demand1_type_internal);
-	talon_state_[joint_id].setDemand1Value(demand1_value);
-				
-	talon_state_[joint_id].setTalonMode(in_mode);
-	talon_state_[joint_id].setSetpoint(command);
-
-	talon_state_[joint_id].setNeutralOutput(false); // maybe make this a part of setSetpoint?
-
-	talon_command_[joint_id].setPidfSlot(pidSlot);
-	int dummy;
-	if(talon_command_[joint_id].slotChanged(dummy))
-	{
-		can_talons_[joint_id]->SelectProfileSlot(pidSlot, timeoutMs);
-		talon_state_[joint_id].setSlot(pidSlot);
-	}
-}
-
-void FRCRobotHWInterface::custom_profile_thread(int joint_id)
-{
-	//TODO: somehow make this into a hw function and a base function in frc_robot_sim interface so the sim version is synced etc
-	//I wonder how inefficient it is to have all of these threads 
-	//running at the specified hz just copying to the status
-	
-	double time_start = ros::Time::now().toSec();
-	int num_slots = 20; //Needs to be the same as the talon command interface and talon state interface
-	hardware_interface::CustomProfileStatus status; //Status is also used to store info from last loop
-	int points_run = 0;
-
-	std::vector<std::vector<hardware_interface::CustomProfilePoint>> saved_points;
-	saved_points.resize(num_slots);
-	
-	std::vector<std::vector<double>> saved_times;
-	saved_times.resize(num_slots);
-	
-	while (ros::ok())
-	{
-		if (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_Follower)
-		{
-			ROS_INFO("Exiting custom_profile_thread since mode == Follower");
+		case hardware_interface::DemandType::DemandType_Neutral:
+			out_demandtype = ctre::phoenix::motorcontrol::DemandType::DemandType_Neutral;
+			break;
+		case hardware_interface::DemandType::DemandType_AuxPID:
+			out_demandtype = ctre::phoenix::motorcontrol::DemandType::DemandType_AuxPID;
+			break;
+		case hardware_interface::DemandType::DemandType_ArbitraryFeedForward:
+			out_demandtype = ctre::phoenix::motorcontrol::DemandType::DemandType_ArbitraryFeedForward;
+			break;
+		default:
+			ROS_ERROR("Invalid demand type in hw_interface :: customProfileSetMode");
 			return;
-		}
+	}
+	can_talons_[joint_id]->Set(out_mode, setpoint, out_demandtype, demandvalue); //TODO: unit conversion
+				
 
-		talon_command_[joint_id].getCustomProfilePointsTimesChanged(saved_points, saved_times);
 
-		ros::Rate rate(talon_command_[joint_id].getCustomProfileHz());
-		bool run = talon_command_[joint_id].getCustomProfileRun();
-		
-		if(status.running && !run)
-		{		
-			std::vector<hardware_interface::CustomProfilePoint> empty_points;
-			//talon_command_[joint_id].overwriteCustomProfilePoints(empty_points, status.slotRunning);	
-			//Right now we wipe everything if the profile is stopped
-			//This could be changed to a pause type feature in which the first point has zeroPos set and the other
-			//positions get shifted
-			points_run = 0;
-		}
-		if((run && !status.running) || !run) 
-		{
-			time_start = ros::Time::now().toSec();
-		}
-		int slot = talon_command_[joint_id].getCustomProfileSlot();
-	
-		if(slot != status.slotRunning && run && status.running)
-		{
-			ROS_WARN("transitioned between two profile slots without any break between. Intended?");
-			std::vector<hardware_interface::CustomProfilePoint> empty_points;
-			talon_command_[joint_id].overwriteCustomProfilePoints(empty_points, status.slotRunning);	
-			//Right now we wipe everything if the slots are flipped
-			//Should try to be analagous to having a break between
-			points_run = 0;
-			time_start = ros::Time::now().toSec();
-		}
-		status.slotRunning = slot;	
-		if(run)
-		{
-			if(saved_points[slot].size() == 0)
-			{
-				static int fail_flag = 0;
-				if(fail_flag % 100 == 0)
-				{
-					ROS_ERROR("Tried to run custom profile with no points buffered");
-				}
-				//Potentially add more things to do if this exception is caught
-				//Like maybe set talon to neutral mode or something
-				fail_flag++;
-				continue;
-			}
+
+
+
+
+
+
+
 			
 
-			//TODO below isn't copying correct?
-		
-			int start = points_run - 1;
-			if(start < 0) start = 0;
-			int end;
-			status.outOfPoints = true;
-			double time_since_start = ros::Time::now().toSec() - time_start;
-			for(; start < saved_points[slot].size(); start++)
-			{
-				//Find the point just greater than time since start	
-				if(saved_times[slot][start] > time_since_start)
-				{
-					status.outOfPoints = false;
-					end = start;
-					break;
-				}
-			}
-			if(status.outOfPoints)
-			{
-				points_run = saved_points[slot].size();
-			}
-			else
-			{
-				points_run = end -1;	
-				if(points_run < 0) points_run = 0;
-			}
-			if(status.outOfPoints)
-			{
-				auto next_slot = talon_command_[joint_id].getCustomProfileNextSlot();
 
-				//If all points have been exhausted, just use the last point
-				custom_profile_set_talon(saved_points[slot].back().mode, saved_points[slot].back().setpoint, saved_points[slot].back().fTerm, joint_id, saved_points[slot].back().pidSlot, saved_points[slot].back().zeroPos);
-				if((next_slot.size() > 0))
-				{
-					talon_command_[joint_id].setCustomProfileSlot(next_slot[0]);
-					next_slot.erase(next_slot.begin());
-					talon_command_[joint_id].setCustomProfileNextSlot(next_slot);
-				}
-			}
-			else if(end == 0)
+
+			if (change_pid)
 			{
-				//If we are still on the first point,just use the first point
-				custom_profile_set_talon(saved_points[slot][0].mode, saved_points[slot][0].setpoint, saved_points[slot][0].fTerm, joint_id, saved_points[slot][0].pidSlot, saved_points[slot][0].zeroPos);
+				//TODO: FIX
+
+				double p;
+				double i;
+				double d;
+				double f;
+				int    iz;
+				int    allowable_closed_loop_error;
+				double max_integral_accumulator;
+				double closed_loop_peak_output;
+				int    closed_loop_period;
+	 
+				talon_command_[joint_id].pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period, pid_slot);
+
+
+
+
+
+					//ROS_WARN("PIDF");
+					can_talons_[joint_id]->Config_kP(pid_slot, p, timeoutMs);
+					can_talons_[joint_id]->Config_kI(pid_slot, i, timeoutMs);
+					can_talons_[joint_id]->Config_kD(pid_slot, d, timeoutMs);
+					can_talons_[joint_id]->Config_kF(pid_slot, f, timeoutMs);
+					can_talons_[joint_id]->Config_IntegralZone(pid_slot, iz, timeoutMs);
+					// TODO : Scale these two?
+					can_talons_[joint_id]->ConfigAllowableClosedloopError(pid_slot, allowable_closed_loop_error, timeoutMs);
+					can_talons_[joint_id]->ConfigMaxIntegralAccumulator(pid_slot, max_integral_accumulator, timeoutMs);
+					can_talons_[joint_id]->ConfigClosedLoopPeakOutput(pid_slot, closed_loop_peak_output, timeoutMs);
+					can_talons_[joint_id]->ConfigClosedLoopPeriod(pid_slot, closed_loop_period, timeoutMs);
+
+					talon_state_[joint_id].setPidfP(p, pid_slot);
+					talon_state_[joint_id].setPidfI(i, pid_slot);
+					talon_state_[joint_id].setPidfD(d, pid_slot);
+					talon_state_[joint_id].setPidfF(f, pid_slot);
+					talon_state_[joint_id].setPidfIzone(iz, pid_slot);
+					talon_state_[joint_id].setAllowableClosedLoopError(allowable_closed_loop_error, pid_slot);
+					talon_state_[joint_id].setMaxIntegralAccumulator(max_integral_accumulator, pid_slot);
+					talon_state_[joint_id].setClosedLoopPeakOutput(closed_loop_peak_output, pid_slot);
+					talon_state_[joint_id].setClosedLoopPeriod(closed_loop_period, pid_slot);
+				//ROS_WARN("slot");
+				//ROS_INFO_STREAM("Updated joint " << joint_id << " PIDF slot to " << slot << std::endl);
+
+				can_talons_[joint_id]->SelectProfileSlot(pid_slot, pidIdx);
 			}
-			else
-			{
-				//Allows for mode flipping while in profile execution
-				//We don't want to interpolate between positional and velocity setpoints
-				if(saved_points[slot][end].mode != saved_points[slot][end-1].mode)
-				{
-					ROS_WARN("mid profile mode flip. If intended, Cooooooooollllll. If not, fix the code");
-					custom_profile_set_talon(saved_points[slot][end].mode, saved_points[slot][end].setpoint, saved_points[slot][end].fTerm, joint_id, saved_points[slot][end].pidSlot, saved_points[slot][end].zeroPos);
-					// consider adding a check to see which is closer
-				}
-				else
-				{
-					//linear interpolation
-					double setpoint = saved_points[slot][end - 1].setpoint + (saved_points[slot][end].setpoint - saved_points[slot][end - 1].setpoint) / 
-					(saved_times[slot][end] - saved_times[slot][end-1]) * (time_since_start - saved_times[slot][end-1]);
 
-					
-					double fTerm = saved_points[slot][end - 1].fTerm + (saved_points[slot][end].fTerm - saved_points[slot][end - 1].fTerm) / 
-					(saved_times[slot][end] - saved_times[slot][end-1]) * (time_since_start - saved_times[slot][end-1]);
 
-					custom_profile_set_talon(saved_points[slot][end].mode, setpoint, fTerm, joint_id, saved_points[slot][end].pidSlot, saved_points[slot][end-1].zeroPos);
-				
-				}
-			}
-		}
-		else
-		{
-			status.outOfPoints = false;
-		}
-		for(int i = 0; i < num_slots; i++)
-		{
-			if(i == status.slotRunning)
-            {
-                status.remainingPoints[i] = talon_command_[joint_id].getCustomProfileCount(i) - points_run;
-                if(talon_command_[joint_id].getCustomProfileTimeCount(i) != 0)
-                {
-                    status.remainingTime = talon_command_[joint_id].getCustomProfileEndTime(i) - (ros::Time::now().toSec() - time_start);
-                }
-                else
-                {
-                    status.remainingTime = 0.0;
-                }
-            }
-            else
-            {
-                status.remainingPoints[i] = talon_command_[joint_id].getCustomProfileCount(i);
-            }
-		}
 
-		status.running = run;
-		talon_state_[joint_id].setCustomProfileStatus(status);
-		rate.sleep();
-	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
 }
+
 void FRCRobotHWInterface::init(void)
 {
     ROS_ERROR("IN INIT");
@@ -746,10 +642,8 @@ void FRCRobotHWInterface::init(void)
 		(*can_talons_mp_written_)[i].store(false, std::memory_order_relaxed);
 		(*can_talons_mp_writing_)[i].store(false, std::memory_order_relaxed);
 		(*can_talons_mp_running_)[i].store(false, std::memory_order_relaxed);
-	
 		
 		custom_profile_threads_[i] = std::thread(&FRCRobotHWInterface::custom_profile_thread, this, i);
-
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -1449,8 +1343,12 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		auto &tc = talon_command_[joint_id];
 		
 		if(tc.getCustomProfileRun())
-			continue; //Don't mess with talons running in custom profile mode
+		{
+				can_talon_srx_run_profile_stop_time_[joint_id] = ros::Time::now().toSec();	
 
+				continue; //Don't mess with talons running in custom profile mode
+		}
+		  
 		hardware_interface::FeedbackDevice internal_feedback_device;
 		double feedback_coefficient;
 
@@ -1508,7 +1406,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			double closed_loop_peak_output;
 			int    closed_loop_period;
  
-			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period, slot))
+			if (tc.pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period, slot) || ros::Time::now().toSec() - can_talon_srx_run_profile_stop_time_[joint_id] < .2)
 			{
 				//ROS_WARN("PIDF");
 				safeTalonCall(talon->Config_kP(slot, p, timeoutMs),"Config_kP");
@@ -1862,7 +1760,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		double demand1_value;
 		const bool b3 = tc.demand1Changed(demand1_type_internal, demand1_value);
 
-		if (b1 || b2 || b3)
+		if (b1 || b2 || b3|| ros::Time::now().toSec() - can_talon_srx_run_profile_stop_time_[joint_id] < .2)
 		{
 			if ((b1 || b2) && convertControlMode(in_mode, out_mode))
 			{

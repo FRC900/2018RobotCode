@@ -83,6 +83,7 @@ static double move_out_pos_y;
 static bool move_out_up_or_down;
 static double move_out_down_y;
 static double over_back_x;
+static double intake_low_x;
 static double over_back_y;
 static bool over_back_up_or_down;
 
@@ -527,9 +528,9 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		
 		goal.wait_to_proceed = true;
 
-		goal.x = default_x;
-		goal.y = default_y;
-		goal.up_or_down = default_up_or_down;
+		goal.x = intake_low_x;
+		goal.y = 1.0;
+		goal.up_or_down = false;
 		goal.override_pos_limits = false;
 		goal.dist_tolerance = .5;
 		goal.x_tolerance = .5;
@@ -1226,6 +1227,8 @@ int main(int argc, char **argv)
 
 
 
+	if (!n_params.getParam("intake_low_x", intake_low_x))
+		ROS_ERROR("Could not read intake_low_x");
 	if (!n_params.getParam("over_back_x", over_back_x))
 		ROS_ERROR("Could not read over_back_x");
 	if (!n_params.getParam("over_back_y", over_back_y))

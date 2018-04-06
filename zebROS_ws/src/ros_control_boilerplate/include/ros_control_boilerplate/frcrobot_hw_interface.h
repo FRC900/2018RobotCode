@@ -76,7 +76,7 @@ class ROSIterativeRobot : public frc::IterativeRobotBase
 				HAL_Report(HALUsageReporting::kResourceType_NidecBrushless, 900);
 #endif
 			HAL_Report(HALUsageReporting::kResourceType_NidecBrushless, 900);
-			// HAL_Report(HALUsageReporting::kResourceType_Language, 900, 0, "C++/Python/CMake/PERL/JavaScript");
+			HAL_Report(HALUsageReporting::kResourceType_Language, 900, 0, "C++/CMake/Javascript/Python/Shell/PERL");
 		}
 
 		void StartCompetition(void) override
@@ -175,9 +175,18 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 
 	private:
 		void hal_keepalive_thread(void);
+
 		void process_motion_profile_buffer_thread(double hz);
-		void custom_profile_thread(int joint_id);
-		void custom_profile_set_talon(hardware_interface::TalonMode mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos);
+		void customProfileSetMode(int joint_id,
+				 				  hardware_interface::TalonMode mode,
+								  double setpoint,
+								  hardware_interface::DemandType demandtype,
+								  double demandvalue,
+									bool change_pid,
+									int pid_slot
+
+									) override;
+		void setSensorPosition(int joint_id, double position) override;
 
 		/* Get conversion factor for position, velocity, and closed-loop stuff */
 
@@ -232,7 +241,6 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;
 		std::thread motion_profile_thread_;
-		std::vector<std::thread> custom_profile_threads_;
 
 		PowerDistributionPanel pdp_joint_;
 
