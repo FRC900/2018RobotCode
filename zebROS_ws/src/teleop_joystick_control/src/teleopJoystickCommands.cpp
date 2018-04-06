@@ -1198,8 +1198,8 @@ if(JoystickState->stickRightPress == true)
 	if(!orient_running || outOfPoints)
 	{
 		sendRobotZero = false;
-		//double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
-		double angle = M_PI/6; //for testing
+		double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
+		//double angle = M_PI/6; //for testing
 		static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
 		static double max_rotational_velocity = 8.8; //radians/sec TODO: find this in config
 
