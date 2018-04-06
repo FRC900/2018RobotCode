@@ -79,13 +79,13 @@
 		<!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/-->
 	</group>
 
-    <group ns="rio">
+    <!--group ns="rio">
         <node name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
     </group>
 
     <group ns="jetson">
         <node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
-    </group>
+    </group-->
         
 
 </launch>
