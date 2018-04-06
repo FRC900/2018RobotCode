@@ -691,11 +691,11 @@ void FRCRobotInterface::custom_profile_set_talon(hardware_interface::TalonMode m
 	//set talon
 	if(mode == hardware_interface::TalonMode_PercentOutput)
 	{
-		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_Neutral, 0);
+		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_Neutral, 0, ros::Time::now().toSec() - start_run < .3 || slot_last != pidSlot, pidSlot);
 	}
 	else
 	{	
-		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_ArbitraryFeedForward, fTerm);
+		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_ArbitraryFeedForward ,fTerm, ros::Time::now().toSec() - start_run < .3 || slot_last != pidSlot, pidSlot);
 		talon_command_[joint_id].setDemand1Type(hardware_interface::DemandType_ArbitraryFeedForward);
 		talon_command_[joint_id].setDemand1Value(fTerm);
 

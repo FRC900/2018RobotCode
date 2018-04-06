@@ -107,7 +107,7 @@
     <node machine="roboRIO" name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="$(arg output)"
 	   args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller rumble_controller imu_sensor_controller compressor_controller robot_code_ready_controller auto_state_controller_0 auto_state_controller_1 auto_state_controller_2 auto_state_controller_3"/>
 
-    <node machine="roboRIO" name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands" output="$(arg output)"/>
+    <node name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands" output="$(arg output)"/>
 
     <node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="$(arg output)" />
     <node machine="roboRIO"  name="autoInterpreterServerLift" pkg="behaviors" type="autoInterpreterServerLift" output="$(arg output)"/>
@@ -123,8 +123,15 @@
 	<node name="profile_follow" pkg="robot_visualizer" type="profile_follow" output="$(arg output)" />
 </group>
 
-<node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat_jetson" output="$(arg output)" />
+<group ns="rio">
+    <node machine="roboRIO" name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
+</group>
 
-<node machine="roboRIO" name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat_rio" output="$(arg output)" />
+<group ns="jetson">
+    <node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
+</group>
+
+<node name="base_trajectory_node" pkg="base_trajectory" type="base_trajectory_node" output="screen" > </node> 
+
 
 </launch>

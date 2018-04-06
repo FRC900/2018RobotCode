@@ -296,6 +296,20 @@ bool intakeStop(void) {
 	}
 	return true;
 }
+bool intakeOpenDown(void) {
+	elevator_controller::Intake srv;
+    srv.request.spring_state = 1; //hard_out
+    srv.request.power=0;
+    srv.request.other_power=0;
+    srv.request.just_override_power = false;
+    ROS_INFO("intake open down");
+    if (!IntakeService.call(srv))
+	{
+		ROS_ERROR("Service call failed : IntakeService in intakeOpenDown");
+		return false;
+	}
+	return true;
+}
 bool releaseIntake(void) {
 	elevator_controller::Intake srv;
     srv.request.spring_state = 1; //hard out
@@ -480,7 +494,8 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 							{
 								for(int i = 0; i < group_xml.size(); i++)
 								{
-									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(0.4);
+
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(0.25);
 								}
 							}
 							XmlRpc::XmlRpcValue shift_xml;
@@ -539,7 +554,11 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.flip.push_back(false);
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.x_invert.push_back(false);
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.spline_groups.push_back(num_splines);
+<<<<<<< HEAD
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(0.4);
+=======
+								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(0.25);
+>>>>>>> master
 								profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.t_shift.push_back(0);
 						}
 
@@ -651,7 +670,17 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						else if(action_name == "release_clamp") {
 							profiled_modes[mode][layout][start_pos].actions[num].action = release_clamp;
 						}
-
+						else if(action_name == "intake_open_down") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = intake_open_down;
+						}
+						else if(action_name == "intake_no_arm") {
+							profiled_modes[mode][layout][start_pos].actions[num].action = intake_no_arm;
+						}
+						else
+						{
+							ROS_ERROR("action not found");
+						}
+						
 					//Exception handling?
 					const double time_now = time;
 					profiled_modes[mode][layout][start_pos].actions[num].time = time_now;
@@ -912,9 +941,12 @@ bool check_action_completion(Action action, bool &intake_server_action, bool &ro
             return true;
         case release_clamp:
             return true;
+        case intake_open_down:
+            return true;
         default:
             ROS_ERROR("Action not in list of actions");
-    }
+			return true;
+	}
 }
 
 bool call_action(Action action, const ActionSetpoint &action_setpoint) {
@@ -964,6 +996,9 @@ bool call_action(Action action, const ActionSetpoint &action_setpoint) {
         case release_clamp:
             releaseClamp();
             break;
+		case intake_open_down:
+			intakeOpenDown();
+			break;
         default:
             ROS_ERROR("Action not in list of actions");
 

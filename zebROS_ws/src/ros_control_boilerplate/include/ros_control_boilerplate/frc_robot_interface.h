@@ -141,7 +141,9 @@ class FRCRobotInterface : public hardware_interface::RobotHW
 				 						  hardware_interface::TalonMode mode,
 										  double setpoint,
 										  hardware_interface::DemandType demandtype,
-										  double demandvalue)
+										  double demandvalue,
+											bool change_pid,
+											int pid_slot)
 		{
 		}
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QWidget" name="MainWindow">
+ <class>Team900</class>
+ <widget class="QWidget" name="Team900">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -10,8 +10,13 @@
     <height>616</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <italic>false</italic>
+   </font>
+  </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Driver Station Sim Team 900</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="geometry">
@@ -155,12 +160,6 @@ selection-color: rgba(255, 255, 255, 0);</string>
               <bool>true</bool>
              </property>
             </widget>
-            <zorder>auto_mode</zorder>
-            <zorder>teleop_button</zorder>
-            <zorder>practice_button</zorder>
-            <zorder>auto_mode</zorder>
-            <zorder>teleop_button</zorder>
-            <zorder>practice_button</zorder>
            </widget>
           </item>
          </layout>
@@ -275,9 +274,8 @@ border-color: rgb(255, 161, 129);</string>
               <bool>true</bool>
              </property>
             </widget>
-            <zorder>disable_button_2</zorder>
             <zorder>enable_button_2</zorder>
-            <zorder></zorder>
+            <zorder>disable_button_2</zorder>
            </widget>
           </item>
          </layout>
@@ -288,7 +286,7 @@ border-color: rgb(255, 161, 129);</string>
     </item>
    </layout>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>180</x>
@@ -637,82 +635,53 @@ p, li { white-space: pre-wrap; }
     </item>
    </layout>
   </widget>
-  <widget class="QFrame" name="frame">
+  <widget class="QLineEdit" name="time">
    <property name="geometry">
     <rect>
-     <x>0</x>
-     <y>290</y>
-     <width>211</width>
-     <height>121</height>
+     <x>30</x>
+     <y>310</y>
+     <width>171</width>
+     <height>61</height>
     </rect>
    </property>
-   <property name="frameShape">
-    <enum>QFrame::NoFrame</enum>
+   <property name="styleSheet">
+    <string notr="true">font: 63 italic 32pt &quot;Ubuntu&quot;;
+background-color: rgba(255, 255, 255, 0);</string>
    </property>
-   <property name="frameShadow">
-    <enum>QFrame::Raised</enum>
+   <property name="text">
+    <string>2:30.77</string>
    </property>
-   <widget class="QLCDNumber" name="minutes">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>20</y>
-      <width>51</width>
-      <height>91</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::NoFrame</enum>
-    </property>
-    <property name="digitCount">
-     <number>1</number>
-    </property>
-   </widget>
-   <widget class="QTextBrowser" name="textBrowser_11">
-    <property name="geometry">
-     <rect>
-      <x>70</x>
-      <y>-10</y>
-      <width>41</width>
-      <height>131</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgba(255, 255, 255, 0);</string>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::NoFrame</enum>
-    </property>
-    <property name="html">
-     <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Ubuntu'; font-size:11pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:72pt;&quot;&gt;:&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-    </property>
-   </widget>
-   <widget class="QLCDNumber" name="seconds">
-    <property name="geometry">
-     <rect>
-      <x>100</x>
-      <y>20</y>
-      <width>91</width>
-      <height>91</height>
-     </rect>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::NoFrame</enum>
-    </property>
-    <property name="numDigits">
-     <number>2</number>
-    </property>
-    <property name="digitCount">
-     <number>2</number>
-    </property>
-    <property name="segmentStyle">
-     <enum>QLCDNumber::Flat</enum>
-    </property>
-   </widget>
+  </widget>
+  <widget class="QCheckBox" name="timer_pause">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>310</y>
+     <width>201</width>
+     <height>71</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>Ubuntu</family>
+     <pointsize>24</pointsize>
+     <weight>7</weight>
+     <italic>true</italic>
+     <bold>false</bold>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 63 italic 24pt &quot;Ubuntu&quot;;</string>
+   </property>
+   <property name="text">
+    <string>Pause Timer</string>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>16</width>
+     <height>16</height>
+    </size>
+   </property>
   </widget>
  </widget>
  <resources/>

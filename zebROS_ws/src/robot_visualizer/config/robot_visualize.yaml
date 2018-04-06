@@ -9,7 +9,7 @@ robot_visual:
     intake_position: 0.441325
     arm_length_place_forward: .38
     arm_length_place_backward: -0.32
-    arm_length_place_switch: 0.5
+    arm_length_place_switch: 0.48
     arm_length_intake: .1
     arm_pivot_position: .248
     
