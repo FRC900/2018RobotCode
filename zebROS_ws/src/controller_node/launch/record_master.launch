@@ -42,6 +42,7 @@
 		/frcrobot/elevator_controller/return_cmd_pos
 		/frcrobot/elevator_controller/return_true_setpoint
 		/frcrobot/elevator_controller/top_poly_visualize
+		/frcrobot/error_times
 		/frcrobot/joint_states
 		/frcrobot/joystick_states
 		/frcrobot/match_data
@@ -51,11 +52,8 @@
 		/frcrobot/swerve_drive_controller/cmd_vel
 		/frcrobot/swerve_drive_controller/odom
 		/frcrobot/talon_states
-        /jetson/heartbeat
-        /rio/heartbeat
 		/rosout
 		/rosout_agg
-		/scan
 		/tf
 		/tf_static " />
 	<!--	/zed_goal/left/image_rect_color
