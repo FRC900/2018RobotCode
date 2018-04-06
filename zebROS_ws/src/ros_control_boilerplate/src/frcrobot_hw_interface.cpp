@@ -199,7 +199,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				{
 					if (!last_received)
 					{
-						double msg = ros::Time::now().toSec() - start_time;
+						std_msgs::Float64 msg;
+						msg.data = ros::Time::now().toSec() - start_time;
 						error_pub.publish(msg);
 						last_received = true;
 					}
