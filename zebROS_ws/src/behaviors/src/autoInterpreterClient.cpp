@@ -1101,7 +1101,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 	
     for(size_t num = 0; num<num_actions; num++)
 	{
-		time_finished.push_back(100000000);
+		time_finished.push_back(DBL_MAX);
 	}
     for(size_t num = 0; num<num_actions; num++) {
 
@@ -1112,7 +1112,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 
 		bool dependencies_run =  false;
 
-		while(/*curr_time*/ (ros::Time::now().toSec() < (action_start_time + auto_run_data.actions[num].time)) || (!dependencies_run ) && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
+		while(/*curr_time*/ (ros::Time::now().toSec() < (start_time + auto_run_data.actions[num].time)) || (!dependencies_run ) && !exit_auto) { //HOW DOES THIS LOOP EVER EXIT!!! (other than if auto ends)
 			
 			bool intake_action_lib_later_write = false;
 			bool robot_action_lib_later_write = false;
