@@ -52,8 +52,6 @@
 		/frcrobot/swerve_drive_controller/cmd_vel
 		/frcrobot/swerve_drive_controller/odom
 		/frcrobot/talon_states
-        /jetson/heartbeat
-        /rio/heartbeat
 		/rosout
 		/rosout_agg
 		/tf
