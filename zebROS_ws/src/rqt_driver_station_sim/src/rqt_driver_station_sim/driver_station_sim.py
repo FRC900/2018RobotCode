@@ -51,7 +51,7 @@ class DriverStationSim(Plugin):
         match_pub = rospy.Publisher("/frcrobot/match_data", MatchSpecificData, queue_size=3)
 
         def pub_data(self):
-            r = rospy.Rate(10)
+            r = rospy.Rate(100)
             auto_msg = AutoMode()
             auto_msg.mode = [0, 0, 0, 0]
             auto_msg.delays = [0, 0, 0, 0]
@@ -100,8 +100,11 @@ class DriverStationSim(Plugin):
 
                 if(enable):
                     time_diff = int(rospy.get_time()-start_time)
-                    self._widget.minutes.display((150-time_diff)/60)
-                    self._widget.seconds.display((150-time_diff)%60)
+                    minutes = ((150-time_diff)/60)
+                    seconds = ((150-time_diff)%60 + (start_time%1-(rospy.get_time()-start_time)%1))
+                    time = str(minutes) + ":" + str(seconds)
+                    if(not self._widget.timer_pause.isChecked()):
+                        self._widget.time.setText(time[:7])
                     match_msg.matchTimeRemaining = 150-time_diff
                     match_msg.isDisabled = False
                     match_msg.isEnabled = True

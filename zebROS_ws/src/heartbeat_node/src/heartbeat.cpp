@@ -1,12 +1,13 @@
 #include <std_msgs/Int32.h>
 #include <ros/ros.h>
-ros::Publisher heartbeat_pub_jetson;
+
+ros::Publisher heartbeat_pub_rio;
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "heartbeat_jetson");
+    ros::init(argc, argv, "heartbeat_rio");
     ros::NodeHandle n;
     
-    heartbeat_pub_jetson = n.advertise<std_msgs::Int32>("/frcrobot/heartbeat_jetson", 1);
+    heartbeat_pub_rio = n.advertise<std_msgs::Int32>("heartbeat", 1);
 
     ros::Rate r(5);
     std_msgs::Int32 val;
@@ -15,7 +16,7 @@ int main(int argc, char** argv) {
     while(ros::ok()){
        val.data = num;
        num++;
-       heartbeat_pub_jetson.publish(num);
+       heartbeat_pub_rio.publish(num);
        r.sleep();
     }
 }

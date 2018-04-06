@@ -123,9 +123,13 @@
 	<node name="profile_follow" pkg="robot_visualizer" type="profile_follow" output="$(arg output)" />
 </group>
 
-<node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat_jetson" output="$(arg output)" />
+<group ns="rio">
+    <node machine="roboRIO" name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
+</group>
 
-<node machine="roboRIO" name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat_rio" output="$(arg output)" />
+<group ns="jetson">
+    <node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
+</group>
 
 <node name="base_trajectory_node" pkg="base_trajectory" type="base_trajectory_node" output="screen" > </node> 
 
