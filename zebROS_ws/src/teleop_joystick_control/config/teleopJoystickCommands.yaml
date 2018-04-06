@@ -59,7 +59,7 @@ teleop_params:
     num_cmd_vel_modes: 10 #fix
 
     over_back_x: -0.3
-    over_back_y: 2.3
+    over_back_y: 2.33
     over_back_up_or_down: true
     
     wait_stabilize_before_drop: 0.0
