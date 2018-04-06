@@ -58,6 +58,7 @@
 #include <Compressor.h>
 #include "LiveWindow/LiveWindow.h"
 #include "SmartDashboard/SmartDashboard.h"
+#include <std_msgs/Float64.h>
 
 namespace frcrobot_control
 {

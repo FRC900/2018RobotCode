@@ -113,6 +113,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::JoystickState> realtime_pub_joystick(nh_, "joystick_states", 1);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::MatchSpecificData> realtime_pub_match_data(nh_, "match_data", 1);
 	realtime_tools::RealtimePublisher<ros_control_boilerplate::AutoMode> realtime_pub_nt(nh_, "autonomous_mode", 4);
+	realtime_tools::RealtimePublisher<std_msgs::Float64> realtime_pub_error(nh_, "error_times", 4);
 
 	// Setup writing to a network table that already exists on the dashboard
 	//std::shared_ptr<nt::NetworkTable> pubTable = NetworkTable::GetTable("String 9");
@@ -174,7 +175,14 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				realtime_pub_nt.msg_.header.stamp = time_now_t;
 				realtime_pub_nt.unlockAndPublish();
 			}
-
+			if (driveTable && realtime_pub_error.trylock())
+			{
+				if(driveTable->GetBoolean("record_time", 0) != 0)
+				{
+					realtime_pub_error.msg_.data = ros::Time::now().toSec();
+					realtime_pub_error.unlockAndPublish();
+				}
+			}
 			if (driveTable)
 			{
 				disable_compressor_.store((bool)driveTable->GetBoolean("disable_reg", 0), std::memory_order_relaxed);
@@ -192,6 +200,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				else
 					zero_angle = -10000;
 				navX_zero_.store(zero_angle, std::memory_order_relaxed);
+
 			}
 
 			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
@@ -407,6 +416,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				game_specific_message_seen = false;
 			}
 		}
+
 	}
 }
 
@@ -749,10 +759,6 @@ void FRCRobotHWInterface::init(void)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "Loading dummy joint " << i << "=" << dummy_joint_names_[i]);
 
-	//HAL_InitializePDP(0,0);
-	//int32_t status = 0;
-	//HAL_ResetPDPTotalEnergy(0, &status);
-	//HAL_ClearPDPStickyFaults(0, &status);
 	pdp_joint_.ClearStickyFaults();
 	pdp_joint_.ResetTotalEnergy();
 
