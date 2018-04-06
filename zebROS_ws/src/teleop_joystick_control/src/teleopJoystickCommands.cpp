@@ -1193,8 +1193,9 @@ static bool sendRobotZero = false;
 // No motion? Tell the drive base to stop
 if(JoystickState->stickRightPress == true)
 {
-	static bool orient_running;
-	if(!orient_running)
+	ROS_INFO_STREAM("outOfPoints = " << outOfPoints);
+	static bool orient_running = false;
+	if(!orient_running || outOfPoints)
 	{
 		sendRobotZero = false;
 		//double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
@@ -1533,7 +1534,7 @@ void jointStateCallback(const sensor_msgs::JointState &joint_state)
 	
 }
 
-talonStateCallback(const talon_state_controller::TalonState &talon_state)
+void talonStateCallback(const talon_state_controller::TalonState &talon_state)
 {
-	outOfPoints = talon_state[0].outOfPoints;
+	outOfPoints = talon_state.custom_profile_status[0].outOfPoints;
 }

@@ -24,6 +24,7 @@
   <depend>behaviors</depend>
   <depend>elevator_controller</depend>
   <depend>std_srvs</depend>
+  <depend>talon_state_controller</depend>
 
   <export>
   </export>
