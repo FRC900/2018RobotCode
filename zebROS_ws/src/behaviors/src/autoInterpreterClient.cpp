@@ -1020,7 +1020,8 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     vel.angular.x = 0;
     vel.angular.y = 0;
     vel.angular.z = 0;
-
+    
+    start_time = ros::Time::now().toSec();
     const size_t num_segments = segments.size();
     for(size_t num = 0; num<num_segments; num++) {
         const double segment_start_time = ros::Time::now().toSec();
