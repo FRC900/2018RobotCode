@@ -18,9 +18,9 @@
 
 		<!-- Load controller settings -->
 		<rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
-		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_0.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
-		<rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets1.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets0.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
 		<rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
 		<rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
@@ -79,13 +79,13 @@
 		<!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/-->
 	</group>
 
-    <group ns="rio">
+    <!--group ns="rio">
         <node name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
     </group>
 
     <group ns="jetson">
         <node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
-    </group>
+    </group-->
         
 
 </launch>
