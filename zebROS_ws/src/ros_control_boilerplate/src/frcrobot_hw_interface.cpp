@@ -123,6 +123,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 	ros::Time last_nt_publish_time = ros::Time::now();
 	//ros::Time last_joystick_publish_time = ros::Time::now();
 	ros::Time last_match_data_publish_time = ros::Time::now();
+	const double start_time = ros::Time::now.toSecs();
 
 	const double nt_publish_rate = 10;
 	//const double joystick_publish_rate = 20;
@@ -177,9 +178,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			}
 			if (driveTable && realtime_pub_error.trylock())
 			{
-				if(driveTable->GetBoolean("record_time", 0) != 0)
+				if(driveTable->GetBoolean("record_time", 0) != 0 )
 				{
-					realtime_pub_error.msg_.data = ros::Time::now().toSec();
+					realtime_pub_error.msg_.data = ros::Time::now().toSec() - start_time;
 					realtime_pub_error.unlockAndPublish();
 				}
 			}
