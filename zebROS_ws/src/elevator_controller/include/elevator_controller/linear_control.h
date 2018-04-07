@@ -70,7 +70,9 @@ class ElevatorController
 		std::atomic<bool> end_game_deploy_wings_cmd_;
 		bool end_game_deploy_t1_;
 		bool end_game_deploy_t2_;
+		bool end_game_deploy_t3_;
 		double end_game_deploy_start_;
+		double end_game_deploy_t2_time_;
 
 		double max_extension_;
 		double min_extension_;
