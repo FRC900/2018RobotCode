@@ -494,7 +494,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		end_game_deploy_start_ = ros::Time::now().toSec();
 	}
 
-	if(end_game_deploy_cmd && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.5)
+	if(end_game_deploy_cmd && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > 2.5)
 	{
 		command_struct_.lin[0] = 0.05;
 		command_struct_.lin[1] = min_extension_ + cos(asin(0.05 / arm_length_))*arm_length_;
@@ -524,7 +524,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		end_game_deploy_t3_ = true;
 		//ROS_INFO("dropping");
 	}
-	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
+	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 3.0)
 	{	
 		//ROS_INFO("dropping");
 		EndGameDeploy_.setCommand(1.0);
@@ -535,7 +535,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 
 	bool local_shift_cmd = shift_cmd_.load(std::memory_order_relaxed);
-	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
+	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 4.5)
 	{
 		shift_cmd_.store(true, std::memory_order_relaxed);
 		local_shift_cmd = true;
