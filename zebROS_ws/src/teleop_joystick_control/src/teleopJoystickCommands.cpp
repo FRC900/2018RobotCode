@@ -572,6 +572,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 		//buttonStartStart = timeSecs;
 		goal_intake.IntakeCube = true;
 		goal_intake.time_out = 15;
+		goal_intake.wait_to_proceed = false;
 		ac_intake->sendGoal(goal_intake);
 		intake_up = false;
 		//ROS_INFO("teleop : Intake No Lift");

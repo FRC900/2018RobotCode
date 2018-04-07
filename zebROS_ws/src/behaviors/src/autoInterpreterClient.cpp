@@ -202,6 +202,7 @@ bool intakeCube(const ActionSetpoint &action_setpoint) {
     goal.x_tolerance = .1; //TODO config these
     goal.y_tolerance = .1; //TODO config these
     goal.time_out = 15; //TODO config these
+	goal.wait_to_proceed = false;
 
     ac->sendGoal(goal);
     
@@ -213,6 +214,7 @@ bool intakeNoArm(void) {
     ROS_WARN("intaking cube");
     goal.IntakeCube = true;
     goal.time_out = 10; //TODO config this
+    goal.wait_to_proceed = false; 
 
     ac_intake->sendGoal(goal);
     ROS_INFO("intake no arm");

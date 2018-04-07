@@ -11,6 +11,8 @@ static double intake_power;
 static double intake_hold_power;
 double linebreak_debounce_iterations; 
 
+//#Important Changes
+
 class autoAction {
     protected:
         //ros::NodeHandle nh_;
@@ -23,6 +25,8 @@ class autoAction {
 	std::atomic<int> cube_state_true;
 	behaviors::IntakeResult result_;
 	ros::Subscriber CubeState_;
+	ros::Subscriber Proceed_;
+	bool proceed;
     public:
         autoAction(const std::string &name) :
             as_(nh_, name, boost::bind(&autoAction::executeCB, this, _1), false),
@@ -33,6 +37,9 @@ class autoAction {
 			service_connection_header["tcp_nodelay"] = "1";
             IntakeSrv_ = nh_.serviceClient<elevator_controller::Intake>("/frcrobot/elevator_controller/intake", false, service_connection_header);
             CubeState_ = nh_.subscribe("/frcrobot/elevator_controller/cube_state", 1, &autoAction::cubeCallback, this);
+			Proceed_ = nh_.subscribe("/frcrobot/auto_interpreter_server/proceed", 1, &autoAction::proceedCallback, this);
+
+
 	}
 
     ~autoAction(void) 
@@ -60,7 +67,7 @@ class autoAction {
             ros::spinOnce();
 			bool success = false;
             while(!success && !timed_out && !aborted) {
-                success = cube_state_true > linebreak_debounce_iterations; 
+                success = cube_state_true > linebreak_debounce_iterations && (proceed  || !goal->wait_to_proceed); 
                 if(as_.isPreemptRequested() || !ros::ok()) {
                     ROS_WARN("%s: Preempted", action_name_.c_str());
                     as_.setPreempted();
@@ -112,13 +119,18 @@ class autoAction {
         return;
     }
     void cubeCallback(const elevator_controller::CubeState &msg) {
-        if(msg.has_cube) {
+        if(msg.intake_low || msg.intake_high) {
             cube_state_true += 1;
         }
 	else {
 		cube_state_true = 0;
     }
 	}
+	void proceedCallback(const std_msgs::Bool &msg)
+	{
+		proceed = msg.data;
+	}
+
 };
 
 int main(int argc, char** argv) {
