@@ -20,18 +20,12 @@ int main(int argc, char **argv)
 
 	rosbag::View view(bag, rosbag::TopicQuery(topics));
 
-	bool prev_msg = false;
 	foreach(rosbag::MessageInstance const m, view)
 	{
 		std_msgs::Float64::ConstPtr s = m.instantiate<std_msgs::Float64>();
 		if (s != NULL){
-			if(!prev_msg)
 				std::cout << "error at " << s->data << std::endl;
-			prev_msg = true;
 		}
-		else
-			prev_msg = false;
-
 	}
 	bag.close();
 
