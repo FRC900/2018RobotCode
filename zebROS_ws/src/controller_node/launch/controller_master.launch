@@ -109,7 +109,7 @@
 
     <node name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands" output="$(arg output)"/>
 
-    <node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="$(arg output)" />
+    <node machine="roboRIO" name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="$(arg output)" />
     <node machine="roboRIO"  name="autoInterpreterServerLift" pkg="behaviors" type="autoInterpreterServerLift" output="$(arg output)"/>
     <node machine="roboRIO" name="autoInterpreterServerIntake" pkg="behaviors" type="autoInterpreterServerIntake" output="$(arg output)"/>
     <node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="$(arg output)"/>
