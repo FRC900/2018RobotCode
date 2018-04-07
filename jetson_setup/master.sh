@@ -21,7 +21,7 @@ export CUDA_CACHE_PATH=/home/ubuntu/.nv/ComputeCache
 
 if sudo mount /dev/nvme0n1p1 /mnt/900_2; then
 		date >> /home/ubuntu/mounted.txt
-		echo worked! >> /home/ubuntu/mounted.txt
+		echo worked >> /home/ubuntu/mounted.txt
 		sudo chmod a+rw /mnt/900_2/
 		roslaunch controller_node controller_master.launch record:=true
 else

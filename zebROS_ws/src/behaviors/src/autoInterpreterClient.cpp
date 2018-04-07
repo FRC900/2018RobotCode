@@ -303,6 +303,7 @@ bool intakeOpenDown(void) {
     srv.request.spring_state = 1; //hard_out
     srv.request.power=0;
     srv.request.other_power=0;
+    srv.request.up = false;
     srv.request.just_override_power = false;
     ROS_INFO("intake open down");
     if (!IntakeService.call(srv))
