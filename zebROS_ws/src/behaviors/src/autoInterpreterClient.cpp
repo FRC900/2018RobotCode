@@ -1009,7 +1009,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     }
 
     ros::Rate r(10);
-    const double start_time = ros::Time::now().toSec();
+    double start_time = ros::Time::now().toSec();
     while(!exit_auto && ros::Time::now().toSec() < start_time + initial_delay) {
         r.sleep(); 
     }
