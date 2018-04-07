@@ -100,7 +100,7 @@ elevator_controller:
         softlimit_reverse_threshold: 0
         softlimit_forward_threshold: 1
         conversion_factor: 1 #FIX
-        current_limit_continuous_amps: 15
+        current_limit_continuous_amps: 25
         current_limit_enable: True
         closed_loop_ramp: .1
     intake1_joint:
