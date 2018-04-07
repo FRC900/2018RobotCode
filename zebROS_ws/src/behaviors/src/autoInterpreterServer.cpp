@@ -135,6 +135,7 @@ class autoAction
 				behaviors::IntakeGoal goal_i;
 				goal_i.IntakeCube = true;
 				goal_i.time_out = 15;
+				goal_i.wait_to_proceed = goal->wait_to_proceed;
 				ai_.sendGoal(goal_i);
 				srv_clamp.request.data = false;
 				if (!ClampSrv_.call(srv_clamp)) ROS_ERROR("Srv_ clamp call failed");
@@ -397,14 +398,13 @@ class autoAction
 					if (ros::Time::now().toSec() - clamp_time > wait_after_clamp)
 					{
 
-						open_time = ros::Time::now().toSec();
 						elevator_controller::Intake srvIntake;
 						srvIntake.request.power = 0.0;
 						srvIntake.request.other_power = 0.0;
 						srvIntake.request.up = false;
 						srvIntake.request.just_override_power = false;
 						srvIntake.request.spring_state = 1; //hard_out
-						if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");;
+						if (!IntakeSrv_.call(srvIntake)) ROS_ERROR("Srv_ intake call failed");
 						break;
 					}
 					if (!aborted)
