@@ -664,9 +664,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	odom_holder.up_or_down = cur_up_or_down;
 
 	Odom_.publish(odom_holder);
-	
+	bool stop;
 	if(stop_arm_.getPosition())
 	{	
+		stop = true;
 		pivot_joint_.setPeakOutputForward(0);
 		pivot_joint_.setPeakOutputReverse(0);
 
@@ -675,6 +676,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	else
 	{
+		stop = false;
 		pivot_joint_.setPeakOutputForward(1);
 		pivot_joint_.setPeakOutputReverse(-1);
 
@@ -701,7 +703,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
     /* NIALL */
 	bool bottom_limit = pivot_joint_.getReverseLimitSwitch(); //TODO FIX THIS
 	bot_lim_pub.publish(bottom_limit);
-	if(bottom_limit)
+	if(bottom_limit && !stop)
 	{	
 		
 		pivot_joint_.setPeakOutputReverse(-limit_power_press_);
