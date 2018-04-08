@@ -905,12 +905,6 @@ void TalonSwerveDriveController::update(const ros::Time &time, const ros::Durati
 				
 		slot_ret = steering_joints_[i].getCustomProfileSlot();
 		
-
-		if(slot_ret != speed_joints_[i].getCustomProfileSlot()) slot_ret_diff_last_sum+=1;
-		
-		
-		slot_ret = speed_joints_[i].getCustomProfileSlot();
-
 		//ROS_ERROR_STREAM(slot_local);     
 	}
 	

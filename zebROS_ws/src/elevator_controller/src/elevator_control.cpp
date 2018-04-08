@@ -524,7 +524,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		end_game_deploy_t3_ = true;
 		//ROS_INFO("dropping");
 	}
-	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 3.0)
+	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 2.0)
 	{	
 		//ROS_INFO("dropping");
 		EndGameDeploy_.setCommand(1.0);
