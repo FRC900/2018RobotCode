@@ -74,8 +74,13 @@
 <!--	
 	<include file="$(find controller_node)/launch/record_simple.launch" if="$(arg record)" />
 -->
-		<include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)"/>
 
+	<!-- <include file="$(find ti_mmwave_rospkg)/launch/ti_mmwave_sensor.launch">
+		<arg name="device" value="1443" doc="TI mmWave sensor device type [1443, 1642]"/>
+		<arg name="config" value="3d" doc="TI mmWave sensor device configuration [3d (not supported by 1642 EVM), 2d]"/>
+		<arg name="max_allowed_elevation_angle_deg" value="90" doc="Maximum allowed elevation angle in degrees for detected object data [0 > value >= 90]}"/>
+		<arg name="max_allowed_azimuth_angle_deg" value="90" doc="Maximum allowed azimuth angle in degrees for detected object data [0 > value >= 90]}"/>
+	  </include> -->
 
   <machine name="roboRIO" address="10.9.0.2" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
 
@@ -88,9 +93,9 @@
 
     <!-- Load controller settings -->
     <rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
-    <rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
+    <rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_0.yaml" command="load"/>
     <rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
-    <rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets1.yaml" command="load"/>
+    <rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets0.yaml" command="load"/>
     <rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
     <rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
     <rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
@@ -109,7 +114,7 @@
 
     <node name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands" output="$(arg output)"/>
 
-    <node name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="$(arg output)" />
+    <node machine="roboRIO" name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="$(arg output)" />
     <node machine="roboRIO"  name="autoInterpreterServerLift" pkg="behaviors" type="autoInterpreterServerLift" output="$(arg output)"/>
     <node machine="roboRIO" name="autoInterpreterServerIntake" pkg="behaviors" type="autoInterpreterServerIntake" output="$(arg output)"/>
     <node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="$(arg output)"/>

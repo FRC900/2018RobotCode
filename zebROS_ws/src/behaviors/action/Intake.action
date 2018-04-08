@@ -1,6 +1,7 @@
 #goal definition
 bool IntakeCube #what others?
 float64 time_out
+bool wait_to_proceed
 ---
 #result definition
 bool timed_out

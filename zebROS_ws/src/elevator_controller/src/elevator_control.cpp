@@ -18,7 +18,9 @@ ElevatorController::ElevatorController():
 	end_game_deploy_wings_cmd_(false),
 	end_game_deploy_t1_(false),
 	end_game_deploy_t2_(false),
+	end_game_deploy_t3_(false),
 	end_game_deploy_start_(0.0),
+	end_game_deploy_t2_time_(0.0),
 	max_extension_(0.0),
 	min_extension_(0.0),
 	intake_down_time_(0.0),
@@ -479,6 +481,21 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		
 		intake_command_.writeFromNonRT(climb_intake_cmd); //Not really sure how bad this is
 
+		command_struct_.lin[0] = 0.2;
+		command_struct_.lin[1] = min_extension_ + cos(asin(0.2 / arm_length_))*arm_length_;
+		command_struct_.up_or_down = true;
+		command_struct_.override_pos_limits = false;
+		command_struct_.override_sensor_limits = false;
+		command_struct_.put_cube_in_intake = false;
+		
+		command_.writeFromNonRT(command_struct_);		
+
+		end_game_deploy_t1_ = true;	
+		end_game_deploy_start_ = ros::Time::now().toSec();
+	}
+
+	if(end_game_deploy_cmd && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > 2.5)
+	{
 		command_struct_.lin[0] = 0.05;
 		command_struct_.lin[1] = min_extension_ + cos(asin(0.05 / arm_length_))*arm_length_;
 		command_struct_.up_or_down = true;
@@ -488,11 +505,12 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		
 		command_.writeFromNonRT(command_struct_);		
 
-		end_game_deploy_t1_ = true;	
-		end_game_deploy_start_ = ros::Time::now().toSec();
+		end_game_deploy_t2_time_ = ros::Time::now().toSec();
+		end_game_deploy_t2_ = true;	
+
 	}
-	if(end_game_deploy_cmd && !end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_start_) > .65)
-	{
+	if(end_game_deploy_t2_ && (ros::Time::now().toSec() - end_game_deploy_t2_time_) > .65 && !end_game_deploy_t3_)
+	{	
 		//ROS_INFO("part 2");
 		command_struct_.lin[0] = 0.05;
 		command_struct_.lin[1] = max_extension_ + sin(acos(0.05 / arm_length_))*arm_length_;
@@ -502,9 +520,11 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		command_struct_.put_cube_in_intake = false;
 
 		command_.writeFromNonRT(command_struct_);		
-		end_game_deploy_t2_ = true;	
+
+		end_game_deploy_t3_ = true;
+		//ROS_INFO("dropping");
 	}
-	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > .5)
+	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 3.0)
 	{	
 		//ROS_INFO("dropping");
 		EndGameDeploy_.setCommand(1.0);
@@ -513,8 +533,9 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	{
 		EndGameDeploy_.setCommand(0.0);
 	}
+
 	bool local_shift_cmd = shift_cmd_.load(std::memory_order_relaxed);
-	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 1.0)
+	if(end_game_deploy_cmd && (ros::Time::now().toSec() - end_game_deploy_start_) > 4.5)
 	{
 		shift_cmd_.store(true, std::memory_order_relaxed);
 		local_shift_cmd = true;

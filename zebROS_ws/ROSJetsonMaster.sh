@@ -13,6 +13,11 @@ elif [ -f /home/ubuntu/2018RobotCode/zebROS_ws/devel/setup.bash ] ; then
     source /opt/ros/kinetic/setup.bash
     source /home/ubuntu/2018RobotCode/zebROS_ws/devel/setup.bash
     export ROS_IP=10.9.0.8
+elif [ -f /home/ryan/2018RobotCode/zebROS_ws/devel/setup.bash ] ; then
+    # Jetson-specific configuration
+    echo "Sourcing Ryan / native Linux environment"
+    source /home/ryan/2018RobotCode/zebROS_ws/devel/setup.bash
+    export ROS_IP=10.9.0.12
 elif [ -f /home/admin/rio_bashrc.sh ] ; then
     # roboRIO-specific configuration
     echo "Sourcing roboRIO environment"

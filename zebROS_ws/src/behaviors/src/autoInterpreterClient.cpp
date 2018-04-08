@@ -202,6 +202,7 @@ bool intakeCube(const ActionSetpoint &action_setpoint) {
     goal.x_tolerance = .1; //TODO config these
     goal.y_tolerance = .1; //TODO config these
     goal.time_out = 15; //TODO config these
+	goal.wait_to_proceed = false;
 
     ac->sendGoal(goal);
     
@@ -213,6 +214,7 @@ bool intakeNoArm(void) {
     ROS_WARN("intaking cube");
     goal.IntakeCube = true;
     goal.time_out = 10; //TODO config this
+    goal.wait_to_proceed = false; 
 
     ac_intake->sendGoal(goal);
     ROS_INFO("intake no arm");
@@ -301,6 +303,7 @@ bool intakeOpenDown(void) {
     srv.request.spring_state = 1; //hard_out
     srv.request.power=0;
     srv.request.other_power=0;
+    srv.request.up = false;
     srv.request.just_override_power = false;
     ROS_INFO("intake open down");
     if (!IntakeService.call(srv))
@@ -1010,7 +1013,7 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     }
 
     ros::Rate r(10);
-    const double start_time = ros::Time::now().toSec();
+    double start_time = ros::Time::now().toSec();
     while(!exit_auto && ros::Time::now().toSec() < start_time + initial_delay) {
         r.sleep(); 
     }
@@ -1021,7 +1024,8 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
     vel.angular.x = 0;
     vel.angular.y = 0;
     vel.angular.z = 0;
-
+    
+    start_time = ros::Time::now().toSec();
     const size_t num_segments = segments.size();
     for(size_t num = 0; num<num_segments; num++) {
         const double segment_start_time = ros::Time::now().toSec();

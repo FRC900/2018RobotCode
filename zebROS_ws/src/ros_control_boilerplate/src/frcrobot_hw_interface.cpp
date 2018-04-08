@@ -814,6 +814,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			break;	
 		} 
 	}
+	static int counter = 0;
+
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		auto &ts = talon_state_[joint_id];
@@ -1004,11 +1006,18 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			//ts.setForwardSoftlimitHit(faults.ForwardSoftLimit);
 			//ts.setReverseSoftlimitHit(faults.ReverseSoftLimit);
 
-			//ctre::phoenix::motorcontrol::StickyFaults sticky_faults;
-			//safeTalonCall(talon->GetStickyFaults(sticky_faults), "GetStickyFaults");
-			//ts.setStickyFAults(sticky_faults.ToBitfield());
+
+				
+
 		}
+		if(counter % 100 == 0)
+		{	
+			ctre::phoenix::motorcontrol::StickyFaults sticky_faults;
+			safeTalonCall(talon->GetStickyFaults(sticky_faults), "GetStickyFaults");
+			ts.setStickyFaults(sticky_faults.ToBitfield());
+		}	
 	}
+			counter++;
 		
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
