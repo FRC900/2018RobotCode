@@ -901,7 +901,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 	{
 		/*-----------------Right Stick Press - Exchange ---------------------*/
 
-		if (JoystickState->stickRightPress)
+		/*if (JoystickState->stickRightPress)
 		{
 			currentToggle = "StickRight";
 			if (lastToggle == " ")
@@ -922,7 +922,7 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				achieved_pos = intake;
 				//ROS_INFO("sendGoal() stickRight moveToIntakeConfig");
 			}
-		}
+		}*/
 	}
 
 	if (JoystickState->bumperLeftPress == true)
@@ -1202,11 +1202,12 @@ if(JoystickState->stickRightPress == true)
 	{
 		sendRobotZero = false;
 		double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
-		//double angle = M_PI/6; //for testing
+		//double angle = M_PI/12; //for testing
+		ROS_INFO_STREAM("angle = " << angle);
 		static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
 		static double max_rotational_velocity = 8.8; //radians/sec TODO: find this in config
 
-		static ros::Duration time_to_run((fabs((least_dist_angle - angle)) / max_rotational_velocity) * .8);
+		static ros::Duration time_to_run((fabs((least_dist_angle - angle)) / max_rotational_velocity) * .8); //TODO: needs testing
 
 		base_trajectory::GenerateSpline srvBaseTrajectory;
 		swerve_point_generator::FullGenCoefs traj;
@@ -1520,5 +1521,5 @@ void jointStateCallback(const sensor_msgs::JointState &joint_state)
 
 void talonStateCallback(const talon_state_controller::TalonState &talon_state)
 {
-	outOfPoints = talon_state.custom_profile_status[0].outOfPoints;
+	outOfPoints = talon_state.custom_profile_status[24].outOfPoints;
 }

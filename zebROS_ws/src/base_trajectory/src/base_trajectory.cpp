@@ -39,11 +39,10 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 			  base_trajectory::GenerateSpline::Response &out_msg)
 {
 	const ros::Time start = ros::Time::now();
-	ROS_INFO_STREAM("SOMEWHERE1");
 	// Hold current position if trajectory is empty
 	if (msg.points.empty())
 	{
-		ROS_INFO_STREAM("Empty trajectory command, stopping.");
+		ROS_DEBUG("Empty trajectory command, stopping.");
 		return false;
 	}
 
@@ -53,7 +52,6 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 	const size_t n_joints = joint_names.size();
 	std::vector<bool> angle_wraparound;
 
-	ROS_INFO_STREAM("Somewhere2");
 	// Assume the path starts at time 0
 	ros::Time next_update_time = ros::Time(0);
 	ros::Time next_update_uptime = next_update_time;
@@ -78,8 +76,7 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 		joint_segment.resize(1, hold_segment);
 		hold_trajectory.push_back(joint_segment);
 	}
-	
-	ROS_INFO_STREAM("SOMEWHERE3");
+
 	// This generates a starting trajectory
 	// with the robot sitting still at location 0,0,0.
 	// It is needed as an initial condition for the
@@ -154,7 +151,7 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 	}
 	catch(const std::invalid_argument& ex)
 	{
-		ROS_ERROR_STREAM("error: " << ex.what());
+		ROS_ERROR_STREAM(ex.what());
 		return false;
 	}
 	catch(...)
@@ -201,7 +198,6 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 		}
 		// All splines in a waypoint end at the same time?
 		out_msg.end_points.push_back(trajectory[0][seg].endTime());
-		ROS_INFO_STREAM("end of generate");
 	}
 }
 
@@ -216,7 +212,6 @@ int main(int argc, char **argv)
 	period = ros::Duration(1.0 / loop_hz);
 
 	ros::ServiceServer service = nh.advertiseService("/base_trajectory/spline_gen", generate);
-	ROS_INFO_STREAM("sad");
 
 	ros::spin();
 }
