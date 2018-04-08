@@ -788,11 +788,12 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 			time_start = ros::Time::now().toSec();
 		}
 		status.slotRunning = slot;	
+		static int fail_flag = 0;
 		if(run)
 		{
 			if(saved_points[slot].size() == 0)
 			{
-				static int fail_flag = 0;
+
 				if(fail_flag % 100 == 0)
 				{
 					ROS_ERROR("Tried to run custom profile with no points buffered");
