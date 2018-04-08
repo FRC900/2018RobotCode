@@ -1157,6 +1157,10 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 				//ROS_INFO_STREAM("wait id: " << auto_run_data.wait_ids[i]);
 				if(i <= queued) continue;
 				//ROS_INFO_STREAM("running loop still");
+				//ROS_WARN_STREAM("here " << i << " and " << auto_run_data.wait_ids[i]);	
+				//ROS_INFO_STREAM("hypothetical id: " << auto_run_data.wait_ids[i]);
+				if(auto_run_data.wait_ids[i] != -1) ROS_WARN_STREAM(" hypothetical finish " << finished[auto_run_data.wait_ids[i]]);
+
 				if(auto_run_data.wait_ids[i] == -1 || finished[auto_run_data.wait_ids[i]])
 				{
 					
@@ -1168,9 +1172,12 @@ void run_auto(int auto_select, int layout, int start_pos, double initial_delay, 
 						for(int k = 1; k < queued + 1; k++)
 						{
 							queue.push_back(start_of_buffer_ids[layout] + k); 	
+							
 						}
+						//ROS_WARN_STREAM("trying to queue");
 						if(!queue_profile(queue))
-						{			
+						{	
+									
 							ROS_WARN("queue fail");
 							queued -= 1;
 							action_rate.sleep();
