@@ -498,7 +498,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 							{
 								for(int i = 0; i < group_xml.size(); i++)
 								{
-									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(0.4);
+									profiled_modes[mode][layout][start_pos].srv_msgs[wait_for_action].request.wait_before_group.push_back(0.25);
 								}
 							}
 							XmlRpc::XmlRpcValue shift_xml;
