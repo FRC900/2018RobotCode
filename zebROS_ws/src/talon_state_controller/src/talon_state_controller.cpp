@@ -342,8 +342,8 @@ void TalonStateController::update(const ros::Time &time, const ros::Duration & /
 				hardware_interface::TalonMode talonMode = ts->getTalonMode();
 				switch (talonMode)
 				{
-					case hardware_interface::TalonMode_Uninitialized:
-						m.talon_mode[i] = "Uninitialized";
+					case hardware_interface::TalonMode_First:
+						m.talon_mode[i] = "First";
 						break;
 					case hardware_interface::TalonMode_PercentOutput:
 						m.talon_mode[i] = "Percent Output";

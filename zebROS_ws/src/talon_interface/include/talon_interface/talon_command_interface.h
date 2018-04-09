@@ -94,7 +94,7 @@ class TalonHWCommand
 		TalonHWCommand(void) :
 			command_(0),
 			command_changed_(true),
-			mode_(TalonMode_Uninitialized),
+			mode_(TalonMode_Disabled),
 			mode_changed_(false),
 			demand1_type_(DemandType_Neutral),
 			demand1_value_(0.0),
@@ -484,9 +484,10 @@ class TalonHWCommand
 			command_changed_ = command_ != command;
 			command_ = command;
 		}
+
 		void setMode(TalonMode mode)
 		{
-			if ((mode <= TalonMode_Uninitialized) || (mode >= TalonMode_Last))
+			if ((mode <= TalonMode_First) || (mode >= TalonMode_Last))
 			{
 				ROS_WARN("Invalid mode passed to TalonHWCommand::setMode()");
 				return;

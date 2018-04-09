@@ -40,8 +40,10 @@
 #pragma once
 
 #include <ros_control_boilerplate/frc_robot_interface.h>
+#include <atomic>
 #include <thread>
 #include <elevator_controller/CubeState.h>
+#include <ros_control_boilerplate/MatchSpecificData.h>
 
 namespace frcrobot_control
 {
@@ -66,16 +68,20 @@ class FRCRobotSimInterface : public ros_control_boilerplate::FRCRobotInterface
 		virtual void write(ros::Duration &elapsed_time) override;
 
 	private:
-        bool clamp; 
-        bool intake_high; 
-        bool intake_low; 
-        bool has_cube; 
-        
         ros::Subscriber cube_state_sub_;
+        void cube_state_callback(const elevator_controller::CubeState &cube);
+		std::atomic<bool> clamp;
+		std::atomic<bool> intake_high;
+		std::atomic<bool> intake_low;
+		std::atomic<bool> has_cube;
+        
+        ros::Subscriber match_data_sub_;
+        void match_data_callback(const ros_control_boilerplate::MatchSpecificData &match_data);
+		std::atomic<bool> match_data_enabled_;
+
 		void loop_joy(void);
 		std::thread sim_joy_thread_;
 
-        void cube_state_callback(const elevator_controller::CubeState &cube);
 };  // class
 
 }  // namespace
