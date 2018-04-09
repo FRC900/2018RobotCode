@@ -4,5 +4,8 @@ devel
 build_isolated
 devel_isolated
 install_isolated
+native_build
+native_devel
+native_install
 .rosinstall.bak
 .rosinstall
