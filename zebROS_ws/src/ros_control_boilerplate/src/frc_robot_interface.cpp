@@ -756,6 +756,11 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 			ROS_INFO("Exiting custom_profile_thread since mode == Follower");
 			return;
 		}
+		if (talon_state_[joint_id].getCANID() == 51)
+		{
+			ROS_INFO("Exiting custom_profile_thread since id == 51");
+			return;
+		}
 
 		talon_command_[joint_id].getCustomProfilePointsTimesChanged(saved_points, saved_times);
 
