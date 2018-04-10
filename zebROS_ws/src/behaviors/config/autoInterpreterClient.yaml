@@ -194,7 +194,7 @@ auto_params:
 
      mode_2_layout_1_start_1_actions:
             [{ time: 0.5, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
-             { time: 3.2, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 3.3, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
              { time: 4.6, actions: "intake_open_down", profile_wait: -1.0, x: 0.3, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
              { time: 6.5, actions: "intake_cube", profile_wait: -1.0, x: 0.18, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
              { time: 7.6, actions: "switch_config", profile_wait: 1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 3.0,  wait_for_action_delay: 0.1, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
@@ -262,7 +262,7 @@ auto_params:
 
      mode_2_layout_3_start_1_actions:
             [{ time: 0.5, actions: "switch_config", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
-             { time: 3.2, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
+             { time: 3.3, actions: "release_clamp", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
              { time: 4.6, actions: "intake_open_down", profile_wait: -1.0, x: 0.3, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
              { time: 6.5, actions: "intake_cube", profile_wait: -1.0, x: 0.18, y: 1.0, up_or_down: false, wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},
              { time: 7.6, actions: "switch_config", profile_wait: 1.0, x: 0.0, y: 0.0, up_or_down: false, wait_for_action: 3.0,  wait_for_action_delay: 0.1, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0},

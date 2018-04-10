@@ -21,7 +21,7 @@
 
 		<!-- Load controller manager -->
 		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
-			output="screen" args="spawn joint_state_controller talon_state_controller talon_steer_controller pdp_state_controller robot_code_ready_controller" />
+			output="screen" args="spawn joint_state_controller talon_state_controller talon_steer_controller robot_code_ready_controller" />
 	</group>
 
 </launch>

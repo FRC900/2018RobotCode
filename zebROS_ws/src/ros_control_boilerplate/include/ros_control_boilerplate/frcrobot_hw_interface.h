@@ -182,12 +182,19 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 				 				  hardware_interface::TalonMode mode,
 								  double setpoint,
 								  hardware_interface::DemandType demandtype,
-								  double demandvalue,
-									bool change_pid,
-									int pid_slot
-
-									) override;
-		void setSensorPosition(int joint_id, double position) override;
+								  double demandvalue) override;
+		void customProfileSetSensorPosition(int joint_id, double position) override;
+		void customProfileSetPIDF(int    joint_id,
+								  int    pid_slot,
+								  double p,
+								  double i,
+								  double d,
+								  double f,
+								  int    iz,
+								  int    allowable_closed_loop_error,
+								  double max_integral_accumulator,
+								  double closed_loop_peak_output,
+								  int    closed_loop_period) override;
 
 		/* Get conversion factor for position, velocity, and closed-loop stuff */
 

@@ -789,7 +789,6 @@ class TalonControllerInterface
 		{
 			talon_->set(command);
 		}
-		
 
 		// Set the mode of the motor controller
 		virtual void setMode(hardware_interface::TalonMode mode)

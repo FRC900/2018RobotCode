@@ -13,7 +13,7 @@ namespace hardware_interface
 // hardware
 enum TalonMode
 {
-	TalonMode_Uninitialized = -1,
+	TalonMode_First = -1,
 	TalonMode_PercentOutput,
 	TalonMode_Position,      // CloseLoop
 	TalonMode_Velocity,      // CloseLoop
@@ -222,7 +222,7 @@ class TalonHWState
 			reverse_limit_switch_closed_(false),
 			forward_softlimit_hit_(false),
 			reverse_softlimit_hit_(false),
-			talon_mode_(TalonMode_Uninitialized),
+			talon_mode_(TalonMode_Disabled),
 			demand1_type_(DemandType_Neutral),
 			demand1_value_(0),
 			can_id_(can_id),
@@ -952,8 +952,8 @@ class TalonHWState
 
 		void setTalonMode(TalonMode talon_mode)
 		{
-			if ((talon_mode_ >= TalonMode_Uninitialized) &&
-				(talon_mode_ <  TalonMode_Last) )
+			if ((talon_mode_ > TalonMode_First) &&
+				(talon_mode_ < TalonMode_Last) )
 				talon_mode_ = talon_mode;
 			else
 				ROS_WARN("Invalid talon mode requested");
