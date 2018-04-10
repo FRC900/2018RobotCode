@@ -85,9 +85,7 @@ class TalonCIParams
 			
 			conversion_factor_(1.0),
 			
-			custom_profile_hz_(20.0)	
-					
-			
+			custom_profile_hz_(20.0)
 		{
 		}
 
@@ -687,6 +685,7 @@ class TalonControllerInterface
 					return false;
 				follower_talons_[i-1]->setMode(hardware_interface::TalonMode_Follower);
 				follower_talons_[i-1]->set(follow_can_id);
+				follower_talons_[i-1]->setCustomProfileDisable(true);
 				ROS_INFO_STREAM("Set up talon " << follower_talons_[i-1].getName() << " to follow CAN ID " << follow_can_id << " (" << talon_.getName() << ")");
 			}
 
@@ -1305,6 +1304,7 @@ class TalonFixedModeControllerInterface : public TalonControllerInterface
 			ROS_WARN("Can't reset mode using this TalonControllerInterface");
 		}
 };
+
 class TalonPercentOutputControllerInterface : public TalonFixedModeControllerInterface
 {
 	protected:
@@ -1314,6 +1314,7 @@ class TalonPercentOutputControllerInterface : public TalonFixedModeControllerInt
 			// class is derived from the FixedMode class
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_PercentOutput);
+			talon_->setCustomProfileDisable(true);
 			ROS_INFO_STREAM("Set up talon " << talon_.getName() << " in Percent Output mode");
 			return true;
 		}
@@ -1359,6 +1360,7 @@ class TalonFollowerControllerInterface : public TalonFixedModeControllerInterfac
 			// Talon it is following during a match?
 			talon_->setMode(hardware_interface::TalonMode_Follower);
 			talon_->set(follow_can_id);
+			talon_->setCustomProfileDisable(true);
 
 			ROS_INFO_STREAM("Launching follower " << params_.joint_name_ << " to follow CAN ID " << follow_can_id << " (" << follow_handle.getName() << ")");
 			return true;
@@ -1437,6 +1439,7 @@ class TalonMotionProfileControllerInterface : public TalonCloseLoopControllerInt
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_MotionProfile);
 			ROS_INFO_STREAM("Set up talon " << talon_.getName() << " in MotionProfile mode");
+			talon_->setCustomProfileDisable(true);
 			return true;
 		}
 };
@@ -1456,6 +1459,7 @@ class TalonMotionMagicCloseLoopControllerInterface : public TalonCloseLoopContro
 			// it can't be reset
 			talon_->setMode(hardware_interface::TalonMode_MotionMagic);
 			ROS_INFO_STREAM("Set up talon " << talon_.getName() << " in MotionMagic mode");
+			talon_->setCustomProfileDisable(true);
 			return true;
 		}
 };

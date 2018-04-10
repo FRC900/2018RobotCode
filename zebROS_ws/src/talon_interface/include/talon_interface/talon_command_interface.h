@@ -192,6 +192,7 @@ class TalonHWCommand
 			conversion_factor_(1.0),
 			conversion_factor_changed_(true),
 			
+			custom_profile_disable_(false),
 			custom_profile_run_(false),
 			custom_profile_slot_(0),
 			custom_profile_next_slot_mutex_ptr_(std::make_shared<std::mutex>()),
@@ -1352,38 +1353,92 @@ class TalonHWCommand
 			conversion_factor_changed_ = false;
 			return true;
 		}
+
+		void setCustomProfileDisable(bool disable)
+		{
+			custom_profile_disable_ = disable;
+		}
+
+		bool getCustomProfileDisable(void) const
+		{
+			return custom_profile_disable_;
+		}
+
 		std::vector<int> getCustomProfileNextSlot(void) const
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (getCustomProfileNextSlot)");
+				return std::vector<int>();
+			}
 			std::lock_guard<std::mutex>(*custom_profile_next_slot_mutex_ptr_);
 			return custom_profile_next_slot_;
 		}	
 		void setCustomProfileNextSlot(const std::vector<int> &next_slot)
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (setCustomProfileNextSlot)");
+				return;
+			}
 			std::lock_guard<std::mutex>(*custom_profile_next_slot_mutex_ptr_);
 			custom_profile_next_slot_ = next_slot;
 		}
 		double getCustomProfileHz(void) const
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (getCustomProfileHz)");
+				return -1;
+			}
 			return custom_profile_hz_;
 		}
 		void setCustomProfileHz(const double &hz)
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (setCustomProfileHz)");
+				return;
+			}
 			custom_profile_hz_ = hz;
 		}
 		void setCustomProfileRun(const bool &run)
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (setCustomProfileRun)");
+				return;
+			}
 			custom_profile_run_ = run;
 		}
 		bool getCustomProfileRun(void) 
 		{
+			if (custom_profile_disable_)
+			{
+				// Don't print an error here since
+				// this is used in the main write() loop for
+				// status
+				//ROS_ERROR("Custom profile disabled via param (getCustomProfileRun)");
+				return false;
+			}
 			return custom_profile_run_;
 		}
 		void setCustomProfileSlot(const int &slot)
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (setCustomProfileSlot)");
+				return;
+			}
 			custom_profile_slot_ = slot;
 		}
 		int getCustomProfileSlot(void) const
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (getCustomProfileSlot)");
+				return -1;
+			}
 			return custom_profile_slot_;
 		}
 		// TODO : custom profile points & times need to 
@@ -1391,6 +1446,11 @@ class TalonHWCommand
 		// make sure reads and writes are atomic
 		void pushCustomProfilePoint(const CustomProfilePoint &point, int slot)
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (pushCustomProfilePoint)");
+				return;
+			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
 			custom_profile_points_[slot].push_back(point);
@@ -1407,6 +1467,11 @@ class TalonHWCommand
 		} 
 		void pushCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (pushCustomProfilePoints)");
+				return;
+			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
 			int prev_size = custom_profile_points_.size();
@@ -1428,6 +1493,11 @@ class TalonHWCommand
 
 		void overwriteCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (overwriteCustomProfilePoints)");
+				return;
+			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
 			for(size_t i = 0; i < custom_profile_points_changed_.size(); i++)
@@ -1454,12 +1524,22 @@ class TalonHWCommand
 
 		std::vector<CustomProfilePoint> getCustomProfilePoints(int slot) /*const*/ //TODO, can be const?
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (getCustomProfilePoints)");
+				return std::vector<CustomProfilePoint>();
+			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
 			return custom_profile_points_[slot];
 		}
 		std::vector<bool> getCustomProfilePointsTimesChanged(std::vector<std::vector<CustomProfilePoint>> &ret_points, std::vector<std::vector<double>> &ret_times)
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (getCustomProfilePointsTimesChanged)");
+				return std::vector<bool>();
+			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 			std::vector<bool> returner = custom_profile_points_changed_;
 			for(size_t i = 0; i < custom_profile_points_changed_.size(); i++)
@@ -1477,11 +1557,21 @@ class TalonHWCommand
 		}
 		std::vector<double> getCustomProfileTime(int slot)  /*const*/ //TODO, can be const?
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (getCustomProfileTime)");
+				return std::vector<double>();
+			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 			return custom_profile_total_time_[slot];
 		}
 		double getCustomProfileEndTime(int slot)
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (getCustomProfileEndTime)");
+				return -1;
+			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 			return custom_profile_total_time_[slot].back();
 		}
@@ -1489,11 +1579,21 @@ class TalonHWCommand
 		// be the same?
 		int getCustomProfileTimeCount(int slot)
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (getCustomProfileTimeCount)");
+				return -1;
+			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 			return custom_profile_points_[slot].size();
 		}
 		int getCustomProfileCount(int slot)  /*const*/ //TODO, can be const?
 		{
+			if (custom_profile_disable_)
+			{
+				ROS_ERROR("Custom profile disabled via param (getCustomProfileCount)");
+				return -1;
+			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 			return custom_profile_points_[slot].size();
 		}
@@ -1606,6 +1706,7 @@ class TalonHWCommand
 		bool   conversion_factor_changed_;
 		
 		// TODO : do these need atomic or mutex protection?
+		bool custom_profile_disable_;
 		bool custom_profile_run_;
 		int custom_profile_slot_;
 		std::shared_ptr<std::mutex> custom_profile_next_slot_mutex_ptr_;
