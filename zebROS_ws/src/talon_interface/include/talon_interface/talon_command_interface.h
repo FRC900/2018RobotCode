@@ -1409,9 +1409,9 @@ class TalonHWCommand
 		{
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
-			int prev_size = custom_profile_points_.size();
+			int prev_size = custom_profile_points_[slot].size();
 			custom_profile_points_[slot].insert(custom_profile_points_[slot].end(), points.begin(), points.end());
-			for(; prev_size <custom_profile_points_.size(); prev_size++)
+			for(; prev_size <custom_profile_points_[slot].size(); prev_size++)
 			{
 				if(prev_size != 0)
 				{
