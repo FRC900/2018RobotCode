@@ -770,15 +770,11 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 	//running at the specified hz just copying to the status
 
 	double time_start = ros::Time::now().toSec();
-	int num_slots = 20; //Needs to be the same as the talon command interface and talon state interface
 	hardware_interface::CustomProfileStatus status; //Status is also used to store info from last loop
 	int points_run = 0;
 
 	std::vector<std::vector<hardware_interface::CustomProfilePoint>> saved_points;
-	saved_points.resize(num_slots);
-
 	std::vector<std::vector<double>> saved_times;
-	saved_times.resize(num_slots);
 
 	int slot_last = -1;
 
@@ -841,9 +837,6 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 				fail_flag++;
 				continue;
 			}
-
-
-			//TODO below isn't copying correct?
 
 			int start = points_run - 1;
 			if(start < 0) start = 0;
@@ -916,8 +909,11 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 		{
 			status.outOfPoints = false;
 		}
-		for(int i = 0; i < num_slots; i++)
+		for(size_t i = 0; i < saved_points.size(); i++)
 		{
+			while (status.remainingPoints.size() < saved_points.size())
+				status.remainingPoints.push_back(0.0);
+
 			if(i == status.slotRunning)
 			{
 				status.remainingPoints[i] = talon_command_[joint_id].getCustomProfileCount(i) - points_run;
