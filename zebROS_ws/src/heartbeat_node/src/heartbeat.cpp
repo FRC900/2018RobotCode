@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
     while(ros::ok()){
        val.data = num;
        num++;
-       heartbeat_pub_rio.publish(num);
+       heartbeat_pub_rio.publish(val);
        r.sleep();
     }
 }

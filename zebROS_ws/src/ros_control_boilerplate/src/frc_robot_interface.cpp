@@ -784,9 +784,9 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 
 	while (ros::ok())
 	{
-		if (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_Follower)
+		if (talon_command_[joint_id].getCustomProfileDisable())
 		{
-			ROS_INFO("Exiting custom_profile_thread since mode == Follower");
+			ROS_INFO_STREAM("Exiting custom_profile_thread since CustomProfileDisable is set for joint id " << joint_id);
 			return;
 		}
 		if (talon_state_[joint_id].getCANID() == 51)
