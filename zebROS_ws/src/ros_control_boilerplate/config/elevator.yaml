@@ -12,7 +12,7 @@ elevator_controller:
     min_extension: 0.41 
 
     
-    limit_power_press: .2       
+    limit_power_press: .08   
 
     custom_f_lift_high: 153.45 #Fix  
     custom_f_lift_low: 53.45   #Fix  
@@ -30,7 +30,7 @@ elevator_controller:
     climb_cur_lim: 60
     norm_cur_lim: 15
 
-    drop_down_pos: .18 #FIX
+    drop_down_pos: .2 #FIX
     drop_down_tolerance: .1 #FIX
     safe_to_go_back_y: 1.95 #FIX
     cut_off_x_line: .17 #FIX

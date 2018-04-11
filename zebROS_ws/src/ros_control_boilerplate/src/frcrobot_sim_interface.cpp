@@ -138,7 +138,6 @@ class TeleopJointsKeyboard
 		~TeleopJointsKeyboard()
 		{ }
 
-
 		void keyboardLoop()
 		{
 			char c;
@@ -151,10 +150,8 @@ class TeleopJointsKeyboard
 			raw.c_cc[VEOF] = 2;
 			tcsetattr(kfd, TCSANOW, &raw);
 
-
 			for (;;)
 			{
-
 				// get the next event from the keyboard
 				if (read(kfd, &c, 1) < 0)
 				{
@@ -515,6 +512,10 @@ void FRCRobotSimInterface::cube_state_callback(const elevator_controller::CubeSt
     has_cube = cube.has_cube;
 }
 
+void FRCRobotSimInterface::match_data_callback(const ros_control_boilerplate::MatchSpecificData &match_data) {
+	match_data_enabled_.store(match_data.isEnabled, std::memory_order_relaxed);
+}
+
 void FRCRobotSimInterface::init(void)
 {
 	// Do base class init. This loads common interface info
@@ -524,12 +525,10 @@ void FRCRobotSimInterface::init(void)
 	ROS_WARN("Passes");	
     ros::NodeHandle nh_;
 
-	ROS_WARN("1");	
-
 	sim_joy_thread_ = std::thread(&FRCRobotSimInterface::loop_joy, this);
     cube_state_sub_ = nh_.subscribe("/frcrobot/cube_state_sim", 1, &FRCRobotSimInterface::cube_state_callback, this);
+    match_data_sub_ = nh_.subscribe("/frcrobot/match_data", 1, &FRCRobotSimInterface::match_data_callback, this);
 	
-	ROS_WARN("2");	
 	ROS_WARN("fails here?1");
 	// Loop through the list of joint names
 	// specified as params for the hardware_interface.
@@ -613,7 +612,6 @@ void FRCRobotSimInterface::init(void)
 
 void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 {
-	
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
         auto &ts = talon_state_[joint_id];
@@ -625,7 +623,6 @@ void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
                 ts.setForwardLimitSwitch(false);
             }
         }
-        
     }
     for (size_t i = 0; i < num_digital_inputs_; i++) 
         {    
@@ -655,36 +652,75 @@ void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 
 void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 {
+#if 0
 	ROS_INFO_STREAM_THROTTLE(1,
 			std::endl << std::string(__FILE__) << ":" << __LINE__ <<
 			std::endl << "Command" << std::endl << printCommandHelper());
+#endif
+	// Was the robot enabled last time write was run?
+	static bool last_robot_enabled = false;
+
+	// Is match data reporting the robot enabled now?
+	const bool robot_enabled = match_data_enabled_.load(std::memory_order_relaxed);
+	
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		auto &ts = talon_state_[joint_id];
 		auto &tc = talon_command_[joint_id];
 
-		 if(talon_command_[joint_id].getCustomProfileRun())
-			{
-            
-								
-				can_talon_srx_run_profile_stop_time_[joint_id] = ros::Time::now().toSec();
-
-
-
-				
-				continue; //Don't mess with talons running in custom profile mode		
-
-
-			}
+		if(talon_command_[joint_id].getCustomProfileRun())
+		{
+			can_talon_srx_run_profile_stop_time_[joint_id] = ros::Time::now().toSec();
+			continue; //Don't mess with talons running in custom profile mode		
+		}
 		// If commanded mode changes, copy it over
 		// to current state
-		hardware_interface::TalonMode new_mode;
-		if (tc.newMode(new_mode))
-			ts.setTalonMode(new_mode);
+		hardware_interface::TalonMode new_mode = tc.getMode();
+
+		// Only set mode to requested one when robot is enabled
+		if (robot_enabled)
+		{
+			if (tc.newMode(new_mode))
+			{
+				ts.setTalonMode(new_mode);
+				ROS_INFO_STREAM("Set joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" mode " << (int)new_mode);
+			}
+			hardware_interface::DemandType demand1_type_internal;
+			double demand1_value;
+			if (tc.demand1Changed(demand1_type_internal, demand1_value))
+			{
+				ts.setDemand1Type(demand1_type_internal);
+				ts.setDemand1Value(demand1_value);
+
+				ROS_INFO_STREAM("Set joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" demand1 type / value");
+			}
+		}
+		else if (last_robot_enabled)
+		{
+			// If this is a switch from enabled to
+			// disabled, set talon command to current
+			// talon mode and then disable the talon. 
+			// This will set up the talon to return
+			// to the current mode once the robot is 
+			// re-enabled
+			// Need to first setMode to disabled because there's
+			// a check in setMode to see if requested_mode == current_mode
+			// If that check is true setMode does nothing - assumes
+			// that the mode won't need to be reset back to the
+			// same mode it is already in
+			tc.setMode(hardware_interface::TalonMode_Disabled);
+			tc.setMode(ts.getTalonMode());
+			ts.setTalonMode(hardware_interface::TalonMode_Disabled);
+		}
 
 		bool close_loop_mode = false;
 		bool motion_profile_mode = false;
 
+		// Use requested next talon mode here to update
+		// Talon config.  This way settings will be written
+		// even if the robot is disabled.  It will also insure
+		// that config relevant to the requested mode is
+		// written before switching to that mode.
 		if ((new_mode == hardware_interface::TalonMode_Position) ||
 		    (new_mode == hardware_interface::TalonMode_Velocity) ||
 		    (new_mode == hardware_interface::TalonMode_Current ))
@@ -698,6 +734,8 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			motion_profile_mode = true;
 		}
 
+		// Only update PID settings if closed loop
+		// mode has been requested
 		if (close_loop_mode)
 		{
 			int slot;
@@ -732,6 +770,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" PIDF slot to " << slot);
 			}
 		}
+		// Invert / sensor phase matters for all modes
 		bool invert;
 		bool sensor_phase;
 		if (tc.invertChanged(invert, sensor_phase))
@@ -872,9 +911,6 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				ts.setMotionAcceleration(motion_acceleration);
 			}
 
-
-
-
 			// Do this before rest of motion profile stuff
 			// so it takes effect before starting a buffer?
 			int motion_control_frame_period;
@@ -903,7 +939,8 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 				ROS_INFO_STREAM("Added " << trajectory_points.size() << " points to joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 		}
 
-		if (ts.getTalonMode() == hardware_interface::TalonMode_Position)
+		hardware_interface::TalonMode simulate_mode = ts.getTalonMode();
+		if (simulate_mode == hardware_interface::TalonMode_Position)
 		{
 			// Assume instant velocity
 			double position;
@@ -914,7 +951,7 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			ts.setPosition(position);
 			ts.setSpeed(0);
 		}
-		else if (ts.getTalonMode() == hardware_interface::TalonMode_Velocity)
+		else if (simulate_mode == hardware_interface::TalonMode_Velocity)
 		{
 			// Assume instant acceleration for now
 			double speed;
@@ -925,44 +962,40 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			ts.setPosition(ts.getPosition() + speed * elapsed_time.toSec());
 			ts.setSpeed(speed);
 		}
-		else if(ts.getTalonMode() == hardware_interface::TalonMode_MotionMagic)
+		else if (simulate_mode == hardware_interface::TalonMode_MotionMagic)
 		{
 			double setpoint;
 		
 			if (tc.commandChanged(setpoint))
 				ts.setSetpoint(setpoint);
 
-			double position = ts.getSetpoint();
+			const double position = ts.getPosition();
 			double velocity = ts.getSpeed();
-			double dt = elapsed_time.toSec();
+			const double dt = elapsed_time.toSec();
 
 			//change the nextVelocity call to non existent as it does not work and throws an error from a non-existent package
-			double next_pos = nextVelocity(ts.getPosition(), position, velocity, ts.getMotionCruiseVelocity(), ts.getMotionAcceleration(), dt);
+			double next_pos = nextVelocity(position, setpoint, velocity, ts.getMotionCruiseVelocity(), ts.getMotionAcceleration(), dt);
 			//ROS_WARN_STREAM("max vel: " <<ts.getMotionCruiseVelocity()<< " max accel: " << ts.getMotionAcceleration());
 
-			if((ts.getPosition() <=  position &&  position < next_pos) ||( ts.getPosition() >= position && position > next_pos))
+			//Talons don't allow overshoot, the profiling algorithm above does
+			if ((position <= setpoint && setpoint < next_pos) || (position >= setpoint && setpoint > next_pos))
 			{
-				next_pos = position;
+				next_pos = setpoint;
 				velocity = 0;
-				//Talons don't allow overshoot, the profiling algorithm above does
 			}
 			ts.setPosition(next_pos);
 			ts.setSpeed(velocity);
 		}
-
-		hardware_interface::DemandType demand1_type_internal;
-		double demand1_value;
-		if (tc.demand1Changed(demand1_type_internal, demand1_value))
+		else if (simulate_mode == hardware_interface::TalonMode_Disabled)
 		{
-			ts.setDemand1Type(demand1_type_internal);
-			ts.setDemand1Value(demand1_value);
-
-			ROS_INFO_STREAM("Set joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" demand1 type / value");
+			ts.setSpeed(0); // Don't know how to simulate decel, so just pretend we are stopped
 		}
 
 		if (tc.clearStickyFaultsChanged())
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");
 	}
+	last_robot_enabled = robot_enabled;
+
 	for (std::size_t joint_id = 0; joint_id < num_nidec_brushlesses_; ++joint_id)
 	{
 		// Assume instant acceleration for now

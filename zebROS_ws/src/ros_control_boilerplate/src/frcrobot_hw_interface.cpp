@@ -476,7 +476,7 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 }
 
 // Stuff to support generalized custom profile code
-void FRCRobotHWInterface::setSensorPosition(int joint_id, double position)
+void FRCRobotHWInterface::customProfileSetSensorPosition(int joint_id, double position)
 {
 	can_talons_[joint_id]->SetSelectedSensorPosition(position, pidIdx, timeoutMs);
 }
@@ -486,9 +486,7 @@ void FRCRobotHWInterface::customProfileSetMode(int joint_id,
 		hardware_interface::TalonMode mode,
 		double setpoint,
 		hardware_interface::DemandType demandtype,
-		double demandvalue,
-		bool change_pid,
-		int pid_slot)
+		double demandvalue)
 {
 	ctre::phoenix::motorcontrol::ControlMode out_mode;
 
@@ -530,93 +528,32 @@ void FRCRobotHWInterface::customProfileSetMode(int joint_id,
 			return;
 	}
 	can_talons_[joint_id]->Set(out_mode, setpoint, out_demandtype, demandvalue); //TODO: unit conversion
-				
+}
 
+void FRCRobotHWInterface::customProfileSetPIDF(int    joint_id,
+											   int    pid_slot,
+											   double p,
+											   double i,
+											   double d,
+											   double f,
+											   int    iz,
+											   int    allowable_closed_loop_error,
+											   double max_integral_accumulator,
+											   double closed_loop_peak_output,
+											   int    closed_loop_period)
+{
+	can_talons_[joint_id]->Config_kP(pid_slot, p, timeoutMs);
+	can_talons_[joint_id]->Config_kI(pid_slot, i, timeoutMs);
+	can_talons_[joint_id]->Config_kD(pid_slot, d, timeoutMs);
+	can_talons_[joint_id]->Config_kF(pid_slot, f, timeoutMs);
+	can_talons_[joint_id]->Config_IntegralZone(pid_slot, iz, timeoutMs);
+	// TODO : Scale these two?
+	can_talons_[joint_id]->ConfigAllowableClosedloopError(pid_slot, allowable_closed_loop_error, timeoutMs);
+	can_talons_[joint_id]->ConfigMaxIntegralAccumulator(pid_slot, max_integral_accumulator, timeoutMs);
+	can_talons_[joint_id]->ConfigClosedLoopPeakOutput(pid_slot, closed_loop_peak_output, timeoutMs);
+	can_talons_[joint_id]->ConfigClosedLoopPeriod(pid_slot, closed_loop_period, timeoutMs);
 
-
-
-
-
-
-
-
-			
-
-
-
-			if (change_pid)
-			{
-				//TODO: FIX
-
-				double p;
-				double i;
-				double d;
-				double f;
-				int    iz;
-				int    allowable_closed_loop_error;
-				double max_integral_accumulator;
-				double closed_loop_peak_output;
-				int    closed_loop_period;
-	 
-				talon_command_[joint_id].pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period, pid_slot);
-
-
-
-
-
-					//ROS_WARN("PIDF");
-					can_talons_[joint_id]->Config_kP(pid_slot, p, timeoutMs);
-					can_talons_[joint_id]->Config_kI(pid_slot, i, timeoutMs);
-					can_talons_[joint_id]->Config_kD(pid_slot, d, timeoutMs);
-					can_talons_[joint_id]->Config_kF(pid_slot, f, timeoutMs);
-					can_talons_[joint_id]->Config_IntegralZone(pid_slot, iz, timeoutMs);
-					// TODO : Scale these two?
-					can_talons_[joint_id]->ConfigAllowableClosedloopError(pid_slot, allowable_closed_loop_error, timeoutMs);
-					can_talons_[joint_id]->ConfigMaxIntegralAccumulator(pid_slot, max_integral_accumulator, timeoutMs);
-					can_talons_[joint_id]->ConfigClosedLoopPeakOutput(pid_slot, closed_loop_peak_output, timeoutMs);
-					can_talons_[joint_id]->ConfigClosedLoopPeriod(pid_slot, closed_loop_period, timeoutMs);
-
-					talon_state_[joint_id].setPidfP(p, pid_slot);
-					talon_state_[joint_id].setPidfI(i, pid_slot);
-					talon_state_[joint_id].setPidfD(d, pid_slot);
-					talon_state_[joint_id].setPidfF(f, pid_slot);
-					talon_state_[joint_id].setPidfIzone(iz, pid_slot);
-					talon_state_[joint_id].setAllowableClosedLoopError(allowable_closed_loop_error, pid_slot);
-					talon_state_[joint_id].setMaxIntegralAccumulator(max_integral_accumulator, pid_slot);
-					talon_state_[joint_id].setClosedLoopPeakOutput(closed_loop_peak_output, pid_slot);
-					talon_state_[joint_id].setClosedLoopPeriod(closed_loop_period, pid_slot);
-				//ROS_WARN("slot");
-				//ROS_INFO_STREAM("Updated joint " << joint_id << " PIDF slot to " << slot << std::endl);
-
-				can_talons_[joint_id]->SelectProfileSlot(pid_slot, pidIdx);
-			}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
+	can_talons_[joint_id]->SelectProfileSlot(pid_slot, pidIdx);
 }
 
 void FRCRobotHWInterface::init(void)
@@ -641,11 +578,9 @@ void FRCRobotHWInterface::init(void)
 							  "Loading joint " << i << "=" << can_talon_srx_names_[i] <<
 							  " as CAN id " << can_talon_srx_can_ids_[i]);
 		can_talons_.push_back(std::make_shared<ctre::phoenix::motorcontrol::can::TalonSRX>(can_talon_srx_can_ids_[i]));
-		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 50); // Make sure motor is stopped, use a long timeout just in case
+		can_talons_[i]->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 0);
 		can_talons_[i]->SetStatusFramePeriod(ctre::phoenix::motorcontrol::StatusFrameEnhanced::Status_10_MotionMagic, 10, 50); 
 		//TODO: test above sketchy change
-		// Make sure motor is stopped, use a long timeout just in case
-		//safeTalonCall(can_talons_[i]->GetLastError(), "Initial Set(Disabled, 0)");
 		//safeTalonCall(can_talons_[i]->ClearStickyFaults(timeoutMs), "ClearStickyFaults()");
 		// TODO : if the talon doesn't initialize - maybe known
 		// by -1 from firmware version read - somehow tag
@@ -654,7 +589,6 @@ void FRCRobotHWInterface::init(void)
 		ROS_INFO_STREAM_NAMED("frcrobot_hw_interface",
 							  "\tTalon SRX firmware version " << can_talons_[i]->GetFirmwareVersion());
 		// Clear sticky faults
-		// safeTalonCall(can_talons_[1]->ClearStickyFaults(timeoutMs), "Clear sticky faults.");
 		(*can_talons_mp_written_)[i].store(false, std::memory_order_relaxed);
 		(*can_talons_mp_writing_)[i].store(false, std::memory_order_relaxed);
 		(*can_talons_mp_running_)[i].store(false, std::memory_order_relaxed);
@@ -818,10 +752,11 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
-		auto &ts = talon_state_[joint_id];
 		auto &talon = can_talons_[joint_id];
 		if (!talon) // skip unintialized Talons
 			continue;
+
+		auto &ts = talon_state_[joint_id];
 		if (ts.getCANID() == 31 || ts.getCANID() == 32)
 			continue;
 
@@ -1343,22 +1278,23 @@ bool FRCRobotHWInterface::safeTalonCall(ctre::phoenix::ErrorCode error_code, con
 
 void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 {
+	// Was the robot enabled last time write was run?
+	static bool last_robot_enabled = false;
+
+	// Is match data reporting the robot enabled now?
+	const bool robot_enabled = match_data_enabled_.load(std::memory_order_relaxed);
+	
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		//TODO : skip over most or all of this if the talon is in follower mode
-		//       Only do the Set() call and then
-		//       never do anything else?  Need to make sure things like inverts
-		//       and so on are copied from the talon it is following - RG inverts shouldn't
-		//       be copied, we may need to run a slave inverted relative to master
-		//
+		//       Only do the Set() call and then never do anything else?
+
 		// Save some typing by making references to commonly
 		// used variables
 		auto &talon = can_talons_[joint_id];
 
 		if (!talon) // skip unintialized Talons
 			continue;
-
-
 
 		auto &ts = talon_state_[joint_id];
 		auto &tc = talon_command_[joint_id];
@@ -1384,7 +1320,8 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ts.setFeedbackCoefficient(feedback_coefficient);
 		}
 
-		const hardware_interface::TalonMode talon_mode = ts.getTalonMode();
+		// Get mode that is about to be commanded
+		const hardware_interface::TalonMode talon_mode = tc.getMode();
 		const int encoder_ticks_per_rotation = tc.getEncoderTicksPerRotation();
 		ts.setEncoderTicksPerRotation(encoder_ticks_per_rotation);
 
@@ -1505,11 +1442,6 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ts.setNeutralOutput(true);
 			ROS_INFO_STREAM("Set joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" neutral output");
 		}
-
-		// Force I accumulator to zero so the robot isn't enabled
-		// with a huge I term driving the controlled motor
-		if (!match_data_enabled_.load(std::memory_order_relaxed))
-			safeTalonCall(talon->SetIntegralAccumulator(0, pidIdx, timeoutMs), "SetIntegralAccumulator");
 
 		double iaccum;
 		if (close_loop_mode && tc.integralAccumulatorChanged(iaccum))
@@ -1767,72 +1699,92 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 		}
 
-
 		// Set new motor setpoint if either the mode or
 		// the setpoint has been changed
-		double command;
-		hardware_interface::TalonMode in_mode;
-		ctre::phoenix::motorcontrol::ControlMode out_mode;
-
-		const bool b1 = tc.newMode(in_mode);
-		const bool b2 = tc.commandChanged(command);
-
-		hardware_interface::DemandType demand1_type_internal;
-		double demand1_value;
-		const bool b3 = tc.demand1Changed(demand1_type_internal, demand1_value);
-
-		if (b1 || b2 || b3|| ros::Time::now().toSec() - can_talon_srx_run_profile_stop_time_[joint_id] < .2)
+		if (robot_enabled)
 		{
-			if ((b1 || b2) && convertControlMode(in_mode, out_mode))
+			double command;
+			hardware_interface::TalonMode in_mode;
+
+			const bool b1 = tc.newMode(in_mode);
+			const bool b2 = tc.commandChanged(command) || ts.getCANID() ==51 ;
+
+			hardware_interface::DemandType demand1_type_internal;
+			double demand1_value;
+			const bool b3 = tc.demand1Changed(demand1_type_internal, demand1_value);
+
+			if (b1 || b2 || b3 || ros::Time::now().toSec() - can_talon_srx_run_profile_stop_time_[joint_id] < .2)
 			{
-				ts.setTalonMode(in_mode);
-				ts.setSetpoint(command);
-
-				ts.setNeutralOutput(false); // maybe make this a part of setSetpoint?
-
-				switch (out_mode)
+				ctre::phoenix::motorcontrol::ControlMode out_mode;
+				if ((b1 || b2) && convertControlMode(in_mode, out_mode))
 				{
-					case ctre::phoenix::motorcontrol::ControlMode::Velocity:
-						command /= radians_per_second_scale;
-						break;
-					case ctre::phoenix::motorcontrol::ControlMode::Position:
-						command /= radians_scale;
-						break;
-					case ctre::phoenix::motorcontrol::ControlMode::MotionMagic:
-						command /= radians_scale;
-						break;
-				}
-			
-				(*can_talons_mp_running_)[joint_id].store(out_mode == ctre::phoenix::motorcontrol::ControlMode::MotionProfile && command == 1, std::memory_order_relaxed);
-			}
+					ts.setTalonMode(in_mode);
+					ts.setSetpoint(command);
 
-			ts.setDemand1Type(demand1_type_internal);
-			ts.setDemand1Value(demand1_value);
+					ts.setNeutralOutput(false); // maybe make this a part of setSetpoint?
 
-			//ROS_INFO_STREAM c("in mode: " << in_mode);
-			if (b3 &&
-				(demand1_type_internal > hardware_interface::DemandType::DemandType_Neutral) &&
-			    (demand1_type_internal < hardware_interface::DemandType::DemandType_Last) )
-			{
-				ctre::phoenix::motorcontrol::DemandType demand1_type_phoenix;
-				switch (demand1_type_internal)
-				{
-					case hardware_interface::DemandType::DemandType_AuxPID:
-						demand1_type_phoenix = ctre::phoenix::motorcontrol::DemandType::DemandType_AuxPID;
-						break;
-					case hardware_interface::DemandType::DemandType_ArbitraryFeedForward:
-						demand1_type_phoenix = ctre::phoenix::motorcontrol::DemandType::DemandType_ArbitraryFeedForward;
-						break;
+					switch (out_mode)
+					{
+						case ctre::phoenix::motorcontrol::ControlMode::Velocity:
+							command /= radians_per_second_scale;
+							break;
+						case ctre::phoenix::motorcontrol::ControlMode::Position:
+							command /= radians_scale;
+							break;
+						case ctre::phoenix::motorcontrol::ControlMode::MotionMagic:
+							command /= radians_scale;
+							break;
+					}
+				
+					(*can_talons_mp_running_)[joint_id].store(out_mode == ctre::phoenix::motorcontrol::ControlMode::MotionProfile && command == 1, std::memory_order_relaxed);
 				}
 
-				talon->Set(out_mode, command, demand1_type_phoenix, demand1_value);
-			}
-			else
-				talon->Set(out_mode, command);
+				ts.setDemand1Type(demand1_type_internal);
+				ts.setDemand1Value(demand1_value);
 
-			//ROS_WARN_STREAM("set at: " << ts.getCANID() << " new mode: " << b1 << " command_changed: " << b2 << " cmd: " << command);
+				//ROS_INFO_STREAM c("in mode: " << in_mode);
+				if (b3 &&
+					(demand1_type_internal > hardware_interface::DemandType::DemandType_Neutral) &&
+					(demand1_type_internal < hardware_interface::DemandType::DemandType_Last) )
+				{
+					ctre::phoenix::motorcontrol::DemandType demand1_type_phoenix;
+					switch (demand1_type_internal)
+					{
+						case hardware_interface::DemandType::DemandType_AuxPID:
+							demand1_type_phoenix = ctre::phoenix::motorcontrol::DemandType::DemandType_AuxPID;
+							break;
+						case hardware_interface::DemandType::DemandType_ArbitraryFeedForward:
+							demand1_type_phoenix = ctre::phoenix::motorcontrol::DemandType::DemandType_ArbitraryFeedForward;
+							break;
+					}
+
+					talon->Set(out_mode, command, demand1_type_phoenix, demand1_value);
+				}
+				else
+					talon->Set(out_mode, command);
+
+				//ROS_WARN_STREAM("set at: " << ts.getCANID() << " new mode: " << b1 << " command_changed: " << b2 << " cmd: " << command);
+			}
 		}
-
+		else if (last_robot_enabled)
+		{
+			// If this is a switch from enabled to
+			// disabled, set talon command to current
+			// talon mode and then disable the talon. 
+			// This will set up the talon to return
+			// to the current mode once the robot is 
+			// re-enabled
+			// Need to first setMode to disabled because there's
+			// a check in setMode to see if requested_mode == current_mode
+			// If that check is true setMode does nothing - assumes
+			// that the mode won't need to be reset back to the
+			// same mode it is already in
+			tc.setMode(hardware_interface::TalonMode_Disabled);
+			tc.setMode(ts.getTalonMode());
+			talon->Set(ctre::phoenix::motorcontrol::ControlMode::Disabled, 0);
+			ts.setTalonMode(hardware_interface::TalonMode_Disabled);
+		}
+		
 		if (tc.clearStickyFaultsChanged())
 		{
 			//ROS_WARN("sticky");
@@ -1840,7 +1792,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");
 		}
 	}
-		
+	last_robot_enabled = robot_enabled;
 
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -1920,29 +1872,26 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			dummy_joint_position_[i] = dummy_joint_command_[i];
 			cube_state_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
 		}
-
-
-		if (dummy_joint_names_[i] == "auto_state_0")
+		else if (dummy_joint_names_[i] == "auto_state_0")
 		{
 			dummy_joint_position_[i] = dummy_joint_command_[i];
 			auto_state_0_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
 		}
-		if (dummy_joint_names_[i] == "auto_state_1")
+		else if (dummy_joint_names_[i] == "auto_state_1")
 		{
 			dummy_joint_position_[i] = dummy_joint_command_[i];
 			auto_state_1_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
 		}
-		if (dummy_joint_names_[i] == "auto_state_2")
+		else if (dummy_joint_names_[i] == "auto_state_2")
 		{
 			dummy_joint_position_[i] = dummy_joint_command_[i];
 			auto_state_2_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
 		}
-		if (dummy_joint_names_[i] == "auto_state_3")
+		else if (dummy_joint_names_[i] == "auto_state_3")
 		{
 			dummy_joint_position_[i] = dummy_joint_command_[i];
 			auto_state_3_.store(dummy_joint_position_[i] != 0, std::memory_order_relaxed);
 		}
-
 		else if (dummy_joint_names_[i] == "stop_arm")
 			dummy_joint_position_[i] = stop_arm_.load(std::memory_order_relaxed) ? 1 : 0;
 		else if (dummy_joint_names_[i] == "override_arm_limits")

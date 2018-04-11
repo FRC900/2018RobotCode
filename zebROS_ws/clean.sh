@@ -1,5 +1,1 @@
-sudo rm -rf ./devel/
-sudo rm -rf ./devel_isolated/
-sudo rm -rf ./build/
-sudo rm -rf ./build_isolated/
-sudo rm -rf ./install_isolated/
+sudo rm -rf devel devel_isolated build build_isolated install_isolated build_native devel_native install_native

@@ -680,22 +680,26 @@ void FRCRobotInterface::init()
 // get the value from the talon. For sim, maybe grab it from state?
 void FRCRobotInterface::custom_profile_set_talon(hardware_interface::TalonMode mode, double setpoint, double fTerm, int joint_id, int pidSlot, bool zeroPos, double start_run, int &slot_last)
 {
+	// TODO : really consider a mutex for each talon.  Add lock guards here,
+	// and at the start of accessing each in read() and write()?
 	if(zeroPos)
 	{
 		//pos_offset = can_talons_[joint_id]->GetSelectedSensorPosition(pidIdx) /* radians_scale*/;
 
-		setSensorPosition(joint_id, 0);
+		customProfileSetSensorPosition(joint_id, 0);
 		talon_state_[joint_id].setPosition(0);
 		ROS_WARN_STREAM("zeroing talon:" <<  joint_id);
 	}
 	//set talon
 	if(mode == hardware_interface::TalonMode_PercentOutput)
 	{
-		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_Neutral, 0, ros::Time::now().toSec() - start_run < .3 || slot_last != pidSlot, pidSlot);
+		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_Neutral, 0);
 	}
 	else
 	{	
-		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_ArbitraryFeedForward ,fTerm, ros::Time::now().toSec() - start_run < .3 || slot_last != pidSlot, pidSlot);
+		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_ArbitraryFeedForward ,fTerm);
+
+		// Make sure talon_command is in sync with data set above
 		talon_command_[joint_id].setDemand1Type(hardware_interface::DemandType_ArbitraryFeedForward);
 		talon_command_[joint_id].setDemand1Value(fTerm);
 
@@ -708,6 +712,7 @@ void FRCRobotInterface::custom_profile_set_talon(hardware_interface::TalonMode m
 
 	//ROS_INFO_STREAM("setpoint: " << setpoint << " fterm: " << fTerm << " id: " << joint_id << " offset " << pos_offset << " slot: " << pidSlot << " pos mode? " << posMode);
 	
+	// Make sure talon_command is in sync with data set above
 	talon_command_[joint_id].setMode(mode);
 	talon_command_[joint_id].newMode(mode);
 	talon_state_[joint_id].setTalonMode(mode);
@@ -718,17 +723,45 @@ void FRCRobotInterface::custom_profile_set_talon(hardware_interface::TalonMode m
 
 	talon_state_[joint_id].setNeutralOutput(false); // maybe make this a part of setSetpoint?
 
-	talon_command_[joint_id].setPidfSlot(pidSlot);
-	// Need a call to PidfSlot changed here?
-
-	if(ros::Time::now().toSec() - start_run < .2 || slot_last != pidSlot)
+	if ((ros::Time::now().toSec() - start_run < .3) || (slot_last != pidSlot))
     {
-        ROS_INFO_STREAM("set pid on " << talon_state_[joint_id].getCANID() << "  to: " << pidSlot);
+		double p;
+		double i;
+		double d;
+		double f;
+		int    iz;
+		int    allowable_closed_loop_error;
+		double max_integral_accumulator;
+		double closed_loop_peak_output;
+		int    closed_loop_period;
 
-        //can_talons_[joint_id]->SelectProfileSlot(pidSlot, timeoutMs);
+		talon_command_[joint_id].pidfChanged(p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period, pidSlot);
+		
+		customProfileSetPIDF(joint_id, pidSlot, p, i, d, f, iz, allowable_closed_loop_error, max_integral_accumulator, closed_loop_peak_output, closed_loop_period);
+
+		// Set talon_state status to match data written to hardware above
+		talon_state_[joint_id].setPidfP(p, pidSlot);
+		talon_state_[joint_id].setPidfI(i, pidSlot);
+		talon_state_[joint_id].setPidfD(d, pidSlot);
+		talon_state_[joint_id].setPidfF(f, pidSlot);
+		talon_state_[joint_id].setPidfIzone(iz, pidSlot);
+		talon_state_[joint_id].setAllowableClosedLoopError(allowable_closed_loop_error, pidSlot);
+		talon_state_[joint_id].setMaxIntegralAccumulator(max_integral_accumulator, pidSlot);
+		talon_state_[joint_id].setClosedLoopPeakOutput(closed_loop_peak_output, pidSlot);
+		talon_state_[joint_id].setClosedLoopPeriod(closed_loop_period, pidSlot);
+
+		// Make sure talon_command matches what is
+		// actually in hardware. Call slotChanged()
+		// to reset the slot_changed flag - that will
+		// prevent a redundant write the next time
+		// slotChanged is called (might be overkill)
+		talon_command_[joint_id].setPidfSlot(pidSlot);
+		talon_command_[joint_id].slotChanged(pidSlot);
         talon_state_[joint_id].setSlot(pidSlot);
+
+        ROS_INFO_STREAM("set pid on " << talon_state_[joint_id].getCANID() << "  to: " << pidSlot);
+		slot_last = pidSlot;
     }
-    slot_last = pidSlot;
 }
 
 void FRCRobotInterface::custom_profile_thread(int joint_id)
@@ -751,9 +784,14 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 
 	while (ros::ok())
 	{
-		if (talon_state_[joint_id].getTalonMode() == hardware_interface::TalonMode_Follower)
+		if (talon_command_[joint_id].getCustomProfileDisable())
 		{
-			ROS_INFO("Exiting custom_profile_thread since mode == Follower");
+			ROS_INFO_STREAM("Exiting custom_profile_thread since CustomProfileDisable is set for joint id " << joint_id);
+			return;
+		}
+		if (talon_state_[joint_id].getCANID() == 51)
+		{
+			ROS_INFO("Exiting custom_profile_thread since id == 51");
 			return;
 		}
 

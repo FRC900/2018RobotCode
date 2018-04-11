@@ -664,9 +664,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	odom_holder.up_or_down = cur_up_or_down;
 
 	Odom_.publish(odom_holder);
-	
+	bool stop;
 	if(stop_arm_.getPosition())
 	{	
+		stop = true;
 		pivot_joint_.setPeakOutputForward(0);
 		pivot_joint_.setPeakOutputReverse(0);
 
@@ -675,6 +676,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	else
 	{
+		stop = false;
 		pivot_joint_.setPeakOutputForward(1);
 		pivot_joint_.setPeakOutputReverse(-1);
 
@@ -699,9 +701,10 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
     
     }
     /* NIALL */
-	bool bottom_limit = pivot_joint_.getReverseLimitSwitch(); //TODO FIX THIS
+	std_msgs::Bool bottom_limit;
+	bottom_limit.data = pivot_joint_.getReverseLimitSwitch(); //TODO FIX THIS
 	bot_lim_pub.publish(bottom_limit);
-	if(bottom_limit)
+	if(bottom_limit.data && !stop)
 	{	
 		
 		pivot_joint_.setPeakOutputReverse(-limit_power_press_);
@@ -718,7 +721,7 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 		arm_limiting::point_type return_cmd;
 		bool return_up_or_down;
 		const bool cube_in_clamp = cube_msg.clamp && (clamp_cmd <= 0);
-		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit, intake_up, in_transition, safe_to_move_intake, cube_in_clamp, intake_open, curr_cmd.put_cube_in_intake);
+		arm_limiter_->safe_cmd(cmd_point, curr_cmd.up_or_down, reassignment_holder, cur_pos, cur_up_or_down, return_cmd, return_up_or_down, bottom_limit.data, intake_up, in_transition, safe_to_move_intake, cube_in_clamp, intake_open, curr_cmd.put_cube_in_intake);
 
 		return_holder.x = return_cmd.x();
 		return_holder.y = return_cmd.y();

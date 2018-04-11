@@ -287,6 +287,7 @@ bool lowScale(void) {
 bool intakeStop(void) {
 	elevator_controller::Intake srv;
     srv.request.spring_state = 2; //soft_in
+    srv.request.up=true;
     srv.request.power=0;
     srv.request.other_power=0;
     srv.request.just_override_power = false;

@@ -248,7 +248,7 @@ class autoAction
 					}
 					if (!aborted)
 					{
-						//ROS_WARN_STREAM("wait for drop etc t: " <<ros::Time::now().toSec() - finish_time );
+						ROS_WARN_STREAM("wait for drop etc t: " <<ros::Time::now().toSec() - finish_time );
 						r.sleep();
 						ros::spinOnce();
 						timed_out = timed_out || (ros::Time::now().toSec() - startTime) > goal->time_out;
@@ -336,7 +336,7 @@ class autoAction
 				}
 				else if (!aborted && !timed_out)
 				{
-					ROS_INFO("start of pickup cube 4 - true");
+					//ROS_INFO("start of pickup cube 4 - true");
 					behaviors::LiftGoal goal_l;
 					goal_l.time_out = 5;
 					goal_l.GoToPos = true;
