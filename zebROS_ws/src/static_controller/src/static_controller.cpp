@@ -4,6 +4,10 @@
 
 namespace static_controller
 {
+// Implement a simple controller. The only job it has is to write a value
+// to a given joint when started.  We load this controller last to indicate that
+// all the other controllers have been loaded and the robot is now ready
+// for competition
 bool StaticController::init(hardware_interface::JointCommandInterface *hw, ros::NodeHandle &n)
 {
 	std::string joint_name;
