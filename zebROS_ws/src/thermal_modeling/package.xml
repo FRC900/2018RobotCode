@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>thermal_modeling</name>
+  <version>0.0.1</version>
+  <description>reduce magic smoke</description>
+
+  <maintainer email="programmers@team900.org">FRC Team 900 Programmers</maintainer>
+  <author email="programmers@team900.org">FRC Team 900 Programmers</author>
+
+  <license>BSD</license>
+
+  <url type="website">https://github.com/davetcoleman/ros_control_boilerplate</url>
+  <url type="butracker">https://github.com/davetcoleman/ros_control_boilerplate/issues</url>
+  <url type="repository">https://github.com/davetcoleman/ros_control_boilerplate/</url>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>hardware_interface</depend>
+  <depend>roscpp</depend>
+  <depend>message_filters</depend>
+  <depend>std_msgs</depend>
+  <depend>cmake_modules</depend>
+  
+  <export>
+  </export>
+</package>
