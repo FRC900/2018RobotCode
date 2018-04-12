@@ -22,9 +22,7 @@ opkg install python-pkgutil python-dateutil python-argparse python-nose
 opkg clean
 opkg install python-netifaces libglog0 python-pip coreutils gdb ntp i2c-tools 
 opkg clean
-opkg install ntp ntp-tickadj ntp-utils ntpd ntpdate
-opkg clean
-opkg install rsync
+opkg install ntp ntp-tickadj ntp-utils ntpd ntpdate rsync
 opkg clean
 
 pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy
@@ -59,7 +57,6 @@ cd
 #depmod
 #i2cdetect -y 2
 #echo bq32000 0x68 | tee /sys/class/i2c-adapter/i2c-2/new_device
-
 
 cd
 git clone https://github.com/gflags/gflags.git

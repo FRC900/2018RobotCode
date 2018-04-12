@@ -24,7 +24,7 @@ tar -xzvf 1.0.0.tar.gz
 rm 1.0.0.tar.gz
 mv urdfdom-1.0.0 urdfdom
 cd urdfdom
-create package.xml
+create package.xml :
 -----------------------
 <?xml version="1.0"?>
 <package>
@@ -43,7 +43,7 @@ create package.xml
 -----------------------
 cd ~/catkin_arm_cross_ws
 
-wstool init -j8 src kinetic-ros_comm-wet.rosinstall
+wstool merge -j8 -t src kinetic-ros_comm-wet.rosinstall
 
 add "<depend>urdfdom_headers</depend>" to src/urdf/urdf_parser_plugin/package.xml
 
