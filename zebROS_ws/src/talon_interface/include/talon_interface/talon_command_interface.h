@@ -199,29 +199,8 @@ class TalonHWCommand
 			custom_profile_hz_(50.0),
 			custom_profile_vectors_mutex_ptr_(std::make_shared<std::mutex>())
 		{
-			//This is a bit dirty...
-			//I apologize for my problems spilling out over your nice and clean code, Kevin
-			/*int garbage;
-			char** more_garbage;
-			ros::init(garbage, more_garbage, "soon_to_die_talon_command_node");
-			ros::NodeHandle n;	
-			ros::NodeHandle n_params_behaviors(n, "auto_params");
-			int num_profile_slots;
-
-			if (!n_params_behaviors.getParam("num_profile_slots", num_profile_slots))
-			ROS_ERROR("Didn't read param num_profile_slots in talon code");
-			
-			ros::shutdown(); //Now that its short life is over, the mayfly dies and the cycle begins anew
-			*/
-			int num_profile_slots = 20;
-			custom_profile_points_.resize(num_profile_slots); //change as needed
-			custom_profile_total_time_.resize(num_profile_slots); 		
-			for(int i = 0; i < num_profile_slots; i++)
-            {
-                custom_profile_points_changed_.push_back(true);
-            }	
-
 		}
+
 		// This gets the requested setpoint, not the
 		// status actually read from the controller
 		// Need to think about which makes the most
@@ -1441,10 +1420,8 @@ class TalonHWCommand
 			}
 			return custom_profile_slot_;
 		}
-		// TODO : custom profile points & times need to 
-		// be locked by a mutex of some sort to
-		// make sure reads and writes are atomic
-		void pushCustomProfilePoint(const CustomProfilePoint &point, int slot)
+
+		void pushCustomProfilePoint(const CustomProfilePoint &point, size_t slot)
 		{
 			if (custom_profile_disable_)
 			{
@@ -1452,6 +1429,13 @@ class TalonHWCommand
 				return;
 			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
+
+			// Make sure there are enough slots allocated to
+			// hold the point about to be added
+			if (custom_profile_points_.size() <= slot)
+				custom_profile_points_.resize(slot + 1);
+			if (custom_profile_total_time_.size() <= slot)
+				custom_profile_total_time_.resize(slot + 1);
 
 			custom_profile_points_[slot].push_back(point);
 			if(custom_profile_points_[slot].size() != 0)
@@ -1463,20 +1447,33 @@ class TalonHWCommand
 				custom_profile_total_time_[slot].push_back(point.duration);
 			}
 			//ROS_INFO_STREAM("pushed point at slot: " << slot);
+			while (custom_profile_points_changed_.size() <= slot)
+				custom_profile_points_changed_.push_back(true);
 			custom_profile_points_changed_[slot] = true;
 		} 
-		void pushCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
+		void pushCustomProfilePoints(const std::vector<CustomProfilePoint> &points, size_t slot)
 		{
 			if (custom_profile_disable_)
 			{
 				ROS_ERROR("Custom profile disabled via param (pushCustomProfilePoints)");
 				return;
 			}
+
+			if (!points.size())
+				return;
+
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
-			int prev_size = custom_profile_points_[slot].size();
+			// Make sure there are enough slots allocated to
+			// hold the point about to be added
+			if (custom_profile_points_.size() <= slot)
+				custom_profile_points_.resize(slot + 1);
+			if (custom_profile_total_time_.size() <= slot)
+				custom_profile_total_time_.resize(slot + 1);
+
+			size_t prev_size = custom_profile_points_[slot].size();
 			custom_profile_points_[slot].insert(custom_profile_points_[slot].end(), points.begin(), points.end());
-			for(; prev_size <custom_profile_points_[slot].size(); prev_size++)
+			for(; prev_size < custom_profile_points_.size(); prev_size++)
 			{
 				if(prev_size != 0)
 				{
@@ -1486,12 +1483,15 @@ class TalonHWCommand
 				{
 					custom_profile_total_time_[slot].push_back(points[prev_size].duration);	
 				}
-			}	
+			}
+
+			while (custom_profile_points_changed_.size() <= slot)
+				custom_profile_points_changed_.push_back(true);
 			custom_profile_points_changed_[slot] = true;
 			//ROS_INFO_STREAM("pushed points at slot: " << slot);
 		}
 
-		void overwriteCustomProfilePoints(const std::vector<CustomProfilePoint> &points, int slot)
+		void overwriteCustomProfilePoints(const std::vector<CustomProfilePoint> &points, size_t slot)
 		{
 			if (custom_profile_disable_)
 			{
@@ -1500,10 +1500,20 @@ class TalonHWCommand
 			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
+#if 0
 			for(size_t i = 0; i < custom_profile_points_changed_.size(); i++)
 			{
-				//ROS_INFO_STREAM("slot: " << i << " changed: " << custom_profile_points_changed_[i]);
+				ROS_INFO_STREAM("slot: " << i << " changed: " << custom_profile_points_changed_[i]);
 			}
+#endif
+
+			// Make sure there are enough slots allocated to
+			// hold the point about to be added
+			if (custom_profile_points_.size() <= slot)
+				custom_profile_points_.resize(slot + 1);
+			if (custom_profile_total_time_.size() <= slot)
+				custom_profile_total_time_.resize(slot + 1);
+
 			custom_profile_points_[slot] = points;
 			custom_profile_total_time_[slot].resize(points.size());
 			
@@ -1518,11 +1528,13 @@ class TalonHWCommand
 					custom_profile_total_time_[slot][i] = points[i].duration;
 				}
 			}	
-			//ROS_INFO_STREAM("override points at slot: " << slot);
+			ROS_INFO_STREAM("override points at slot: " << slot);
+			while (custom_profile_points_changed_.size() <= slot)
+				custom_profile_points_changed_.push_back(true);
 			custom_profile_points_changed_[slot] = true;
 		}
 
-		std::vector<CustomProfilePoint> getCustomProfilePoints(int slot) /*const*/ //TODO, can be const?
+		std::vector<CustomProfilePoint> getCustomProfilePoints(size_t slot)
 		{
 			if (custom_profile_disable_)
 			{
@@ -1531,8 +1543,12 @@ class TalonHWCommand
 			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 
+			if (slot >= custom_profile_points_.size())
+				return std::vector<CustomProfilePoint>();
+
 			return custom_profile_points_[slot];
 		}
+
 		std::vector<bool> getCustomProfilePointsTimesChanged(std::vector<std::vector<CustomProfilePoint>> &ret_points, std::vector<std::vector<double>> &ret_times)
 		{
 			if (custom_profile_disable_)
@@ -1542,10 +1558,28 @@ class TalonHWCommand
 			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
 			std::vector<bool> returner = custom_profile_points_changed_;
-			for(size_t i = 0; i < custom_profile_points_changed_.size(); i++)
+
+			bool args_resized = false;
+			// Make sure there are enough slots allocated to
+			// hold the point about to be added
+			const size_t slots = custom_profile_points_changed_.size();
+			if (ret_points.size() <= slots)
+			{
+				args_resized = true;
+				ret_points.resize(slots + 1);
+			}
+			if (ret_times.size() <= slots)
+			{
+				args_resized = true;
+				ret_times.resize(slots + 1);
+			}
+
+			for(size_t i = 0; i < slots; i++)
 			{	
-				if(custom_profile_points_changed_[i])
+				if (args_resized || custom_profile_points_changed_[i])
 				{
+					if (args_resized)
+						returner[i] = true;
 					//ROS_INFO_STREAM("actually changed in interface " << custom_profile_points_changed_[i] << " slot: " << i); 
 					ret_points[i] = custom_profile_points_[i]; 
 					ret_times[i]  = custom_profile_total_time_[i];
@@ -1555,7 +1589,7 @@ class TalonHWCommand
 
 			return returner;
 		}
-		std::vector<double> getCustomProfileTime(int slot)  /*const*/ //TODO, can be const?
+		std::vector<double> getCustomProfileTime(size_t slot)
 		{
 			if (custom_profile_disable_)
 			{
@@ -1563,6 +1597,10 @@ class TalonHWCommand
 				return std::vector<double>();
 			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
+
+			if (slot >= custom_profile_total_time_.size())
+				return std::vector<double>();
+
 			return custom_profile_total_time_[slot];
 		}
 		double getCustomProfileEndTime(int slot)
@@ -1573,28 +1611,40 @@ class TalonHWCommand
 				return -1;
 			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
+
+			if (slot >= custom_profile_total_time_.size())
+				return -1;
+
 			return custom_profile_total_time_[slot].back();
 		}
 		// TODO : TimeCount and ProfileCount should always
 		// be the same?
-		int getCustomProfileTimeCount(int slot)
+		size_t getCustomProfileTimeCount(size_t slot)
 		{
 			if (custom_profile_disable_)
 			{
 				ROS_ERROR("Custom profile disabled via param (getCustomProfileTimeCount)");
-				return -1;
+				return 0;
 			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
+
+			if (slot >= custom_profile_points_.size())
+				return 0;
+
 			return custom_profile_points_[slot].size();
 		}
-		int getCustomProfileCount(int slot)  /*const*/ //TODO, can be const?
+		size_t getCustomProfileCount(size_t slot)
 		{
 			if (custom_profile_disable_)
 			{
 				ROS_ERROR("Custom profile disabled via param (getCustomProfileCount)");
-				return -1;
+				return 0;
 			}
 			std::lock_guard<std::mutex>(*custom_profile_vectors_mutex_ptr_);
+
+			if (slot >= custom_profile_points_.size())
+				return 0;
+
 			return custom_profile_points_[slot].size();
 		}
 

@@ -1132,11 +1132,11 @@ class TalonControllerInterface
 		std::shared_ptr<dynamic_reconfigure::Server<TalonConfigConfig>> srv_;
 		std::shared_ptr<boost::recursive_mutex>                         srv_mutex_;
 
-#if 1
+		// List of follower talons associated with the master
+		// listed above
 		std::vector<hardware_interface::TalonCommandHandle>                          follower_talons_;
 		std::vector<std::shared_ptr<dynamic_reconfigure::Server<TalonConfigConfig>>> follower_srvs_;
 		std::vector<std::shared_ptr<boost::recursive_mutex>>                         follower_srv_mutexes_;
-#endif
 
 		// Used to set initial (and only) talon
 		// mode for FixedMode derived classes
@@ -1297,8 +1297,7 @@ class TalonControllerInterface
 class TalonFixedModeControllerInterface : public TalonControllerInterface
 {
 	protected:
-		// Disable changing mode for controllers derived
-		// from this class
+		// Disable changing mode for controllers derived from this class
 		void setMode(hardware_interface::TalonMode /*mode*/) override
 		{
 			ROS_WARN("Can't reset mode using this TalonControllerInterface");
