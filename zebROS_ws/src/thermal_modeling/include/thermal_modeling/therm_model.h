@@ -35,47 +35,40 @@ namespace thermal_model
 	struct node_properties
 	{	
 		double thermal_capacity; //i.e. J/K
-		vector<connection> connections; //See above struct
+		std::vector<connection> connections; //See above struct
 		double emissivity; //0 - 1
-		double percent_electrical_loss_absorb; //total should add to 1
-		double percent_mechancal_loss_absorb; //total should add to 1
+		double proportion_electrical_loss_absorb; //total should add to 1
+		double proportion_mechancal_loss_absorb; //total should add to 1
 		double exposure; //total exposed area - m^2
 		double fan_exposure; //total area in "fan stream" - m^2	
 		double temperature; //needs to be initialized like the others
 	};
-	struct point
+	struct motor_properties
+	{
+		double proportion_losses_mechanical; //Consider making this more complex
+		double proportion_losses_electrical;	
+	};
+	/*struct point
 	{
 		double x;
 		double y;
-	};
+	};*/
 	//TODO: constructors
 	class thermal_model
 	{
 		public:
-			thermal_model(vector<node_properties> nodes, vector<point> efficiency_vs_rps, vector<point> air_speed_vs_rps); 
-			vector<node_properties> nodes_; //Public so info can be read and potentially written to
-			void iterate_model(double dt. double current, double voltage, double rps, vector<identified_val> assign_temp = {});
+			thermal_model(std::vector<node_properties> nodes, std::array<std::vector<double>, 2> efficiency_vs_rps, std::array<std::vector<double>, 2> air_speed_vs_rps, motor_properties properties); 
+			std::vector<node_properties> nodes_; //Public so info can be read and potentially written to
+			void iterate_model(double dt. double current, double voltage, double rps, std::vector<identified_val> assign_temp = {});
+		
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-	}
-
-
-
-
-
-
-
-
+		private: 
+			void distribute_losses(const double &dt, const double &rotation_rate, const double &power);
+			void diffuse_heat(const double &dt, const double &rotation_rate);
+			void distribute_heat();
+			tk::spline efficiency_curve_;
+			tk::spline air_speed_curve_;
+			std::vector<double> heats_;
+			motor_properties properties_;
+	};
 }
