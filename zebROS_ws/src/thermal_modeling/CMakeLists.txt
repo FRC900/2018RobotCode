@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   roscpp
   std_msgs
+  swerve_point_generator
 )
 
 #add_message_files (
@@ -28,6 +29,7 @@ catkin_package(
   CATKIN_DEPENDS
     roscpp
     std_msgs
+    swerve_point_generator
   LIBRARIES
   DEPENDS 
 )
@@ -35,6 +37,8 @@ catkin_package(
 ###########
 ## Build ##
 ###########
+
+include_directories(SYSTEM)
 
 include_directories(
   include/
@@ -45,22 +49,18 @@ include_directories(
 ## same as for the library above. This is needed to force
 ## talon controller messages to be built before the
 ## talon controller code tries to use them
-add_dependencies(
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
-)
 
-add_executable(thermal_model src/thermal_model.cpp)
-set_target_properties(thermal_model PROPERTIES OUTPUT_NAME 
-thermal_model PREFIX "")
-target_link_libraries(thermal_model
+add_executable(process_thermal_model src/process_thermal_model.cpp)
+set_target_properties(process_thermal_model PROPERTIES OUTPUT_NAME 
+process_thermal_model PREFIX "")
+target_link_libraries(process_thermal_model
   ${catkin_LIBRARIES}
 )
 ## Add cmake target dependencies of the executable
 ## same as for the library above. This is needed to force
 ## talon controller messages to be built before the
 ## talon controller code tries to use them
-add_dependencies(thermal_model
+add_dependencies(process_thermal_model
   ${${PROJECT_NAME}_EXPORTED_TARGETS}
   ${catkin_EXPORTED_TARGETS}
 )
@@ -69,7 +69,7 @@ add_dependencies(thermal_model
 
 # Install ------------------------------------------------------------
 #Install header files
-install(TARGETS thermal_model
+install(TARGETS process_thermal_model
    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

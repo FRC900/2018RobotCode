@@ -19,6 +19,7 @@
   <depend>hardware_interface</depend>
   <depend>roscpp</depend>
   <depend>message_filters</depend>
+  <depend>swerve_point_generator</depend>
   <depend>std_msgs</depend>
   <depend>cmake_modules</depend>
   

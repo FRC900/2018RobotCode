@@ -1,17 +1,17 @@
-#include <thermal_modeling/therm_model.h>
+#include <thermal_modeling/thermal_model.h>
 
-namespace thermal_model
+namespace thermal_modeling
 {
 
-	thermal_model::thermal_model(std::vector<node_properties> nodes, std::array<vector<double>, 2> efficiency_vs_rps, std::array<vector<double>, 2> air_speed_vs_rps, motor_properties properties)
+	thermal_model::thermal_model(std::vector<node_properties> nodes, std::array<std::vector<double>, 2> efficiency_vs_rps, std::array<std::vector<double>, 2> air_speed_vs_rps, motor_properties properties):
+		nodes_(nodes),
+		properties_(properties)
 	{
-		nodes_ = nodes;
-		properties_ =  properties;
 		efficiency_curve_.set_points(efficiency_vs_rps[0], efficiency_vs_rps[1]);
 		air_speed_curve_.set_points(air_speed_vs_rps[0], air_speed_vs_rps[1]);	
 		heats_.resize(nodes_.size());
 	}
-	void thermal_model::iterate_model(const double &dt. const double &current, const double &voltage, const double &rps, std::vector<identified_val> assign_temp = {})
+	void thermal_model::iterate_model(const double &dt, const double &current, const double &voltage, const double &rps, std::vector<identified_val> assign_temp)
 	{
 		for(size_t i = 0; i < heats_.size(); i++)
 		{
@@ -20,7 +20,7 @@ namespace thermal_model
 		const double power = current * voltage;
 		distribute_losses(dt, rps, power); 
 		diffuse_heat(dt, rps);
-		distribute_heat():
+		distribute_heat();
 	}
 	void thermal_model::distribute_losses(const double &dt, const double &rotation_rate, const double &power)
 	{
