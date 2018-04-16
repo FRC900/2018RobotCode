@@ -50,7 +50,7 @@ include_directories(
 ## talon controller messages to be built before the
 ## talon controller code tries to use them
 
-add_executable(process_thermal_model src/process_thermal_model.cpp)
+add_executable(process_thermal_model src/process_thermal_model.cpp src/thermal_model.cpp)
 set_target_properties(process_thermal_model PROPERTIES OUTPUT_NAME 
 process_thermal_model PREFIX "")
 target_link_libraries(process_thermal_model
