@@ -1262,6 +1262,7 @@ if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 		sendRobotZero = false;
 	}
 
+#if 0
 if(JoystickState->bumperLeftButton == true)
 {
 	//check to see if it's already running
@@ -1269,10 +1270,10 @@ if(JoystickState->bumperLeftButton == true)
 	double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
 	static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
 
-	swerve_radius = sqrt(pow(wheel_coords1x, 2) + pow(wheel_coords1y, 2))
-	distanceToBeTravelled = (least_dist_angle - angle) * swerve_radius / wheel_radius;
+	const double swerve_radius = hypot(wheel_coords1x, wheel_coords1y);
+	const double distanceToBeTravelled = (least_dist_angle - angle) * swerve_radius / wheel_radius;
 
-	load values from kevin
+	//load values from kevin
 
 	//get robot dimensions (distance from wheels to center of the robot)
 	//rotate wheels to be at 45 degree angles
@@ -1280,6 +1281,7 @@ if(JoystickState->bumperLeftButton == true)
 	
 	runTrajectory(&traj);
 }
+#endif
 
 	if (rightStickX != 0 || rightStickY != 0)
 	{
