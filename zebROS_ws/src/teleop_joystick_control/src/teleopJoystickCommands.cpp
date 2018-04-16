@@ -1539,5 +1539,6 @@ void jointStateCallback(const sensor_msgs::JointState &joint_state)
 
 void talonStateCallback(const talon_state_controller::TalonState &talon_state)
 {
+	// TODO : This shouldn't be hard-coded
 	outOfPoints = talon_state.custom_profile_status[24].outOfPoints;
 }
