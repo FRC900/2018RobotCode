@@ -1103,13 +1103,10 @@ dead_zone_check(rightStickX, rightStickY);
 leftStickX =  pow(leftStickX, joystick_scale) * max_speed;
 leftStickY = -pow(leftStickY, joystick_scale) * max_speed;
 
-
-
-
 rightStickX =  pow(rightStickX, joystick_scale);
 rightStickY = -pow(rightStickY, joystick_scale);
 
-double rotation = ( pow(JoystickState->leftTrigger, rotation_scale) - pow(JoystickState->rightTrigger, rotation_scale)) * max_rot;
+double rotation = (pow(JoystickState->leftTrigger, rotation_scale) - pow(JoystickState->rightTrigger, rotation_scale)) * max_rot;
 
 static bool sendRobotZero = false;
 // No motion? Tell the drive base to stop
@@ -1224,9 +1221,6 @@ int main(int argc, char **argv)
 	ros::NodeHandle n;
 
 	ros::NodeHandle n_params(n, "teleop_params");
-
-
-
 
 	if (!n_params.getParam("intake_low_x", intake_low_x))
 		ROS_ERROR("Could not read intake_low_x");
@@ -1344,7 +1338,8 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 	double pitch;
 	double yaw;
 	tf2::Matrix3x3(navQuat).getRPY(roll, pitch, yaw);
-	navX_angle.store(yaw, std::memory_order_relaxed);
+	if (yaw == yaw) // ignore NaN results
+		navX_angle.store(yaw, std::memory_order_relaxed);
 }
 
 void cube_rumble(bool has_cube) {
