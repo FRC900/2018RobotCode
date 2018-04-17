@@ -481,6 +481,7 @@ class TeleopJointsKeyboard
 					//}
 					//else
 					//{
+					    cmd_.header.stamp = ros::Time::now();
 						joints_pub_.publish(cmd_);
                         cmd_last_ = cmd_;
 					//}
