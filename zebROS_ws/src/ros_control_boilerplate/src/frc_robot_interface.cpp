@@ -759,7 +759,7 @@ void FRCRobotInterface::custom_profile_set_talon(hardware_interface::TalonMode m
 		talon_command_[joint_id].slotChanged(pidSlot);
         talon_state_[joint_id].setSlot(pidSlot);
 
-        ROS_INFO_STREAM("set pid on " << talon_state_[joint_id].getCANID() << "  to: " << pidSlot);
+        ROS_INFO_STREAM("set pid on " << talon_state_[joint_id].getCANID() << " to: " << pidSlot);
 		slot_last = pidSlot;
     }
 }
@@ -777,6 +777,9 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 	std::vector<std::vector<double>> saved_times;
 
 	int slot_last = -1;
+
+	status.running = false;
+	status.slotRunning = -1;
 
 	while (ros::ok())
 	{
@@ -827,7 +830,6 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 		{
 			if(saved_points[slot].size() == 0)
 			{
-
 				if(fail_flag % 100 == 0)
 				{
 					ROS_ERROR("Tried to run custom profile with no points buffered");
@@ -859,7 +861,7 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 			}
 			else
 			{
-				points_run = end -1;	
+				points_run = end - 1;	
 				if(points_run < 0) points_run = 0;
 			}
 			if(status.outOfPoints)
@@ -868,7 +870,7 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 
 				//If all points have been exhausted, just use the last point
 				custom_profile_set_talon(saved_points[slot].back().mode, saved_points[slot].back().setpoint, saved_points[slot].back().fTerm, joint_id, saved_points[slot].back().pidSlot, saved_points[slot].back().zeroPos, time_start, slot_last);
-				if((next_slot.size() > 0))
+				if (next_slot.size() > 0) 
 				{
 					talon_command_[joint_id].setCustomProfileSlot(next_slot[0]);
 					next_slot.erase(next_slot.begin());
@@ -878,7 +880,7 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 			else if(end == 0)
 			{
 				//If we are still on the first point,just use the first point
-				custom_profile_set_talon(saved_points[slot][0].mode, saved_points[slot][0].setpoint, saved_points[slot][0].fTerm, joint_id, saved_points[slot][0].pidSlot, saved_points[slot][0].zeroPos,  time_start, slot_last);
+				custom_profile_set_talon(saved_points[slot][0].mode, saved_points[slot][0].setpoint, saved_points[slot][0].fTerm, joint_id, saved_points[slot][0].pidSlot, saved_points[slot][0].zeroPos, time_start, slot_last);
 			}
 			else
 			{
@@ -887,7 +889,7 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 				if(saved_points[slot][end].mode != saved_points[slot][end-1].mode)
 				{
 					ROS_WARN("mid profile mode flip. If intended, Cooooooooollllll. If not, fix the code");
-					custom_profile_set_talon(saved_points[slot][end].mode, saved_points[slot][end].setpoint, saved_points[slot][end].fTerm, joint_id, saved_points[slot][end].pidSlot, saved_points[slot][end].zeroPos,  time_start, slot_last);
+					custom_profile_set_talon(saved_points[slot][end].mode, saved_points[slot][end].setpoint, saved_points[slot][end].fTerm, joint_id, saved_points[slot][end].pidSlot, saved_points[slot][end].zeroPos, time_start, slot_last);
 					// consider adding a check to see which is closer
 				}
 				else
@@ -901,7 +903,6 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 						(saved_times[slot][end] - saved_times[slot][end-1]) * (time_since_start - saved_times[slot][end-1]);
 
 					custom_profile_set_talon(saved_points[slot][end].mode, setpoint, fTerm, joint_id, saved_points[slot][end].pidSlot, saved_points[slot][end-1].zeroPos, time_start, slot_last);
-
 				}
 			}
 		}
@@ -909,15 +910,15 @@ void FRCRobotInterface::custom_profile_thread(int joint_id)
 		{
 			status.outOfPoints = false;
 		}
+
+		status.remainingPoints.resize(saved_points.size());
+
 		for(size_t i = 0; i < saved_points.size(); i++)
 		{
-			while (status.remainingPoints.size() < saved_points.size())
-				status.remainingPoints.push_back(0.0);
-
 			if(i == status.slotRunning)
 			{
 				status.remainingPoints[i] = talon_command_[joint_id].getCustomProfileCount(i) - points_run;
-				if(talon_command_[joint_id].getCustomProfileTimeCount(i) != 0)
+				if(talon_command_[joint_id].getCustomProfileTimeCount(i) > 0)
 				{
 					status.remainingTime = talon_command_[joint_id].getCustomProfileEndTime(i) - (ros::Time::now().toSec() - time_start);
 				}
