@@ -1046,10 +1046,6 @@ void evaluateCommands(const ros_control_boilerplate::JoystickState::ConstPtr &Jo
 				ROS_ERROR("Failed to toggle to mid level scale height");
 			}
 		}
-
-
-
-
 	}
 	/*------------------------Back Button(M2) - Hold Spin Out------------------------------------*/
 	if (JoystickState->buttonBackButton == true)
