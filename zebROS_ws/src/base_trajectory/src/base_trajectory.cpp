@@ -58,15 +58,14 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 
 	// Set this to false to prevent the code
 	// from thinking we're driving rotation joints
-	// rather than running linear mition
+	// rather than running linear motion
 	for (size_t i = 0; i < n_joints; i++)
 		angle_wraparound.push_back(false);
 
-	// Allocate memory to hold an
-	// initial trajectory
+	// Allocate memory to hold an initial trajectory
 	Trajectory hold_trajectory;
 	typename Segment::State current_joint_state = typename Segment::State(1);
-	for (unsigned int i = 0; i < n_joints; ++i)
+	for (size_t i = 0; i < n_joints; ++i)
 	{
 		current_joint_state.position[0] = 0;
 		current_joint_state.velocity[0] = 0;
@@ -81,6 +80,7 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 	// with the robot sitting still at location 0,0,0.
 	// It is needed as an initial condition for the
 	// robot to connect it to the first waypoint
+	//
 	// TODO : make the starting position and 
 	// velocity a variable passed in to the 
 	// path generation request.
@@ -184,15 +184,16 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 			else if (joint == 2)
 				m = &out_msg.orient_coefs[seg].spline;
 			else
+			{
+				ROS_WARN("Unexpected joint number constructing out_msg in base_trajectory");
 				continue;
+			}
 
+			// Push in reverse order to match expectations
+			// of point_gen code?
 			m->clear();
-			m->push_back(coefs[0][5]);
-			m->push_back(coefs[0][4]);
-			m->push_back(coefs[0][3]);
-			m->push_back(coefs[0][2]);
-			m->push_back(coefs[0][1]);
-			m->push_back(coefs[0][0]);
+			for (int i = 0; i <= 5; i++)
+				m->push_back(coefs[0][i]);
 
 			std::cout << std::endl;
 		}
