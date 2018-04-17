@@ -39,22 +39,22 @@ int main(int argc, char **argv)
 		talon_state_controller::TalonState::ConstPtr s = m.instantiate<talon_state_controller::TalonState>();
 		if (s != NULL){
 			temp_file << s->header << std::endl;
-		    temp_file << "position: " << s->position[1] << std::endl;
-		    temp_file << "position: " << s->position[2] << std::endl;
-		    temp_file << "position: " << s->position[3] << std::endl;
-		    temp_file << "position: " << s->position[4] << std::endl;
-		    temp_file << "position: " << s->position[5] << std::endl;
-		    temp_file << "position: " << s->position[6] << std::endl;
-		    temp_file << "position: " << s->position[7] << std::endl;
-		    temp_file << "position: " << s->position[8] << std::endl;
-			temp_file << "speed: " << s->speed[1] << std::endl;
-			temp_file << "speed: " << s->speed[2] << std::endl;
-			temp_file << "speed: " << s->speed[3] << std::endl;
-			temp_file << "speed: " << s->speed[4] << std::endl;
-			temp_file << "speed: " << s->speed[5] << std::endl;
-			temp_file << "speed: " << s->speed[6] << std::endl;
-			temp_file << "speed: " << s->speed[7] << std::endl;
-			temp_file << "speed: " << s->speed[8] << std::endl;
+		    temp_file << "position bl_angle: " << s->position[1] << std::endl;
+		    temp_file << "position bl_drive: " << s->position[2] << std::endl;
+		    temp_file << "position br_angle: " << s->position[3] << std::endl;
+		    temp_file << "position br_drive: " << s->position[4] << std::endl;
+		    temp_file << "position fl_angle: " << s->position[5] << std::endl;
+		    temp_file << "position fl_drive: " << s->position[6] << std::endl;
+		    temp_file << "position fr_angle: " << s->position[7] << std::endl;
+		    temp_file << "position fr_drive: " << s->position[8] << std::endl;
+			temp_file << "speed bl_angle: " << s->speed[1] << std::endl;
+			temp_file << "speed bl_drive: " << s->speed[2] << std::endl;
+			temp_file << "speed br_angle: " << s->speed[3] << std::endl;
+			temp_file << "speed br_drive: " << s->speed[4] << std::endl;
+			temp_file << "speed fl_angle: " << s->speed[5] << std::endl;
+			temp_file << "speed fl_drive: " << s->speed[6] << std::endl;
+			temp_file << "speed fr_angle: " << s->speed[7] << std::endl;
+			temp_file << "speed fr_drive: " << s->speed[8] << std::endl;
 		}
 
 	}
