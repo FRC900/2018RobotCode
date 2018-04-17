@@ -137,6 +137,7 @@ include_directories(
 add_executable(${PROJECT_NAME}_node src/search_bag.cpp)
 
 add_executable(error_search_node src/error_search.cpp)
+add_executable(encoder_search_node src/encoder_search.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -152,6 +153,8 @@ target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES} )
 
 target_link_libraries(error_search_node
+   ${catkin_LIBRARIES} )
+target_link_libraries(encoder_search_node
    ${catkin_LIBRARIES} )
 #############
 ## Install ##
