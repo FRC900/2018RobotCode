@@ -120,27 +120,20 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 		}
 		for (size_t i = priv_num; i < req.spline_groups[s]; i++)
 		{
-			//ROS_INFO_STREAM("hrer: " << req.end_points[i] - shift_by<< " r_s: " <<  req.spline_groups[s] <<  " s: "<< s);
+			ROS_INFO_STREAM("hrer: " << req.end_points[i] - shift_by<< " r_s: " <<  req.spline_groups[s] <<  " s: "<< s);
 			end_points_holder.push_back(req.end_points[i] - shift_by);
-			
 		}
 		double t_shift = req.t_shift[s];
 		bool flip_dirc = req.flip[s];	
 	
 		swerve_point_generator::GenerateSwerveProfile::Response srv_msg; //TODO FIX THIS, HACK
 		//srv_msg.points.resize(0);
-		ROS_INFO_STREAM("req.initial_v: " << req.initial_v << " req.final_v: " << req.final_v);
+		ROS_INFO_STREAM("req.initial_v: " << req.initial_v << " req.final_v: " << req.final_v << " t_shift: " << t_shift);
 		profile_gen->generate_profile(x_splines, y_splines, orient_splines, req.initial_v, req.final_v, srv_msg, end_points_holder, t_shift, flip_dirc);
 		const int point_count = srv_msg.points.size();
 		//ROS_WARN("TEST2");
 
-
-		
-
 		graph_msg.request.joint_trajectory.header = srv_msg.header;
-
-
-		
 
 		res.dt = defined_dt;
 
@@ -148,8 +141,6 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 
 		//ROS_WARN("BUFFERING");
 		//TODO: optimize code?
-
-
 
 		std::array<bool, WHEELCOUNT> holder;
 

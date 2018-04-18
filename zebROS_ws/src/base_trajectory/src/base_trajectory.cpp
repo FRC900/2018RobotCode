@@ -197,9 +197,34 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 
 			std::cout << std::endl;
 		}
+
 		// All splines in a waypoint end at the same time?
 		out_msg.end_points.push_back(trajectory[0][seg].endTime());
 	}
+#if 0
+	// Test using middle switch auto spline
+	out_msg.x_coefs[1].spline[0] = 6.0649999999999995;
+	out_msg.x_coefs[1].spline[1] = -15.510000000000002;
+	out_msg.x_coefs[1].spline[2] = 10.205;
+	out_msg.x_coefs[1].spline[3] = 0.42;
+	out_msg.x_coefs[1].spline[4] = 0.10999999999999999;
+	out_msg.x_coefs[1].spline[5] = 0.18;
+
+	out_msg.y_coefs[1].spline[0] = 1.9250000000000025;
+	out_msg.y_coefs[1].spline[1] = -5.375;
+	out_msg.y_coefs[1].spline[2] = 4.505000000000003;
+	out_msg.y_coefs[1].spline[3] = -0.8149999999999998;
+	out_msg.y_coefs[1].spline[4] = 2.4299999999999997;
+	out_msg.y_coefs[1].spline[5] = 0.45;
+
+	out_msg.orient_coefs[1].spline[0] = 0.0;
+	out_msg.orient_coefs[1].spline[1] = 0.0;
+	out_msg.orient_coefs[1].spline[2] = 0.0;
+	out_msg.orient_coefs[1].spline[3] = 0.0;
+	out_msg.orient_coefs[1].spline[4] = 0.0;
+	out_msg.orient_coefs[1].spline[5] = -3.14159;
+	out_msg.end_points[1] = 1.0; // change me to 4 to match end time in yaml and break point_gen
+#endif
 }
 
 int main(int argc, char **argv)

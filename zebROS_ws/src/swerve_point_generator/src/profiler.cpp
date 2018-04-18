@@ -172,7 +172,7 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 		//ROS_WARN("pre - even_now");
 		t_raw2 = spline(i);
 
-		ROS_INFO_STREAM("curr_v: " << curr_v << " i val: " << i << " t val: " << t_raw2 << " also: " << spline(i));
+		//ROS_INFO_STREAM("curr_v: " << curr_v << " i val: " << i << " t val: " << t_raw2 << " also: " << spline(i));
 		//ROS_WARN("even_now");
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, orient_splines_second_deriv, holder_point, end_points, dtds_for_spline, t_raw2);
 
@@ -180,7 +180,7 @@ bool swerve_profiler::generate_profile(std::vector<spline_coefs> x_splines, std:
 		{
 			return false;
 		}
-		ROS_INFO_STREAM("V: " << curr_v);
+		//ROS_INFO_STREAM("V: " << curr_v);
 	}
 	ROS_INFO_STREAM("passed loop 1");
 	velocities.erase(velocities.end() - 1);

@@ -277,7 +277,8 @@ bool generateTrajectory(const base_trajectory::GenerateSpline &srvBaseTrajectory
 	traj.request.wait_before_group.push_back(.16);
 	traj.request.t_shift.push_back(0);
 	traj.request.flip.push_back(false);
-	traj.request.end_points = srvBaseTrajectory.response.end_points;
+	traj.request.end_points.push_back(srvBaseTrajectory.response.end_points[1]);
+	//traj.request.end_points = srvBaseTrajectory.response.end_points;
 	traj.request.initial_v = 0;
 	traj.request.final_v = 0;
 	traj.request.x_invert.push_back(0);
