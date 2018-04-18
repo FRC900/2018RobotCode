@@ -85,6 +85,8 @@ int main(int argc, char **argv)
 
 		if(!motor_params.getParam("node_names", node_names_xml))
 			ROS_ERROR_STREAM("Could not get node_names in process thermal model motor type: " << motor_types_xml[i]);	
+		std::vector<double> initial_temps;
+		initial_temps.resize(node_names_xml.size());
 		for(size_t k = 0; k < node_names_xml.size(); k++)
 		{
 			ros::NodeHandle node_params(motor_params, node_names_xml[k]);
@@ -93,36 +95,62 @@ int main(int argc, char **argv)
 			
 			if(!node_params.getParam("thermal_capacity", node.thermal_capacity))
 				ROS_ERROR_STREAM("Could not get thermal_capacity in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
-			if(!node_params.getParam("emissivity", node.emissivity))
-				ROS_ERROR_STREAM("Could not get emissivity in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
 			if(!node_params.getParam("proportion_electrical_loss_absorb", node.proportion_electrical_loss_absorb))
 				ROS_ERROR_STREAM("Could not get proportion_electrical_loss_absorb in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
 			if(!node_params.getParam("proportion_mechanical_loss_absorb", node.proportion_mechanical_loss_absorb))
 				ROS_ERROR_STREAM("Could not get proportion_mechanical_loss_absorb in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
-			if(!node_params.getParam("exposure", node.exposure))
-				ROS_ERROR_STREAM("Could not get exposure in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
-			if(!node_params.getParam("fan_exposure", node.fan_exposure))
-				ROS_ERROR_STREAM("Could not get fan_exposure in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
-			if(!node_params.getParam("initial_temperature", node.temperature))
+			if(!node_params.getParam("initial_temperature", initial_temps[k]))
 				ROS_ERROR_STREAM("Could not get initial_temperature in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
 				
-	        XmlRpc::XmlRpcValue connections_xml;
-			if(!node_params.getParam("connections", connections_xml))
-				ROS_ERROR_STREAM("Could not get connections in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
+	        XmlRpc::XmlRpcValue emissive_connections_xml;
+			if(!node_params.getParam("emissive_connections", emissive_connections_xml))
+				ROS_ERROR_STREAM("Could not get emissive_connections in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
 
-			for(size_t j = 0; j < connections_xml.size(); j++)
+			for(size_t j = 0; j < emissive_connections_xml.size(); j++)
 			{
-				thermal_modeling::connection temp_connection;
-				temp_connection.id = static_cast<std::string>(connections_xml[j]["id"]);
-				temp_connection.type = thermal_modeling::string_to_connection_type(static_cast<std::string>(connections_xml[j]["type"]));
-				if(temp_connection.type == thermal_modeling::connection_type_not_found)
+				thermal_modeling::connection_emissive temp_connection(emissive_connections_xml[j]["emissivity_here"], emissive_connections_xml[j]["emissivity_there"],  emissive_connections_xml[j]["area_here"], emissive_connections_xml[j]["area_there"],  emissive_connections_xml[j]["view_factor"]);
+				temp_connection.id = static_cast<std::string>(emissive_connections_xml[j]["id"]);
+				temp_connection.infinite_thermal_sink = emissive_connections_xml[j]["infinite_thermal_sink"];
+				if(temp_connection.infinite_thermal_sink)
 				{
-					ROS_ERROR_STREAM("Connection type not recognized in process thermal model motor type: " << motor_types_xml[i] << " node: " << node_names_xml[k] << " connection number: "  << j);
+					temp_connection.infinite_thermal_sink_temp = emissive_connections_xml[j]["infinite_thermal_sink_temp"];
 				}
-				temp_connection.value = connections_xml[j]["value"]; //add as needed
 				
-				node.connections.push_back(temp_connection);
+				node.connections_emissive.push_back(temp_connection);
 			}
+	        XmlRpc::XmlRpcValue conductive_connections_xml;
+			if(!node_params.getParam("conductive_connections", conductive_connections_xml))
+				ROS_ERROR_STREAM("Could not get conductive_connections in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
+
+			for(size_t j = 0; j < conductive_connections_xml.size(); j++)
+			{
+				thermal_modeling::connection_conductive temp_connection(conductive_connections_xml[j]["k"], conductive_connections_xml[j]["area"]);
+				temp_connection.id = static_cast<std::string>(conductive_connections_xml[j]["id"]);
+				temp_connection.infinite_thermal_sink = conductive_connections_xml[j]["infinite_thermal_sink"];
+				if(temp_connection.infinite_thermal_sink)
+				{
+					temp_connection.infinite_thermal_sink_temp = conductive_connections_xml[j]["infinite_thermal_sink_temp"];
+				}
+				
+				node.connections_conductive.push_back(temp_connection);
+			}
+	        XmlRpc::XmlRpcValue convective_connections_xml;
+			if(!node_params.getParam("convective_connections", convective_connections_xml))
+				ROS_ERROR_STREAM("Could not get convective_connections in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
+
+			for(size_t j = 0; j < convective_connections_xml.size(); j++)
+			{
+				thermal_modeling::connection_convective temp_connection;
+				temp_connection.id = static_cast<std::string>(convective_connections_xml[j]["id"]);
+				temp_connection.infinite_thermal_sink = convective_connections_xml[j]["infinite_thermal_sink"];
+				if(temp_connection.infinite_thermal_sink)
+				{
+					temp_connection.infinite_thermal_sink_temp = convective_connections_xml[j]["infinite_thermal_sink_temp"];
+				}
+				
+				node.connections_convective.push_back(temp_connection);
+			}
+
 
 			nodes.insert(std::pair<std::string, thermal_modeling::node_properties>(node_names_xml[k], node));	
 		}
@@ -172,7 +200,7 @@ int main(int argc, char **argv)
 
 		for(size_t k = 0; k < talon_names_xml.size(); k++)
 		{	
-			motor_models[i][k] = std::make_shared<thermal_modeling::thermal_model>(nodes, efficiency_vs_rps, air_speed_vs_rps, properties);		
+			motor_models[i][k] = std::make_shared<thermal_modeling::thermal_model>(nodes, efficiency_vs_rps, air_speed_vs_rps, properties, initial_temps);		
 		}
 	}
 	
