@@ -73,22 +73,46 @@ namespace thermal_modeling
 		double h;
 		connection_conductive(
 		const double k,
-		const double area
+		const double area,
+		const double dist
 		) 
 		{
-			h = k*area;
+			h = k*area / dist;
 		}
 
 	};
-	struct connection_convective : connection_base
+	struct connection_natural_convective : connection_base
 	{
+		double h;
 		//Add more vals here
 		//double exposure; //total exposed area - m^2
 		//double air_speed; //total area in "fan stream" - m^2	
-		connection_convective()
+		connection_natural_convective(
+		const double k,
+		const double area
+		)
 			//exposure(0),
 			//air_speed(0)
 		{
+			h = k * area;
+		}
+
+	};
+	struct connection_fan_convective : connection_base
+	{
+		//TODO: fix this
+		double h; 
+		//Add more vals here
+		//double exposure; //total exposed area - m^2
+		//double air_speed; //total area in "fan stream" - m^2	
+		connection_fan_convective(
+		const double k,
+		const double area
+		)
+			//exposure(0),
+			//air_speed(0)
+		{
+			h = k * area;
 		}
 
 	};
@@ -97,7 +121,8 @@ namespace thermal_modeling
 		double thermal_capacity; //i.e. J/K
 		std::vector<connection_emissive> connections_emissive; //See above struct
 		std::vector<connection_conductive> connections_conductive; //See above struct
-		std::vector<connection_convective> connections_convective; //See above struct
+		std::vector<connection_natural_convective> connections_natural_convective; //See above struct
+		std::vector<connection_fan_convective> connections_fan_convective; //See above struct
 		double proportion_electrical_loss_absorb; //total should add to 1
 		double proportion_mechanical_loss_absorb; //total should add to 1
 		node_properties():
@@ -137,7 +162,8 @@ namespace thermal_modeling
 			void compute_coupled_ode_deriv(const ode_state_type &temps, ode_state_type &dtempdt, 
 			const double t);
 			void emissive_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
-			void convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
+			void natural_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
+			void fan_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
 			void conductive_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
 			std::vector<double> const_dtempdt_adder_;
 			//void diffuse_heat(const double &dt, const double &rotation_rate);

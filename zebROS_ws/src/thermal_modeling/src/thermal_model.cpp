@@ -27,10 +27,15 @@ namespace thermal_modeling
 				if(!nodes_[j].connections_conductive[k].infinite_thermal_sink)
 					nodes_[j].connections_conductive[k].index = node_indexes_[nodes_[j].connections_conductive[k].id];
 			}
-			for(size_t k = 0; k < nodes_[j].connections_convective.size(); k++)
+			for(size_t k = 0; k < nodes_[j].connections_natural_convective.size(); k++)
 			{
-				if(!nodes_[j].connections_convective[k].infinite_thermal_sink)
-					nodes_[j].connections_convective[k].index = node_indexes_[nodes_[j].connections_convective[k].id];
+				if(!nodes_[j].connections_natural_convective[k].infinite_thermal_sink)
+					nodes_[j].connections_natural_convective[k].index = node_indexes_[nodes_[j].connections_natural_convective[k].id];
+			}
+			for(size_t k = 0; k < nodes_[j].connections_fan_convective.size(); k++)
+			{
+				if(!nodes_[j].connections_fan_convective[k].infinite_thermal_sink)
+					nodes_[j].connections_fan_convective[k].index = node_indexes_[nodes_[j].connections_fan_convective[k].id];
 			}
 		}
 		efficiency_curve_.set_points(efficiency_vs_rps[0], efficiency_vs_rps[1]);
@@ -71,9 +76,13 @@ namespace thermal_modeling
 			{
 				conductive_deriv(i, k, dtempdt, temps);
 			}
-			for(size_t k = 0; k < nodes_[i].connections_convective.size(); k++)
+			for(size_t k = 0; k < nodes_[i].connections_natural_convective.size(); k++)
 			{
-				convective_deriv(i, k, dtempdt, temps);
+				natural_convective_deriv(i, k, dtempdt, temps);
+			}
+			for(size_t k = 0; k < nodes_[i].connections_fan_convective.size(); k++)
+			{
+				fan_convective_deriv(i, k, dtempdt, temps);
 			}
 		}
 	}
@@ -110,10 +119,25 @@ namespace thermal_modeling
 
 
 	}
-	void thermal_model::convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps)
+	void thermal_model::natural_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps)
+	{
+		const double other_temp = nodes_[i].connections_emissive[k].infinite_thermal_sink ? 
+		nodes_[i].connections_emissive[k].infinite_thermal_sink_temp : 
+		temps[nodes_[i].connections_emissive[k].index];
+		
+		const double Q = nodes_[i].connections_conductive[k].h * (temps[i] - other_temp);
+	
+		
+		dtempdt[i] -= Q / nodes_[i].thermal_capacity;
+		if(!nodes_[i].connections_emissive[k].infinite_thermal_sink)
+			dtempdt[nodes_[i].connections_emissive[k].index] += Q/ nodes_[nodes_[i].connections_emissive[k].index].thermal_capacity;
+
+
+	}
+	void thermal_model::fan_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps)
 	{
 		//Convection is complicated	
-
+		//TODO: fix
 	}
 
 

@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 
 			for(size_t j = 0; j < conductive_connections_xml.size(); j++)
 			{
-				thermal_modeling::connection_conductive temp_connection(conductive_connections_xml[j]["k"], conductive_connections_xml[j]["area"]);
+				thermal_modeling::connection_conductive temp_connection(conductive_connections_xml[j]["k"], conductive_connections_xml[j]["area"], conductive_connections_xml[j]["dist"]);
 				temp_connection.id = static_cast<std::string>(conductive_connections_xml[j]["id"]);
 				temp_connection.infinite_thermal_sink = conductive_connections_xml[j]["infinite_thermal_sink"];
 				if(temp_connection.infinite_thermal_sink)
@@ -134,21 +134,37 @@ int main(int argc, char **argv)
 				
 				node.connections_conductive.push_back(temp_connection);
 			}
-	        XmlRpc::XmlRpcValue convective_connections_xml;
-			if(!node_params.getParam("convective_connections", convective_connections_xml))
-				ROS_ERROR_STREAM("Could not get convective_connections in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
+	        XmlRpc::XmlRpcValue natural_convective_connections_xml;
+			if(!node_params.getParam("natural_convective_connections", natural_convective_connections_xml))
+				ROS_ERROR_STREAM("Could not get natural_convective_connections in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
 
-			for(size_t j = 0; j < convective_connections_xml.size(); j++)
+			for(size_t j = 0; j < natural_convective_connections_xml.size(); j++)
 			{
-				thermal_modeling::connection_convective temp_connection;
-				temp_connection.id = static_cast<std::string>(convective_connections_xml[j]["id"]);
-				temp_connection.infinite_thermal_sink = convective_connections_xml[j]["infinite_thermal_sink"];
+				thermal_modeling::connection_natural_convective temp_connection(conductive_connections_xml[j]["k"], conductive_connections_xml[j]["area"]);
+				temp_connection.id = static_cast<std::string>(natural_convective_connections_xml[j]["id"]);
+				temp_connection.infinite_thermal_sink = natural_convective_connections_xml[j]["infinite_thermal_sink"];
 				if(temp_connection.infinite_thermal_sink)
 				{
-					temp_connection.infinite_thermal_sink_temp = convective_connections_xml[j]["infinite_thermal_sink_temp"];
+					temp_connection.infinite_thermal_sink_temp = natural_convective_connections_xml[j]["infinite_thermal_sink_temp"];
 				}
 				
-				node.connections_convective.push_back(temp_connection);
+				node.connections_natural_convective.push_back(temp_connection);
+			}
+	        XmlRpc::XmlRpcValue fan_convective_connections_xml;
+			if(!node_params.getParam("fan_convective_connections", fan_convective_connections_xml))
+				ROS_ERROR_STREAM("Could not get fan_convective_connections in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
+
+			for(size_t j = 0; j < fan_convective_connections_xml.size(); j++)
+			{
+				thermal_modeling::connection_fan_convective temp_connection(conductive_connections_xml[j]["k"], conductive_connections_xml[j]["area"]);
+				temp_connection.id = static_cast<std::string>(fan_convective_connections_xml[j]["id"]);
+				temp_connection.infinite_thermal_sink = fan_convective_connections_xml[j]["infinite_thermal_sink"];
+				if(temp_connection.infinite_thermal_sink)
+				{
+					temp_connection.infinite_thermal_sink_temp = fan_convective_connections_xml[j]["infinite_thermal_sink_temp"];
+				}
+				
+				node.connections_fan_convective.push_back(temp_connection);
 			}
 
 
