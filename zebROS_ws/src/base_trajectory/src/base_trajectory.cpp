@@ -168,12 +168,12 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 	{
 		for (size_t joint = 0; joint < n_joints; joint++)
 		{
-			std::cout << "joint = " << joint_names[joint] << " seg = " << seg;
-			std::cout << " start_time = " << trajectory[joint][seg].startTime();
-			std::cout << " end_time = " << trajectory[joint][seg].endTime() << std::endl;
+			ROS_INFO_STREAM("joint = " << joint_names[joint] << " seg = " << seg <<
+			                " start_time = " << trajectory[joint][seg].startTime() <<
+			                " end_time = " << trajectory[joint][seg].endTime());
 			auto coefs = trajectory[joint][seg].getCoefs();
 
-			std::cout << "coefs: " << coefs[0][0] << " " << coefs[0][1] << " " << coefs[0][2] << " " << coefs[0][3] << " " << coefs[0][4] << " " << coefs[0][5];
+			ROS_INFO_STREAM("coefs: " << coefs[0][0] << " " << coefs[0][1] << " " << coefs[0][2] << " " << coefs[0][3] << " " << coefs[0][4] << " " << coefs[0][5]);
 
 			std::vector<double> *m;
 
@@ -192,7 +192,7 @@ bool generate(base_trajectory::GenerateSpline::Request &msg,
 			// Push in reverse order to match expectations
 			// of point_gen code?
 			m->clear();
-			for (int i = 0; i <= 5; i++)
+			for (int i = 5; i >= 0; i--)
 				m->push_back(coefs[0][i]);
 
 			std::cout << std::endl;
