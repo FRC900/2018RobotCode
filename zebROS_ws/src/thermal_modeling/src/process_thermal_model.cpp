@@ -109,13 +109,16 @@ int main(int argc, char **argv)
 			for(size_t j = 0; j < emissive_connections_xml.size(); j++)
 			{
 				thermal_modeling::connection_emissive temp_connection(emissive_connections_xml[j]["emissivity_here"], emissive_connections_xml[j]["emissivity_there"],  emissive_connections_xml[j]["area_here"], emissive_connections_xml[j]["area_there"],  emissive_connections_xml[j]["view_factor"]);
-				temp_connection.id = static_cast<std::string>(emissive_connections_xml[j]["id"]);
+
 				temp_connection.infinite_thermal_sink = emissive_connections_xml[j]["infinite_thermal_sink"];
 				if(temp_connection.infinite_thermal_sink)
 				{
 					temp_connection.infinite_thermal_sink_temp = emissive_connections_xml[j]["infinite_thermal_sink_temp"];
 				}
-				
+				else
+				{
+					temp_connection.id = static_cast<std::string>(emissive_connections_xml[j]["id"]);
+				}
 				node.connections_emissive.push_back(temp_connection);
 			}
 	        XmlRpc::XmlRpcValue conductive_connections_xml;
@@ -125,11 +128,15 @@ int main(int argc, char **argv)
 			for(size_t j = 0; j < conductive_connections_xml.size(); j++)
 			{
 				thermal_modeling::connection_conductive temp_connection(conductive_connections_xml[j]["k"], conductive_connections_xml[j]["area"], conductive_connections_xml[j]["dist"]);
-				temp_connection.id = static_cast<std::string>(conductive_connections_xml[j]["id"]);
+
 				temp_connection.infinite_thermal_sink = conductive_connections_xml[j]["infinite_thermal_sink"];
 				if(temp_connection.infinite_thermal_sink)
 				{
 					temp_connection.infinite_thermal_sink_temp = conductive_connections_xml[j]["infinite_thermal_sink_temp"];
+				}
+				else
+				{	
+					temp_connection.id = static_cast<std::string>(conductive_connections_xml[j]["id"]);
 				}
 				
 				node.connections_conductive.push_back(temp_connection);
@@ -141,13 +148,16 @@ int main(int argc, char **argv)
 			for(size_t j = 0; j < natural_convective_connections_xml.size(); j++)
 			{
 				thermal_modeling::connection_natural_convective temp_connection(conductive_connections_xml[j]["k"], conductive_connections_xml[j]["area"]);
-				temp_connection.id = static_cast<std::string>(natural_convective_connections_xml[j]["id"]);
+
 				temp_connection.infinite_thermal_sink = natural_convective_connections_xml[j]["infinite_thermal_sink"];
 				if(temp_connection.infinite_thermal_sink)
 				{
 					temp_connection.infinite_thermal_sink_temp = natural_convective_connections_xml[j]["infinite_thermal_sink_temp"];
 				}
-				
+				else
+				{
+					temp_connection.id = static_cast<std::string>(natural_convective_connections_xml[j]["id"]);
+				}
 				node.connections_natural_convective.push_back(temp_connection);
 			}
 	        XmlRpc::XmlRpcValue fan_convective_connections_xml;
@@ -157,11 +167,15 @@ int main(int argc, char **argv)
 			for(size_t j = 0; j < fan_convective_connections_xml.size(); j++)
 			{
 				thermal_modeling::connection_fan_convective temp_connection(conductive_connections_xml[j]["k"], conductive_connections_xml[j]["area"]);
-				temp_connection.id = static_cast<std::string>(fan_convective_connections_xml[j]["id"]);
+
 				temp_connection.infinite_thermal_sink = fan_convective_connections_xml[j]["infinite_thermal_sink"];
 				if(temp_connection.infinite_thermal_sink)
 				{
 					temp_connection.infinite_thermal_sink_temp = fan_convective_connections_xml[j]["infinite_thermal_sink_temp"];
+				}
+				else
+				{
+					temp_connection.id = static_cast<std::string>(fan_convective_connections_xml[j]["id"]);
 				}
 				
 				node.connections_fan_convective.push_back(temp_connection);

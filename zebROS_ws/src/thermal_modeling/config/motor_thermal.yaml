@@ -11,22 +11,29 @@ thermal_model_params:
         node_names: ["test_node1", "test_node2"]
         test_node1: 
             thermal_capacity: 1.
-            emissivity: 1.
             proportion_mechanical_loss_absorb: 0.
             proportion_electrical_loss_absorb: 1.
-            exposure: 1.
-            fan_exposure: 1.
-            initial_temperature: 1.0
-            connections:
-                [{id: "test_node2", type: "emissive", value: 1}]
+            initial_temperature: 287.0
+            emissive_connections:
+                []
+            conductive_connections:
+                [{id: "test_node2", k: 1., area: 1., dist: 1., infinite_thermal_sink: false}]
+            natural_convective_connections:
+                []
+            fan_convective_connections:
+                []
         test_node2: 
             thermal_capacity: 1.
-            emissivity: 1.
             proportion_mechanical_loss_absorb: 0.
             proportion_electrical_loss_absorb: 1.
-            exposure: 1.
-            fan_exposure: 1.
-            initial_temperature: 1.0
-            connections:
-                [{id: "test_node1", type: "emissive", value: 1}]
+            initial_temperature: 287.0
+            emissive_connections:
+                []
+            conductive_connections:
+                []
+            natural_convective_connections:
+                []
+            fan_convective_connections:
+                []
+
 
