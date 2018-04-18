@@ -13,6 +13,8 @@
 #include "behaviors/IntakeAction.h"
 #include "behaviors/LiftAction.h"
 #include "std_msgs/Bool.h"
+#include "robot_visualizer/ProfileFollower.h"
+
 
 /*TODO list:
  *
@@ -55,6 +57,7 @@ static ros::ServiceClient ClampSrv;
 static ros::ServiceClient IntakeSrv;
 static ros::ServiceClient BrakeSrv;
 
+ros::ServiceClient VisualizeService;
 ros::ServiceClient point_gen;
 ros::ServiceClient swerve_control;
 ros::ServiceClient spline_gen;
@@ -90,7 +93,7 @@ static double over_back_x;
 static double intake_low_x;
 static double over_back_y;
 static bool over_back_up_or_down;
-static bool outOfPoints;
+static std::atomic<bool> outOfPoints;
 
 enum pos {high_scale, mid_scale, low_scale, switch_c, exchange, intake_ready_to_drop, intake, intake_low, climb_c, default_c, other};
 
@@ -229,8 +232,16 @@ void setHeight(const pos achieved_pos, pos &last_achieved_pos, ElevatorPos &elev
 	last_achieved_pos = achieved_pos;
 }
 
-bool generateCoefs(const double angle_diff, const ros::Duration time_to_run, base_trajectory::GenerateSpline &srvBaseTrajectory)
+bool generateCoefs(const double angle_diff, const ros::Duration &time_to_run, base_trajectory::GenerateSpline &srvBaseTrajectory)
 {
+	if (angle_diff == 0)
+		return false;
+
+	if (time_to_run.toSec() <= 0)
+	{
+		ROS_ERROR("generateCoefs() called with <= 0 time_to_run");
+		return false;
+	}
 	srvBaseTrajectory.request.points.resize(1); //only need one endpoint -- final orientation of robot
 	
 	//x-movement (not moving at all)
@@ -254,7 +265,7 @@ bool generateCoefs(const double angle_diff, const ros::Duration time_to_run, bas
 		return true;
 }
 
-bool generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory, swerve_point_generator::FullGenCoefs &traj) 
+bool generateTrajectory(const base_trajectory::GenerateSpline &srvBaseTrajectory, swerve_point_generator::FullGenCoefs &traj) 
 {
 	traj.request.orient_coefs.resize(1);
 	traj.request.x_coefs.resize(1);
@@ -273,8 +284,8 @@ bool generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory,
 
 	if (traj.request.end_points.empty())
 		ROS_WARN("request end points are empty");
-	else
-		ROS_WARN("request end points are not empty????????");
+	//else
+		//ROS_WARN("request end points are not empty????????");
 
 	if (srvBaseTrajectory.response.end_points.empty())
 		ROS_INFO_STREAM("things are broken");
@@ -287,10 +298,24 @@ bool generateTrajectory(const base_trajectory::GenerateSpline srvBaseTrajectory,
 
 bool runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
 {
-	talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
 
 	ROS_INFO_STREAM("traj: " << traj.dt);
 
+	robot_visualizer::ProfileFollower srv_viz_msg;
+	srv_viz_msg.request.joint_trajectories.push_back(traj.joint_trajectory);
+
+	srv_viz_msg.request.start_id = 0;
+
+	if(!VisualizeService.call(srv_viz_msg))
+	{
+		ROS_ERROR("failed to call viz srv");
+	}
+	else
+	{
+		ROS_ERROR("succeded in call to viz srv");
+	}
+
+	talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
 	swerve_control_srv.request.profiles.resize(1);
     swerve_control_srv.request.profiles[0].points = traj.points;
     swerve_control_srv.request.profiles[0].dt = 0.02;
@@ -302,7 +327,6 @@ bool runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
 		return false;
 	else
 		return true;
-
 }
 
 void match_data_callback(const ros_control_boilerplate::MatchSpecificData::ConstPtr &MatchData)
@@ -1189,38 +1213,43 @@ rightStickY = -pow(rightStickY, joystick_scale);
 
 double rotation = ( pow(JoystickState->leftTrigger, rotation_scale) - pow(JoystickState->rightTrigger, rotation_scale)) * max_rot;
 
-static bool sendRobotZero = false;
-// No motion? Tell the drive base to stop
+static bool sendRobotZero = false; // No motion? Tell the drive base to stop
 if(JoystickState->stickRightPress == true)
 {
 	ROS_INFO_STREAM("outOfPoints = " << outOfPoints);
 	static bool orient_running = false;
-	if(!orient_running || outOfPoints)
+	if(!orient_running || outOfPoints.load(std::memory_order_relaxed))
 	{
+		orient_running = false;
 		sendRobotZero = false;
-		double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
-		//double angle = M_PI/12; //for testing
+		const double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
+		//const double angle = M_PI; //for testing
 		ROS_INFO_STREAM("angle = " << angle);
-		static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
-		static double max_rotational_velocity = 8.8; //radians/sec TODO: find this in config
+		// TODO: look at using ros::angles package
+		//const double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
+		const double least_dist_angle = angle + 2* M_PI;
+		const double max_rotational_velocity = 8.8; //radians/sec TODO: find this in config
 
-		static ros::Duration time_to_run((fabs((least_dist_angle - angle)) / max_rotational_velocity) * .8); //TODO: needs testing
+		ROS_INFO_STREAM("delta angle = " << least_dist_angle - angle);
+		const ros::Duration time_to_run((fabs(least_dist_angle - angle) / max_rotational_velocity) * .5); //TODO: needs testing
+		ROS_INFO_STREAM("time_to_run = " << time_to_run.toSec());
 
 		base_trajectory::GenerateSpline srvBaseTrajectory;
 		swerve_point_generator::FullGenCoefs traj;
 		
 		if (!generateCoefs(least_dist_angle - angle, time_to_run, srvBaseTrajectory)) //generate coefficients for the spline from the endpoints 
 			ROS_INFO_STREAM("spline_gen died in teleopJoystickCommands generateCoefs");
-		if (!generateTrajectory(srvBaseTrajectory, traj)) //generate a motion profile from the coefs
+		else if (!generateTrajectory(srvBaseTrajectory, traj)) //generate a motion profile from the coefs
 			ROS_INFO_STREAM("point_gen died in teleopJoystickCommands generateTrajectory");
-		if (!runTrajectory(traj.response)) //run on swerve_control
+		else if (!runTrajectory(traj.response)) //run on swerve_control
 			ROS_ERROR("swerve_control failed in teleopJoystickCommands runTrajectory");
-		orient_running = true;
+		else
+			orient_running = true;
 	}
 	else 
 	{
 		ROS_INFO_STREAM("Can't run orient, it's already running");
-		if (outOfPoints)
+		if (outOfPoints.load(std::memory_order_relaxed))
 			orient_running = false;
 	}
 }
@@ -1261,27 +1290,6 @@ if (fabs(leftStickX) == 0.0 && fabs(leftStickY) == 0.0 && rotation == 0.0)
 		  JoystickTestVel.publish(test_header);*/
 		sendRobotZero = false;
 	}
-
-#if 0
-if(JoystickState->bumperLeftButton == true)
-{
-	//check to see if it's already running
-	sendRobotZero = false;
-	double angle = -navX_angle.load(std::memory_order_relaxed) - M_PI / 2;
-	static double least_dist_angle = round(angle/(M_PI/2))*M_PI/2;
-
-	const double swerve_radius = hypot(wheel_coords1x, wheel_coords1y);
-	const double distanceToBeTravelled = (least_dist_angle - angle) * swerve_radius / wheel_radius;
-
-	//load values from kevin
-
-	//get robot dimensions (distance from wheels to center of the robot)
-	//rotate wheels to be at 45 degree angles
-	//set target wheel position to the distance of the angle to be travelled times radius of robot (etc etc)
-	
-	runTrajectory(&traj);
-}
-#endif
 
 	if (rightStickX != 0 || rightStickY != 0)
 	{
@@ -1427,6 +1435,7 @@ int main(int argc, char **argv)
 	disableArmLimits = false;
 	navX_angle = M_PI / 2;
 	matchTimeRemaining = std::numeric_limits<double>::max();
+	outOfPoints = false;
 
 	ac = std::make_shared<actionlib::SimpleActionClient<behaviors::RobotAction>>("auto_interpreter_server", true);
 	ac_intake = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>>("auto_interpreter_server_intake", true);
@@ -1450,6 +1459,7 @@ int main(int argc, char **argv)
 	swerve_control = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile", false, service_connection_header);
 	spline_gen = n.serviceClient<base_trajectory::GenerateSpline>("/base_trajectory/spline_gen", false, service_connection_header);
 
+	VisualizeService = n.serviceClient<robot_visualizer::ProfileFollower>("/frcrobot/visualize_auto", false, service_connection_header);    
 	ros::Subscriber joystick_sub  = n.subscribe("joystick_states", 1, &evaluateCommands);
 	ros::Subscriber match_data    = n.subscribe("match_data", 1, &match_data_callback);
 	ros::Subscriber navX_heading  = n.subscribe("/frcrobot/navx_mxp", 1, &navXCallback);
@@ -1481,7 +1491,8 @@ void navXCallback(const sensor_msgs::Imu &navXState)
 	double pitch;
 	double yaw;
 	tf2::Matrix3x3(navQuat).getRPY(roll, pitch, yaw);
-	navX_angle.store(yaw, std::memory_order_relaxed);
+	if (yaw == yaw)
+		navX_angle.store(yaw, std::memory_order_relaxed);
 }
 
 void cube_rumble(bool has_cube) {
@@ -1534,11 +1545,25 @@ void jointStateCallback(const sensor_msgs::JointState &joint_state)
 		clamped_c.store(joint_state.position[clamp_idx] <= 0, std::memory_order_relaxed);
 	if (override_arm_limits_idx < joint_state.position.size())
 		disableArmLimits.store(joint_state.position[override_arm_limits_idx], std::memory_order_relaxed);
-	
 }
 
 void talonStateCallback(const talon_state_controller::TalonState &talon_state)
 {
 	// TODO : This shouldn't be hard-coded
-	outOfPoints = talon_state.custom_profile_status[24].outOfPoints;
+	static size_t bl_angle_idx = std::numeric_limits<size_t>::max();
+
+	if (bl_angle_idx >= talon_state.name.size())
+	{
+		for (size_t i = 0; i < talon_state.name.size(); i++)
+		{
+			if (talon_state.name[i] == "bl_angle")
+			{
+				bl_angle_idx = i;
+				break;
+			}
+		}
+	}
+
+	if (bl_angle_idx < talon_state.custom_profile_status.size())
+		outOfPoints.store(talon_state.custom_profile_status[bl_angle_idx].outOfPoints, std::memory_order_relaxed);
 }
