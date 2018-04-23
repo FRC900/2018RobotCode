@@ -29,6 +29,7 @@
         <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
         <rosparam file="$(find behaviors)/config/autoInterpreterServer.yaml" command="load"/>
         <rosparam file="$(find robot_visualizer)/config/robot_visualize.yaml" command="load"/>
+        <rosparam file="$(find thermal_modeling)/config/motor_thermal.yaml" command="load"/>
 
 		<!-- Load hardware interface -->
 		<node name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
@@ -57,6 +58,8 @@
 		<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="screen" >
         	</node>
 		<node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="screen" >
+		</node>
+		<node name="process_thermal_model" pkg="thermal_modeling" type="process_thermal_model" output="screen" >
 		</node>
 	
 		<node name="map_server" pkg="map_server" type="map_server" args="$(find controller_node)/maps/2018FRC_field.yaml" output="screen" if="$(arg static_map)">

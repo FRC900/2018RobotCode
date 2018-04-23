@@ -35,5 +35,3 @@ thermal_model_params:
                 []
             fan_convective_connections:
                 []
-
-
