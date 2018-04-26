@@ -62,6 +62,8 @@ class ElevatorController
 		std::string name_;
 		hardware_interface::JointStateHandle line_break_intake_high_;
 		hardware_interface::JointStateHandle line_break_intake_low_;
+		elevator_controller::CubeState overwritten_cube;
+		bool overwritten;
 		std::atomic<bool> shift_cmd_;
 		bool shifted_;
 		std::atomic<double> clamp_cmd_;
@@ -111,6 +113,7 @@ class ElevatorController
 		realtime_tools::RealtimeBuffer<Commands> command_;
 		Commands command_struct_;
 		ros::Subscriber sub_command_;
+		ros::Subscriber sub_cube_;
 		hardware_interface::JointStateHandle stop_arm_;
 		hardware_interface::JointStateHandle starting_config_;
 		ros::ServiceServer service_command_;
@@ -144,6 +147,7 @@ class ElevatorController
 		double pivot_offset_;
 		double lift_offset_;
 		void cmdPosCallback(const elevator_controller::ElevatorControl& command);
+		void cubeCallback(const elevator_controller::CubeState::ConstPtr published_state);
 		//void enabledCallback(const ros_control_boilerplate::MatchSpecificData& enabled);
 		void lineBreakCallback(const sensor_msgs::JointState&);
 		bool cmdPosService(elevator_controller::ElevatorControlS::Request &command, elevator_controller::ElevatorControlS::Response &res);
