@@ -567,6 +567,13 @@ void FRCRobotInterface::init()
 		hardware_interface::ImuSensorHandle::Data imu_data;
 		imu_data.name = navX_names_[i];
 		imu_data.frame_id = navX_frame_ids_[i];
+		for (size_t j = 0; j < 3; j++)
+		{
+			imu_orientations_[i][j] = 0;
+			imu_angular_velocities_[i][j] = 0;
+			imu_linear_accelerations_[i][j] = 0;
+		}
+		imu_orientations_[i][3] = 1;
 		imu_data.orientation = &imu_orientations_[i][0];
 		imu_data.orientation_covariance = &imu_orientation_covariances_[i][0];
 		imu_data.angular_velocity = &imu_angular_velocities_[i][0];

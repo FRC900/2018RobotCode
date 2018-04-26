@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(rosbag_scripts)
+project(vid_reader_node)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -7,17 +7,31 @@ project(rosbag_scripts)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+
+include ("../cmake_modules/CMakeOpt.cmake")
+
+if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-  ros_control_boilerplate
-  rosbag
+     roscpp
+     sensor_msgs
+     cv_bridge
 )
+find_package(OpenCV REQUIRED)
+find_package(Boost COMPONENTS filesystem system serialization iostreams thread REQUIRED)
+find_package(PCL REQUIRED COMPONENTS common io)
+add_definitions(${PCL_DEFINITIONS})
+find_library (LibTinyXML2 tinyxml2)
+include_directories(
+	${PCL_INCLUDE_DIRS}
+	include
+	${catkin_INCLUDE_DIRS}
+	${OpenCV_INCLUDE_DIRS}
+	${Boost_INCLUDE_DIR}
+	${PCL_INCLUDE_DIRS}
+	../../../common
+	)
 
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
-
+link_directories(${ZED_LIBRARY_DIR} ${PCL_LIBRARY_DIRS} /usr/local/cuda/lib64/stubs)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -49,11 +63,9 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+#add_message_files(
+#FILES
+#)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -70,10 +82,10 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+#generate_messages(
+#DEPENDENCIES
+#sensor_msgs
+#)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -104,11 +116,12 @@ find_package(catkin REQUIRED COMPONENTS
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-catkin_package(
-   LIBRARIES
-   CATKIN_DEPENDS roscpp rospy std_msgs ros_control_boilerplate rosbag
-#  DEPENDS system_lib
-)
+ catkin_package(
+  #  INCLUDE_DIRS include
+  #  LIBRARIES vid_reader_node
+    CATKIN_DEPENDS roscpp message_runtime sensor_msgs
+  #  DEPENDS system_lib
+  )
 
 ###########
 ## Build ##
@@ -116,14 +129,10 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
-# include
-  ${catkin_INCLUDE_DIRS}
-)
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/rosbag_scripts.cpp
+#   src/${PROJECT_NAME}/vid_reader_node.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -134,10 +143,19 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/search_bag.cpp)
+# add_executable(${PROJECT_NAME}_node src/vid_reader_node_node.cpp)
+add_executable(vid_reader_node
+	src/vid_reader.cpp
+	../../../common/mediain.cpp
+	../../../common/syncin.cpp
+	../../../common/zmsin.cpp
+	../../../common/cameraparams.cpp
+	../../../common/zedparams.cpp
+	../../../common/portable_binary_iarchive.cpp
+	../../../common/portable_binary_oarchive.cpp
+	../../../common/ZvSettings.cpp
+)
 
-add_executable(error_search_node src/error_search.cpp)
-add_executable(encoder_search_node src/encoder_search.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -146,16 +164,24 @@ add_executable(encoder_search_node src/encoder_search.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(vid_reader_node 
+    ${${PROJECT_NAME}_EXPORTED_TARGETS} 
+    ${catkin_EXPORTED_TARGETS}
+  )
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_node
-   ${catkin_LIBRARIES} )
+# target_link_libraries(${PROJECT_NAME}_node
+#   ${catkin_LIBRARIES}
+# )
+target_link_libraries(
+	vid_reader_node
+	${catkin_LIBRARIES}
+	${OpenCV_LIBS}
+	${Boost_LIBRARIES}
+	${PCL_COMMON_LIBRARIES}
+	${LibTinyXML2}
+)
 
-target_link_libraries(error_search_node
-   ${catkin_LIBRARIES} )
-target_link_libraries(encoder_search_node
-   ${catkin_LIBRARIES} )
 #############
 ## Install ##
 #############
@@ -171,11 +197,11 @@ target_link_libraries(encoder_search_node
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
-#   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+  install(TARGETS vid_reader_node
+    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+    RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  )
 
 ## Mark cpp header files for installation
 # install(DIRECTORY include/${PROJECT_NAME}/
@@ -196,10 +222,11 @@ target_link_libraries(encoder_search_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_rosbag_scripts.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_vid_reader_node.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+ endif()

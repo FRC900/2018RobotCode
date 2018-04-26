@@ -60,6 +60,7 @@
   <exec_depend>std_msgs</exec_depend>
   <depend>ros_control_boilerplate</depend>
   <depend>rosbag</depend>
+  <depend>talon_state_controller</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
