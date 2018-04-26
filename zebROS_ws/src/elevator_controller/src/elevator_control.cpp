@@ -626,7 +626,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	elevator_controller::CubeState cube_msg;
 	if(overwritten)
 	{
-		ROS_INFO_STREAM("overwritten by bool");
 		cube_msg.intake_high = overwritten_cube.intake_high;
 		cube_msg.intake_low = overwritten_cube.intake_low;
 		cube_msg.clamp = overwritten_cube.clamp;
@@ -634,7 +633,6 @@ void ElevatorController::update(const ros::Time &/*time*/, const ros::Duration &
 	}
 	else
 	{
-		ROS_INFO_STREAM("not overwritten");
 		cube_msg.intake_high = line_break_intake_high_.getPosition() != 0;
 		cube_msg.intake_low = line_break_intake_low_.getPosition() != 0;
 		cube_msg.clamp = pivot_joint_.getForwardLimitSwitch();
