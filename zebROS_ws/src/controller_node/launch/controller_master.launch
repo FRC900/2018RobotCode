@@ -75,6 +75,8 @@
 	<include file="$(find controller_node)/launch/record_simple.launch" if="$(arg record)" />
 -->
 
+	<include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)" />
+
 	<!-- <include file="$(find ti_mmwave_rospkg)/launch/ti_mmwave_sensor.launch">
 		<arg name="device" value="1443" doc="TI mmWave sensor device type [1443, 1642]"/>
 		<arg name="config" value="3d" doc="TI mmWave sensor device configuration [3d (not supported by 1642 EVM), 2d]"/>
