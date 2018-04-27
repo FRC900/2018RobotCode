@@ -867,7 +867,6 @@ void ElevatorController::cubeCallback(const elevator_controller::CubeState::Cons
 		overwritten_cube.has_cube = overwritten_cube.intake_high || overwritten_cube.intake_low || overwritten_cube.clamp;
 		if(published_state != NULL) {
 			overwritten = true;
-			ROS_INFO_STREAM("overwritten was set to " << overwritten); }
 	}
 	else
 	{
