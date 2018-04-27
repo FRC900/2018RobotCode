@@ -38,7 +38,7 @@ hardware_interface:
 # to figure out what to map e.g. effort to in the Talon world
 talon_state_controller:
    type:         talon_state_controller/TalonStateController
-   publish_rate: 30
+   publish_rate: 50
 
 # Similar to above, but this one prints non-Talon state
 # (stuff that fits into the more standard ROS position/
@@ -47,6 +47,10 @@ joint_state_controller:
    type:         joint_state_controller/JointStateController
    publish_rate: 20
 
+
+pdp_state_controller:
+   type:         pdp_state_controller/PDPStateController
+   publish_rate: 50
 
 fl_angle_controller:
     type: talon_controllers/TalonPercentOutputController
@@ -115,28 +119,28 @@ bl_angle_controller:
     voltage_compensation_enable: true
 
 bl_drive_controller:
-    type: talon_controllers/TalonPositionCloseLoopController    
+    type: talon_controllers/TalonVelocityCloseLoopController    
     close_loop_values:
         - {p: 0.2, i: 0.002, d: 0.1, f: 0.06145, i_zone: 700}
     joint: bl_drive
     feedback_type: CTRE_MagEncoder_Relative
     sensor_phase: True
 br_drive_controller:
-    type: talon_controllers/TalonPositionCloseLoopController
+    type: talon_controllers/TalonVelocityCloseLoopController
     close_loop_values:
         - {p: 0.2, i: 0.002, d: 0.1, f: 0.06145, i_zone: 700}
     joint: br_drive
     feedback_type: CTRE_MagEncoder_Relative
     sensor_phase: True
 fl_drive_controller:
-    type: talon_controllers/TalonPositionCloseLoopController
+    type: talon_controllers/TalonVelocityCloseLoopController
     close_loop_values:
         - {p: 0.2, i: 0.002, d: 0.1, f: 0.06145, i_zone: 700}
     joint: fl_drive
     feedback_type: CTRE_MagEncoder_Relative
     sensor_phase: True
 fr_drive_controller:
-    type: talon_controllers/TalonPositionCloseLoopController
+    type: talon_controllers/TalonVelocityCloseLoopController
     close_loop_values: 
         - {p: 0.2, i: 0.002, d: 0.1, f: 0.06145, i_zone: 700}
     joint: fr_drive
