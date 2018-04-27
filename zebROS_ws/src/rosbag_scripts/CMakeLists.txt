@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   ros_control_boilerplate
   rosbag
+  talon_state_controller
 )
 
 ## System dependencies are found with CMake's conventions
@@ -106,7 +107,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
    LIBRARIES
-   CATKIN_DEPENDS roscpp rospy std_msgs ros_control_boilerplate rosbag
+   CATKIN_DEPENDS roscpp rospy std_msgs ros_control_boilerplate rosbag talon_state_controller
 #  DEPENDS system_lib
 )
 

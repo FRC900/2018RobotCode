@@ -865,7 +865,7 @@ void ElevatorController::cubeCallback(const elevator_controller::CubeState::Cons
 		overwritten_cube.intake_low = published_state->intake_low;
 		overwritten_cube.clamp = published_state->clamp;
 		overwritten_cube.has_cube = overwritten_cube.intake_high || overwritten_cube.intake_low || overwritten_cube.clamp;
-		if(published_state != NULL) {
+		if(published_state != NULL)
 			overwritten = true;
 	}
 	else
