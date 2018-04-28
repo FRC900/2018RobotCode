@@ -9,10 +9,7 @@ mkdir ~/catkin_arm_cross_ws
 cd ~/catkin_arm_cross_ws
 rosinstall_generator ros ros_comm robot angles serial robot_localization controller_interface controller_manager combined_robot_hw joint_limits_interface transmission_interface controller_manager controller_interface hardware_interface controller_manager_tests controller_manager_msgs combined_robot_hw combined_robot_hw_tests forward_command_controller tf2_tools tf2_eigen tf2_sensor_msgs rosparam_shortcuts rqt_controller_manager actionlib_tutorials image_transport --rosdistro kinetic --deps --wet-only > kinetic-ros_comm-wet.rosinstall
 
-joint_limits_interface transmission_interface controller_manager controller_interface hardware_interface controller_manager_tests controller_manager_msgs combined_robot_hw combined_robot_hw_tests
-
-
-edit kinetic-ros_comm-wet.rosinstall and remove entry for realtime_tools, filter
+edit kinetic-ros_comm-wet.rosinstall and remove entries for realtime_tools, filter
 
 mkdir -p ~/catkin_arm_cross_ws/src
 cd ~/catkin_arm_cross_ws/src
@@ -51,10 +48,6 @@ cd ~/catkin_arm_cross_ws
 wstool merge -j8 -t src kinetic-ros_comm-wet.rosinstall
 
 add "<depend>urdfdom_headers</depend>" to src/urdf/urdf_parser_plugin/package.xml
-
-edit src/ros_control/controller_manager/package.xml, remove ref to realtime_tools
-edit src/ros_control/controller_manager/CMakeLists.txt, remove ref to realtime_tools
-edit src/ros_control/ros_control/package.xml, remove ref to realtime_tools
 
 # Do a fresh build - kill off any lingering dependencies
 rm -rf /usr/arm-frc-linux-gnueabi/opt/ros/kinetic devel_isolated build_isolated
