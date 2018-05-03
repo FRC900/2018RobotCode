@@ -852,7 +852,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 			internal_status.outputEnable = static_cast<hardware_interface::SetValueMotionProfile>(talon_status.outputEnable);
 			internal_status.timeDurMs = talon_status.timeDurMs;
 			ts.setMotionProfileStatus(internal_status);
-		}  	
+		}
 		const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 		safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
 		ts.setPosition(position);
@@ -940,10 +940,6 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 			//ts.setForwardSoftlimitHit(faults.ForwardSoftLimit);
 			//ts.setReverseSoftlimitHit(faults.ReverseSoftLimit);
-
-
-				
-
 		}
 		if(counter % 100 == 0)
 		{	
@@ -1076,8 +1072,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 
 double FRCRobotHWInterface::getConversionFactor(int encoder_ticks_per_rotation,
 						hardware_interface::FeedbackDevice encoder_feedback,
-						hardware_interface::TalonMode talon_mode,
-						int joint_id)
+						hardware_interface::TalonMode talon_mode)
 {
 	if(talon_mode == hardware_interface::TalonMode_Position)
 	{
