@@ -735,6 +735,15 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 			motion_profile_mode = true;
 		}
 
+		hardware_interface::FeedbackDevice internal_feedback_device;
+		double feedback_coefficient;
+		if (tc.encoderFeedbackChanged(internal_feedback_device, feedback_coefficient))
+		{
+			ROS_INFO("feedback");
+ 			ts.setEncoderFeedback(internal_feedback_device);
+			ts.setFeedbackCoefficient(feedback_coefficient);
+		}
+
 		// Only update PID settings if closed loop
 		// mode has been requested
 		if (close_loop_mode)
