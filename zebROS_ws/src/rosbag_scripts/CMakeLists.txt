@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   ros_control_boilerplate
   rosbag
   talon_state_controller
+  rospy_message_converter
 )
 
 ## System dependencies are found with CMake's conventions
@@ -107,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
    LIBRARIES
-   CATKIN_DEPENDS roscpp rospy std_msgs ros_control_boilerplate rosbag talon_state_controller
+   CATKIN_DEPENDS roscpp rospy std_msgs ros_control_boilerplate rosbag talon_state_controller rospy_message_converter
 #  DEPENDS system_lib
 )
 
@@ -166,10 +167,10 @@ target_link_libraries(encoder_search_node
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(PROGRAMS
+   scripts/convert_to_json.py
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
 
 ## Mark executables and/or libraries for installation
 # install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node

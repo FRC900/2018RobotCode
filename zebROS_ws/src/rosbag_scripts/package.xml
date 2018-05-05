@@ -61,6 +61,7 @@
   <depend>ros_control_boilerplate</depend>
   <depend>rosbag</depend>
   <depend>talon_state_controller</depend>
+  <depend>rospy_message_converter</depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->
