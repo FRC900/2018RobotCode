@@ -496,8 +496,8 @@ void FRCRobotHWInterface::customProfileSetMode(int joint_id,
 	const int encoder_ticks_per_rotation = talon_state_[joint_id].getEncoderTicksPerRotation();
 	const double conversion_factor = talon_state_[joint_id].getConversionFactor();
 
-	const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
-	const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
+	const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position) * conversion_factor;
+	const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity)* conversion_factor;
 	switch (out_mode)
 	{
 		case ctre::phoenix::motorcontrol::ControlMode::Velocity:
@@ -784,8 +784,8 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		const int encoder_ticks_per_rotation = ts.getEncoderTicksPerRotation();
 		const double conversion_factor = ts.getConversionFactor();
 
-		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
-		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity, joint_id)* conversion_factor;
+		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position) * conversion_factor;
+		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity)* conversion_factor;
 
 		if(ts.getCANID() == 51)
 		{
@@ -1324,9 +1324,9 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		if (tc.conversionFactorChanged(conversion_factor))
 			ts.setConversionFactor(conversion_factor);
 
-		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, internal_feedback_device, hardware_interface::TalonMode_Position, joint_id) * conversion_factor;
-		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, internal_feedback_device, hardware_interface::TalonMode_Velocity, joint_id) * conversion_factor;
-		const double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, internal_feedback_device, talon_mode, joint_id) * conversion_factor;
+		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, internal_feedback_device, hardware_interface::TalonMode_Position) * conversion_factor;
+		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, internal_feedback_device, hardware_interface::TalonMode_Velocity) * conversion_factor;
+		const double closed_loop_scale = getConversionFactor(encoder_ticks_per_rotation, internal_feedback_device, talon_mode) * conversion_factor;
 
 		bool close_loop_mode = false;
 		bool motion_profile_mode = false;
