@@ -121,28 +121,28 @@ bl_angle_controller:
 bl_drive_controller:
     type: talon_controllers/TalonVelocityCloseLoopController    
     close_loop_values:
-        - {p: 0.2, i: 0.002, d: 0.1, f: 0.06145, i_zone: 700}
+        - {p: 0.2, i: 0.002, d: 0.1, f: 0.0, i_zone: 700}
     joint: bl_drive
     feedback_type: CTRE_MagEncoder_Relative
     sensor_phase: True
 br_drive_controller:
     type: talon_controllers/TalonVelocityCloseLoopController
     close_loop_values:
-        - {p: 0.2, i: 0.002, d: 0.1, f: 0.06145, i_zone: 700}
+        - {p: 0.2, i: 0.002, d: 0.1, f: 0.0, i_zone: 700}
     joint: br_drive
     feedback_type: CTRE_MagEncoder_Relative
     sensor_phase: True
 fl_drive_controller:
     type: talon_controllers/TalonVelocityCloseLoopController
     close_loop_values:
-        - {p: 0.2, i: 0.002, d: 0.1, f: 0.06145, i_zone: 700}
+        - {p: 0.2, i: 0.002, d: 0.1, f: 0.0, i_zone: 700}
     joint: fl_drive
     feedback_type: CTRE_MagEncoder_Relative
     sensor_phase: True
 fr_drive_controller:
     type: talon_controllers/TalonVelocityCloseLoopController
     close_loop_values: 
-        - {p: 0.2, i: 0.002, d: 0.1, f: 0.06145, i_zone: 700}
+        - {p: 0.2, i: 0.002, d: 0.1, f: 0.0, i_zone: 700}
     joint: fr_drive
     feedback_type: CTRE_MagEncoder_Relative
     sensor_phase: True
