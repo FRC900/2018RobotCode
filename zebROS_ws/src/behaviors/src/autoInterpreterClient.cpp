@@ -12,7 +12,6 @@
 //enum Action {deploy_intake, undeploy_intake, intake_cube, intake_no_arm, exchange_cube, default_config, intake_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, release_clamp};
 
 std::atomic<bool> exit_auto; // robot is disabled or teleop started during auto_loop
-
 //std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac;
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac_intake;
@@ -1639,5 +1638,7 @@ int main(int argc, char** argv) {
 				slow.sleep(); 
         }
     }
+    ac.reset();
+    ac_intake.reset();
     return 0;
 }

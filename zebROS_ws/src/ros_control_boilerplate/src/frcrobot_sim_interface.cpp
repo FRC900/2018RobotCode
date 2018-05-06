@@ -481,6 +481,7 @@ class TeleopJointsKeyboard
 					//}
 					//else
 					//{
+					    cmd_.header.stamp = ros::Time::now();
 						joints_pub_.publish(cmd_);
                         cmd_last_ = cmd_;
 					//}
@@ -732,6 +733,15 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 		{
 			close_loop_mode = true;
 			motion_profile_mode = true;
+		}
+
+		hardware_interface::FeedbackDevice internal_feedback_device;
+		double feedback_coefficient;
+		if (tc.encoderFeedbackChanged(internal_feedback_device, feedback_coefficient))
+		{
+			ROS_INFO("feedback");
+ 			ts.setEncoderFeedback(internal_feedback_device);
+			ts.setFeedbackCoefficient(feedback_coefficient);
 		}
 
 		// Only update PID settings if closed loop

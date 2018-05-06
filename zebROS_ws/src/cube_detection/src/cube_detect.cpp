@@ -190,6 +190,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 			world_location_in.y = world_location.x;
 			world_location_in.z = world_location.z;
 			cd_msg.location.push_back(world_location_in);
+			cd_msg.angle = atan(world_location.y/world_location.x);
 			//objType(obj_type_in);
 		}
 	}
