@@ -27,10 +27,10 @@ array<Eigen::Vector2d, WHEELCOUNT> swerveDriveMath::wheelMultipliersXY(const Eig
 	{
 		double x = wheelCoordinate_[i][0] - rotationCenter[0];
 		double y = wheelCoordinate_[i][1] - rotationCenter[1];
-		wheelMultipliers[i] = -1;//-sqrt(x * x + y * y); // TODO : use hypot function
+		wheelMultipliers[i] = -sqrt(x * x + y * y); // TODO : use hypot function
 		wheelAngles[i] = atan2(x, y) + .5 * M_PI;
 	}
-	normalize(wheelMultipliers);
+	normalize(wheelMultipliers, true);
 	array<Eigen::Vector2d, WHEELCOUNT> multipliersXY;
 	for (int i = 0; i < WHEELCOUNT; i++)
 	{
@@ -99,13 +99,13 @@ array<double, WHEELCOUNT> swerveDriveMath::parkingAngles(void) const
 	return angles;
 }
 
-void swerveDriveMath::normalize(array<double, WHEELCOUNT> &input) const
+void swerveDriveMath::normalize(array<double, WHEELCOUNT> &input, const bool force_norm = false) const
 {
 	//Note that this function only works on arrays of size WHEELCOUNT
 	const double maxi = fabs(*max_element(input.begin(), input.end()));
 	const double mini = fabs(*min_element(input.begin(), input.end()));
 	const double absoluteMax = std::max(maxi, mini);
-	if (absoluteMax > 1)
+	if (absoluteMax > 1 || force_norm)
 		for (size_t i = 0; i < input.size(); i++)
 			input[i] /= absoluteMax;
 }
