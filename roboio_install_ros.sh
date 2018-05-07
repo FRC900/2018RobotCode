@@ -22,9 +22,11 @@ opkg install python-pkgutil python-dateutil python-argparse python-nose
 opkg clean
 opkg install python-netifaces libglog0 python-pip coreutils gdb ntp i2c-tools 
 opkg clean
-opkg install ntp ntp-tickadj ntp-utils ntpd ntpdate rsync
+opkg install ntp ntp-tickadj ntp-utils ntpd ntpdate rsync htop curl
 opkg clean
 
+# set RIO date before running this to prevent
+# SSL certificate errors
 pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy
 
 # Copy over ROS tar.bz2 file, extract to /
@@ -94,6 +96,16 @@ cp setupClock /etc/init.d
 ln -s /etc/init.d/setupClock /etc/init.d/hwclock.sh
 /usr/sbin/update-rc.d -f setupClock defaults
 /usr/sbin/update-rc.d -f hwclock.sh defaults
+
+
+cd
+mkdir .ssh
+#scp jetson_setup/roborio_dot_ssh.tar.bz2 admin@<target>
+cd .ssh
+tar -xjf ../roborio_dot_ssh.tar.bz2
+
+# Edit /etc/ssh/sshd_config, uncomment Port 22, add Port 5801, 
+# uncomment ChallengeResponseAuthentication and set it to no
 
 # Set up prereqs for deploy script
 mv ~/2018RobotCode ~/2018RobotCode.orig
