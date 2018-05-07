@@ -33,14 +33,16 @@ int main(int argc, char **argv) {
 	{
 		rate.sleep();
 		ros::spinOnce();
+		//ROS_ERROR("running");
 		if(!msg_recieved) {continue;}
+		//ROS_WARN("4");
 		if(!(running && slot_run >= local_req.start_id)) {continue;}
 
 		//ROS_WARN("5");
 		
 		static int count = 0;
 		count++;
-		if(count % 50 ==0)
+		if(count % 50 == 0)
 		{
 			ROS_INFO_STREAM("running?: " << running << " slot: " << slot_run << " start_id: " << local_req.start_id << " traj size: " << local_req.joint_trajectories.size() ); 
 		    ROS_INFO_STREAM(" indexing at: " << local_req.joint_trajectories[slot_run - local_req.start_id].points.size() - remaining_points[slot_run] - 1 << " remaining points: " << remaining_points[slot_run] << " total_points: " <<  local_req.joint_trajectories[slot_run - local_req.start_id].points.size());

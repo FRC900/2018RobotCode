@@ -32,7 +32,7 @@ class swerveDriveMath
 
 		//All variables here which don't need to be accessed externally
 		std::array<Eigen::Vector2d, WHEELCOUNT> wheelCoordinate_;
-		void normalize(std::array<double, WHEELCOUNT> &input) const;
+		void normalize(std::array<double, WHEELCOUNT> &input, const bool force_norm = false) const;
 		struct movement
 		{
 			Eigen::Vector2d translation;

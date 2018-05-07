@@ -99,7 +99,7 @@ array<double, WHEELCOUNT> swerveDriveMath::parkingAngles(void) const
 	return angles;
 }
 
-void swerveDriveMath::normalize(array<double, WHEELCOUNT> &input, const bool force_norm = false) const
+void swerveDriveMath::normalize(array<double, WHEELCOUNT> &input, const bool force_norm) const
 {
 	//Note that this function only works on arrays of size WHEELCOUNT
 	const double maxi = fabs(*max_element(input.begin(), input.end()));
