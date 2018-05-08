@@ -193,7 +193,6 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 		t_raw2 = spline(i); //Get t value from the cubic spline interpolation of t vs arc length
 		//ROS_INFO_STREAM("curr_v: " << curr_v << " i val: " << i << " t val: " << t_raw2 << " also: " << spline(i));
 		//ROS_WARN("even_now");
-
 		
 		//Compute all the path info
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, 
@@ -332,7 +331,6 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 		double cos_term_simple = SQRT_2 * cos_t;
 		double sin_term_simple = SQRT_2 * sin_t;
 
-
 		double cos_term = cos_term_simple * max_wheel_orientation_accel;
 		double sin_term = sin_term_simple * max_wheel_orientation_accel;
 
@@ -466,6 +464,7 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 			//ROS_INFO_STREAM("idek: " << hypot(x_at_a, y_at_a) + 4 * hypot(x_at_avg, y_at_avg) + hypot(x_at_b, y_at_b));
 			total_arc_length += period_t / 6 * (hypot(x_at_a, y_at_a) + 4 * hypot(x_at_avg, y_at_avg) + hypot(x_at_b, y_at_b));
 			//ROS_INFO_STREAM("arc_now: " << total_arc_length);
+			//Simpsons rule
 			//ROS_INFO_STREAM("Spline: " << i << " t_val: " << a_val <<"  arc_length: " << total_arc_length);
 		}
 		arc_length_by_spline.push_back(total_arc_length);
