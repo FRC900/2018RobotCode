@@ -3,5 +3,5 @@
 	url = https://github.com/FRC900/navXTimeSync
 
 [submodule "rospy_message_converter"]
-	path = rospy_message_converter
+	path = zebROS_ws/src/rospy_message_converter
 	url = https://github.com/FRC900/rospy_message_converter
