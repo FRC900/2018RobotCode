@@ -974,18 +974,58 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 			brake();
 			return;
 		}
-		
+	
+
+
+		//These below are some simple bounds checks on the cmd vel input so we don't make dumb mistakes. (like try to get the swerve drive to fly away)
+		//Those counters exist to reduce spam somewhat
+		static int fly_counter = 0;
+		static bool fly_last = false;	
 		if(command.linear.z != 0)
 		{
-			ROS_WARN("Rotors not up to speed!");
+			if(fly_counter > 40 || !fly_last)
+			{
+				ROS_ERROR("Rotors not up to speed!");
+				fly_counter = 0;
+			}
+			fly_last = true;
+			fly_counter++;
 		}
+		else
+		{	
+			fly_last = false;
+		}
+		static int impossible_rotation_counter = 0;	
+		static bool impossible_rotation_last = false;	
 		if((command.angular.x != 0) || (command.angular.y != 0))
 		{
-			ROS_WARN("Reaction wheels need alignment. Please reverse polarity on neutron flux capacitor");
+			if(impossible_rotation_counter > 40 || !impossible_rotation_last)
+			{
+				ROS_ERROR("Reaction wheels need alignment. Please reverse polarity on neutron flux capacitor");
+				impossible_rotation_counter = 0;
+			}
+			impossible_rotation_last = true;
+			impossible_rotation_counter++;
 		}
+		else
+		{	
+			impossible_rotation_last = false;
+		}
+		static int light_speed_counter = 0;	
+		static bool light_speed_last = false;	
 		if((sqrt(command.linear.x *command.linear.x + command.linear.y * command.linear.y)) > 300000000)
 		{
-			ROS_WARN("PHYSICS VIOLATION DETECTED. DISABLE TELEPORTATION UNIT!");
+			if(light_speed_counter > 40 || !light_speed_last)
+			{
+				ROS_ERROR("PHYSICS VIOLATION DETECTED. DISABLE TELEPORTATION UNIT!");
+				light_speed_counter = 0;
+			}
+			light_speed_last = true;
+			light_speed_counter++;
+		}
+		else
+		{	
+			light_speed_last = false;
 		}
 
 		//TODO change to twist msg
