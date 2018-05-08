@@ -20,15 +20,25 @@ def create_plot(req):
 	xs = []
 	ys = []
 	zs = []
+	time = []
 
+	val = 0
 	for i in req.joint_trajectory.points:
 		xs.append(i.positions[0])
 		ys.append(i.positions[1])
 		zs.append(math.sqrt(i.velocities[0]*i.velocities[0] + i.velocities[1]*i.velocities[1]))
+		time.append(val)
+		val += .02
+
 	ax.plot(xs, ys, zs, lw=0.5)
 	ax.set_xlabel("X Pos")
 	ax.set_ylabel("Y Pos")
 	ax.set_zlabel("Path Velocity")
+
+	plt.show()
+	plt.plot(time, zs)
+	plt.xlabel("Time (s)")
+	plt.ylabel("velocity (m/s)")
 
 	plt.show()
 
