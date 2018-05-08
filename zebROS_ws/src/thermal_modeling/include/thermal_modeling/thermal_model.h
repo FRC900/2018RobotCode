@@ -9,6 +9,12 @@
 #include <map>
 #include <memory>
 #include <cstdio> //Consider changing this to ros consoole stuff
+#include <boost/numeric/odeint.hpp>
+#include <boost/function.hpp>
+#include <boost/bind.hpp>
+#include <functional>
+
+
 
 //Simpifying assumptions
 //
@@ -158,12 +164,13 @@ namespace thermal_modeling
 			std::vector<double> temperatures_; //needs to be initialized like the others
 			std::map<std::string, int> node_indexes_; //We have both a map and a vector for efficiency reasons
 			void iterate_model(const double dt, const double current, const double voltage, const double rps, const std::vector<identified_val> &assign_temp = {});	
+			void compute_coupled_ode_deriv(const ode_state_type &temps, ode_state_type &dtempdt, 
+			const double t);
 
 		private: 
 			
+			boost::numeric::odeint::runge_kutta4<ode_state_type> rk_stepper;
 			void distribute_losses(const double power, const double rps);
-			void compute_coupled_ode_deriv(const ode_state_type &temps, ode_state_type &dtempdt, 
-			const double t);
 			void emissive_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
 			void natural_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
 			void fan_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);

@@ -152,6 +152,12 @@ namespace thermal_modeling
 
 		distribute_losses(power, rps);
 
+		boost::function<void (const ode_state_type &, ode_state_type &, const double )> f2( boost::bind(&thermal_model::compute_coupled_ode_deriv, this, _1, _2, _3 ) );
+
+
+        rk_stepper.do_step(f2, temperatures_, 0.0, dt);
+
+
 	}
 	void thermal_model::distribute_losses(const double power, const double rps)
 	{
