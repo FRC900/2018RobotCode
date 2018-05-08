@@ -983,7 +983,7 @@ void TalonSwerveDriveController::cmdVelCallback(const geometry_msgs::Twist &comm
 		{
 			ROS_WARN("Reaction wheels need alignment. Please reverse polarity on neutron flux capacitor");
 		}
-		if((command.linear.x > 300000000) || (command.linear.y > 300000000) || (command.linear.z > 300000000))
+		if((command.linear.x *command.linear.x + command.linear.y * command.linear.y) > 300000000)
 		{
 			ROS_WARN("PHYSICS VIOLATION DETECTED. DISABLE TELEPORTATION UNIT!");
 		}
