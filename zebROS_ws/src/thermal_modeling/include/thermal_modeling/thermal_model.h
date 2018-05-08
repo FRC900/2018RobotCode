@@ -25,6 +25,8 @@ namespace thermal_modeling
 	
 	typedef std::vector<double> ode_state_type;
 
+
+
 	
 	struct identified_val
 	{
@@ -158,6 +160,7 @@ namespace thermal_modeling
 			void iterate_model(const double dt, const double current, const double voltage, const double rps, const std::vector<identified_val> &assign_temp = {});	
 
 		private: 
+			
 			void distribute_losses(const double power, const double rps);
 			void compute_coupled_ode_deriv(const ode_state_type &temps, ode_state_type &dtempdt, 
 			const double t);
@@ -172,5 +175,7 @@ namespace thermal_modeling
 			tk::spline air_speed_curve_;
 			double fan_air_speed_;
 			motor_properties properties_;
+			
+			
 	};
 }

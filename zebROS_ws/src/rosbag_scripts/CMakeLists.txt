@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(rosbag_scripts)
 
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
@@ -13,6 +15,8 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   ros_control_boilerplate
   rosbag
+  talon_state_controller
+  #rospy_message_converter
 )
 
 ## System dependencies are found with CMake's conventions
@@ -105,9 +109,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-   INCLUDE_DIRS include
    LIBRARIES
-   CATKIN_DEPENDS roscpp rospy std_msgs ros_control_boilerplate rosbag
+   CATKIN_DEPENDS roscpp rospy std_msgs ros_control_boilerplate rosbag talon_state_controller rospy_message_converter
 #  DEPENDS system_lib
 )
 
@@ -118,7 +121,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  ../../../rospy_message_generator
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -138,6 +141,7 @@ include_directories(
 add_executable(${PROJECT_NAME}_node src/search_bag.cpp)
 
 add_executable(error_search_node src/error_search.cpp)
+add_executable(encoder_search_node src/encoder_search.cpp)
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -146,13 +150,15 @@ add_executable(error_search_node src/error_search.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(encoder_search_node talon_state_controller ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES} )
 
 target_link_libraries(error_search_node
+   ${catkin_LIBRARIES} )
+target_link_libraries(encoder_search_node
    ${catkin_LIBRARIES} )
 #############
 ## Install ##
@@ -163,10 +169,10 @@ target_link_libraries(error_search_node
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-# install(PROGRAMS
-#   scripts/my_python_script
-#   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-# )
+install(PROGRAMS
+   scripts/convert_to_json.py
+   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ )
 
 ## Mark executables and/or libraries for installation
 # install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME}_node
@@ -201,3 +207,5 @@ target_link_libraries(error_search_node
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+endif()

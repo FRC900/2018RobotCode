@@ -136,6 +136,7 @@ namespace thermal_modeling
 	}
 	void thermal_model::fan_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps)
 	{
+		
 		//Convection is complicated	
 		//TODO: fix
 	}
@@ -150,8 +151,6 @@ namespace thermal_modeling
 		fan_air_speed_ = air_speed_curve_(rps);
 
 		distribute_losses(power, rps);
-
-		// integrate_const( stepper , system , x0 , t0 , t1 , dt ) 
 
 	}
 	void thermal_model::distribute_losses(const double power, const double rps)

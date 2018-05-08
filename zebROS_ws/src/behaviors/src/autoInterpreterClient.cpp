@@ -12,7 +12,6 @@
 //enum Action {deploy_intake, undeploy_intake, intake_cube, intake_no_arm, exchange_cube, default_config, intake_config, switch_config, low_scale_config, mid_scale_config, high_scale_config, over_back_config, release_clamp};
 
 std::atomic<bool> exit_auto; // robot is disabled or teleop started during auto_loop
-
 //std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac;
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::RobotAction>> ac;
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac_intake;
@@ -742,9 +741,10 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 
 bool generateTrajectory(std::vector<FullMode> &trajectory, const std::vector<int> &start_buffer_ids, const std::vector<bool> &generate, std::vector<std::vector<trajectory_msgs::JointTrajectory>> &trajectory_msgs_pass_out)
 {
+	ROS_ERROR("gen called");
+	ROS_ERROR_STREAM("num traj msgs: " << trajectory_msgs_pass_out.size());
 	trajectory_msgs_pass_out.resize(trajectory.size());
 
-	ROS_ERROR_STREAM("num traj msgs: " << trajectory_msgs_pass_out.size());
 
     talon_swerve_drive_controller::MotionProfilePoints swerve_control_srv;
     swerve_control_srv.request.wipe_all = false;
@@ -1432,9 +1432,9 @@ int main(int argc, char** argv) {
 					if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
                         ((((auto_mode_data.modes_[i] != auto_mode_vect[i]))) || (auto_mode_data.start_pos_ != last_start_pos)))
                     {
+						ROS_ERROR_STREAM("actual mode: " << auto_mode_data.modes_[i] - num_cmd_vel_modes << " layout: " << i << " start: " << auto_mode_data.start_pos_); 
 
                         out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_]);
-						//ROS_ERROR_STREAM("actual mode: " << auto_mode_data.modes_[i] - num_cmd_vel_modes << " layout: " << i << " start: " << auto_mode_data.start_pos_); 
 						generate_for_this[i] = true;	
 						generate = true;
                         auto_mode_status_vect[i]=1;
@@ -1639,5 +1639,7 @@ int main(int argc, char** argv) {
 				slow.sleep(); 
         }
     }
+    ac.reset();
+    ac_intake.reset();
     return 0;
 }

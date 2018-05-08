@@ -1516,7 +1516,7 @@ class TalonHWCommand
 
 			custom_profile_points_[slot] = points;
 			custom_profile_total_time_[slot].resize(points.size());
-			
+
 			for(size_t i = 0; i < points.size(); i++)
 			{
 				if(i != 0)
@@ -1563,15 +1563,15 @@ class TalonHWCommand
 			// Make sure there are enough slots allocated to
 			// hold the point about to be added
 			const size_t slots = custom_profile_points_changed_.size();
-			if (ret_points.size() <= slots)
+			if (ret_points.size() != slots)
 			{
 				args_resized = true;
-				ret_points.resize(slots + 1);
+				ret_points.resize(slots);
 			}
-			if (ret_times.size() <= slots)
+			if (ret_times.size() != slots)
 			{
 				args_resized = true;
-				ret_times.resize(slots + 1);
+				ret_times.resize(slots);
 			}
 
 			for(size_t i = 0; i < slots; i++)

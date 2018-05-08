@@ -3,10 +3,21 @@
 #include <ros/console.h>
 #include <talon_state_controller/TalonState.h>
 #include <string>
+#include <boost/numeric/odeint.hpp>
+#include <boost/function.hpp>
+#include <boost/bind.hpp>
+#include <functional>
+
+
+using namespace thermal_modeling;
 
 std::vector<std::vector<std::shared_ptr<thermal_modeling::thermal_model>>> motor_models;
 std::vector<std::vector<std::string>> talon_names;
 std::vector<std::vector<int>> talon_indexes;
+
+
+boost::numeric::odeint::runge_kutta4<ode_state_type> rk_stepper;
+
 
 ros::Subscriber talon_states_sub;
 ros::Publisher motor_limits;
@@ -40,7 +51,14 @@ void talon_cb(const talon_state_controller::TalonState &msg)
 
 			}
 			double dt = ros::Time::now().toSec() - time_p;
+			ROS_ERROR("actually running");
 			motor_models[i][k]->iterate_model(dt, msg.output_current[talon_indexes[i][k]], msg.output_voltage[talon_indexes[i][k]], fabs(msg.speed[talon_indexes[i][k]]));
+	
+			boost::function<void (const ode_state_type, ode_state_type, const double )> f2( boost::bind( motor_models[i][k]::compute_coupled_ode_deriv, this, _1, _2, _3 ) );
+
+
+	        rk_stepper.do_step(f2, motor_models[i][k]->temperatures_, 0.0, dt);
+
 
 		}
 		

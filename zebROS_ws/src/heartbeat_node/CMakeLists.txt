@@ -25,8 +25,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 # find_package(Boost REQUIRED COMPONENTS system)
 
 catkin_package(
-  INCLUDE_DIRS
-    include
   CATKIN_DEPENDS
     controller_manager
     roscpp
@@ -36,14 +34,17 @@ catkin_package(
   DEPENDS 
 )
 
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
+
+
+
+
 ###########
 ## Build ##
 ###########
 
-include_directories(
-  include/
-  ${catkin_INCLUDE_DIRS}
-)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above. This is needed to force

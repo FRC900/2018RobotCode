@@ -9,31 +9,27 @@
 - git:
     local-name: ros_controllers/forward_command_controller
     uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/forward_command_controller/0.13.2-0
+    version: release/kinetic/forward_command_controller/0.13.3-0
 - git:
     local-name: ros_controllers/imu_sensor_controller
     uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/imu_sensor_controller/0.13.2-0
+    version: release/kinetic/imu_sensor_controller/0.13.3-0
 - git:
     local-name: ros_controllers/joint_state_controller
     uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/joint_state_controller/0.13.2-0
+    version: release/kinetic/joint_state_controller/0.13.3-0
 - git:
     local-name: ros_controllers/joint_trajectory_controller
     uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/joint_trajectory_controller/0.13.2-0
+    version: release/kinetic/joint_trajectory_controller/0.13.3-0
 - git:
     local-name: ros_controllers/position_controllers
     uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/position_controllers/0.13.2-0
-- git:
-    local-name: ros_controllers/ros_controllers
-    uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/ros_controllers/0.13.2-0
+    version: release/kinetic/position_controllers/0.13.3-0
 - git:
     local-name: ros_controllers/velocity_controllers
     uri: https://github.com/ros-gbp/ros_controllers-release.git
-    version: release/kinetic/velocity_controllers/0.13.2-0
+    version: release/kinetic/velocity_controllers/0.13.3-0
 - git:
     local-name: rplidar_ros
     uri: https://github.com/FRC900/rplidar_ros.git

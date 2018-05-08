@@ -10,6 +10,8 @@ import sys
 import argparse
 from fnmatch import fnmatchcase
 
+import rospy
+
 from rosbag import Bag
 
 import yaml
