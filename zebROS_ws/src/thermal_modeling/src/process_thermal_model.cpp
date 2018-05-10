@@ -21,7 +21,7 @@ ros::Publisher motor_limits;
 
 void talon_cb(const talon_state_controller::TalonState &msg)
 {
-	static double time_p = ros::Time::now().toSec();
+	static double time_p = msg.header.stamp.toSec();
 	for(size_t i = 0; i < motor_models.size(); i++)
 	{
 		for(size_t k = 0; k < talon_names[i].size(); k++)
@@ -42,12 +42,12 @@ void talon_cb(const talon_state_controller::TalonState &msg)
 				{
 					
 					ROS_ERROR_STREAM(" talon with name: " << talon_names[i][k] << " not found");
-					time_p = ros::Time::now().toSec();
+					time_p = msg.header.stamp.toSec();
 					return;
 				}
 
 			}
-			double dt = ros::Time::now().toSec() - time_p;
+			double dt = msg.header.stamp.toSec();//ros::Time::now().toSec() - time_p;
 			ROS_ERROR("actually running");
 			motor_models[i][k]->iterate_model(dt, msg.output_current[talon_indexes[i][k]], msg.output_voltage[talon_indexes[i][k]], fabs(msg.speed[talon_indexes[i][k]]));
 	
@@ -57,7 +57,7 @@ void talon_cb(const talon_state_controller::TalonState &msg)
 		
 		//TODO: publish results
 	}
-	time_p = ros::Time::now().toSec();
+	time_p = msg.header.stamp.toSec();
 
 	
 }
@@ -207,13 +207,16 @@ int main(int argc, char **argv)
 		if(!motor_params.getParam("efficiency_vs_rps", efficiency_vs_rps_xml))
 			ROS_ERROR_STREAM("Could not get efficiency_vs_rps in process thermal model motor type: " << motor_types_xml[i]);	
 		
-
+	ROS_WARN_STREAM("4------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------before loop size: " << efficiency_vs_rps_xml.size());
+		efficiency_vs_rps[0].resize(efficiency_vs_rps_xml.size());
+		efficiency_vs_rps[1].resize(efficiency_vs_rps_xml.size());
 		for(size_t k = 0; k < efficiency_vs_rps_xml.size(); k++)
-		{	
+		{
 			efficiency_vs_rps[0][k] = efficiency_vs_rps_xml[k]["rps"];
 			efficiency_vs_rps[1][k] = efficiency_vs_rps_xml[k]["eff"];
 		}
 	
+	ROS_WARN("5------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------before loop");
 
 		std::array<std::vector<double>, 2> air_speed_vs_rps;
 	
@@ -224,6 +227,8 @@ int main(int argc, char **argv)
 			ROS_ERROR_STREAM("Could not get air_speed_vs_rps in process thermal model motor type: " << motor_types_xml[i]);	
 		
 
+		air_speed_vs_rps[0].resize(air_speed_vs_rps_xml.size());
+		air_speed_vs_rps[1].resize(air_speed_vs_rps_xml.size());
 		for(size_t k = 0; k < air_speed_vs_rps_xml.size(); k++)
 		{	
 			air_speed_vs_rps[0][k] = air_speed_vs_rps_xml[k]["rps"];
@@ -242,17 +247,24 @@ int main(int argc, char **argv)
 
 
 	ROS_WARN("4------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------before loop");
+		ROS_ERROR("8");
 		motor_models[i].resize(talon_names_xml.size());
 
+		ROS_ERROR("10");
 		for(size_t k = 0; k < talon_names_xml.size(); k++)
 		{	
+			ROS_ERROR_STREAM("k of " << k);
+			motor_models[i][k];
+			ROS_ERROR("be");
 			motor_models[i][k] = std::make_shared<thermal_modeling::thermal_model>(nodes, efficiency_vs_rps, air_speed_vs_rps, properties, initial_temps);		
 		}
-	}
+		ROS_ERROR("9");
 	
-	talon_states_sub = n.subscribe("/frcrobot/talon_states", 1, &talon_cb);	
+	}
+		
+	talon_states_sub = n.subscribe("/frcrobot/talon_states", 8000, &talon_cb);	
 
-	ROS_WARN("spinning");
+	ROS_WARN("spinning - thermal");
 	ros::spin();
 
 	return 0;

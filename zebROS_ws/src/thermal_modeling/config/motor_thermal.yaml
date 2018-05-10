@@ -11,8 +11,8 @@ thermal_model_params:
         node_names: ["test_node1", "test_node2"]
         test_node1: 
             thermal_capacity: 1.
-            proportion_mechanical_loss_absorb: 0.
-            proportion_electrical_loss_absorb: 1.
+            proportion_mechanical_loss_absorb: 1.
+            proportion_electrical_loss_absorb: 0.
             initial_temperature: 287.0
             emissive_connections:
                 []

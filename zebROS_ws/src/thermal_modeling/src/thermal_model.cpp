@@ -1,3 +1,6 @@
+#include <ros/ros.h>
+#include <ros/console.h>
+
 #include <thermal_modeling/thermal_model.h>
 
 namespace thermal_modeling
@@ -8,12 +11,13 @@ namespace thermal_modeling
 		properties_(properties),
 		temperatures_(initial_temperatures)
 	{
-		
+		ROS_ERROR("in const");	
 		for(auto &node : nodes)
 		{ 
 			nodes_.push_back(node.second);
 			node_indexes_.insert(std::pair<std::string, int>(node.first, nodes_.size() - 1));
 		}
+		ROS_ERROR("1");
 		const_dtempdt_adder_.resize(nodes_.size());
 		for(size_t j = 0; j < nodes_.size(); j++)
 		{
@@ -38,8 +42,10 @@ namespace thermal_modeling
 					nodes_[j].connections_fan_convective[k].index = node_indexes_[nodes_[j].connections_fan_convective[k].id];
 			}
 		}
+		ROS_ERROR("2");
 		efficiency_curve_.set_points(efficiency_vs_rps[0], efficiency_vs_rps[1]);
 		air_speed_curve_.set_points(air_speed_vs_rps[0], air_speed_vs_rps[1]);	
+		ROS_ERROR("3");
 	
 
 		//TODO: Consider normalization instead of below error checking
@@ -47,17 +53,30 @@ namespace thermal_modeling
 			throw "motor property loss proportions don't sum to 1 (greater than 2\% difference)";
 
 		double sum_proportion_electrical_loss_absorb = 0;
+		ROS_ERROR("4");
 		double sum_proportion_mechanical_loss_absorb = 0;
 		for(auto &node : nodes_)
 		{ 
 			sum_proportion_electrical_loss_absorb += node.proportion_electrical_loss_absorb;
+			ROS_ERROR_STREAM("elec: " << node.proportion_electrical_loss_absorb);
 			sum_proportion_mechanical_loss_absorb += node.proportion_mechanical_loss_absorb;
+			ROS_ERROR_STREAM("mec: " << node.proportion_mechanical_loss_absorb);
 		}
+		ROS_ERROR("4.5");
 		if(fabs(sum_proportion_electrical_loss_absorb - 1) > .02)
+		{
+			ROS_ERROR("total electrical loss proportions don't sum to 1 (greater than 2 percent difference");
 			throw "total electrical loss proportions don't sum to 1 (greater than 2\% difference)";
+		}
 		
+
+		ROS_ERROR("4.75");
 		if(fabs(sum_proportion_mechanical_loss_absorb - 1) > .02)
+		{
+			ROS_ERROR("total mechanical loss proportions don't sum to 1 (greater than 2 percent difference");
 			throw "total mechanical loss proportions don't sum to 1 (greater than 2\% difference)";	
+		}
+		ROS_ERROR("5");
 	}
 	void thermal_model::compute_coupled_ode_deriv(const ode_state_type &temps, ode_state_type &dtempdt, const double /* t */)
 	{
