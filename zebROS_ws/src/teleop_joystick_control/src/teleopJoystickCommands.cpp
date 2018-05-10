@@ -270,14 +270,22 @@ bool generateTrajectory(const base_trajectory::GenerateSpline &srvBaseTrajectory
 	traj.request.orient_coefs.resize(1);
 	traj.request.x_coefs.resize(1);
 	traj.request.y_coefs.resize(1);
-	traj.request.orient_coefs[0] = srvBaseTrajectory.response.orient_coefs[1];
-	traj.request.x_coefs[0] = srvBaseTrajectory.response.x_coefs[1];
-	traj.request.y_coefs[0] = srvBaseTrajectory.response.y_coefs[1];
+	std::vector<double> temp_o = {-18.843733642, 47.1064309261, -31.3984809261, -0.00580635796197, 0, 0};
+	std::vector<double> temp_x = {0, 0, .1, 0, 0, 0};
+	std::vector<double> temp_y = {0, 0, 0, 0, 0, 0};
+	for(size_t i = 0; i < temp_o.size(); i++)
+	{
+		traj.request.orient_coefs[0].spline.push_back(temp_o[i]);
+		traj.request.x_coefs[0].spline.push_back(temp_x[i]);
+		traj.request.y_coefs[0].spline.push_back(temp_y[i]);
+	}
+	//traj.request.x_coefs[0] = {0, 0, 0, 0, 0, 0};//srvBaseTrajectory.response.x_coefs[1];
+	//traj.request.y_coefs[0] = {0, 0, .05, 0, 0, 0};//srvBaseTrajectory.response.y_coefs[1];
 	traj.request.spline_groups.push_back(1);
 	traj.request.wait_before_group.push_back(.16);
 	traj.request.t_shift.push_back(0);
 	traj.request.flip.push_back(false);
-	traj.request.end_points.push_back(srvBaseTrajectory.response.end_points[1]);
+	traj.request.end_points.push_back(1);
 	//traj.request.end_points = srvBaseTrajectory.response.end_points;
 	traj.request.initial_v = 0;
 	traj.request.final_v = 0;
@@ -291,6 +299,7 @@ bool generateTrajectory(const base_trajectory::GenerateSpline &srvBaseTrajectory
 	if (srvBaseTrajectory.response.end_points.empty())
 		ROS_INFO_STREAM("things are broken");
 
+	ROS_ERROR("Here!");
 	if(!point_gen.call(traj))
 		return false;
 	else

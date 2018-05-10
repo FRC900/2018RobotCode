@@ -191,7 +191,7 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 			//ROS_INFO_STREAM("num points: " << point_count );
 
 		t_raw2 = spline(i); //Get t value from the cubic spline interpolation of t vs arc length
-		//ROS_INFO_STREAM("curr_v: " << curr_v << " i val: " << i << " t val: " << t_raw2 << " also: " << spline(i));
+		ROS_INFO_STREAM("curr_v: " << curr_v << " i val: " << i << " t val: " << t_raw2 << " also: " << spline(i));
 		//ROS_WARN("even_now");
 		
 		//Compute all the path info
@@ -210,6 +210,7 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 		//ROS_INFO_STREAM("V: " << curr_v);
 	}
 	ROS_WARN("called3");
+	//throw "aahhhh";
 	//ROS_INFO_STREAM("passed loop 1");
 	velocities.erase(velocities.end() - 1); //End must be erased
 	positions.erase(positions.end() - 1);
@@ -230,7 +231,7 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 		i += curr_v * dt_;
 
 		t_raw3 = spline(i);
-		//ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw3);
+		ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw3 << " curr v: " << curr_v);
 
 		comp_point_characteristics(x_splines, y_splines, x_splines_first_deriv, y_splines_first_deriv, 
 		x_splines_second_deriv, y_splines_second_deriv, orient_splines, orient_splines_first_deriv, 
@@ -251,10 +252,12 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 		//ROS_INFO_STREAM(now);
 		now += period;
 		point_count++;
+		ROS_ERROR_STREAM("1: " << curr_v);
 		if (!solve_for_next_V(holder_point, total_arc, curr_v, i, max_wheel_mid_accel_))
 		{
 			return false;
 		}
+		ROS_ERROR_STREAM("2: " << curr_v);
 		for (size_t k = 0; k < positions.size(); k++)
 		{
 			if (starting_point - k < 0 || positions[starting_point - k] > i)
@@ -278,6 +281,7 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 		//{
 		//    ROS_INFO_STREAM("cut by previous vel max: " << vel_cap << " curr_v: " << curr_v);
 		//}
+		ROS_ERROR_STREAM("c: " <<vel_cap);
 		coerce(curr_v, -100000000000, vel_cap);
 
 		//ROS_INFO_STREAM("post cut max: " << curr_v);
@@ -379,7 +383,7 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 		//	ROS_INFO_STREAM("cut by curve max: " << v_curve_max << " radius: " << path.radius << " eff_max_a: " << eff_max_a);
 		//
 		//}
-		//ROS_INFO_STREAM("accel: " << accel << " under: " << v_general_max << " under: " << v_curve_max << " is: " << current_v); 
+		ROS_INFO_STREAM("accel: " << accel << " under: " << v_general_max << " under: " << v_curve_max << " is: " << current_v); 
 		coerce(current_v, -v_curve_max, v_curve_max);
 		//ROS_INFO_STREAM("curve max: " << current_v);
 	}
@@ -485,11 +489,11 @@ tk::spline swerve_profiler::parametrize_spline(const std::vector<spline_coefs> &
 	tk::spline s;
 
 	s.set_points(s_vals, t_vals);
-	/*for(int i = 0; i < t_vals.size(); i++)
+	for(int i = 0; i < t_vals.size(); i++)
 	{
 		ROS_INFO_STREAM("t_val = " << t_vals[i] << " s vals = " << s_vals[i]);
-		ROS_INFO_STREAM("s_vale = " << s_vals[i] << " s vals = " << s(s_vals[i]));
-	}*/
+		//ROS_INFO_STREAM("s_vale = " << s_vals[i] << " s vals = " << s(s_vals[i]));
+	}
 	ROS_INFO_STREAM("successful parametrize spline");
 	return s;
 }
