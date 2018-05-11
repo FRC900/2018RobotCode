@@ -181,6 +181,10 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 	for (double i = total_arc /*- .1*/ ; i > 0;)
 	{
 		i -= curr_v * dt_;
+		if(i < 0)
+		{
+			continue;
+		}
 
 		velocities.push_back(curr_v); //For limiting the velocity on the back pass
 		positions.push_back(i);
@@ -191,7 +195,7 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 			//ROS_INFO_STREAM("num points: " << point_count );
 
 		t_raw2 = spline(i); //Get t value from the cubic spline interpolation of t vs arc length
-		ROS_INFO_STREAM("curr_v: " << curr_v << " i val: " << i << " t val: " << t_raw2 << " also: " << spline(i));
+		ROS_INFO_STREAM(/*"curr_v: " <<*/ curr_v /*<< " i val: " << i << " t val: " << t_raw2 << " also: " << spline(i)*/);
 		//ROS_WARN("even_now");
 		
 		//Compute all the path info
@@ -210,7 +214,6 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 		//ROS_INFO_STREAM("V: " << curr_v);
 	}
 	ROS_WARN("called3");
-	//throw "aahhhh";
 	//ROS_INFO_STREAM("passed loop 1");
 	velocities.erase(velocities.end() - 1); //End must be erased
 	positions.erase(positions.end() - 1);
@@ -226,10 +229,16 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 	ros::Duration period(dt_);
 	//Same as back pass, but now forward
 
+
 	for (double i = 0; i < total_arc /* - .1*/;)
 	{
 		i += curr_v * dt_;
 
+		if(i > total_arc)
+		{
+			continue;
+		}
+			
 		t_raw3 = spline(i);
 		ROS_INFO_STREAM("i val: " << i << " t val: " << t_raw3 << " curr v: " << curr_v);
 
@@ -319,12 +328,11 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 	//This if statement is here so we only try to solve for points on the path
 	if (current_pos >= 0 && current_pos <= path_length)
 	{
-		const double max_wheel_orientation_accel = fabs(path.angular_accel * current_v * current_v);
-		const double max_wheel_orientation_vel = fabs(path.angular_velocity * current_v);
+
 		const double theta = fmod(fabs(path.path_angle - path.orientation), M_PI / 4);
 		const double cos_t = cos(theta);
 		const double sin_t = sin(theta);
-		const double path_induced_a = current_v * current_v / path.radius;
+
 
 		//ROS_INFO_STREAM("max_a: " << accel_defined);
 
@@ -335,27 +343,10 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 		double cos_term_simple = SQRT_2 * cos_t;
 		double sin_term_simple = SQRT_2 * sin_t;
 
-		double cos_term = cos_term_simple * max_wheel_orientation_accel;
-		double sin_term = sin_term_simple * max_wheel_orientation_accel;
 
-		//finding accel
-
-		poly_solve(1, cos_term + sin_term, (cos_term - sin_term) * path_induced_a - accel_defined * accel_defined
-		+ max_wheel_orientation_accel * max_wheel_orientation_accel + path_induced_a * path_induced_a, accel);
-		
-		poly_solve(1, - cos_term + sin_term, (cos_term + sin_term) * path_induced_a - accel_defined * accel_defined 
-		+ max_wheel_orientation_accel * max_wheel_orientation_accel + path_induced_a * path_induced_a, accel1);
-
-		//choosing smaller accel	
-	
-		if(accel > accel1) {accel = accel1;}
-
-		//ROS_INFO_STREAM("curr_v: " << current_v << " added accel: " << accel * dt_);
-
-		current_v += accel * dt_;
-
+			
 		//Maximum V based on maximum at wheel V	
-
+		
 		double v_general_max =  sqrt(max_wheel_vel_ * max_wheel_vel_ / (path.angular_velocity * path.angular_velocity 
 		+ 1 + sqrt(2) * fabs(path.angular_velocity) * cos_t + sqrt(2) * fabs(path.angular_velocity) * sin_t));
 
@@ -364,7 +355,7 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 		//	ROS_INFO_STREAM("cut by general max: " << v_general_max);
 		//
 		//}
-		coerce(current_v, -v_general_max, v_general_max);
+
 		//ROS_INFO_STREAM("general max: " << current_v);
 
 		double v_curve_max;
@@ -378,14 +369,52 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 		sin_term_simple * fabs(path.angular_velocity) +  cos_term_simple * fabs(path.angular_velocity)) 
 		/ max_wheel_vel_, -2 * accel_defined, v_curve_max);
 
+		double v_curve_max_2 = sqrt(accel_defined /sqrt (1 / (path.radius * path.radius) + path.angular_accel * path.angular_accel + 
+		cos_term_simple * path.angular_accel / path.radius + sin_term_simple * path.angular_accel / path.radius ));
+
 		//if(current_v > v_curve_max)
 		//{
 		//	ROS_INFO_STREAM("cut by curve max: " << v_curve_max << " radius: " << path.radius << " eff_max_a: " << eff_max_a);
 		//
 		//}
-		ROS_INFO_STREAM("accel: " << accel << " under: " << v_general_max << " under: " << v_curve_max << " is: " << current_v); 
-		coerce(current_v, -v_curve_max, v_curve_max);
-		//ROS_INFO_STREAM("curve max: " << current_v);
+
+		if(!coerce(current_v, -v_curve_max, v_curve_max) & !coerce(current_v, -v_curve_max_2, v_curve_max_2) & !coerce(current_v, -v_general_max, v_general_max)) //If we need to threshhold, we don't need to iterate using accel
+		{
+			const double max_wheel_orientation_accel = fabs(path.angular_accel * current_v * current_v);
+			const double max_wheel_orientation_vel = fabs(path.angular_velocity * current_v);
+			const double path_induced_a = current_v * current_v / path.radius;
+			double cos_term = cos_term_simple * max_wheel_orientation_accel;
+			double sin_term = sin_term_simple * max_wheel_orientation_accel;
+
+			ROS_WARN_STREAM("b1: " << cos_term + sin_term << " c1: " << (cos_term - sin_term) * path_induced_a - accel_defined * accel_defined
+            + max_wheel_orientation_accel * max_wheel_orientation_accel + path_induced_a * path_induced_a << " b2: " <<- cos_term + sin_term << " c2: " << (cos_term + sin_term) * path_induced_a - accel_defined * accel_defined 
+            + max_wheel_orientation_accel * max_wheel_orientation_accel + path_induced_a * path_induced_a);
+		
+			//finding accel
+
+			poly_solve(1, cos_term + sin_term, (cos_term - sin_term) * path_induced_a - accel_defined * accel_defined
+			+ max_wheel_orientation_accel * max_wheel_orientation_accel + path_induced_a * path_induced_a, accel);
+			
+			poly_solve(1, - cos_term + sin_term, (cos_term + sin_term) * path_induced_a - accel_defined * accel_defined 
+			+ max_wheel_orientation_accel * max_wheel_orientation_accel + path_induced_a * path_induced_a, accel1);
+
+			//choosing smaller accel	
+		
+			if(accel > accel1) {accel = accel1;}
+
+			ROS_INFO_STREAM("accel: " << accel << " under: " << v_general_max << " under: " << v_curve_max << " is: " << current_v); 
+			//ROS_INFO_STREAM("curr_v: " << current_v << " added accel: " << accel * dt_);
+
+			current_v += accel * dt_;
+
+			//Threshold again
+
+			coerce(current_v, -v_curve_max, v_curve_max);
+			coerce(current_v, -v_general_max, v_general_max);
+
+
+			//ROS_INFO_STREAM("curve max: " << current_v);
+		}
 	}
 	else
 	{

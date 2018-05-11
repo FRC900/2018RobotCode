@@ -271,7 +271,7 @@ bool generateTrajectory(const base_trajectory::GenerateSpline &srvBaseTrajectory
 	traj.request.x_coefs.resize(1);
 	traj.request.y_coefs.resize(1);
 	std::vector<double> temp_o = {-18.843733642, 47.1064309261, -31.3984809261, -0.00580635796197, 0, 0};
-	std::vector<double> temp_x = {0, 0, .1, 0, 0, 0};
+	std::vector<double> temp_x = {0, 0, 0, 0, 0.01, 0};
 	std::vector<double> temp_y = {0, 0, 0, 0, 0, 0};
 	for(size_t i = 0; i < temp_o.size(); i++)
 	{
