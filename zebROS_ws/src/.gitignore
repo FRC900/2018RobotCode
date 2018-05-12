@@ -9,3 +9,4 @@ ros_controllers
 control_toolbox
 *.plist
 *.orig
+rospy_message_converter

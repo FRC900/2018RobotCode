@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   ros_control_boilerplate
   rosbag
   talon_state_controller
-  #rospy_message_converter
+  rospy_message_converter
 )
 
 ## System dependencies are found with CMake's conventions
