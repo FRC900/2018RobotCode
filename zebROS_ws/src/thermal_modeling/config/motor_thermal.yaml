@@ -8,8 +8,33 @@ thermal_model_params:
             [{rps: 0.0, speed: 0.0}, {rps: 1.0, speed: 0.5}, {rps: 2.0, speed: 0.7}, {rps: 3.0, speed: 0.5}]
         properties:
             {proportion_losses_mechanical: .3, proportion_losses_electrical: .7}
-        node_names: ["test_node1", "test_node2"]
-        test_node1: 
+        node_names: ["bearing1_inner", "bearing2_inner", "bearing1_outer", "bearing2_outer", "bearing1_balls", "bearing2_balls", "casing_end_piece", "brushes", "copper_input", "plastic_brush_cover", "brush_end_core", "middle_section_core", "output_core", "armature_wire", "armature magnets", "permanent_magnets", "casing_middle", "clip", "casing_output_end"]
+        armature_resistance: .6 #assumed constant for now
+		brush_friction_coeff: .2  #https://www.researchgate.net/figure/Brush-linear-displacement-wear-friction-coefficient-and-contact-resistance-as-a_fig2_229367654
+		bearing_friction_coeff: .00125  #http://www.precisionrpm.com/pub/koyo/speed4
+		number_of_poles: 2
+		steinmetz_coeff: -1 #https://www.electrical4u.com/losses-in-dc-machine/
+		maximum_flux_density: -1
+		armature_volume: -1
+		some_consts_for_air_resistance_losses: -1
+		some_consts_for_eddy_current_loss: -1
+
+		#other losses assumed negligable
+		#TODO: add parts with masses etc
+
+
+		#specific heat of carbon steel: 0.49 KJ/(kg K) https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&cad=rja&uact=8&ved=0ahUKEwiuweXtkoHbAhVRzlkKHWNaBakQFggpMAE&url=https%3A%2F%2Fwww.engineeringtoolbox.com%2Fspecific-heat-metals-d_152.html&usg=AOvVaw0Euyt-AqyEtBF94hpi_UDU 
+
+
+		#J/K		
+
+
+		bearing1_inner:
+			thermal_capacity: 2.303
+
+
+
+		test_node1: 
             thermal_capacity: 1.
             proportion_mechanical_loss_absorb: 1.
             proportion_electrical_loss_absorb: 0.
