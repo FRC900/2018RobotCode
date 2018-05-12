@@ -1,7 +1,7 @@
 thermal_model_params:
     motor_types: ["775_pro"]
     775_pro:
-        talon_names: ["pivot"]
+        talon_names: ["test_talon"]
         efficiency_vs_rps:
             [{rps: 0.0, eff: 0.0}, {rps: 1.0, eff: 0.5}, {rps: 2.0, eff: 0.7}, {rps: 3.0, eff: 0.5}]
         air_speed_vs_rps:

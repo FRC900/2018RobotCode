@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<launch>
+
+	<!-- GDB functionality -->
+    <arg name="debug" default="false" />
+    <arg unless="$(arg debug)" name="launch_prefix" value="" />
+    <arg if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+    <arg name="hw_or_sim" default="sim" />
+
+	<group ns="frcrobot">
+
+
+		<rosparam file="$(find thermal_modeling)/config/motor_thermal.yaml" command="load"/>
+		
+		<node name="process_thermal_model" pkg="thermal_modeling" type="process_thermal_model" output="screen" >
+        </node>
+
+		<node pkg="thermal_modeling" name="test_talon" type="test_talon.py" output="screen"> 
+		</node>
+
+	</group>
+
+
+</launch>
+
+
+
+
