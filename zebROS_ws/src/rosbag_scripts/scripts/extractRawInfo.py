@@ -23,6 +23,7 @@ import rosbag
 import sys
 import os
 import pickle
+from ros_control_boilerplate.msg import MatchSpecificData
 
 # Global variable for input file name
 
@@ -69,13 +70,14 @@ def extract_data (bag, topic, inputFileName):
     """
 
     outputFileName = os.path.splitext(os.path.split(inputFileName)[1])[0] + topic.replace("/","-") + ".txt"
+    f = open(outputFileName, 'w')
     print "[OK] Printing %s" % topic
     print "[OK] Output file will be called %s." % outputFileName
 
     outputFh = open(outputFileName, "w")
     
     for topic, msg, t in bag.read_messages(topics=topic):
-        pickle.dump(msg,outputFh)
+        f.write(str(msg))
 
     outputFh.close()
     print "[OK] DONE"
