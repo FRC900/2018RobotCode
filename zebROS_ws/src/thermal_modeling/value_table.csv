@@ -1,0 +1,22 @@
+Material,k (W / (m K)),Source,specific heat (J / (g K)),Source,e,Source
+iron,79.5,http://hyperphysics.phy-astr.gsu.edu/hbase/Tables/thrcn.html,0.444,http://www2.ucdsb.on.ca/tiss/stretton/database/specific_heat_capacity_table.html,0.21,https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0ahUKEwi3nJGYgYTbAhUDvlkKHTrnAWgQFggnMAA&url=http%3A%2F%2Fwww-eng.lbl.gov%2F~dw%2Fprojects%2FDW4229_LHC_detector_analysis%2Fcalculations%2Femissivity2.pdf&usg=AOvVaw0W6mypwSLE98I2g9IhgFzm
+steel (polished),50.2,http://hyperphysics.phy-astr.gsu.edu/hbase/Tables/thrcn.html,0.49,https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&cad=rja&uact=8&ved=0ahUKEwiuweXtkoHbAhVRzlkKHWNaBakQFggpMAE&url=https%3A%2F%2Fwww.engineeringtoolbox.com%2Fspecific-heat-metals-d_152.html&usg=AOvVaw0Euyt-AqyEtBF94hpi_UDU,0.07,https://www.engineeringtoolbox.com/emissivity-coefficients-d_447.html
+graphite,25-470,https://www.azom.com/article.aspx?ArticleID=1630,0.71,https://www.engineeringtoolbox.com/specific-heat-solids-d_154.html,0.7,https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0ahUKEwi3nJGYgYTbAhUDvlkKHTrnAWgQFggnMAA&url=http%3A%2F%2Fwww-eng.lbl.gov%2F~dw%2Fprojects%2FDW4229_LHC_detector_analysis%2Fcalculations%2Femissivity2.pdf&usg=AOvVaw0W6mypwSLE98I2g9IhgFzm
+copper (polished),401,https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html,0.385,https://www.chem.wisc.edu/deptfiles/genchem/netorial/modules/thermodynamics/enthalpy/enthalpy3.htm,0.07,https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0ahUKEwi3nJGYgYTbAhUDvlkKHTrnAWgQFggnMAA&url=http%3A%2F%2Fwww-eng.lbl.gov%2F~dw%2Fprojects%2FDW4229_LHC_detector_analysis%2Fcalculations%2Femissivity2.pdf&usg=AOvVaw0W6mypwSLE98I2g9IhgFzm
+magnet ( sintered Samarium Cobalt and Sintered NdFeB),12.793,https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=5&ved=0ahUKEwi_lsPqhYTbAhWFY98KHXd7AYYQFghLMAQ&url=http%3A%2F%2Fwww.buntingeurope.com%2Fdownload.aspx%3FPdfFilename%3DBME_Samarium_Cobalt_data_sheet.pdf&usg=AOvVaw0WdJwOZ_OdpDhFKAMUuTvn,0.33-0.440,https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0ahUKEwjdqeHbyYHbAhVPPN8KHZYsA6YQFggnMAA&url=http%3A%2F%2Fwww.allianceorg.com%2Fpdfs%2FPhysicalPropertiesofMagnets.pdf&usg=AOvVaw2O4Y7XwRo03YY1w-c0OVyH,0.8?,"Unknown, but material seems close to black body"
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,,,,,,
+,2.303,4.606,,,,
+,5.145,5.145,,,,
+,0.936,0.936,,,,
+,0.924,0.924,,,,
+,8.183,8.183,,,,
+,34.48,34.48,,,,
+,19.257,19.257,,,,
+,44.982,44.982,,,,
+,,118.513,,,,
+,,,,,,
+,48.44,,,,,

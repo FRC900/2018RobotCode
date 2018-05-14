@@ -88,7 +88,6 @@ int main(int argc, char **argv)
 	motor_models.resize(num_motor_types);
 	talon_names.resize(num_motor_types);
 	talon_indexes.resize(num_motor_types);
-	//ROS_WARN("------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------before loop");
 	for(size_t i = 0; i < num_motor_types; i++)
 	{
 		ros::NodeHandle motor_params(n_params, motor_types_xml[i]);
@@ -104,7 +103,6 @@ int main(int argc, char **argv)
 		std::map<std::string, thermal_modeling::node_properties> nodes;
 		
 		XmlRpc::XmlRpcValue node_names_xml;
-	//ROS_WARN("q------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------before loop");
 		
 
 		if(!motor_params.getParam("node_names", node_names_xml))
@@ -165,7 +163,6 @@ int main(int argc, char **argv)
 				
 				node.connections_conductive.push_back(temp_connection);
 			}
-	//ROS_WARN("2------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------before loop");
 	        XmlRpc::XmlRpcValue natural_convective_connections_xml;
 			if(!node_params.getParam("natural_convective_connections", natural_convective_connections_xml))
 				ROS_ERROR_STREAM("Could not get natural_convective_connections in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
@@ -206,7 +203,6 @@ int main(int argc, char **argv)
 				node.connections_fan_convective.push_back(temp_connection);
 			}
 
-	//ROS_WARN("3------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------before loop");
 
 			nodes.insert(std::pair<std::string, thermal_modeling::node_properties>(node_names_xml[k], node));	
 		}
@@ -218,7 +214,6 @@ int main(int argc, char **argv)
 		if(!motor_params.getParam("efficiency_vs_rps", efficiency_vs_rps_xml))
 			ROS_ERROR_STREAM("Could not get efficiency_vs_rps in process thermal model motor type: " << motor_types_xml[i]);	
 		
-	//ROS_WARN_STREAM("4------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------before loop size: " << efficiency_vs_rps_xml.size());
 		efficiency_vs_rps[0].resize(efficiency_vs_rps_xml.size());
 		efficiency_vs_rps[1].resize(efficiency_vs_rps_xml.size());
 		for(size_t k = 0; k < efficiency_vs_rps_xml.size(); k++)
@@ -227,7 +222,6 @@ int main(int argc, char **argv)
 			efficiency_vs_rps[1][k] = efficiency_vs_rps_xml[k]["eff"];
 		}
 	
-	//ROS_WARN("5------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------before loop");
 
 		std::array<std::vector<double>, 2> air_speed_vs_rps;
 	
@@ -257,8 +251,6 @@ int main(int argc, char **argv)
 		properties.proportion_losses_electrical = properties_xml["proportion_losses_electrical"];	
 
 
-	//ROS_WARN("4------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------before loop");
-		//ROS_ERROR("8");
 		motor_models[i].resize(talon_names_xml.size());
 
 		//ROS_ERROR("10");
