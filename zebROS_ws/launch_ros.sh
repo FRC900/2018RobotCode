@@ -25,7 +25,21 @@ run_sim=0
 run_code=0
 
 for i in $@; do
-    if [ $i = "rviz" ]; then
+    if [ $i = "-h" ] || [ $i = "--help" ]; then
+        echo -e "\nUsage: ./launch_ros.sh \[OPTION...\] \[OPTION...\] ..."
+        echo -e "launch_ros takes any number of arguments to launch different programs"
+        echo -e "\nExamples:"
+        echo -e "\t ./launch_ros.sh sim \t\t # Launches sim code"
+        echo -e "\t ./launch_ros.sh sim ds \t # Launches sim code and RQT driver station"
+        echo -e "\t ./launch_ros.sh rviz \t\t # Launches default rviz"
+        echo -e "\t ./launch_ros.sh arm_viz.rviz \t # Launches arm_viz.rviz rviz file \n"
+        echo -e "Possible options: \n"
+        echo -e "\t sim \t-> launches ROS sim code"
+        echo -e "\t robot \t-> launches robot code"
+        echo -e "\t rviz \t-> launches default rviz"
+        echo -e "\t ds \t-> launches RQT driver station sim"
+        echo -e "\t any other argument is interpreted as a .rviz config file"
+    elif [ $i = "rviz" ]; then
         launch_rviz
     elif [ $i = "sim" ]; then
         run_sim=1
