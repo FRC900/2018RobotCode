@@ -16,8 +16,8 @@
 		<node name="process_thermal_model" pkg="thermal_modeling" type="process_thermal_model" output="screen" >
         </node>
 
-		<node pkg="thermal_modeling" name="test_talon" type="test_talon.py" output="screen"> 
-		</node>
+		<!--node pkg="thermal_modeling" name="optimize" type="optimize_model.py" output="screen"> 
+		</node-->
 
 	</group>
 

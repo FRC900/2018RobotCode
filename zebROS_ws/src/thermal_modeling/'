@@ -3,7 +3,8 @@
 import csv
 import rospy
 import sys
-from talon_state_controller.msg import *
+from thermal_modeling.srv import *
+from thermal_modeling.msg import *
 from math import pi
 
 
@@ -11,8 +12,8 @@ import os
 
 
 
-def fake_talon_pub():	
-	pub = rospy.Publisher('/frcrobot/talon_states', TalonState, queue_size=10000)
+def optimize_model():	
+	srv = rospy.ServiceProxy('/frcrobot/thermal_test', ModelTest)
 	rospy.init_node('fake_talons', anonymous=True)
 	rate = rospy.Rate(10000)
 	

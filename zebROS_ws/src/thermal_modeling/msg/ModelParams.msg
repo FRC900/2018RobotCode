@@ -1,0 +1,10 @@
+string name
+float64 h_1
+float64 h_2
+float64 e_term1
+float64 e_term2
+float64 v_1
+float64 v_2
+float64 v_squared_1
+float64 v_squared_2
+float64[] initial_temps

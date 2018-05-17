@@ -1,0 +1,9 @@
+thermal_modeling/ModelParams params
+float64[] time
+float64[] RPM
+float64[] bus_voltage
+float64[] output_voltage
+float64[] output_current
+
+---
+thermal_modeling/TempArray[] temps

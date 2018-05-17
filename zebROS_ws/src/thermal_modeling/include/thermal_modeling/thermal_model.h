@@ -109,18 +109,21 @@ namespace thermal_modeling
 	struct connection_fan_convective : connection_base
 	{
 		//TODO: fix this
-		double h; 
+		double v_term; 
+		double v_squared_term; 
 		//Add more vals here
 		//double exposure; //total exposed area - m^2
 		//double air_speed; //total area in "fan stream" - m^2	
 		connection_fan_convective(
-		const double k,
-		const double area
 		)
+		:
+			v_term(0),
+			v_squared_term(0)
 			//exposure(0),
 			//air_speed(0)
 		{
-			h = k * area;
+
+
 		}
 
 	};
@@ -131,22 +134,31 @@ namespace thermal_modeling
 		std::vector<connection_conductive> connections_conductive; //See above struct
 		std::vector<connection_natural_convective> connections_natural_convective; //See above struct
 		std::vector<connection_fan_convective> connections_fan_convective; //See above struct
-		double proportion_electrical_loss_absorb; //total should add to 1
-		double proportion_mechanical_loss_absorb; //total should add to 1
 		node_properties():
-			thermal_capacity(0),
-			proportion_electrical_loss_absorb(0),
-			proportion_mechanical_loss_absorb(0)
+			thermal_capacity(0)
 		{
 		}
 	};
 	struct motor_properties
 	{
-		double proportion_losses_mechanical; //Consider making this more complex
-		double proportion_losses_electrical;	
+		
+		double armature_resistance;
+		double brush_friction_coeff;
+		double bearing_friction_coeff;
+		double v_squared_term;
+		double v_term;
+		std::string armature_name;
+		std::string brush_name;
+		std::vector<std::string> bearing_names;
+		
 		motor_properties():
-			proportion_losses_mechanical(0),
-			proportion_losses_electrical(0)
+		    armature_resistance(0),
+	        brush_friction_coeff(0),
+		    bearing_friction_coeff(0),
+		    v_squared_term(0),
+		    v_term(0),
+		    armature_name(" "),
+			brush_name(" ")
 		{
 		}
 	};
@@ -159,7 +171,7 @@ namespace thermal_modeling
 	class thermal_model
 	{
 		public:
-			thermal_model(std::map<std::string, node_properties> nodes, std::array<std::vector<double>, 2> efficiency_vs_rps, std::array<std::vector<double>, 2> air_speed_vs_rps, motor_properties properties, std::vector<double> initial_temperatures); 
+			thermal_model(std::map<std::string, node_properties> nodes, std::array<std::vector<double>, 2> air_speed_vs_rps, motor_properties properties, std::vector<double> initial_temperatures); 
 			std::vector<node_properties> nodes_; //Public so info can be read and potentially written to
 			std::vector<double> temperatures_; //needs to be initialized like the others
 			std::map<std::string, int> node_indexes_; //We have both a map and a vector for efficiency reasons
@@ -169,8 +181,14 @@ namespace thermal_modeling
 
 		private: 
 			
+			bool oh_shittttttttttttttt_;
+
+			int armature_id_;
+			int brush_id_;
+			std::vector<int> bearing_ids_;
+			
 			boost::numeric::odeint::runge_kutta4<ode_state_type> rk_stepper;
-			void distribute_losses(const double power, const double rps);
+			void distribute_losses(const double current, const double rps);
 			void emissive_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
 			void natural_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
 			void fan_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
@@ -180,7 +198,7 @@ namespace thermal_modeling
 			//void distribute_heat();
 			tk::spline efficiency_curve_;
 			tk::spline air_speed_curve_;
-			double fan_air_speed_;
+			double speed_;
 			motor_properties properties_;
 			
 			

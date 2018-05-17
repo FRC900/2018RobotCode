@@ -8,15 +8,23 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
   swerve_point_generator
+  message_generation
 )
 
-#add_message_files (
-#  FILES
-#)
-#generate_messages(
-#  DEPENDENCIES
-#  std_msgs
-#)
+add_message_files (
+  FILES
+  ModelParams.msg
+  TempArray.msg
+)
+add_service_files (
+  FILES
+  ModelTest.srv
+
+)
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 

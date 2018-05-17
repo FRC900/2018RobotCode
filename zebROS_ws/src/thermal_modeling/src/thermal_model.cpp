@@ -7,16 +7,25 @@ namespace thermal_modeling
 {
 
 
-	thermal_model::thermal_model(std::map<std::string, node_properties> nodes, std::array<std::vector<double>, 2> efficiency_vs_rps, std::array<std::vector<double>, 2> air_speed_vs_rps, motor_properties properties, std::vector<double> initial_temperatures):
+	thermal_model::thermal_model(std::map<std::string, node_properties> nodes, std::array<std::vector<double>, 2> air_speed_vs_rps, motor_properties properties, std::vector<double> initial_temperatures):
 		properties_(properties),
 		temperatures_(initial_temperatures)
 	{
+		
+		oh_shittttttttttttttt_ = false;		
+
+
 		//ROS_ERROR("in const");	
 		for(auto &node : nodes)
 		{ 
 			nodes_.push_back(node.second);
 			node_indexes_.insert(std::pair<std::string, int>(node.first, nodes_.size() - 1));
 		}
+	
+		
+		//ROS_ERROR_STREAM("_________________________________________________________________________________________________________________________                1: " << node_indexes_["test_lump1"]);
+		//ROS_ERROR_STREAM("_________________________________________________________________________________________________________________________                2: " << node_indexes_["test_lump2"]);
+
 		//ROS_ERROR("1");
 		const_dtempdt_adder_.resize(nodes_.size());
 		for(size_t j = 0; j < nodes_.size(); j++)
@@ -29,7 +38,10 @@ namespace thermal_modeling
 			for(size_t k = 0; k < nodes_[j].connections_conductive.size(); k++)
 			{
 				if(!nodes_[j].connections_conductive[k].infinite_thermal_sink)
+				{
 					nodes_[j].connections_conductive[k].index = node_indexes_[nodes_[j].connections_conductive[k].id];
+					//ROS_ERROR_STREAM("index: " << nodes_[j].connections_conductive[k].index << " name: " << nodes_[j].connections_conductive[k].id);
+				}
 			}
 			for(size_t k = 0; k < nodes_[j].connections_natural_convective.size(); k++)
 			{
@@ -42,41 +54,22 @@ namespace thermal_modeling
 					nodes_[j].connections_fan_convective[k].index = node_indexes_[nodes_[j].connections_fan_convective[k].id];
 			}
 		}
+		
+		armature_id_ = node_indexes_[properties.armature_name];
+		brush_id_ = node_indexes_[properties.brush_name];
+			
+
+		for(auto &bearing_name : properties.bearing_names)
+		{
+
+			bearing_ids_.push_back(node_indexes_[bearing_name]);
+		
+		}
 		//ROS_ERROR("2");
-		efficiency_curve_.set_points(efficiency_vs_rps[0], efficiency_vs_rps[1]);
 		air_speed_curve_.set_points(air_speed_vs_rps[0], air_speed_vs_rps[1]);	
 		//ROS_ERROR("3");
 	
-
-		//TODO: Consider normalization instead of below error checking
-		if(fabs(properties_.proportion_losses_mechanical + properties_.proportion_losses_electrical - 1) > .02)
-			throw "motor property loss proportions don't sum to 1 (greater than 2\% difference)";
-
-		double sum_proportion_electrical_loss_absorb = 0;
-		//ROS_ERROR("4");
-		double sum_proportion_mechanical_loss_absorb = 0;
-		for(auto &node : nodes_)
-		{ 
-			sum_proportion_electrical_loss_absorb += node.proportion_electrical_loss_absorb;
-			//ROS_ERROR_STREAM("elec: " << node.proportion_electrical_loss_absorb);
-			sum_proportion_mechanical_loss_absorb += node.proportion_mechanical_loss_absorb;
-			//ROS_ERROR_STREAM("mec: " << node.proportion_mechanical_loss_absorb);
-		}
-		//ROS_ERROR("4.5");
-		if(fabs(sum_proportion_electrical_loss_absorb - 1) > .02)
-		{
-			ROS_ERROR("total electrical loss proportions don't sum to 1 (greater than 2 percent difference");
-			throw "total electrical loss proportions don't sum to 1 (greater than 2\% difference)";
-		}
 		
-
-		//ROS_ERROR("4.75");
-		if(fabs(sum_proportion_mechanical_loss_absorb - 1) > .02)
-		{
-			ROS_ERROR("total mechanical loss proportions don't sum to 1 (greater than 2 percent difference");
-			throw "total mechanical loss proportions don't sum to 1 (greater than 2\% difference)";	
-		}
-		//ROS_ERROR("5");
 	}
 	void thermal_model::compute_coupled_ode_deriv(const ode_state_type &temps, ode_state_type &dtempdt, const double /* t */)
 	{
@@ -84,6 +77,7 @@ namespace thermal_modeling
 		for(int i =  0; i < dtempdt.size(); i++)
 		{	
 			dtempdt[i] = const_dtempdt_adder_[i];	
+
 		}
 		//ROS_ERROR_STREAM("2.1");	
 
@@ -92,21 +86,25 @@ namespace thermal_modeling
 			//ROS_ERROR_STREAM("2.15");	
 			for(size_t k = 0; k < nodes_[i].connections_emissive.size(); k++)
 			{
+				//ROS_INFO("emissive deriv");
 				emissive_deriv(i, k, dtempdt, temps);
 			}
 			//ROS_ERROR_STREAM("2.175");	
 			for(size_t k = 0; k < nodes_[i].connections_conductive.size(); k++)
 			{
+				//ROS_INFO("conductive deriv");
 				conductive_deriv(i, k, dtempdt, temps);
 			}
 			//ROS_ERROR_STREAM("2.2");	
 			for(size_t k = 0; k < nodes_[i].connections_natural_convective.size(); k++)
 			{
+				//ROS_INFO("convective deriv");
 				natural_convective_deriv(i, k, dtempdt, temps);
 			}
 			//ROS_ERROR_STREAM("2.3");	
 			for(size_t k = 0; k < nodes_[i].connections_fan_convective.size(); k++)
 			{
+				//ROS_INFO("fan convective deriv");
 				fan_convective_deriv(i, k, dtempdt, temps);
 			}
 			//ROS_ERROR_STREAM("2.4");	
@@ -142,7 +140,8 @@ namespace thermal_modeling
 		//ROS_ERROR("2.185");
 		const double Q = nodes_[i].connections_conductive[k].h * (temps[i] - other_temp);
 	
-		
+
+	
 		//ROS_ERROR("2.19");
 		dtempdt[i] -= Q / nodes_[i].thermal_capacity;
 		if(!nodes_[i].connections_conductive[k].infinite_thermal_sink)
@@ -153,21 +152,39 @@ namespace thermal_modeling
 	}
 	void thermal_model::natural_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps)
 	{
-		const double other_temp = nodes_[i].connections_emissive[k].infinite_thermal_sink ? 
-		nodes_[i].connections_emissive[k].infinite_thermal_sink_temp : 
-		temps[nodes_[i].connections_emissive[k].index];
+		const double other_temp = nodes_[i].connections_natural_convective[k].infinite_thermal_sink ? 
+		nodes_[i].connections_natural_convective[k].infinite_thermal_sink_temp : 
+		temps[nodes_[i].connections_natural_convective[k].index];
 		
-		const double Q = nodes_[i].connections_conductive[k].h * (temps[i] - other_temp);
+		const double Q = nodes_[i].connections_natural_convective[k].h * (temps[i] - other_temp);
+			
+
+		if(nodes_[i].connections_natural_convective[k].infinite_thermal_sink)
+		{
+		
+			//ROS_INFO_STREAM("q: " << Q << " h: " << nodes_[i].connections_natural_convective[k].h << " diff: " << (temps[i] - other_temp) << " i: "  << i << " k: " << k);
 	
-		
+		}		
+
+
 		dtempdt[i] -= Q / nodes_[i].thermal_capacity;
-		if(!nodes_[i].connections_emissive[k].infinite_thermal_sink)
-			dtempdt[nodes_[i].connections_emissive[k].index] += Q/ nodes_[nodes_[i].connections_emissive[k].index].thermal_capacity;
+		if(!nodes_[i].connections_natural_convective[k].infinite_thermal_sink)
+			dtempdt[nodes_[i].connections_natural_convective[k].index] += Q/ nodes_[nodes_[i].connections_natural_convective[k].index].thermal_capacity;
 
 
 	}
 	void thermal_model::fan_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps)
 	{
+		const double other_temp = nodes_[i].connections_fan_convective[k].infinite_thermal_sink ? 
+		nodes_[i].connections_fan_convective[k].infinite_thermal_sink_temp : 
+		temps[nodes_[i].connections_fan_convective[k].index];
+		
+		const double Q = (nodes_[i].connections_fan_convective[k].v_term * speed_ + nodes_[i].connections_fan_convective[k].v_squared_term * speed_ *speed_)  * (temps[i] - other_temp);
+	
+		
+		dtempdt[i] -= Q / nodes_[i].thermal_capacity;
+		if(!nodes_[i].connections_fan_convective[k].infinite_thermal_sink)
+			dtempdt[nodes_[i].connections_fan_convective[k].index] += Q/ nodes_[nodes_[i].connections_fan_convective[k].index].thermal_capacity;
 		
 		//Convection is complicated	
 		//TODO: fix
@@ -178,32 +195,61 @@ namespace thermal_modeling
 
 	void thermal_model::iterate_model(const double dt, const double current, const double voltage, const double rps, const std::vector<identified_val> &assign_temp)
 	{
-		const double power = current * voltage;
 				
-		fan_air_speed_ = air_speed_curve_(abs(rps));
+		//fan_air_speed_ = air_speed_curve_(fabs(rps));
+		speed_ = fabs(rps);
 
 		//ROS_ERROR_STREAM("1");	
 
-		distribute_losses(power, abs(rps));
+		distribute_losses(current, fabs(rps));
 
 		//ROS_ERROR_STREAM("2");	
 		//boost::function<void (const ode_state_type &, ode_state_type &, const double )> f2(  );
 
 
+		std::vector<double> temp_temps(temperatures_);
+
+
         rk_stepper.do_step(boost::bind(&thermal_model::compute_coupled_ode_deriv, this, _1, _2, _3 ), temperatures_, 0.0, dt);
 		//ROS_ERROR_STREAM("3");	
 
+		oh_shittttttttttttttt_ = false;
+		for(size_t i = 0; i < temperatures_.size(); i++)
+		{
+			if(fabs(temp_temps[i] - temperatures_[i]) > 0.5)
+			{
+				//ROS_INFO_STREAM("c: " << current << " rps: " << rps << " temp: " << temperatures_[i] << " old: " << temp_temps[i]);
+				oh_shittttttttttttttt_ = true;
+			}
+		}
+
+
 
 	}
-	void thermal_model::distribute_losses(const double power, const double rps)
+	void thermal_model::distribute_losses(const double current, const double rps)
 	{
-		const double total_electrical_loss = power * efficiency_curve_(rps) * properties_.proportion_losses_electrical;
-		const double total_mechanical_loss = power * efficiency_curve_(rps) * properties_.proportion_losses_mechanical;
-		for(size_t i = 0; i < nodes_.size(); i++)
-		{ 
-			const_dtempdt_adder_[i] = nodes_[i].proportion_electrical_loss_absorb * total_electrical_loss; 
-			const_dtempdt_adder_[i] += nodes_[i].proportion_mechanical_loss_absorb * total_mechanical_loss; 
+		
+		for(size_t i = 0; i < const_dtempdt_adder_.size(); i++)
+		{
+			const_dtempdt_adder_[i] = 0;
 		}
+		
+		const_dtempdt_adder_[armature_id_] += (current * current * properties_.armature_resistance  + properties_.v_term * rps + properties_.v_squared_term * rps * rps) / nodes_[armature_id_].thermal_capacity; //Brush friction?
+		const_dtempdt_adder_[brush_id_] += properties_.brush_friction_coeff * rps / nodes_[brush_id_].thermal_capacity; //Check this conversion etc.
+				
+		const double bearing_term = properties_.bearing_friction_coeff * rps;
+
+		for(size_t i = 0; i < bearing_ids_.size(); i++)
+		{
+			const_dtempdt_adder_[bearing_ids_[i]] += bearing_term / nodes_[bearing_ids_[i]].thermal_capacity;
+		}
+
+		
+			//if(const_dtempdt_adder_[0] > 1.0 || oh_shittttttttttttttt_)
+			//	ROS_WARN_STREAM("0: " << const_dtempdt_adder_[0] << " temp: " << temperatures_[0] << " current: " << current<< " rps " << rps);
+			//if(const_dtempdt_adder_[1] > 1.0 || oh_shittttttttttttttt_)
+			//	ROS_WARN_STREAM("1: " << const_dtempdt_adder_[1]);
+		
 	}
 	/*
 	void thermal_model::diffuse_heat(const double &dt, const double &rotation_rate)

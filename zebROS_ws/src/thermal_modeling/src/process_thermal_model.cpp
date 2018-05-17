@@ -7,18 +7,121 @@
 #include <boost/function.hpp>
 #include <boost/bind.hpp>
 #include <functional>
-
+#include <thermal_modeling/ModelTest.h>
 
 using namespace thermal_modeling;
 
 std::vector<std::vector<std::shared_ptr<thermal_modeling::thermal_model>>> motor_models;
 std::vector<std::vector<std::string>> talon_names;
 std::vector<std::vector<int>> talon_indexes;
-
+std::vector<std::map<std::string, thermal_modeling::node_properties>> all_nodes;
+std::vector<std::array<std::vector<double>, 2>> all_air_speed_vs_rps;
+std::vector<thermal_modeling::motor_properties> all_properties;
+std::vector<std::vector<double>> all_initial_temps;
 
 ros::Subscriber talon_states_sub;
+ros::ServiceServer run_model_set;
 ros::Publisher motor_limits;
 
+
+
+bool run_model_service(thermal_modeling::ModelTest::Request &req, thermal_modeling::ModelTest::Response &res)
+{
+	
+	//ROS_ERROR("_________________________________________________________________         here");
+
+
+	int talon_index_1 = -1;
+	int talon_index_2 = -1;
+	for(size_t i = 0; i < motor_models.size(); i++)
+    {
+        for(size_t k = 0; k < talon_names[i].size(); k++)
+        {
+
+			if(talon_names[i][k] == req.params.name)
+			{
+				talon_index_1 = i;
+				talon_index_2 = k;
+
+			}
+
+		}
+
+	}
+	//ROS_ERROR("_________________________________________________________________         here1");
+	if(talon_index_1  == -1)
+	{
+		return false;
+	}
+	std::shared_ptr<thermal_modeling::thermal_model> temp_motor_model;
+
+	thermal_modeling::motor_properties temp_properties = all_properties[talon_index_1];
+
+	
+	//ROS_ERROR("_________________________________________________________________         here2");
+
+	std::map<std::string, thermal_modeling::node_properties> temp_nodes = all_nodes[talon_index_1];
+
+	temp_nodes["test_lump1"].connections_emissive[0].h = req.params.e_term1;
+	temp_nodes["test_lump1"].connections_conductive[0].h = req.params.h_1;
+	temp_nodes["test_lump1"].connections_fan_convective[0].v_term = req.params.v_1;
+	temp_nodes["test_lump1"].connections_fan_convective[0].v_squared_term = req.params.v_squared_1;
+
+	//ROS_ERROR("_________________________________________________________________         here3");
+	
+	temp_nodes["test_lump2"].connections_emissive[0].h = req.params.e_term2;
+	//ROS_ERROR("_________________________________________________________________         here3");
+	temp_nodes["test_lump2"].connections_natural_convective[0].h = req.params.h_2;
+	//ROS_ERROR("_________________________________________________________________         here3");
+	temp_nodes["test_lump2"].connections_fan_convective[0].v_term = req.params.v_2;
+	//ROS_ERROR("_________________________________________________________________         here3");
+	temp_nodes["test_lump2"].connections_fan_convective[0].v_squared_term = req.params.v_squared_2;
+	//ROS_ERROR("_________________________________________________________________         here3");
+
+
+	//ROS_ERROR("_________________________________________________________________         here4");
+
+	std::vector<double> temp_initial_temps = req.params.initial_temps;
+		
+	
+
+	
+
+	temp_motor_model = std::make_shared<thermal_modeling::thermal_model>(temp_nodes, all_air_speed_vs_rps[talon_index_1], temp_properties, temp_initial_temps);		
+
+	
+	res.temps.resize(temp_motor_model->temperatures_.size());
+	for(size_t i = 0; i < temp_motor_model->temperatures_.size(); i++)
+	{	
+		res.temps[i].temps.resize(req.time.size());
+
+	}
+	for(size_t i = 1; i < req.time.size(); i++)
+	{
+		//ROS_ERROR_STREAM("t2: " << temp_motor_model->temperatures_[1]);
+
+		double cur;
+
+		if(fabs(req.output_voltage[i]) < .2)
+		{
+			cur = 0.0;
+		}
+		else
+		{
+			
+			cur = fabs(req.output_current[i]) * fabs(req.bus_voltage[i]) / fabs(req.output_voltage[i]);
+		}
+
+		temp_motor_model->iterate_model(req.time[i] - req.time[i-1], cur, fabs(req.bus_voltage[i]), fabs(req.RPM[i]));
+		for(size_t k = 0; k < temp_motor_model->temperatures_.size(); k++)
+		{	
+			res.temps[k].temps[i] = temp_motor_model->temperatures_[k];
+			
+		}
+		
+	}
+	
+}
 void talon_cb(const talon_state_controller::TalonState &msg)
 {
 	static double time_p = msg.header.stamp.toSec();
@@ -47,21 +150,23 @@ void talon_cb(const talon_state_controller::TalonState &msg)
 				}
 
 			}
-			double dt = msg.header.stamp.toSec();//ros::Time::now().toSec() - time_p;
+			double dt = msg.header.stamp.toSec() - time_p;
 			
-			static int count = 0;
-			count++;
-			if(count % 500 == 0)
-			{
-				ROS_ERROR_STREAM(msg.header.stamp.toSec());
 
-			}
 	
 
 			//ROS_ERROR("actually running");
-			motor_models[i][k]->iterate_model(dt, msg.output_current[talon_indexes[i][k]], msg.bus_voltage[talon_indexes[i][k]], fabs(msg.speed[talon_indexes[i][k]]));
+			motor_models[i][k]->iterate_model(dt, msg.output_current[talon_indexes[i][k]] * msg.bus_voltage[talon_indexes[i][k]] / msg.output_voltage[talon_indexes[i][k]], msg.bus_voltage[talon_indexes[i][k]], fabs(msg.speed[talon_indexes[i][k]]));
 			//ROS_ERROR("1.2.2");
-	
+
+				
+			static int count = 0;
+			if(count % 500 == 0)
+			{
+				ROS_ERROR_STREAM(msg.header.stamp.toSec());
+				ROS_ERROR_STREAM("t1: " << motor_models[i][k]->temperatures_[0] << " t2: " <<  motor_models[i][k]->temperatures_[1]);
+			}
+			count++;
 
 
 		}
@@ -88,6 +193,13 @@ int main(int argc, char **argv)
 	motor_models.resize(num_motor_types);
 	talon_names.resize(num_motor_types);
 	talon_indexes.resize(num_motor_types);
+
+	all_nodes.resize(num_motor_types);
+	all_air_speed_vs_rps.resize(num_motor_types);
+	all_properties.resize(num_motor_types);
+	all_initial_temps.resize(num_motor_types);
+
+
 	for(size_t i = 0; i < num_motor_types; i++)
 	{
 		ros::NodeHandle motor_params(n_params, motor_types_xml[i]);
@@ -100,15 +212,13 @@ int main(int argc, char **argv)
 			talon_names[i].push_back(talon_names_xml[k]);
 			talon_indexes[i].push_back(-1);
 		}
-		std::map<std::string, thermal_modeling::node_properties> nodes;
 		
 		XmlRpc::XmlRpcValue node_names_xml;
 		
 
 		if(!motor_params.getParam("node_names", node_names_xml))
 			ROS_ERROR_STREAM("Could not get node_names in process thermal model motor type: " << motor_types_xml[i]);	
-		std::vector<double> initial_temps;
-		initial_temps.resize(node_names_xml.size());
+		all_initial_temps[i].resize(node_names_xml.size());
 		for(size_t k = 0; k < node_names_xml.size(); k++)
 		{
 			ros::NodeHandle node_params(motor_params, node_names_xml[k]);
@@ -117,11 +227,7 @@ int main(int argc, char **argv)
 			
 			if(!node_params.getParam("thermal_capacity", node.thermal_capacity))
 				ROS_ERROR_STREAM("Could not get thermal_capacity in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
-			if(!node_params.getParam("proportion_electrical_loss_absorb", node.proportion_electrical_loss_absorb))
-				ROS_ERROR_STREAM("Could not get proportion_electrical_loss_absorb in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
-			if(!node_params.getParam("proportion_mechanical_loss_absorb", node.proportion_mechanical_loss_absorb))
-				ROS_ERROR_STREAM("Could not get proportion_mechanical_loss_absorb in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
-			if(!node_params.getParam("initial_temperature", initial_temps[k]))
+			if(!node_params.getParam("initial_temperature", all_initial_temps[i][k]))
 				ROS_ERROR_STREAM("Could not get initial_temperature in process thermal model motor type: " << motor_types_xml[i] << " node: " <<node_names_xml[k]);	
 				
 	        XmlRpc::XmlRpcValue emissive_connections_xml;
@@ -136,6 +242,8 @@ int main(int argc, char **argv)
 				if(temp_connection.infinite_thermal_sink)
 				{
 					temp_connection.infinite_thermal_sink_temp = emissive_connections_xml[j]["infinite_thermal_sink_temp"];
+					ROS_ERROR_STREAM("t: " << temp_connection.infinite_thermal_sink_temp);
+
 				}
 				else
 				{
@@ -188,7 +296,10 @@ int main(int argc, char **argv)
 
 			for(size_t j = 0; j < fan_convective_connections_xml.size(); j++)
 			{
-				thermal_modeling::connection_fan_convective temp_connection(conductive_connections_xml[j]["k"], conductive_connections_xml[j]["area"]);
+				thermal_modeling::connection_fan_convective temp_connection;
+				temp_connection.v_term = fan_convective_connections_xml[j]["v_term"];
+				temp_connection.v_squared_term = fan_convective_connections_xml[j]["v_squared_term"];
+			
 
 				temp_connection.infinite_thermal_sink = fan_convective_connections_xml[j]["infinite_thermal_sink"];
 				if(temp_connection.infinite_thermal_sink)
@@ -204,9 +315,9 @@ int main(int argc, char **argv)
 			}
 
 
-			nodes.insert(std::pair<std::string, thermal_modeling::node_properties>(node_names_xml[k], node));	
+			all_nodes[i].insert(std::pair<std::string, thermal_modeling::node_properties>(node_names_xml[k], node));	
 		}
-		std::array<std::vector<double>, 2> efficiency_vs_rps;
+		/*std::array<std::vector<double>, 2> efficiency_vs_rps;
 	
 		
 		XmlRpc::XmlRpcValue efficiency_vs_rps_xml;
@@ -221,9 +332,8 @@ int main(int argc, char **argv)
 			efficiency_vs_rps[0][k] = efficiency_vs_rps_xml[k]["rps"];
 			efficiency_vs_rps[1][k] = efficiency_vs_rps_xml[k]["eff"];
 		}
-	
+		*/
 
-		std::array<std::vector<double>, 2> air_speed_vs_rps;
 	
 		
 		XmlRpc::XmlRpcValue air_speed_vs_rps_xml;
@@ -232,40 +342,53 @@ int main(int argc, char **argv)
 			ROS_ERROR_STREAM("Could not get air_speed_vs_rps in process thermal model motor type: " << motor_types_xml[i]);	
 		
 
-		air_speed_vs_rps[0].resize(air_speed_vs_rps_xml.size());
-		air_speed_vs_rps[1].resize(air_speed_vs_rps_xml.size());
+		all_air_speed_vs_rps[i][0].resize(air_speed_vs_rps_xml.size());
+		all_air_speed_vs_rps[i][1].resize(air_speed_vs_rps_xml.size());
 		for(size_t k = 0; k < air_speed_vs_rps_xml.size(); k++)
 		{	
-			air_speed_vs_rps[0][k] = air_speed_vs_rps_xml[k]["rps"];
-			air_speed_vs_rps[1][k] = air_speed_vs_rps_xml[k]["speed"];
+			all_air_speed_vs_rps[i][0][k] = air_speed_vs_rps_xml[k]["rps"];
+			all_air_speed_vs_rps[i][1][k] = air_speed_vs_rps_xml[k]["speed"];
 		}
 
-		thermal_modeling::motor_properties properties;
 
 		XmlRpc::XmlRpcValue properties_xml;
 
 		if(!motor_params.getParam("properties", properties_xml))
 			ROS_ERROR_STREAM("Could not get properties in process thermal model motor type: " << motor_types_xml[i]);	
 	
-		properties.proportion_losses_mechanical = properties_xml["proportion_losses_mechanical"];	
-		properties.proportion_losses_electrical = properties_xml["proportion_losses_electrical"];	
+		all_properties[i].armature_resistance = properties_xml["armature_resistance"];	
+		all_properties[i].brush_friction_coeff = properties_xml["brush_friction_coeff"];	
+		all_properties[i].bearing_friction_coeff = properties_xml["bearing_friction_coeff"];	
+		all_properties[i].v_squared_term = properties_xml["v_squared_term"];	
+		all_properties[i].v_term = properties_xml["v_term"];	
+		all_properties[i].armature_name = static_cast<std::string>(properties_xml["armature_name"]);	
+		all_properties[i].brush_name =  static_cast<std::string>(properties_xml["brush_name"]);	
+		
+		for(size_t n = 0; n < properties_xml["bearing_names"].size(); n++)
+		{
 
+			all_properties[i].bearing_names.push_back(static_cast<std::string>(properties_xml["bearing_names"][n]));	
 
+		}
+		
 		motor_models[i].resize(talon_names_xml.size());
 
 		//ROS_ERROR("10");
 		for(size_t k = 0; k < talon_names_xml.size(); k++)
 		{	
 			//ROS_ERROR_STREAM("k of " << k);
-			motor_models[i][k];
+			//motor_models[i][k];
 			//ROS_ERROR("be");
-			motor_models[i][k] = std::make_shared<thermal_modeling::thermal_model>(nodes, efficiency_vs_rps, air_speed_vs_rps, properties, initial_temps);		
+
+
+			motor_models[i][k] = std::make_shared<thermal_modeling::thermal_model>(all_nodes[i], all_air_speed_vs_rps[i], all_properties[i], all_initial_temps[i]);		
 		}
 		//ROS_ERROR("9");
 	
 	}
 		
 	talon_states_sub = n.subscribe("/frcrobot/talon_states", 8000, &talon_cb);	
+	run_model_set = n.advertiseService("/frcrobot/thermal_test",  &run_model_service);	
 
 	ROS_WARN("spinning - thermal");
 	ros::spin();

@@ -2,81 +2,94 @@ thermal_model_params:
     motor_types: ["775_pro"]
     775_pro:
         talon_names: ["test_talon"]
-        efficiency_vs_rps:
-            [{rps: 0.0, eff: 0.0}, {rps: 1.0, eff: 0.5}, {rps: 2.0, eff: 0.7}, {rps: 3.0, eff: 0.5}]
+        #efficiency_vs_rps:
+        #    [{rps: 0.0, eff: 0.0}, {rps: 1.0, eff: 0.5}, {rps: 2.0, eff: 0.7}, {rps: 3.0, eff: 0.5}]
         air_speed_vs_rps:
             [{rps: 0.0, speed: 0.0}, {rps: 1.0, speed: 0.5}, {rps: 2.0, speed: 0.7}, {rps: 3.0, speed: 0.5}]
         properties:
-            {proportion_losses_mechanical: .3, proportion_losses_electrical: .7}
+            {armature_resistance: 0.10401967, brush_friction_coeff: 0.0, bearing_friction_coeff: 0.0, v_squared_term: 0.0, v_term: 0.00283482, armature_name: "test_lump1", brush_name: "test_lump1", bearing_names: ["test_lump1"]}
+
+
+
+
+            #brush_friction_coeff: 0.2
+            #bearing_friction_coeff: .00125    
+
+
         #TODO implement these nodes node_names: ["bearing1_inner", "bearing2_inner", "bearing1_outer", "bearing2_outer", "bearing1_balls", "bearing2_balls", "casing_end_piece", "brushes", "copper_input", "plastic_brush_cover", "brush_end_core", "middle_section_core", "output_core", "armature_wire", "armature magnets", "permanent_magnets", "casing_middle", "clip", "casing_output_end"]
         #node_names: ["bearing1", "bearing2", "casing_end_piece", "brushes", "copper_input", "plastic_brush_cover", "armature", "permanent_magnets", "casing_main_piece", "clip"]
 
-		node_names: ["test_lump1", "test_lump2"]
-	
+        node_names: ["test_lump1", "test_lump2"]
+    
 
-		armature:  "test_lump1"   #"armature"
-		brushes:   "test_lump1"   #"brushes"
-		bearings: ["test_lump1"] #["bearing1", "bearing2"]
-		
+        #armature:  "test_lump1"   #"armature"
+        #brushes:   "test_lump1"   #"brushes"
+        #bearings: ["test_lump1"] #["bearing1", "bearing2"]
+        
 
-
-        armature_resistance: .6 #assumed constant for now
-		brush_friction_coeff: .2  #https://www.researchgate.net/figure/Brush-linear-displacement-wear-friction-coefficient-and-contact-resistance-as-a_fig2_229367654
-		bearing_friction_coeff: .00125  #http://www.precisionrpm.com/pub/koyo/speed4
-		number_of_poles: 2.0
-		steinmetz_coeff: 2.0  #TODO check            #https://www.electrical4u.com/losses-in-dc-machine/
-		maximum_flux_density: -1 #TODO 
-		armature_volume: -1 #TODO
-		p_x_CD_x_A: -1 #from drag equation #TODO (measured efficiency?!?!)
-		some_consts_for_eddy_current_loss: -1 #TODO #https://en.wikipedia.org/wiki/Eddy_current
-
-		
-
-		#other losses assumed negligable
-		#TODO: add parts with masses etc
+        #moved to properties
 
 
-		#specific heat of carbon steel: 0.49 J/(g K) https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&cad=rja&uact=8&ved=0ahUKEwiuweXtkoHbAhVRzlkKHWNaBakQFggpMAE&url=https%3A%2F%2Fwww.engineeringtoolbox.com%2Fspecific-heat-metals-d_152.html&usg=AOvVaw0Euyt-AqyEtBF94hpi_UDU 
+        #armature_resistance: .6 #assumed constant for now
+        #brush_friction_coeff: .2  #https://www.researchgate.net/figure/Brush-linear-displacement-wear-friction-coefficient-and-contact-resistance-as-a_fig2_229367654
+        #bearing_friction_coeff: .00125  #http://www.precisionrpm.com/pub/koyo/speed4
+        #number_of_poles: 2.0
+        #steinmetz_coeff: 2.0  #TODO check            #https://www.electrical4u.com/losses-in-dc-machine/
+        #maximum_flux_density: -1 #TODO 
+        #armature_volume: -1 #TODO
+        #p_x_CD_x_A: -1 #from drag equation #TODO (measured efficiency?!?!)
+        #some_consts_for_eddy_current_loss: -1 #TODO #https://en.wikipedia.org/wiki/Eddy_current
+
+        #v_squared_term: 1.0
+        #v_term: 1.0
+
+        
+
+        #other losses assumed negligable
+        #TODO: add parts with masses etc
 
 
-		#J/K		
-
-		#TODO: weigh parts of bearing
-		
-		#Bearing stuff below is a major flaw
+        #specific heat of carbon steel: 0.49 J/(g K) https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&cad=rja&uact=8&ved=0ahUKEwiuweXtkoHbAhVRzlkKHWNaBakQFggpMAE&url=https%3A%2F%2Fwww.engineeringtoolbox.com%2Fspecific-heat-metals-d_152.html&usg=AOvVaw0Euyt-AqyEtBF94hpi_UDU 
 
 
+        #J/K        
 
-		#bearing1 is the bearing closer to the fan
-		#TODO: model bearings
-		
+        #TODO: weigh parts of bearing
+        
+        #Bearing stuff below is a major flaw
 
 
-		test_lump1:
-			thermal_capacity: 48.44
-			initial_temperature: 287.0
+
+        #bearing1 is the bearing closer to the fan
+        #TODO: model bearings
+        
+
+
+        test_lump1:
+            thermal_capacity: 48.44
+            initial_temperature: 500.0
             emissive_connections:
-                []
+                [{id: "test_lump2", emissivity_here: 0.01, emissivity_there: 0.01, area_here: .01, area_there: .01,  view_factor: 0.5, infinite_thermal_sink: false}]
             conductive_connections:
-                []
+                [{id: "test_lump2", k: 0.01, area: 0.01, dist: 1., infinite_thermal_sink: false}]
             natural_convective_connections:
                 []
             fan_convective_connections:
-                []
-			
-		test_lump2:
-			thermal_capacity: 118.513
-			initial_temperature: 287.0
-				
+                [{id: "test_lump2", v_term: 0.0000000001, v_squared_term: 0.000000000000000001, infinite_thermal_sink: false}]
+            
+        test_lump2:
+            thermal_capacity: 118.513
+            initial_temperature: 200.0
+                
             emissive_connections:
-                []
+                [{emissivity_here: 0.01, emissivity_there: 0.01, area_here: .01, area_there: .01,  view_factor: 0.5, infinite_thermal_sink: true, infinite_thermal_sink_temp: 294.15}]
             conductive_connections:
                 []
             natural_convective_connections:
-                []
+                [{k: 0.01, area: 0.01, infinite_thermal_sink: true, infinite_thermal_sink_temp: 294.15}]
             fan_convective_connections:
-                []
-		
+                [{v_term: 0.0000000001, v_squared_term: 0.000000000000000001, infinite_thermal_sink: true, infinite_thermal_sink_temp: 294.15}]
+        
 
 
 
@@ -89,11 +102,12 @@ thermal_model_params:
 
 
 
+    
+    comment1:
+        '''
 
-		'''
-
-		bearing1:
-			thermal_capacity: 2.303
+        bearing1:
+            thermal_capacity: 2.303
             initial_temperature: 287.0
             emissive_connections:
                 [{id: "test_node2", k: 1., area: 1., dist: 1., infinite_thermal_sink: false}]
@@ -104,9 +118,9 @@ thermal_model_params:
             fan_convective_connections:
                 []
 
-		#bearing2 is the bearing closer to the output
-		bearing2:
-			thermal_capacity: 2.303
+        #bearing2 is the bearing closer to the output
+        bearing2:
+            thermal_capacity: 2.303
             initial_temperature: 287.0
             emissive_connections:
                 []
@@ -117,35 +131,35 @@ thermal_model_params:
             fan_convective_connections:
                 []
 
-		#Bearing here
+        #Bearing here
 
 
-		#thermal conductivity (W / (m K)) of steel is 50.2
-		
+        #thermal conductivity (W / (m K)) of steel is 50.2
+        
 
-		casing_end_piece: #Pretty sure this is steel (magnetic), should be tested though
-			thermal_capacity: 5.145
+        casing_end_piece: #Pretty sure this is steel (magnetic), should be tested though
+            thermal_capacity: 5.145
             initial_temperature: 287.0
             #emisivity of polished steel is .07 https://www.engineeringtoolbox.com/emissivity-coefficients-d_447.html
-			emissive_connections: #1/2 will be to out 1/2will be to inside. Ball park view factor
+            emissive_connections: #1/2 will be to out 1/2will be to inside. Ball park view factor
                 []
-			#conductive area is thickness of disc * 2 * pi * r where r is half of distance from middle to edge
+            #conductive area is thickness of disc * 2 * pi * r where r is half of distance from middle to edge
             conductive_connections:
                 [{id: "test_node2", k: 1., area: 1., dist: 1., infinite_thermal_sink: false}]
             natural_convective_connections:
                 []
             fan_convective_connections:
                 []
-			#TODO this will be fan convective
+            #TODO this will be fan convective
 
 
 
-			#TODO more here
+            #TODO more here
 
-		#specific heat of graphite: .71 J / (g K) https://www.engineeringtoolbox.com/specific-heat-solids-d_154.html 
-		#thermal conductivity of graphite 25-470 https://www.azom.com/article.aspx?ArticleID=1630 this is annoying........................  we are using 400
-		brushes:
-			thermal_capacity: 0.936
+        #specific heat of graphite: .71 J / (g K) https://www.engineeringtoolbox.com/specific-heat-solids-d_154.html 
+        #thermal conductivity of graphite 25-470 https://www.azom.com/article.aspx?ArticleID=1630 this is annoying........................  we are using 400
+        brushes:
+            thermal_capacity: 0.936
             initial_temperature: 287.0
             emissive_connections: #measure all exposed areas * does not include face which touches brush
                 []
@@ -156,144 +170,145 @@ thermal_model_params:
             fan_convective_connections: #add here
                 []
 
-		#specific heat of copper: 0.385 J / (g K) https://www.chem.wisc.edu/deptfiles/genchem/netorial/modules/thermodynamics/enthalpy/enthalpy3.htm
+        #specific heat of copper: 0.385 J / (g K) https://www.chem.wisc.edu/deptfiles/genchem/netorial/modules/thermodynamics/enthalpy/enthalpy3.htm
 
-		#thermal conductivity of copper 401 https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html
-		copper_input:
-			thermal_capacity: 0.924
+        #thermal conductivity of copper 401 https://www.engineeringtoolbox.com/thermal-conductivity-d_429.html
+        copper_input:
+            thermal_capacity: 0.924
             initial_temperature: 287.0
             #TODO measure area etc
-			emissive_connections:
+            emissive_connections:
                 []
-			#TODO: measure contact area and also band area
+            #TODO: measure contact area and also band area
             conductive_connections:
                 []
 
-			#None
+            #None
             natural_convective_connections:
                 []
             #Add here
-			fan_convective_connections:
-                []
-
-		#specific heat of plastic: 1.67 J/ (g K) https://www.engineeringtoolbox.com/specific-heat-solids-d_154.html
-		#thermal conductivity of conductive plastics around 1-10 https://www.ptonline.com/articles/plastics-that-conduct-heat we are using 1 
-
-		plastic_brush_cover: 
-			thermal_capacity: 8.183
-            initial_temperature: 287.0
-            #Add here
-			emissive_connections:
-                []
-			#Measure contact area
-            conductive_connections:
-                []
-			#None
-            natural_convective_connections:
-                []
-			#Add here
             fan_convective_connections:
                 []
 
-		#TODO: weigh parts of winding * consider lumping the whole thing
+        #specific heat of plastic: 1.67 J/ (g K) https://www.engineeringtoolbox.com/specific-heat-solids-d_154.html
+        #thermal conductivity of conductive plastics around 1-10 https://www.ptonline.com/articles/plastics-that-conduct-heat we are using 1 
 
-		
-		#Armature consists of copper wire, plastic fan, iron core, iron electromagnets for now we are assuming one lump and specific heat of 0.4 (yeah, pretty arbitrary)
-		
-		#contact surfaces of steel and copper
-
-		armature:
-			thermal_capacity: 48.44
+        plastic_brush_cover: 
+            thermal_capacity: 8.183
             initial_temperature: 287.0
-            #Add here - different surfaces
-			emissive_connections:
+            #Add here
+            emissive_connections:
                 []
-			#none (already covered)
+            #Measure contact area
             conductive_connections:
                 []
-			#none?
+            #None
+            natural_convective_connections:
+                []
+            #Add here
+            fan_convective_connections:
+                []
+
+        #TODO: weigh parts of winding * consider lumping the whole thing
+
+        
+        #Armature consists of copper wire, plastic fan, iron core, iron electromagnets for now we are assuming one lump and specific heat of 0.4 (yeah, pretty arbitrary)
+        
+        #contact surfaces of steel and copper
+
+        armature:
+            thermal_capacity: 48.44
+            initial_temperature: 287.0
+            #Add here - different surfaces
+            emissive_connections:
+                []
+            #none (already covered)
+            conductive_connections:
+                []
+            #none?
             natural_convective_connections:
                 []
             #add here
-			fan_convective_connections:
+            fan_convective_connections:
                 []
 
-		
+        
 
 
-		#magnet type - likely either sintered Samarium Cobalt and Sintered NdFeB
-		#Specific heat 0.370-0.440  https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0ahUKEwjdqeHbyYHbAhVPPN8KHZYsA6YQFggnMAA&url=http%3A%2F%2Fwww.allianceorg.com%2Fpdfs%2FPhysicalPropertiesofMagnets.pdf&usg=AOvVaw2O4Y7XwRo03YY1w-c0OVyH
-		
-		#thermal_conductivity - 
+        #magnet type - likely either sintered Samarium Cobalt and Sintered NdFeB
+        #Specific heat 0.370-0.440  https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&ved=0ahUKEwjdqeHbyYHbAhVPPN8KHZYsA6YQFggnMAA&url=http%3A%2F%2Fwww.allianceorg.com%2Fpdfs%2FPhysicalPropertiesofMagnets.pdf&usg=AOvVaw2O4Y7XwRo03YY1w-c0OVyH
+        
+        #thermal_conductivity - 
 
 
-		permanent_magnets: 
-			thermal_capacity: 34.48
+        permanent_magnets: 
+            thermal_capacity: 34.48
             initial_temperature: 287.0
             #need to do this 
-			emissive_connections:
+            emissive_connections:
                 []
-			#yep - glue?
+            #yep - glue?
             conductive_connections:
                 []
-			#?
+            #?
             natural_convective_connections:
                 []
             #?
-			fan_convective_connections:
+            fan_convective_connections:
                 []
 
 
-		clip:
-			thermal_capacity: 19.257
+        clip:
+            thermal_capacity: 19.257
             initial_temperature: 287.0
             #here
-			emissive_connections:
+            emissive_connections:
                 []
-			#here
+            #here
             conductive_connections:
                 []
-			#here
+            #here
             natural_convective_connections:
                 []
             #none
-			fan_convective_connections:
+            fan_convective_connections:
                 []
 
-		casing_main_piece:
-			thermal_capacity: 44.982 
+        casing_main_piece:
+            thermal_capacity: 44.982 
             initial_temperature: 287.0
             #here
-			emissive_connections:
+            emissive_connections:
                 []
             #here
-			conductive_connections:
+            conductive_connections:
                 []
             #here
-			natural_convective_connections:
+            natural_convective_connections:
                 []
             #here
-			fan_convective_connections:
+            fan_convective_connections:
                 []
-		
-		
-		#TODO cut apart and weigh components of casing
+        
+        
+        #TODO cut apart and weigh components of casing
 
-		 
-		
-		 
-	
+         
+        
+         
+    
 
-		
-		
+        
+        
 
-		#specific heat of aluminium .902 J/(g C) http://www.iun.edu/~cpanhd/C101webnotes/matter-and-energy/specificheat.html
+        #specific heat of aluminium .902 J/(g C) http://www.iun.edu/~cpanhd/C101webnotes/matter-and-energy/specificheat.html
 
-		'''
+        '''
 
 
-		'''
-		test_node1: 
+    comment2:
+        '''
+        test_node1: 
             thermal_capacity: 1.
             proportion_mechanical_loss_absorb: 1.
             proportion_electrical_loss_absorb: 0.
@@ -320,7 +335,7 @@ thermal_model_params:
             fan_convective_connections:
                 []
 
-		'''
+        '''
 
 
 
