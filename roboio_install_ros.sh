@@ -88,6 +88,7 @@ ssh admin@$1 'rm roborio_dot_ssh.tar.bz2'
 
 # Edit /etc/ssh/sshd_config, uncomment Port 22, add Port 5801, 
 # uncomment ChallengeResponseAuthentication and set it to no
+ssh admin@$1 "sed \"s/#Port 22/Port 22\\nPort 5801/g\" /etc/ssh/sshd_config | sed \"s/#ChallengeResponseAuthentication yes/ChallengeResponseAuthentication no/\" > sshd_config && mv sshd_config /etc/ssh"
 
 # Copy rio_bashrc.sh, ROSJetsonMaster.sh to /home/admin
 scp ~/2018RobotCode/rio_bashrc.sh admin@$1:.
