@@ -35,9 +35,9 @@ ssh admin@$1 'opkg clean'
 ssh admin@$1 'pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy'
 
 # Copy over ROS tar.bz2 file, extract to /
-# Maybe get smart and wget it into /tmp from the google drive
-# link and then install from there
-scp ~/roscore_roborio_2018.tar.bz2 admin@$1:.
+wget -O /tmp/roscore_roborio_2018.tar.bz2 "https://drive.google.com/uc?export=download&id=1tT988R2pq9oyZyLWl1eDzMSpxcV7-HZ-"
+scp /tmp/roscore_roborio_2018.tar.bz2 admin@$1:.
+rm /tmp/roscore_roborio_2018.tar.bz2 
 ssh admin@$1 'cd / && tar -xjf ~/roscore_roborio_2018.tar.bz2'
 scp ~/2018RobotCode/os_detect.py admin@$1:/usr/lib/python2.7/site-packages/rospkg/
 ssh admin@$1 'rm ~/roscore_roborio_2018.tar.bz2'
@@ -47,6 +47,8 @@ ssh admin@$1 'rm ~/roscore_roborio_2018.tar.bz2'
 ssh admin@$1 'ln -s / /usr/arm-frc-linux-gnueabi'
 ssh admin@$1 'ln -s /usr/include /include'
 
+# Create workspace. Do a build in the empty workspace to set
+# up various scripts for later use
 ssh admin@$1 'mkdir -p 2018RobotCode/zebROS_ws/src'
 ssh admin@$1 'source /opt/ros/kinetic/setup.bash && cd 2018RobotCode/zebROS_ws && catkin_make_isolated --install'
 

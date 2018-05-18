@@ -109,7 +109,6 @@ sudo make -j8 install
 cd
 sudo rm -rf sip-4.17.tar.gz sip-4.17
 
-
 # Build and install tinyxml
 wget https://github.com/leethomason/tinyxml2/archive/6.0.0.tar.gz
 tar -xzvf 6.0.0.tar.gz
@@ -188,6 +187,8 @@ cd
 sudo rm -rf libuuid-1.0.3.tar.gz libuuid-1.0.3
 
 # Build and install yaml-cpp
+# TODO : see if this is necesssry since it is also
+#        built as part of the cross-ros package
 git clone https://github.com/jbeder/yaml-cpp.git
 cd yaml-cpp
 mkdir build
