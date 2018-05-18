@@ -20,7 +20,7 @@ std::vector<thermal_modeling::motor_properties> all_properties;
 std::vector<std::vector<double>> all_initial_temps;
 
 ros::Subscriber talon_states_sub;
-ros::ServiceServer run_model_set;
+std::vector<ros::ServiceServer> run_model_set;
 ros::Publisher motor_limits;
 
 
@@ -78,6 +78,11 @@ bool run_model_service(thermal_modeling::ModelTest::Request &req, thermal_modeli
 	temp_nodes["test_lump2"].connections_fan_convective[0].v_squared_term = req.params.v_squared_2;
 	//ROS_ERROR("_________________________________________________________________         here3");
 
+		temp_properties.armature_resistance_12v = req.params.loss_resistance_12v;
+		temp_properties.armature_resistance_0v = req.params.loss_resistance_0v;
+		temp_properties.v_squared_term = req.params.loss_v_squared_term;
+		temp_properties.v_term = req.params.loss_v_term;
+
 
 	//ROS_ERROR("_________________________________________________________________         here4");
 
@@ -100,19 +105,21 @@ bool run_model_service(thermal_modeling::ModelTest::Request &req, thermal_modeli
 	{
 		//ROS_ERROR_STREAM("t2: " << temp_motor_model->temperatures_[1]);
 
-		double cur;
-
+		double current_term;
 		if(fabs(req.output_voltage[i]) < .2)
 		{
-			cur = 0.0;
+			current_term = 0;
 		}
 		else
 		{
-			
-			cur = fabs(req.output_current[i]) * fabs(req.bus_voltage[i]) / fabs(req.output_voltage[i]);
+			current_term = fabs(req.output_current[i]) *fabs(req.output_current[i])  * fabs(req.bus_voltage[i]) / fabs(req.output_voltage[i]);
 		}
 
-		temp_motor_model->iterate_model(req.time[i] - req.time[i-1], cur, fabs(req.bus_voltage[i]), fabs(req.RPM[i]));
+
+
+
+
+		temp_motor_model->iterate_model(req.time[i] - req.time[i-1], current_term, fabs(req.output_voltage[i]), fabs(req.RPM[i]));
 		for(size_t k = 0; k < temp_motor_model->temperatures_.size(); k++)
 		{	
 			res.temps[k].temps[i] = temp_motor_model->temperatures_[k];
@@ -153,10 +160,19 @@ void talon_cb(const talon_state_controller::TalonState &msg)
 			double dt = msg.header.stamp.toSec() - time_p;
 			
 
+			double current_term;
+			if(fabs(msg.output_voltage[talon_indexes[i][k]]) < .2)
+			{
+				current_term = 0;
+			}
+			else
+			{
+				current_term = fabs(msg.output_current[talon_indexes[i][k]]) *fabs(msg.output_current[talon_indexes[i][k]])  * fabs(msg.bus_voltage[talon_indexes[i][k]]) / fabs(msg.output_voltage[talon_indexes[i][k]]);
+			}
 	
 
 			//ROS_ERROR("actually running");
-			motor_models[i][k]->iterate_model(dt, msg.output_current[talon_indexes[i][k]] * msg.bus_voltage[talon_indexes[i][k]] / msg.output_voltage[talon_indexes[i][k]], msg.bus_voltage[talon_indexes[i][k]], fabs(msg.speed[talon_indexes[i][k]]));
+			motor_models[i][k]->iterate_model(dt, current_term, fabs(msg.output_voltage[talon_indexes[i][k]]), fabs(msg.speed[talon_indexes[i][k]]));
 			//ROS_ERROR("1.2.2");
 
 				
@@ -356,11 +372,13 @@ int main(int argc, char **argv)
 		if(!motor_params.getParam("properties", properties_xml))
 			ROS_ERROR_STREAM("Could not get properties in process thermal model motor type: " << motor_types_xml[i]);	
 	
-		all_properties[i].armature_resistance = properties_xml["armature_resistance"];	
+		all_properties[i].armature_resistance_12v = properties_xml["armature_resistance_12v"];	
+		all_properties[i].armature_resistance_0v = properties_xml["armature_resistance_0v"];	
 		all_properties[i].brush_friction_coeff = properties_xml["brush_friction_coeff"];	
 		all_properties[i].bearing_friction_coeff = properties_xml["bearing_friction_coeff"];	
 		all_properties[i].v_squared_term = properties_xml["v_squared_term"];	
 		all_properties[i].v_term = properties_xml["v_term"];	
+		//all_properties[i].copper_resistance_alpha = properties_xml["copper_resistance_alpha"];	
 		all_properties[i].armature_name = static_cast<std::string>(properties_xml["armature_name"]);	
 		all_properties[i].brush_name =  static_cast<std::string>(properties_xml["brush_name"]);	
 		
@@ -388,7 +406,19 @@ int main(int argc, char **argv)
 	}
 		
 	talon_states_sub = n.subscribe("/frcrobot/talon_states", 8000, &talon_cb);	
-	run_model_set = n.advertiseService("/frcrobot/thermal_test",  &run_model_service);	
+	
+	int num_servers;
+
+	if(!n_params.getParam("num_servers", num_servers))
+        ROS_ERROR("Could not get num_servers in process thermal model");
+
+	run_model_set.resize(num_servers);
+	for(int i = 0; i < num_servers; i++)
+	{
+		run_model_set[i] = n.advertiseService("/frcrobot/thermal_test" + std::to_string(i),  &run_model_service);
+
+	}	
+
 
 	ROS_WARN("spinning - thermal");
 	ros::spin();

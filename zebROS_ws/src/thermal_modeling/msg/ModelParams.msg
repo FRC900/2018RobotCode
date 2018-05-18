@@ -7,4 +7,9 @@ float64 v_1
 float64 v_2
 float64 v_squared_1
 float64 v_squared_2
+float64 loss_v_term
+float64 loss_v_squared_term
+float64 loss_resistance_12v
+float64 loss_resistance_0v
+
 float64[] initial_temps

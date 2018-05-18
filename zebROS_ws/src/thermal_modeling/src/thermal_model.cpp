@@ -193,7 +193,7 @@ namespace thermal_modeling
 
 	//Generate function by using a combination of for loops and switch statements
 
-	void thermal_model::iterate_model(const double dt, const double current, const double voltage, const double rps, const std::vector<identified_val> &assign_temp)
+	void thermal_model::iterate_model(const double dt, const double current_term, const double output_voltage, const double rps, const std::vector<identified_val> &assign_temp)
 	{
 				
 		//fan_air_speed_ = air_speed_curve_(fabs(rps));
@@ -201,7 +201,7 @@ namespace thermal_modeling
 
 		//ROS_ERROR_STREAM("1");	
 
-		distribute_losses(current, fabs(rps));
+		distribute_losses(current_term, output_voltage, fabs(rps));
 
 		//ROS_ERROR_STREAM("2");	
 		//boost::function<void (const ode_state_type &, ode_state_type &, const double )> f2(  );
@@ -226,15 +226,27 @@ namespace thermal_modeling
 
 
 	}
-	void thermal_model::distribute_losses(const double current, const double rps)
+	void thermal_model::distribute_losses(const double current_term, double output_voltage, const double rps)
 	{
 		
 		for(size_t i = 0; i < const_dtempdt_adder_.size(); i++)
 		{
 			const_dtempdt_adder_[i] = 0;
 		}
-		
-		const_dtempdt_adder_[armature_id_] += (current * current * properties_.armature_resistance  + properties_.v_term * rps + properties_.v_squared_term * rps * rps) / nodes_[armature_id_].thermal_capacity; //Brush friction?
+	
+		if(fabs(output_voltage) > 12)
+		{
+			output_voltage = 12;
+		}
+		else if(fabs(output_voltage) < 1)
+		{
+			output_voltage = 1;
+
+		} 
+	
+		const double predicted_resistance =  properties_.armature_resistance_0v / fabs(output_voltage);  //(properties_.armature_resistance_12v - properties_.armature_resistance_0v) / (12) * fabs(output_voltage) + properties_.armature_resistance_0v;
+
+		const_dtempdt_adder_[armature_id_] += (current_term * predicted_resistance  + properties_.v_term * rps + properties_.v_squared_term * rps * rps) / nodes_[armature_id_].thermal_capacity; //Brush friction?
 		const_dtempdt_adder_[brush_id_] += properties_.brush_friction_coeff * rps / nodes_[brush_id_].thermal_capacity; //Check this conversion etc.
 				
 		const double bearing_term = properties_.bearing_friction_coeff * rps;
