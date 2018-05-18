@@ -82,6 +82,9 @@ bool run_model_service(thermal_modeling::ModelTest::Request &req, thermal_modeli
 		temp_properties.armature_resistance_0v = req.params.loss_resistance_0v;
 		temp_properties.v_squared_term = req.params.loss_v_squared_term;
 		temp_properties.v_term = req.params.loss_v_term;
+		temp_properties.volt_squared_term = req.params.loss_volt_squared_term;
+		temp_properties.volt_term = req.params.loss_volt_term;
+		temp_properties.voltage_exponent = req.params.voltage_exponent;
 
 
 	//ROS_ERROR("_________________________________________________________________         here4");
@@ -112,7 +115,7 @@ bool run_model_service(thermal_modeling::ModelTest::Request &req, thermal_modeli
 		}
 		else
 		{
-			current_term = fabs(req.output_current[i]) *fabs(req.output_current[i])  * fabs(req.bus_voltage[i]) / fabs(req.output_voltage[i]);
+			current_term = fabs(req.output_current[i]) *fabs(req.output_current[i])  * fabs(req.bus_voltage[i]);
 		}
 
 
@@ -378,6 +381,9 @@ int main(int argc, char **argv)
 		all_properties[i].bearing_friction_coeff = properties_xml["bearing_friction_coeff"];	
 		all_properties[i].v_squared_term = properties_xml["v_squared_term"];	
 		all_properties[i].v_term = properties_xml["v_term"];	
+		all_properties[i].volt_squared_term = properties_xml["volt_squared_term"];	
+		all_properties[i].volt_term = properties_xml["volt_term"];	
+		all_properties[i].voltage_exponent = properties_xml["voltage_exponent"];	
 		//all_properties[i].copper_resistance_alpha = properties_xml["copper_resistance_alpha"];	
 		all_properties[i].armature_name = static_cast<std::string>(properties_xml["armature_name"]);	
 		all_properties[i].brush_name =  static_cast<std::string>(properties_xml["brush_name"]);	

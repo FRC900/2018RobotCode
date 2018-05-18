@@ -148,6 +148,9 @@ namespace thermal_modeling
 		double bearing_friction_coeff;
 		double v_squared_term;
 		double v_term;
+		double volt_squared_term;
+		double volt_term;
+		double voltage_exponent;
 		std::string armature_name;
 		std::string brush_name;
 		std::vector<std::string> bearing_names;
@@ -159,6 +162,9 @@ namespace thermal_modeling
 		    bearing_friction_coeff(0),
 		    v_squared_term(0),
 		    v_term(0),
+		    volt_squared_term(0),
+		    volt_term(0),
+		    voltage_exponent(0),
 		    armature_name(" "),
 			brush_name(" ")
 		{

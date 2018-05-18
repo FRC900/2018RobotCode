@@ -20,17 +20,60 @@ import os
 
 #data = np.array([time, speed, bus_voltage, output_voltage, output_current])
 
-def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2):
 
-	gc.collect()	
 
-	waste  = np.array([1.07901658e+00, 8.48587173e-02,  -5.37629287e-07, 1.05476919e-02])#, 6.52164444e+00, 7.06131978e-02])
+
+#guess = (8.49558651e-02, -3.18269661e-07, 1.78534872e-03, 7.48935360e+00, -2.20884602e-02, 1.15)
+
+
+def func1(data, a, b, c, d, e):
+
+    curr_term = np.where(data[2] > 0.2, data[0] * data[0] *  data[3] / data[2] ** f, 0)
+
+    return curr_term * a + data[1] * c + data[1] * data[1] * b + data[2] *d  +data[2] *data[2] *e
+
+
+
+
+def func2(data, b, c, d):
+
+    curr_term = np.where(data[2] > 0.2, data[0] * data[0] *  data[3] / (data[2]  ** d), 0)
+
+    return curr_term * a + data[1] * c + data[1] * data[1] * b 
+
+
+
+
+
+def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2):#, loss_resistance_0v):
+
+	gc.collect()
+
+	global f
+	voltage_exponent = 2.5
+
+	f = voltage_exponent
+
+
+
+	# (1.53155859e-01, -3.15106179e-07, 1.71621718e-03, 5.83612170e+00, 1.19269411e-01)
+
+	#guess= (0.00000001, 0.0001, 1.34)
+
+
+	waste = np.array([1.53155859e-01, 0.0,  -3.15106179e-07, 1.71621718e-03, 5.83612170e+00, 1.19269411e-01, voltage_exponent])
+
+
+
+
+
+
+	#waste = np.array([0.0, params[0],  params[1], 0.0, 0.0, 0.75])
 
 	#1.07901658e+00  -5.37629287e-07   1.05476919e-02
 
 	
-	loss_resistance_0v, loss_resistance_12v, loss_v_squared_term, loss_v_term = waste[0], waste[1], waste[2], waste[3]
-
+	loss_resistance_0v, loss_resistance_12v, loss_v_squared_term, loss_v_term, loss_volt_term, loss_volt_squared_term, voltage_exponent  = waste[0], waste[1], waste[2], waste[3], waste[4], waste[5], waste[6]
 
 
 	#0.10480932  0.00315612
@@ -59,7 +102,7 @@ def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2):
 	results = []
 
 	for time_h, RPM_h, bus_voltage_h, output_voltage_h, output_current_h, i_temp in zip(data[0], data[1],data[2],data[3],data[4],avg_temp):
-		p = ModelParams("test_talon", h_1, h_2, e_term1, e_term2, v_1, v_2, v_squared_1, v_squared_2, loss_v_term,  loss_v_squared_term, loss_resistance_12v, loss_resistance_0v,[i_temp, i_temp])
+		p = ModelParams("test_talon", h_1, h_2, e_term1, e_term2, v_1, v_2, v_squared_1, v_squared_2, loss_v_term,  loss_v_squared_term, loss_volt_term,  loss_volt_squared_term, loss_resistance_12v, loss_resistance_0v, voltage_exponent, [i_temp, i_temp])
 		#req = ModelTest(p, data[0], data[1], data[2], data[3], data[4])
 
 		results.append(pool.apply_async(srv[index], (p, time_h, RPM_h, bus_voltage_h, output_voltage_h, output_current_h)))
@@ -77,7 +120,7 @@ def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2):
 		#print(str(count_var))
 
 
-	for time_h, true_temp, result_yu in zip(data[0], temp, results):
+	for time_h, true_temp, result_yu, file_name in zip(data[0], temp, results, file_names):
 		out = result_yu.get()
 		if(value_b):
 			value_b = False
@@ -87,11 +130,13 @@ def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2):
 
 	
 		if(force_plot_now):
+			plt.title(file_name)
 			plt.ylim(290, 340)
 			plt.plot(time_h, out.temps[1].temps)
 			plt.plot(time_h, true_temp)
 			plt.show()
 		elif( (plot_by_time and count_var % 500 == 499) ):
+			plt.title(file_name)
 			plt.ylim(290, 340)
 			plt.plot(time_h, out.temps[1].temps)
 			plt.plot(time_h, true_temp)
@@ -121,8 +166,10 @@ def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2):
 	pool.join()
 	del pool
 
+	#" params: ", params, 
 
-	print("\033[Ktime: ", str( time_module.time() - static_start_time), " count: ", str(count_var), " compute time: ", str(time_module.time() - saved_time), " mse: ", mse_c, " vals: ", e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2, end='\r')
+
+	print("\033[Ktime: ", str( time_module.time() - static_start_time), " count: ", str(count_var), " compute time: ", str(time_module.time() - saved_time), " mse: ", mse_c, " vals: ", e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2, loss_resistance_0v,  end='\r')
 
 	sys.stdout.flush()
 
@@ -134,12 +181,89 @@ def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2):
 
 	
 if __name__ == "__main__":
+
+	x_a = []
+	y_a = []
+	z_a = []
+	k_a = []
+	f_a = []
+	b_a = []
+
+
+	with open('../Documents/hero_thermal_testing/data/M2/waste_data.csv', 'rt') as csvfile:
+		reader = csv.DictReader(csvfile, delimiter=',')
+		for row in reader:
+			#print(row)
+			x_a.append(float(row["current"]))
+			y_a.append(float(row["RPM"]))
+			f_a.append(float(row["force"]))
+			z_a.append(float(row["waste_watts"]))
+			k_a.append(float(row["voltage"]))
+			b_a.append((float(row["waste_watts"]) + float(row["RPM"]) *  float(row["force"]) * 2 * pi / 60.0) / float(row["current"]))
+
+
+	eff = 0.8
+	s_p = []
+	c_p = []
+	v_p = []
+	b_p = []
+	wl_p =[]
+
+
+
+	with open('../775pro-motor-curve-data.csv', 'rt') as csvfile:
+		reader = csv.DictReader(csvfile, delimiter=',')
+		for row in reader:
+			s_p.append(float(row['Speed (RPM)']))
+			c_p.append(float(row['Current (A)']))
+			wl_p.append(float(row['Power Dissipation (W)']))
+			v_p.append(12)
+			b_p.append(12)
+
+
+	v_p = np.array(v_p)
+	b_p = np.array(b_p)
+	x_a = np.array(x_a)
+	k_a = np.array(k_a)
+	f_a = np.array(f_a)
+	y_a = np.array(y_a)
+	z_a = np.array(z_a)
+	s_p = np.array(s_p)
+	c_p = np.array(c_p)
+	wl_p =np.array(wl_p)
+
+
+
+
+	wl_f = np.hstack((z_a * eff,np.hstack((z_a * eff,np.hstack((z_a * eff, np.hstack((z_a * eff, wl_p))))))))
+	c_f = np.hstack((x_a,np.hstack((x_a,np.hstack((x_a, np.hstack((x_a, c_p))))))))
+	s_f = np.hstack((y_a,np.hstack((y_a,np.hstack((y_a, np.hstack((y_a, s_p))))))))
+	v_f = np.hstack((k_a,np.hstack((k_a,np.hstack((k_a, np.hstack((k_a,v_p))))))))
+	b_f = np.hstack((b_a,np.hstack((b_a,np.hstack((b_a, np.hstack((b_a,b_p))))))))
+
+	
+	independent3 = np.array([c_f, s_f, v_f, b_f])
+
+
+
+
+
+
+
+
+
+
+
 	
 	print(os.getcwd())
+
+	weight = 5
 	
-	file_names =  [ "../Documents/hero_thermal_testing/data/M2/1.25v_stall/out_4.csv", "../Documents/hero_thermal_testing/data/M2/out_ramp.csv", "../Documents/hero_thermal_testing/data/M2/out_ramp2.csv", "../Documents/hero_thermal_testing/data/M2/out_ramp3.csv", "../Documents/hero_thermal_testing/data/M2/10v_setting_1/out_1.csv", "../Documents/hero_thermal_testing/data/M2/10v_setting_1/out_2.csv", "../Documents/hero_thermal_testing/data/M2/11v_setting_1/out_1.csv", "../Documents/hero_thermal_testing/data/M2/11v_setting_1/out_3.csv", "../Documents/hero_thermal_testing/data/M2/11v_setting_1/out_5.csv","../Documents/hero_thermal_testing/data/M2/2v_setting_3/out_3.csv", "../Documents/hero_thermal_testing/data/M2/2v_setting_3/out_4.csv", "../Documents/hero_thermal_testing/data/M2/2v_setting_3/out_5.csv", "../Documents/hero_thermal_testing/data/M2/out_2v_stall_1_min.csv", "../Documents/hero_thermal_testing/data/M2/out_2v_stall_1_min.csv","../Documents/hero_thermal_testing/data/M2/out_2v_stall_1_min.csv",] 
-	start_times = [0,  1000, 700, 700, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-	end_times = [1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000]
+	file_names =  [ "../Documents/hero_thermal_testing/data/M2/1.25v_stall/out_4.csv", "../Documents/hero_thermal_testing/data/M2/out_ramp.csv", "../Documents/hero_thermal_testing/data/M2/out_ramp2.csv", "../Documents/hero_thermal_testing/data/M2/out_ramp3.csv", "../Documents/hero_thermal_testing/data/M2/10v_setting_1/out_1.csv", "../Documents/hero_thermal_testing/data/M2/10v_setting_1/out_2.csv", "../Documents/hero_thermal_testing/data/M2/11v_setting_1/out_1.csv", "../Documents/hero_thermal_testing/data/M2/11v_setting_1/out_3.csv", "../Documents/hero_thermal_testing/data/M2/11v_setting_1/out_5.csv","../Documents/hero_thermal_testing/data/M2/2v_setting_3/out_3.csv", "../Documents/hero_thermal_testing/data/M2/2v_setting_3/out_4.csv", "../Documents/hero_thermal_testing/data/M2/2v_setting_3/out_5.csv", "../Documents/hero_thermal_testing/data/M2/out_2v_stall_1_min.csv"] + weight * ["../Documents/hero_thermal_testing/data/M2/out_2v_stall_1_min.csv" ]
+	
+	
+	start_times = [0,  1000, 700, 700, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] + weight * [0]
+	end_times = [1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000]+ weight * [100000000000000000000000000]
 
 	time = []
 	speed = []
@@ -220,9 +344,9 @@ if __name__ == "__main__":
 
 
 
-	file_names_v =  [ "../Documents/hero_thermal_testing/data/M2/custom_4/out_1.csv", "../Documents/hero_thermal_testing/data/M2/custom_4/out_2.csv", "../Documents/hero_thermal_testing/data/M2/custom_4/out_3.csv"] 
-	start_times_v = [0, 0, 0]#, 0 , 1000, 700, 700, 0, 0, 0, 0, 0, 0, 0, 0]
-	end_times_v = [1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000] #, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000]
+	file_names_v =  [ "../Documents/hero_thermal_testing/data/M2/custom_4/out_1.csv", "../Documents/hero_thermal_testing/data/M2/custom_4/out_2.csv", "../Documents/hero_thermal_testing/data/M2/custom_4/out_3.csv", "../Documents/hero_thermal_testing/data/M2/custom_2/out_2.csv", "../Documents/hero_thermal_testing/data/M2/custom_2/out_4.csv", "../Documents/hero_thermal_testing/data/M2/custom_2/out_5.csv", "../Documents/hero_thermal_testing/data/M2/custom_2/out_6.csv", "../Documents/hero_thermal_testing/data/M2/custom_5/out_2.csv", "../Documents/hero_thermal_testing/data/M2/custom_5/out_3.csv", "../Documents/hero_thermal_testing/data/M2/custom_5/out_4.csv"] 
+	start_times_v = [0, 0, 0, 0, 0, 0, 0, 0, 0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+	end_times_v = [1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000, 1000000000000000000000000000000]
 
 	time_v = []
 	speed_v = []
@@ -331,9 +455,9 @@ if __name__ == "__main__":
 		plt.title(name)
 		plt.show()
 
-
-
 	'''
+
+
 	srv = []
 	for i in range(time.size):
 		rospy.wait_for_service('/frcrobot/thermal_test' + str(i))
@@ -342,7 +466,17 @@ if __name__ == "__main__":
 	#def func(data, a, c):
 #		return data[0] * data[0] *  a + data[1] * c
 
-	guess = (-8.50661732936e-10, 0.555232751166, 6.36185394169e-09, -0.49505670238, -0.00199669493354, 0.00344950867011, 1.28466965937e-06, -1.35113514776e-06)
+
+	guess =(-2.85246568e-10,1.88243036e-01, 3.54034060e-09, -7.35002225e-02, -2.18939931e-04, 2.39645535e-04,2.15584376e-07,1.48868018e-06)
+
+
+	#guess = (-8.93507167e-11, 2.19807229e-01, 6.51278822e-09, -5.69099462e-01, -1.10665980e-03, 2.74227699e-03, 7.70389225e-07, 4.49018154e-08, 8.39283782e-01)#(-1.79312838e-10, 1.90796548e-01, 2.84101570e-09, -1.84612011e-01, -4.16924070e-04, 3.80310330e-03, 3.39349696e-07, -9.17108967e-08)
+
+
+	#[ -6.01933417e-11, 1.28268882e-01, 1.07582457e-08, -1.00586113e+00, -4.04547935e-04, 2.15855993e-03, 3.42746407e-07, -5.46528816e-07, 0.5]
+
+
+#(-8.26312241493e-11, 0.164487319793, 7.97118874781e-09, -0.685007997636, -0.000631992471144, 0.00238703627725, 4.82306667474e-07, -6.8727387956e-07) 
 
 
 
@@ -406,7 +540,7 @@ if __name__ == "__main__":
 	count_var = 0
 	print("")
 	
-	func(data, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7])
+	func(data, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7])#,para[8])
 	
 	print("")
 	
@@ -419,6 +553,7 @@ if __name__ == "__main__":
 	
 	avg_temp = avg_temp_v
 	temp = temp_v
+	file_names = file_names_v
 
 
 	
@@ -435,7 +570,7 @@ if __name__ == "__main__":
 	
 	mse_c = 0
 	print("")
-	func(data_v, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7])
+	func(data_v, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7])#,para[8])
 	print("")
 
 

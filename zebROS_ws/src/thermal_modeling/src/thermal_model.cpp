@@ -238,15 +238,15 @@ namespace thermal_modeling
 		{
 			output_voltage = 12;
 		}
-		else if(fabs(output_voltage) < 1)
+		else if(fabs(output_voltage) < 0.1)
 		{
-			output_voltage = 1;
+			output_voltage = 0.1;
 
 		} 
 	
-		const double predicted_resistance =  properties_.armature_resistance_0v / fabs(output_voltage);  //(properties_.armature_resistance_12v - properties_.armature_resistance_0v) / (12) * fabs(output_voltage) + properties_.armature_resistance_0v;
+		const double predicted_resistance =  properties_.armature_resistance_0v / pow(fabs(output_voltage), properties_.voltage_exponent);  //(properties_.armature_resistance_12v - properties_.armature_resistance_0v) / (12) * fabs(output_voltage) + properties_.armature_resistance_0v;
 
-		const_dtempdt_adder_[armature_id_] += (current_term * predicted_resistance  + properties_.v_term * rps + properties_.v_squared_term * rps * rps) / nodes_[armature_id_].thermal_capacity; //Brush friction?
+		const_dtempdt_adder_[armature_id_] += (current_term * predicted_resistance  + properties_.v_term * rps + properties_.v_squared_term * rps * rps + properties_.volt_term * fabs(output_voltage) + properties_.volt_squared_term * fabs(output_voltage) * fabs(output_voltage) ) / nodes_[armature_id_].thermal_capacity; //Brush friction?
 		const_dtempdt_adder_[brush_id_] += properties_.brush_friction_coeff * rps / nodes_[brush_id_].thermal_capacity; //Check this conversion etc.
 				
 		const double bearing_term = properties_.bearing_friction_coeff * rps;

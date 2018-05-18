@@ -8,7 +8,7 @@ thermal_model_params:
         air_speed_vs_rps:
             [{rps: 0.0, speed: 0.0}, {rps: 1.0, speed: 0.5}, {rps: 2.0, speed: 0.7}, {rps: 3.0, speed: 0.5}]
         properties:
-            {armature_resistance_12v: 6.85083376e-02,armature_resistance_0v: 0.45,  brush_friction_coeff: 0.0, bearing_friction_coeff: 0.0, v_squared_term: -2.46258826e-07, v_term: 6.54027138e-03, copper_resistance_alpha:  0.004041, armature_name: "test_lump1", brush_name: "test_lump1", bearing_names: ["test_lump1"]}
+            {armature_resistance_12v: 6.85083376e-02,armature_resistance_0v: 0.45,  brush_friction_coeff: 0.0, bearing_friction_coeff: 0.0, v_squared_term: -2.46258826e-07, v_term: 6.54027138e-03, volt_squared_term: 0.0, volt_term: 0.0, voltage_exponent: 1.14, copper_resistance_alpha:  0.004041, armature_name: "test_lump1", brush_name: "test_lump1", bearing_names: ["test_lump1"]}
 
         #[  6.85083376e-02  -2.46258826e-07   6.54027138e-03]
 
@@ -66,7 +66,7 @@ thermal_model_params:
 
 
         test_lump1:
-            thermal_capacity: 64.3848911154036 #48.44
+            thermal_capacity: 67.4986730506537 #includes 1.5 bearings
             initial_temperature: 500.0
             emissive_connections:
                 [{id: "test_lump2", emissivity_here: 0.01, emissivity_there: 0.01, area_here: .01, area_there: .01,  view_factor: 0.5, infinite_thermal_sink: false}]
@@ -78,7 +78,7 @@ thermal_model_params:
                 [{id: "test_lump2", v_term: 0.0000000001, v_squared_term: 0.000000000000000001, infinite_thermal_sink: false}]
             
         test_lump2:
-            thermal_capacity: 150  #118.513
+            thermal_capacity: 131.598476737442  #includes 0.5 bearings
             initial_temperature: 200.0
                 
             emissive_connections:
