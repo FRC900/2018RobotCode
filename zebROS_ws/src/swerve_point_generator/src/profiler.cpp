@@ -439,6 +439,9 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 
 			//ROS_ERROR_STREAM("num: " << accelerations.size());
 
+
+
+			//Implementation of adams-bashforth:
 			if(accelerations.size() == 0)
 			{
 
@@ -467,7 +470,7 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 			}
 			else
 			{
-				accelerations.push_back(accel);
+				accelerations.push_back(accel);  
 			}
 			//ROS_INFO_STREAM("curve max: " << current_v);
 
