@@ -100,7 +100,6 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 	erode(threshold,threshold,getStructuringElement(MORPH_ELLIPSE,Size(5,5)));
 
 	vector<vector<Point> > contours;
-	vector<vector<Point> > contoursOfIntrigue;
 	vector<Vec4i> rank;
 
 	findContours(threshold, contours, rank, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0,0));
@@ -113,7 +112,7 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 
 	cube_detection::CubeDetection cd_msg;
 
-	//const ObjectType obj_type_in = 7;
+	
 	const ObjectType objType = 7;
 	const float hFov = 105.;
 	const Point2f fov(hFov * (M_PI / 180.), hFov * (M_PI / 180.) * ((float)framePtr->rows / framePtr->cols));
@@ -177,21 +176,17 @@ void callback(const ImageConstPtr &frameMsg, const ImageConstPtr &depthMsg)
 		} else if (contours_poly[i].size() < 4) {
 			continue;
 		} else {
-			//contoursOfIntrigue.push_back(contours[i]);
+			
 			putText(drawing, to_string(contourDepth[i]), Point(boundRect[i].x, boundRect[i].y 		- 15), FONT_HERSHEY_SIMPLEX, 0.45, (0,0,255), 1);
 			drawContours(drawing, contours,i,color,2,8,rank,0,Point());
 			rectangle(drawing, boundRect[i].tl(), boundRect[i].br(), rect_color, 2, 8, 0);
-			/*ROS_INFO_STREAM("x = " << boundRect[i].x + (boundRect[i].width/2));
-			ROS_INFO_STREAM("y = " << boundRect[i].y + (boundRect[i].height/2));
-			ROS_INFO_STREAM("z = " << contourDepth[i]);*/
-			const Point3f world_location = objType.screenToWorldCoords(boundRect[i], contourDepth[i], fov, /*cv::Size(drawing.rows, drawing.cols)*/framePtr->size(), camera_elevation);
+			const Point3f world_location = objType.screenToWorldCoords(boundRect[i], contourDepth[i], fov, framePtr->size(), camera_elevation);
 			geometry_msgs::Point32 world_location_in; 
 			world_location_in.x = world_location.y;
 			world_location_in.y = world_location.x;
 			world_location_in.z = world_location.z;
 			cd_msg.location.push_back(world_location_in);
 			cd_msg.angle = atan(world_location.y/world_location.x);
-			//objType(obj_type_in);
 		}
 	}
 

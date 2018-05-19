@@ -1,0 +1,12 @@
+#!/bin/bash
+NAME="Setup Clock"
+USER=admin
+depmod
+echo bq32000 0x68 | tee /sys/class/i2c-adapter/i2c-2/new_device
+retries=0
+hwclock.util-linux --utc --hctosys
+while [[ $? -ne 0 && $retries < 5 ]]; do
+    sleep 5
+    retries+=1
+    hwclock.util-linux --utc --hctosys
+done
