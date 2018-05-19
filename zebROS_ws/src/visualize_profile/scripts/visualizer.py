@@ -21,6 +21,8 @@ def create_plot(req):
 	ys = []
 	zs = []
 	time = []
+	orient_vel = []
+
 
 	val = 0
 	for i in req.joint_trajectory.points:
@@ -28,6 +30,7 @@ def create_plot(req):
 		ys.append(i.positions[1])
 		zs.append(math.sqrt(i.velocities[0]*i.velocities[0] + i.velocities[1]*i.velocities[1]))
 		time.append(val)
+		orient_vel.append(i.velocities[2])
 		val += .02
 
 	ax.plot(xs, ys, zs, lw=0.5)
@@ -39,6 +42,12 @@ def create_plot(req):
 	plt.plot(time, zs)
 	plt.xlabel("Time (s)")
 	plt.ylabel("velocity (m/s)")
+
+	plt.show()
+
+	plt.plot(time, orient_vel)
+	plt.xlabel("Time (s)")
+	plt.ylabel(" angular velocity (rad/s)")
 
 	plt.show()
 
@@ -92,8 +101,10 @@ def create_plot(req):
 	plt.scatter(index, orients)
 	plt.scatter(index, total_vels)
 	#print("hi7")
-	plt.show()
+	plt.show(block = False)
 
+	plt.pause(5.0)
+	plt.close()
 
 	return MotionProfileResponse()
 

@@ -15,10 +15,10 @@
 
 auto_params:
      wait_for_match_data: 2
-     max_num_mode: 17
+     max_num_mode: 19
      max_num_start: 2
      max_num_wait_for_action: 2
-     num_profile_slots: 22
+     num_profile_slots: 25
 
      #mode 0: profiled place in switch (start everywhere)
      #mode 1: multi scale 1 switch (start on sides)
@@ -1580,6 +1580,54 @@ auto_params:
                 [2]
      mode_16_layout_0_start_2_wait_for_action_0_waits:
                 [0.0]
+
+     #Test
+     mode_17_layout_0_start_0_wait_for_action_0:
+                [{x: [0.0, 0.0, 0.0, 0.0, 0.005, 0.0],  y: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0], orient: [-18.843733642, 47.1064309261, -31.3984809261, -0.00580635796197, 0.0, 0.0]}]
+     mode_17_layout_0_start_0_actions:
+                [{ time: 2.0, actions: "do_nothing", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false , wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+     mode_17_layout_0_start_0_wait_for_action_0_spline_group:
+                [1]
+     mode_17_layout_0_start_0_wait_for_action_0_waits:
+                [0.0]
+       
+            
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+     #mode_17_layout_0_start_0_wait_for_action_0:
+     #       [{ time: 1.0, actions: "do_nothing", profile_wait: -1.0, x: 0.0, y: 0.0, up_or_down: false , wait_for_action: -1.0,  wait_for_action_delay: 0.0, wait_for_profile: -1.0,  wait_for_profile_delay: 0.0}]
+     #mode_17_layout_0_start_0_wait_for_action_0_spline_group:
+     #           [1]
+     #mode_17_layout_0_start_0_wait_for_action_0_waits:
+     #           [0.0]
 
 ##############################################################################
 ########################  Cmd Vel Profiles ###################################

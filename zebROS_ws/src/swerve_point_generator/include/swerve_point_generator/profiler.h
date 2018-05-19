@@ -98,7 +98,7 @@ class swerve_profiler
 		
 		//Applies constraints to solve for next velocity
 		bool solve_for_next_V(const path_point &path, const double path_length, double &current_v, 
-		const double current_pos, double &accel_defined);
+		const double current_pos, double &accel_defined, std::vector<double> &accelerations);
 		
 		bool coerce(double &val, const double min, const double max); 
 		

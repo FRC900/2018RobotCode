@@ -82,6 +82,10 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 	std::vector<double> positions;
 	positions.reserve(155 / dt_); //For full auto :)
 
+
+	std::vector<double> accelerations;
+	accelerations.reserve(155 / dt_);
+
 	path_point holder_point;
 	spline_coefs holder_spline;
 
@@ -175,6 +179,7 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 	spline = parametrize_spline(x_splines_first_deriv, y_splines_first_deriv, end_points, 
 	total_arc, dtds_for_spline, arc_length_for_spline);
 	int point_count = 0;
+	accelerations.resize(0);
 	//back pass
 	//ROS_INFO_STREAM("total arc: " <<total_arc);
 	//i is the arc length we are at in the loop
@@ -207,7 +212,7 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 
 
 		//Solve for the next V using constraints
-		if (!solve_for_next_V(holder_point, total_arc, curr_v, i, max_wheel_brake_accel_))
+		if (!solve_for_next_V(holder_point, total_arc, curr_v, i, max_wheel_brake_accel_, accelerations))
 		{
 			return false;
 		}
@@ -262,11 +267,11 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 		now += period;
 		point_count++;
 		//ROS_ERROR_STREAM("1: " << curr_v);
-		if (!solve_for_next_V(holder_point, total_arc, curr_v, i, max_wheel_mid_accel_))
-		{
-			return false;
-		}
-		//ROS_ERROR_STREAM("2: " << curr_v);
+		
+
+
+
+
 		for (size_t k = 0; k < positions.size(); k++)
 		{
 			if (starting_point - k < 0 || positions[starting_point - k] > i)
@@ -291,7 +296,34 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 		//    ROS_INFO_STREAM("cut by previous vel max: " << vel_cap << " curr_v: " << curr_v);
 		//}
 		//ROS_ERROR_STREAM("c: " <<vel_cap);
-		coerce(curr_v, -100000000000, vel_cap);
+
+
+
+
+
+
+
+
+
+
+
+
+		if(!coerce(curr_v, -100000000000, vel_cap))
+		{
+
+			if (!solve_for_next_V(holder_point, total_arc, curr_v, i, max_wheel_mid_accel_, accelerations))
+			{
+				return false;
+			}
+			if(coerce(curr_v, -100000000000, vel_cap))
+			{
+				accelerations.resize(0);
+			}
+		}
+		else
+		{
+			accelerations.resize(0);
+		}
 
 		//ROS_INFO_STREAM("post cut max: " << curr_v);
 	}
@@ -323,7 +355,7 @@ bool swerve_profiler::coerce(double &val, const double min, const double max)
 	}
 }
 bool swerve_profiler::solve_for_next_V(const path_point &path, const double path_length, double &current_v, 
-									   const double current_pos, double &accel_defined)
+									   const double current_pos, double &accel_defined, std::vector<double> &accelerations)
 {
 	//This if statement is here so we only try to solve for points on the path
 	if (current_pos >= 0 && current_pos <= path_length)
@@ -405,15 +437,47 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 			//ROS_INFO_STREAM("accel: " << accel << " under: " << v_general_max << " under: " << v_curve_max << " is: " << current_v); 
 			//ROS_INFO_STREAM("curr_v: " << current_v << " added accel: " << accel * dt_);
 
-			current_v += accel * dt_;
+			//ROS_ERROR_STREAM("num: " << accelerations.size());
 
+			if(accelerations.size() == 0)
+			{
+
+			
+				current_v += accel * dt_;
+			}
+			else if(accelerations.size() == 1)
+			{
+				current_v += dt_ / 2 * (3 * accel - accelerations[0]);
+			}
+			else if(accelerations.size() == 2)
+			{
+				current_v += dt_ / 12 * (23 * accel - 16 * accelerations[1] + 5 *accelerations[0]);
+			}
+			else 
+			{
+				current_v += dt_ / 24 * ( 55 * accel - 59 * accelerations[-1] + 37 * accelerations[-2] - 9 * accelerations[-3] );
+			}
 			//Threshold again
 
-			coerce(current_v, -v_curve_max, v_curve_max);
-			coerce(current_v, -v_general_max, v_general_max);
+	
 
-
+			if(coerce(current_v, -v_curve_max, v_curve_max) | coerce(current_v, -v_general_max, v_general_max))
+			{
+				accelerations.resize(0);
+			}
+			else
+			{
+				accelerations.push_back(accel);
+			}
 			//ROS_INFO_STREAM("curve max: " << current_v);
+
+			
+
+
+		}
+		else
+		{
+			accelerations.resize(0);
 		}
 	}
 	else
