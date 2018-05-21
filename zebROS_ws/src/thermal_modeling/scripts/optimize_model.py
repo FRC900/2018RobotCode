@@ -31,7 +31,7 @@ def func1(data, a, c, k, h):
 	return ((curr_term * a + data[1] * c + data[1] * data[1] * b +  data[0] **abs(h) * data[2] **abs(k) * j) / wl_f - 1)* data[5] +1
 
 
-def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3,  v_1, v_2, v_3, v_squared_1, v_squared_2, v_squared_3, custom_v_c, v_squared_term):
+def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2, custom_v_c, v_squared_term):
 
 	gc.collect()
 
