@@ -17,23 +17,32 @@ from multiprocessing.pool import ThreadPool
 
 import os
 	
+
+params_last = (1.0, 1.0)
+
 j = 0
 b = 0
+h = 0
+k = 0
 
-
-params_last = (1.16420618e+00,  1.29578476e-01, 1.0, 1.0)
-
-
-def func1(data, a, c, k, h):
+def func1(data, a, c):
 	global j 
 	global b
+	global h
+	global k
 	curr_term = np.where(data[2] > 0.1, data[0] * data[0] *  data[3] / data[2] ** 2, data[0] * data[0] *  data[3] / 0.1 ** 2)
+	#print("k: ", k, " h: ", h,  " b: ", b, " a: ", a, " c: ")
+	#print(h)
+	#print(b)
+	#print(a)
 	return ((curr_term * a + data[1] * c + data[1] * data[1] * b +  data[0] **abs(h) * data[2] **abs(k) * j) / wl_f - 1)* data[5] +1
 
-
-def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2, custom_v_c, v_squared_term):
+#def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3,v_1, v_2, v_3, v_squared_1, v_squared_2, v_squared_3,custom_v_c, v_squared_term, resistance):
+def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared_1, v_squared_2, v_squared_3, custom_v_c, v_squared_term, custom_c_pow, custom_v_pow):
 
 	gc.collect()
+
+	
 
 	global f
 	voltage_exponent = 2.0
@@ -47,13 +56,28 @@ def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2, c
 	global b
 
 	b = v_squared_term
+	
+	global h
+
+	h = custom_c_pow
+	
+	
+	global k
+
+	k = custom_v_pow
+	#global a
+
+	#a = resistance
 
 	global params_last	
 
-	params, pcov = optimize.curve_fit(func1, independent3, ones_1, params_last)
+	params, pcov = optimize.curve_fit(func1, independent3, ones_1, params_last,maxfev = 10000 )
 
-	params_last = params
-	waste = np.array([params[0], 0.0, v_squared_term, params[1], 0.0, 0.0, voltage_exponent, 0.0, 0.0, custom_v_c, abs(params[2]), abs(params[3])])
+
+#	params_last = params
+	waste = np.array([params[0], 0.0, v_squared_term, params[1], 0.0, 0.0, voltage_exponent, 0.0, 0.0, custom_v_c, abs(custom_c_pow), abs(custom_v_pow)])
+
+	#waste = np.array([1.16420618e+00, 0.0, -6.38198699e-05, 1.29578476e-01, 0.0, 0.0, voltage_exponent, 0.0, 0.0, -9.69149234e-02, 1.64252560e+00, 3.71621311e-07])
 
 	loss_resistance_0v, loss_resistance_12v, loss_v_squared_term, loss_v_term, loss_volt_term, loss_volt_squared_term, voltage_exponent,  volt_squared_current, current_squared_volt, custom_v_c, custom_c_pow, custom_v_pow  = waste[0], waste[1], waste[2], waste[3], waste[4], waste[5], waste[6], waste[7], waste[8], waste[9], waste[10], waste[11]
 
@@ -83,7 +107,7 @@ def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2, c
 	results = []
 
 	for time_h, RPM_h, bus_voltage_h, output_voltage_h, output_current_h, i_temp in zip(data[0], data[1],data[2],data[3],data[4],avg_temp):
-		p = ModelParams("test_talon", h_1, h_2, e_term1, e_term2, v_1, v_2, v_squared_1, v_squared_2, loss_v_term,  loss_v_squared_term, loss_volt_term,  loss_volt_squared_term, loss_resistance_12v, loss_resistance_0v, voltage_exponent,  volt_squared_current, current_squared_volt, custom_v_c, custom_c_pow, custom_v_pow, [i_temp, i_temp])		#req = ModelTest(p, data[0], data[1], data[2], data[3], data[4])
+		p = ModelParams("test_talon", h_1, h_2, h_3, e_term1, e_term2, e_term3, v_1, v_2, v_3, v_squared_1, v_squared_2, v_squared_3, loss_v_term,  loss_v_squared_term, loss_volt_term,  loss_volt_squared_term, loss_resistance_12v, loss_resistance_0v, voltage_exponent,  volt_squared_current, current_squared_volt, custom_v_c, custom_c_pow, custom_v_pow, [i_temp, i_temp])		#req = ModelTest(p, data[0], data[1], data[2], data[3], data[4])
 
 		results.append(pool.apply_async(srv[index], (p, time_h, RPM_h, bus_voltage_h, output_voltage_h, output_current_h)))
 		
@@ -138,6 +162,10 @@ def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2, c
 	global mse_c
 
 	global ones
+
+	#out_v = np.where(out_v < 10 * 10000.0, out_v, 10 * 10000.0)
+	#out_v = np.where(out_v > -10 * 10000.0, out_v, -10 * 10000.0)
+	#out_v = np.where(np.isnan(out_v), out_v, 10 * 10000.0)
 	
 	#mse_v = 0
 	if(count_var % 50 == 0):
@@ -153,7 +181,7 @@ def func(data, e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2, c
 	#" params: ", params, 
 
 
-	print("\033[Ktime: ", str( time_module.time() - static_start_time), " count: ", str(count_var), " compute time: ", str(time_module.time() - saved_time), " mse: ", mse_c, " vals: ", e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2, custom_v_c, custom_c_pow, custom_v_pow, " waste: ", waste[0], waste[1] , waste[2], waste[3], waste[4], waste[5], waste[6], end='\r')
+	print("\033[Ktime: ", str( time_module.time() - static_start_time), " count: ", str(count_var), " compute time: ", str(time_module.time() - saved_time), " mse: ", mse_c, " vals: ",e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2, custom_v_c, v_squared_term,  " waste: ", waste[0], waste[1] , waste[2], waste[3], waste[4], waste[5], waste[6], waste[7], waste[8], waste[9], waste[10], waste[11], end='\r')
 
 	#, v_waste_coeff, v_squared_waste_coeff
 
@@ -530,20 +558,10 @@ if __name__ == "__main__":
 	#def func(data, a, c):
 #		return data[0] * data[0] *  a + data[1] * c
 
-
-	guess = (9.00668910922e-22, 0.049918354717, 2.05233712007e-09, -8.09808923596e-07, 0.000258572613589, 0.00438064120958, 6.84910200094e-08, .00001,  9.69149234e-002, 3.71621311e-07)
-
-#(-7.33864890893e-11, 0.0695824577393, 1.54906036908e-08, -1.53440778669, 4.86966114052e-05, 0.000607335090741, 2.53248567476e-07, 4.20277588045e-07, 0.00303757063534,-2.25167316654e-07)#(-7.33864910e-11, 6.95824574e-02, 1.54906034e-08, -1.53440782e+00, 4.86966150e-05, 6.07334738e-04, 2.53248728e-07, 4.20277218e-07, 3.03757901e-03, -2.25159718e-07)
-
-#(5.40777242e-10, 6.89370234e-15, 1.06037853e-10, 1.57013606e-15, 3.18202943e-05, 5.69963915e-02, 1.76274517e-07, 4.52079993e-06)             #(5.92497817e-16, 6.89370234e-15, 1.68353018e-15, 1.57013606e-15, 1.42736507e-14, 7.04432044e-14, 2.36891354e-15, 1.81667250e-15)#, -2.89366695e-03 ) #-2.89366695e-03
-
-
-
-#(-8.81939117517e-11, 0.0797053797622, 2.18902431698e-08, -2.15689012605, 0.000214986796786, 0.000829197191598, -5.85989521247e-08, 1.79248473575e-06)
-
-
-#2.85246568e-10, 1.88243036e-5, 3.54034060e-10, 7.35002225e-5, 2.18939931e-3, 2.39645535e-3,2.15584376e-12,1.48868018e-12)
-
+	guess=(-3.74237248181e-17,0.000465569613927,2.9347475349e-12,0.0154415885479,2.5056548193e-05,0.0134383685593,1.77046588332e-07,-6.56901486569e-06,-0.0969153419586,-6.38187352693e-05, 1.0, 1.0)
+	guess=(-6.2801910663e-18,0.0447082181677,2.11180167865e-09,0.00344631641815,0.000169282835049,0.00164693174146, 6.73766667347e-08,-2.246529437e-07, 0.0969149418854, 3.71621381874e-07, 0.338627865961, 4.50600154105e-07)
+	guess=(-6.2801910663e-18,0.0447082181677,2.11180167865e-09,0.00344631641815,2.11180167865e-09,0.00344631641815, 0.000169282835049,0.00164693174146,0.00164693174146, 6.73766667347e-08,-2.246529437e-07,2.246529437e-07, 0.0969149418854, 3.71621381874e-07, 0.338627865961, 4.50600154105e-07)
+	
 
 	force_plot_now = True
 	plot_by_time = False
@@ -603,7 +621,7 @@ if __name__ == "__main__":
 	count_var = 0
 	print("")
 	
-	func(data, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7],para[8],para[9])
+	func(data, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7],para[8],para[9],para[10],para[11], para[12],para[13],para[14], para[15])
 	
 	print("")
 	
@@ -636,7 +654,7 @@ if __name__ == "__main__":
 	
 	mse_c = 0
 	print("")
-	func(data_v, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7],para[8],para[9])
+	func(data_v, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7],para[8], para[9],para[10],para[11], para[12],para[13],para[14], para[15])
 	print("")
 
 

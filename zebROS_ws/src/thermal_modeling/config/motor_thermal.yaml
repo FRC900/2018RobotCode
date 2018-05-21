@@ -69,13 +69,13 @@ thermal_model_params:
             thermal_capacity: 67.4986730506537 #includes 1.5 bearings
             initial_temperature: 500.0
             emissive_connections:
-                [{id: "test_lump2", emissivity_here: 0.01, emissivity_there: 0.01, area_here: .01, area_there: .01,  view_factor: 0.5, infinite_thermal_sink: false}]
+                [{id: "test_lump2", emissivity_here: 0.01, emissivity_there: 0.01, area_here: .01, area_there: .01,  view_factor: 0.5, infinite_thermal_sink: false}, {emissivity_here: 0.01, emissivity_there: 0.01, area_here: .01, area_there: .01,  view_factor: 0.5, infinite_thermal_sink: true, infinite_thermal_sink_temp: 293.824964447358}]
             conductive_connections:
                 [{id: "test_lump2", k: 0.01, area: 0.01, dist: 1., infinite_thermal_sink: false}]
             natural_convective_connections:
-                []
+                [{k: 0.01, area: 0.01, infinite_thermal_sink: true, infinite_thermal_sink_temp: 293.824964447358}]
             fan_convective_connections:
-                [{id: "test_lump2", v_term: 0.0000000001, v_squared_term: 0.000000000000000001, infinite_thermal_sink: false}]
+                [{id: "test_lump2", v_term: 0.0000000001, v_squared_term: 0.000000000000000001, infinite_thermal_sink: false}, {v_term: 0.0000000001, v_squared_term: 0.000000000000000001, infinite_thermal_sink: true, infinite_thermal_sink_temp: 293.824964447358}]
             
         test_lump2:
             thermal_capacity: 131.598476737442  #includes 0.5 bearings

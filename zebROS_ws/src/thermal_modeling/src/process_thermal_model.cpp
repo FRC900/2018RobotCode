@@ -67,6 +67,12 @@ bool run_model_service(thermal_modeling::ModelTest::Request &req, thermal_modeli
 	temp_nodes["test_lump1"].connections_fan_convective[0].v_term = req.params.v_1;
 	temp_nodes["test_lump1"].connections_fan_convective[0].v_squared_term = req.params.v_squared_1;
 
+	
+	temp_nodes["test_lump1"].connections_emissive[1].h = req.params.e_term3;
+	temp_nodes["test_lump1"].connections_natural_convective[0].h = req.params.h_3;
+	temp_nodes["test_lump1"].connections_fan_convective[1].v_term = req.params.v_3;
+	temp_nodes["test_lump1"].connections_fan_convective[1].v_squared_term = req.params.v_squared_3;
+
 	//ROS_ERROR("_________________________________________________________________         here3");
 	
 	temp_nodes["test_lump2"].connections_emissive[0].h = req.params.e_term2;
