@@ -135,14 +135,14 @@ def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared
 	
 		if(force_plot_now):
 			plt.title(file_name)
-			plt.ylim(290, 340)
+			#plt.ylim(290, 340)
 			plt.plot(time_h, out.temps[1].temps)
 			plt.plot(time_h, out.temps[0].temps)
 			plt.plot(time_h, true_temp)
 			plt.show()
 		elif( (plot_by_time and count_var % 500 == 499) ):
 			plt.title(file_name)
-			plt.ylim(290, 340)
+			#plt.ylim(290, 340)
 			plt.plot(time_h, out.temps[1].temps)
 			plt.plot(time_h, out.temps[0].temps)
 			plt.plot(time_h, true_temp)
@@ -181,7 +181,7 @@ def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared
 	#" params: ", params, 
 
 
-	print("\033[Ktime: ", str( time_module.time() - static_start_time), " count: ", str(count_var), " compute time: ", str(time_module.time() - saved_time), " mse: ", mse_c, " vals: ",e_term1, h_1, e_term2, h_2, v_1, v_2, v_squared_1, v_squared_2, custom_v_c, v_squared_term,  " waste: ", waste[0], waste[1] , waste[2], waste[3], waste[4], waste[5], waste[6], waste[7], waste[8], waste[9], waste[10], waste[11], end='\r')
+	print("\033[Ktime: ", str( time_module.time() - static_start_time), " count: ", str(count_var), " compute time: ", str(time_module.time() - saved_time), " mse: ", mse_c, " vals: ",e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3, v_squared_1, v_squared_2, v_squared_3, custom_v_c, v_squared_term, custom_c_pow, custom_v_pow,  " waste: ", waste[0], waste[1] , waste[2], waste[3], waste[4], waste[5], waste[6], waste[7], waste[8], waste[9], waste[10], waste[11], end='\r')
 
 	#, v_waste_coeff, v_squared_waste_coeff
 
@@ -296,13 +296,13 @@ if __name__ == "__main__":
 
 
 	
-	file_names =  ["M1/5v_setting_1/out_1.csv", \
+	file_names =  [#"M1/5v_setting_1/out_1.csv", \
 				   "M2/out_ramp.csv", \
 				   "M2/out_ramp2.csv", \
 				   "M2/out_ramp3.csv", \
-				   "M1/5v_setting_1/out_2.csv", \
-				   "M1/5v_setting_1/out_3.csv", \
-				   "M2/1.25v_stall/out_1.csv", \
+				   #"M1/5v_setting_1/out_2.csv", \
+				   #"M1/5v_setting_1/out_3.csv", \
+				   #"M2/1.25v_stall/out_1.csv", \
 				   "M2/1.25v_stall/out_2.csv", \
 				   "M2/1.25v_stall/out_4.csv", \
 				   "M2/10v_setting_1/out_2.csv", \
@@ -339,7 +339,7 @@ if __name__ == "__main__":
 
 	weights = [3.0] *50
 	
-	start_times = [0,  1000, 700, 700] + 40 * [0]
+	start_times = [1000, 700, 700] + 40 * [0]
 	end_times = 40 * [100000000000000000000000000]
 
 	time = []
@@ -558,11 +558,10 @@ if __name__ == "__main__":
 	#def func(data, a, c):
 #		return data[0] * data[0] *  a + data[1] * c
 
-	guess=(-3.74237248181e-17,0.000465569613927,2.9347475349e-12,0.0154415885479,2.5056548193e-05,0.0134383685593,1.77046588332e-07,-6.56901486569e-06,-0.0969153419586,-6.38187352693e-05, 1.0, 1.0)
-	guess=(-6.2801910663e-18,0.0447082181677,2.11180167865e-09,0.00344631641815,0.000169282835049,0.00164693174146, 6.73766667347e-08,-2.246529437e-07, 0.0969149418854, 3.71621381874e-07, 0.338627865961, 4.50600154105e-07)
-	guess=(-6.2801910663e-18,0.0447082181677,2.11180167865e-09,0.00344631641815,2.11180167865e-09,0.00344631641815, 0.000169282835049,0.00164693174146,0.00164693174146, 6.73766667347e-08,-2.246529437e-07,2.246529437e-07, 0.0969149418854, 3.71621381874e-07, 0.338627865961, 4.50600154105e-07)
+ 
+	#guess = (-6.20753140e-17, 4.47852911e-02, 1.48742786e-09, -1.02985448e-01,  5.66497347e-10, 5.85690415e-04, 2.19913987e-04, 1.23995567e-04, 1.43167445e-03, 2.22106614e-07, -1.59885786e-07, 1.68545917e-07, 8.91638955e-02, 1.97224684e-07, 1.32562339e+00, 1.93991748e-07)  #With linearly increasing resistance
 	
-
+	guess = (-6.06082082e-17,4.38274137e-02,1.33188329e-09, -9.20018598e-02,5.64906679e-10,5.96947895e-04,2.20645106e-04,9.39060892e-05,1.23169443e-03,2.15696144e-07,-1.08627174e-07,1.89111000e-07,9.14479392e-02,1.66695079e-07,1.15748204e+00,8.04289716e-07)
 	force_plot_now = True
 	plot_by_time = False
 	
