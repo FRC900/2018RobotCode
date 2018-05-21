@@ -85,6 +85,11 @@ bool run_model_service(thermal_modeling::ModelTest::Request &req, thermal_modeli
 		temp_properties.volt_squared_term = req.params.loss_volt_squared_term;
 		temp_properties.volt_term = req.params.loss_volt_term;
 		temp_properties.voltage_exponent = req.params.voltage_exponent;
+		temp_properties.volt_squared_current  = req.params.volt_squared_current;	
+		temp_properties.current_squared_volt  = req.params.current_squared_volt;	
+		temp_properties.custom_v_c  = req.params.custom_v_c;
+		temp_properties.custom_c_pow  = req.params.custom_v_pow;
+		temp_properties.custom_v_pow  = req.params.custom_c_pow;
 
 
 	//ROS_ERROR("_________________________________________________________________         here4");
@@ -108,21 +113,13 @@ bool run_model_service(thermal_modeling::ModelTest::Request &req, thermal_modeli
 	{
 		//ROS_ERROR_STREAM("t2: " << temp_motor_model->temperatures_[1]);
 
-		double current_term;
-		if(fabs(req.output_voltage[i]) < .2)
-		{
-			current_term = 0;
-		}
-		else
-		{
-			current_term = fabs(req.output_current[i]) *fabs(req.output_current[i])  * fabs(req.bus_voltage[i]);
-		}
+		double current_term = fabs(req.output_current[i]) *fabs(req.output_current[i])  * fabs(req.bus_voltage[i]);
 
 
 
 
 
-		temp_motor_model->iterate_model(req.time[i] - req.time[i-1], current_term, fabs(req.output_voltage[i]), fabs(req.RPM[i]));
+		temp_motor_model->iterate_model(req.time[i] - req.time[i-1], current_term, fabs(req.output_current[i]), fabs(req.output_voltage[i]), fabs(req.RPM[i]));
 		for(size_t k = 0; k < temp_motor_model->temperatures_.size(); k++)
 		{	
 			res.temps[k].temps[i] = temp_motor_model->temperatures_[k];
@@ -163,19 +160,11 @@ void talon_cb(const talon_state_controller::TalonState &msg)
 			double dt = msg.header.stamp.toSec() - time_p;
 			
 
-			double current_term;
-			if(fabs(msg.output_voltage[talon_indexes[i][k]]) < .2)
-			{
-				current_term = 0;
-			}
-			else
-			{
-				current_term = fabs(msg.output_current[talon_indexes[i][k]]) *fabs(msg.output_current[talon_indexes[i][k]])  * fabs(msg.bus_voltage[talon_indexes[i][k]]) / fabs(msg.output_voltage[talon_indexes[i][k]]);
-			}
+			double current_term = fabs(msg.output_current[talon_indexes[i][k]]) *fabs(msg.output_current[talon_indexes[i][k]])  * fabs(msg.bus_voltage[talon_indexes[i][k]]) / fabs(msg.output_voltage[talon_indexes[i][k]]);
 	
 
 			//ROS_ERROR("actually running");
-			motor_models[i][k]->iterate_model(dt, current_term, fabs(msg.output_voltage[talon_indexes[i][k]]), fabs(msg.speed[talon_indexes[i][k]]));
+			motor_models[i][k]->iterate_model(dt, current_term, fabs(msg.output_current[talon_indexes[i][k]]), fabs(msg.output_voltage[talon_indexes[i][k]]), fabs(msg.speed[talon_indexes[i][k]]));
 			//ROS_ERROR("1.2.2");
 
 				
@@ -383,8 +372,13 @@ int main(int argc, char **argv)
 		all_properties[i].v_term = properties_xml["v_term"];	
 		all_properties[i].volt_squared_term = properties_xml["volt_squared_term"];	
 		all_properties[i].volt_term = properties_xml["volt_term"];	
+		all_properties[i].volt_squared_current  = properties_xml["volt_squared_current"];	
+		all_properties[i].current_squared_volt  = properties_xml["current_squared_volt"];	
+		all_properties[i].custom_v_c  = properties_xml["custom_v_c"];
+		all_properties[i].custom_v_pow  = properties_xml["custom_v_pow"];
+		all_properties[i].custom_c_pow  = properties_xml["custom_c_pow"];
 		all_properties[i].voltage_exponent = properties_xml["voltage_exponent"];	
-		//all_properties[i].copper_resistance_alpha = properties_xml["copper_resistance_alpha"];	
+		all_properties[i].copper_resistance_alpha = properties_xml["copper_resistance_alpha"];	
 		all_properties[i].armature_name = static_cast<std::string>(properties_xml["armature_name"]);	
 		all_properties[i].brush_name =  static_cast<std::string>(properties_xml["brush_name"]);	
 		

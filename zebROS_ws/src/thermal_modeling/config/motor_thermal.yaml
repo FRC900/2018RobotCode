@@ -8,7 +8,7 @@ thermal_model_params:
         air_speed_vs_rps:
             [{rps: 0.0, speed: 0.0}, {rps: 1.0, speed: 0.5}, {rps: 2.0, speed: 0.7}, {rps: 3.0, speed: 0.5}]
         properties:
-            {armature_resistance_12v: 6.85083376e-02,armature_resistance_0v: 0.45,  brush_friction_coeff: 0.0, bearing_friction_coeff: 0.0, v_squared_term: -2.46258826e-07, v_term: 6.54027138e-03, volt_squared_term: 0.0, volt_term: 0.0, voltage_exponent: 1.14, copper_resistance_alpha:  0.004041, armature_name: "test_lump1", brush_name: "test_lump1", bearing_names: ["test_lump1"]}
+            {armature_resistance_12v: 6.85083376e-02,armature_resistance_0v: 0.45,  brush_friction_coeff: 0.0, bearing_friction_coeff: 0.0, v_squared_term: -2.46258826e-07, v_term: 6.54027138e-03, volt_squared_term: 0.0, volt_term: 0.0, voltage_exponent: 1.14, copper_resistance_alpha:  0.00393, armature_name: "test_lump1", brush_name: "test_lump1", bearing_names: ["test_lump1"]}
 
         #[  6.85083376e-02  -2.46258826e-07   6.54027138e-03]
 
@@ -82,13 +82,13 @@ thermal_model_params:
             initial_temperature: 200.0
                 
             emissive_connections:
-                [{emissivity_here: 0.01, emissivity_there: 0.01, area_here: .01, area_there: .01,  view_factor: 0.5, infinite_thermal_sink: true, infinite_thermal_sink_temp: 294.15}]
+                [{emissivity_here: 0.01, emissivity_there: 0.01, area_here: .01, area_there: .01,  view_factor: 0.5, infinite_thermal_sink: true, infinite_thermal_sink_temp: 293.824964447358}]
             conductive_connections:
                 []
             natural_convective_connections:
-                [{k: 0.01, area: 0.01, infinite_thermal_sink: true, infinite_thermal_sink_temp: 294.15}]
+                [{k: 0.01, area: 0.01, infinite_thermal_sink: true, infinite_thermal_sink_temp: 293.824964447358}]
             fan_convective_connections:
-                [{v_term: 0.0000000001, v_squared_term: 0.000000000000000001, infinite_thermal_sink: true, infinite_thermal_sink_temp: 294.15}]
+                [{v_term: 0.0000000001, v_squared_term: 0.000000000000000001, infinite_thermal_sink: true, infinite_thermal_sink_temp: 293.824964447358}]
         
 
 

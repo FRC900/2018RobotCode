@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <ros/console.h>
+#include <math.h>
 
 #include <thermal_modeling/thermal_model.h>
 
@@ -79,6 +80,14 @@ namespace thermal_modeling
 			dtempdt[i] = const_dtempdt_adder_[i];	
 
 		}
+			
+		if(fabs(output_voltage_) < 0.1)
+		{
+			output_voltage_ = 0.1;
+
+		} 
+		const double predicted_resistance =  (1 + properties_.copper_resistance_alpha * (temps[armature_id_] -  333.15 ))  * properties_.armature_resistance_0v / pow(fabs(output_voltage_), properties_.voltage_exponent);  //(properties_.armature_resistance_12v - properties_.armature_resistance_0v) / (12) * fabs(output_voltage) + properties_.armature_resistance_0v;
+		dtempdt[armature_id_] += current_term_ * predicted_resistance / nodes_[armature_id_].thermal_capacity;
 		//ROS_ERROR_STREAM("2.1");	
 
 		for(int i =  0; i < dtempdt.size(); i++)
@@ -193,16 +202,21 @@ namespace thermal_modeling
 
 	//Generate function by using a combination of for loops and switch statements
 
-	void thermal_model::iterate_model(const double dt, const double current_term, const double output_voltage, const double rps, const std::vector<identified_val> &assign_temp)
+	void thermal_model::iterate_model(const double dt, const double current_term, const double current, const double output_voltage, const double rps, const std::vector<identified_val> &assign_temp)
 	{
 				
 		//fan_air_speed_ = air_speed_curve_(fabs(rps));
 		speed_ = fabs(rps);
 
 		//ROS_ERROR_STREAM("1");	
+		
+		output_voltage_ = output_voltage;
 
-		distribute_losses(current_term, output_voltage, fabs(rps));
+		current_term_ = current_term;
+		distribute_losses(output_voltage, fabs(rps));
+		output_current_ = current;
 
+	
 		//ROS_ERROR_STREAM("2");	
 		//boost::function<void (const ode_state_type &, ode_state_type &, const double )> f2(  );
 
@@ -226,7 +240,7 @@ namespace thermal_modeling
 
 
 	}
-	void thermal_model::distribute_losses(const double current_term, double output_voltage, const double rps)
+	void thermal_model::distribute_losses(double output_voltage, const double rps)
 	{
 		
 		for(size_t i = 0; i < const_dtempdt_adder_.size(); i++)
@@ -234,21 +248,29 @@ namespace thermal_modeling
 			const_dtempdt_adder_[i] = 0;
 		}
 	
-		if(fabs(output_voltage) > 12)
-		{
-			output_voltage = 12;
-		}
-		else if(fabs(output_voltage) < 0.1)
-		{
-			output_voltage = 0.1;
 
-		} 
-	
-		const double predicted_resistance =  properties_.armature_resistance_0v / pow(fabs(output_voltage), properties_.voltage_exponent);  //(properties_.armature_resistance_12v - properties_.armature_resistance_0v) / (12) * fabs(output_voltage) + properties_.armature_resistance_0v;
+			
+		const double custom_term = fabs(output_voltage) < 0.2 ? (0) : (properties_.custom_v_c * pow(fabs(output_voltage),  properties_.custom_v_pow)  * pow(fabs(output_current_),  properties_.custom_c_pow)  );
 
-		const_dtempdt_adder_[armature_id_] += (current_term * predicted_resistance  + properties_.v_term * rps + properties_.v_squared_term * rps * rps + properties_.volt_term * fabs(output_voltage) + properties_.volt_squared_term * fabs(output_voltage) * fabs(output_voltage) ) / nodes_[armature_id_].thermal_capacity; //Brush friction?
+
+		const_dtempdt_adder_[armature_id_] += 
+		( properties_.v_term * rps 
+		+ properties_.v_squared_term * rps * rps 
+		+ properties_.volt_term * fabs(output_voltage) 
+		+ properties_.volt_squared_term * fabs(output_voltage) * fabs(output_voltage)
+		+ properties_.volt_squared_current * fabs(output_voltage) * fabs(output_voltage) * fabs(output_current_) 
+		+ properties_.current_squared_volt * fabs(output_voltage) * fabs(output_current_) * fabs(output_current_) 
+		+ custom_term
+		) / nodes_[armature_id_].thermal_capacity; //Brush friction?
 		const_dtempdt_adder_[brush_id_] += properties_.brush_friction_coeff * rps / nodes_[brush_id_].thermal_capacity; //Check this conversion etc.
-				
+
+		/*if(std::isnan(const_dtempdt_adder_[armature_id_]))
+		{
+			ROS_ERROR_STREAM(const_dtempdt_adder_[armature_id_]);
+			ROS_ERROR_STREAM("rps: " << rps);
+			ROS_ERROR_STREAM("output_current_: " << output_current_);
+			ROS_ERROR_STREAM("output_voltage: " << output_voltage);
+		}*/		
 		const double bearing_term = properties_.bearing_friction_coeff * rps;
 
 		for(size_t i = 0; i < bearing_ids_.size(); i++)

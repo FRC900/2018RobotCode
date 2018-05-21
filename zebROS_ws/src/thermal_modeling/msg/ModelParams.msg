@@ -14,5 +14,9 @@ float64 loss_volt_squared_term
 float64 loss_resistance_12v
 float64 loss_resistance_0v
 float64 voltage_exponent
-
+float64 volt_squared_current 
+float64 current_squared_volt 
+float64 custom_v_c 
+float64 custom_c_pow 
+float64 custom_v_pow 
 float64[] initial_temps

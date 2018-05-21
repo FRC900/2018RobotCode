@@ -144,6 +144,7 @@ namespace thermal_modeling
 		
 		double armature_resistance_12v;
 		double armature_resistance_0v;
+		double copper_resistance_alpha;
 		double brush_friction_coeff;
 		double bearing_friction_coeff;
 		double v_squared_term;
@@ -151,6 +152,13 @@ namespace thermal_modeling
 		double volt_squared_term;
 		double volt_term;
 		double voltage_exponent;
+		double volt_squared_current ;
+        double current_squared_volt ;
+        double custom_v_c ;
+        double custom_c_pow ;
+        double custom_v_pow ;
+
+
 		std::string armature_name;
 		std::string brush_name;
 		std::vector<std::string> bearing_names;
@@ -158,6 +166,7 @@ namespace thermal_modeling
 		motor_properties():
 		    armature_resistance_12v(0),
 		    armature_resistance_0v(0),
+		    copper_resistance_alpha(0),
 	        brush_friction_coeff(0),
 		    bearing_friction_coeff(0),
 		    v_squared_term(0),
@@ -165,6 +174,11 @@ namespace thermal_modeling
 		    volt_squared_term(0),
 		    volt_term(0),
 		    voltage_exponent(0),
+			volt_squared_current(0),
+			current_squared_volt(0),
+			custom_v_c(0),
+			custom_c_pow(0),
+			custom_v_pow(0),
 		    armature_name(" "),
 			brush_name(" ")
 		{
@@ -183,7 +197,7 @@ namespace thermal_modeling
 			std::vector<node_properties> nodes_; //Public so info can be read and potentially written to
 			std::vector<double> temperatures_; //needs to be initialized like the others
 			std::map<std::string, int> node_indexes_; //We have both a map and a vector for efficiency reasons
-			void iterate_model(const double dt, const double current_term, const double output_voltage, const double rps, const std::vector<identified_val> &assign_temp = {});	
+			void iterate_model(const double dt, const double current_term, const double current, const double output_voltage, const double rps, const std::vector<identified_val> &assign_temp = {});
 			void compute_coupled_ode_deriv(const ode_state_type &temps, ode_state_type &dtempdt, 
 			const double t);
 
@@ -196,7 +210,7 @@ namespace thermal_modeling
 			std::vector<int> bearing_ids_;
 			
 			boost::numeric::odeint::runge_kutta4<ode_state_type> rk_stepper;
-			void distribute_losses(const double current, double output_voltage, const double rps);
+			void distribute_losses(double output_voltage, const double rps);
 			void emissive_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
 			void natural_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
 			void fan_convective_deriv(const int i, const int k, ode_state_type &dtempdt, const ode_state_type &temps);
@@ -207,7 +221,9 @@ namespace thermal_modeling
 			tk::spline efficiency_curve_;
 			tk::spline air_speed_curve_;
 			double speed_;
-			double current_;
+			double output_voltage_;
+			double output_current_;
+			double current_term_;
 			motor_properties properties_;
 			
 			
