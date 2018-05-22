@@ -7,6 +7,6 @@ retries=0
 hwclock.util-linux --utc --hctosys
 while [[ $? -ne 0 && $retries < 5 ]]; do
     sleep 5
-    retries+=1
+	((retries+=1))
     hwclock.util-linux --utc --hctosys
 done

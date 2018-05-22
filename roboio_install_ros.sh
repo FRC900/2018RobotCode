@@ -6,7 +6,10 @@
 # we're installing from.  This should be close enough
 # to reality to get past ssl errors from pip if the 
 # date on the Rio is totally wacky
-ssh admin@$1 date --set="\"`date -R`\"" 
+ssh admin@$1 date -u --set="\"`date -u +"%Y.%m.%d-%T"`\""
+
+ssh admin@$ 'swapon /dev/sda5'
+if false; then 
 
 ssh admin@$1 'opkg update'
 
@@ -27,7 +30,7 @@ ssh admin@$1 'opkg install gcc g++ gcc-symlinks g++-symlinks binutils python-set
 ssh admin@$1 'opkg clean'
 ssh admin@$1 'opkg install python-pkgutil python-dateutil python-argparse python-nose '
 ssh admin@$1 'opkg clean'
-ssh admin@$1 'opkg install python-netifaces libglog0 python-pip coreutils gdb ntp i2c-tools '
+ssh admin@$1 'opkg install python-netifaces libglog0 python-pip coreutils gdb i2c-tools '
 ssh admin@$1 'opkg clean'
 ssh admin@$1 'opkg install ntp ntp-tickadj ntp-utils ntpdate rsync htop curl'
 ssh admin@$1 'opkg clean'
@@ -52,6 +55,7 @@ ssh admin@$1 'ln -s /usr/include /include'
 ssh admin@$1 'mkdir -p 2018RobotCode/zebROS_ws/src'
 ssh admin@$1 'source /opt/ros/kinetic/setup.bash && cd 2018RobotCode/zebROS_ws && catkin_make_isolated --install'
 
+
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!#
 ##################-----------------------------#################
 #Edit /etc/ntp.conf to be a copy of ntp-server in 2018RobotCode#
@@ -72,16 +76,18 @@ ssh admin@$1 'cd gflags && cmake -DCMAKE_BUILD_TYPE=Release . &&  make install'
 ssh admin@$1 'rm -rf gflags*'
 
 # Copy wpilib to roborio
+ssh admin@$1 mkdir wpilib
 cd ~/wpilib/cpp/current/reflib/linux/athena/shared
 scp *.so.* admin@$1:wpilib
 cd ~/wpilib/common/current/lib/linux/athena/shared
 scp *.so *.so.3.2 admin@$1:wpilib
 
-scp ~/2018RobotCode/setupClock admin@$1:/etc/init.d
+scp ~/2018RobotCode/setupClock admin@$1:/etc/init.d/setupClock
 ssh admin@$1 'chmod +x /etc/init.d/setupClock'
 ssh admin@$1 'ln -sf /etc/init.d/setupClock /etc/init.d/hwclock.sh'
 ssh admin@$1 '/usr/sbin/update-rc.d -f setupClock defaults'
 ssh admin@$1 '/usr/sbin/update-rc.d -f hwclock.sh defaults'
+fi
 
 scp ~/2018RobotCode/jetson_setup/roborio_dot_ssh.tar.bz2 admin@$1:.
 ssh admin@$1 'mkdir .ssh'
