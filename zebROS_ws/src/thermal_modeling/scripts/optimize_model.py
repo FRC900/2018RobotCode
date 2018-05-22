@@ -18,12 +18,41 @@ from multiprocessing.pool import ThreadPool
 import os
 	
 
+
 params_last = (1.0, 1.0)
 
 j = 0
 b = 0
 h = 0
 k = 0
+
+def hyper_op(t_array):
+
+	global guess
+
+	global t1
+	global t2
+	global t3
+
+	t1 = t_array[0]
+	t2 = t_array[1]
+	t3 = t_array[2]
+
+
+	para, pcov = optimize.curve_fit(func, data, ones, guess)
+	#guess = para
+	func(data, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7],para[8],para[9],para[10],para[11], para[12],para[13],para[14], para[15])
+	global mse_c
+
+	print("")
+	print("mse_c: ", mse_c)
+	print("")
+	print("")
+	print("")
+	print("")
+	print("")
+
+	return mse_c 
 
 def func1(data, a, c):
 	global j 
@@ -71,7 +100,7 @@ def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared
 
 	global params_last	
 
-	params, pcov = optimize.curve_fit(func1, independent3, ones_1, params_last,maxfev = 10000 )
+	params, pcov = optimize.curve_fit(func1, independent3, ones_1, params_last,maxfev = 50000, sigma = np.full(ones_1.shape, .000001 ))
 
 
 #	params_last = params
@@ -106,8 +135,22 @@ def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared
 
 	results = []
 
-	for time_h, RPM_h, bus_voltage_h, output_voltage_h, output_current_h, i_temp in zip(data[0], data[1],data[2],data[3],data[4],avg_temp):
-		p = ModelParams("test_talon", h_1, h_2, h_3, e_term1, e_term2, e_term3, v_1, v_2, v_3, v_squared_1, v_squared_2, v_squared_3, loss_v_term,  loss_v_squared_term, loss_volt_term,  loss_volt_squared_term, loss_resistance_12v, loss_resistance_0v, voltage_exponent,  volt_squared_current, current_squared_volt, custom_v_c, custom_c_pow, custom_v_pow, [i_temp, i_temp])		#req = ModelTest(p, data[0], data[1], data[2], data[3], data[4])
+	
+
+	
+	for time_h, RPM_h, bus_voltage_h, output_voltage_h, output_current_h, i_temp, file_name in zip(data[0], data[1],data[2],data[3],data[4],avg_temp, file_names):
+		intial_temp_array = []
+		if "ramp.csv" in file_name:
+			initial_temp_array = [(i_temp - 293.825) * t1 + 293.825, i_temp]
+		elif "ramp2.csv" in file_name:
+			initial_temp_array = [(i_temp - 293.825) * t2  + 293.825, i_temp]
+		elif "ramp3.csv" in file_name:
+			initial_temp_array = [(i_temp - 293.825) * t3  + 293.825, i_temp]
+		else:
+			initial_temp_array = [i_temp, i_temp]
+				
+
+		p = ModelParams("test_talon", h_1, h_2, h_3, e_term1, e_term2, e_term3, v_1, v_2, v_3, v_squared_1, v_squared_2, v_squared_3, loss_v_term,  loss_v_squared_term, loss_volt_term,  loss_volt_squared_term, loss_resistance_12v, loss_resistance_0v, voltage_exponent,  volt_squared_current, current_squared_volt, custom_v_c, custom_c_pow, custom_v_pow, initial_temp_array)		#req = ModelTest(p, data[0], data[1], data[2], data[3], data[4])
 
 		results.append(pool.apply_async(srv[index], (p, time_h, RPM_h, bus_voltage_h, output_voltage_h, output_current_h)))
 		
@@ -124,25 +167,29 @@ def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared
 		#print(str(count_var))
 
 
+
+
 	for time_h, true_temp, result_yu, file_name, weight in zip(data[0], temp, results, file_names, weights):
 		out = result_yu.get()
 		if(value_b):
 			value_b = False
-			out_v = (out.temps[1].temps / true_temp - 1) * weight + 1
+			#out_v = (out.temps[1].temps / true_temp - 1) * weight + 1
+			out_v = (out.temps[1].temps / true_temp )
 		else:
-			out_v = np.hstack((out_v, ((out.temps[1].temps / true_temp - 1) * weight + 1) * 10000.0))
+		#	out_v = np.hstack((out_v, ((out.temps[1].temps / true_temp - 1) * weight + 1) * 10000.0))
+			out_v = np.hstack((out_v, ((out.temps[1].temps / true_temp )  ) ))
 
 	
 		if(force_plot_now):
 			plt.title(file_name)
-			#plt.ylim(290, 340)
+			plt.ylim(290, max(np.amax(out.temps[1].temps), np.amax(out.temps[0].temps)))
 			plt.plot(time_h, out.temps[1].temps)
 			plt.plot(time_h, out.temps[0].temps)
 			plt.plot(time_h, true_temp)
 			plt.show()
 		elif( (plot_by_time and count_var % 500 == 499) ):
 			plt.title(file_name)
-			#plt.ylim(290, 340)
+			plt.ylim(290, max(np.amax(out.temps[1].temps), np.amax(out.temps[0].temps)))
 			plt.plot(time_h, out.temps[1].temps)
 			plt.plot(time_h, out.temps[0].temps)
 			plt.plot(time_h, true_temp)
@@ -181,7 +228,11 @@ def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared
 	#" params: ", params, 
 
 
-	print("\033[Ktime: ", str( time_module.time() - static_start_time), " count: ", str(count_var), " compute time: ", str(time_module.time() - saved_time), " mse: ", mse_c, " vals: ",e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3, v_squared_1, v_squared_2, v_squared_3, custom_v_c, v_squared_term, custom_c_pow, custom_v_pow,  " waste: ", waste[0], waste[1] , waste[2], waste[3], waste[4], waste[5], waste[6], waste[7], waste[8], waste[9], waste[10], waste[11], end='\r')
+	print("\033[F\033[F\033[F\033[F\033[Ktime: ", str( time_module.time() - static_start_time), " count: ", str(count_var), " compute time: ", str(time_module.time() - saved_time), " mse: ", mse_c)
+	print('\033[K\b', "vals: ",e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1)
+	print('\033[K\b',  v_2,  v_3, v_squared_1, v_squared_2, v_squared_3, custom_v_c, v_squared_term)
+	print('\033[K\b', custom_c_pow, custom_v_pow,  t1, t2, t3)
+	print('\033[K\b', "waste: ", waste[0], waste[1] , waste[2], waste[3], waste[4], waste[5], waste[6], waste[7], waste[8], waste[9], waste[10], waste[11], end='\r')
 
 	#, v_waste_coeff, v_squared_waste_coeff
 
@@ -432,7 +483,7 @@ if __name__ == "__main__":
 				      "M2/custom_5/out_3.csv", \
 				      "M2/custom_5/out_4.csv", \
 					  "M1/out_smoked_5v.csv" , \
-					  "M1/out_smoked_8v.csv"] 
+					  "M1/out_smoked_8v.csv"]
 	for i in range(len(file_names_v)):
 		file_names_v[i] = base + file_names_v[i]
 
@@ -513,6 +564,10 @@ if __name__ == "__main__":
 
 
 
+	print("")
+	print("")
+	print("")
+	print("")
 
 
 
@@ -559,9 +614,8 @@ if __name__ == "__main__":
 #		return data[0] * data[0] *  a + data[1] * c
 
  
-	#guess = (-6.20753140e-17, 4.47852911e-02, 1.48742786e-09, -1.02985448e-01,  5.66497347e-10, 5.85690415e-04, 2.19913987e-04, 1.23995567e-04, 1.43167445e-03, 2.22106614e-07, -1.59885786e-07, 1.68545917e-07, 8.91638955e-02, 1.97224684e-07, 1.32562339e+00, 1.93991748e-07)  #With linearly increasing resistance
-	
-	guess = (-6.06082082e-17,4.38274137e-02,1.33188329e-09, -9.20018598e-02,5.64906679e-10,5.96947895e-04,2.20645106e-04,9.39060892e-05,1.23169443e-03,2.15696144e-07,-1.08627174e-07,1.89111000e-07,9.14479392e-02,1.66695079e-07,1.15748204e+00,8.04289716e-07)
+	guess=(-4.24141930836e-17,0.113406005192,8.04962010461e-10,-0.0605110361941,1.78791357775e-09,0.00019482702024,0.000128586675498,-4.23436626793e-05,0.00162592004277,8.51791638452e-08,1.42417265658e-08,3.62642283396e-08,2.66102174004,1.90289217973e-07,1.04437138781,3.01210226756e-07)
+
 	force_plot_now = True
 	plot_by_time = False
 	
@@ -591,7 +645,7 @@ if __name__ == "__main__":
 		t_o = np.hstack((t_o, t))
 	
 
-	ones = np.full(t_o.shape, 10000.0)
+	ones = np.full(t_o.shape, 1.0)
 	
 	start_time_var = time_module.time()
 
@@ -603,11 +657,29 @@ if __name__ == "__main__":
 	
 	mse_c = 0
 	print("")
-	para, pcov = optimize.curve_fit(func, data, ones, guess)
 	print("")
+	print("")
+	print("")
+	
+	#hyper_guess = (1.20411198973, 1.0, 1.20411198973)
+
+	#results = optimize.minimize(hyper_op, hyper_guess, bounds  = [(1.0, 4.0), (1.0, 4.0), (1.0, 4.0)])
+
+	#print(results.x)
+
+	t1 = 1.20410872259
+	t2 = 1.00004801984
+	t3 = 1.20415675243
+
+	para = guess #, pcov = optimize.curve_fit(func, data, ones, guess, sigma = np.full(ones.shape, .01), maxfev = 50000)
+
 	print(para)
 	#print(pcov)
 
+	print("")
+	print("")
+	print("")
+	print("")
 
 	force_plot_now = True
 
@@ -619,9 +691,14 @@ if __name__ == "__main__":
 	mse_c = 0
 	count_var = 0
 	print("")
+	print("")
 	
 	func(data, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7],para[8],para[9],para[10],para[11], para[12],para[13],para[14], para[15])
 	
+	print("")
+	print("")
+	print("")
+	print("")
 	print("")
 	
 
@@ -652,6 +729,11 @@ if __name__ == "__main__":
 	ones = np.full(t_o.shape, 1.0)
 	
 	mse_c = 0
+	print("")
+	print("")
+	print("")
+	print("")
+	print("")
 	print("")
 	func(data_v, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7],para[8], para[9],para[10],para[11], para[12],para[13],para[14], para[15])
 	print("")

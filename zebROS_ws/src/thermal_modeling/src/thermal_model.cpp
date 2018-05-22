@@ -86,7 +86,7 @@ namespace thermal_modeling
 			output_voltage_ = 0.1; //Some value other than 0
 			current_term_ = 0;
 		} 
-		const double predicted_resistance =  /* (1 + properties_.copper_resistance_alpha * (temps[armature_id_] -  333.15 ))  **/ properties_.armature_resistance_0v / pow(fabs(output_voltage_), properties_.voltage_exponent);  //(properties_.armature_resistance_12v - properties_.armature_resistance_0v) / (12) * fabs(output_voltage) + properties_.armature_resistance_0v;
+		const double predicted_resistance =  (1 + properties_.copper_resistance_alpha * (temps[armature_id_] -  333.15 ))  * properties_.armature_resistance_0v / pow(fabs(output_voltage_), properties_.voltage_exponent);  //(properties_.armature_resistance_12v - properties_.armature_resistance_0v) / (12) * fabs(output_voltage) + properties_.armature_resistance_0v;
 		dtempdt[armature_id_] += current_term_ * predicted_resistance / nodes_[armature_id_].thermal_capacity;
 		//ROS_ERROR_STREAM("2.1");	
 
