@@ -22,8 +22,8 @@
 import rosbag
 import sys
 import os
-from ros_control_boilerplate.msg import MatchSpecificData
 import json
+import pickle
 from rospy_message_converter import json_message_converter
 
 # Global variable for input file name
@@ -75,12 +75,14 @@ def extract_data (bag, topic, inputFileName):
     print "[OK] Printing %s" % topic
     print "[OK] Output file will be called %s." % outputFileName
 
+    topic_all_msgs = {}
+
     outputFh = open(outputFileName, "w")
     
-    for topic, msg, t in bag.read_messages(topics=topic):
-        f.write(json_message_converter.convert_ros_message_to_json(msg))
-        f.write('\n')
+    for index, (topic, msg, t) in enumerate(bag.read_messages(topics=topic)):
+        topic_all_msgs[index] = json.loads(json_message_converter.convert_ros_message_to_json(msg))
 
+    pickle.dump(topic_all_msgs, outputFh)
     outputFh.close()
     print "[OK] DONE"
 
