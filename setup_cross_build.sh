@@ -34,26 +34,27 @@ sudo apt-get install git libc6-i386 curl jstest-gtk gradle oracle-java8-installe
 # included in above for now but keep handy
 # for upgrading if needed
 #
-# Even more obsolete now - 2018 beta uses v5.0.x and seems to be
+# Even more obsolete now - 2018 beta uses v5.x.x and seems to be
 # installed automatically?
 #cd
-#wget http://www.ctr-electronics.com//downloads/lib/CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
+#wget http://www.ctr-electronics.com//downloads/lib/CTRE_Phoenix_FRCLibs_NON-WINDOWS_v5.5.1.0.zip
 #mkdir ctre
 #cd ctre
-#unzip ../CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
+#unzip ../CTRE_FRCLibs_NON-WINDOWS_v5.5.1.0.zip
 #cp -r cpp ~/wpilib/user
 #cd ..
-#rm -rf ctre CTRE_FRCLibs_NON-WINDOWS_v4.4.1.14.zip
+#rm -rf ctre CTRE_FRCLibs_NON-WINDOWS_v5.5.1.0.zip
+
 
 # Install navX-MXP libraries
-#cd
-#wget https://www.kauailabs.com/public_files/navx-mxp/navx-mxp-libs.zip
-#mkdir navx
-#cd navx
-#unzip ../navx-mxp-libs.zip
-#rsync -a roborio/cpp/ ~/wpilib/user/cpp/
-#cd ..
-#rm -rf navx navx-mxp-libs.zip
+cd
+wget https://www.kauailabs.com/public_files/navx-mxp/navx-mxp-libs.zip
+mkdir navx
+cd navx
+unzip ../navx-mxp-libs.zip
+rsync -a roborio/cpp/ ~/wpilib/user/cpp/
+cd ..
+rm -rf navx navx-mxp-libs.zip
 
 # Get ros for RoboRIO libraries
 cd
