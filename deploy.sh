@@ -113,7 +113,7 @@ scp $ROS_CODE_LOCATION/ROSJetsonMaster.sh $JETSON_ADDR:$JETSON_ROS_CODE_LOCATION
 scp $ROS_CODE_LOCATION/ROSJetsonMaster.sh $ROBORIO_ADDR:$RIO_ROS_CODE_LOCATION
 rsync -avzru $RSYNC_OPTIONS --exclude '.git' --exclude 'zebROS_ws/build*' \
     --exclude 'zebROS_ws/devel*' --exclude 'zebROS_ws/install*' \
-    --exclude '*~' --exclude '*.sw[op]' \
+    --exclude '*~' --exclude '*.sw[op]' --exclude '*CMakeFiles*' \
     $LOCAL_CLONE_LOCATION/ $JETSON_ADDR:$JETSON_ENV_LOCATION/
 if [ $? -ne 0 ]; then
     echo "Failed to synchronize source code TO $INSTALL_ENV on Jetson!"
@@ -124,7 +124,7 @@ if [ ${#RSYNC_OPTIONS} -eq 0 ] ; then
     echo "Synchronizing remote changes FROM $INSTALL_ENV environment."
     rsync -avzru --exclude '.git' --exclude 'zebROS_ws/build*' \
         --exclude 'zebROS_ws/devel*' --exclude 'zebROS_ws/install*' \
-        --exclude '*~' --exclude '*.sw[op]' \
+        --exclude '*~' --exclude '*.sw[op]'  --exclude '*CMakeFiles*' \
         $JETSON_ADDR:$JETSON_ENV_LOCATION/ $LOCAL_CLONE_LOCATION/
     if [ $? -ne 0 ]; then
         echo "Failed to synchronize source code FROM $INSTALL_ENV on Jetson!"
@@ -133,25 +133,27 @@ if [ ${#RSYNC_OPTIONS} -eq 0 ] ; then
 fi
 echo "Synchronization complete"
 
-# Run local roboRIO cross build.
+# Run local roboRIO cross build as one process.
+# Then synchronize cross build products to roboRIO.
+(echo "Starting roboRIO cross build" &&
 bash -c "cd $ROS_CODE_LOCATION && \
     source /usr/arm-frc-linux-gnueabi/opt/ros/kinetic/setup.bash && \
-    ./cross_build.sh"
-echo "roboRIO cross build complete"
-
-# Synchronize cross build products to roboRIO.
-echo "Synchronizing $INSTALL_ENV cross build to roboRIO"
-ssh $ROBORIO_ADDR "/etc/init.d/nilvrt stop"
+    ./cross_build.sh" && \
+echo "roboRIO cross build complete" && \
+echo "Synchronizing $INSTALL_ENV cross build to roboRIO" && \
+ssh $ROBORIO_ADDR "/etc/init.d/nilvrt stop" && \
 rsync -avz --delete $ROS_CODE_LOCATION/install_isolated/ \
-    $ROBORIO_ADDR:$RIO_INSTALL_LOCATION/
-echo "Synchronization complete"
+    $ROBORIO_ADDR:$RIO_INSTALL_LOCATION && /
+echo "Synchronization complete") &
 
-# Run Jetson native build.
-echo "Starting Jetson native build"
+# Run Jetson native build as a separate process.
+(echo "Starting Jetson native build" && \
 ssh $JETSON_ADDR "cd $JETSON_CLONE_LOCATION/zebROS_ws && \
     source /opt/ros/kinetic/setup.bash && \
-    catkin_make"
-echo "Jetson native build complete"
+    catkin_make" && \
+echo "Jetson native build complete") &
+
+wait
 
 update_links
 echo "FINISHED SUCCESSFULLY"
