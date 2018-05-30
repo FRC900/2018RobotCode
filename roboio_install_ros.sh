@@ -8,7 +8,7 @@
 # date on the Rio is totally wacky
 ssh admin@$1 date -u --set="\"`date -u +"%Y.%m.%d-%T"`\""
 
-ssh admin@$ 'swapon /dev/sda5'
+ssh admin@$1 'swapon /dev/sda5'
 if false; then 
 
 ssh admin@$1 'opkg update'
