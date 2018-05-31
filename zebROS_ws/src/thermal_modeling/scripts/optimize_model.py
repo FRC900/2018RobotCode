@@ -19,12 +19,12 @@ import os
 	
 
 
-params_last = (1.0, 1.0)
+params_last = (1.0, 1.0, 0.00001, 1.0)
 
 j = 0
 b = 0
-h = 0
-k = 0
+x = 0
+y = 0
 
 def hyper_op(t_array):
 
@@ -39,9 +39,9 @@ def hyper_op(t_array):
 	t3 = t_array[2]
 
 
-	para, pcov = optimize.curve_fit(func, data, ones, guess)
+	para, pcov = optimize.curve_fit(func, data, ones, guess, ftol = .0000000000000000000000000000001, gtol=.0000000000000000001, maxfev = 10000)
 	#guess = para
-	func(data, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7],para[8],para[9],para[10],para[11], para[12],para[13],para[14], para[15])
+	func(data, *para)
 	global mse_c
 
 	print("")
@@ -54,24 +54,29 @@ def hyper_op(t_array):
 
 	return mse_c 
 
-def func1(data, a, c):
+def func1(data, a, c, h, k):
 	global j 
 	global b
-	global h
-	global k
+	global x 
+	global y
 	curr_term = np.where(data[2] > 0.1, data[0] * data[0] *  data[3] / data[2] ** 2, data[0] * data[0] *  data[3] / 0.1 ** 2)
 	#print("k: ", k, " h: ", h,  " b: ", b, " a: ", a, " c: ")
 	#print(h)
 	#print(b)
 	#print(a)
-	return ((curr_term * a + data[1] * c + data[1] * data[1] * b +  data[0] **abs(h) * data[2] **abs(k) * j) / wl_f - 1)* data[5] +1
+	return ((curr_term * a + data[1] * c + data[1] * data[1] * b +  data[0] **abs(h) * data[2] **abs(k) * j - data[4] *data[1] *y - data[4] *data[1]*data[1]*x) / wl_f - 1)* data[5] +1
 
-#def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3,v_1, v_2, v_3, v_squared_1, v_squared_2, v_squared_3,custom_v_c, v_squared_term, resistance):
-def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared_1, v_squared_2, v_squared_3, custom_v_c, v_squared_term, custom_c_pow, custom_v_pow):
+def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3, v_s_1, v_s_2, v_s_3,  custom_v_c, v_squared_term, eff_1, eff_2):
 
 	gc.collect()
 
-	
+	global x 
+	global y
+	x= eff_1
+	y= eff_2
+	v_c_1, v_c_2, v_c_3 = 0.0, 0.0, 0.0 
+
+	v_exp1,v_exp2, v_exp3 = 1.0, 2.0, 3.0
 
 	global f
 	voltage_exponent = 2.0
@@ -86,25 +91,28 @@ def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared
 
 	b = v_squared_term
 	
-	global h
+	#global h
 
-	h = custom_c_pow
+	#h = custom_c_pow
 	
 	
-	global k
+	#global k
 
-	k = custom_v_pow
+	#k = custom_v_pow
 	#global a
 
 	#a = resistance
 
+	
+
+
 	global params_last	
 
-	params, pcov = optimize.curve_fit(func1, independent3, ones_1, params_last,maxfev = 50000, sigma = np.full(ones_1.shape, .000001 ))
+	params, pcov = optimize.curve_fit(func1, independent3, ones_1, params_last,maxfev = 50000, ftol = 1e-8, gtol = 1e-40)
 
 
 #	params_last = params
-	waste = np.array([params[0], 0.0, v_squared_term, params[1], 0.0, 0.0, voltage_exponent, 0.0, 0.0, custom_v_c, abs(custom_c_pow), abs(custom_v_pow)])
+	waste = np.array([params[0], 0.0, v_squared_term, params[1], 0.0, 0.0, voltage_exponent, 0.0, 0.0, custom_v_c,  params[2], params[3]])
 
 	#waste = np.array([1.16420618e+00, 0.0, -6.38198699e-05, 1.29578476e-01, 0.0, 0.0, voltage_exponent, 0.0, 0.0, -9.69149234e-02, 1.64252560e+00, 3.71621311e-07])
 
@@ -148,9 +156,10 @@ def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared
 			initial_temp_array = [(i_temp - 293.825) * t3  + 293.825, i_temp]
 		else:
 			initial_temp_array = [i_temp, i_temp]
-				
+			
 
-		p = ModelParams("test_talon", h_1, h_2, h_3, e_term1, e_term2, e_term3, v_1, v_2, v_3, v_squared_1, v_squared_2, v_squared_3, loss_v_term,  loss_v_squared_term, loss_volt_term,  loss_volt_squared_term, loss_resistance_12v, loss_resistance_0v, voltage_exponent,  volt_squared_current, current_squared_volt, custom_v_c, custom_c_pow, custom_v_pow, initial_temp_array)		#req = ModelTest(p, data[0], data[1], data[2], data[3], data[4])
+
+		p = ModelParams("test_talon", h_1, h_2, h_3, e_term1, e_term2, e_term3, v_1, v_2, v_3, v_s_1, v_s_2, v_s_3,v_c_1, v_c_2, v_c_3,v_exp1,v_exp2,v_exp3, loss_v_term,  loss_v_squared_term, loss_volt_term,  loss_volt_squared_term, loss_resistance_12v, loss_resistance_0v, voltage_exponent,  volt_squared_current, current_squared_volt, custom_v_c, custom_c_pow, custom_v_pow, initial_temp_array)		#req = ModelTest(p, data[0], data[1], data[2], data[3], data[4])
 
 		results.append(pool.apply_async(srv[index], (p, time_h, RPM_h, bus_voltage_h, output_voltage_h, output_current_h)))
 		
@@ -179,8 +188,11 @@ def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared
 		#	out_v = np.hstack((out_v, ((out.temps[1].temps / true_temp - 1) * weight + 1) * 10000.0))
 			out_v = np.hstack((out_v, ((out.temps[1].temps / true_temp )  ) ))
 
+
 	
 		if(force_plot_now):
+			print("mse: ", ((out.temps[1].temps / true_temp- np.full((len(out.temps[1].temps)), 1.0))**2).mean(axis=None))
+			print("\n\n\n\n\n\n\n")
 			plt.title(file_name)
 			plt.ylim(290, max(np.amax(out.temps[1].temps), np.amax(out.temps[0].temps)))
 			plt.plot(time_h, out.temps[1].temps)
@@ -226,13 +238,16 @@ def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3,v_squared
 	del pool
 
 	#" params: ", params, 
+	#def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1, v_2, v_3, v_s_1, v_s_2, v_s_3, v_c_1, v_c_2, v_c_3, custom_v_c, v_squared_term, custom_c_pow, custom_v_pow):
 
 
-	print("\033[F\033[F\033[F\033[F\033[Ktime: ", str( time_module.time() - static_start_time), " count: ", str(count_var), " compute time: ", str(time_module.time() - saved_time), " mse: ", mse_c)
-	print('\033[K\b', "vals: ",e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1)
-	print('\033[K\b',  v_2,  v_3, v_squared_1, v_squared_2, v_squared_3, custom_v_c, v_squared_term)
-	print('\033[K\b', custom_c_pow, custom_v_pow,  t1, t2, t3)
-	print('\033[K\b', "waste: ", waste[0], waste[1] , waste[2], waste[3], waste[4], waste[5], waste[6], waste[7], waste[8], waste[9], waste[10], waste[11], end='\r')
+	print("\033[F\033[F\033[F\033[F\033[F\033[Ktime: ", str( time_module.time() - static_start_time), " count: ", str(count_var), " compute time: ", str(time_module.time() - saved_time), " mse: ", mse_c)
+	print('\033[K\b', "vals: " , e_term1, h_1, e_term2, h_2, e_term3, h_3, v_1)
+	print('\033[K\b',   v_2, v_3, v_s_1, v_s_2, v_s_3, custom_v_c)
+	print('\033[K\b', v_squared_term)
+	print('\033[K\b', "waste: ", waste[0], waste[1] , waste[2], waste[3], waste[4], waste[5], waste[6])
+
+	print('\033[K\b',waste[7], waste[8], waste[9], waste[10], waste[11], end='\r')
 
 	#, v_waste_coeff, v_squared_waste_coeff
 
@@ -258,11 +273,15 @@ if __name__ == "__main__":
 	b_a = []
 
 
-	weight_local_no_stall = 0.2
-	weight_local_stall = 10.0
+	weight_local_no_stall =055
+	weight_local_stall = 1.0
 	weight_curve_data = 1.0
 
 	base = "../Documents/hero_thermal_testing/data/"
+	
+	count_stall = 0
+	count_norm = 0
+	count_curve = 0
 	with open(base + '/M2/waste_data_new.csv', 'rt') as csvfile:
 		reader = csv.DictReader(csvfile, delimiter=',')
 		for row in reader:
@@ -271,8 +290,10 @@ if __name__ == "__main__":
 
 			if(float(row["RPM"]) > 3.0):
 				w_a.append(weight_local_no_stall)
+				count_norm+=1
 			else:
 				w_a.append(weight_local_stall)
+				count_stall+=1
 
 
 			e_a.append(1.0)
@@ -299,6 +320,7 @@ if __name__ == "__main__":
 	with open('../775pro-motor-curve-data.csv', 'rt') as csvfile:
 		reader = csv.DictReader(csvfile, delimiter=',')
 		for row in reader:
+			count_curve+=1
 			w_p.append(weight_curve_data)
 			e_p.append(0.0)
 			s_p.append(float(row['Speed (RPM)']) / 60 * 2 * pi)
@@ -307,7 +329,9 @@ if __name__ == "__main__":
 			v_p.append(12)
 			b_p.append(12)
 
-
+	print("count curve: ", count_curve, \
+	"count norm: ", count_norm, \
+	"count stall: ", count_stall)
 	w_p = np.array(w_p)
 	w_a = np.array(w_a)
 	e_p = np.array(e_p)
@@ -382,13 +406,14 @@ if __name__ == "__main__":
 				   "M2/0-5-0_setting_2/out_1.csv", \
 				   "M2/0-5-0_setting_2/out_2.csv", \
 				   "M2/out-0-11-11-0.csv", \
-				   "M2/out-0-3-0.csv"	
+				   "M2/custom_2/out_4_only_invalid.csv"	
+				   #"M2/out-0-3-0.csv"	
 					]
 	
 	for i in range(len(file_names)):
 		file_names[i] = base + file_names[i]
 
-	weights = [3.0] *50
+	weights = [1.0] *50
 	
 	start_times = [1000, 700, 700] + 40 * [0]
 	end_times = 40 * [100000000000000000000000000]
@@ -400,6 +425,9 @@ if __name__ == "__main__":
 	output_current = []
 	temp = []
 	avg_temp = []
+
+	total_time = 0
+	total_count = 0
 
 	print("calibration: ")	
 	for file_name, start_time, end_time in zip(file_names, start_times, end_times):
@@ -414,8 +442,10 @@ if __name__ == "__main__":
 		max_speed = 0;
 		with open(file_name, 'rt') as csvfile:
 			reader = csv.DictReader(csvfile, delimiter=',')
-			
+		
+			end = 0	
 			for row in reader:
+				total_count+=1
 				#print("ran row")
 				if(float(row['time_talon']) < start_time):
 					#print("continuing")
@@ -435,7 +465,9 @@ if __name__ == "__main__":
 
 				if(float(row['time_talon']) - start_time < 3.0):
 					t_avg_temp.append((float(row['temp1']) + float(row['temp2']) + float(row['temp3'])) / 3.0)
-					
+				end = float(row['time_talon'])
+										
+			total_time += end
 		avg_temp.append(np.average(np.array(t_avg_temp)))
 	
 	
@@ -473,7 +505,6 @@ if __name__ == "__main__":
 				      "M2/custom_1/out_3.csv", \
 				      "M2/custom_2/out_1.csv", \
 				      "M2/custom_2/out_2.csv", \
-				      "M2/custom_2/out_4.csv", \
 				      "M2/custom_2/out_5.csv", \
 				      "M2/custom_2/out_6.csv", \
 				      "M2/custom_4/out_1.csv", \
@@ -481,9 +512,9 @@ if __name__ == "__main__":
 				      "M2/custom_4/out_3.csv", \
 				      "M2/custom_5/out_2.csv", \
 				      "M2/custom_5/out_3.csv", \
-				      "M2/custom_5/out_4.csv", \
-					  "M1/out_smoked_5v.csv" , \
-					  "M1/out_smoked_8v.csv"]
+				      "M2/custom_5/out_4.csv"]#, \
+					  #"M1/out_smoked_5v.csv" , \
+					  #"M1/out_smoked_8v.csv"]
 	for i in range(len(file_names_v)):
 		file_names_v[i] = base + file_names_v[i]
 
@@ -501,6 +532,9 @@ if __name__ == "__main__":
 
 	
 	print("validation: ")	
+	total_time_v = 0
+	total_count_v = 0
+	
 	for file_name, start_time, end_time in zip(file_names_v, start_times_v, end_times_v):
 		print("file: ", file_name)
 		t_time = []
@@ -510,10 +544,14 @@ if __name__ == "__main__":
 		t_output_current = []
 		t_temp = []
 		t_avg_temp = []
+		
+
 		with open(file_name, 'rt') as csvfile:
 			reader = csv.DictReader(csvfile, delimiter=',')
-			
+
+			end = 0
 			for row in reader:
+				total_count_v +=1
 				#print("ran row")
 				if(float(row['time_talon']) < start_time):
 					#print("continuing")
@@ -524,7 +562,7 @@ if __name__ == "__main__":
 				t_time.append(float(row['time_talon']))
 				
 
-
+				end = float(row['time_talon'])
 				
 				t_speed.append(abs(float(row['RPM']) / 60.0 * 2 * pi))
 				t_bus_voltage.append(abs(float(row['bus_voltage'])))
@@ -535,6 +573,7 @@ if __name__ == "__main__":
 				if(float(row['time_talon']) - start_time < 3.0):
 					t_avg_temp.append((float(row['temp1']) + float(row['temp2']) + float(row['temp3'])) / 3.0)
 					
+			total_time_v += end
 		avg_temp_v.append(np.average(np.array(t_avg_temp)))
 	
 	
@@ -562,7 +601,7 @@ if __name__ == "__main__":
 
 	data_v = np.array([time_v, speed_v, bus_voltage_v, output_voltage_v, output_current_v])
 
-
+	print("total time c: ", total_time, " total count: ", total_count, " total time v: ", total_time_v, "total count v: ", total_count_v)
 
 	print("")
 	print("")
@@ -612,9 +651,32 @@ if __name__ == "__main__":
 
 	#def func(data, a, c):
 #		return data[0] * data[0] *  a + data[1] * c
+#def func(data, e_term1, h_1, e_term2, h_2, e_term3, h_3,  v_s_1, v_s_2, v_s_3, custom_v_c, v_squared_term, custom_c_pow, custom_v_pow):
+	#
 
- 
-	guess=(-4.24141930836e-17,0.113406005192,8.04962010461e-10,-0.0605110361941,1.78791357775e-09,0.00019482702024,0.000128586675498,-4.23436626793e-05,0.00162592004277,8.51791638452e-08,1.42417265658e-08,3.62642283396e-08,2.66102174004,1.90289217973e-07,1.04437138781,3.01210226756e-07)
+		
+	guess=(-8.42617389e-18,1.23619485e-01,9.05615971e-10,-6.61426050e-02,1.67142773e-09,-7.70890844e-05,4.44901298e-05,-5.93165536e-05,1.48108033e-03,1.95429511e-07,3.24249060e-09,1.27951149e-07,1.00000000e+00,0.00000000e+00,3.38046761e+00,1.39020519e-07)
+
+
+
+
+#(-8.4261738862e-18,0.123619484945,9.05615970539e-10,-0.0661426049566,1.67142772967e-09,-7.70890843913e-05,4.44901298426e-05,-5.93165536228e-05,0.00148108032606,1.95429511183e-07,3.2424906016e-09,1.27951149094e-07, 3.38046760614,1.39020518993e-07,.00001, .0000000000001)
+
+
+
+
+
+
+
+
+
+
+#-8.45483215303e-18,0.114228049365,8.97944154682e-10,-0.0670242343526,1.94458623875e-09,0.000680005743988,4.41394108706e-05,-5.92111840458e-05,0.00163096428703,1.71134904682e-07,3.25060295489e-09,1.39776289526e-08,3.36406415774,1.399913554e-07,0.781643193102,1.68039266144e-07)
+
+
+
+#-8.45431388387e-18,0.102177083355,8.77081600956e-10,-0.0663628676974,1.98855551937e-09,0.000679930766672,0.000115227862496,-5.92103230239e-05,0.00170681131915,1.10105536266e-07,3.25032458497e-09,1.39775977379e-08,1.66249821268e-11,2.77835169865e-12,6.22107575783e-12,3.41166900605,1.39998112506e-07,0.82490613934,1.76010031782e-07)
+
 
 	force_plot_now = True
 	plot_by_time = False
@@ -671,7 +733,9 @@ if __name__ == "__main__":
 	t2 = 1.00004801984
 	t3 = 1.20415675243
 
-	para = guess #, pcov = optimize.curve_fit(func, data, ones, guess, sigma = np.full(ones.shape, .01), maxfev = 50000)
+		
+
+	para, pcov = optimize.curve_fit(func, data, ones, guess, maxfev = 50000)
 
 	print(para)
 	#print(pcov)
@@ -693,8 +757,7 @@ if __name__ == "__main__":
 	print("")
 	print("")
 	
-	func(data, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7],para[8],para[9],para[10],para[11], para[12],para[13],para[14], para[15])
-	
+	func(data, *para)	
 	print("")
 	print("")
 	print("")
@@ -735,7 +798,7 @@ if __name__ == "__main__":
 	print("")
 	print("")
 	print("")
-	func(data_v, para[0], para[1],para[2],para[3], para[4], para[5],para[6],para[7],para[8], para[9],para[10],para[11], para[12],para[13],para[14], para[15])
+	func(data_v, *para)
 	print("")
 
 

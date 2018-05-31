@@ -66,12 +66,14 @@ bool run_model_service(thermal_modeling::ModelTest::Request &req, thermal_modeli
 	temp_nodes["test_lump1"].connections_conductive[0].h = req.params.h_1;
 	temp_nodes["test_lump1"].connections_fan_convective[0].v_term = req.params.v_1;
 	temp_nodes["test_lump1"].connections_fan_convective[0].v_squared_term = req.params.v_squared_1;
+	temp_nodes["test_lump1"].connections_fan_convective[0].v_cubed_term = req.params.v_cubed_1;
 
 	
 	temp_nodes["test_lump1"].connections_emissive[1].h = req.params.e_term3;
 	temp_nodes["test_lump1"].connections_natural_convective[0].h = req.params.h_3;
 	temp_nodes["test_lump1"].connections_fan_convective[1].v_term = req.params.v_3;
 	temp_nodes["test_lump1"].connections_fan_convective[1].v_squared_term = req.params.v_squared_3;
+	temp_nodes["test_lump1"].connections_fan_convective[1].v_cubed_term = req.params.v_cubed_3;
 
 	//ROS_ERROR("_________________________________________________________________         here3");
 	
@@ -82,8 +84,12 @@ bool run_model_service(thermal_modeling::ModelTest::Request &req, thermal_modeli
 	temp_nodes["test_lump2"].connections_fan_convective[0].v_term = req.params.v_2;
 	//ROS_ERROR("_________________________________________________________________         here3");
 	temp_nodes["test_lump2"].connections_fan_convective[0].v_squared_term = req.params.v_squared_2;
+	temp_nodes["test_lump2"].connections_fan_convective[0].v_cubed_term = req.params.v_cubed_2;
 	//ROS_ERROR("_________________________________________________________________         here3");
 
+		temp_properties.v_exp_1 = req.params.v_exp_1;
+		temp_properties.v_exp_2 = req.params.v_exp_2;
+		temp_properties.v_exp_3 = req.params.v_exp_3;
 		temp_properties.armature_resistance_12v = req.params.loss_resistance_12v;
 		temp_properties.armature_resistance_0v = req.params.loss_resistance_0v;
 		temp_properties.v_squared_term = req.params.loss_v_squared_term;
@@ -371,6 +377,8 @@ int main(int argc, char **argv)
 			ROS_ERROR_STREAM("Could not get properties in process thermal model motor type: " << motor_types_xml[i]);	
 	
 		all_properties[i].armature_resistance_12v = properties_xml["armature_resistance_12v"];	
+		all_properties[i].v_exp_1 = properties_xml["v_exp_1"];	
+		all_properties[i].v_exp_2 = properties_xml["v_exp_2"];	
 		all_properties[i].armature_resistance_0v = properties_xml["armature_resistance_0v"];	
 		all_properties[i].brush_friction_coeff = properties_xml["brush_friction_coeff"];	
 		all_properties[i].bearing_friction_coeff = properties_xml["bearing_friction_coeff"];	

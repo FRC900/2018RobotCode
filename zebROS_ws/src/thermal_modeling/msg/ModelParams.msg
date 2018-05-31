@@ -11,6 +11,12 @@ float64 v_3
 float64 v_squared_1
 float64 v_squared_2
 float64 v_squared_3
+float64 v_cubed_1
+float64 v_cubed_2
+float64 v_cubed_3
+float64 v_exp_1
+float64 v_exp_2
+float64 v_exp_3
 float64 loss_v_term
 float64 loss_v_squared_term
 float64 loss_volt_term

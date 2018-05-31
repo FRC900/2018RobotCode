@@ -111,6 +111,7 @@ namespace thermal_modeling
 		//TODO: fix this
 		double v_term; 
 		double v_squared_term; 
+		double v_cubed_term; 
 		//Add more vals here
 		//double exposure; //total exposed area - m^2
 		//double air_speed; //total area in "fan stream" - m^2	
@@ -118,7 +119,8 @@ namespace thermal_modeling
 		)
 		:
 			v_term(0),
-			v_squared_term(0)
+			v_squared_term(0),
+			v_cubed_term(0)
 			//exposure(0),
 			//air_speed(0)
 		{
@@ -149,6 +151,9 @@ namespace thermal_modeling
 		double bearing_friction_coeff;
 		double v_squared_term;
 		double v_term;
+		double v_exp_1;
+		double v_exp_2;
+		double v_exp_3;
 		double volt_squared_term;
 		double volt_term;
 		double voltage_exponent;

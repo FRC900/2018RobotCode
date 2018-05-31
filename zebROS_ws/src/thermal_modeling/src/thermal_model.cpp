@@ -188,7 +188,7 @@ namespace thermal_modeling
 		nodes_[i].connections_fan_convective[k].infinite_thermal_sink_temp : 
 		temps[nodes_[i].connections_fan_convective[k].index];
 		
-		const double Q = (nodes_[i].connections_fan_convective[k].v_term * speed_ + nodes_[i].connections_fan_convective[k].v_squared_term * speed_ *speed_)  * (temps[i] - other_temp);
+		const double Q = (nodes_[i].connections_fan_convective[k].v_term * pow(fabs(speed_),  properties_.v_exp_1) + nodes_[i].connections_fan_convective[k].v_squared_term * pow(fabs(speed_),  properties_.v_exp_2)+ nodes_[i].connections_fan_convective[k].v_cubed_term * pow(fabs(speed_),  properties_.v_exp_3))  * (temps[i] - other_temp);
 	
 		
 		dtempdt[i] -= Q / nodes_[i].thermal_capacity;
