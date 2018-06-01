@@ -82,7 +82,7 @@ def extract_data (bag, topic, inputFileName):
     for index, (topic, msg, t) in enumerate(bag.read_messages(topics=topic)):
         topic_all_msgs[index] = json.loads(json_message_converter.convert_ros_message_to_json(msg))
 
-    json.dumps(topic_all_msgs, outputFh)
+    json.dump(topic_all_msgs, outputFh)
     outputFh.close()
     print "[OK] DONE"
 
