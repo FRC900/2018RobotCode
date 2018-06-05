@@ -1,0 +1,8 @@
+<library path="lib/libmech_controller">
+
+	<class name="mech_controller/MechController" type="mech_controller::MechController" base_class_type="controller_interface::ControllerBase">
+		<description>
+			Olivia's messing around with controllers
+		</description>
+	</class>
+</library>

@@ -72,9 +72,9 @@ bool ElevatorController::init(hardware_interface::RobotHW *hw,
                 			  ros::NodeHandle &/*root_nh*/,
              	              ros::NodeHandle &controller_nh)
 {
-	hardware_interface::TalonCommandInterface *const talon_command_iface = hw->get<hardware_interface::TalonCommandInterface>();
-	hardware_interface::JointStateInterface *const joint_state_iface = hw->get<hardware_interface::JointStateInterface>();
-	hardware_interface::PositionJointInterface *const pos_joint_iface = hw->get<hardware_interface::PositionJointInterface>();
+	hardware_interface::TalonCommandInterface *const talon_command_iface = hw->get<hardware_interface::TalonCommandInterface>(); //for controlling talons
+	hardware_interface::JointStateInterface *const joint_state_iface = hw->get<hardware_interface::JointStateInterface>(); //for reading (not modifying!) line break sensor data
+	hardware_interface::PositionJointInterface *const pos_joint_iface = hw->get<hardware_interface::PositionJointInterface>(); //for modifying non-talon joints like intake hard/soft in
 
 	const std::string complete_ns = controller_nh.getNamespace();
 	std::size_t id = complete_ns.find_last_of("/");

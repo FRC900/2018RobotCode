@@ -18,6 +18,7 @@ hardware_interface:
        - {name: digital9, type: digital_output, dio_channel: 8}
        - {name: digital10, type: digital_output, dio_channel: 9}
        - {name: analog_pressure_sensor, type: analog_input, analog_channel: 0, analog_a: .0633897, analog_b: 29.9}
+       - {name: mech_joint, type: can_talon_srx, can_id: 10}
 
 joint_state_controller:
    type:         joint_state_controller/JointStateController
@@ -100,3 +101,8 @@ digital9_controller:
 digital10_controller:
     type: position_controllers/JointPositionController
     joint: digital10
+
+mech_controller:
+    type: mech_controller/MechController
+    joint: mech_joint
+    invert_output: True
