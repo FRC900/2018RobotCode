@@ -32,12 +32,12 @@ void cubeCallback(cube_detection::CubeDetection sub_location)
 {
 	cube_location.location.resize(sub_location.location.size());
 
-	for(int i; i < cube_location.location.size(); i++)
-	{
+	//for(int i; i < cube_location.location.size(); i++)
+	//{
 		cube_location.location[0].x = sub_location.location[0].x;
 		cube_location.location[0].y = sub_location.location[0].y;
 		cube_location.location[0].z = sub_location.location[0].z;
-	}
+	//}
 	cube_location.angle = sub_location.angle;
 }
 
@@ -63,8 +63,7 @@ void talonStateCallback(const talon_state_controller::TalonState &talon_state)
 
 float coerce(float x)
 {
-	//return ((x>.5) ? x : .5);
-	return 0.5;
+	return ((x>0.5) ? x : .5);
 }
 
 bool generateCoefs(base_trajectory::GenerateSpline &srvBaseTrajectory)
@@ -77,7 +76,8 @@ bool generateCoefs(base_trajectory::GenerateSpline &srvBaseTrajectory)
 	srvBaseTrajectory.request.points[0].velocities.push_back(0);
 	srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 	//y-movement
-	srvBaseTrajectory.request.points[0].positions.push_back(coerce(cube_location.location[0].z));
+	float coerced = coerce(cube_location.location[0].z);
+	srvBaseTrajectory.request.points[0].positions.push_back(coerced);
 	srvBaseTrajectory.request.points[0].velocities.push_back(0);
 	srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 	//z-rotation
