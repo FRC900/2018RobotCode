@@ -540,10 +540,6 @@ void FRCRobotSimInterface::init(void)
 	// to initialize each Talon with various params
 	// set for that motor controller in config files.
 	// TODO : assert can_talon_srx_names_.size() == can_talon_srx_can_ids_.size()
-	if (can_talon_srx_names_.size() != can_talon_srx_can_ids_.size())
-		ROS_ERROR_STREAM("Names do not match CAN ids");
-	else
-		ROS_ERROR_STREAM("Names match CAN ids");
 
 	for (size_t i = 0; i < can_talon_srx_names_.size(); i++)
 	{
@@ -618,10 +614,6 @@ void FRCRobotSimInterface::init(void)
 
 void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 {
-	if (talon_state_.size() != num_can_talon_srxs_)
-		ROS_ERROR_STREAM("so help me god");
-	else
-		ROS_ERROR_STREAM("doesn't fail yet");
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
         auto &ts = talon_state_[joint_id];
@@ -658,12 +650,10 @@ void FRCRobotSimInterface::read(ros::Duration &/*elapsed_time*/)
 		printed_robot_code_ready = true;
 	}
     ros::spinOnce();
-	ROS_ERROR_STREAM("after loading the mech_controller, it makes it past the first read loop?");
 }
 
 void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 {
-	ROS_ERROR_STREAM("write runs");
 #if 0
 	ROS_INFO_STREAM_THROTTLE(1,
 			std::endl << std::string(__FILE__) << ":" << __LINE__ <<
@@ -675,11 +665,6 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 	// Is match data reporting the robot enabled now?
 	const bool robot_enabled = match_data_enabled_.load(std::memory_order_relaxed);
 
-	if (talon_command_.size() != num_can_talon_srxs_)
-		ROS_ERROR_STREAM("talon command does not match num can talon srxs");
-	else
-		ROS_ERROR_STREAM("they match -- look elsewhere");
-	
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		auto &ts = talon_state_[joint_id];
