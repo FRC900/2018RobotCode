@@ -77,12 +77,6 @@
 
 	<include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)" />
 
-	<!-- <include file="$(find ti_mmwave_rospkg)/launch/ti_mmwave_sensor.launch">
-		<arg name="device" value="1443" doc="TI mmWave sensor device type [1443, 1642]"/>
-		<arg name="config" value="3d" doc="TI mmWave sensor device configuration [3d (not supported by 1642 EVM), 2d]"/>
-		<arg name="max_allowed_elevation_angle_deg" value="90" doc="Maximum allowed elevation angle in degrees for detected object data [0 > value >= 90]}"/>
-		<arg name="max_allowed_azimuth_angle_deg" value="90" doc="Maximum allowed azimuth angle in degrees for detected object data [0 > value >= 90]}"/>
-	  </include> -->
 
   <machine name="roboRIO" address="10.9.0.2" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
 

@@ -43,5 +43,6 @@ class MechController : public controller_interface::MultiInterfaceController<har
 		ros::Subscriber sub_command_;
 		ros::ServiceServer service_command_;
 }; //class
+
 } //namespace
 #endif
