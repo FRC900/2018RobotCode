@@ -36,6 +36,10 @@ launch_rqt_console()
 {
     rosrun rqt_console rqt_console &
 }
+launch_visualizer()
+{
+    python ~/2018RobotCode/zebROS_ws/src/visualize_profile/scripts/visualizer.py &
+}
 
 run_sim=0
 run_code=0
@@ -75,6 +79,8 @@ for i in $@; do
         launch rqt_console
     elif [ $i = "rqt_gui" ]; then
         launch rqt_gui
+    elif [ $i = "visualize" ]; then
+        launch_visualizer
     else
         launch_specific_rviz $i
     fi
