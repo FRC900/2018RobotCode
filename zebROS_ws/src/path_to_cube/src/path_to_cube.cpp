@@ -63,7 +63,7 @@ void talonStateCallback(const talon_state_controller::TalonState &talon_state)
 
 float coerce(float x)
 {
-	return ((x>0.01) ? x : .01);
+	return ((x>0.5) ? x : .5);
 }
 
 bool generateCoefs(base_trajectory::GenerateSpline &srvBaseTrajectory)
