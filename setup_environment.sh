@@ -90,7 +90,7 @@ else
 	$zed_arch="Ubuntu16"
 fi
 
-zed_ver="2.3.3"
+zed_ver="2.4.1"
 zed_fn="ZED_SDK_Linux_"$zed_arch"_v"$zed_ver".run"
 wget --no-check-certificate https://www.stereolabs.com/download/$zed_fn
 chmod 755 $zed_fn
@@ -128,16 +128,17 @@ if [ "$jetson" = true ] ; then
 		sudo depmod -a
         sudo apt-get install ntp # TODO work on this NIALL or OLIVIA
         # edit /etc/init.d/ntp to contain the line: <ntpd -gq> before all content already there.
-        sudo cp ntp-client /etc/ntp.conf  # edit /etc/ntp.conf to be a copy of ntp-client.conf in 2018RobotCode
+        sudo cp ntp-client.conf /etc/ntp.conf  # edit /etc/ntp.conf to be a copy of ntp-client.conf in 2018RobotCode
 	fi
 
 	# Set up ssh host config (port 5801) and keys for 
 	# connections to Rio
+	mkdir -p ~/.ssh
 	cd ~/.ssh
 	tar -xjf ~/2018RobotCode/jetson_setup/jetson_dot_ssh.tar.bz2 
 
-	cd /root
-	sudo mkdir -p .ssh
+	sudo mkdir -p /root/.ssh
+	sudo cd /root/.ssh
 	sudo tar -xjf /home/ubuntu/2018RobotCode/jetson_setup/jetson_dot_ssh.tar.bz2 
 
 	# Kernel module build steps for TX2 : https://gist.github.com/sauhaardac/9d7a82c23e4b283a1e79009903095655
