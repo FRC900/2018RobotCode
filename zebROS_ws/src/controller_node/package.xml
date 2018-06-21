@@ -45,7 +45,6 @@
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>move_base</run_depend>
-  <run_depend>navx_publisher</run_depend>
   <run_depend>rplidar_ros</run_depend>
   <run_depend>zed_wrapper</run_depend>
 
