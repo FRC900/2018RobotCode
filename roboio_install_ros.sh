@@ -38,9 +38,7 @@ ssh admin@$1 'opkg clean'
 ssh admin@$1 'pip install catkin_pkg rospkg rosdistro vcstools rosdep wstool rosinstall rosinstall_generator defusedxml empy'
 
 # Copy over ROS tar.bz2 file, extract to / on the Rio
-wget -O /tmp/roscore_roborio_2018.tar.bz2 "https://drive.google.com/uc?export=download&id=1tT988R2pq9oyZyLWl1eDzMSpxcV7-HZ-"
-scp /tmp/roscore_roborio_2018.tar.bz2 admin@$1:.
-rm /tmp/roscore_roborio_2018.tar.bz2 
+scp ~/2018RobotCode/roscore_roborio_2018.tar.bz2 admin@$1:.
 ssh admin@$1 'cd / && tar -xjf ~/roscore_roborio_2018.tar.bz2'
 scp ~/2018RobotCode/os_detect.py admin@$1:/usr/lib/python2.7/site-packages/rospkg/
 ssh admin@$1 'rm ~/roscore_roborio_2018.tar.bz2'
