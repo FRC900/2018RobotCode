@@ -91,8 +91,8 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 {
 	// This will be written by the last controller to be
 	// spawned - waiting here prevents the robot from
-	// report robot code ready to the field until
-	// all controllers are started
+	// reporting robot code ready to the field until
+	// all other controllers are started
 	{
 		ros::Rate rate(20);
 		while (robot_code_ready_ == 0.0)
