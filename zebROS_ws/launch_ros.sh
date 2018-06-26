@@ -74,11 +74,11 @@ for i in $@; do
     elif [ $i = "rqt_plot" ]; then
         launch_rqt_plot
     elif [ $i = "rqt_graph" ]; then
-        launch rqt_graph
+        launch_rqt_graph
     elif [ $i = "rqt_console" ]; then
-        launch rqt_console
+        launch_rqt_console
     elif [ $i = "rqt_gui" ]; then
-        launch rqt_gui
+        launch_rqt_gui
     elif [ $i = "visualize" ]; then
         launch_visualizer
     else
