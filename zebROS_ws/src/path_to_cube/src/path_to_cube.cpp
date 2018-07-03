@@ -32,13 +32,18 @@ void cubeCallback(cube_detection::CubeDetection sub_location)
 {
 	cube_location.location.resize(sub_location.location.size());
 
-	//for(int i; i < cube_location.location.size(); i++)
-	//{
+	if (sub_location.location.size() > 0)
+	{
 		cube_location.location[0].x = sub_location.location[0].x;
 		cube_location.location[0].y = sub_location.location[0].y;
 		cube_location.location[0].z = sub_location.location[0].z;
-	//}
-	cube_location.angle = sub_location.angle;
+		cube_location.angle = sub_location.angle;
+	}
+	else
+	{
+		ROS_ERROR_STREAM("NO CUBES FOUND");
+	}
+
 }
 
 void talonStateCallback(const talon_state_controller::TalonState &talon_state)
@@ -63,21 +68,31 @@ void talonStateCallback(const talon_state_controller::TalonState &talon_state)
 
 float coerce(float x)
 {
-	return ((x>0.5) ? x : .5);
+	return ((x>0.05) ? x : .05);
 }
 
 bool generateCoefs(base_trajectory::GenerateSpline &srvBaseTrajectory)
 {
+	if (cube_location.location.size() == 0)
+	{
+		ROS_ERROR_STREAM("NO CUBES FOUND - generateCoefs");
+		return false;
+	}
+	ROS_INFO_STREAM("started generateCoefs");
 	ros::Duration time_to_run = ros::Duration(5);
 	srvBaseTrajectory.request.points.resize(1);
 
+	ROS_INFO_STREAM("x = " << cube_location.location[0].x);
+	ROS_INFO_STREAM("z = " << cube_location.location[0].z);
+
 	//x-movement
-	srvBaseTrajectory.request.points[0].positions.push_back(cube_location.location[0].x);
+//	srvBaseTrajectory.request.points[0].positions.push_back(coerce(cube_location.location[0].x));
+	srvBaseTrajectory.request.points[0].positions.push_back(2.6);
 	srvBaseTrajectory.request.points[0].velocities.push_back(0);
 	srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 	//y-movement
-	float coerced = coerce(cube_location.location[0].z);
-	srvBaseTrajectory.request.points[0].positions.push_back(coerced);
+//	srvBaseTrajectory.request.points[0].positions.push_back(coerce(cube_location.location[0].z));
+	srvBaseTrajectory.request.points[0].positions.push_back(.25);
 	srvBaseTrajectory.request.points[0].velocities.push_back(0);
 	srvBaseTrajectory.request.points[0].accelerations.push_back(0);
 	//z-rotation
@@ -95,6 +110,12 @@ bool generateCoefs(base_trajectory::GenerateSpline &srvBaseTrajectory)
 
 bool generateTrajectory(const base_trajectory::GenerateSpline &srvBaseTrajectory, swerve_point_generator::FullGenCoefs &traj)
 {
+	if (cube_location.location.size() == 0)
+	{
+		ROS_ERROR_STREAM("NO CUBES FOUND - generateTrajectory");
+		return false;
+	}
+	ROS_INFO_STREAM("started generateTrajectory");
 	traj.request.orient_coefs.resize(1);
 	traj.request.x_coefs.resize(1);
 	traj.request.y_coefs.resize(1);
@@ -125,6 +146,12 @@ bool generateTrajectory(const base_trajectory::GenerateSpline &srvBaseTrajectory
 
 bool runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
 {
+	if (cube_location.location.size() == 0)
+	{
+		ROS_ERROR_STREAM("NO CUBES FOUND - runTrajectory");
+		return false;
+	}
+	ROS_INFO_STREAM("started runTrajectory");
 	//visualization stuff
 	robot_visualizer::ProfileFollower srv_viz_msg;
 	srv_viz_msg.request.joint_trajectories.push_back(traj.joint_trajectory);
@@ -156,6 +183,7 @@ bool runTrajectory(const swerve_point_generator::FullGenCoefs::Response &traj)
 
 bool cmdSubService(std_srvs::Empty::Request &/*command*/, std_srvs::Empty::Response &/*res*/)
 {
+	ROS_INFO_STREAM("started cmdSubService");
 	ROS_INFO_STREAM("callback is running");
 	static bool running = false;
 	base_trajectory::GenerateSpline srvBaseTrajectory;

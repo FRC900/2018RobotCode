@@ -4,6 +4,8 @@ project(path_to_cube)
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
@@ -202,3 +204,5 @@ install(TARGETS ${PROJECT_NAME}_node
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+endif()

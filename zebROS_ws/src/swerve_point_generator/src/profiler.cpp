@@ -369,6 +369,8 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 		sin_term_simple * fabs(path.angular_velocity) +  cos_term_simple * fabs(path.angular_velocity)) 
 		/ max_wheel_vel_, -2 * accel_defined, v_curve_max);
 
+		//ROS_ERROR_STREAM("v_curve_max 1: " << v_curve_max);
+
 		double v_curve_max_2 = sqrt(accel_defined /sqrt (1 / (path.radius * path.radius) + path.angular_accel * path.angular_accel + 
 		cos_term_simple * path.angular_accel / path.radius + sin_term_simple * path.angular_accel / path.radius ));
 
@@ -386,9 +388,9 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 			double cos_term = cos_term_simple * max_wheel_orientation_accel;
 			double sin_term = sin_term_simple * max_wheel_orientation_accel;
 
-			ROS_WARN_STREAM("b1: " << cos_term + sin_term << " c1: " << (cos_term - sin_term) * path_induced_a - accel_defined * accel_defined
+			/*ROS_WARN_STREAM("b1: " << cos_term + sin_term << " c1: " << (cos_term - sin_term) * path_induced_a - accel_defined * accel_defined
             + max_wheel_orientation_accel * max_wheel_orientation_accel + path_induced_a * path_induced_a << " b2: " <<- cos_term + sin_term << " c2: " << (cos_term + sin_term) * path_induced_a - accel_defined * accel_defined 
-            + max_wheel_orientation_accel * max_wheel_orientation_accel + path_induced_a * path_induced_a);
+            + max_wheel_orientation_accel * max_wheel_orientation_accel + path_induced_a * path_induced_a);*/
 		
 			//finding accel
 
@@ -402,7 +404,7 @@ bool swerve_profiler::solve_for_next_V(const path_point &path, const double path
 		
 			if(accel > accel1) {accel = accel1;}
 
-			ROS_INFO_STREAM("accel: " << accel << " under: " << v_general_max << " under: " << v_curve_max << " is: " << current_v); 
+			//ROS_INFO_STREAM("accel: " << accel << " under: " << v_general_max << " under: " << v_curve_max << " is: " << current_v); 
 			//ROS_INFO_STREAM("curr_v: " << current_v << " added accel: " << accel * dt_);
 
 			current_v += accel * dt_;
