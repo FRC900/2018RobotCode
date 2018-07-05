@@ -2,6 +2,7 @@
 #define MECH_CONTROLLER
 
 #include <ros/ros.h>
+#include <vector>
 #include <hardware_interface/joint_state_interface.h>
 #include <realtime_tools/realtime_publisher.h>
 #include <boost/shared_ptr.hpp>
@@ -9,7 +10,8 @@
 #include <talon_interface/talon_state_interface.h>
 #include <talon_controllers/talon_controller.h>
 #include <talon_controllers/talon_controller_interface.h>
-#include <mech_controller/SetPosition.h>
+#include <mech_controller/SetTwoMotors.h>
+#include <mech_controller/TwoMotor.h>
 #include <atomic>
 #include <std_msgs/Float64.h>
 #include <pluginlib/class_list_macros.h>
@@ -38,8 +40,9 @@ class MechController : public controller_interface::MultiInterfaceController<har
 		virtual void mechPosCallback(const std_msgs::Float64 &command);
 
 	private:
-		talon_controllers::TalonPercentOutputControllerInterface mech_joint_; //interface for the actual joint
-		realtime_tools::RealtimeBuffer<float> command_; //this is the buffer for vel commands to be published. 
+		talon_controllers::TalonPercentOutputControllerInterface joint_1; //interface for the actual joint
+		talon_controllers::TalonPercentOutputControllerInterface joint_2; //interface for the actual joint
+		realtime_tools::RealtimeBuffer<std::vector<float>> command_; //this is the buffer for vel commands to be published. 
 		ros::Subscriber sub_command_;
 		ros::ServiceServer service_command_;
 }; //class
