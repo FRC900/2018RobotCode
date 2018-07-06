@@ -143,8 +143,8 @@ echo "roboRIO cross build complete" && \
 echo "Synchronizing $INSTALL_ENV cross build to roboRIO" && \
 ssh $ROBORIO_ADDR "/etc/init.d/nilvrt stop" && \
 rsync -avz --delete $ROS_CODE_LOCATION/install_isolated/ \
-    $ROBORIO_ADDR:$RIO_INSTALL_LOCATION && /
-echo "Synchronization complete") &
+    $ROBORIO_ADDR:$RIO_INSTALL_LOCATION && \
+echo "Synchronization of the RIO complete") &
 
 # Run Jetson native build as a separate process.
 (echo "Starting Jetson native build" && \
