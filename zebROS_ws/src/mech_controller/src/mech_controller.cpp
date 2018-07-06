@@ -9,15 +9,17 @@ bool MechController::init(hardware_interface::RobotHW *hw,
 	hardware_interface::TalonCommandInterface *const talon_command_iface = hw->get<hardware_interface::TalonCommandInterface>();
 	//if I had to read values from fake joints (like line break sensors) I would initialize a JointStateInterface, then getHandle
 	//if I had to change non-Talon joint values (like pneumatics) I would initialize a PositionJointInterface, then getHandle
+	
+	joints.resize(2);
 
 	//init the joint with the tci, tsi (not used), the node handle, and dynamic reconfigure (t/f)
-	if (!joint_1.initWithNode(talon_command_iface, nullptr, controller_nh))
+	if (!joints[0].initWithNode(talon_command_iface, nullptr, controller_nh))
 	{
 		ROS_ERROR("Cannot initialize joint 1!");
 		return false;
 	}
 
-	if (!joint_2.initWithNode(talon_command_iface, nullptr, controller_nh))
+	if (!joints[1].initWithNode(talon_command_iface, nullptr, controller_nh))
 	{
 		ROS_ERROR("Cannot initialize joint 2!");
 		return false;
@@ -42,8 +44,9 @@ void MechController::starting(const ros::Time &time) {
 void MechController::update(const ros::Time &time, const ros::Duration &period) {
 	//float curr_cmd = *(command_.readFromRT()); //why do we put it into a new variable
 	//ROS_ERROR_STREAM("curr_cmd : " << curr_cmd);
-	joint_1.setCommand(*(command_[0].readFromRT()));
-	joint_2.setCommand(*(command_[1].readFromRT()));
+	mech_controller::TwoMotor final_cmd = *(command_.readFromRT());
+	joints[0].setCommand(final_cmd.values[0]);
+	joints[1].setCommand(final_cmd.values[1]);
 }
 
 void MechController::stopping(const ros::Time &time) {
@@ -51,7 +54,11 @@ void MechController::stopping(const ros::Time &time) {
 
 bool MechController::cmdService(mech_controller::SetTwoMotors::Request &req, mech_controller::SetTwoMotors::Response &/*response*/) {
 	if(isRunning())
-		command_.writeFromNonRT(req.values);
+	{
+		static mech_controller::TwoMotor temp_cmd;
+		temp_cmd.values = req.values;
+		command_.writeFromNonRT(temp_cmd);
+	}
 	else
 	{
 		ROS_ERROR_STREAM("Can't accept new commands. MechController is not running.");
@@ -62,7 +69,11 @@ bool MechController::cmdService(mech_controller::SetTwoMotors::Request &req, mec
 
 void MechController::mechPosCallback(const mech_controller::TwoMotor &command) {
 	if(isRunning())
-		command_.writeFromNonRT(command.values);
+	{
+		static mech_controller::TwoMotor temp_cmd;
+		temp_cmd.values = command.values;
+		command_.writeFromNonRT(temp_cmd);
+	}
 	else
 		ROS_ERROR_STREAM("Can't accept new commands. MechController is not running.");
 }

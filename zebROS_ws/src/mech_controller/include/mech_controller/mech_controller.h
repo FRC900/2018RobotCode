@@ -36,13 +36,12 @@ class MechController : public controller_interface::MultiInterfaceController<har
 		virtual void update(const ros::Time & time, const ros::Duration& period);
 		virtual void stopping(const ros::Time &time);
 	
-		virtual bool cmdService(mech_controller::SetPosition::Request &req, mech_controller::SetPosition::Response &/*res*/);
-		virtual void mechPosCallback(const std_msgs::Float64 &command);
+		virtual bool cmdService(mech_controller::SetTwoMotors::Request &req, mech_controller::SetTwoMotors::Response &/*res*/);
+		virtual void mechPosCallback(const mech_controller::TwoMotor &command);
 
 	private:
-		talon_controllers::TalonPercentOutputControllerInterface joint_1; //interface for the actual joint
-		talon_controllers::TalonPercentOutputControllerInterface joint_2; //interface for the actual joint
-		realtime_tools::RealtimeBuffer<std::vector<float>> command_; //this is the buffer for vel commands to be published. 
+		std::vector<talon_controllers::TalonPercentOutputControllerInterface> joints; //interface for the actual joint
+		realtime_tools::RealtimeBuffer<mech_controller::TwoMotor> command_; //this is the buffer for vel commands to be published. 
 		ros::Subscriber sub_command_;
 		ros::ServiceServer service_command_;
 }; //class
