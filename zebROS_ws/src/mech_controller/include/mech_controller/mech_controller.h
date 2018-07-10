@@ -40,8 +40,9 @@ class MechController : public controller_interface::MultiInterfaceController<har
 		virtual void mechPosCallback(const mech_controller::TwoMotor &command);
 
 	private:
+        std::vector<std::string> joint_names;
 		std::vector<talon_controllers::TalonPercentOutputControllerInterface> joints; //interface for the actual joint
-		realtime_tools::RealtimeBuffer<mech_controller::TwoMotor> command_; //this is the buffer for vel commands to be published. 
+		realtime_tools::RealtimeBuffer<mech_controller::TwoMotor> command_; //this is the buffer for percent output commands to be published. 
 		ros::Subscriber sub_command_;
 		ros::ServiceServer service_command_;
 }; //class

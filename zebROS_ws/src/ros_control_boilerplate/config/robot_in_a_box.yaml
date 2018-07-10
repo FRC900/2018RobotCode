@@ -18,7 +18,13 @@ hardware_interface:
        - {name: digital9, type: digital_output, dio_channel: 8}
        - {name: digital10, type: digital_output, dio_channel: 9}
        - {name: analog_pressure_sensor, type: analog_input, analog_channel: 0, analog_a: .0633897, analog_b: 29.9}
-       - {name: mech_joint, type: can_talon_srx, can_id: 10}
+       - {name: mech_joint1, type: can_talon_srx, can_id: 10}
+       - {name: mech_joint2, type: can_talon_srx, can_id: 11}
+
+talon_state_controller:
+   type:         talon_state_controller/TalonStateController
+   publish_rate: 10
+
 
 joint_state_controller:
    type:         joint_state_controller/JointStateController
@@ -104,5 +110,10 @@ digital10_controller:
 
 mech_controller:
     type: mech_controller/MechController
-    joint: mech_joint
+    joint_names: ['mech_joint1', 'mech_joint2']
+    mech_joint1:
+        joint: mech_joint1
+    mech_joint2:
+        joint: mech_joint2
     invert_output: True
+
