@@ -704,7 +704,7 @@ void FRCRobotInterface::custom_profile_set_talon(hardware_interface::TalonMode m
 	}
 	else
 	{	
-		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_ArbitraryFeedForward ,fTerm);
+		customProfileSetMode(joint_id, mode, setpoint, hardware_interface::DemandType::DemandType_ArbitraryFeedForward, fTerm);
 
 		// Make sure talon_command is in sync with data set above
 		talon_command_[joint_id].setDemand1Type(hardware_interface::DemandType_ArbitraryFeedForward);
