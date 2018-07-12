@@ -23,7 +23,7 @@ done
 
 sudo apt-get update
 sudo apt-get -y upgrade
-sudo apt-get install -y libeigen3-dev build-essential gfortran git cmake libleveldb-dev libsnappy-dev libhdf5-dev libhdf5-serial-dev liblmdb-dev vim-gtk libgflags-dev libgoogle-glog-dev libatlas-base-dev python-dev python-pip libtinyxml2-dev v4l-conf v4l-utils libgtk2.0-dev pkg-config exfat-fuse exfat-utils libprotobuf-dev protobuf-compiler unzip python-numpy python-scipy python-opencv python-matplotlib chromium-browser wget unzip ccache ntp ntpdate libflann-dev libpcl-dev libproj-dev
+sudo apt-get install -y libeigen3-dev build-essential gfortran git cmake libleveldb-dev libsnappy-dev libhdf5-dev libhdf5-serial-dev liblmdb-dev vim-gtk libgflags-dev libgoogle-glog-dev libatlas-base-dev python-dev python-pip libtinyxml2-dev v4l-conf v4l-utils libgtk2.0-dev pkg-config exfat-fuse exfat-utils libprotobuf-dev protobuf-compiler unzip python-numpy python-scipy python-opencv python-matplotlib chromium-browser wget unzip ccache ntp ntpdate libflann-dev libpcl-dev libproj-dev htop
 
 sudo apt-get install --no-install-recommends -y libboost-all-dev
 
@@ -101,7 +101,7 @@ rm ./$zed_fn
 #TODO : rethink this - how are we getting the script if the
 #       repo isn't there in the first place?
 cd
-#git clone https://github.com/FRC900/2018RobotCode.git
+git clone https://github.com/FRC900/2018RobotCode.git
 cd 2018RobotCode
 git submodule init
 git submodule update
@@ -131,7 +131,10 @@ if [ "$jetson" = true ] ; then
         sudo cp ntp-client.conf /etc/ntp.conf  # edit /etc/ntp.conf to be a copy of ntp-client.conf in 2018RobotCode
 	fi
 
-	# Set up ssh host config (port 5801) and keys for 
+	# Set up ssh host config (add port 5801) 
+	sudo sed "s/Port 22/Port 22\nPort 5801/g" /etc/ssh/sshd_config > sshd_config && mv sshd_config /etc/ssh
+	
+	# and keys for 
 	# connections to Rio
 	mkdir -p ~/.ssh
 	cd ~/.ssh
@@ -142,7 +145,7 @@ if [ "$jetson" = true ] ; then
 	sudo tar -xjf /home/ubuntu/2018RobotCode/jetson_setup/jetson_dot_ssh.tar.bz2 
 
 	# Kernel module build steps for TX2 : https://gist.github.com/sauhaardac/9d7a82c23e4b283a1e79009903095655
-	# Not needed unless Jetpack is updated and modules
+	# Not needed unless Jetpack is updated with a new kernel version and modules
 	# for a given kernel version aren't already built
 	# cd ~
 	# mkdir l4t-kernel-surgery
@@ -170,6 +173,9 @@ if [ "$jetson" = true ] ; then
 	# sudo mkdir -p /lib/modules/`uname -r`/kernel/drivers/joystick
 	# sudo cp xpad.ko.`uname -r` /lib/modules/`uname -r`/kernel/drivers/joystick/xpad.ko
 	# sudo depmod -a
+
+	# Clean up Jetson
+	sudo rm -rf /home/nvidia/cudnn /home/nvidia/OpenCV /home/nvidia/TensorRT /home/nvidia/libvisionworkd*
 fi
 
 sudo mkdir -p /usr/local/zed/settings
