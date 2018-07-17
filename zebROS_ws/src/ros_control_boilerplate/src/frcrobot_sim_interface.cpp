@@ -1001,6 +1001,16 @@ void FRCRobotSimInterface::write(ros::Duration &elapsed_time)
 		{
 			ts.setSpeed(0); // Don't know how to simulate decel, so just pretend we are stopped
 		}
+		else if (simulate_mode == hardware_interface::TalonMode_PercentOutput)
+		{
+			double percent;
+
+			if (tc.commandChanged(percent))
+				ts.setSetpoint(percent);
+
+			ts.setPosition(ts.getPosition() + percent*2*M_PI * elapsed_time.toSec());
+			ts.setSpeed(percent*2*M_PI);
+		}
 
 		if (tc.clearStickyFaultsChanged())
 			ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" sticky_faults");
