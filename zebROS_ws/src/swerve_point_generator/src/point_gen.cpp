@@ -69,12 +69,12 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 			temp_holder_s.d = req.orient_coefs[i].spline[3] * neg_x;
 			temp_holder_s.e = req.orient_coefs[i].spline[4] * neg_x;
 			temp_holder_s.f = req.orient_coefs[i].spline[5] * neg_x;
-			//ROS_INFO_STREAM("orient_coefs[" << i << "].spline=" << req.orient_coefs[i].spline[0] << " " <<
-			//		req.orient_coefs[i].spline[1] << " " <<
-			//		req.orient_coefs[i].spline[2] << " " <<
-			//		req.orient_coefs[i].spline[3] << " " <<
-			//		req.orient_coefs[i].spline[4] << " " <<
-			//		req.orient_coefs[i].spline[5]);
+			ROS_INFO_STREAM("orient_coefs[" << i << "].spline=" << req.orient_coefs[i].spline[0] << " " <<
+					req.orient_coefs[i].spline[1] << " " <<
+					req.orient_coefs[i].spline[2] << " " <<
+					req.orient_coefs[i].spline[3] << " " <<
+					req.orient_coefs[i].spline[4] << " " <<
+					req.orient_coefs[i].spline[5]);
 
 			orient_splines.push_back(temp_holder_s);
 		}
@@ -85,12 +85,12 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 			temp_holder_s.c = req.x_coefs[i].spline[2] * neg_x;
 			temp_holder_s.d = req.x_coefs[i].spline[3] * neg_x;
 			temp_holder_s.e = req.x_coefs[i].spline[4] * neg_x;
-			//ROS_INFO_STREAM("x_coefs[" << i << "].spline=" << req.x_coefs[i].spline[0] << " " <<
-			//		req.x_coefs[i].spline[1] << " " <<
-			//		req.x_coefs[i].spline[2] << " " <<
-			//		req.x_coefs[i].spline[3] << " " <<
-			//		req.x_coefs[i].spline[4] << " " <<
-			//		req.x_coefs[i].spline[5]);
+			ROS_INFO_STREAM("x_coefs[" << i << "].spline=" << req.x_coefs[i].spline[0] << " " <<
+					req.x_coefs[i].spline[1] << " " <<
+					req.x_coefs[i].spline[2] << " " <<
+					req.x_coefs[i].spline[3] << " " <<
+					req.x_coefs[i].spline[4] << " " <<
+					req.x_coefs[i].spline[5]);
 			temp_holder_s.f = req.x_coefs[i].spline[5] * neg_x;
 
 			x_splines.push_back(temp_holder_s);
@@ -103,12 +103,12 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 			temp_holder_s.d = req.y_coefs[i].spline[3];
 			temp_holder_s.e = req.y_coefs[i].spline[4];
 			temp_holder_s.f = req.y_coefs[i].spline[5];
-			//ROS_INFO_STREAM("y_coefs[" << i << "].spline=" << req.y_coefs[i].spline[0] << " " <<
-			//		req.y_coefs[i].spline[1] << " " <<
-			//		req.y_coefs[i].spline[2] << " " <<
-			//		req.y_coefs[i].spline[3] << " " <<
-			//		req.y_coefs[i].spline[4] << " " <<
-			//		req.y_coefs[i].spline[5]);
+			ROS_INFO_STREAM("y_coefs[" << i << "].spline=" << req.y_coefs[i].spline[0] << " " <<
+					req.y_coefs[i].spline[1] << " " <<
+					req.y_coefs[i].spline[2] << " " <<
+					req.y_coefs[i].spline[3] << " " <<
+					req.y_coefs[i].spline[4] << " " <<
+					req.y_coefs[i].spline[5]);
 
 			y_splines.push_back(temp_holder_s);
 		}
@@ -120,7 +120,7 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 		}
 		for (size_t i = priv_num; i < req.spline_groups[s]; i++)
 		{
-			//ROS_INFO_STREAM("hrer: " << req.end_points[i] - shift_by<< " r_s: " <<  req.spline_groups[s] <<  " s: "<< s);
+			ROS_INFO_STREAM("hrer: " << req.end_points[i] - shift_by<< " r_s: " <<  req.spline_groups[s] <<  " s: "<< s);
 			end_points_holder.push_back(req.end_points[i] - shift_by);
 		}
 		double t_shift = req.t_shift[s];
@@ -128,7 +128,7 @@ bool full_gen(swerve_point_generator::FullGenCoefs::Request &req, swerve_point_g
 	
 		swerve_point_generator::GenerateSwerveProfile::Response srv_msg; //TODO FIX THIS, HACK
 		//srv_msg.points.resize(0);
-		//ROS_INFO_STREAM("req.initial_v: " << req.initial_v << " req.final_v: " << req.final_v << " t_shift: " << t_shift);
+		ROS_INFO_STREAM("req.initial_v: " << req.initial_v << " req.final_v: " << req.final_v << " t_shift: " << t_shift);
 		profile_gen->generate_profile(x_splines, y_splines, orient_splines, req.initial_v, req.final_v, srv_msg, end_points_holder, t_shift, flip_dirc);
 		const int point_count = srv_msg.points.size();
 		//ROS_WARN("TEST2");

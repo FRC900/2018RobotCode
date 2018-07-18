@@ -64,8 +64,10 @@ def create_plot(req):
 	total_vel = 0
 	index =[]
 	total_vels = []
+	vels = []
 	#init_orient = -1.5 This will rotate the entire path?
 	for i in req.joint_trajectory.points:
+		vels.append(i.velocities[2])
 		total_vel += i.velocities[2] *.02
 		total_vels.append(total_vel)
 		orients.append(i.positions[2])	

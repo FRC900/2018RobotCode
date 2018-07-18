@@ -12,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   behaviors
   elevator_controller
   std_srvs
+  talon_state_controller
+  robot_visualizer
 )
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
