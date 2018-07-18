@@ -267,7 +267,7 @@ const std::vector<double> &end_points, double t_shift, bool flip_dirc)
 		now += period;
 		point_count++;
 		ROS_ERROR_STREAM("1: " << curr_v);
-		if (!solve_for_next_V(holder_point, total_arc, curr_v, i, max_wheel_mid_accel_))
+		if (!solve_for_next_V(holder_point, total_arc, curr_v, i, max_wheel_mid_accel_, accelerations)) //originally not the right number of arguments
 		{
 			return false;
 		}

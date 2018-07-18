@@ -216,7 +216,7 @@ int main(int argc, char **argv)
 
 	cube_sub = n.subscribe("/cube_detect/cube_detect_msg", 10, &cubeCallback);
 	talon_sub = n.subscribe("/frcrobot/talon_states", 10, talonStateCallback);
-	cmd_service = n.advertiseService("cmd_service", cmdSubService);
+	cmd_service = n.advertiseService("path_service", cmdSubService);
 
 	point_gen = n.serviceClient<swerve_point_generator::FullGenCoefs>("/point_gen/command", false, service_connection_header);
 	swerve_controller = n.serviceClient<talon_swerve_drive_controller::MotionProfilePoints>("/frcrobot/swerve_drive_controller/run_profile", false, service_connection_header);
