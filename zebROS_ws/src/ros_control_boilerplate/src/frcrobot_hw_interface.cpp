@@ -121,12 +121,18 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
     realtime_pub_nt.msg_.mode.resize(4);
     realtime_pub_nt.msg_.delays.resize(4);
 	ros::Time last_nt_publish_time = ros::Time::now();
-	//ros::Time last_joystick_publish_time = ros::Time::now();
+
+	// Used to throttle match data publishing time to something
+	// reasonable rather than 50Hz. Given that match data only
+	// updates once a second (after game-specific data is publisheD)
+	// there's no reason to repeat it at a really high rate.
 	ros::Time last_match_data_publish_time = ros::Time::now();
 	const double start_time = ros::Time::now().toSec();
 
+	// Same thing for network tables - they only need to update
+	// at human-usable scales
 	const double nt_publish_rate = 10;
-	//const double joystick_publish_rate = 20;
+
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
 	bool last_received = false;
@@ -151,7 +157,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			frc::SmartDashboard::PutBoolean("death_3", auto_state_3_.load(std::memory_order_relaxed));
 
 			std::shared_ptr<nt::NetworkTable> driveTable = NetworkTable::GetTable("SmartDashboard");  //Access Smart Dashboard Variables
-			if (driveTable && realtime_pub_nt.trylock()) 
+			if (driveTable && realtime_pub_nt.trylock())
 			{
 				realtime_pub_nt.msg_.mode[0] = (int)driveTable->GetNumber("auto_mode_0", 0);
 				realtime_pub_nt.msg_.mode[1] = (int)driveTable->GetNumber("auto_mode_1", 0);
@@ -212,8 +218,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
 		}
 
-		//if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
-		//	realtime_pub_joystick.trylock())
 		if (realtime_pub_joystick.trylock())
 		{
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
@@ -380,7 +384,6 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			joystick_right_last_ = joystick_right_;
 
 			realtime_pub_joystick.unlockAndPublish();
-		//	last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
 		}
 
 		// Run at full speed until we see the game specific message.
@@ -558,7 +561,6 @@ void FRCRobotHWInterface::customProfileSetPIDF(int    joint_id,
 
 void FRCRobotHWInterface::init(void)
 {
-    ROS_ERROR("IN INIT");
 	// Do base class init. This loads common interface info
 	// used by both the real and sim interfaces
 	FRCRobotInterface::init();
@@ -1296,9 +1298,9 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		
 		if(tc.getCustomProfileRun())
 		{
-				can_talon_srx_run_profile_stop_time_[joint_id] = ros::Time::now().toSec();	
+			can_talon_srx_run_profile_stop_time_[joint_id] = ros::Time::now().toSec();	
 
-				continue; //Don't mess with talons running in custom profile mode
+			continue; //Don't mess with talons running in custom profile mode
 		}
 		  
 		hardware_interface::FeedbackDevice internal_feedback_device;
@@ -1407,7 +1409,7 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 		bool sensor_phase;
 		if (tc.invertChanged(invert, sensor_phase))
 		{
-			//ROS_WARN("invvert");
+			//ROS_WARN("invert");
 			talon->SetInverted(invert);
 			safeTalonCall(talon->GetLastError(), "SetInverted");
 			talon->SetSensorPhase(sensor_phase);
