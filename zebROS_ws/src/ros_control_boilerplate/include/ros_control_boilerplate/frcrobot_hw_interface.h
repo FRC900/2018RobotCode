@@ -235,8 +235,16 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::atomic<bool> match_data_enabled_;
 
 		std::vector<std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX>> can_talons_;
+
+		// Maintain a separate read thread for each talon SRX
+		std::vector<std::shared_ptr<std::mutex>> talon_read_state_mutexes_;
+		std::vector<std::shared_ptr<hardware_interface::TalonHWState>> talon_read_thread_states_;
+		std::vector<std::thread> talon_read_threads_;
+		void talon_read_thread(std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX> talon, std::shared_ptr<hardware_interface::TalonHWState> state, std::atomic<bool> *mp_written, std::shared_ptr<std::mutex> mutex);
+		std::atomic<bool> profile_is_live_;
+		std::atomic<bool> writing_points_;
+
 		std::shared_ptr<std::vector<std::atomic<bool>>> can_talons_mp_written_;
-		std::shared_ptr<std::vector<std::atomic<bool>>> can_talons_mp_writing_;
 		std::shared_ptr<std::vector<std::atomic<bool>>> can_talons_mp_running_;
 		std::vector<std::shared_ptr<frc::NidecBrushless>> nidec_brushlesses_;
 		std::vector<std::shared_ptr<frc::DigitalInput>> digital_inputs_;
