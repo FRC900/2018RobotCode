@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   talon_swerve_drive_controller
   robot_visualizer
   std_srvs
+  actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -68,17 +69,17 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+   DIRECTORY action
+   FILES Path.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+   DEPENDENCIES
+   std_msgs
+   actionlib_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -112,7 +113,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES path_to_cube
-   CATKIN_DEPENDS roscpp rospy std_msgs swerve_point_generator talon_controllers talon_swerve_drive_controller robot_visualizer std_srvs
+   CATKIN_DEPENDS roscpp rospy std_msgs swerve_point_generator talon_controllers talon_swerve_drive_controller robot_visualizer std_srvs actionlib_msgs
 #  DEPENDS system_lib
 )
 

@@ -67,6 +67,8 @@
   <depend>talon_swerve_drive_controller</depend>
   <depend>robot_visualizer</depend>
   <depend>std_srvs</depend>
+  <depend>actionlib_msgs</depend>
+  <exec_depend>message_generation</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

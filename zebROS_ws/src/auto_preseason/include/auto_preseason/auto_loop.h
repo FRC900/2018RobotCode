@@ -6,6 +6,7 @@
 #include "cube_detection/CubeDetection.h"
 #include "robot_visualizer/ProfileFollower.h"
 #include "talon_swerve_drive_controller/MotionProfilePoints.h"
+#include "elevator_controller/Intake.h"
 
 static bool cube_state;
 static cube_detection::CubeDetection cube_detection_msg;
