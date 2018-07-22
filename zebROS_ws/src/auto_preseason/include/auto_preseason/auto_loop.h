@@ -10,6 +10,7 @@
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
 #include "path_to_cube/PathAction.h"
+#include "behaviors/IntakeAction.h"
 
 static bool cube_found;
 static bool haz_cube;

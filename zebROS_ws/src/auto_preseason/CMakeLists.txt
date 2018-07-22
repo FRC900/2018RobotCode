@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   elevator_controller
   swerve_point_generator
   cube_detection
+  behaviors
   robot_visualizer
   talon_state_controller
 )
@@ -117,7 +118,7 @@ generate_messages(
 catkin_package(
    INCLUDE_DIRS include
 #  LIBRARIES auto_preseason
-   CATKIN_DEPENDS roscpp rospy std_msgs std_srvs geometry_msgs elevator_controller swerve_point_generator cube_detection robot_visualizer talon_state_controller
+   CATKIN_DEPENDS roscpp rospy std_msgs std_srvs geometry_msgs elevator_controller swerve_point_generator cube_detection behaviors robot_visualizer talon_state_controller
    DEPENDS 
 )
 
