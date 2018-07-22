@@ -7,6 +7,13 @@ static ros::ServiceClient path_to_cube_srv;
 static ros::ServiceClient turn_to_angle_srv;
 static ros::ServiceClient intake_srv;
 
+
+
+actionlib::SimpleActionClient<path_to_cube::PathAction> ac_cube;
+actionlib::SimpleActionClient<path_to_exchange::PathAction> ac_exchange;
+actionlib::SimpleActionClient<path_to_exchange::PathAction> ac_intake;
+actionlib::SimpleActionClient<path_to_exchange::PathAction> ac_vault;
+
 /*
  * TODO
  * make pathing actionlib into "go to a place" instaed of cube vs exchange
@@ -110,10 +117,10 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "auto_loop");
 	ros::NodeHandle n;
 
-	actionlib::SimpleActionClient<path_to_cube::PathAction> ac_cube("path_cube", true);
-	actionlib::SimpleActionClient<path_to_exchange::PathAction> ac_exchange("path_exchange", true);
-	actionlib::SimpleActionClient<path_to_exchange::PathAction> ac_intake("intake", true);
-	actionlib::SimpleActionClient<path_to_exchange::PathAction> ac_vault("vault", true);
+	ac_cube = actionlib::SimpleActionClient<path_to_cube::PathAction> ("path_cube", true);
+	ac_exchange = actionlib::SimpleActionClient<path_to_exchange::PathAction> ("path_exchange", true);
+	ac_intake = actionlib::SimpleActionClient<path_to_exchange::PathAction> ("intake", true);
+	ac_vault = actionlib::SimpleActionClient<path_to_exchange::PathAction> ("vault", true);
 	ROS_INFO_STREAM("waiting for server to start");
 	ac_cube.waitForServer();
 	ROS_INFO_STREAM("action server started");
