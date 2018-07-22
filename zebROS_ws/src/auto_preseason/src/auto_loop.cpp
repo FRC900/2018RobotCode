@@ -61,7 +61,7 @@ bool start_path_to_cube()
 {
 	ROS_INFO_NAMED("auto loop", "path_to_cube");
 	path_to_cube::PathGoal goal;
-	ac_cube->sendGoal(goal);
+	ac_cube.sendGoal(goal);
 	return true; //these should maybe just be voids
 }
 
@@ -96,7 +96,7 @@ bool start_path_to_exchange()
 {
 	ROS_INFO_NAMED("auto loop", "path_to_exchange");
 	/*path_to_exchange::PathGoal goal; //make a dummy one?
-	ac_exchange->sendGoal(goal);*/
+	ac_exchange.sendGoal(goal);*/
 	return true;
 }
 
@@ -116,16 +116,16 @@ int main(int argc, char **argv)
 
 	ac_cube = actionlib::SimpleActionClient<path_to_cube::PathAction> ("path_cube", true);
 	ac_exchange = actionlib::SimpleActionClient<path_to_exchange::PathAction> ("path_exchange", true);
-	ac_intake = actionlib::SimpleActionClient<path_to_exchange::PathAction> ("intake", true);
+	ac_intake = actionlib::SimpleActionClient<behaviors::IntakeAction> ("intake", true);
 
 	ROS_INFO_STREAM("waiting for server to start");
-	ac_cube->waitForServer();
-	ac_exchange->waitForServer();
-	ac_intake->waitForServer();
+	ac_cube.waitForServer();
+	ac_exchange.waitForServer();
+	ac_intake.waitForServer();
 	ROS_INFO_STREAM("action server started");
-	actionlib::SimpleClientGoalState path_state = ac_cube->getState();
-	actionlib::SimpleClientGoalState intake_state = ac_intake->getState();
-	actionlib::SimpleClientGoalState exchange_state = ac_exchange->getState();
+	actionlib::SimpleClientGoalState path_state = ac_cube.getState();
+	actionlib::SimpleClientGoalState intake_state = ac_intake.getState();
+	actionlib::SimpleClientGoalState exchange_state = ac_exchange.getState();
 
 	enum State {STARTING_STATE,
 		NO_CUBE_SEEN,
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 							}
 			case PATHING_TO_CUBE : 
 							{
-								  path_state = ac_cube->getState();
+								  path_state = ac_cube.getState();
 								  if(path_state.toString() == "SUCCEEDED") //TODO: check pathing sending back actionlib stuff
 								  {
 									  //wait a certain amount of time before checking for a cube?
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
 							}
 			case INTAKING_CUBE :
 							{
-								  intake_state = ac_intake->getState();
+								  intake_state = ac_intake.getState();
 								  if(intake_state.toString() == "SUCCEEDED")
 								  {
 									  if(qr_found)
@@ -283,7 +283,7 @@ int main(int argc, char **argv)
 							}
 			case PATHING_TO_EXCHANGE :
 							{
-								  exchange_state = ac_exchange->getState()
+								  exchange_state = ac_exchange.getState()
 								  if(exchange_state.toString() == "SUCCEEDED") //TODO: check pathing sending back actionlib stuff
 								  {
 									  //wait until you see the exchange?
