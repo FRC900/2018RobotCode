@@ -8,8 +8,14 @@
 #include "talon_swerve_drive_controller/MotionProfilePoints.h"
 #include "elevator_controller/Intake.h"
 
-static bool cube_state;
+static bool cube_found;
+static bool haz_cube;
 static cube_detection::CubeDetection cube_detection_msg;
+static bool qr_found;
+static double cube_dist;
+static double exchange_dist;
+
+static double min_pathing_dist = 0.3;
 
 void cube_state_callback(const elevator_controller::CubeState &msg);
 void cube_detection_callback(const cube_detection::CubeDetection &msg);

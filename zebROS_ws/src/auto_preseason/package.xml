@@ -63,7 +63,7 @@
   <exec_depend>std_srvs</exec_depend>
   <depend>geometry_msgs</depend>
   <depend>elevator_controller</depend>
-  <depend>path_to_cube</depend>
+  <depend>path_to_goal</depend>
   <depend>swerve_point_generator</depend>
   <depend>cube_detection</depend>
   <depend>robot_visualizer</depend>
