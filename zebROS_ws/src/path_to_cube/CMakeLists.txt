@@ -111,7 +111,7 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
+   INCLUDE_DIRS include
 #  LIBRARIES path_to_cube
    CATKIN_DEPENDS roscpp rospy std_msgs swerve_point_generator talon_controllers talon_swerve_drive_controller robot_visualizer std_srvs actionlib_msgs
 #  DEPENDS system_lib
@@ -124,7 +124,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -157,6 +157,12 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
 )
+
+#add_executable(path_to_cube_server src/path_to_cube_server.cpp)
+#add_dependencies(path_to_cube_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+#target_link_libraries(path_to_cube_server
+#	${catkin_LIBRARIES}
+#)
 
 #############
 ## Install ##

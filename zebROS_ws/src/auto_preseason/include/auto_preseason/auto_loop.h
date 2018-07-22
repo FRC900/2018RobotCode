@@ -7,6 +7,9 @@
 #include "robot_visualizer/ProfileFollower.h"
 #include "talon_swerve_drive_controller/MotionProfilePoints.h"
 #include "elevator_controller/Intake.h"
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
+#include "path_to_cube/PathAction.h"
 
 static bool cube_found;
 static bool haz_cube;

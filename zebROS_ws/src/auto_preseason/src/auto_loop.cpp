@@ -10,32 +10,34 @@ static ros::ServiceClient intake_srv;
 /*
  * TODO
  * make pathing actionlib into "go to a place" instaed of cube vs exchange
+ * what needs to be services and what needs to be actionlib?
+ *  - pathing to exchange/cube
+ *  - turning to an angle
+ *  - intaking/vaulting cubes
  */
 
 //Turn slowly in a circle
-bool recovery_mode_exchange()//different for echange and cubes, include navX angle 
+bool angle_to_exchange()//different for echange and cubes, include navX angle 
 {
 	ROS_INFO_NAMED("auto loop", "recovery_mode_exchange");
-	geometry_msgs::Twist vel;
-	vel.linear.x = 0;
-	vel.linear.y = 0;
-	vel.linear.z = 0;
-	vel.angular.x = 0;
-	vel.angular.y = 0;
-	vel.angular.z = 0.1;
-	cmd_vel_pub.publish(vel);
+	auto_preseason::Angle srv;
+	srv.request.angle = 0; //or whatever
+	turn_to_angle_srv.call(srv);
 
 	return true;	
 }
 
-bool recovery_mode_cube()//different for echange and cubes, include navX angle 
+bool angle_to_cube()//different for echange and cubes, include navX angle 
 {
 	ROS_INFO_NAMED("auto loop", "recovery_mode_cube");
+	auto_preseason::Angle srv;
+	srv.request.angle = 180; //or whatever
+	turn_to_angle_srv.call(srv);
 
 	return true;	
 }
 
-bool recovery_mode_default()
+bool recovery_mode()
 {
 	ROS_INFO_NAMED("auto loop", "recovery_mode_default");
 	geometry_msgs::Twist vel;
@@ -54,12 +56,12 @@ bool recovery_mode_default()
 bool start_path_to_cube()
 {
 	ROS_INFO_NAMED("auto loop", "path_to_cube");
-	path_to_::PathGoal goal;
-	ac.sendGoal(goal);
+	path_to_cube::PathGoal goal;
+	ac_cube.sendGoal(goal);
 	return true; //these should maybe just be voids
 }
 
-bool intake_cube()
+bool start_intake_cube()
 {
 	ROS_INFO_NAMED("auto loop", "intake_cube");
 	auto_preseason::Angle angle;
@@ -94,18 +96,12 @@ bool start_path_to_exchange()
 	return true;
 }
 
-bool place_in_exchange()
+bool start_vault_cube()
 {
-	ROS_INFO_NAMED("auto loop", "place_in_exchange");
+	ROS_INFO_NAMED("auto loop", "start_vault_cube");
 	//face exchange box
 	//run intakes out at a certain speed
 	haz_cube = false;
-	return true;
-}
-
-bool start_drive()
-{
-	//do actionlib stuff so that the drive starts?!?
 	return true;
 }
 
@@ -116,11 +112,26 @@ int main(int argc, char **argv)
 
 	actionlib::SimpleActionClient<path_to_cube::PathAction> ac_cube("path_cube", true);
 	actionlib::SimpleActionClient<path_to_exchange::PathAction> ac_exchange("path_exchange", true);
+	actionlib::SimpleActionClient<path_to_exchange::PathAction> ac_intake("intake", true);
+	actionlib::SimpleActionClient<path_to_exchange::PathAction> ac_vault("vault", true);
 	ROS_INFO_STREAM("waiting for server to start");
 	ac_cube.waitForServer();
 	ROS_INFO_STREAM("action server started");
 
-	enum State {STARTING_STATE, HAZ_CUBE, CUBE_SEEN_CLOSE, CUBE_SEEN_FAR, NO_CUBE_FOUND, DRIVING_TO_EXCHANGE, PATHING_TO_CUBE};
+	enum State {STARTING_STATE,
+		NO_CUBE_FOUND,
+		RECOVERY_MODE_CUBE,
+		CUBE_SEEN_FAR,
+		PATHING_TO_CUBE,
+		CUBE_SEEN_CLOSE,
+		INTAKING_CUBE,
+		NO_EXCHANGE_FOUND,
+		RECOVERY_MODE_EXCHANGE,
+		EXCHANGE_SEEN_FAR,
+		PATHING_TO_EXCHANGE,
+		EXCHANGE_SEEN_CLOSE,
+		VAULTING_CUBE
+	};
 
 	State state = STARTING_STATE;
 
@@ -155,12 +166,12 @@ int main(int argc, char **argv)
 									  if(qr_found)
 									  {
 										  if(exchange_dist < 1) //TODO: figure out which sensor is going to be used for distance to wall (ultrasonic)
-											  state = HAZ_CUBE_FACING_EXCHANGE_CLOSE;
+											  state = EXCHANGE_FOUND_CLOSE;
 										  else
-											  state = HAZ_CUBE_FACING_EXCHANGE_FAR;
+											  state = EXCHANGE_FOUND_FAR;
 									  }
 									  else
-										  state = HAZ_CUBE_NOT_FACING_EXCHANGE;
+										  state = NO_EXCHANGE_FOUND;
 								  }
 								  else if(!haz_cube && cube_dist >= min_pathing_dist && cube_found)
 									  state = CUBE_SEEN_FAR;
@@ -168,100 +179,97 @@ int main(int argc, char **argv)
 									  state = CUBE_SEEN_CLOSE;
 								  else if(!cube_found)
 									  state = NO_CUBE_FOUND;
-			case HAZ_CUBE_FACING_EXCHANGE_FAR : 
-								  start_path_to_exchange(); //TODO: needs to be an actionlib thing -- can start and then run in the background
-								  state = DRIVING_TO_EXCHANGE;
-			case DRIVING_TO_EXCHANGE :
-								  actionlib::SimpleClientGoalState exchange_state = ac.getState();
-								  if(path_state == GOOD THINGS) //TODO: check pathing sending back actionlib stuff
-									  path_state = CUBE_SEEN_CLOSE;
-								  else
-									  ROS_INFO_STREAM("path_to_cube has failed. state: " << path_state);
-								  if(driving == finished) //TODO: fix this with actionlib things
-									  state = HAZ_CUBE_FACING_EXCHANGE_CLOSE;
-			case HAZ_CUBE_FACING_EXCHANGE_CLOSE :
-								  start_vault_cube(); //TODO: some actionlib stuff
-								  state = VAULTING_CUBE;
-			case VAULTING_CUBE :
-								  if(vaulting_finished) //TODO: some actionlib stuff
+			case NO_CUBE_FOUND :
+								  angle_to_cube();
+								  if(cube_found)
 								  {
-									  if(true) //TODO: figure out what sensor needs to determine this
-										  state = NO_CUBE_FOUND; //has to ignore the cube that it's looking at
-									  if(false)
+									  if(cube_dist < 5)
 										  state = CUBE_SEEN_CLOSE;
+									  if(cube_dist >= 5)
+										  state = CUBE_SEEN_FAR;
 								  }
-			case HAZ_CUBE_NOT_FACING_EXCHANGE :
+								  else
+									  state = RECOVERY_MODE_CUBE;
+			case RECOVERY_MODE_CUBE : 
 								  recovery_mode();
-								  if(exchange_found)
+								  if(cube_found)
 								  {
-									  if(dist_from_exchange < 1)
-										  state = HAZ_CUBE_FACING_EXCHANGE_CLOSE;
-									  else
-										  state = HAZ_CUBE_FACING_EXCHANGE_FAR;
+									  if(cube_dist < 5)
+										  state = CUBE_SEEN_CLOSE;
+									  if(cube_dist >= 5)
+										  state = CUBE_SEEN_FAR;
 								  }
 			case CUBE_SEEN_FAR : 
 								  start_path_to_cube(); //TODO: needs to be an actionlib thing -- can start and then run in the background
 								  state = PATHING_TO_CUBE;
 			case PATHING_TO_CUBE : 
 								  actionlib::SimpleClientGoalState path_state = ac_cube.getState();
-								  if(path_state == GOOD THINGS) //TODO: check pathing sending back actionlib stuff
+								  if(path_state.state == SUCCEEDED) //TODO: check pathing sending back actionlib stuff
+									  //wait a certain amount of time before checking for a cube?
 									  path_state = CUBE_SEEN_CLOSE;
 								  else
-									  ROS_INFO_STREAM("path_to_cube has failed. state: " << path_state);
+									  ROS_INFO_STREAM("path_to_cube has failed. state: " << path_state.state);
 			case CUBE_SEEN_CLOSE :
 								  fix_angle_cube();
 								  start_run_in_intake();
 								  state = RUNNING_INTAKE;
-			case RUNNING_INTAKE :
-								  if(intake == finished)
+			case INTAKING_CUBE :
+								  actionlib::SimpleClientGoalState cube_state = ac_intake.getState();
+								  if(cube_state.state == SUCCEEDED)
 								  {
 									  if(exchange_found)
 									  {
 										  if(dist_from_exchange < 1)
-											  state = HAZ_CUBE_FACING_EXCHANGE_CLOSE;
+											  state = EXCHANGE_SEEN_CLOSE;
 										  else
-											  state = HAZ_CUBE_FACING_EXCHANGE_FAR;
+											  state = EXCHANGE_SEEN_FAR;
 									  }
 									  else
-										  state = HAZ_CUBE_NOT_FACING_EXCHANGE;
+										  state = NO_EXCHANGE_FOUND;
 								  }
-			case NO_CUBE_FOUND :
+			case NO_EXCHANGE_FOUND :
+								  angle_to_exchange();
+								  if(exchange_found)
+								  {
+									  if(dist_from_exchange < 1)
+										  state = EXCHANGE_SEEN_CLOSE;
+									  else
+										  state = EXCHANGE_SEEN_FAR;
+								  }
+								  else
+									  state = RECOVERY_MODE_EXCHANGE;
+			case RECOVERY_MODE_EXCHANGE :
 								  recovery_mode();
-								  if(cube_found && cube_dist < 5)
-									  state = CUBE_SEEN_CLOSE;
-								  if(cube_found && cube_dist >= 5)
-									  state = CUBE_SEEN_FAR;
-									  
+								  if(exchange_found)
+								  {
+									  if(dist_from_exchange < 1)
+										  state = EXCHANGE_SEEN_CLOSE;
+									  else
+										  state = EXCHANGE_SEEN_FAR;
+								  }
+			case EXCHANGE_SEEN_FAR : 
+								  start_path_to_exchange(); //TODO: needs to be an actionlib thing -- can start and then run in the background
+								  state = PATHING_TO_EXCHANGE;
+			case PATHING_TO_EXCHANGE :
+								  actionlib::SimpleClientGoalState exchange_state = ac_exchange.getState();
+								  if(exchange_state.state == SUCCEEDED) //TODO: check pathing sending back actionlib stuff
+									  //wait until you see the exchange?
+									  exchange_state = EXCHANGE_SEEN_CLOSE;
+								  else
+									  ROS_INFO_STREAM("path_to_cube has failed. state: " << exchange_state.state);
+			case EXCHANGE_SEEN_CLOSE :
+								  start_vault_cube(); //TODO: some actionlib stuff
+								  state = VAULTING_CUBE;
+			case VAULTING_CUBE :
+								  actionlib::SimpleClientGoalState vault_state = ac_vault.getState();
+								  if(vault_state.state == SUCCEEDED) //TODO: some actionlib stuff
+								  {
+									  if(true) //TODO: figure out what sensor needs to determine this
+										  state = NO_CUBE_FOUND; //has to ignore the cube that it's looking at
+									  if(false)
+										  state = CUBE_SEEN_CLOSE;
+								  }
 		}
-	
-									  
-		/*	
-		int tries = 0;
-		if(!haz_cube && cube_dist >= 5 && cube_found)
-		{
-			path_to_cube();
-		}
-		else if(!haz_cube && cube_dist < 5 && cube_found)
-		{
-			while (tries<=4)
-			{
-				if(!intake_cube())
-					tries++;
-				else
-					break;
-			}
-		}
-		else if(!haz_cube && !cube_found)
-		{
-			recovery_mode();
-		}
-		else
-		{
-			if(path_to_exchange())
-				place_in_exchange();
-		}
-		ROS_INFO_STREAM(haz_cube);
-		*/
 	}
 }
 
