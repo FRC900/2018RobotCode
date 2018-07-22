@@ -437,7 +437,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 					std::string identifier_with_wait = identifier+ +"_wait_for_action_"+std::to_string(wait_for_action);
 					if(auto_data.getParam(identifier_with_wait, mode_xml))
 					{
-						ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
+						//ROS_INFO_STREAM("Auto mode with identifier: " << identifier << " found");
 						//XmlRpc::XmlRpcValue &coefs_xml = mode_xml["coefs"];
 						//XmlRpc::XmlRpcValue &times_xml = mode_xml["times"];
 						const int num_splines = mode_xml.size();
@@ -474,7 +474,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						profiled_modes[mode][layout][start_pos].exists = true; 
 						profiled_modes[mode][layout][start_pos].num_srv_msgs +=1; 
 
-						ROS_WARN_STREAM("mode: " << mode << " layout: " << layout << " start_pos: " << start_pos);
+						//ROS_WARN_STREAM("mode: " << mode << " layout: " << layout << " start_pos: " << start_pos);
 
 						XmlRpc::XmlRpcValue group_xml;
 						if(auto_data.getParam(identifier_with_wait + "_spline_group", group_xml))
@@ -519,7 +519,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 							XmlRpc::XmlRpcValue flip_xml;
 							if(auto_data.getParam(identifier_with_wait + "_flips", flip_xml))
 							{
-								ROS_INFO_STREAM("Custom flips for identifier: " << identifier_with_wait << " found");
+								//ROS_INFO_STREAM("Custom flips for identifier: " << identifier_with_wait << " found");
 								for(int i = 0; i < group_xml.size(); i++)
 								{
 									bool temp = flip_xml[i];
@@ -536,7 +536,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 							XmlRpc::XmlRpcValue x_inverts_xml;
 							if(auto_data.getParam(identifier_with_wait + "_x_inverts", x_inverts_xml))
 							{
-								ROS_INFO_STREAM("Custom x inverts for identifier: " << identifier_with_wait << " found");
+								//ROS_INFO_STREAM("Custom x inverts for identifier: " << identifier_with_wait << " found");
 								for(int i = 0; i < group_xml.size(); i++)
 								{
 									bool temp = x_inverts_xml[i];
@@ -570,7 +570,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 			
 			if(auto_data.getParam(identifier+ "_actions", actions_xml))
 			{
-				ROS_INFO_STREAM("Auto mode actions with identifier: " << identifier+"_actions" << " found");
+				//ROS_INFO_STREAM("Auto mode actions with identifier: " << identifier+"_actions" << " found");
 				const int num_actions = actions_xml.size();
 				profiled_modes[mode][layout][start_pos].actions.resize(num_actions);
 				for(int i = 0; i < max_wait_for_action_num; i++)
@@ -676,7 +676,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						}
 						else
 						{
-							ROS_ERROR("action not found");
+							//ROS_ERROR("action not found");
 						}
 						
 					//Exception handling?
@@ -709,7 +709,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
                 
                 if(cmd_vel_data.getParam(identifier, cmd_vel_xml))
 				{
-					ROS_INFO_STREAM("cmd vel mode with identifier: " << identifier << " found cmd vel");
+					//ROS_INFO_STREAM("cmd vel mode with identifier: " << identifier << " found cmd vel");
 					const int num_segments = cmd_vel_xml.size();
                     cmd_vel_modes[mode][layout][start_pos].segments.resize(num_segments);
                     cmd_vel_modes[mode][layout+2][start_pos].segments.resize(num_segments);
@@ -1432,7 +1432,7 @@ int main(int argc, char** argv) {
 					if ((auto_mode_data.modes_[i] > num_cmd_vel_modes-1) &&
                         ((((auto_mode_data.modes_[i] != auto_mode_vect[i]))) || (auto_mode_data.start_pos_ != last_start_pos)))
                     {
-						ROS_ERROR_STREAM("actual mode: " << auto_mode_data.modes_[i] - num_cmd_vel_modes << " layout: " << i << " start: " << auto_mode_data.start_pos_); 
+						//ROS_ERROR_STREAM("actual mode: " << auto_mode_data.modes_[i] - num_cmd_vel_modes << " layout: " << i << " start: " << auto_mode_data.start_pos_); 
 
                         out_to_generate.push_back(profiled_modes[auto_mode_data.modes_[i] - num_cmd_vel_modes][i][auto_mode_data.start_pos_]);
 						generate_for_this[i] = true;	
