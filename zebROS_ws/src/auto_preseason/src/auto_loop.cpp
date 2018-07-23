@@ -7,9 +7,9 @@ static ros::ServiceClient path_to_cube_srv;
 static ros::ServiceClient turn_to_angle_srv;
 static ros::ServiceClient intake_srv;
 
-actionlib::SimpleActionClient<path_to_cube::PathAction> ac_cube;
-actionlib::SimpleActionClient<path_to_exchange::PathAction> ac_exchange;
-actionlib::SimpleActionClient<behaviors::IntakeAction> ac_intake;
+std::shared_ptr<actionlib::SimpleActionClient<path_to_cube::PathAction>> ac_cube;
+std::shared_ptr<actionlib::SimpleActionClient<zbar_ros::PathAction>> ac_exchange;
+std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac_intake;
 
 /*
  * TODO
@@ -56,19 +56,18 @@ bool recovery_mode()
 	return true;	
 }
 
-//Turn around in circles a lot, then calls the pathing service
 bool start_path_to_cube()
 {
 	ROS_INFO_NAMED("auto loop", "path_to_cube");
 	path_to_cube::PathGoal goal;
-	ac_cube.sendGoal(goal);
+	ac_cube->sendGoal(goal);
 	return true; //these should maybe just be voids
 }
 
 bool start_intake_cube()
 {
 	ROS_INFO_NAMED("auto loop", "intake_cube");
-	auto_preseason::Angle angle;
+	auto_preseason::Angle angle; //maybe should make this part a different state entirely
 	angle.request.angle = cube_detection_msg.angle; //make sure this is from the same ref. point and that data is updated!
 	if (!turn_to_angle_srv.call(angle))
 	{
@@ -114,18 +113,18 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "auto_loop");
 	ros::NodeHandle n;
 
-	ac_cube = actionlib::SimpleActionClient<path_to_cube::PathAction> ("path_cube", true);
-	ac_exchange = actionlib::SimpleActionClient<path_to_exchange::PathAction> ("path_exchange", true);
-	ac_intake = actionlib::SimpleActionClient<behaviors::IntakeAction> ("intake", true);
+	ac_cube = std::make_shared<actionlib::SimpleActionClient<path_to_cube::PathAction>> ("path_cube", true);
+	ac_exchange = std::make_shared<actionlib::SimpleActionClient<zbar_ros::PathAction>> ("path_exchange", true);
+	ac_intake = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>> ("intake", true);
 
 	ROS_INFO_STREAM("waiting for server to start");
-	ac_cube.waitForServer();
-	ac_exchange.waitForServer();
-	ac_intake.waitForServer();
+	ac_cube->waitForServer();
+	ac_exchange->waitForServer();
+	ac_intake->waitForServer();
 	ROS_INFO_STREAM("action server started");
-	actionlib::SimpleClientGoalState path_state = ac_cube.getState();
-	actionlib::SimpleClientGoalState intake_state = ac_intake.getState();
-	actionlib::SimpleClientGoalState exchange_state = ac_exchange.getState();
+	actionlib::SimpleClientGoalState path_state = ac_cube->getState();
+	actionlib::SimpleClientGoalState intake_state = ac_intake->getState();
+	actionlib::SimpleClientGoalState exchange_state = ac_exchange->getState();
 
 	enum State {STARTING_STATE,
 		NO_CUBE_SEEN,
@@ -164,7 +163,7 @@ int main(int argc, char **argv)
 		//it ONLY CAN DETECT ONE THING AT ONCE or the first is always the best
 
 		cube_found = (cube_detection_msg.location.size() > 0);
-		qr_found = true; //(exchange_detection_msg.location.size() > 0); //replace with actual
+		qr_found = (exchange_detection_msg.location.size() > 0); //replace with actual
 		cube_dist = cube_detection_msg.location[0].z;
 		exchange_dist = 5.0; //figure out which sensor this will be
 
@@ -222,7 +221,7 @@ int main(int argc, char **argv)
 							}
 			case PATHING_TO_CUBE : 
 							{
-								  path_state = ac_cube.getState();
+								  path_state = ac_cube->getState();
 								  if(path_state.toString() == "SUCCEEDED") //TODO: check pathing sending back actionlib stuff
 								  {
 									  //wait a certain amount of time before checking for a cube?
@@ -238,7 +237,7 @@ int main(int argc, char **argv)
 							}
 			case INTAKING_CUBE :
 							{
-								  intake_state = ac_intake.getState();
+								  intake_state = ac_intake->getState();
 								  if(intake_state.toString() == "SUCCEEDED")
 								  {
 									  if(qr_found)
@@ -283,7 +282,7 @@ int main(int argc, char **argv)
 							}
 			case PATHING_TO_EXCHANGE :
 							{
-								  exchange_state = ac_exchange.getState()
+								  exchange_state = ac_exchange->getState();
 								  if(exchange_state.toString() == "SUCCEEDED") //TODO: check pathing sending back actionlib stuff
 								  {
 									  //wait until you see the exchange?
@@ -321,7 +320,7 @@ void cube_detection_callback(const cube_detection::CubeDetection &msg)
 	cube_detection_msg = msg;
 }
 
-/*void exchange_detection_callback(const exchange_detection::CubeDetection &msg)
+void exchange_detection_callback(const cube_detection::CubeDetection &msg)
 {
 	exchange_detection_msg = msg;
-}*/
+}

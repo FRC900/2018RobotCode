@@ -11,6 +11,7 @@
 #include <actionlib/client/terminal_state.h>
 #include "path_to_cube/PathAction.h"
 #include "behaviors/IntakeAction.h"
+#include "zbar_ros/PathAction.h"
 
 static bool cube_found;
 static bool haz_cube;
@@ -18,10 +19,10 @@ static cube_detection::CubeDetection cube_detection_msg;
 static bool qr_found;
 static double cube_dist;
 static double exchange_dist;
+static cube_detection::CubeDetection exchange_detection_msg;
 
 static double min_pathing_dist = 0.3;
 
 void cube_state_callback(const elevator_controller::CubeState &msg);
 void cube_detection_callback(const cube_detection::CubeDetection &msg);
-
-//actionlib::SimpleActionClient
+void exchange_detection_callback(const cube_detection::CubeDetection &msg);
