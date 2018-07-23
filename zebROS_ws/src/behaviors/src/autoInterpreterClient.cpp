@@ -536,7 +536,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 							XmlRpc::XmlRpcValue x_inverts_xml;
 							if(auto_data.getParam(identifier_with_wait + "_x_inverts", x_inverts_xml))
 							{
-								ROS_INFO_STREAM("Custom x inverts for identifier: " << identifier_with_wait << " found");
+								//ROS_INFO_STREAM("Custom x inverts for identifier: " << identifier_with_wait << " found");
 								for(int i = 0; i < group_xml.size(); i++)
 								{
 									bool temp = x_inverts_xml[i];
@@ -676,7 +676,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
 						}
 						else
 						{
-							ROS_ERROR("action not found");
+							//ROS_ERROR("action not found");
 						}
 						
 					//Exception handling?
@@ -709,7 +709,7 @@ Modes load_all_trajectories(int max_mode_num, int max_mode_cmd_vel, int max_star
                 
                 if(cmd_vel_data.getParam(identifier, cmd_vel_xml))
 				{
-					ROS_INFO_STREAM("cmd vel mode with identifier: " << identifier << " found cmd vel");
+					//ROS_INFO_STREAM("cmd vel mode with identifier: " << identifier << " found cmd vel");
 					const int num_segments = cmd_vel_xml.size();
                     cmd_vel_modes[mode][layout][start_pos].segments.resize(num_segments);
                     cmd_vel_modes[mode][layout+2][start_pos].segments.resize(num_segments);
