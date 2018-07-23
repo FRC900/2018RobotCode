@@ -99,6 +99,54 @@ class autoAction {
             //else
                 //ROS_INFO("Srv intake call OK in auto interpreter server intake");
 		}
+		else
+		{
+            cube_state_true = 0;
+            elevator_controller::Intake srv;
+            srv.request.power = -1;
+            srv.request.other_power = -1;
+            srv.request.just_override_power = false;
+            srv.request.spring_state = 2; //soft in
+            srv.request.up = false;
+            if(!IntakeSrv_.call(srv)) 
+                ROS_ERROR("Srv intake call failed in auto interpreter server intake");
+            //else
+                //ROS_INFO("Srv intake call OK in auto interpreter server intake");
+            ros::spinOnce();
+			bool success = false;
+            while(!success && !timed_out && !aborted) {
+                success = cube_state_true > linebreak_debounce_iterations && (proceed  || !goal->wait_to_proceed); 
+                if(as_.isPreemptRequested() || !ros::ok()) {
+                    ROS_WARN("%s: Preempted", action_name_.c_str());
+                    as_.setPreempted();
+                    aborted = true;
+                    break;
+                }
+                if (!aborted) {
+                    r.sleep();
+                    ros::spinOnce();
+                    timed_out = (ros::Time::now().toSec()-startTime) > goal->time_out;
+                }
+            /*
+            else
+            {
+                srv.request.power = -intake_hold_power;
+                srv.request.spring_state = 3; //hard in
+                srv.request.up = false;
+                        if(!IntakeSrv_.call(srv)) ROS_ERROR("Srv intake call failed in auto interpreter server intake");;
+            }
+            */		    
+            }
+            srv.request.power = success ? 0.15 : 0;
+            srv.request.other_power = success ? 0.15 : 0;
+            srv.request.spring_state = 3; //soft in
+            srv.request.up = false;
+            srv.request.just_override_power = !success;
+            if(!IntakeSrv_.call(srv)) 
+                ROS_ERROR("Srv intake call failed in auto interpreter server intake");
+            //else
+                //ROS_INFO("Srv intake call OK in auto interpreter server intake");
+		}
 	//else if goal->
 	//{}
         if(timed_out)

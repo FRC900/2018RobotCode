@@ -14,7 +14,7 @@
 #include "zbar_ros/PathAction.h"
 
 static bool cube_found;
-static bool haz_cube;
+static bool haz_cube = false;
 static cube_detection::CubeDetection cube_detection_msg;
 static bool qr_found;
 static double cube_dist;

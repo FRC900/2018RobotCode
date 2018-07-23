@@ -56,4 +56,8 @@
         
 	<node name="auto_loop" pkg="auto_preseason" type="auto_loop" output="screen" />
 
+	<node name="cube_detection_node" pkg="cube_detection" type="cube_detection_node" output="screen"/>
+
+	<node pkg="rosbag" type="play" name="player" output="screen" args="--clock /home/ofugikawa/Documents/Match-2_1.bag --topics /zed_goal/depth/depth_registered /zed_goal/left/image_rect_color -l"/>
+
 </launch>
