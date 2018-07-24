@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(path_to_cube)
-
+if(false)
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
 
@@ -158,11 +158,11 @@ target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
 )
 
-#add_executable(path_to_cube_server src/path_to_cube_server.cpp)
-#add_dependencies(path_to_cube_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-#target_link_libraries(path_to_cube_server
-#	${catkin_LIBRARIES}
-#)
+add_executable(path_to_cube_server src/path_to_cube_server.cpp)
+add_dependencies(path_to_cube_server ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(path_to_cube_server
+	${catkin_LIBRARIES}
+)
 
 #############
 ## Install ##
@@ -212,4 +212,5 @@ install(TARGETS ${PROJECT_NAME}_node
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
+endif()
 endif()

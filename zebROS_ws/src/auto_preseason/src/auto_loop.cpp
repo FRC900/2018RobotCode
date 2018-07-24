@@ -8,8 +8,7 @@ static ros::ServiceClient path_to_cube_srv;
 static ros::ServiceClient turn_to_angle_srv;
 static ros::ServiceClient intake_srv;
 
-std::shared_ptr<actionlib::SimpleActionClient<path_to_cube::PathAction>> ac_cube;
-std::shared_ptr<actionlib::SimpleActionClient<zbar_ros::PathAction>> ac_exchange;
+std::shared_ptr<actionlib::SimpleActionClient<path_to_goal::PathAction>> ac_path;
 std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac_intake;
 
 /*
@@ -25,9 +24,12 @@ std::shared_ptr<actionlib::SimpleActionClient<behaviors::IntakeAction>> ac_intak
 bool angle_to_exchange()//different for echange and cubes, include navX angle 
 {
 	ROS_INFO_NAMED("auto loop", "recovery_mode_exchange");
-	auto_preseason::Angle srv;
-	srv.request.angle = 0; //or whatever
-	turn_to_angle_srv.call(srv);
+	path_to_goal::PathGoal goal;
+	goal.goal_index = 0; //cube index
+	goal.x = 0;
+	goal.y = 0;
+	goal.rotation = 0;
+	ac_path->sendGoal(goal);
 
 	return true;	
 }
@@ -35,9 +37,12 @@ bool angle_to_exchange()//different for echange and cubes, include navX angle
 bool angle_to_cube()//different for echange and cubes, include navX angle 
 {
 	ROS_INFO_NAMED("auto loop", "recovery_mode_cube");
-	auto_preseason::Angle srv;
-	srv.request.angle = 180; //or whatever
-	turn_to_angle_srv.call(srv);
+	path_to_goal::PathGoal goal;
+	goal.goal_index = 0; //cube index
+	goal.x = 0;
+	goal.y = 0;
+	goal.rotation = 180;
+	ac_path->sendGoal(goal);
 
 	return true;	
 }
@@ -60,8 +65,9 @@ bool recovery_mode()
 bool start_path_to_cube()
 {
 	ROS_INFO_NAMED("auto loop", "path_to_cube");
-	path_to_cube::PathGoal goal;
-	ac_cube->sendGoal(goal);
+	path_to_goal::PathGoal goal;
+	goal.goal_index = 1; //cube index
+	ac_path->sendGoal(goal);
 	return true; //these should maybe just be voids
 }
 
@@ -110,8 +116,9 @@ bool drive_forward_slowly()
 bool start_path_to_exchange()
 {
 	ROS_INFO_NAMED("auto loop", "path_to_exchange");
-	/*path_to_exchange::PathGoal goal; //make a dummy one?
-	ac_exchange.sendGoal(goal);*/
+	path_to_goal::PathGoal goal; 
+	goal.goal_index = 2; //path to exchange
+	ac_path->sendGoal(goal);
 	return true;
 }
 
@@ -135,14 +142,12 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "auto_loop");
 	ros::NodeHandle n;
 
-	ac_cube = std::make_shared<actionlib::SimpleActionClient<path_to_cube::PathAction>> ("path_cube", true);
-	ac_exchange = std::make_shared<actionlib::SimpleActionClient<zbar_ros::PathAction>> ("path_exchange", true);
+	ac_path = std::make_shared<actionlib::SimpleActionClient<path_to_goal::PathAction>> ("path_goal", true);
 	ac_intake = std::make_shared<actionlib::SimpleActionClient<behaviors::IntakeAction>> ("intake", true);
 
 	ROS_INFO_STREAM("waiting for server to start");
-	//ac_cube->waitForServer();
-	//ac_exchange->waitForServer();
-	//ac_intake->waitForServer();
+	ac_path->waitForServer(); //should probably fix this at some point
+	ac_intake->waitForServer();
 	ROS_INFO_STREAM("action server started");
 
 	enum State {STARTING_STATE,
@@ -242,14 +247,14 @@ int main(int argc, char **argv)
 			case CUBE_SEEN_FAR : 
 							{
 								  ROS_INFO_STREAM("cube seen far");
-								  start_path_to_cube(); //TODO: needs to be an actionlib thing -- can start and then run in the background
+								  start_path_to_cube(); 
 								  state = PATHING_TO_CUBE;
 							}
 			case PATHING_TO_CUBE : 
 							{
 								  ROS_INFO_STREAM("pathing to cube");
-								  actionlib::SimpleClientGoalState path_state = ac_cube->getState();
-								  if(path_state.toString() == "SUCCEEDED") //TODO: check pathing sending back actionlib stuff
+								  actionlib::SimpleClientGoalState path_state = ac_path->getState();
+								  if(path_state.toString() == "SUCCEEDED")
 								  {
 									  //wait a certain amount of time before checking for a cube?
 									  state = CUBE_SEEN_CLOSE;
@@ -317,7 +322,7 @@ int main(int argc, char **argv)
 			case PATHING_TO_EXCHANGE :
 							{
 								  ROS_INFO_STREAM("pathing to exchange");
-								  actionlib::SimpleClientGoalState exchange_state = ac_exchange->getState();
+								  actionlib::SimpleClientGoalState exchange_state = ac_path->getState();
 								  if(exchange_state.toString() == "SUCCEEDED") //TODO: check pathing sending back actionlib stuff
 								  {
 									  //wait until you see the exchange?

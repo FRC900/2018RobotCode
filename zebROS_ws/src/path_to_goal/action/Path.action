@@ -1,0 +1,10 @@
+#goal definition
+int32 goal_index
+float32 x
+float32 y
+float32 rotation
+float32 time_to_run
+---
+#result definition
+---
+#feedback

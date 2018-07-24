@@ -1,147 +1,65 @@
 <?xml version="1.0"?>
-
 <launch>
+
 	<!-- GDB functionality -->
-	<arg name="screen" default="false" />
-	<arg unless="$(arg screen)" name="output" value="log" />
-	<arg     if="$(arg screen)" name="output" value="screen" />
+	<arg name="debug" default="false" />
+	<arg unless="$(arg debug)" name="launch_prefix" value="" />
+	<arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+	<arg name="hw_or_sim" default="hw" />
 	<arg name="static_map" default="True"/>
 
-  <!--
-  Master Node Launcher
-  * ZED Wrapper Instance
-  * Goal Detection Node
-  * NavX Publisher Node
-  * Rosbag recording (Optional)
-	-->
+	<node name="base_trajectory_node" pkg="base_trajectory" type="base_trajectory_node" output="screen" > </node> 
+	<group ns="frcrobot">
 
-  <!-- Code for starting slave code on rio -->
-  
-  <arg name="resolution" default="3" />
-  <arg name="frame_rate" default="60" />
-  <arg name="quality" default="3" />
-  <arg name="brightness" default="-1" />
-  <arg name="contrast" default="-1" />
-  <arg name="hue" default="-1" />
-  <arg name="saturation" default="-1" />
-  <arg name="gain" default="-1" />
-  <arg name="exposure" default="-1" />
-  <arg name="whitebalance" default="-1" />
-  <arg name="name" default="zed_goal" />
+		<!-- Load controller settings -->
+		<rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets0.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
+		<rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
+		<rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
+        <rosparam file="$(find teleop_joystick_control)/config/teleopJoystickCommands.yaml" command="load"/>
+		<rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
+        <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
+        <rosparam file="$(find behaviors)/config/autoInterpreterServer.yaml" command="load"/>
+        <rosparam file="$(find robot_visualizer)/config/robot_visualize.yaml" command="load"/>
 
-  <arg name="record" default="False" />  <!-- otherwise does not record unless run by master.sh -->
-  <arg name="sub_rate" default="10" />
-  <arg name="pub_rate" default="1" />
+		<!-- Load hardware interface -->
+		<node name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main"
+			output="screen" launch-prefix="$(arg launch_prefix)">
+		</node>
 
-  <group ns="$(arg name)">
-    <include file="$(find zed_wrapper)/launch/zed_camera.launch">
-      <arg name="zed_name" value="$(arg name)" />
-      <arg name="resolution" value="$(arg resolution)" />
-      <arg name="frame_rate" value="$(arg frame_rate)" />
-      <arg name="quality" value="$(arg quality)" />
-      <arg name="brightness" value="$(arg brightness)" />
-      <arg name="contrast" value="$(arg contrast)" />
-      <arg name="hue" value="$(arg hue)" />
-      <arg name="saturation" value="$(arg saturation)" />
-      <arg name="gain" value="$(arg gain)" />
-      <arg name="exposure" value="$(arg exposure)" />
-      <arg name="whitebalance" value="$(arg whitebalance)" />
-	  <arg name="publish_tf" value="False" />
-    </include>
-</group>
+		<!-- Load controller manager -->
+		<node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false"
+			output="screen" args="spawn joint_state_controller talon_state_controller imu_sensor_controller pdp_state_controller compressor_controller swerve_drive_controller elevator_controller rumble_controller robot_code_ready_controller" />
 
-<!--
-  <node name="goal_detection_node" pkg="goal_detection" type="goal_detection_node" respawn="true" output="screen">
-  	<param name="sub_rate" value="$(arg sub_rate)" />
-  	<param name="pub_rate" value="$(arg pub_rate)" />
-  </node>
--->
+		<node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="screen" />
+	
+		<node name="map_server" pkg="map_server" type="map_server" args="$(find controller_node)/maps/2018FRC_field.yaml" output="screen" if="$(arg static_map)">
+			<param name="frame_id" value="/map"/>
+		</node>
 
-<!--
-  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_navx" args="-0.2914015 -0.072263 0.0244348 0 0 0 base_link navx" />
--->
+		<node name="robot_visualize" pkg="robot_visualizer" type="robot_visualize" output="screen" />
+		<node name="profile_follow" pkg="robot_visualizer" type="profile_follow" output="screen" />
 
-  <!--<include file="$(find controller_node)/launch/fuse_odom.launch"/>-->
+	</group>
 
-  <!-- <include file="$(find rplidar_ros)/launch/rplidar.launch" />
-  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_laser" args="0.4180115 -0.3183901 0.2206 3.14159265 0 0 base_link laser" /> -->
+    <group ns="rio">
+        <node name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat" output="screen" />
+    </group>
 
-  <!--<include file="$(find controller_node)/launch/gmapping.launch"/>-->
+    <group ns="jetson">
+        <node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat" output="screen" />
+    </group>
+        
+	<node name="auto_loop" pkg="auto_preseason" type="auto_loop" output="screen" />
 
-  <!--<remap from="/cmd_vel" to="frcrobot/swerve_drive_controller/cmd_vel"/>
-  <include file="$(find controller_node)/launch/move_base.launch"/>-->
+	<node name="cube_detection_node" pkg="cube_detection" type="cube_detection_node" output="screen"/>
 
-<!--	
-	<include file="$(find controller_node)/launch/record_simple.launch" if="$(arg record)" />
--->
+	<node pkg="rosbag" type="play" name="player" output="screen" args="--clock /home/ofugikawa/Documents/Match-2_1.bag --topics /zed_goal/depth/depth_registered /zed_goal/left/image_rect_color -l"/>
 
-	<include file="$(find controller_node)/launch/record_master.launch" if="$(arg record)" />
-
-	<!-- <include file="$(find ti_mmwave_rospkg)/launch/ti_mmwave_sensor.launch">
-		<arg name="device" value="1443" doc="TI mmWave sensor device type [1443, 1642]"/>
-		<arg name="config" value="3d" doc="TI mmWave sensor device configuration [3d (not supported by 1642 EVM), 2d]"/>
-		<arg name="max_allowed_elevation_angle_deg" value="90" doc="Maximum allowed elevation angle in degrees for detected object data [0 > value >= 90]}"/>
-		<arg name="max_allowed_azimuth_angle_deg" value="90" doc="Maximum allowed azimuth angle in degrees for detected object data [0 > value >= 90]}"/>
-	  </include> -->
-
-  <machine name="roboRIO" address="10.9.0.2" env-loader="/home/admin/2018RobotCode/zebROS_ws/ROSJetsonMaster.sh" user="admin" password="admin"/>
-
-  <arg name="debug" default="false" />
-  <arg unless="$(arg debug)" name="launch_prefix" value="" />
-  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
-  <arg name="hw_or_sim" default="hw" />
-
-<group ns="frcrobot">
-
-    <!-- Load controller settings -->
-    <rosparam file="$(find ros_control_boilerplate)/config/2018_main_frcrobot.yaml" command="load"/>
-    <rosparam file="$(find ros_control_boilerplate)/config/talon_swerve_offsets_new_1.yaml" command="load"/>
-    <rosparam file="$(find ros_control_boilerplate)/config/elevator.yaml" command="load"/>
-    <rosparam file="$(find ros_control_boilerplate)/config/elevator_offsets0.yaml" command="load"/>
-    <rosparam file="$(find ros_control_boilerplate)/config/2018_swerve_drive.yaml" command="load"/>
-    <rosparam file="$(find ros_control_boilerplate)/config/robot_code_ready_controller.yaml" command="load"/>
-    <rosparam file="$(find teleop_joystick_control)/config/JoystickSubscriber.yaml" command="load"/>
-    <rosparam file="$(find teleop_joystick_control)/config/teleopJoystickCommands.yaml" command="load"/>
-    <rosparam file="$(find compressor_control_node)/config/regulate_compressor.yaml" command="load"/>
-    <rosparam file="$(find behaviors)/config/autoInterpreterClient.yaml" command="load"/>
-    <rosparam file="$(find behaviors)/config/autoInterpreterServer.yaml" command="load"/>
-	<rosparam file="$(find robot_visualizer)/config/robot_visualize.yaml" command="load"/>
-
-	<!-- Load hardware interface -->
-	<node machine="roboRIO" name="frcrobot_hardware_interface" pkg="ros_control_boilerplate" type="frcrobot_$(arg hw_or_sim)_main" launch-prefix="$(arg launch_prefix)" output="$(arg output)"> </node>
-
-    <!-- Load controller manager -->
-    <node machine="roboRIO" name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="$(arg output)"
-	   args="spawn joint_state_controller talon_state_controller swerve_drive_controller pdp_state_controller elevator_controller rumble_controller imu_sensor_controller compressor_controller robot_code_ready_controller"/>
-
-   <!-- <node name="teleopJoystickCommands" pkg="teleop_joystick_control" type="teleopJoystickCommands" output="$(arg output)"/> -->
-
-   <!-- <node machine="roboRIO" name="autoInterpreterServer" pkg="behaviors" type="autoInterpreterServer" output="$(arg output)" />
-    <node machine="roboRIO"  name="autoInterpreterServerLift" pkg="behaviors" type="autoInterpreterServerLift" output="$(arg output)"/>
-    <node machine="roboRIO" name="autoInterpreterServerIntake" pkg="behaviors" type="autoInterpreterServerIntake" output="$(arg output)"/>
-    <node name="autoInterpreterClient" pkg="behaviors" type="autoInterpreterClient" output="$(arg output)"/>
-	<node name="regulate_compressor" pkg="compressor_control_node" type="regulate_compressor" output="$(arg output)"/> -->
-    <node name="point_gen" pkg="swerve_point_generator" type="point_gen" output="$(arg output)"/>
-	<node name="map_server" pkg="map_server" type="map_server" args="$(find controller_node)/maps/2018FRC_field.yaml" output="$(arg output)" if="$(arg static_map)">
-		<param name="frame_id" value="/map"/>
-	</node>
-
-	<node name="robot_visualize" pkg="robot_visualizer" type="robot_visualize" output="$(arg output)" />
-	<node name="profile_follow" pkg="robot_visualizer" type="profile_follow" output="$(arg output)" />
-</group>
-
-<group ns="rio">
-    <node machine="roboRIO" name="heartbeat_rio" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
-</group>
-
-<group ns="jetson">
-    <node name="heartbeat_jetson" pkg="heartbeat_node" type="heartbeat" output="$(arg output)" />
-</group>
-
-<node name="base_trajectory_node" pkg="base_trajectory" type="base_trajectory_node" output="screen" > </node> 
-
-<node name="auto_loop" pkg="auto_preseason" type="auto_loop" output="screen"> </node>
-
-<node name="cube_detection_node" pkg="cube_detection" type="cube_detection_node" output="screen"> </node>
+	<node name="path_to_cube_server" pkg="path_to_cube" type="path_to_cube_server" output="screen"/>
 
 </launch>

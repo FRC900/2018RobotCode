@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>auto_preseason</name>
+  <name>path_to_goal</name>
   <version>0.0.0</version>
-  <description>The auto_preseason package</description>
+  <description>The path_to_goal package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/auto_preseason</url> -->
+  <!-- <url type="website">http://wiki.ros.org/path_to_goal</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -52,24 +52,23 @@
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>std_srvs</build_depend>
+  <build_depend>swerve_point_generator</build_depend>
+  <build_depend>talon_controllers</build_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
-  <build_export_depend>std_srvs</build_export_depend>
+  <build_export_depend>swerve_point_generator</build_export_depend>
+  <build_export_depend>talon_controllers</build_export_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>std_srvs</exec_depend>
-  <depend>geometry_msgs</depend>
-  <depend>elevator_controller</depend>
-  <depend>behaviors</depend>
-  <depend>path_to_goal</depend>
-  <depend>swerve_point_generator</depend>
-  <depend>cube_detection</depend>
+  <exec_depend>swerve_point_generator</exec_depend>
+  <exec_depend>talon_controllers</exec_depend>
+  <depend>talon_swerve_drive_controller</depend>
   <depend>robot_visualizer</depend>
-  <depend>talon_state_controller</depend>
+  <depend>std_srvs</depend>
   <depend>actionlib_msgs</depend>
+  <exec_depend>message_generation</exec_depend>
   <depend>actionlib</depend>
   <depend>genmsg</depend>
 

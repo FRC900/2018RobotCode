@@ -9,9 +9,8 @@
 #include "elevator_controller/Intake.h"
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/terminal_state.h>
-#include "path_to_cube/PathAction.h"
+#include "path_to_goal/PathAction.h"
 #include "behaviors/IntakeAction.h"
-#include "zbar_ros/PathAction.h"
 
 static bool cube_found;
 static bool haz_cube = false;
