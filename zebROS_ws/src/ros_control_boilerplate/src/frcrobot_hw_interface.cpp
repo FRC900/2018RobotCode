@@ -1108,6 +1108,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	{
 		compressor_state_[i] = compressors_[i]->GetCompressorCurrent();
 	}*/
+	// TODO : move me to a separate thread
 	if (!profile_is_live_.load(std::memory_order_relaxed) && 
 	    !writing_points_.load(std::memory_order_relaxed))
 	{
@@ -1117,7 +1118,7 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 		pdp_state_.setTotalCurrent(pdp_joint_.GetTotalCurrent());
 		pdp_state_.setTotalPower(pdp_joint_.GetTotalPower());
 		pdp_state_.setTotalEnergy(pdp_joint_.GetTotalEnergy());
-		for(int channel = 0; channel <= 15; channel++)
+		for (int channel = 0; channel <= 15; channel++)
 		{
 			pdp_state_.setCurrent(pdp_joint_.GetCurrent(channel), channel);
 		}
