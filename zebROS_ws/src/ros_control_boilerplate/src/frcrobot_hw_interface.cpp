@@ -127,14 +127,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			rate.sleep();
 	}
 
-	bool joystick_up_ = false;;
-	bool joystick_down_ = false;;
-	bool joystick_left_ = false;;
-	bool joystick_right_ = false;;
-	bool joystick_up_last_ = false;;
-	bool joystick_down_last_ = false;;
-	bool joystick_left_last_ = false;;
-	bool joystick_right_last_ = false;;
+	bool joystick_up_last = false;
+	bool joystick_down_last = false;
+	bool joystick_left_last = false;
+	bool joystick_right_last = false;
 
 	robot_.StartCompetition();
 	Joystick joystick(0);
@@ -149,12 +145,10 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
     realtime_pub_nt.msg_.mode.resize(4);
     realtime_pub_nt.msg_.delays.resize(4);
 	ros::Time last_nt_publish_time = ros::Time::now();
-	//ros::Time last_joystick_publish_time = ros::Time::now();
 	ros::Time last_match_data_publish_time = ros::Time::now();
 	const double start_time = ros::Time::now().toSec();
 
 	const double nt_publish_rate = 10;
-	//const double joystick_publish_rate = 20;
 	const double match_data_publish_rate = 1.1;
 	bool game_specific_message_seen = false;
 	bool last_received = false;
@@ -167,6 +161,9 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 		// Network tables work!
 		//pubTable->PutString("String 9", "WORK");
 		//subTable->PutString("Auto Selector", "Select Auto");
+
+		// Throttle NT updates since these are mainly for human
+		// UI and don't have to run at crazy speeds
 		if ((last_nt_publish_time + ros::Duration(1.0 / nt_publish_rate)) < time_now_t)
 		{
 			// SmartDashboard works!
@@ -240,8 +237,7 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			last_nt_publish_time += ros::Duration(1.0 / nt_publish_rate);
 		}
 
-		//if (((last_joystick_publish_time + ros::Duration(1.0 / joystick_publish_rate)) < time_now_t) && 
-		//	realtime_pub_joystick.trylock())
+		// Update joystick state as often as possible
 		if (realtime_pub_joystick.trylock())
 		{
 			realtime_pub_joystick.msg_.header.stamp = time_now_t;
@@ -289,123 +285,63 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 			realtime_pub_joystick.msg_.buttonStartButton = joystick.GetRawButton(8);
 			realtime_pub_joystick.msg_.buttonStartPress = joystick.GetRawButtonPressed(8);
 			realtime_pub_joystick.msg_.buttonStartRelease = joystick.GetRawButtonReleased(8);
-            
-            /*-----------------------------------------------------------------------------*/
-            /*-----------------------------------------------------------------------------*/
-            /*-----------------------------------------------------------------------------*/
-            /*****************************^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^*******************/
-            /*-----------------------------------------------------------------------------*/
-            /*------------------------THIS IS JUST UNTIL ARM WORKS-------------------------*/
-            /*-------------------------------DELETE THIS-----------------------------------*/
-            /*****************************^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^*******************/
-            /*-----------------------------------------------------------------------------*/
-            /*-----------------------------------------------------------------------------*/
-            /*-----------------------------------------------------------------------------*/
-			/*
-			realtime_pub_joystick.msg_.buttonAButton = joystick.GetRawButton(8);
-			realtime_pub_joystick.msg_.buttonAPress = joystick.GetRawButtonPressed(8);
-			realtime_pub_joystick.msg_.buttonARelease = joystick.GetRawButtonReleased(8);
 
-			realtime_pub_joystick.msg_.buttonXButton = joystick.GetRawButton(7);
-			realtime_pub_joystick.msg_.buttonXPress = joystick.GetRawButtonPressed(7);
-			realtime_pub_joystick.msg_.buttonXRelease = joystick.GetRawButtonReleased(7);
-
-			realtime_pub_joystick.msg_.buttonBackButton = joystick.GetRawButton(3);
-			realtime_pub_joystick.msg_.buttonBackPress = joystick.GetRawButtonPressed(3);
-			realtime_pub_joystick.msg_.buttonBackRelease = joystick.GetRawButtonReleased(3);
-
-			realtime_pub_joystick.msg_.buttonStartButton = joystick.GetRawButton(1);
-			realtime_pub_joystick.msg_.buttonStartPress = joystick.GetRawButtonPressed(1);
-			realtime_pub_joystick.msg_.buttonStartRelease = joystick.GetRawButtonReleased(1);
-			*/
-		
+			bool joystick_up = false;
+			bool joystick_down = false;
+			bool joystick_left = false;
+			bool joystick_right = false;
 			switch (joystick.GetPOV(0))
 			{
-				default:{
-						joystick_up_ = false;
-						joystick_down_ = false;
-						joystick_left_ = false;
-						joystick_right_ = false;
+				case 0 :
+						joystick_up = true;
 						break;
-					}
-				case 0 :{
-						joystick_up_ = true;
-						joystick_down_ = false;
-						joystick_left_ = false;
-						joystick_right_ = false;
+				case 45:
+						joystick_up = true;
+						joystick_right = true;
 						break;
-					} 
-				case 45:{
-						joystick_up_ = true;
-						joystick_down_ = false;
-						joystick_left_ = false;
-						joystick_right_ = true;
+				case 90:
+						joystick_right = true;
 						break;
-					} 
-				case 90:{
-						joystick_up_ = false;
-						joystick_down_ = false;
-						joystick_left_ = false;
-						joystick_right_ = true;
+				case 135:
+						joystick_down = true;
+						joystick_right = true;
 						break;
-					} 
-				case 135:{
-						joystick_up_ = false;
-						joystick_down_ = true;
-						joystick_left_ = false;
-						joystick_right_ = true;
+				case 180:
+						joystick_down = true;
 						break;
-					} 
-				case 180:{
-						joystick_up_ = false;
-						joystick_down_ = true;
-						joystick_left_ = false;
-						joystick_right_ = false;
+				case 225:
+						joystick_down = true;
+						joystick_left = true;
 						break;
-					} 
-				case 225:{
-						joystick_up_ = false;
-						joystick_down_ = true;
-						joystick_left_ = true;
-						joystick_right_ = false;
+				case 270:
+						joystick_left = true;
 						break;
-					} 
-				case 270:{
-						joystick_up_ = false;
-						joystick_down_ = false;
-						joystick_left_ = true;
-						joystick_right_ = false;
+				case 315:
+						joystick_up = true;
+						joystick_left = true;
 						break;
-					} 
-				case 315:{
-						joystick_up_ = true;
-						joystick_down_ = false;
-						joystick_left_ = true;
-						joystick_right_ = false;
-						break;
-					} 
 			}
 			
-			realtime_pub_joystick.msg_.directionUpButton = joystick_up_;
-			realtime_pub_joystick.msg_.directionUpPress = joystick_up_ && !joystick_up_last_;
-			realtime_pub_joystick.msg_.directionUpRelease = !joystick_up_ && joystick_up_last_;
-			
-			realtime_pub_joystick.msg_.directionDownButton = joystick_down_;
-			realtime_pub_joystick.msg_.directionDownPress = joystick_down_ && !joystick_down_last_;
-			realtime_pub_joystick.msg_.directionDownRelease = !joystick_down_ && joystick_down_last_;
+			realtime_pub_joystick.msg_.directionUpButton = joystick_up;
+			realtime_pub_joystick.msg_.directionUpPress = joystick_up && !joystick_up_last;
+			realtime_pub_joystick.msg_.directionUpRelease = !joystick_up && joystick_up_last;
 
-			realtime_pub_joystick.msg_.directionLeftButton = joystick_left_;
-			realtime_pub_joystick.msg_.directionLeftPress = joystick_left_ && !joystick_left_last_;
-			realtime_pub_joystick.msg_.directionLeftRelease = !joystick_left_ && joystick_left_last_;
+			realtime_pub_joystick.msg_.directionDownButton = joystick_down;
+			realtime_pub_joystick.msg_.directionDownPress = joystick_down && !joystick_down_last;
+			realtime_pub_joystick.msg_.directionDownRelease = !joystick_down && joystick_down_last;
 
-			realtime_pub_joystick.msg_.directionRightButton = joystick_right_;
-			realtime_pub_joystick.msg_.directionRightPress = joystick_right_ && !joystick_right_last_;
-			realtime_pub_joystick.msg_.directionRightRelease = !joystick_right_ && joystick_right_last_;
+			realtime_pub_joystick.msg_.directionLeftButton = joystick_left;
+			realtime_pub_joystick.msg_.directionLeftPress = joystick_left && !joystick_left_last;
+			realtime_pub_joystick.msg_.directionLeftRelease = !joystick_left && joystick_left_last;
 
-			joystick_up_last_ = joystick_up_;
-			joystick_down_last_ = joystick_down_;
-			joystick_left_last_ = joystick_left_;
-			joystick_right_last_ = joystick_right_;
+			realtime_pub_joystick.msg_.directionRightButton = joystick_right;
+			realtime_pub_joystick.msg_.directionRightPress = joystick_right && !joystick_right_last;
+			realtime_pub_joystick.msg_.directionRightRelease = !joystick_right && joystick_right_last;
+
+			joystick_up_last = joystick_up;
+			joystick_down_last = joystick_down;
+			joystick_left_last = joystick_left;
+			joystick_right_last = joystick_right;
 
 			realtime_pub_joystick.unlockAndPublish();
 		//	last_joystick_publish_time += ros::Duration(1.0 / joystick_publish_rate);
@@ -450,10 +386,21 @@ void FRCRobotHWInterface::hal_keepalive_thread(void)
 				game_specific_message_seen = false;
 			}
 		}
-
 	}
 }
 
+/*
+ * Thread to feed talon motion profile data from
+ * software buffers into the hardware
+ * Previous attempts acted weird - different
+ * talons would start and stop profiles at different
+ * times.  This code has since been updated to lock
+ * access to motion profile config to insure only
+ * one thread is working with it at a time - perhaps
+ * that will help? Need to test
+ * also, experiment with 1 thread per talon rather that
+ * 1 thread for all of them
+ */
 void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 {
 	return;
@@ -469,18 +416,25 @@ void FRCRobotHWInterface::process_motion_profile_buffer_thread(double hz)
 		bool writing_points = false;
 		for (size_t i = 0; i < num_can_talon_srxs_; i++)
 		{
+			// TODO : see if we can eliminate this.  It is used to
+			// skip accesses if motion profiles were never written
+			// but we can also test using mp_status below...
 			if ((*can_talons_mp_written_)[i].load(std::memory_order_relaxed))
 			{
+				// Avoid accessing motion profile data
+				// while the write() loop is also writing it.
+				std::lock_guard<std::mutex> l(*motion_profile_mutexes_[i]);
+
 				const hardware_interface::TalonMode talon_mode = talon_state_[i].getTalonMode();
+				if (talon_mode == hardware_interface::TalonMMode_Follower)
+					continue;
 				const hardware_interface::MotionProfileStatus mp_status = talon_state_[i].getMotionProfileStatus();
 				// Only write to non-follow, non-disabled talons that
 				// have points to write from their top-level buffer
 				//ROS_INFO_STREAM("top count: " << can_talons_[i]->GetMotionProfileTopLevelBufferCount());
 				//ROS_WARN_STREAM("id: " << i << " top size: " << mp_status.topBufferCnt << " running: " << (*can_talons_mp_running_)[i].load(std::memory_order_relaxed));
-				if (((talon_mode != hardware_interface::TalonMode_Follower) &&
-				 /*can_talons_[i]->GetMotionProfileTopLevelBufferCount()*/ (mp_status.topBufferCnt 
-				&& mp_status.btmBufferCnt < 127)) ||  
-				(*can_talons_mp_running_)[i].load(std::memory_order_relaxed))
+				if ((mp_status.topBufferCnt && mp_status.btmBufferCnt < 127) ||  
+					(*can_talons_mp_running_)[i].load(std::memory_order_relaxed))
 				{
 					if (!set_frame_period[i])
 					{
@@ -735,6 +689,8 @@ void FRCRobotHWInterface::init(void)
 	pdp_joint_.ClearStickyFaults();
 	pdp_joint_.ResetTotalEnergy();
 
+	for (size_t i = 0; i < num_can_talon_srxs_; i++)
+		motion_profile_mutexes_.push_back(std::make_shared<std::mutex>());
 	motion_profile_thread_ = std::thread(&FRCRobotHWInterface::process_motion_profile_buffer_thread, this, 100.);
 	ROS_INFO_NAMED("frcrobot_hw_interface", "FRCRobotHWInterface Ready.");
 }
@@ -756,16 +712,10 @@ void FRCRobotHWInterface::talon_read_thread(std::shared_ptr<ctre::phoenix::motor
 
 	while(ros::ok())
 	{
-		/*	
-		if((*can_talons_mp_running_)[joint_id].load(std::memory_order_relaxed))
-		{
-			ROS_INFO_STREAM("running");
-		}
-		if((*can_talons_mp_written_)[joint_id].load(std::memory_order_relaxed))
-		{
+#if 0
+		if(mp_written->load(std::memory_order_relaxed))
 			ROS_INFO_STREAM("written");
-		}
-		*/
+#endif
 
 		// read position and velocity from can_talons_[joint_id]
 		// convert to whatever unistate make sense
@@ -835,6 +785,9 @@ void FRCRobotHWInterface::talon_read_thread(std::shared_ptr<ctre::phoenix::motor
 			rate.sleep();
 			continue;
 		}
+		// TODO : don't hard-code this
+		// Code to handle status read for drive base motion
+		// profile mode
 		else if (state->getCANID() < 30 && mp_written->load(std::memory_order_relaxed))
 		{
 			ctre::phoenix::motion::MotionProfileStatus talon_status;
@@ -1658,97 +1611,104 @@ void FRCRobotHWInterface::write(ros::Duration &elapsed_time)
 			ts.setCurrentLimitEnable(enable);
 			ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" peak current");
 		}
-
-		if (motion_profile_mode)
+		
 		{
-			double motion_cruise_velocity;
-			double motion_acceleration;
-			if (tc.motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
+			// Lock this so that the motion profile update
+			// thread doesn't update in the middle of writing
+			// motion profile params
+			std::lock_guard<std::mutex> l(*motion_profile_mutexes_[joint_id]);
+
+			if (motion_profile_mode)
 			{
-				//ROS_WARN("magic changed");
-				//converted from rad/sec to native units
-				safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_second_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
-				safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_second_scale), timeoutMs),"ConfigMotionAcceleration(");
+				double motion_cruise_velocity;
+				double motion_acceleration;
+				if (tc.motionCruiseChanged(motion_cruise_velocity, motion_acceleration))
+				{
+					//ROS_WARN("magic changed");
+					//converted from rad/sec to native units
+					safeTalonCall(talon->ConfigMotionCruiseVelocity((motion_cruise_velocity / radians_per_second_scale), timeoutMs),"ConfigMotionCruiseVelocity(");
+					safeTalonCall(talon->ConfigMotionAcceleration((motion_acceleration / radians_per_second_scale), timeoutMs),"ConfigMotionAcceleration(");
 
-				ts.setMotionCruiseVelocity(motion_cruise_velocity);
-				ts.setMotionAcceleration(motion_acceleration);
+					ts.setMotionCruiseVelocity(motion_cruise_velocity);
+					ts.setMotionAcceleration(motion_acceleration);
 
-				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" cruise velocity / acceleration");
-			}
+					ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" cruise velocity / acceleration");
+				}
 
 #if 0 // DISABLE FOR NOW UNTIL WE CAN FIND A SAFE DEFAULT
-			// Do this before rest of motion profile stuff
-			// so it takes effect before starting a buffer?
-			int motion_control_frame_period;
-			if (tc.motionControlFramePeriodChanged(motion_control_frame_period))
-			{
-				//ROS_WARN("profile frame period");
-				safeTalonCall(talon->ChangeMotionControlFramePeriod(motion_control_frame_period),"ChangeMotionControlFramePeriod");
-				ts.setMotionControlFramePeriod(motion_control_frame_period);
-				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion control frame period");
-			}
+				// Do this before rest of motion profile stuff
+				// so it takes effect before starting a buffer?
+				int motion_control_frame_period;
+				if (tc.motionControlFramePeriodChanged(motion_control_frame_period))
+				{
+					//ROS_WARN("profile frame period");
+					safeTalonCall(talon->ChangeMotionControlFramePeriod(motion_control_frame_period),"ChangeMotionControlFramePeriod");
+					ts.setMotionControlFramePeriod(motion_control_frame_period);
+					ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion control frame period");
+				}
 #endif
 
-			int motion_profile_trajectory_period;
-			if (tc.motionProfileTrajectoryPeriodChanged(motion_profile_trajectory_period))
-			{
-				//ROS_WARN("profile frame period");
-				safeTalonCall(talon->ConfigMotionProfileTrajectoryPeriod(motion_profile_trajectory_period, timeoutMs),"ConfigMotionProfileTrajectoryPeriod");
-				ts.setMotionProfileTrajectoryPeriod(motion_profile_trajectory_period);
-				ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectory period");
+				int motion_profile_trajectory_period;
+				if (tc.motionProfileTrajectoryPeriodChanged(motion_profile_trajectory_period))
+				{
+					//ROS_WARN("profile frame period");
+					safeTalonCall(talon->ConfigMotionProfileTrajectoryPeriod(motion_profile_trajectory_period, timeoutMs),"ConfigMotionProfileTrajectoryPeriod");
+					ts.setMotionProfileTrajectoryPeriod(motion_profile_trajectory_period);
+					ROS_INFO_STREAM("Updated joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectory period");
+				}
+
+				if (tc.clearMotionProfileTrajectoriesChanged())
+				{
+					//ROS_WARN("clear points");
+					safeTalonCall(talon->ClearMotionProfileTrajectories(), "ClearMotionProfileTrajectories");
+					(*can_talons_mp_written_)[joint_id].store(false, std::memory_order_relaxed);
+					ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
+				}
+
+				if (tc.clearMotionProfileHasUnderrunChanged())
+				{
+					//ROS_WARN("clear underrun");
+					safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
+					ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile underrun changed");
+				}
+
+				// TODO : check that Talon motion buffer is not full
+				// before writing, communicate how many have been written
+				// - and thus should be cleared - from the talon_command
+				// list of requests.
 			}
 
-			if (tc.clearMotionProfileTrajectoriesChanged())
+			std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
+			if (tc.motionProfileTrajectoriesChanged(trajectory_points))
 			{
-				//ROS_WARN("clear points");
-				safeTalonCall(talon->ClearMotionProfileTrajectories(), "ClearMotionProfileTrajectories");
-				(*can_talons_mp_written_)[joint_id].store(false, std::memory_order_relaxed);
-				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
+				//ROS_INFO_STREAM("Pre buffer");
+				//ROS_WARN("point_buffer");
+				//int i = 0;
+				for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
+				{
+					ctre::phoenix::motion::TrajectoryPoint pt;
+					pt.position = it->position / radians_scale;
+					pt.velocity = it->velocity / radians_per_second_scale;
+					pt.headingDeg = it->headingRad * 180. / M_PI;
+					pt.auxiliaryPos = it->auxiliaryPos; // TODO : unit conversion?
+					pt.profileSlotSelect0 = it->profileSlotSelect0;
+					pt.profileSlotSelect1 = it->profileSlotSelect1;
+					pt.isLastPoint = it->isLastPoint;
+					pt.zeroPos = it->zeroPos;
+					pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
+					safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
+					//ROS_INFO_STREAM("id: " << joint_id << " pos: " << pt.position << " i: " << i++);
+				}
+				//ROS_INFO_STREAM("Post buffer");
+				// Copy the 1st profile trajectory point from
+				// the top level buffer to the talon
+				// Subsequent points will be copied by
+				// the process_motion_profile_buffer_thread code
+				//talon->ProcessMotionProfileBuffer();
+				(*can_talons_mp_written_)[joint_id].store(true, std::memory_order_relaxed);
+
+				ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 			}
-
-			if (tc.clearMotionProfileHasUnderrunChanged())
-			{
-				//ROS_WARN("clear underrun");
-				safeTalonCall(talon->ClearMotionProfileHasUnderrun(timeoutMs),"ClearMotionProfileHasUnderrun");
-				ROS_INFO_STREAM("Cleared joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile underrun changed");
-			}
-
-			// TODO : check that Talon motion buffer is not full
-			// before writing, communicate how many have been written
-			// - and thus should be cleared - from the talon_command
-			// list of requests.
-		}
-
-		std::vector<hardware_interface::TrajectoryPoint> trajectory_points;
-		if (tc.motionProfileTrajectoriesChanged(trajectory_points))
-		{
-			//ROS_INFO_STREAM("Pre buffer");
-			//ROS_WARN("point_buffer");
-			//int i = 0;
-			for (auto it = trajectory_points.cbegin(); it != trajectory_points.cend(); ++it)
-			{
-				ctre::phoenix::motion::TrajectoryPoint pt;
-				pt.position = it->position / radians_scale;
-				pt.velocity = it->velocity / radians_per_second_scale;
-				pt.headingDeg = it->headingRad * 180. / M_PI;
-				pt.auxiliaryPos = it->auxiliaryPos; // TODO : unit conversion?
-				pt.profileSlotSelect0 = it->profileSlotSelect0;
-				pt.profileSlotSelect1 = it->profileSlotSelect1;
-				pt.isLastPoint = it->isLastPoint;
-				pt.zeroPos = it->zeroPos;
-				pt.timeDur = static_cast<ctre::phoenix::motion::TrajectoryDuration>(it->trajectoryDuration);
-				safeTalonCall(talon->PushMotionProfileTrajectory(pt),"PushMotionProfileTrajectory");
-				//ROS_INFO_STREAM("id: " << joint_id << " pos: " << pt.position << " i: " << i++);
-			}
-			//ROS_INFO_STREAM("Post buffer");
-			// Copy the 1st profile trajectory point from
-			// the top level buffer to the talon
-			// Subsequent points will be copied by
-			// the process_motion_profile_buffer_thread code
-			//talon->ProcessMotionProfileBuffer();
-			(*can_talons_mp_written_)[joint_id].store(true, std::memory_order_relaxed);
-
-			ROS_INFO_STREAM("Added joint " << joint_id << "=" << can_talon_srx_names_[joint_id] <<" motion profile trajectories");
 		}
 
 		// Set new motor setpoint if either the mode or

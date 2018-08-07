@@ -257,6 +257,7 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<frc::Compressor>> compressors_;
 		std::thread hal_thread_;
 		std::thread motion_profile_thread_;
+		std::vector<std::shared_ptr<std::mutex>> motion_profile_mutexes_;
 
 		PowerDistributionPanel pdp_joint_;
 
