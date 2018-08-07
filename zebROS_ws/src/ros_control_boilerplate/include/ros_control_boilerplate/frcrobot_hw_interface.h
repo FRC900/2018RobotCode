@@ -240,12 +240,12 @@ class FRCRobotHWInterface : public ros_control_boilerplate::FRCRobotInterface
 		std::vector<std::shared_ptr<std::mutex>> talon_read_state_mutexes_;
 		std::vector<std::shared_ptr<hardware_interface::TalonHWState>> talon_read_thread_states_;
 		std::vector<std::thread> talon_read_threads_;
-		void talon_read_thread(std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX> talon, std::shared_ptr<hardware_interface::TalonHWState> state, std::atomic<bool> *mp_written, std::shared_ptr<std::mutex> mutex);
+		void talon_read_thread(std::shared_ptr<ctre::phoenix::motorcontrol::can::TalonSRX> talon, std::shared_ptr<hardware_interface::TalonHWState> state, std::shared_ptr<std::atomic<bool>> mp_written, std::shared_ptr<std::mutex> mutex);
 		std::atomic<bool> profile_is_live_;
 		std::atomic<bool> writing_points_;
 
-		std::shared_ptr<std::vector<std::atomic<bool>>> can_talons_mp_written_;
-		std::shared_ptr<std::vector<std::atomic<bool>>> can_talons_mp_running_;
+		std::vector<std::shared_ptr<std::atomic<bool>>> can_talons_mp_written_;
+		std::vector<std::shared_ptr<std::atomic<bool>>> can_talons_mp_running_;
 		std::vector<std::shared_ptr<frc::NidecBrushless>> nidec_brushlesses_;
 		std::vector<std::shared_ptr<frc::DigitalInput>> digital_inputs_;
 		std::vector<std::shared_ptr<frc::DigitalOutput>> digital_outputs_;
