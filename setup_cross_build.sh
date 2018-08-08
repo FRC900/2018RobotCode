@@ -57,10 +57,8 @@ cd ..
 rm -rf navx navx-mxp-libs.zip
 
 # Get ros for RoboRIO libraries
-cd
-wget -O roscore_roborio_2018.tar.bz2 "https://drive.google.com/uc?export=download&id=1tT988R2pq9oyZyLWl1eDzMSpxcV7-HZ-"
 cd /usr/arm-frc-linux-gnueabi
-sudo tar -xjf ~/roscore_roborio_2018.tar.bz2
+sudo tar -xjf ~/2018RobotCode/roscore_roborio_2018.tar.bz2
 cd
 rm roscore_roborio_2018.tar.bz2
 
