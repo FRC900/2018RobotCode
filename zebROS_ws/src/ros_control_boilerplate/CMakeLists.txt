@@ -144,7 +144,7 @@ if (DEFINED CMAKE_TOOLCHAIN_FILE)
 		${WPI_LIB_DIR}/libwpi.so
 		${WPI_LIB_DIR}/libFRC_NetworkCommunication.so.18.0.0
 		${WPI_LIB_DIR}/libRoboRIO_FRC_ChipObject.so.18.0.0
-                ${WPI_USER_LIBS}
+		${WPI_USER_LIBS}
 	)
 
     ## Add cmake target dependencies of the executable
