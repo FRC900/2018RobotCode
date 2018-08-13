@@ -55,6 +55,11 @@ rm -rf /usr/arm-frc-linux-gnueabi/opt/ros/kinetic devel_isolated build_isolated
 
 ./src/catkin/bin/catkin_make_isolated --install --use-ninja -DCMAKE_INSTALL_PREFIX=/usr/arm-frc-linux-gnueabi/opt/ros/kinetic -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=~/2018RobotCode/zebROS_ws/rostoolchain.cmake -DCATKIN_ENABLE_TESTING=OFF
 
+# Add newly built cross-libs to git repo so they are
+# used for subsequent Rio imagings
+cd /usr/arm-frc-linux-gnueabi
+tar -cjf ~/2018RobotCode/roscore_roborio_2018.tar.bz2 opt/ros/kinetic
+
 # I needed to add "-DYAML_CPP_INCLUDE_DIRS=/usr/arm-frc-linux-gnueabi/include
 # -DYAML_CPP_LIBRARIES=/usr/arm-frc-linux-gnueabi/lib/libyaml-cpp.a" to
 # catkin_make_isolated to get it to find yaml-cpp
