@@ -576,7 +576,9 @@ void FRCRobotHWInterface::init(void)
 
 		talon_read_state_mutexes_.push_back(std::make_shared<std::mutex>());
 		talon_read_thread_states_.push_back(std::make_shared<hardware_interface::TalonHWState>(can_talon_srx_can_ids_[i]));
-		talon_read_threads_.push_back(std::thread(&FRCRobotHWInterface::talon_read_thread, this, can_talons_[i], talon_read_thread_states_[i], can_talons_mp_written_[i], talon_read_state_mutexes_[i]));
+		talon_read_threads_.push_back(std::thread(&FRCRobotHWInterface::talon_read_thread, this, 
+					                  can_talons_[i], talon_read_thread_states_[i], 
+									  can_talons_mp_written_[i], talon_read_state_mutexes_[i]));
 	}
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
 	{
@@ -699,12 +701,13 @@ void FRCRobotHWInterface::talon_read_thread(std::shared_ptr<ctre::phoenix::motor
 	ros::Rate rate(25); // TODO : configure me
 	int counter = 0;
 
-	// TODO : make this configurable
-	if (state->getCANID() == 31 || state->getCANID() == 32) // Don't read any status for intake motors
-		return;
-
-	if (state->getTalonMode() == hardware_interface::TalonMode_Follower)
-		return;
+	// This never changes so read it once when the
+	// thread is started
+	int can_id;
+	{
+		std::lock_guard<std::mutex> l(*mutex);
+		can_id = state->getCANID();
+	}
 
 	while(ros::ok())
 	{
@@ -712,12 +715,37 @@ void FRCRobotHWInterface::talon_read_thread(std::shared_ptr<ctre::phoenix::motor
 		if(mp_written->load(std::memory_order_relaxed))
 			ROS_INFO_STREAM("written");
 #endif
+		hardware_interface::TalonMode talon_mode;
+		hardware_interface::FeedbackDevice encoder_feedback;
+		int encoder_ticks_per_rotation;
+		double conversion_factor;
 
-		// read position and velocity from can_talons_[joint_id]
-		// convert to whatever unistate make sense
-		const hardware_interface::FeedbackDevice encoder_feedback = state->getEncoderFeedback();
-		const int encoder_ticks_per_rotation = state->getEncoderTicksPerRotation();
-		const double conversion_factor = state->getConversionFactor();
+		// Update local status with relevant global config
+		// values set by write(). This way, items configured
+		// by controllers will be reflected in the state here
+		// used when reading from talons.
+		// Realistically they won't change much (except maybe mode)
+		// but unless it causes performance problems reading them
+		// each time through the loop is easier than waiting until
+		// they've been correctly set by write() before using them
+		// here.
+		// Note that this isn't a complete list - only the values
+		// used by the read thread are copied over.  Update
+		// as needed when more are read
+		{
+			std::lock_guard<std::mutex> l(*mutex);
+			talon_mode = state->getTalonMode();
+			encoder_feedback = state->getEncoderFeedback();
+			encoder_ticks_per_rotation = state->getEncoderTicksPerRotation();
+			conversion_factor = state->getConversionFactor();
+		}
+
+		// TODO : make this configurable
+		if (can_id == 31 || can_id == 32) // Don't read any status for intake motors
+			return;
+
+		if (talon_mode == hardware_interface::TalonMode_Follower)
+			return;
 
 		const double radians_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Position) * conversion_factor;
 		const double radians_per_second_scale = getConversionFactor(encoder_ticks_per_rotation, encoder_feedback, hardware_interface::TalonMode_Velocity)* conversion_factor;
@@ -727,7 +755,7 @@ void FRCRobotHWInterface::talon_read_thread(std::shared_ptr<ctre::phoenix::motor
 			// TODO - this should be if (!drivebase) 
 			// Don't bother reading status while running 
 			// drive base motion profile code
-			if (state->getCANID() == 51 || state->getCANID() == 41) //All we care about are the arm and lift
+			if (can_id == 51 || can_id == 41) //All we care about are the arm and lift
 			{
 				const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 				safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
@@ -748,7 +776,7 @@ void FRCRobotHWInterface::talon_read_thread(std::shared_ptr<ctre::phoenix::motor
 		if (writing_points_.load(std::memory_order_relaxed))
 		{
 			// TODO : get rid of this hard-coded canID stuff
-			if (state->getCANID() == 51 || state->getCANID() == 41) //All we care about are the arm and lift
+			if (can_id == 51 || can_id == 41) //All we care about are the arm and lift
 			{
 				const double position = talon->GetSelectedSensorPosition(pidIdx) * radians_scale;
 				safeTalonCall(talon->GetLastError(), "GetSelectedSensorPosition");
@@ -757,7 +785,7 @@ void FRCRobotHWInterface::talon_read_thread(std::shared_ptr<ctre::phoenix::motor
 			}
 			// TODO - don't hard code
 			// This is a check to see if the talon is a drive base one
-			else if (state->getCANID() <= 30)
+			else if (can_id <= 30)
 			{
 				ctre::phoenix::motion::MotionProfileStatus talon_status;
 				safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
@@ -784,7 +812,7 @@ void FRCRobotHWInterface::talon_read_thread(std::shared_ptr<ctre::phoenix::motor
 		// TODO : don't hard-code this
 		// Code to handle status read for drive base motion
 		// profile mode
-		else if (state->getCANID() < 30 && mp_written->load(std::memory_order_relaxed))
+		else if (can_id < 30 && mp_written->load(std::memory_order_relaxed))
 		{
 			ctre::phoenix::motion::MotionProfileStatus talon_status;
 			safeTalonCall(talon->GetMotionProfileStatus(talon_status), "GetMotionProfileStatus");
@@ -824,7 +852,6 @@ void FRCRobotHWInterface::talon_read_thread(std::shared_ptr<ctre::phoenix::motor
 		//safeTalonCall(talon->GetLastError(), "GetTemperature");
 
 		//closed-loop
-		const hardware_interface::TalonMode talon_mode = state->getTalonMode();
 		//double closed_loop_error;
 		//double integral_accumulator;
 		//double error_derivative;
@@ -877,7 +904,7 @@ void FRCRobotHWInterface::talon_read_thread(std::shared_ptr<ctre::phoenix::motor
 		bool reverse_limit_switch;
 		bool update_limit_switches = false;
 		// TODO : replace with config item
-		if(state->getCANID() == 51)
+		if(can_id == 51)
 		{
 			auto sensor_collection = talon->GetSensorCollection();
 			forward_limit_switch = sensor_collection.IsFwdLimitSwitchClosed();
@@ -930,7 +957,7 @@ void FRCRobotHWInterface::talon_read_thread(std::shared_ptr<ctre::phoenix::motor
 				//state->setActiveTrajectoryHeading(active_trajectory_heading);
 				//state->setMotionProfileTopLevelBufferCount(mp_top_level_buffer_count;);
 			}
-			//state->setFaulstate(faulstate->ToBitfield());
+			//state->setFaultState(faultstate->ToBitfield());
 			//state->setForwardLimitSwitch(sensor_collection.IsFwdLimitSwitchClosed());
 			//state->setReverseLimitSwitch(sensor_collection.IsRevLimitSwitchClosed());
 
@@ -949,8 +976,42 @@ void FRCRobotHWInterface::read(ros::Duration &/*elapsed_time*/)
 	for (std::size_t joint_id = 0; joint_id < num_can_talon_srxs_; ++joint_id)
 	{
 		std::lock_guard<std::mutex> l(*talon_read_state_mutexes_[joint_id]);
-		// TODO : see if we need to define operator=
-		talon_state_[joint_id] = *talon_read_thread_states_[joint_id];
+		auto &ts   = talon_state_[joint_id];
+		auto &trts = talon_read_thread_states_[joint_id];
+
+		// Copy config items from talon state to talon_read_thread_state
+		// This makes sure config items set by controllers is
+		// eventually reflected in the state unique to the
+		// talon_read_thread code
+		trts->setTalonMode(ts.getTalonMode());
+		trts->setEncoderFeedback(ts.getEncoderFeedback());
+		trts->setEncoderTicksPerRotation(ts.getEncoderTicksPerRotation());
+		trts->setConversionFactor(ts.getConversionFactor());
+
+		// Copy talon state values read in the read thread into the
+		// talon state shared globally with the rest of the hardware
+		// interface code
+		ts.setPosition(trts->getPosition());
+		ts.setSpeed(trts->getSpeed());
+		ts.setOutputCurrent(trts->getOutputCurrent());
+		ts.setBusVoltage(trts->getBusVoltage());
+		ts.setMotorOutputPercent(trts->getMotorOutputPercent());
+		ts.setOutputVoltage(trts->getOutputVoltage());
+		ts.setTemperature(trts->getTemperature());
+		ts.setClosedLoopError(trts->getClosedLoopError());
+		ts.setIntegralAccumulator(trts->getIntegralAccumulator());
+		ts.setErrorDerivative(trts->getErrorDerivative());
+		ts.setClosedLoopTarget(trts->getClosedLoopTarget());
+		ts.setActiveTrajectoryPosition(trts->getActiveTrajectoryPosition());
+		ts.setActiveTrajectoryVelocity(trts->getActiveTrajectoryVelocity());
+		ts.setActiveTrajectoryHeading(trts->getActiveTrajectoryHeading());
+		ts.setMotionProfileTopLevelBufferCount(trts->getMotionProfileTopLevelBufferCount());
+		ts.setFaults(trts->getFaults());
+		ts.setForwardLimitSwitch(trts->getForwardLimitSwitch());
+		ts.setReverseLimitSwitch(trts->getReverseLimitSwitch());
+		ts.setForwardSoftlimitHit(trts->getForwardSoftlimitHit());
+		ts.setReverseSoftlimitHit(trts->getReverseSoftlimitHit());
+		ts.setStickyFaults(trts->getStickyFaults());
 	}
 		
 	for (size_t i = 0; i < num_nidec_brushlesses_; i++)
