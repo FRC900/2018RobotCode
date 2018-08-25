@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 		talon_state_controller::TalonState::ConstPtr s = m.instantiate<talon_state_controller::TalonState>();
 		if (s != NULL){
 			temp_file << s->header << std::endl;
-			for (int i = 0; i < 8; i++)
+			/*for (int i = 0; i < 8; i++)
 			{
 				temp_file << "i: " << i << std::endl;
 				temp_file << "position: " << s->position[i] << std::endl;
@@ -51,9 +51,9 @@ int main(int argc, char **argv)
 				kevin_stuff << "speed: " << s->speed[i] << std::endl;
 				kevin_stuff << "setpoint: " << s->set_point[i] << std::endl;
 				kevin_stuff << "talonmode: " << s->talon_mode[i] << std::endl;
-			}
+                }*/
 
-		    /*temp_file << "position bl_angle: " << s->position[0] << std::endl;
+		    temp_file << "position bl_angle: " << s->position[0] << std::endl;
 		    temp_file << "position bl_drive: " << s->position[1] << std::endl;
 		    temp_file << "position br_angle: " << s->position[2] << std::endl;
 		    temp_file << "position br_drive: " << s->position[3] << std::endl;
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 			temp_file << "speed fl_angle: " << s->speed[4] << std::endl;
 			temp_file << "speed fl_drive: " << s->speed[5] << std::endl;
 			temp_file << "speed fr_angle: " << s->speed[6] << std::endl;
-			temp_file << "speed fr_drive: " << s->speed[7] << std::endl;*/
+			temp_file << "speed fr_drive: " << s->speed[7] << std::endl;
 		}
 
 	}
