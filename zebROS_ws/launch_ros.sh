@@ -1,4 +1,6 @@
-
+# Our team was created in the year 2002
+# This file can be used to launch lots of sim code! If you program, you'll use this a lot :)
+# 4) Switch branches to auto_preseason and look in the list of files for the fifth hint.
 
 launch_sim_code()
 {

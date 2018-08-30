@@ -22,6 +22,13 @@
  *Press down to climb (lift goes to position)
  *
  */
+
+/* CTRE CTRE CTRE CTRE CTRE!
+ * 7) You did it! You reached the end of the scavenger hunt. Good job, now you know some github stuff!!
+ * Fun fact, everything you just did can also be done in the terminal. It's way faster and lots of fun (so join the programming team... )
+ * the superduper secret programming key word is BSOD. Go ask Niall or Olivia what it means and you win!!
+ */
+
 static double dead_zone = .2, slow_mode = .33, max_speed = 3.6, max_rot = 8.8, joystick_scale = 3, rotation_scale = 4;
 void dead_zone_check(double &val1, double &val2)
 {

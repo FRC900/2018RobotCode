@@ -3,6 +3,10 @@ project(ros_control_boilerplate)
 
 include ("../cmake_modules/CMakeOpt.cmake")
 
+# NIDEC NIDEC NIDEC NIDEC NIDEC NIDEC
+# 3) This is a CMakeLists.txt file, which defines everything that a package needs to run.
+# Find out what year this team was founded from our website. That year is hidden somewhere in our code...
+
 find_package(catkin REQUIRED COMPONENTS
   cmake_modules
   realtime_tools

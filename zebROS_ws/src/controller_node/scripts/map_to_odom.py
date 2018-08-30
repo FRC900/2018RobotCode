@@ -85,3 +85,8 @@ if __name__ == "__main__":
     mpo = MapToOdom()
 
     rospy.spin()
+
+
+# LIDAR LIDAR LIDAR LIDAR LIDAR LIDAR LIDAR
+# 6) Only one more clue left... What's the company's name which we get all of our motor controllers from? It's an acronym, and yes, you can use the internet. 
+# The last hint will NOT be in the ros_control_boilerplate package! It WILL be somewhere in zebROS_ws. 
