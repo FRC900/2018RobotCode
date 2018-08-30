@@ -1,0 +1,3 @@
+5) Okay, go back to the master branch now :)
+What's the name of the sensor that we use to make a 2D map of the space we're in? Five letters... 
+When you search this, a lot should come up. Your hint will be in the only file where the Language is "Python"
