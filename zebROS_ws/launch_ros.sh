@@ -62,6 +62,7 @@ for i in $@; do
         echo -e "\t rqt_console \t-> launches rqt_console"
         echo -e "\t rqt_gui \t-> launches rqt_gui"
         echo -e "\t ds \t\t-> launches RQT driver station sim"
+        echo -e "\t visualize \t-> launches motion profile simulation node"
         echo -e "\t any other argument is interpreted as a .rviz config file"
     elif [ $i = "rviz" ]; then
         launch_rviz
