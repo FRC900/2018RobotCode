@@ -24,7 +24,7 @@
  */
 
 /* CTRE CTRE CTRE CTRE CTRE!
- * 7) You did it! You reached the end of the scavenger hunt. Good job, now you know some github stuff!!
+ * 8) You did it! You reached the end of the scavenger hunt. Good job, now you know some github stuff!!
  * Fun fact, everything you just did can also be done in the terminal. It's way faster and lots of fun (so join the programming team... )
  * the superduper secret programming key word is BSOD. Go ask Niall or Olivia what it means and you win!!
  */

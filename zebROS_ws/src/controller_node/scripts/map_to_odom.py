@@ -88,5 +88,5 @@ if __name__ == "__main__":
 
 
 # LIDAR LIDAR LIDAR LIDAR LIDAR LIDAR LIDAR
-# 6) Only one more clue left... What's the company's name which we get all of our motor controllers from? It's an acronym, and yes, you can use the internet. 
-# The last hint will NOT be in the ros_control_boilerplate package! It WILL be somewhere in zebROS_ws. 
+# 6) Look up WPILIB and click on the first link. From there, find the Control System Hardware Overview. What company manufactures the SD540B and SD540C Motor Controllers? Find the name of that company somewhere in our code... 
+
