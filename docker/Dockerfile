@@ -24,14 +24,14 @@ RUN apt update && \
 USER ubuntu
 
 RUN cd && \
-    wget http://www.ctr-electronics.com/downloads/lib/CTRE_Phoenix_FRCLibs_NON-WINDOWS_v5.2.1.1.zip && \
+    wget http://www.ctr-electronics.com/downloads/lib/CTRE_Phoenix_FRCLibs_NON-WINDOWS_v5.7.1.0.zip && \
     mkdir ctre && \
     cd ctre && \
-    unzip ../CTRE_Phoenix_FRCLibs_NON-WINDOWS_v5.2.1.1.zip && \
+    unzip ../CTRE_Phoenix_FRCLibs_NON-WINDOWS_v5.7.1.0.zip && \
     mkdir -p ~/wpilib/user && \
     cp -r cpp ~/wpilib/user && \
     cd .. && \
-    rm -rf ctre CTRE_Phoenix_FRCLibs_NON-WINDOWS_v5.2.1.1.zip && \
+    rm -rf ctre CTRE_Phoenix_FRCLibs_NON-WINDOWS_v5.7.1.0.zip && \
     cd && \
     wget https://www.kauailabs.com/public_files/navx-mxp/navx-mxp-libs.zip && \
     mkdir navx && \
